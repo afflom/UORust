@@ -12,12 +12,16 @@ use syn::visit::Visit;
 
 use crate::error::{io, UorustError};
 use crate::facts::{
-    Advisories, Advisory, Capability, Dep, EnumFact, FnFact, LockedPackage, Package, SourceFile,
-    Span, StructFact, Target, TargetKind, Variant, Workspace,
+    Advisories, Advisory, Capability, Dep, EnumFact, FileSyntax, FnFact, FnSyntax, LockedPackage,
+    Package, SourceFile, Span, StructFact, Syntax, Target, TargetKind, Variant, Workspace,
 };
 
-/// Read a workspace from its root directory.
-pub(crate) fn workspace(root: &Path, advisory_db: Option<&Path>) -> Result<Workspace, UorustError> {
+/// Read a workspace from its root directory: its facts, and the syntax the
+/// lift reads.
+pub(crate) fn workspace(
+    root: &Path,
+    advisory_db: Option<&Path>,
+) -> Result<(Workspace, Syntax), UorustError> {
     let root = root.canonicalize().map_err(|e| io(root.to_path_buf(), e))?;
     let metadata = metadata(&root)?;
     let root_manifest = read_toml(&root.join("Cargo.toml"))?;
@@ -28,8 +32,11 @@ pub(crate) fn workspace(root: &Path, advisory_db: Option<&Path>) -> Result<Works
         .map(|p| p.iter().collect())
         .unwrap_or_default();
     let mut packages = Vec::new();
+    let mut syntax = Syntax::default();
     for member in members {
-        packages.push(package(&root, member, &workspace_lints)?);
+        let (package, files) = package(&root, member, &workspace_lints)?;
+        packages.push(package);
+        syntax.files.extend(files);
     }
     packages.sort_by(|a, b| a.name.cmp(&b.name));
     let name = root
@@ -48,14 +55,17 @@ pub(crate) fn workspace(root: &Path, advisory_db: Option<&Path>) -> Result<Works
         Some(db) => Some(advisories(db, &lock)?),
         None => None,
     };
-    Ok(Workspace {
-        name,
-        lock,
-        has_deny: deny.is_file(),
-        deny_ignores,
-        advisories,
-        packages,
-    })
+    Ok((
+        Workspace {
+            name,
+            lock,
+            has_deny: deny.is_file(),
+            deny_ignores,
+            advisories,
+            packages,
+        },
+        syntax,
+    ))
 }
 
 /// `[advisories] ignore` of `deny.toml`: bare IDs, or `{ id, reason }`.
@@ -294,7 +304,7 @@ fn package(
     root: &Path,
     meta: &Value,
     workspace_lints: &BTreeMap<String, String>,
-) -> Result<Package, UorustError> {
+) -> Result<(Package, BTreeMap<String, FileSyntax>), UorustError> {
     let manifest = PathBuf::from(text(meta, "manifest_path"));
     let dir_abs = manifest.parent().unwrap_or(root).to_path_buf();
     let dir = rel(root, &dir_abs);
@@ -369,6 +379,7 @@ fn package(
         (a.name.as_str(), a.kind.as_str()).cmp(&(b.name.as_str(), b.kind.as_str()))
     });
     let mut files = Vec::new();
+    let mut syntax = BTreeMap::new();
     let mut paths = Vec::new();
     for sub in ["src", "tests", "examples", "benches"] {
         collect_rs(&dir_abs.join(sub), &mut paths)?;
@@ -379,15 +390,11 @@ fn package(
         let Some((target, module)) = assign(&rel_path, &dir, &targets) else {
             continue;
         };
-        files.push(source(
-            &path,
-            rel_path,
-            target,
-            module,
-            &targets[target].kind,
-        )?);
+        let (file, file_syntax) = source(&path, rel_path, target, module, &targets[target].kind)?;
+        syntax.insert(file.rel.clone(), file_syntax);
+        files.push(file);
     }
-    Ok(Package {
+    let package = Package {
         name: text(meta, "name"),
         version: text(meta, "version"),
         description: text(meta, "description"),
@@ -409,7 +416,8 @@ fn package(
         deps,
         lints,
         files,
-    })
+    };
+    Ok((package, syntax))
 }
 
 /// Every `.rs` file under `dir`, not descending into a nested package or a
@@ -519,7 +527,7 @@ fn source(
     target: usize,
     module: String,
     kind: &TargetKind,
-) -> Result<SourceFile, UorustError> {
+) -> Result<(SourceFile, FileSyntax), UorustError> {
     let text = std::fs::read_to_string(path).map_err(|e| io(path, e))?;
     let mut file = SourceFile {
         rel: rel.clone(),
@@ -527,12 +535,13 @@ fn source(
         module,
         ..SourceFile::default()
     };
+    let mut syntax = FileSyntax::default();
     let parsed = match syn::parse_file(&text) {
         Ok(parsed) => parsed,
         Err(error) => {
             let at = error.span().start();
             file.parse_error = Some(format!("{}:{}: {error}", rel, at.line));
-            return Ok(file);
+            return Ok((file, syntax));
         }
     };
     file.doc = doc_of(&parsed.attrs);
@@ -550,10 +559,11 @@ fn source(
         product,
         lib,
         &mut file,
+        &mut syntax,
     );
     file.capabilities.sort();
     file.capabilities.dedup();
-    Ok(file)
+    Ok((file, syntax))
 }
 
 fn is_cfg_test(attrs: &[syn::Attribute]) -> bool {
@@ -681,7 +691,7 @@ fn function(
     rel: &str,
     in_test: bool,
     lib: bool,
-) -> FnFact {
+) -> (FnFact, FnSyntax) {
     let doc = doc_of(attrs);
     let mut body = BodyScan::default();
     if let Some(block) = block {
@@ -690,7 +700,7 @@ fn function(
     let test = attrs
         .iter()
         .any(|a| a.path().segments.last().is_some_and(|s| s.ident == "test"));
-    FnFact {
+    let fact = FnFact {
         name: sig.ident.to_string(),
         owner,
         public,
@@ -705,13 +715,17 @@ fn function(
         signature: tidy(&sig.to_token_stream().to_string()),
         calls: body.calls,
         literals: body.literals,
-        asserts: body.asserts,
         transitions: body.transitions,
-        item: Some(sig.clone()),
-        block: block.cloned(),
+        effect: block.and_then(effect_of),
         in_trait: false,
         implements: None,
-    }
+    };
+    let syntax = FnSyntax {
+        signature: sig.clone(),
+        block: block.cloned(),
+        asserts: body.asserts,
+    };
+    (fact, syntax)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -723,12 +737,13 @@ fn items(
     product: bool,
     lib: bool,
     file: &mut SourceFile,
+    syntax: &mut FileSyntax,
 ) {
     for item in list {
         match item {
             syn::Item::Fn(f) => {
                 let public = matches!(f.vis, syn::Visibility::Public(_));
-                file.fns.push(function(
+                let (fact, fn_syntax) = function(
                     &f.sig,
                     Some(&f.block),
                     &f.attrs,
@@ -737,7 +752,9 @@ fn items(
                     rel,
                     in_test,
                     lib,
-                ));
+                );
+                file.fns.push(fact);
+                syntax.fns.push(fn_syntax);
             }
             syn::Item::Impl(imp) => {
                 let self_ty = tidy(&imp.self_ty.to_token_stream().to_string());
@@ -754,7 +771,7 @@ fn items(
                 for member in &imp.items {
                     if let syn::ImplItem::Fn(f) = member {
                         let public = matches!(f.vis, syn::Visibility::Public(_));
-                        let mut fact = function(
+                        let (mut fact, fn_syntax) = function(
                             &f.sig,
                             Some(&f.block),
                             &f.attrs,
@@ -766,6 +783,7 @@ fn items(
                         );
                         fact.implements.clone_from(&implements);
                         file.fns.push(fact);
+                        syntax.fns.push(fn_syntax);
                     }
                 }
             }
@@ -773,7 +791,7 @@ fn items(
                 let public = matches!(t.vis, syn::Visibility::Public(_));
                 for member in &t.items {
                     if let syn::TraitItem::Fn(f) = member {
-                        let mut fact = function(
+                        let (mut fact, fn_syntax) = function(
                             &f.sig,
                             f.default.as_ref(),
                             &f.attrs,
@@ -785,6 +803,7 @@ fn items(
                         );
                         fact.in_trait = true;
                         file.fns.push(fact);
+                        syntax.fns.push(fn_syntax);
                     }
                 }
             }
@@ -814,12 +833,14 @@ fn items(
                             file: rel.to_string(),
                             line: line_of(st.ident.span()),
                         },
-                        fields: named
+                    });
+                    syntax.structs.push(
+                        named
                             .named
                             .iter()
                             .filter_map(|f| Some((f.ident.as_ref()?.to_string(), f.ty.clone())))
                             .collect(),
-                    });
+                    );
                 }
             }
             syn::Item::Use(u) => {
@@ -834,7 +855,7 @@ fn items(
             syn::Item::Mod(m) => {
                 if let Some((_, inner)) = &m.content {
                     let test = in_test || is_cfg_test(&m.attrs);
-                    items(inner, rel, None, test, product, lib, file);
+                    items(inner, rel, None, test, product, lib, file, syntax);
                 }
             }
             _ => {}
@@ -1096,7 +1117,7 @@ impl<'ast> Visit<'ast> for CapabilityScan<'_> {
 /// call through `std::fs`, `std::process`, `std::env` or `std::net`, or a
 /// file-system query on a path (`exists`, `is_dir`, `read_dir`, ...). The
 /// capability is the one the security facet already records for the crate.
-pub(crate) fn effect_of(block: &syn::Block) -> Option<(Capability, String)> {
+fn effect_of(block: &syn::Block) -> Option<(Capability, String)> {
     struct Scan(Option<(Capability, String)>);
     impl<'ast> Visit<'ast> for Scan {
         fn visit_path(&mut self, node: &'ast syn::Path) {

@@ -140,12 +140,10 @@ pub(crate) struct FnFact {
     pub(crate) calls: Vec<String>,
     /// String literals in the body.
     pub(crate) literals: Vec<String>,
-    /// `assert!`/`assert_eq!` arguments, as source text.
-    pub(crate) asserts: Vec<(String, Vec<syn::Expr>)>,
     /// Arms `E::A => E::B` of a match in the body.
     pub(crate) transitions: Vec<(String, String, String)>,
-    pub(crate) item: Option<syn::Signature>,
-    pub(crate) block: Option<syn::Block>,
+    /// The first operating-system effect the body performs directly.
+    pub(crate) effect: Option<(Capability, String)>,
     /// The method is declared by a trait (`owner` names the trait), not by
     /// an `impl`.
     pub(crate) in_trait: bool,
@@ -167,7 +165,31 @@ pub(crate) struct EnumFact {
 pub(crate) struct StructFact {
     pub(crate) name: String,
     pub(crate) span: Span,
-    pub(crate) fields: Vec<(String, syn::Type)>,
+}
+
+/// The syntax the lift reads, kept apart from the facts: per source file,
+/// by its path relative to the workspace root.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Syntax {
+    pub(crate) files: BTreeMap<String, FileSyntax>,
+}
+
+/// One file's syntax, in the order of its [`SourceFile`]'s facts.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct FileSyntax {
+    /// One per [`SourceFile::fns`].
+    pub(crate) fns: Vec<FnSyntax>,
+    /// The named fields of each of [`SourceFile::structs`].
+    pub(crate) structs: Vec<Vec<(String, syn::Type)>>,
+}
+
+/// One function's syntax.
+#[derive(Clone, Debug)]
+pub(crate) struct FnSyntax {
+    pub(crate) signature: syn::Signature,
+    pub(crate) block: Option<syn::Block>,
+    /// `assert!`/`assert_eq!` arguments.
+    pub(crate) asserts: Vec<(String, Vec<syn::Expr>)>,
 }
 
 #[derive(Clone, Debug)]

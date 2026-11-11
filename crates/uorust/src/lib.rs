@@ -39,8 +39,8 @@ pub fn project_workspace(
     if !is_timestamp(&options.last_modified) {
         return Err(UorustError::BadTimestamp(options.last_modified.clone()));
     }
-    let workspace = ingest::workspace(root, options.advisories.as_deref())?;
-    let mut files = project::project(&workspace, options);
+    let (workspace, syntax) = ingest::workspace(root, options.advisories.as_deref())?;
+    let mut files = project::project(&workspace, &syntax, options);
     let manifest: String = files
         .iter()
         .map(|(path, bytes)| format!("{}  {path}\n", project::sha(bytes)))

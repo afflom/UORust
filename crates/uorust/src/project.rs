@@ -6,7 +6,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use sha2::{Digest, Sha256};
 
 use crate::admit::Refusal;
-use crate::facts::{Capability, FnFact, Package, SourceFile, Span, TargetKind, Workspace};
+use crate::facts::{
+    Capability, FnFact, FnSyntax, Package, SourceFile, Span, Syntax, TargetKind, Workspace,
+};
 use crate::ingest::summary;
 use crate::lex::{pascal, string, string_list, Decl, Module};
 use crate::lift::{self, Candidate, Residue, Ty, Types};
@@ -154,6 +156,11 @@ impl<'a> Ctx<'a> {
         out
     }
 
+    /// The syntax of a function, which the lift reads.
+    fn syntax<'s>(&self, syntax: &'s Syntax, r: FnRef) -> &'s FnSyntax {
+        &syntax.files[&self.file(r).rel].fns[r.idx]
+    }
+
     fn component_suffix(id: &str) -> &str {
         id.strip_prefix("Architecture::component").unwrap_or(id)
     }
@@ -192,7 +199,11 @@ fn kebab(name: &str) -> String {
 }
 
 /// The whole projection: path -> bytes.
-pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec<u8>> {
+pub(crate) fn project(
+    ws: &Workspace,
+    syntax: &Syntax,
+    options: &Options,
+) -> BTreeMap<String, Vec<u8>> {
     let mut ctx = Ctx {
         ws,
         refusals: BTreeSet::new(),
@@ -252,7 +263,7 @@ pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec
     }
     let security = security(&ctx, options);
     let quality = quality(&mut ctx, iface.feature_count);
-    let behavior = behavior(&mut ctx);
+    let behavior = behavior(&mut ctx, syntax);
     let supply = supply(&ctx);
     modules.push(arch);
     modules.push(iface.module);
@@ -2792,7 +2803,7 @@ fn quality(ctx: &mut Ctx<'_>, features: usize) -> Module {
     }
 }
 
-fn behavior(ctx: &mut Ctx<'_>) -> Module {
+fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
     let ws = ctx.ws;
     let mut decls = Vec::new();
     // Unit-variant enums of product code, by name; a name two crates share is refused.
@@ -2837,7 +2848,7 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
             ) {
                 continue;
             }
-            for st in &file.structs {
+            for (st, fields) in file.structs.iter().zip(&syntax.files[&file.rel].structs) {
                 if raw_structs.contains_key(&st.name) || enums.contains_key(&st.name) {
                     clashing.insert(st.name.clone());
                     ctx.refusals.insert(Refusal::Collision {
@@ -2846,7 +2857,7 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
                     });
                     continue;
                 }
-                raw_structs.insert(st.name.clone(), st.fields.clone());
+                raw_structs.insert(st.name.clone(), fields.clone());
             }
         }
     }
@@ -2887,12 +2898,7 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
     // The I/O shell: a function that performs an effect, or calls one that does.
     let mut effectful: BTreeMap<FnRef, String> = BTreeMap::new();
     for &r in &all {
-        if let Some((cap, op)) = ctx
-            .func(r)
-            .block
-            .as_ref()
-            .and_then(crate::ingest::effect_of)
-        {
+        if let Some((cap, op)) = &ctx.func(r).effect {
             effectful.insert(r, format!("{} effect: {op}", cap.key()));
         }
     }
@@ -2940,8 +2946,11 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
         if !ctx.product(r) || f.name == "main" {
             continue;
         }
-        let Some(sig) = &f.item else { continue };
-        let Some(block) = &f.block else { continue };
+        let fn_syntax = ctx.syntax(syntax, r);
+        let sig = &fn_syntax.signature;
+        let Some(block) = &fn_syntax.block else {
+            continue;
+        };
         let (rust, name) = match method {
             Some(o) => (
                 format!("{o}::{}", f.name),
@@ -3043,7 +3052,7 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
         if !f.test {
             continue;
         }
-        for (i, (kind, args)) in f.asserts.iter().enumerate() {
+        for (i, (kind, args)) in ctx.syntax(syntax, r).asserts.iter().enumerate() {
             if let Some((statement, callee)) = lift::acceptance(kind, args, &results, &types) {
                 let name = format!("accept{}{}", pascal(&[&ctx.package(r).name, &f.name]), i);
                 if theorems.insert(name.clone()) {
