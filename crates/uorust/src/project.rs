@@ -18,6 +18,9 @@ pub struct Options {
     pub name: String,
     /// The control set's `lastModified`, `YYYY-MM-DDThh:mm:ssZ`.
     pub last_modified: String,
+    /// A RustSec advisory database checkout to check the locked packages
+    /// against; without one, the frontier records that none was consulted.
+    pub advisories: Option<std::path::PathBuf>,
 }
 
 const ARCH: &str = "Architecture";
@@ -206,6 +209,22 @@ pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec
     let arch = architecture(&ctx);
     let iface = interface(&mut ctx);
     let design = design(&mut ctx);
+    match &ws.advisories {
+        None => {
+            ctx.refusals.insert(Refusal::AdvisoriesUnconsulted);
+        }
+        Some(db) => {
+            for a in &db.hits {
+                if !ws.has_deny && !ws.deny_ignores.contains_key(&a.id) {
+                    ctx.refusals.insert(Refusal::UnansweredAdvisory {
+                        id: a.id.clone(),
+                        package: a.package.clone(),
+                        version: a.version.clone(),
+                    });
+                }
+            }
+        }
+    }
     let security = security(&ctx, options);
     let quality = quality(&mut ctx, iface.feature_count);
     let behavior = behavior(&mut ctx);
@@ -1970,6 +1989,10 @@ struct Threat {
     control_name: String,
     control_text: String,
     evidence: Vec<(&'static str, String)>,
+    /// Whether the control's verification passes today.
+    passing: bool,
+    /// The rationale of an accepted risk, which has no control.
+    accepted: Option<String>,
 }
 
 fn capability_threat(
@@ -2100,6 +2123,8 @@ fn threats(ctx: &Ctx<'_>) -> Vec<Threat> {
                         target.name
                     ),
                     evidence,
+                    passing: true,
+                    accepted: None,
                 });
             }
             for (cap, list) in sites {
@@ -2123,6 +2148,8 @@ fn threats(ctx: &Ctx<'_>) -> Vec<Threat> {
                         target.name
                     ),
                     evidence: list.into_iter().map(|s| ("review", s)).collect(),
+                    passing: true,
+                    accepted: None,
                 });
             }
         }
@@ -2155,6 +2182,105 @@ fn threats(ctx: &Ctx<'_>) -> Vec<Threat> {
             control_text: "Every dependency is pinned with its checksum and checked against advisories and licences."
                 .to_string(),
             evidence,
+            passing: true,
+            accepted: None,
+        });
+        out.extend(advisory_threats(ctx, &first.id));
+    }
+    out
+}
+
+/// UR-R21: each advisory that affects a locked package is a risk on the
+/// supply chain, answered by the advisory gate or accepted where `deny.toml`
+/// ignores it.
+fn advisory_threats(ctx: &Ctx<'_>, first: &str) -> Vec<Threat> {
+    let ws = ctx.ws;
+    let mut out = Vec::new();
+    let Some(db) = &ws.advisories else {
+        return out;
+    };
+    for a in &db.hits {
+        let key: String = format!("{} v{}", a.id, a.version.replace('.', "p"))
+            .chars()
+            .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
+            .collect();
+        let suffix = pascal(&[&key]);
+        let component = ctx
+            .components
+            .iter()
+            .find(|c| c.kind == "externalSystem" && c.name == a.package)
+            .map_or_else(|| first.to_string(), |c| c.id.clone());
+        let has = |c: &str| a.categories.iter().any(|x| x == c);
+        let stride =
+            if has("code-execution") || has("memory-corruption") || has("privilege-escalation") {
+                "elevationOfPrivilege"
+            } else if has("denial-of-service") {
+                "denialOfService"
+            } else if has("memory-exposure") || has("crypto-failure") {
+                "informationDisclosure"
+            } else {
+                "tampering"
+            };
+        let (likelihood, impact) = match (&a.informational, stride) {
+            (Some(_), _) => ("low", "minor"),
+            (None, "elevationOfPrivilege") => ("medium", "critical"),
+            (None, _) => ("medium", "major"),
+        };
+        let patched = if a.patched.is_empty() {
+            "no patched release".to_string()
+        } else {
+            format!("patched in {}", a.patched.join(", "))
+        };
+        let accepted = ws.deny_ignores.get(&a.id).map(|reason| {
+            if reason.is_empty() {
+                format!("deny.toml ignores {} with no reason given", a.id)
+            } else {
+                format!("deny.toml ignores {}: {reason}", a.id)
+            }
+        });
+        if accepted.is_none() && !ws.has_deny {
+            continue;
+        }
+        let title = if a.title.is_empty() {
+            a.id.clone()
+        } else {
+            a.title.clone()
+        };
+        out.push(Threat {
+            asset: qualified(SEC, &format!("assetAdvisory{suffix}")),
+            asset_name: format!("{} {}", a.package, a.version),
+            asset_text: format!("The locked package {} {}.", a.package, a.version),
+            component,
+            threat: qualified(SEC, &format!("threatAdvisory{suffix}")),
+            threat_name: format!("{}: {title}", a.id),
+            threat_text: format!(
+                "{} ({}) affects {} {}; {patched}.",
+                a.id,
+                if a.date.is_empty() {
+                    "undated"
+                } else {
+                    &a.date
+                },
+                a.package,
+                a.version
+            ),
+            stride,
+            likelihood,
+            impact,
+            control_name: format!("Advisory gate for {}", a.id),
+            control_text: format!(
+                "cargo deny check advisories fails while {} affects {} {}.",
+                a.id, a.package, a.version
+            ),
+            evidence: vec![(
+                "gate",
+                format!(
+                    "cargo deny check advisories: deny.toml; advisory database {}",
+                    db.revision
+                ),
+            )],
+            passing: false,
+            accepted,
         });
     }
     out
@@ -2214,7 +2340,12 @@ fn security(ctx: &Ctx<'_>, options: &Options) -> Module {
     }
     let risk_index: BTreeMap<String, usize> =
         risks.iter().map(|(id, i, _)| (id.clone(), *i)).collect();
-    let controls = indexed(rows.iter().map(|r| (control_id(r), r)).collect());
+    let controls = indexed(
+        rows.iter()
+            .filter(|r| r.accepted.is_none())
+            .map(|r| (control_id(r), r))
+            .collect(),
+    );
     for (id, i, r) in &controls {
         decls.push(Decl::value(
             local(id),
@@ -2239,7 +2370,7 @@ fn security(ctx: &Ctx<'_>, options: &Options) -> Module {
         ));
     }
     for (id, i, r) in &controls {
-        let gated = r.evidence.iter().any(|(k, _)| *k == "gate");
+        let gated = r.passing && r.evidence.iter().any(|(k, _)| *k == "gate");
         decls.push(Decl::value(
             local(&id.replace("::control", "::measurement")),
             format!("{s}VerificationMeasurement"),
@@ -2336,6 +2467,20 @@ fn security(ctx: &Ctx<'_>, options: &Options) -> Module {
         ));
     }
     for (id, _, r) in &threat_rows {
+        if let Some(rationale) = &r.accepted {
+            decls.push(Decl::value(
+                format!("accepted{}", pascal(&[local(id)])),
+                format!("{tm}AcceptedRisk"),
+                record(
+                    &format!("{tm}AcceptedRisk"),
+                    &[
+                        ("threat", string(id)),
+                        ("rationale", string(&truncate(rationale, 256))),
+                    ],
+                ),
+            ));
+            continue;
+        }
         decls.push(Decl::value(
             format!("mapping{}", pascal(&[local(id)])),
             format!("{tm}ThreatMapping"),

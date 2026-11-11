@@ -55,9 +55,10 @@ app:
     cd app && lexlean fmt --check && lexlean lock --check
     prismpm --project app verify
 
-# UE-01, UE-07, UE-11: the engine's projections, checked by the SDK. The
-# committed fixture projection must be current and accepted; a fresh projection
-# of this workspace must be accepted too. `lexlean verify` elaborates both in
+# UE-01, UE-07, UE-11, UE-12: the engine's projections, checked by the SDK.
+# The committed fixture projection must be current and accepted; fresh
+# projections of this workspace and of the advised fixture, whose locked
+# smallvec has RustSec advisories, must be accepted too. `lexlean verify` elaborates both in
 # Lean, so every lifted definition type-checks and every acceptance theorem is
 # proved. The stamp is fixed so the bytes are.
 uorust:
@@ -66,6 +67,9 @@ uorust:
     rm -rf target/uorust-self
     cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z
     cd target/uorust-self && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
+    rm -rf target/uorust-advised
+    cargo run -q --locked -p uorust -- project crates/uorust/tests/fixtures/advised --out target/uorust-advised --name advised --last-modified 2026-11-11T00:00:00Z --advisories crates/uorust/tests/fixtures/advised/advisory-db
+    cd target/uorust-advised && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
 
 # Only the meta-gate, while iterating on a scenario. `test` already runs it.
 bdd:

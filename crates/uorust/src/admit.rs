@@ -30,6 +30,15 @@ pub(crate) enum Refusal {
     },
     /// A package declares no `rust-version`, so no MSRV measure exists.
     NoMsrv { package: String },
+    /// No advisory database was given, so no locked package was checked.
+    AdvisoriesUnconsulted,
+    /// An advisory affects a locked package and nothing answers it: no
+    /// advisory gate and no recorded acceptance.
+    UnansweredAdvisory {
+        id: String,
+        package: String,
+        version: String,
+    },
 }
 
 impl Refusal {
@@ -43,6 +52,8 @@ impl Refusal {
             Self::NoInitialState { .. } => "no-initial-state",
             Self::NoMsrv { .. } => "no-msrv",
             Self::AmbiguousFact { .. } => "ambiguous-fact",
+            Self::AdvisoriesUnconsulted => "advisories-unconsulted",
+            Self::UnansweredAdvisory { .. } => "unanswered-advisory",
         }
     }
 
@@ -55,6 +66,7 @@ impl Refusal {
             Self::Collision { .. } => "UR-R13",
             Self::NoInitialState { .. } | Self::AmbiguousFact { .. } => "UR-R26",
             Self::NoMsrv { .. } => "UR-R24",
+            Self::AdvisoriesUnconsulted | Self::UnansweredAdvisory { .. } => "UR-R21",
         }
     }
 
@@ -68,6 +80,9 @@ impl Refusal {
             | Self::AmbiguousFact { span, .. } => span.render(),
             Self::ExternalPath { package, .. } | Self::NoMsrv { package } => {
                 format!("{package}/Cargo.toml")
+            }
+            Self::AdvisoriesUnconsulted | Self::UnansweredAdvisory { .. } => {
+                "Cargo.lock".to_string()
             }
         }
     }
@@ -100,6 +115,17 @@ impl Refusal {
             Self::AmbiguousFact { fact, tags, .. } => format!(
                 "{fact} is both {}; the router refuses it as ambiguous",
                 tags.join(" and ")
+            ),
+            Self::AdvisoriesUnconsulted => "no RustSec advisory database was given \
+                 (--advisories), so no locked package was checked against advisories"
+                .to_string(),
+            Self::UnansweredAdvisory {
+                id,
+                package,
+                version,
+            } => format!(
+                "{id} affects {package} {version}, and the workspace has no advisory gate \
+                 (deny.toml) and no recorded acceptance of it"
             ),
         }
     }

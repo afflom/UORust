@@ -4,6 +4,13 @@
 
 spec = "uorust/frontier/1"
 
+[[refusal]]
+status = "open"
+reason = "advisories-unconsulted"
+route = "UR-R21"
+span = "Cargo.lock"
+detail = "no RustSec advisory database was given (--advisories), so no locked package was checked against advisories"
+
 [[residue]]
 status = "open"
 function = "thermo_core::config::load_target"

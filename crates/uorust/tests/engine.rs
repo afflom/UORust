@@ -28,6 +28,7 @@ fn options(name: &str) -> Options {
     Options {
         name: name.to_string(),
         last_modified: STAMP.to_string(),
+        advisories: None,
     }
 }
 
@@ -189,6 +190,7 @@ fn every_failure_is_a_typed_variant_ue_06() {
     let bad_stamp = Options {
         name: "x".into(),
         last_modified: "yesterday".into(),
+        advisories: None,
     };
     assert!(matches!(
         uorust::project_workspace(&fixture(), &bad_stamp),
@@ -238,6 +240,8 @@ fn vv_runs_the_sdk_checks_on_both_projections_ue_07() {
         "cd crates/uorust/tests/fixtures/thermostat-prism && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check",
         "project . --out target/uorust-self",
         "cd target/uorust-self && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check",
+        "--advisories crates/uorust/tests/fixtures/advised/advisory-db",
+        "cd target/uorust-advised && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check",
     ] {
         assert!(recipe.contains(needle), "the uorust recipe lacks `{needle}`:\n{recipe}");
     }
@@ -355,4 +359,72 @@ fn the_widened_lift_covers_the_fixture_ue_11() {
         !frontier.contains("function = \"thermo_core::band::"),
         "{frontier}"
     );
+}
+
+#[test]
+fn advisories_are_risks_on_the_supply_chain_ue_12() {
+    let advised = root().join("crates/uorust/tests/fixtures/advised");
+    let db = advised.join("advisory-db");
+    let with_db = Options {
+        advisories: Some(db.clone()),
+        ..options("advised")
+    };
+    let files = uorust::project_workspace(&advised, &with_db).expect("projects");
+    let security = text(&files, "src/Security.lex.tex");
+    for id in ["20180018", "20190009", "20190012", "20210003"] {
+        assert!(
+            security.contains(&format!("name: riskAdvisoryRustsec{id}V0p6p9,")),
+            "{id}:\n{security}"
+        );
+    }
+    // 0.6.9 is patched against RUSTSEC-2018-0003.
+    assert!(!security.contains("Rustsec20180003"));
+    // deny.toml ignores RUSTSEC-2018-0018 with a reason: an accepted risk, no control.
+    assert!(security.contains("name: acceptedThreatAdvisoryRustsec20180018V0p6p9,"));
+    assert!(!security.contains("name: controlAdvisoryRustsec20180018V0p6p9,"));
+    // The others are answered by the advisory gate, which fails today.
+    let measurement = security
+        .split("definition{")
+        .find(|d| d.contains("name: measurementAdvisoryRustsec20190012V0p6p9,"))
+        .expect("a measurement");
+    assert!(measurement.contains("passed := false"), "{measurement}");
+    let frontier = text(&files, "frontier.toml");
+    assert!(!frontier.contains("advisories-unconsulted"), "{frontier}");
+
+    // Without a database, the frontier says no advisory was consulted.
+    let files = project(&advised, "advised");
+    assert!(text(&files, "frontier.toml").contains("reason = \"advisories-unconsulted\""));
+    assert!(!text(&files, "src/Security.lex.tex").contains("Advisory"));
+
+    // Without deny.toml, an advisory nothing answers is refused, not modeled.
+    let copy = scratch(
+        "ue12",
+        &[
+            (
+                "Cargo.toml",
+                &std::fs::read_to_string(advised.join("Cargo.toml")).expect("manifest"),
+            ),
+            (
+                "Cargo.lock",
+                &std::fs::read_to_string(advised.join("Cargo.lock")).expect("lock"),
+            ),
+            (
+                "src/lib.rs",
+                &std::fs::read_to_string(advised.join("src/lib.rs")).expect("lib"),
+            ),
+        ],
+    );
+    let bare = Options {
+        advisories: Some(db),
+        ..options("advised")
+    };
+    let files = uorust::project_workspace(&copy, &bare).expect("projects");
+    let frontier = text(&files, "frontier.toml");
+    assert_eq!(
+        frontier.matches("reason = \"unanswered-advisory\"").count(),
+        4,
+        "{frontier}"
+    );
+    assert!(!text(&files, "src/Security.lex.tex").contains("Advisory"));
+    let _ = std::fs::remove_dir_all(copy);
 }

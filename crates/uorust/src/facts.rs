@@ -22,6 +22,33 @@ pub(crate) struct Workspace {
     pub(crate) packages: Vec<Package>,
     pub(crate) lock: Vec<LockedPackage>,
     pub(crate) has_deny: bool,
+    /// Advisory IDs `deny.toml` ignores, with the reason it gives.
+    pub(crate) deny_ignores: BTreeMap<String, String>,
+    /// The advisories consulted, when an advisory database was given.
+    pub(crate) advisories: Option<Advisories>,
+}
+
+/// What an advisory database says about the locked packages.
+#[derive(Clone, Debug)]
+pub(crate) struct Advisories {
+    /// The database's revision, or `unknown`.
+    pub(crate) revision: String,
+    /// Advisories that affect a locked package's version, by advisory ID.
+    pub(crate) hits: Vec<Advisory>,
+}
+
+/// One RustSec advisory against one locked package version.
+#[derive(Clone, Debug)]
+pub(crate) struct Advisory {
+    pub(crate) id: String,
+    pub(crate) package: String,
+    pub(crate) version: String,
+    pub(crate) title: String,
+    pub(crate) date: String,
+    /// `unmaintained`, `unsound` or `notice` for an informational advisory.
+    pub(crate) informational: Option<String>,
+    pub(crate) categories: Vec<String>,
+    pub(crate) patched: Vec<String>,
 }
 
 #[derive(Clone, Debug)]

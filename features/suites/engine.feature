@@ -72,3 +72,9 @@ Feature: engine
     Given the fixture workspace, whose band module uses checked, wrapping and saturating arithmetic, i64, &str, a struct, a tuple, Option, Result, a slice and format!
     When the suite exercises UE-11
     Then every band function is a Behavior definition, plain + in midpoint stays arithmetic residue, and the uorust recipe runs lexlean verify on both projections
+
+  @UE-12 @build
+  Scenario: A RustSec advisory that affects a locked package's version is a Risk on the supply chain, answered by the advisory gate or accepted where deny.toml ignores it with its reason; one nothing answers is refused, and a run without a database records that none was consulted
+    Given the advised fixture, whose Cargo.lock pins smallvec 0.6.9, with five copied RustSec advisories and a deny.toml that ignores RUSTSEC-2018-0018
+    When the suite exercises UE-12
+    Then Security holds a Risk for each of the four advisories that affect 0.6.9, an AcceptedRisk for the ignored one, failing gate measurements for the rest, and the SDK accepts the projection

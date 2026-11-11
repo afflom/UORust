@@ -12,12 +12,12 @@ use syn::visit::Visit;
 
 use crate::error::{io, UorustError};
 use crate::facts::{
-    Capability, Dep, EnumFact, FnFact, LockedPackage, Package, SourceFile, Span, StructFact,
-    Target, TargetKind, Variant, Workspace,
+    Advisories, Advisory, Capability, Dep, EnumFact, FnFact, LockedPackage, Package, SourceFile,
+    Span, StructFact, Target, TargetKind, Variant, Workspace,
 };
 
 /// Read a workspace from its root directory.
-pub(crate) fn workspace(root: &Path) -> Result<Workspace, UorustError> {
+pub(crate) fn workspace(root: &Path, advisory_db: Option<&Path>) -> Result<Workspace, UorustError> {
     let root = root.canonicalize().map_err(|e| io(root.to_path_buf(), e))?;
     let metadata = metadata(&root)?;
     let root_manifest = read_toml(&root.join("Cargo.toml"))?;
@@ -37,12 +37,173 @@ pub(crate) fn workspace(root: &Path) -> Result<Workspace, UorustError> {
         .and_then(|n| n.to_str())
         .unwrap_or("workspace")
         .to_string();
+    let lock = lock(&root.join("Cargo.lock"))?;
+    let deny = root.join("deny.toml");
+    let deny_ignores = if deny.is_file() {
+        ignores(&read_toml(&deny)?)
+    } else {
+        BTreeMap::new()
+    };
+    let advisories = match advisory_db {
+        Some(db) => Some(advisories(db, &lock)?),
+        None => None,
+    };
     Ok(Workspace {
         name,
-        lock: lock(&root.join("Cargo.lock"))?,
-        has_deny: root.join("deny.toml").is_file(),
+        lock,
+        has_deny: deny.is_file(),
+        deny_ignores,
+        advisories,
         packages,
     })
+}
+
+/// `[advisories] ignore` of `deny.toml`: bare IDs, or `{ id, reason }`.
+fn ignores(deny: &toml::Value) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    let list = deny
+        .get("advisories")
+        .and_then(|a| a.get("ignore"))
+        .and_then(toml::Value::as_array);
+    for item in list.into_iter().flatten() {
+        match item {
+            toml::Value::String(id) => {
+                out.insert(id.clone(), String::new());
+            }
+            toml::Value::Table(t) => {
+                if let Some(id) = t.get("id").and_then(toml::Value::as_str) {
+                    let reason = t.get("reason").and_then(toml::Value::as_str).unwrap_or("");
+                    out.insert(id.to_string(), reason.to_string());
+                }
+            }
+            _ => {}
+        }
+    }
+    out
+}
+
+/// The advisories of a RustSec advisory database checkout (`crates/<name>/
+/// RUSTSEC-*.md`) that affect a locked registry package's version.
+fn advisories(db: &Path, lock: &[LockedPackage]) -> Result<Advisories, UorustError> {
+    let crates = db.join("crates");
+    if !crates.is_dir() {
+        return Err(UorustError::Malformed {
+            path: db.to_path_buf(),
+            reason: "not a RustSec advisory database: no crates directory".to_string(),
+        });
+    }
+    let revision = Command::new("git")
+        .arg("-C")
+        .arg(db)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+    let mut hits = Vec::new();
+    for package in lock.iter().filter(|p| p.source.starts_with("registry+")) {
+        let dir = crates.join(&package.name);
+        if !dir.is_dir() {
+            continue;
+        }
+        let Ok(version) = semver::Version::parse(&package.version) else {
+            continue;
+        };
+        let mut files: Vec<PathBuf> = std::fs::read_dir(&dir)
+            .map_err(|e| io(dir.clone(), e))?
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p.extension().is_some_and(|x| x == "md"))
+            .collect();
+        files.sort();
+        for file in files {
+            let text = std::fs::read_to_string(&file).map_err(|e| io(file.clone(), e))?;
+            if let Some(advisory) = advisory(&file, &text, &package.name, &version)? {
+                hits.push(advisory);
+            }
+        }
+    }
+    hits.sort_by(|a, b| (&a.id, &a.package, &a.version).cmp(&(&b.id, &b.package, &b.version)));
+    Ok(Advisories { revision, hits })
+}
+
+/// One advisory file, when it applies to `version`.
+fn advisory(
+    file: &Path,
+    text: &str,
+    package: &str,
+    version: &semver::Version,
+) -> Result<Option<Advisory>, UorustError> {
+    let malformed = |reason: &str| UorustError::Malformed {
+        path: file.to_path_buf(),
+        reason: reason.to_string(),
+    };
+    let body = text
+        .strip_prefix("```toml")
+        .ok_or_else(|| malformed("no TOML front matter"))?;
+    let (front, rest) = body
+        .split_once("\n```")
+        .ok_or_else(|| malformed("unterminated TOML front matter"))?;
+    let front: toml::Value = toml::from_str(front).map_err(|e| malformed(&e.to_string()))?;
+    let section = front
+        .get("advisory")
+        .ok_or_else(|| malformed("no [advisory] table"))?;
+    let text_of = |key: &str| {
+        section
+            .get(key)
+            .and_then(toml::Value::as_str)
+            .map(str::to_string)
+    };
+    if section.get("withdrawn").is_some() || text_of("package").as_deref() != Some(package) {
+        return Ok(None);
+    }
+    let reqs = |key: &str| -> Vec<String> {
+        front
+            .get("versions")
+            .and_then(|v| v.get(key))
+            .and_then(toml::Value::as_array)
+            .map(|a| {
+                a.iter()
+                    .filter_map(toml::Value::as_str)
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    let patched = reqs("patched");
+    let unaffected = reqs("unaffected");
+    let spared = patched
+        .iter()
+        .chain(&unaffected)
+        .any(|r| semver::VersionReq::parse(r).is_ok_and(|req| req.matches(version)));
+    if spared {
+        return Ok(None);
+    }
+    let title = rest
+        .lines()
+        .find_map(|l| l.strip_prefix("# "))
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    Ok(Some(Advisory {
+        id: text_of("id").ok_or_else(|| malformed("no advisory id"))?,
+        package: package.to_string(),
+        version: version.to_string(),
+        title,
+        date: text_of("date").unwrap_or_default(),
+        informational: text_of("informational"),
+        categories: section
+            .get("categories")
+            .and_then(toml::Value::as_array)
+            .map(|a| {
+                a.iter()
+                    .filter_map(toml::Value::as_str)
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default(),
+        patched,
+    }))
 }
 
 fn metadata(root: &Path) -> Result<Value, UorustError> {

@@ -40,6 +40,9 @@ struct Args {
     /// The control set's lastModified, YYYY-MM-DDThh:mm:ssZ; the HEAD commit time when absent.
     #[arg(long)]
     last_modified: Option<String>,
+    /// A RustSec advisory database checkout to check Cargo.lock against.
+    #[arg(long)]
+    advisories: Option<PathBuf>,
 }
 
 fn options(args: &Args) -> Result<Options, UorustError> {
@@ -54,6 +57,7 @@ fn options(args: &Args) -> Result<Options, UorustError> {
     Ok(Options {
         name,
         last_modified,
+        advisories: args.advisories.clone(),
     })
 }
 
