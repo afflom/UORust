@@ -336,7 +336,7 @@ threats = [
     ("threatCraftedSourceExhaustion", "assetEmittedModel", "medium", "minor", "Crafted source exhausting uorust", "A huge or deeply nested source file consumes memory or time until no model is written.", "denialOfService"),
     ("threatMisroutedFact", "assetEmittedModel", "medium", "major", "Misrouted fact", "A fact becomes the wrong record, or an ambiguous fact is resolved by a default, so the model misstates the source.", "tampering"),
     ("threatDisputedProjection", "assetEmittedModel", "low", "minor", "Disputed projection", "A user disputes which model uorust produced for a given commit.", "repudiation"),
-    ("threatDependencyCompromise", "assetSupplyChain", "low", "critical", "Compromised dependency", "A crate uorust is built from is replaced by a malicious or vulnerable version.", "spoofing"),
+    ("threatDependencyCompromise", "assetSupplyChain", "low", "critical", "Compromised dependency", "A crate uorust is built from is replaced by a malicious or vulnerable version.", "tampering"),
     ("threatUnsafeMemory", "assetReleaseBinary", "low", "major", "Memory corruption", "Unsafe code in uorust corrupts memory while parsing hostile source.", "elevationOfPrivilege"),
     ("threatPathEscape", "assetReleaseBinary", "low", "major", "Write outside the output directory", "A crafted crate name makes the emitter write outside the directory given by --out.", "tampering"),
     ("threatWorkflowTokenAbuse", "assetCi", "low", "major", "Workflow token abuse", "A third-party action or a persisted credential lets an attacker push or publish from CI.", "elevationOfPrivilege"),

@@ -558,7 +558,7 @@ definition{
   name: modeledThreatDependencyCompromise,
   parameters: [],
   result: Production.ThreatModel::ModeledThreat,
-  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatDependencyCompromise", name := "Compromised dependency", text := "A crate uorust is built from is replaced by a malicious or vulnerable version.", category := (ctor Production.ThreatModel::Stride.spoofing)})
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatDependencyCompromise", name := "Compromised dependency", text := "A crate uorust is built from is replaced by a malicious or vulnerable version.", category := (ctor Production.ThreatModel::Stride.tampering)})
 }
 
 definition{
