@@ -12,14 +12,15 @@ template contract checker in `app/`.
 | `just lint` | Clippy at `-D warnings`, every target, every optional feature | --- |
 | `just test` | the workspace suite, including the R3 meta-gate | `CM-02`, `CM-03` |
 | `just deny` | R6 over the dependency graph | --- |
-| `just app` | the Prism application: LexLean format and lock, then `prismpm verify`, which builds the holo and checks it | `TC-01` |
+| `just app` | the Prism application: LexLean format and lock, then `prismpm verify`, which builds the holo and checks it | `SM-01`, `SM-02` |
 
 Each check runs once per `just vv`. `just bdd` runs only the meta-gate while a
 scenario is being written; `just test` already includes it.
 
-The register holds one claim, `TC-01`, so the meta-gate checks a real row, a
-real scenario and a real test. It becomes an error as soon as an ID, scenario,
-or test is added without the other two.
+The register holds UORust's claims (`SM-01` to `SM-04` for its own model,
+and the engine's rows), so the meta-gate checks real rows, real scenarios and
+real tests. It becomes an error as soon as an ID, scenario, or test is added
+without the other two.
 
 ## Planted defects
 
@@ -28,7 +29,7 @@ or test is added without the other two.
 | `check-model` | `CONFORMANCE.md` disagrees with the register | rejected |
 | `audit-deferral` | a deferral marker in a crate and in the gate's own source | both rejected |
 | honesty meta-gate | an ID with no test | rejected |
-| `contract_tc_01` | `Conformant` drops the `bootstrap` conjunct, or `dispatch` answers on `true` instead of `conformant` | both rejected |
+| `self_model_sm_01` | a route dropped from `app/src/Routes.lex.tex`, or a vector of `model/routes.toml` missing from the application | both rejected |
 | `prismpm verify` | an acceptance vector set without the exact guest-allocation boundary | rejected (PP2009) |
 | `audit-bootstrap` | a floating/copied action, mutable SDK tag, changed universal file, narrowed boundary, shallow/credential-retaining checkout, copied project renderer, omitted standards lock, acceptance bypass, deploy-job signing privilege, incomplete release lifecycle, or a bootstrap that drops a native architecture from main or tags, cancels or replaces a main run, or skips runs by path, condition or matrix exclusion | all rejected |
 
@@ -215,48 +216,36 @@ produced files that passed `cargo fmt --check` and all-feature Clippy, and
 passed with the pinned Rust 1.97.1 on `x86_64-unknown-linux-gnu`, locked,
 outside the SDK image; the SDK checks run in the pull request's bootstrap job.
 
-## The template contract checker
+## UORust's route table
 
-`app/` is a Prism text application modeled in `app/src/Contract.lex.tex`. Its
-request is 384 bytes: for each universal policy file, in `template.lock`
-`policy_files` order, the locked SHA-256 then the observed SHA-256. It answers
-`conformant`, or `drift:` followed by each drifted path after a space, or
-`invalid request` for any
-other length. Lean proves, with only `propext`, that the executable verdict is
-both sound and complete for the specification:
+`app/` is UORust's own Prism model. Its application, modeled in
+`app/src/Routes.lex.tex` on the `prismpm/text-application/3` profile with a
+workbench (`app/src/Guide.lex.tex`, `app/src/Frame.lex.tex`), is the route
+table of `model/routes.toml`: a request is one Rust fact's kinds, one per line,
+and the answer is the one route they all name, `refused unknown-fact`,
+`refused ambiguous`, or `error` for an empty, oversized, non-UTF-8 or
+blank-line request. The theorems `routeTableIsTotal`, `routeFactsAreDistinct`,
+`routeTableRefusesAmbiguity` and `routeIndexesArePositions` are decided over
+the whole table. `self_model_sm_01` and `self_model_sm_02` read the model as
+text and hold the table, `routeOf`, the acceptance vectors and the theorem
+statements to `model/routes.toml`.
 
-- `conformant_decides`: `conformant observation = true ↔ Conformant observation`.
+Constraints met on the way, each a refusal of the pinned SDK: a request of
+exactly `guestAllocationMaximum` bytes must be a vector (PP2009); a text/3
+command line needs an outcome named `error`, and the workbench purpose must
+equal its description; generated code refuses a `List` used as an
+intermediate value and a static list constant on the runtime path, so the
+table is answered by an `if` chain (`routeOf`) and the list (`routes`) serves
+the theorems; generated Rust has one namespace, so no two definitions share a
+name across modules; and every definition states its exact axioms.
 
-The proof is `simplify` over the definitions and Lean's `Bool.and_eq_true` and
-`Nat.beq_eq`, not `linear_arithmetic`. A `linear_arithmetic` proof makes the
-generated module import `LexLeanRuntime.Laws`, and `prismpm build` then
-compiles that module to C, which did not finish within the build's ten-minute
-limit in CI or in 25 minutes locally (without C generation it takes four
-seconds). The first CI run of this app failed exactly there, with
-`PP5007: application-lean timed out`. The second failed in code generation
-(`PP4102`), because the drift report was a `List String` built as an
-intermediate value. It is now `Bytes` appended straight into the response.
-
-`Conformant` is the conjunction of six digest equalities, one per universal
-policy path. A digest is four big-endian 64-bit words, because generated code
-represents a `Nat` as a checked `u64`, and `SameDigest` requires all four words
-to be equal, so two digests are the same exactly when their 32 bytes are. `contract_tc_01` reads the model as text and requires the theorem
-statement, its axiom list, one `Conformant` conjunct for each path in
-`template-contract.json` other than `template.lock` (which cannot pin its own
-digest), each path in the drift report, and a `dispatch` decided by
-`conformant`. The nine acceptance vectors (conformant, four drift cases, 383,
-385, 0 and 512 bytes) are executed against the compiled guest by the build
-that `prismpm verify` runs before it checks the resulting holo, so the proof, the code
-and the observed behaviour ship as one artifact.
-
-Locally, with LexLean 0.4.0 (the SDK's compiler), `lexlean check` and
-`lexlean verify` passed, verifying three modules; both planted defects in the
-table above made `contract_tc_01` fail with a message naming the defect. The
-holo build and verify run in the pull request's bootstrap job inside the
-locked SDK. `just app` runs only `prismpm verify`: it begins with the same
-build `prismpm build` performs, so running both built the holo twice. In the
-first green run, `prismpm build` took 82 seconds and `prismpm verify` 6
-minutes 14 seconds.
+Locally, in the locked SDK: `lexlean verify --all` verifies all 19 modules,
+including every decide theorem, and `prismpm --project app check` passes with
+every facet (PP2012, PP2014 to PP2022, PP2101). `prismpm --project app verify`
+builds and replays the holo and then stops in the SDK's pinned Hologram
+oracle (`PP5301: attached portable View asset closure/order is not
+canonical`): the oracle expects a View of exactly `app.css`, `app.js` and
+`index.html`, and the SDK's own build attaches the brand files beside them.
 
 ## Prism accounts: the remembered passkey
 
