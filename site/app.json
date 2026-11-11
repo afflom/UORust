@@ -1,44 +1,62 @@
 {
-  "name": "Template contract",
-  "shortName": "Contract",
-  "live": "https://uor-foundation.github.io/template/",
-  "purpose": "Checks each universal policy file of a UOR template repository against its locked digest. Send the six expected and observed digests; it answers conformant, or names every file that drifted, and invalid request for anything else.",
-  "inputLabel": "Expected and observed digests",
-  "placeholder": "hex: followed by 384 bytes",
-  "submitLabel": "Check",
-  "outputLabel": "Verdict",
+  "name": "UORust",
+  "shortName": "UORust",
+  "live": "https://afflom.github.io/uorust/",
+  "purpose": "UORust reads any Cargo workspace and writes a complete Prism model of it, every facet included. This page runs UORust's route table, the verified function that decides which Prism record each kind of Rust fact becomes: enter a fact kind such as pub-fn, error-enum or unsafe-block and it answers the route, the record kind and the facet, or refuses an unknown kind and never guesses.",
+  "inputLabel": "Rust fact kind",
+  "inputMode": "text",
+  "placeholder": "error-enum",
+  "submitLabel": "Route",
+  "outputLabel": "Route or refusal",
   "answers": {
     "positive": [
-      "conformant"
+      "route *"
     ],
     "negative": [
-      "drift:*"
+      "refused *"
     ],
-    "refusal": "invalid request"
+    "refusal": "error empty"
   },
   "promise": {
-    "headline": "Says conformant exactly when every policy file matches its lock.",
-    "detail": "Each of the six universal policy files is compared with the digest the lock records, and any file that drifted is named."
+    "headline": "Every kind of Rust fact becomes exactly one kind of Prism record, or is refused.",
+    "detail": "Twenty-eight routes cover crates, dependencies, public functions, tests, error and state enums, unsafe code, file, network, process and environment use, lock-file packages, lints and benchmarks. Two kinds that name different routes are refused as ambiguous, never resolved by a default."
   },
-  "claim": "TC-01: the checker answers conformant exactly when every universal policy file's observed digest equals its locked digest.",
+  "claim": "SM-02: the route table's theorems state, over the whole table and by decide, that every fact kind routes to its own row, that facts are distinct, and that any two kinds naming different routes are refused as ambiguous.",
   "proposition": {
-    "name": "Conformant",
-    "text": "Conformant observation :=\n  SameDigest devcontainer.expected devcontainer.observed\n  /\\ SameDigest bootstrap.expected bootstrap.observed\n  /\\ SameDigest agents.expected agents.observed\n  /\\ SameDigest verification.expected verification.observed\n  /\\ SameDigest prismpmLock.expected prismpmLock.observed\n  /\\ SameDigest templateContract.expected templateContract.observed\n\nSameDigest left right :=\n  left.w0 = right.w0 /\\ left.w1 = right.w1 /\\ left.w2 = right.w2 /\\ left.w3 = right.w3",
-    "plain": "Every one of the six universal policy files has the digest the lock says it has."
+    "name": "everyPairDecided",
+    "text": "everyFactRoutesHome routes = true\nfirstMatchIsSelf routes = true\neveryPairDecided routes routes = true\n\neveryPairDecided: for every two routes a and b of the table,\n  classify [a.rustFact, b.rustFact] routes to a when a = b,\n  and is Ambiguous a.rustFact b.rustFact otherwise",
+    "plain": "Every kind in the table routes to its own row, no two rows share a kind, and two kinds of one fact that name different rows are always refused."
   },
   "theorems": [
     {
-      "name": "conformant_decides",
-      "statement": "conformant observation = true ↔ Conformant observation, for every observation",
-      "how": "Proved by simplification over the record fields, checked by the Lean kernel by prismpm verify in CI",
-      "where": "app/src/Contract.lex.tex"
+      "name": "routeTableIsTotal",
+      "statement": "every rust fact kind of the table, alone, routes to its own row",
+      "how": "Decided by computation over the 28-row table, checked by the Lean kernel in prismpm verify",
+      "where": "app/src/Routes.lex.tex"
+    },
+    {
+      "name": "routeFactsAreDistinct",
+      "statement": "the first row naming each kind is that kind's own row, so no two rows share a kind",
+      "how": "Decided by computation, checked by the Lean kernel",
+      "where": "app/src/Routes.lex.tex"
+    },
+    {
+      "name": "routeTableRefusesAmbiguity",
+      "statement": "for all 784 ordered pairs of rows, two kinds of different rows are refused as ambiguous",
+      "how": "Decided by computation, checked by the Lean kernel",
+      "where": "app/src/Routes.lex.tex"
     }
   ],
   "pinned": [
     {
-      "name": "contract_tc_01",
-      "what": "The theorem's statement and axioms, the six files the proposition names against template-contract.json, that a drifted file is named in the verdict, and that the verdict is decided by conformant. A string-matching test, not a theorem: a planted defect fails it.",
-      "where": "crates/conformance/tests/contract.rs"
+      "name": "self_model_sm_01",
+      "what": "The verified table, routeOf and the application's acceptance vectors equal model/routes.toml, which the Rust router of crates/uorust replays too. A string-matching test, not a theorem: a dropped route or vector fails it.",
+      "where": "crates/conformance/tests/self_model.rs"
+    },
+    {
+      "name": "self_model_sm_02",
+      "what": "The theorems' statements quantify over the whole table and are decided with no axiom.",
+      "where": "crates/conformance/tests/self_model.rs"
     }
   ],
   "trusted": [
@@ -52,7 +70,7 @@
     },
     {
       "name": "LexLean compiler semantics",
-      "value": "5262e5b4c8b5668ae7066ad686757a6bb7f80c941d515fb9d586894fbc7de69a"
+      "value": "1427f8b629013648a480454d67202788f2303f5396f1d7c70a7c350ddab6f694"
     },
     {
       "name": "prism-code runtime, vendored",
@@ -65,14 +83,14 @@
   ],
   "attestations": {
     "proof": {
-      "id": "not recorded for the template's own app; an instance records the UOR MCP server's attestation here",
-      "url": "https://github.com/UOR-Foundation/template/actions/workflows/bootstrap.yml"
+      "id": "printed by prismpm verify in every bootstrap run",
+      "url": "https://github.com/afflom/uorust/actions/workflows/bootstrap.yml"
     },
     "build": {
-      "id": "printed by prismpm verify in every pages run; an instance records it here",
-      "url": "https://github.com/UOR-Foundation/template/actions/workflows/pages.yml"
+      "id": "printed by prismpm verify in every pages run",
+      "url": "https://github.com/afflom/uorust/actions/workflows/pages.yml"
     }
   },
-  "repository": "https://github.com/UOR-Foundation/template",
-  "report": "https://github.com/UOR-Foundation/template/blob/main/TEMPLATE-VERIFICATION.md"
+  "repository": "https://github.com/afflom/uorust",
+  "report": "https://github.com/afflom/uorust/blob/main/CONFORMANCE.md"
 }
