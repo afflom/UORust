@@ -6,9 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use sha2::{Digest, Sha256};
 
 use crate::admit::Refusal;
-use crate::facts::{
-    Capability, FnFact, FnSyntax, Package, SourceFile, Span, Syntax, TargetKind, Workspace,
-};
+use crate::facts::{Capability, FnFact, Package, SourceFile, Span, Syntax, TargetKind, Workspace};
 use crate::ingest::summary;
 use crate::lex::{pascal, string, string_list, Decl, Expr, Module};
 use crate::lift::{self, Candidate, Residue, Ty, Types};
@@ -56,17 +54,11 @@ struct Component {
     text: String,
 }
 
-struct Ctx<'a> {
-    ws: &'a Workspace,
-    refusals: BTreeSet<Refusal>,
-    residue: BTreeMap<String, (Span, Residue)>,
-    /// Functions that perform an operating-system effect, directly or
-    /// through a function that does: the I/O shell, recorded with the effect
-    /// instead of as residue.
-    effects: BTreeMap<String, (Span, String)>,
-    /// Functions at the boundary with a foreign crate: a parameter or the
-    /// result is a type of a registry dependency that has no LexLean model.
-    foreign: BTreeMap<String, (Span, String)>,
+/// What the projection derives from the workspace before it writes a facet:
+/// the components, their edges, the resolved calls and the routed enums.
+/// Built once, then only read.
+struct Model {
+    ws: Workspace,
     /// `(package, target index)` of a product target -> component ID.
     targets: BTreeMap<(usize, usize), String>,
     components: Vec<Component>,
@@ -80,20 +72,34 @@ struct Ctx<'a> {
     enum_routes: BTreeMap<(usize, usize, usize), &'static str>,
 }
 
-impl<'a> Ctx<'a> {
-    fn package(&self, r: FnRef) -> &'a Package {
+/// What the frontier records, as the facets find it.
+#[derive(Default)]
+struct Notes {
+    refusals: BTreeSet<Refusal>,
+    residue: BTreeMap<String, (Span, Residue)>,
+    /// Functions that perform an operating-system effect, directly or
+    /// through a function that does: the I/O shell, recorded with the effect
+    /// instead of as residue.
+    effects: BTreeMap<String, (Span, String)>,
+    /// Functions at the boundary with a foreign crate: a parameter or the
+    /// result is a type of a registry dependency that has no LexLean model.
+    foreign: BTreeMap<String, (Span, String)>,
+}
+
+impl Model {
+    fn package(&self, r: FnRef) -> &Package {
         &self.ws.packages[r.pkg]
     }
 
-    fn file(&self, r: FnRef) -> &'a SourceFile {
+    fn file(&self, r: FnRef) -> &SourceFile {
         &self.ws.packages[r.pkg].files[r.file]
     }
 
-    fn func(&self, r: FnRef) -> &'a FnFact {
+    fn func(&self, r: FnRef) -> &FnFact {
         &self.file(r).fns[r.idx]
     }
 
-    fn kind(&self, r: FnRef) -> &'a TargetKind {
+    fn kind(&self, r: FnRef) -> &TargetKind {
         let file = self.file(r);
         &self.package(r).targets[file.target].kind
     }
@@ -124,18 +130,18 @@ impl<'a> Ctx<'a> {
 
     /// A function the lift refused: residue, or a foreign row when what
     /// stopped it is a type of a registry dependency.
-    fn record_residue(&mut self, r: FnRef, span: Span, reason: Residue) {
+    fn record_residue(&self, notes: &mut Notes, r: FnRef, span: Span, reason: Residue) {
         let package = &self.ws.packages[r.pkg];
         if let Residue::Type(ty) = &reason {
             if let Some(dep) = foreign_crate(package, ty) {
                 let detail = format!(
                     "takes or returns {ty}, a type of the {dep} crate with no LexLean model"
                 );
-                self.foreign.insert(self.path(r), (span, detail));
+                notes.foreign.insert(self.path(r), (span, detail));
                 return;
             }
         }
-        self.residue.insert(self.path(r), (span, reason));
+        notes.residue.insert(self.path(r), (span, reason));
     }
 
     fn product(&self, r: FnRef) -> bool {
@@ -154,11 +160,6 @@ impl<'a> Ctx<'a> {
             }
         }
         out
-    }
-
-    /// The syntax of a function, which the lift reads.
-    fn syntax<'s>(&self, syntax: &'s Syntax, r: FnRef) -> &'s FnSyntax {
-        &syntax.files[&self.file(r).rel].fns[r.idx]
     }
 
     fn component_suffix(id: &str) -> &str {
@@ -204,19 +205,7 @@ pub(crate) fn project(
     syntax: &Syntax,
     options: &Options,
 ) -> BTreeMap<String, Vec<u8>> {
-    let mut ctx = Ctx {
-        ws,
-        refusals: BTreeSet::new(),
-        residue: BTreeMap::new(),
-        effects: BTreeMap::new(),
-        foreign: BTreeMap::new(),
-        targets: BTreeMap::new(),
-        components: Vec::new(),
-        index: BTreeMap::new(),
-        edges: BTreeMap::new(),
-        calls: BTreeMap::new(),
-        enum_routes: BTreeMap::new(),
-    };
+    let mut notes = Notes::default();
     for package in &ws.packages {
         for file in &package.files {
             if let Some(reason) = &file.parse_error {
@@ -225,7 +214,7 @@ pub(crate) fn project(
                     .nth(1)
                     .and_then(|l| l.parse().ok())
                     .unwrap_or(1);
-                ctx.refusals.insert(Refusal::Unparsable {
+                notes.refusals.insert(Refusal::Unparsable {
                     span: Span {
                         file: file.rel.clone(),
                         line,
@@ -235,24 +224,41 @@ pub(crate) fn project(
             }
         }
     }
-    components(&mut ctx);
-    edges(&mut ctx);
-    resolve(&mut ctx);
-    route_enums(&mut ctx);
+    let (targets, components, index, refused) = components(ws);
+    notes.refusals.extend(refused);
+    let mut ctx = Model {
+        ws: ws.clone(),
+        targets,
+        components,
+        index,
+        edges: BTreeMap::new(),
+        calls: BTreeMap::new(),
+        enum_routes: BTreeMap::new(),
+    };
+    ctx.edges = edges(&ctx);
+    let (calls, refused) = resolve(&ctx);
+    ctx.calls = calls;
+    notes.refusals.extend(refused);
+    let (enum_routes, refused) = route_enums(&ctx);
+    ctx.enum_routes = enum_routes;
+    notes.refusals.extend(refused);
+    let ctx = ctx;
 
     let prefix = pascal(&[&options.name]);
     let mut modules = Vec::new();
     let arch = architecture(&ctx);
-    let iface = interface(&mut ctx);
-    let design = design(&mut ctx);
+    let (iface, refused) = interface(&ctx);
+    notes.refusals.extend(refused);
+    let (design, refused) = design(&ctx);
+    notes.refusals.extend(refused);
     match &ws.advisories {
         None => {
-            ctx.refusals.insert(Refusal::AdvisoriesUnconsulted);
+            notes.refusals.insert(Refusal::AdvisoriesUnconsulted);
         }
         Some(db) => {
             for a in &db.hits {
                 if !ws.has_deny && !ws.deny_ignores.contains_key(&a.id) {
-                    ctx.refusals.insert(Refusal::UnansweredAdvisory {
+                    notes.refusals.insert(Refusal::UnansweredAdvisory {
                         id: a.id.clone(),
                         package: a.package.clone(),
                         version: a.version.clone(),
@@ -262,8 +268,9 @@ pub(crate) fn project(
         }
     }
     let security = security(&ctx, options);
-    let quality = quality(&mut ctx, iface.feature_count);
-    let behavior = behavior(&mut ctx, syntax);
+    let (quality, refused) = quality(&ctx, iface.feature_count);
+    notes.refusals.extend(refused);
+    let behavior = behavior(&ctx, syntax, &mut notes);
     let supply = supply(&ctx);
     modules.push(arch);
     modules.push(iface.module);
@@ -357,7 +364,7 @@ pub(crate) fn project(
         files.insert(path, bytes);
     }
     files.insert("supply/spdx.json".into(), spdx(ws, options).into_bytes());
-    files.insert("frontier.toml".into(), frontier(&ctx).into_bytes());
+    files.insert("frontier.toml".into(), frontier(&notes).into_bytes());
     files
 }
 
@@ -368,8 +375,19 @@ pub(crate) fn sha(bytes: &[u8]) -> String {
         .collect()
 }
 
-fn components(ctx: &mut Ctx<'_>) {
-    let ws = ctx.ws;
+/// The components: each product target and each third-party dependency, with
+/// the component ID of each product target and each component's index.
+#[allow(clippy::type_complexity)]
+fn components(
+    ws: &Workspace,
+) -> (
+    BTreeMap<(usize, usize), String>,
+    Vec<Component>,
+    BTreeMap<String, usize>,
+    Vec<Refusal>,
+) {
+    let mut targets = BTreeMap::new();
+    let mut refusals = Vec::new();
     let mut rows: Vec<(String, Component)> = Vec::new();
     let internal: BTreeSet<&str> = ws.packages.iter().map(|p| p.name.as_str()).collect();
     for (pkg, package) in ws.packages.iter().enumerate() {
@@ -387,7 +405,7 @@ fn components(ctx: &mut Ctx<'_>) {
                 doc
             };
             let id = qualified(ARCH, &format!("component{tag}{}", pascal(&[&target.name])));
-            ctx.targets.insert((pkg, t), id.clone());
+            targets.insert((pkg, t), id.clone());
             rows.push((
                 id.clone(),
                 Component {
@@ -404,7 +422,7 @@ fn components(ctx: &mut Ctx<'_>) {
             }
             if dep.path.is_some() {
                 if !dep.inside {
-                    ctx.refusals.insert(Refusal::ExternalPath {
+                    refusals.push(Refusal::ExternalPath {
                         package: package.dir.clone(),
                         dependency: dep.name.clone(),
                     });
@@ -440,14 +458,18 @@ fn components(ctx: &mut Ctx<'_>) {
     }
     rows.sort_by(|a, b| a.0.as_bytes().cmp(b.0.as_bytes()));
     rows.dedup_by(|a, b| a.0 == b.0);
+    let mut index = BTreeMap::new();
+    let mut components = Vec::new();
     for (i, (id, row)) in rows.into_iter().enumerate() {
-        ctx.index.insert(id, i);
-        ctx.components.push(row);
+        index.insert(id, i);
+        components.push(row);
     }
+    (targets, components, index, refusals)
 }
 
-fn edges(ctx: &mut Ctx<'_>) {
-    let ws = ctx.ws;
+fn edges(ctx: &Model) -> BTreeMap<String, (String, String)> {
+    let ws = &ctx.ws;
+    let mut edges = BTreeMap::new();
     let lib_of: BTreeMap<&str, String> = ws
         .packages
         .iter()
@@ -492,18 +514,22 @@ fn edges(ctx: &mut Ctx<'_>) {
                     ARCH,
                     &format!(
                         "edge{}To{}",
-                        Ctx::component_suffix(&from),
-                        Ctx::component_suffix(&target_id)
+                        Model::component_suffix(&from),
+                        Model::component_suffix(&target_id)
                     ),
                 );
-                ctx.edges.insert(id, (from.clone(), target_id));
+                edges.insert(id, (from.clone(), target_id));
             }
         }
     }
+    edges
 }
 
 /// Resolve every path call and unique method call to workspace functions.
-fn resolve(ctx: &mut Ctx<'_>) {
+#[allow(clippy::type_complexity)]
+fn resolve(ctx: &Model) -> (BTreeMap<FnRef, BTreeSet<FnRef>>, Vec<Refusal>) {
+    let mut calls = BTreeMap::new();
+    let mut refusals = Vec::new();
     let all = ctx.all_fns();
     let mut by_name: BTreeMap<&str, Vec<FnRef>> = BTreeMap::new();
     for &r in &all {
@@ -657,7 +683,7 @@ fn resolve(ctx: &mut Ctx<'_>) {
                         .map(|r| format!("{} ({})", ctx.path(*r), ctx.func(*r).span.render()))
                         .collect();
                     names.sort();
-                    ctx.refusals.insert(Refusal::AmbiguousCall {
+                    refusals.push(Refusal::AmbiguousCall {
                         span: f.span.clone(),
                         callee: call.clone(),
                         candidates: names,
@@ -666,9 +692,10 @@ fn resolve(ctx: &mut Ctx<'_>) {
             }
         }
         if !out.is_empty() {
-            ctx.calls.insert(caller, out);
+            calls.insert(caller, out);
         }
     }
+    (calls, refusals)
 }
 
 fn record(ty: &str, fields: &[(&str, String)]) -> String {
@@ -676,8 +703,8 @@ fn record(ty: &str, fields: &[(&str, String)]) -> String {
     format!("(record {ty} {{{}}})", fields.join(", "))
 }
 
-fn architecture(ctx: &Ctx<'_>) -> Module {
-    let ws = ctx.ws;
+fn architecture(ctx: &Model) -> Module {
+    let ws = &ctx.ws;
     let t = "Foundation.Arch::";
     let mut decls = Vec::new();
     for (i, c) in ctx.components.iter().enumerate() {
@@ -822,8 +849,8 @@ fn has_kind(ws: &Workspace, kind: TargetKind) -> bool {
 }
 
 /// Stakeholders, concerns and viewpoints, each derived from what the workspace has.
-fn audience(ctx: &Ctx<'_>) -> (Named, Named, Viewpoints) {
-    let ws = ctx.ws;
+fn audience(ctx: &Model) -> (Named, Named, Viewpoints) {
+    let ws = &ctx.ws;
     let a = |n: &str| qualified(ARCH, n);
     let mut authors: Vec<String> = ws.packages.iter().flat_map(|p| p.authors.clone()).collect();
     authors.sort();
@@ -956,7 +983,10 @@ fn audience(ctx: &Ctx<'_>) -> (Named, Named, Viewpoints) {
                 .unwrap_or_default();
             if !doc.is_empty() {
                 concerns.push((
-                    a(&format!("concernCrate{}", Ctx::component_suffix(component))),
+                    a(&format!(
+                        "concernCrate{}",
+                        Model::component_suffix(component)
+                    )),
                     (target.name.clone(), doc),
                 ));
             }
@@ -995,7 +1025,7 @@ fn audience(ctx: &Ctx<'_>) -> (Named, Named, Viewpoints) {
     (stakeholders, concerns, viewpoints)
 }
 
-fn audience_index(ctx: &Ctx<'_>) -> (BTreeMap<String, usize>, BTreeMap<String, usize>) {
+fn audience_index(ctx: &Model) -> (BTreeMap<String, usize>, BTreeMap<String, usize>) {
     let (s, c, _) = audience(ctx);
     (
         indexed(s).into_iter().map(|(id, i, _)| (id, i)).collect(),
@@ -1029,7 +1059,7 @@ struct Feature {
 }
 
 /// Public functions of a library, in their order of declaration.
-fn interface_fns(ctx: &Ctx<'_>) -> Vec<FnRef> {
+fn interface_fns(ctx: &Model) -> Vec<FnRef> {
     ctx.all_fns()
         .into_iter()
         .filter(|r| {
@@ -1039,7 +1069,7 @@ fn interface_fns(ctx: &Ctx<'_>) -> Vec<FnRef> {
         .collect()
 }
 
-fn call_name(ctx: &Ctx<'_>, r: FnRef) -> String {
+fn call_name(ctx: &Model, r: FnRef) -> String {
     let path = ctx.path(r);
     let parts: Vec<&str> = path.split("::").collect();
     qualified(IFACE, &format!("call{}", pascal(&parts)))
@@ -1048,7 +1078,7 @@ fn call_name(ctx: &Ctx<'_>, r: FnRef) -> String {
 /// Whether a string literal of `r`, or of a function `r` reaches through
 /// resolved calls, satisfies `pred`: a test that runs the binary through a
 /// helper still runs it.
-fn reaches_literal(ctx: &Ctx<'_>, r: FnRef, pred: impl Fn(&String) -> bool) -> bool {
+fn reaches_literal(ctx: &Model, r: FnRef, pred: impl Fn(&String) -> bool) -> bool {
     let mut seen = BTreeSet::new();
     let mut stack = vec![r];
     while let Some(f) = stack.pop() {
@@ -1073,16 +1103,17 @@ fn reaches_literal(ctx: &Ctx<'_>, r: FnRef, pred: impl Fn(&String) -> bool) -> b
     false
 }
 
-fn interface(ctx: &mut Ctx<'_>) -> Interface {
-    let ws = ctx.ws;
+fn interface(ctx: &Model) -> (Interface, Vec<Refusal>) {
+    let ws = &ctx.ws;
+    let mut refusals = Vec::new();
     let mut decls: Vec<Decl> = Vec::new();
     let mut seen: BTreeSet<String> = BTreeSet::new();
-    let mut push = |ctx: &mut Ctx<'_>, decl: Decl, span: &Span| -> bool {
+    let mut push = |refusals: &mut Vec<Refusal>, decl: Decl, span: &Span| -> bool {
         if seen.insert(decl.name().to_string()) {
             decls.push(decl);
             true
         } else {
-            ctx.refusals.insert(Refusal::Collision {
+            refusals.push(Refusal::Collision {
                 span: span.clone(),
                 name: qualified(IFACE, decl.name()),
             });
@@ -1113,7 +1144,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
             format!("{} at {}: {doc}", f.name, f.span.render())
         };
         if push(
-            ctx,
+            &mut refusals,
             Decl::value(name.clone(), "String", string(&text)),
             &f.span,
         ) {
@@ -1135,7 +1166,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
             f.span.render()
         );
         if push(
-            ctx,
+            &mut refusals,
             Decl::value(name.clone(), "String", string(&text)),
             &f.span,
         ) {
@@ -1149,7 +1180,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
         let id = call_name(ctx, r);
         let text = format!("{}: {}", ctx.path(r), f.signature);
         if push(
-            ctx,
+            &mut refusals,
             Decl::value(local(&id), "String", string(&text)),
             &f.span,
         ) {
@@ -1257,7 +1288,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
                     format!("{bin}: {doc}")
                 };
                 if !push(
-                    ctx,
+                    &mut refusals,
                     Decl::value(call.clone(), "String", string(&text)),
                     &span,
                 ) {
@@ -1288,7 +1319,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
                         format!("{bin} {command}: {doc}")
                     };
                     if !push(
-                        ctx,
+                        &mut refusals,
                         Decl::value(call.clone(), "String", string(&text)),
                         &span,
                     ) {
@@ -1319,7 +1350,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
     let mut admitted = Vec::new();
     for feature in features {
         if feature.acceptance.is_empty() {
-            ctx.refusals.insert(Refusal::Unaccepted {
+            refusals.push(Refusal::Unaccepted {
                 span: feature.span.clone(),
                 feature: feature.id.clone(),
             });
@@ -1409,7 +1440,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
             acceptance: f.acceptance.clone(),
         })
         .collect();
-    Interface {
+    let interface = Interface {
         feature_count: admitted.len(),
         module: Module {
             name: IFACE.into(),
@@ -1419,7 +1450,8 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
             decls,
         },
         register,
-    }
+    };
+    (interface, refusals)
 }
 
 /// Unit-variant enums of product code named for a state, or with transitions.
@@ -1427,7 +1459,10 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
 /// for an error or implements `Error`, `state-enum` when it is fieldless and
 /// named for a state or matched in transitions. An enum with both tags is
 /// refused as ambiguous and becomes neither record.
-fn route_enums(ctx: &mut Ctx<'_>) {
+#[allow(clippy::type_complexity)]
+fn route_enums(ctx: &Model) -> (BTreeMap<(usize, usize, usize), &'static str>, Vec<Refusal>) {
+    let mut routes = BTreeMap::new();
+    let mut refusals = Vec::new();
     let transitions: BTreeSet<String> = ctx
         .all_fns()
         .into_iter()
@@ -1468,10 +1503,10 @@ fn route_enums(ctx: &mut Ctx<'_>) {
                 }
                 match crate::route::classify(tags) {
                     Some(crate::route::Routing::Routed(route)) => {
-                        ctx.enum_routes.insert((pkg, fi, ei), route.id);
+                        routes.insert((pkg, fi, ei), route.id);
                     }
                     Some(crate::route::Routing::Ambiguous(a, b)) => {
-                        ctx.refusals.insert(Refusal::AmbiguousFact {
+                        refusals.push(Refusal::AmbiguousFact {
                             span: e.span.clone(),
                             fact: e.name.clone(),
                             tags: vec![a, b],
@@ -1482,9 +1517,10 @@ fn route_enums(ctx: &mut Ctx<'_>) {
             }
         }
     }
+    (routes, refusals)
 }
 
-fn state_enums(ctx: &Ctx<'_>) -> Vec<(usize, usize, usize)> {
+fn state_enums(ctx: &Model) -> Vec<(usize, usize, usize)> {
     ctx.enum_routes
         .iter()
         .filter(|(_, route)| **route == "UR-R26")
@@ -1492,11 +1528,12 @@ fn state_enums(ctx: &Ctx<'_>) -> Vec<(usize, usize, usize)> {
         .collect()
 }
 
-fn design(ctx: &mut Ctx<'_>) -> Module {
+fn design(ctx: &Model) -> (Module, Vec<Refusal>) {
+    let mut refusals = Vec::new();
     let t = "Foundation.Arch::";
     let mut decls = Vec::new();
     let mut processes: BTreeMap<FnRef, String> = BTreeMap::new();
-    let process_id = |ctx: &Ctx<'_>, r: FnRef| {
+    let process_id = |ctx: &Model, r: FnRef| {
         let path = ctx.path(r);
         let parts: Vec<&str> = path.split("::").collect();
         qualified(DESIGN, &format!("process{}", pascal(&parts)))
@@ -1585,7 +1622,7 @@ fn design(ctx: &mut Ctx<'_>) -> Module {
             }
         };
         if initial.is_none() {
-            ctx.refusals.insert(Refusal::NoInitialState {
+            refusals.push(Refusal::NoInitialState {
                 span: e.span.clone(),
                 machine: format!("{}::{}", package.targets[file.target].name, e.name),
             });
@@ -1611,7 +1648,7 @@ fn design(ctx: &mut Ctx<'_>) -> Module {
     ));
     for c in &ctx.components {
         decls.push(Decl::value(
-            format!("uml{}", Ctx::component_suffix(&c.id)),
+            format!("uml{}", Model::component_suffix(&c.id)),
             format!("{t}UmlComponent"),
             record(
                 &format!("{t}UmlComponent"),
@@ -1677,7 +1714,7 @@ fn design(ctx: &mut Ctx<'_>) -> Module {
         ));
         for (i, lifeline) in lifelines.iter().enumerate() {
             decls.push(Decl::value(
-                format!("lifeline{base}{}", Ctx::component_suffix(lifeline)),
+                format!("lifeline{base}{}", Model::component_suffix(lifeline)),
                 format!("{t}UmlLifeline"),
                 record(
                     &format!("{t}UmlLifeline"),
@@ -1775,7 +1812,7 @@ fn design(ctx: &mut Ctx<'_>) -> Module {
         }
     }
     for (component, procs) in &by_component {
-        let suffix = Ctx::component_suffix(component).to_string();
+        let suffix = Model::component_suffix(component).to_string();
         let view = qualified(DESIGN, &format!("opm{suffix}"));
         decls.push(Decl::value(
             local(&view),
@@ -1886,19 +1923,20 @@ fn design(ctx: &mut Ctx<'_>) -> Module {
     decls.extend(module_opm(ctx, &processes));
     let mut names = BTreeSet::new();
     decls.retain(|d| names.insert(d.name().to_string()));
-    Module {
+    let module = Module {
         name: DESIGN.into(),
         glossaries: vec![BOOL, NAT, PARCH],
         imports: vec!["Foundation.Arch".into()],
         title: "design view",
         decls,
-    }
+    };
+    (module, refusals)
 }
 
 /// OPM per module (UR-R28): the module's component is the object, its
 /// processes are the module's functions, each invocation inside the module is
 /// a link and each process zooms into the processes it calls there.
-fn module_opm(ctx: &Ctx<'_>, processes: &BTreeMap<FnRef, String>) -> Vec<Decl> {
+fn module_opm(ctx: &Model, processes: &BTreeMap<FnRef, String>) -> Vec<Decl> {
     let t = "Foundation.Arch::";
     let mut by_module: BTreeMap<(String, String, String), Vec<FnRef>> = BTreeMap::new();
     for r in processes.keys() {
@@ -1920,7 +1958,7 @@ fn module_opm(ctx: &Ctx<'_>, processes: &BTreeMap<FnRef, String>) -> Vec<Decl> {
     let mut decls = Vec::new();
     for ((component, module, path), procs) in &by_module {
         let parts: Vec<&str> = module.split("::").filter(|p| !p.is_empty()).collect();
-        let suffix = format!("{}{}", Ctx::component_suffix(component), pascal(&parts));
+        let suffix = format!("{}{}", Model::component_suffix(component), pascal(&parts));
         let view = qualified(DESIGN, &format!("opmModule{suffix}"));
         let name = local(&view).to_string();
         decls.push(Decl::value(
@@ -2115,15 +2153,15 @@ fn capability_threat(
     }
 }
 
-fn threats(ctx: &Ctx<'_>) -> Vec<Threat> {
-    let ws = ctx.ws;
+fn threats(ctx: &Model) -> Vec<Threat> {
+    let ws = &ctx.ws;
     let mut out = Vec::new();
     for (pkg, package) in ws.packages.iter().enumerate() {
         for (t, target) in package.targets.iter().enumerate() {
             let Some(component) = ctx.targets.get(&(pkg, t)) else {
                 continue;
             };
-            let suffix = Ctx::component_suffix(component).to_string();
+            let suffix = Model::component_suffix(component).to_string();
             let files: Vec<&SourceFile> = package.files.iter().filter(|f| f.target == t).collect();
             let mut sites: BTreeMap<Capability, Vec<String>> = BTreeMap::new();
             for file in &files {
@@ -2257,8 +2295,8 @@ fn threats(ctx: &Ctx<'_>) -> Vec<Threat> {
 /// UR-R21: each advisory that affects a locked package is a risk on the
 /// supply chain, answered by the advisory gate or accepted where `deny.toml`
 /// ignores it.
-fn advisory_threats(ctx: &Ctx<'_>, first: &str) -> Vec<Threat> {
-    let ws = ctx.ws;
+fn advisory_threats(ctx: &Model, first: &str) -> Vec<Threat> {
+    let ws = &ctx.ws;
     let mut out = Vec::new();
     let Some(db) = &ws.advisories else {
         return out;
@@ -2350,7 +2388,7 @@ fn advisory_threats(ctx: &Ctx<'_>, first: &str) -> Vec<Threat> {
     out
 }
 
-fn security(ctx: &Ctx<'_>, options: &Options) -> Module {
+fn security(ctx: &Model, options: &Options) -> Module {
     let s = "Foundation.Sec::";
     let tm = "Production.ThreatModel::";
     let rows = threats(ctx);
@@ -2575,8 +2613,9 @@ fn truncate(text: &str, limit: usize) -> String {
     }
 }
 
-fn quality(ctx: &mut Ctx<'_>, features: usize) -> Module {
-    let ws = ctx.ws;
+fn quality(ctx: &Model, features: usize) -> (Module, Vec<Refusal>) {
+    let mut refusals = Vec::new();
+    let ws = &ctx.ws;
     let q = "Foundation.Qual::";
     let fns = ctx.all_fns();
     let public: Vec<FnRef> = fns
@@ -2637,7 +2676,7 @@ fn quality(ctx: &mut Ctx<'_>, features: usize) -> Module {
         {
             Some(minor) => msrv = Some(msrv.map_or(minor, |m: usize| m.max(minor))),
             None => {
-                ctx.refusals.insert(Refusal::NoMsrv {
+                refusals.push(Refusal::NoMsrv {
                     package: p.dir.clone(),
                 });
             }
@@ -2794,17 +2833,18 @@ fn quality(ctx: &mut Ctx<'_>, features: usize) -> Module {
             ),
         ));
     }
-    Module {
+    let module = Module {
         name: QUAL.into(),
         glossaries: vec![BOOL, NAT, PQUAL],
         imports: vec!["Foundation.Qual".into()],
         title: "quality measure",
         decls,
-    }
+    };
+    (module, refusals)
 }
 
-fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
-    let ws = ctx.ws;
+fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
+    let ws = &ctx.ws;
     let mut decls = Vec::new();
     // Unit-variant enums and structs with named fields of product code, by
     // name within each crate; a name a crate declares twice is refused. A
@@ -2827,7 +2867,7 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
                 }
                 if enums.contains_key(&e.name) {
                     clashing.insert(e.name.clone());
-                    ctx.refusals.insert(Refusal::Collision {
+                    notes.refusals.insert(Refusal::Collision {
                         span: e.span.clone(),
                         name: qualified(BEHAVIOR, &e.name),
                     });
@@ -2849,7 +2889,7 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
             for (st, fields) in file.structs.iter().zip(&syntax.files[&file.rel].structs) {
                 if raw_structs.contains_key(&st.name) || enums.contains_key(&st.name) {
                     clashing.insert(st.name.clone());
-                    ctx.refusals.insert(Refusal::Collision {
+                    notes.refusals.insert(Refusal::Collision {
                         span: st.span.clone(),
                         name: qualified(BEHAVIOR, &st.name),
                     });
@@ -2913,7 +2953,7 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
                 }
                 let name = format!("{}Failure", pascal(&[&e.name]));
                 if decls.iter().any(|d: &Decl| d.name() == name) {
-                    ctx.refusals.insert(Refusal::Collision {
+                    notes.refusals.insert(Refusal::Collision {
                         span: e.span.clone(),
                         name: qualified(BEHAVIOR, &name),
                     });
@@ -2985,7 +3025,7 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
         if !ctx.product(r) || f.name == "main" {
             continue;
         }
-        let fn_syntax = ctx.syntax(syntax, r);
+        let fn_syntax = syntax.function(&ctx.file(r).rel, r.idx);
         let sig = &fn_syntax.signature;
         let Some(block) = &fn_syntax.block else {
             continue;
@@ -3003,7 +3043,7 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
                 if names.contains_key(&rust)
                     || candidates.iter().any(|c: &Candidate<'_>| c.name == name)
                 {
-                    ctx.refusals.insert(Refusal::Collision {
+                    notes.refusals.insert(Refusal::Collision {
                         span: f.span.clone(),
                         name: qualified(BEHAVIOR, &name),
                     });
@@ -3020,10 +3060,11 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
             }
             std::ops::ControlFlow::Break(reason) => match effectful.get(&r) {
                 Some(effect) => {
-                    ctx.effects
+                    notes
+                        .effects
                         .insert(ctx.path(r), (f.span.clone(), effect.clone()));
                 }
-                None => ctx.record_residue(r, f.span.clone(), reason),
+                None => ctx.record_residue(notes, r, f.span.clone(), reason),
             },
         }
     }
@@ -3079,9 +3120,9 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
                 let span = ctx.func(r).span.clone();
                 match effectful.get(&r) {
                     Some(effect) => {
-                        ctx.effects.insert(ctx.path(r), (span, effect.clone()));
+                        notes.effects.insert(ctx.path(r), (span, effect.clone()));
                     }
-                    None => ctx.record_residue(r, span, reason),
+                    None => ctx.record_residue(notes, r, span, reason),
                 }
             }
         }
@@ -3128,7 +3169,12 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
             continue;
         }
         let (sigs, axioms) = &results[r.pkg];
-        for (i, (kind, args)) in ctx.syntax(syntax, r).asserts.iter().enumerate() {
+        for (i, (kind, args)) in syntax
+            .function(&ctx.file(r).rel, r.idx)
+            .asserts
+            .iter()
+            .enumerate()
+        {
             if let Some((statement, callee)) = lift::acceptance(kind, args, sigs, &scopes[r.pkg]) {
                 let name = format!("accept{}{}", pascal(&[&ctx.package(r).name, &f.name]), i);
                 if theorems.insert(name.clone()) {
@@ -3243,7 +3289,7 @@ fn type_decls(
     });
 }
 
-fn supply(ctx: &Ctx<'_>) -> Module {
+fn supply(ctx: &Model) -> Module {
     let mut decls = vec![Decl::Structure {
         name: "LockedPackage".into(),
         fields: vec![
@@ -3366,7 +3412,7 @@ fn effect_phrase(effect: &str) -> String {
     }
 }
 
-fn frontier(ctx: &Ctx<'_>) -> String {
+fn frontier(notes: &Notes) -> String {
     let mut out = String::from(
         "# frontier.toml: what uorust did not admit or lift, each with a typed reason.\n\
          # A refusal is an open claim: the router proposed it and admission would\n\
@@ -3378,7 +3424,7 @@ fn frontier(ctx: &Ctx<'_>) -> String {
          # dependency (syn, toml, serde_json, ...) that has no LexLean model.\n\n\
          spec = \"uorust/frontier/1\"\n",
     );
-    for r in &ctx.refusals {
+    for r in &notes.refusals {
         out.push_str(&format!(
             "\n[[refusal]]\nstatus = \"open\"\nreason = \"{}\"\nroute = \"{}\"\nspan = {}\ndetail = {}\n",
             r.code(),
@@ -3387,7 +3433,7 @@ fn frontier(ctx: &Ctx<'_>) -> String {
             toml_string(&r.detail())
         ));
     }
-    for (path, (span, reason)) in &ctx.residue {
+    for (path, (span, reason)) in &notes.residue {
         out.push_str(&format!(
             "\n[[residue]]\nstatus = \"open\"\nfunction = {}\nspan = {}\nreason = \"{}\"\ndetail = {}\n",
             toml_string(path),
@@ -3396,7 +3442,7 @@ fn frontier(ctx: &Ctx<'_>) -> String {
             toml_string(&reason.detail())
         ));
     }
-    for (path, (span, detail)) in &ctx.foreign {
+    for (path, (span, detail)) in &notes.foreign {
         out.push_str(&format!(
             "\n[[foreign]]\nfunction = {}\nspan = {}\ndetail = {}\n",
             toml_string(path),
@@ -3404,7 +3450,7 @@ fn frontier(ctx: &Ctx<'_>) -> String {
             toml_string(detail)
         ));
     }
-    for (path, (span, effect)) in &ctx.effects {
+    for (path, (span, effect)) in &notes.effects {
         out.push_str(&format!(
             "\n[[effect]]\nfunction = {}\nspan = {}\neffect = {}\n",
             toml_string(path),

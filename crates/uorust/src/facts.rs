@@ -174,6 +174,13 @@ pub(crate) struct Syntax {
     pub(crate) files: BTreeMap<String, FileSyntax>,
 }
 
+impl Syntax {
+    /// The syntax of the `idx`th function of the file at `rel`.
+    pub(crate) fn function(&self, rel: &str, idx: usize) -> &FnSyntax {
+        &self.files[rel].fns[idx]
+    }
+}
+
 /// One file's syntax, in the order of its [`SourceFile`]'s facts.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct FileSyntax {
