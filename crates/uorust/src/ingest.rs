@@ -544,10 +544,11 @@ fn source(
             return Ok((file, syntax));
         }
     };
-    file.doc = doc_of(&parsed.attrs);
-    file.forbids_unsafe = parsed.attrs.iter().any(|a| {
-        a.path().is_ident("forbid") && a.to_token_stream().to_string().contains("unsafe_code")
-    });
+    let file_attrs = attrs(&parsed.attrs);
+    file.doc = doc_of(&file_attrs);
+    file.forbids_unsafe = file_attrs
+        .iter()
+        .any(|a| named(a, "forbid") && a.tokens.contains("unsafe_code"));
     let product = matches!(kind, TargetKind::Lib | TargetKind::Bin);
     let lib = matches!(kind, TargetKind::Lib);
     let test_target = matches!(kind, TargetKind::Test);
@@ -566,28 +567,80 @@ fn source(
     Ok((file, syntax))
 }
 
-fn is_cfg_test(attrs: &[syn::Attribute]) -> bool {
-    attrs
-        .iter()
-        .any(|a| a.path().is_ident("cfg") && a.to_token_stream().to_string().contains("test"))
+/// An attribute, as the facts read it.
+#[derive(Clone, Debug)]
+struct Attr {
+    /// The path, when it is one identifier (`cfg`, `doc`, `forbid`, ...).
+    ident: Option<String>,
+    /// The path's last segment (`test` of `tokio::test`).
+    last: String,
+    /// The whole attribute, printed.
+    tokens: String,
+    /// The text of a `#[doc = "..."]` line, trimmed.
+    doc: Option<String>,
+    /// The type names a `#[derive(...)]` lists.
+    derives: Vec<String>,
 }
 
-fn doc_of(attrs: &[syn::Attribute]) -> String {
-    let mut lines = Vec::new();
-    for attr in attrs {
-        if !attr.path().is_ident("doc") {
-            continue;
-        }
-        if let syn::Meta::NameValue(nv) = &attr.meta {
-            if let syn::Expr::Lit(syn::ExprLit {
-                lit: syn::Lit::Str(s),
-                ..
-            }) = &nv.value
-            {
-                lines.push(s.value().trim().to_string());
+/// The attributes of an item, converted once from `syn`.
+fn attrs(list: &[syn::Attribute]) -> Vec<Attr> {
+    list.iter()
+        .map(|a| {
+            let ident = a.path().get_ident().map(ToString::to_string);
+            let doc = match (&a.meta, ident.as_deref()) {
+                (syn::Meta::NameValue(nv), Some("doc")) => match &nv.value {
+                    syn::Expr::Lit(syn::ExprLit {
+                        lit: syn::Lit::Str(s),
+                        ..
+                    }) => Some(s.value().trim().to_string()),
+                    _ => None,
+                },
+                _ => None,
+            };
+            let derives = if ident.as_deref() == Some("derive") {
+                a.parse_args_with(Punctuated::<syn::Path, syn::Token![,]>::parse_terminated)
+                    .map(|paths| {
+                        paths
+                            .iter()
+                            .filter_map(|p| p.segments.last().map(|s| s.ident.to_string()))
+                            .collect()
+                    })
+                    .unwrap_or_default()
+            } else {
+                Vec::new()
+            };
+            Attr {
+                last: a
+                    .path()
+                    .segments
+                    .last()
+                    .map(|s| s.ident.to_string())
+                    .unwrap_or_default(),
+                ident,
+                tokens: a.to_token_stream().to_string(),
+                doc,
+                derives,
             }
-        }
+        })
+        .collect()
+}
+
+/// An attribute whose path is the identifier `name`.
+fn named(attr: &Attr, name: &str) -> bool {
+    match &attr.ident {
+        Some(ident) => ident == name,
+        None => false,
     }
+}
+
+fn is_cfg_test(attrs: &[Attr]) -> bool {
+    attrs
+        .iter()
+        .any(|a| named(a, "cfg") && a.tokens.contains("test"))
+}
+
+fn doc_of(attrs: &[Attr]) -> String {
+    let lines: Vec<String> = attrs.iter().filter_map(|a| a.doc.clone()).collect();
     lines.join("\n")
 }
 
@@ -628,27 +681,14 @@ fn doctests(doc: &str) -> usize {
     count
 }
 
-fn derives(attrs: &[syn::Attribute]) -> Vec<String> {
-    let mut out = Vec::new();
-    for attr in attrs {
-        if !attr.path().is_ident("derive") {
-            continue;
-        }
-        if let Ok(paths) =
-            attr.parse_args_with(Punctuated::<syn::Path, syn::Token![,]>::parse_terminated)
-        {
-            for path in paths {
-                if let Some(seg) = path.segments.last() {
-                    out.push(seg.ident.to_string());
-                }
-            }
+fn derives(attrs: &[Attr]) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for a in attrs {
+        for d in &a.derives {
+            out.push(d.clone());
         }
     }
     out
-}
-
-fn line_of(span: proc_macro2::Span) -> usize {
-    span.start().line
 }
 
 /// Collapse the token spacing of printed Rust to the way it is written.
@@ -685,7 +725,7 @@ pub(crate) fn tidy(text: &str) -> String {
 fn function(
     sig: &syn::Signature,
     block: Option<&syn::Block>,
-    attrs: &[syn::Attribute],
+    attrs: &[Attr],
     public: bool,
     owner: Option<String>,
     rel: &str,
@@ -697,9 +737,7 @@ fn function(
     if let Some(block) = block {
         body.visit_block(block);
     }
-    let test = attrs
-        .iter()
-        .any(|a| a.path().segments.last().is_some_and(|s| s.ident == "test"));
+    let test = attrs.iter().any(|a| a.last == "test");
     let fact = FnFact {
         name: sig.ident.to_string(),
         owner,
@@ -708,7 +746,7 @@ fn function(
         in_test_module: in_test,
         span: Span {
             file: rel.to_string(),
-            line: line_of(sig.ident.span()),
+            line: sig.ident.span().start().line,
         },
         doctests: if lib && public { doctests(&doc) } else { 0 },
         doc,
@@ -746,7 +784,7 @@ fn items(
                 let (fact, fn_syntax) = function(
                     &f.sig,
                     Some(&f.block),
-                    &f.attrs,
+                    &attrs(&f.attrs),
                     public,
                     None,
                     rel,
@@ -774,7 +812,7 @@ fn items(
                         let (mut fact, fn_syntax) = function(
                             &f.sig,
                             Some(&f.block),
-                            &f.attrs,
+                            &attrs(&f.attrs),
                             public,
                             Some(self_ty.clone()),
                             rel,
@@ -794,7 +832,7 @@ fn items(
                         let (mut fact, fn_syntax) = function(
                             &f.sig,
                             f.default.as_ref(),
-                            &f.attrs,
+                            &attrs(&f.attrs),
                             public,
                             Some(t.ident.to_string()),
                             rel,
@@ -811,17 +849,17 @@ fn items(
                 name: e.ident.to_string(),
                 span: Span {
                     file: rel.to_string(),
-                    line: line_of(e.ident.span()),
+                    line: e.ident.span().start().line,
                 },
-                derives: derives(&e.attrs),
+                derives: derives(&attrs(&e.attrs)),
                 variants: e
                     .variants
                     .iter()
                     .map(|v| Variant {
                         name: v.ident.to_string(),
                         unit: matches!(v.fields, syn::Fields::Unit),
-                        doc: doc_of(&v.attrs),
-                        default: v.attrs.iter().any(|a| a.path().is_ident("default")),
+                        doc: doc_of(&attrs(&v.attrs)),
+                        default: attrs(&v.attrs).iter().any(|a| named(a, "default")),
                     })
                     .collect(),
             }),
@@ -831,7 +869,7 @@ fn items(
                         name: st.ident.to_string(),
                         span: Span {
                             file: rel.to_string(),
-                            line: line_of(st.ident.span()),
+                            line: st.ident.span().start().line,
                         },
                     });
                     syntax.structs.push(
@@ -854,7 +892,7 @@ fn items(
             }
             syn::Item::Mod(m) => {
                 if let Some((_, inner)) = &m.content {
-                    let test = in_test || is_cfg_test(&m.attrs);
+                    let test = in_test || is_cfg_test(&attrs(&m.attrs));
                     items(inner, rel, None, test, product, lib, file, syntax);
                 }
             }
@@ -880,56 +918,56 @@ struct BodyScan {
     transitions: Vec<(String, String, String)>,
 }
 
-fn enum_path(path: &syn::Path) -> Option<(String, String)> {
-    let n = path.segments.len();
-    if n < 2 {
-        return None;
+/// `(Enum, Variant)` of a path `.., Enum, Variant`, by its segments.
+fn enum_path(segments: &[String]) -> Option<(String, String)> {
+    match segments {
+        [] => None,
+        [owner, rest @ ..] => match rest {
+            [] => None,
+            [variant, tail @ ..] => {
+                if tail.is_empty() {
+                    Some((owner.clone(), variant.clone()))
+                } else {
+                    enum_path(rest)
+                }
+            }
+        },
     }
-    Some((
-        path.segments[n - 2].ident.to_string(),
-        path.segments[n - 1].ident.to_string(),
-    ))
 }
 
-/// Every enum path an arm body can evaluate to, through `if`/`else` branches.
-fn arm_targets<'e>(expr: &'e syn::Expr, out: &mut Vec<&'e syn::Path>) {
+/// The segments of every path an arm body can evaluate to: through `if` and
+/// `else` branches when `branches`, and through a one-expression block,
+/// parentheses or `Some(..)`/`Ok(..)`.
+fn arm_paths(expr: &syn::Expr, branches: bool) -> Vec<Vec<String>> {
     match expr {
-        syn::Expr::If(i) => {
+        syn::Expr::If(i) if branches => {
+            let mut out = Vec::new();
             if let [syn::Stmt::Expr(e, None)] = i.then_branch.stmts.as_slice() {
-                arm_targets(e, out);
+                out.extend(arm_paths(e, true));
             }
             if let Some((_, e)) = &i.else_branch {
-                arm_targets(e, out);
+                out.extend(arm_paths(e, true));
             }
+            out
         }
-        syn::Expr::Block(b) if b.block.stmts.len() == 1 => {
-            if let syn::Stmt::Expr(e, None) = &b.block.stmts[0] {
-                arm_targets(e, out);
-            }
-        }
-        other => {
-            if let Some(path) = arm_target(other) {
-                out.push(path);
-            }
-        }
-    }
-}
-
-fn arm_target(expr: &syn::Expr) -> Option<&syn::Path> {
-    match expr {
-        syn::Expr::Path(p) => Some(&p.path),
         syn::Expr::Block(b) if b.block.stmts.len() == 1 => match &b.block.stmts[0] {
-            syn::Stmt::Expr(e, None) => arm_target(e),
-            _ => None,
+            syn::Stmt::Expr(e, None) => arm_paths(e, branches),
+            _ => Vec::new(),
         },
+        syn::Expr::Path(p) => vec![p
+            .path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect()],
         syn::Expr::Call(c) if c.args.len() == 1 => match &*c.func {
             syn::Expr::Path(p) if p.path.is_ident("Some") || p.path.is_ident("Ok") => {
-                arm_target(&c.args[0])
+                arm_paths(&c.args[0], false)
             }
-            _ => None,
+            _ => Vec::new(),
         },
-        syn::Expr::Paren(p) => arm_target(&p.expr),
-        _ => None,
+        syn::Expr::Paren(p) => arm_paths(&p.expr, false),
+        _ => Vec::new(),
     }
 }
 
@@ -973,13 +1011,20 @@ impl<'ast> Visit<'ast> for BodyScan {
     fn visit_expr_match(&mut self, node: &'ast syn::ExprMatch) {
         for arm in &node.arms {
             let from = match &arm.pat {
-                syn::Pat::Path(p) => enum_path(&p.path),
+                syn::Pat::Path(p) => {
+                    let segments: Vec<String> = p
+                        .path
+                        .segments
+                        .iter()
+                        .map(|s| s.ident.to_string())
+                        .collect();
+                    enum_path(&segments)
+                }
                 _ => None,
             };
-            let mut targets = Vec::new();
-            arm_targets(&arm.body, &mut targets);
             if let Some((e1, a)) = from {
-                for (e2, b) in targets.into_iter().filter_map(enum_path) {
+                let targets = arm_paths(&arm.body, true);
+                for (e2, b) in targets.iter().filter_map(|t| enum_path(t)) {
                     if e1 == e2 {
                         self.transitions.push((e1.clone(), a.clone(), b));
                     }
@@ -1002,7 +1047,7 @@ impl CapabilityScan<'_> {
             cap,
             Span {
                 file: self.rel.to_string(),
-                line: line_of(span),
+                line: span.start().line,
             },
             what,
         ));
