@@ -1,0 +1,160 @@
+# Publishes the `uorust` CLI as an installable product. A tag `v*` builds the
+# binary natively on each platform from the locked workspace, with the
+# toolchain rust-toolchain.toml pins, and attaches every archive to the tag's
+# GitHub release with its SHA-256 sum and a signed build-provenance
+# attestation. The signer is this repository's release workflow through
+# GitHub's OIDC issuer; check a download with
+#   gh attestation verify uorust-<target>.tar.gz --repo afflom/UORust
+# Windows is built where it builds: its leg may fail without holding back the
+# release, which then carries the other four platforms.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build uorust for ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    continue-on-error: ${{ matrix.optional }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-24.04
+            optional: false
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+            optional: false
+          - target: x86_64-apple-darwin
+            runner: macos-15
+            optional: false
+          - target: aarch64-apple-darwin
+            runner: macos-15
+            optional: false
+          - target: x86_64-pc-windows-msvc
+            runner: windows-2025
+            optional: true
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Check out the tagged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install the pinned toolchain for the target
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add "$TARGET"
+      - name: Build the locked release binary
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          cargo build --release --locked -p uorust --bin uorust --target "$TARGET"
+      - name: Package the binary with its sum
+        id: package
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/uorust-release"
+          stage="$RUNNER_TEMP/uorust-$TARGET"
+          mkdir -p "$out" "$stage"
+          cp LICENSE-APACHE LICENSE-MIT README.md "$stage/"
+          if [[ $TARGET == *windows* ]]; then
+            cp "target/$TARGET/release/uorust.exe" "$stage/"
+            archive="uorust-$TARGET.zip"
+            (cd "$RUNNER_TEMP" && 7z a -tzip "$out/$archive" "uorust-$TARGET" >/dev/null)
+          else
+            cp "target/$TARGET/release/uorust" "$stage/"
+            archive="uorust-$TARGET.tar.gz"
+            tar -C "$RUNNER_TEMP" -czf "$out/$archive" "uorust-$TARGET"
+          fi
+          cd "$out"
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$archive" >"$archive.sha256"
+          else
+            shasum -a 256 "$archive" >"$archive.sha256"
+          fi
+          {
+            echo "path=$out"
+            echo "archive=$out/$archive"
+          } >>"$GITHUB_OUTPUT"
+      - name: Sign the archive's provenance as this repository's release workflow
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ steps.package.outputs.archive }}
+          show-summary: false
+      - name: Upload the archive and its sum
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: uorust-${{ matrix.target }}
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error
+
+  publish:
+    name: attach the archives to the release
+    needs: build
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the tagged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download every archive that built
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: uorust-*
+          path: dist
+          merge-multiple: true
+      - name: Require the four required platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+          for target in x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-apple-darwin aarch64-apple-darwin; do
+            test -f "dist/uorust-$target.tar.gz" || { echo "missing uorust-$target.tar.gz" >&2; exit 1; }
+            test -f "dist/uorust-$target.tar.gz.sha256" || { echo "missing its sum" >&2; exit 1; }
+          done
+          (cd dist && cat ./*.sha256 >SHA256SUMS && sha256sum --check SHA256SUMS)
+      - name: Create the release with the archives, their sums and SHA256SUMS
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          notes="Install from source: cargo install --locked --git https://github.com/$REPOSITORY --tag $TAG uorust
+
+          Or download the archive for your platform, check it with SHA256SUMS, and verify its provenance:
+          gh attestation verify uorust-<target>.tar.gz --repo $REPOSITORY"
+          if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --repo "$REPOSITORY" --clobber
+          else
+            gh release create "$TAG" dist/* --repo "$REPOSITORY" --title "UORust $TAG" --notes "$notes" --verify-tag
+          fi

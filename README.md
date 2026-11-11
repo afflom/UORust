@@ -49,6 +49,27 @@ different routes is refused as ambiguous; a kind no route names is refused as
 unknown; each refusal becomes an open claim against the fact's source span.
 Re-running on the same workspace writes byte-identical files.
 
+## Install it
+
+```sh
+cargo install --locked --git https://github.com/afflom/UORust uorust
+```
+
+installs the `uorust` CLI from source with the committed `Cargo.lock` (add
+`--tag v0.1.0` for a release). Each release tag also carries prebuilt archives
+for `x86_64` and `aarch64` Linux (`*-unknown-linux-gnu`) and macOS
+(`*-apple-darwin`), and for `x86_64-pc-windows-msvc` where it builds, from
+[the releases page](https://github.com/afflom/UORust/releases). Each archive
+has a `.sha256` beside it, `SHA256SUMS` lists them all, and each carries a
+signed build-provenance attestation from `.github/workflows/release.yml`:
+
+```sh
+sha256sum --check uorust-x86_64-unknown-linux-gnu.tar.gz.sha256
+gh attestation verify uorust-x86_64-unknown-linux-gnu.tar.gz --repo afflom/UORust
+tar -xzf uorust-x86_64-unknown-linux-gnu.tar.gz
+./uorust-x86_64-unknown-linux-gnu/uorust project path/to/workspace --out path/to/prism-project
+```
+
 ## Use it
 
 ```sh
