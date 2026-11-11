@@ -68,7 +68,11 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterLabelWidth is made
     And the interface call Interface::callThermoCoreRosterClamp is made
     And the interface call Interface::callThermoCoreRosterBlank is made
+    And the interface call Interface::callThermoCoreRosterColdNames is made
+    And the interface call Interface::callThermoCoreRosterReport is made
+    And the interface call Interface::callThermoCoreRosterReadingsOf is made
     Then the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
+    And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms holds
 

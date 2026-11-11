@@ -92,7 +92,7 @@ Feature: engine
     Then every paired record on both sides states its fact, every checked hand record is paired or outside, the route tables agree, and the drift is 0
 
   @UE-15 @build
-  Scenario: Iterator chains, inherent methods, read-only maps and early returns lift
-    Given the thermostat fixture, whose roster module uses iterator chains with closures, methods taking self, BTreeMap, HashMap and BTreeSet reads, early returns, let else and tuple lets
+  Scenario: Iterator chains, inherent methods, read-only maps, early returns and for loops lift
+    Given the thermostat fixture, whose roster module uses iterator chains with closures, methods taking self, BTreeMap, HashMap and BTreeSet reads, early returns, let else, tuple lets and for loops that push onto locals
     When the suite exercises UE-15
     Then every roster function and method is a LexLean definition, each chain a helper with recursive_argument, no roster function is residue, and lexlean verify passes on the committed projection

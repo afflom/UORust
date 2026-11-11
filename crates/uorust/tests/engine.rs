@@ -413,6 +413,11 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         ("clamp", "(let low : Nat := (project pair"),
         ("blank", "body: \"\""),
         ("nextMode", "coldArg : Bool"),
+        ("coldNamesLoop1", "recursive_argument: items"),
+        ("coldNames", "(coldNamesLoop1 rooms"),
+        ("reportLoop1", "(record TupleStringNat {item0 := "),
+        ("report", "(reportLoop1 rooms (record TupleStringNat"),
+        ("readingsOfLoop1", "(prim append state"),
     ] {
         let d = decl(name);
         assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");

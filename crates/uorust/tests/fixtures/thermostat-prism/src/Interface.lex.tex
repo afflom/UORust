@@ -58,21 +58,28 @@ definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsItsRooms,
   parameters: [],
   result: String,
-  body: "the_roster_reads_its_rooms at thermo-core/src/roster.rs:148 passes."
+  body: "the_roster_reads_its_rooms at thermo-core/src/roster.rs:184 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps,
   parameters: [],
   result: String,
-  body: "the_roster_folds_and_clamps at thermo-core/src/roster.rs:161 passes."
+  body: "the_roster_folds_and_clamps at thermo-core/src/roster.rs:197 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms,
+  parameters: [],
+  result: String,
+  body: "the_roster_loops_over_its_rooms at thermo-core/src/roster.rs:210 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsItsMaps,
   parameters: [],
   result: String,
-  body: "the_roster_reads_its_maps at thermo-core/src/roster.rs:174 passes."
+  body: "the_roster_reads_its_maps at thermo-core/src/roster.rs:218 passes."
 }
 
 definition{
@@ -391,6 +398,27 @@ definition{
 }
 
 definition{
+  name: callThermoCoreRosterColdNames,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::cold_names: fn cold_names(rooms: &[Room], floor: u32) -> Vec<String>"
+}
+
+definition{
+  name: callThermoCoreRosterReport,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::report: fn report(rooms: &[Room]) -> (String, u32)"
+}
+
+definition{
+  name: callThermoCoreRosterReadingsOf,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::readings_of: fn readings_of(entries: &[(String, u32)]) -> Vec<u32>"
+}
+
+definition{
   name: callThermoCoreSensorSensorRead,
   parameters: [],
   result: String,
@@ -436,7 +464,7 @@ definition{
   name: featureThermoCoreRoster,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::roster: Rooms, their readings and the schedule that names them.", calls := (cons "Interface::callThermoCoreRosterRoomIsCold" (cons "Interface::callThermoCoreRosterRoomReread" (cons "Interface::callThermoCoreRosterRoomLabel" (cons "Interface::callThermoCoreRosterNames" (cons "Interface::callThermoCoreRosterCold" (cons "Interface::callThermoCoreRosterAnyCold" (cons "Interface::callThermoCoreRosterAllWithin" (cons "Interface::callThermoCoreRosterFirstCold" (cons "Interface::callThermoCoreRosterHighest" (cons "Interface::callThermoCoreRosterColdCount" (cons "Interface::callThermoCoreRosterScheduled" (cons "Interface::callThermoCoreRosterRoll" (cons "Interface::callThermoCoreRosterPairs" (cons "Interface::callThermoCoreRosterTargetOf" (cons "Interface::callThermoCoreRosterRoomsOf" (cons "Interface::callThermoCoreRosterHasTarget" (cons "Interface::callThermoCoreRosterClosed" (cons "Interface::callThermoCoreRosterLabelWidth" (cons "Interface::callThermoCoreRosterClamp" (cons "Interface::callThermoCoreRosterBlank" (nil String))))))))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms" (nil String))))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::roster: Rooms, their readings and the schedule that names them.", calls := (cons "Interface::callThermoCoreRosterRoomIsCold" (cons "Interface::callThermoCoreRosterRoomReread" (cons "Interface::callThermoCoreRosterRoomLabel" (cons "Interface::callThermoCoreRosterNames" (cons "Interface::callThermoCoreRosterCold" (cons "Interface::callThermoCoreRosterAnyCold" (cons "Interface::callThermoCoreRosterAllWithin" (cons "Interface::callThermoCoreRosterFirstCold" (cons "Interface::callThermoCoreRosterHighest" (cons "Interface::callThermoCoreRosterColdCount" (cons "Interface::callThermoCoreRosterScheduled" (cons "Interface::callThermoCoreRosterRoll" (cons "Interface::callThermoCoreRosterPairs" (cons "Interface::callThermoCoreRosterTargetOf" (cons "Interface::callThermoCoreRosterRoomsOf" (cons "Interface::callThermoCoreRosterHasTarget" (cons "Interface::callThermoCoreRosterClosed" (cons "Interface::callThermoCoreRosterLabelWidth" (cons "Interface::callThermoCoreRosterClamp" (cons "Interface::callThermoCoreRosterBlank" (cons "Interface::callThermoCoreRosterColdNames" (cons "Interface::callThermoCoreRosterReport" (cons "Interface::callThermoCoreRosterReadingsOf" (nil String)))))))))))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms" (nil String)))))})
 }
 
 definition{

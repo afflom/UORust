@@ -477,6 +477,59 @@ definition{
 
 definition{name: blank, parameters: [], result: String, body: ""}
 
+definition{
+  name: coldNamesLoop1,
+  parameters: [items3 : (List Room), state1 : (List String), floor : Nat],
+  result: (List String),
+  body: (match items3
+    | List.nil => state1
+    | List.cons room rest4 => (if ((project room reading) <? floor) then (let out2 : (List String) := (prim append state1 (cons (project room name) (nil String)) : (List String)); (coldNamesLoop1 rest4 out2 floor)) else (coldNamesLoop1 rest4 state1 floor))),
+  recursive_argument: items3
+}
+
+definition{
+  name: coldNames,
+  parameters: [rooms : (List Room), floor : Nat],
+  result: (List String),
+  body: (let out : (List String) := (nil String); (let state5 : (List String) := (coldNamesLoop1 rooms out floor); state5))
+}
+
+definition{
+  name: reportLoop1,
+  parameters: [items10 : (List Room), state1 : TupleStringNat],
+  result: TupleStringNat,
+  body: (match items10
+    | List.nil => state1
+    | List.cons room rest11 => (let line2 : String := (project state1 item0); (let seen3 : Nat := (project state1 item1); (if (prim equal (project room name) "" : Bool) then (let line4 : String := (prim join (cons line2 (cons "?" (nil String))) "" : String); (let line5 : String := (prim join (cons line4 (cons ";" (nil String))) "" : String); (let seen6 : Nat := (if ((seen3 + 1) <? 4294967296) then (seen3 + 1) else 4294967295); (reportLoop1 rest11 (record TupleStringNat {item0 := line5, item1 := seen6}))))) else (let line7 : String := (prim join (cons line2 (cons (project room name) (nil String))) "" : String); (let line8 : String := (prim join (cons line7 (cons ";" (nil String))) "" : String); (let seen9 : Nat := (if ((seen3 + 1) <? 4294967296) then (seen3 + 1) else 4294967295); (reportLoop1 rest11 (record TupleStringNat {item0 := line8, item1 := seen9}))))))))),
+  axioms: [propext],
+  recursive_argument: items10
+}
+
+definition{
+  name: report,
+  parameters: [rooms : (List Room)],
+  result: TupleStringNat,
+  body: (let line : String := ""; (let seen : Nat := 0; (let state12 : TupleStringNat := (reportLoop1 rooms (record TupleStringNat {item0 := line, item1 := seen})); (let line13 : String := (project state12 item0); (let seen14 : Nat := (project state12 item1); (record TupleStringNat {item0 := line13, item1 := seen14})))))),
+  axioms: [propext]
+}
+
+definition{
+  name: readingsOfLoop1,
+  parameters: [items5 : (List TupleStringNat), state1 : (List Nat)],
+  result: (List Nat),
+  body: (match items5
+    | List.nil => state1
+    | List.cons pair2 rest6 => (let item3 : String := (project pair2 item0); (let reading : Nat := (project pair2 item1); (let out4 : (List Nat) := (prim append state1 (cons reading (nil Nat)) : (List Nat)); (readingsOfLoop1 rest6 out4))))),
+  recursive_argument: items5
+}
+
+definition{
+  name: readingsOf,
+  parameters: [entries : (List TupleStringNat)],
+  result: (List Nat),
+  body: (let out : (List Nat) := (nil Nat); (let state7 : (List Nat) := (readingsOfLoop1 entries out); state7))
+}
+
 theorem{
   name: acceptThermoCoreCountersAndSignedReadings0,
   parameters: [],

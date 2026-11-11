@@ -2307,6 +2307,327 @@ impl Ctx<'_> {
     }
 }
 
+/// The local a statement updates in place, and how: `x = e`, `x += e` on a
+/// string, `x.push(e)` on a list or string, `x.push_str(e)`.
+fn update_target(e: &syn::Expr) -> Option<String> {
+    let ident = |e: &syn::Expr| match e {
+        syn::Expr::Path(p) => p.path.get_ident().map(ToString::to_string),
+        _ => None,
+    };
+    match e {
+        syn::Expr::Assign(a) => ident(&a.left),
+        syn::Expr::Binary(b) if matches!(b.op, syn::BinOp::AddAssign(_)) => ident(&b.left),
+        syn::Expr::MethodCall(m)
+            if (m.method == "push" || m.method == "push_str") && m.args.len() == 1 =>
+        {
+            ident(&m.receiver)
+        }
+        _ => None,
+    }
+}
+
+/// A character literal as the one-character string it pushes.
+fn char_text(e: &syn::Expr) -> Option<String> {
+    match e {
+        syn::Expr::Lit(syn::ExprLit {
+            lit: syn::Lit::Char(c),
+            ..
+        }) => exact_string(&c.value().to_string()),
+        _ => None,
+    }
+}
+
+/// The new value of the local an update statement changes.
+fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String> {
+    let inner = ctx.below();
+    let joined = |piece: String| {
+        ctx.axioms.borrow_mut().insert("propext".to_string());
+        format!("(prim join (cons {current} (cons {piece} (nil String))) \"\" : String)")
+    };
+    let value_of = |v: &syn::Expr, want: &Ty| -> Lift<String> {
+        let (x, xt) = flat_of(v, &inner, Some(want))?;
+        if xt.same(want) {
+            Continue(x)
+        } else {
+            Break(Residue::Form("an update of another type".to_string()))
+        }
+    };
+    match (e, ty) {
+        (syn::Expr::Assign(a), _) => value_of(&a.right, ty),
+        (syn::Expr::Binary(b), Ty::Str) => Continue(joined(value_of(&b.right, &Ty::Str)?)),
+        (syn::Expr::Binary(b), _) => Break(Residue::Arithmetic(
+            quote::ToTokens::to_token_stream(&b.op).to_string(),
+        )),
+        (syn::Expr::MethodCall(m), Ty::List(t)) if m.method == "push" => {
+            let v = value_of(&m.args[0], t)?;
+            Continue(format!(
+                "(prim append {current} (cons {v} (nil {})) : {})",
+                t.render(),
+                ty.render()
+            ))
+        }
+        (syn::Expr::MethodCall(m), Ty::Str) => {
+            let piece = match char_text(&m.args[0]) {
+                Some(text) if m.method == "push" => text,
+                _ if m.method == "push_str" => value_of(&m.args[0], &Ty::Str)?,
+                _ => return Break(Residue::Form("push of a character value".to_string())),
+            };
+            Continue(joined(piece))
+        }
+        _ => Break(Residue::Form("an update outside the lift".to_string())),
+    }
+}
+
+/// The locals a loop body updates that are bound before the loop.
+fn loop_state(body: &[syn::Stmt], ctx: &Ctx<'_>) -> Lift<Vec<String>> {
+    struct Scan {
+        updated: BTreeSet<String>,
+        declared: BTreeSet<String>,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for Scan {
+        fn visit_expr(&mut self, e: &'ast syn::Expr) {
+            if let Some(t) = update_target(e) {
+                self.updated.insert(t);
+            }
+            syn::visit::visit_expr(self, e);
+        }
+        fn visit_local(&mut self, l: &'ast syn::Local) {
+            if let syn::Pat::Ident(i) = &l.pat {
+                self.declared.insert(i.ident.to_string());
+            }
+            syn::visit::visit_local(self, l);
+        }
+        fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
+    }
+    let mut scan = Scan {
+        updated: BTreeSet::new(),
+        declared: BTreeSet::new(),
+    };
+    for s in body {
+        syn::visit::Visit::visit_stmt(&mut scan, s);
+    }
+    if scan.updated.iter().any(|u| scan.declared.contains(u)) {
+        return Break(Residue::Form("a loop that shadows its state".to_string()));
+    }
+    let state: Vec<String> = scan
+        .updated
+        .into_iter()
+        .filter(|u| ctx.locals.contains_key(u))
+        .collect();
+    if state.is_empty() {
+        return Break(Residue::Form("a loop that updates no local".to_string()));
+    }
+    Continue(state)
+}
+
+/// The state of a loop as one value: the local, or the tuple of them.
+fn state_expr(state: &[String]) -> syn::Expr {
+    let path = |name: &str| -> syn::Expr {
+        syn::parse_str(name).unwrap_or_else(|_| syn::parse_quote!(state))
+    };
+    match state {
+        [one] => path(one),
+        many => {
+            let elems: Vec<syn::Expr> = many.iter().map(|n| path(n)).collect();
+            syn::parse_quote!((#(#elems),*))
+        }
+    }
+}
+
+/// Every tail of a lifted expression, rewritten: the step of a loop ends in
+/// its recursive call on the new state.
+fn map_tails(e: Expr, f: &dyn Fn(String) -> String) -> Expr {
+    match e {
+        Expr::Flat(s) => Expr::Flat(f(s)),
+        Expr::If {
+            condition,
+            then,
+            otherwise,
+        } => Expr::If {
+            condition,
+            then: Box::new(map_tails(*then, f)),
+            otherwise: Box::new(map_tails(*otherwise, f)),
+        },
+        Expr::Match { scrutinee, arms } => Expr::Match {
+            scrutinee,
+            arms: arms
+                .into_iter()
+                .map(|(p, b)| (p, map_tails(b, f)))
+                .collect(),
+        },
+        Expr::Let {
+            name,
+            ty,
+            value,
+            body,
+        } => Expr::Let {
+            name,
+            ty,
+            value,
+            body: Box::new(map_tails(*body, f)),
+        },
+    }
+}
+
+/// Bind a loop's state to the names its locals take next: the value itself,
+/// or each item of the tuple.
+fn rebind<'a>(
+    ctx: &Ctx<'a>,
+    state: &[String],
+    whole: &str,
+    lets: &mut Vec<(String, String, String)>,
+) -> Ctx<'a> {
+    let mut scope = ctx.clone();
+    if let [one] = state {
+        let ty = ctx.locals[one].1.clone();
+        scope.locals.insert(one.clone(), (whole.to_string(), ty));
+        return scope;
+    }
+    for (i, var) in state.iter().enumerate() {
+        let ty = ctx.locals[var].1.clone();
+        let (next, name) = scope.bind(var, ty.clone());
+        scope = next;
+        lets.push((name, ty.render(), format!("(project {whole} item{i})")));
+    }
+    scope
+}
+
+fn wrap_lets(lets: Vec<(String, String, String)>, body: Expr) -> Expr {
+    lets.into_iter()
+        .rev()
+        .fold(body, |body, (name, ty, value)| Expr::Let {
+            name,
+            ty,
+            value: Box::new(Expr::Flat(value)),
+            body: Box::new(body),
+        })
+}
+
+/// `for p in xs { body } rest`: a helper that walks `xs` with the locals the
+/// body updates as its accumulator, then `rest` with their final values.
+fn for_loop(
+    f: &syn::ExprForLoop,
+    rest: &[syn::Stmt],
+    ctx: &Ctx<'_>,
+    want: Option<&Ty>,
+) -> Lift<(Expr, Ty)> {
+    if f.label.is_some() {
+        return Break(Residue::Form("labelled loop".to_string()));
+    }
+    let (list, lt) = flat_of(&f.expr, &ctx.below(), None)?;
+    let elem = match &lt {
+        Ty::List(t) => (**t).clone(),
+        Ty::Set(t, true) => (**t).clone(),
+        Ty::Map(_, _, true) => lt.entry(),
+        _ => {
+            return Break(Residue::Form(
+                "a loop over something other than a list".to_string(),
+            ))
+        }
+    };
+    let state = loop_state(&f.body.stmts, ctx)?;
+    let tys: Vec<Ty> = state.iter().map(|v| ctx.locals[v].1.clone()).collect();
+    let state_ty = match tys.as_slice() {
+        [one] => one.clone(),
+        many => Ty::Tuple(many.to_vec()),
+    };
+    state_ty.mentions(&mut ctx.seen.borrow_mut());
+    // The step, in a scope of its own.
+    let calls = RefCell::new(BTreeSet::new());
+    let axioms = RefCell::new(BTreeSet::new());
+    let descends = RefCell::new(BTreeSet::new());
+    let base = Ctx {
+        calls: &calls,
+        axioms: &axioms,
+        descends: &descends,
+        tails: BTreeMap::new(),
+        top: false,
+        ..ctx.clone()
+    };
+    // The outer names stay taken inside the step: the step's binders may
+    // not shadow a capture.
+    let mut base = base;
+    for (rust, binding) in &ctx.locals {
+        base.locals
+            .insert(format!("#outer {rust}"), binding.clone());
+    }
+    let acc = base.fresh("state");
+    let mut lets = Vec::new();
+    let mut scope = rebind(&base, &state, &acc, &mut lets);
+    let mut pat_lets = Vec::new();
+    let (next, head) = bind_pat(&f.pat, &elem, &scope, &mut pat_lets, false)?;
+    scope = next;
+    let mut stmts = f.body.stmts.clone();
+    stmts.push(syn::Stmt::Expr(state_expr(&state), None));
+    let (step, st) = block(&stmts, &scope, Some(&state_ty))?;
+    if !st.same(&state_ty) || !descends.borrow().is_empty() {
+        return Break(Residue::Form("a loop step of another type".to_string()));
+    }
+    drop(scope);
+    drop(base);
+    let mut helpers = ctx.helpers.borrow_mut();
+    let mut n = helpers.len() + 1;
+    let name = loop {
+        let candidate = format!("{}Loop{n}", ctx.own);
+        if !ctx.fns.values().any(|g| g.name == candidate)
+            && !helpers.iter().any(|h| h.name == candidate)
+            && !ctx.taken(&candidate)
+        {
+            break candidate;
+        }
+        n += 1;
+    };
+    let items = ctx.fresh("items");
+    let rest_name = ctx.fresh("rest");
+    let text = step.flat();
+    let caps = captures(ctx, &[text], std::slice::from_ref(&acc));
+    let cap_names: Vec<String> = caps.iter().map(|(c, _)| c.clone()).collect();
+    let recur = |s: String| {
+        let mut parts = vec![name.clone(), rest_name.clone(), s];
+        parts.extend(cap_names.iter().cloned());
+        format!("({})", parts.join(" "))
+    };
+    let body = wrap_lets(lets, wrap_lets(pat_lets, map_tails(step, &recur)));
+    let mut params = vec![
+        (items.clone(), lt.render()),
+        (acc.clone(), state_ty.render()),
+    ];
+    params.extend(caps.iter().map(|(c, t)| (c.clone(), t.render())));
+    helpers.push(Helper {
+        name: name.clone(),
+        params,
+        result: state_ty.render(),
+        body: Expr::Match {
+            scrutinee: items,
+            arms: vec![
+                ("List.nil".to_string(), Expr::Flat(acc)),
+                (format!("List.cons {head} {rest_name}"), body),
+            ],
+        },
+        calls: calls.into_inner(),
+        axioms: axioms.into_inner(),
+    });
+    drop(helpers);
+    ctx.calls.borrow_mut().insert(format!("#{name}"));
+    // The loop's value, then the rest with the final state.
+    let (init, _) = flat_of(&state_expr(&state), &ctx.below(), Some(&state_ty))?;
+    let mut parts = vec![name, list, init];
+    parts.extend(cap_names);
+    let whole = ctx.fresh("state");
+    let mut lets = Vec::new();
+    let after = rebind(ctx, &state, &whole, &mut lets);
+    let (rest, rt) = block(rest, &after, want)?;
+    Continue((
+        Expr::Let {
+            name: whole,
+            ty: state_ty.render(),
+            value: Box::new(Expr::Flat(format!("({})", parts.join(" ")))),
+            body: Box::new(wrap_lets(lets, rest)),
+        },
+        rt,
+    ))
+}
+
 fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     match stmts {
         [syn::Stmt::Expr(e, None)] => expr(e, &ctx.below(), want),
@@ -2316,7 +2637,10 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
         },
         // `if c { return v; } rest`: an early exit from the function.
         [syn::Stmt::Expr(syn::Expr::If(i), _), rest @ ..]
-            if ctx.top && !rest.is_empty() && i.else_branch.is_none() =>
+            if ctx.top
+                && !rest.is_empty()
+                && i.else_branch.is_none()
+                && returned(&i.then_branch).is_some() =>
         {
             let Some(v) = returned(&i.then_branch) else {
                 return Break(Residue::Statements);
@@ -2427,6 +2751,69 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
                     body: Box::new(body),
                 },
                 bt,
+            ))
+        }
+        // `for p in xs { .. }`: a walk with the updated locals as its state.
+        [syn::Stmt::Expr(syn::Expr::ForLoop(f), _), rest @ ..] if !rest.is_empty() => {
+            for_loop(f, rest, ctx, want)
+        }
+        // `x = e;`, `x += s;`, `x.push(e);`: the local's next value.
+        [syn::Stmt::Expr(e, Some(_)), rest @ ..]
+            if !rest.is_empty() && update_target(e).is_some() =>
+        {
+            let Some(target) = update_target(e) else {
+                return Break(Residue::Statements);
+            };
+            let Some((current, ty)) = ctx.locals.get(&target).cloned() else {
+                return Break(Residue::Form(format!("an update of {target}")));
+            };
+            let value = updated(e, &ty, &current, ctx)?;
+            let (scope, name) = ctx.bind(&target, ty.clone());
+            let (rest, rt) = block(rest, &scope, want)?;
+            Continue((
+                Expr::Let {
+                    name,
+                    ty: ty.render(),
+                    value: Box::new(Expr::Flat(value)),
+                    body: Box::new(rest),
+                },
+                rt,
+            ))
+        }
+        // `if c { .. } [else { .. }] rest` with statements in its branches: the
+        // rest after each branch.
+        [syn::Stmt::Expr(syn::Expr::If(i), _), rest @ ..]
+            if !rest.is_empty()
+                && !matches!(&*i.cond, syn::Expr::Let(_))
+                && returned(&i.then_branch).is_none() =>
+        {
+            let (c, ct) = expr(&i.cond, &ctx.below(), Some(&Ty::Bool))?;
+            if ct != Ty::Bool {
+                return Break(Residue::Form("non-boolean condition".to_string()));
+            }
+            let mut then: Vec<syn::Stmt> = i.then_branch.stmts.clone();
+            then.extend(rest.iter().cloned());
+            let mut other: Vec<syn::Stmt> = match &i.else_branch {
+                None => Vec::new(),
+                Some((_, e)) => match &**e {
+                    syn::Expr::Block(b) => b.block.stmts.clone(),
+                    syn::Expr::If(_) => vec![syn::Stmt::Expr((**e).clone(), None)],
+                    _ => return Break(Residue::Statements),
+                },
+            };
+            other.extend(rest.iter().cloned());
+            let (a, at) = block(&then, ctx, want)?;
+            let (b, bt) = block(&other, ctx, Some(want.unwrap_or(&at)))?;
+            if !at.same(&bt) {
+                return Break(Residue::Form("branches of different types".to_string()));
+            }
+            Continue((
+                Expr::If {
+                    condition: Box::new(Expr::Flat(flat_text(c)?)),
+                    then: Box::new(a),
+                    otherwise: Box::new(b),
+                },
+                at,
             ))
         }
         [syn::Stmt::Local(local), rest @ ..] if !rest.is_empty() => {

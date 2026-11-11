@@ -133,6 +133,42 @@ pub fn blank() -> String {
     String::new()
 }
 
+/// The names of the rooms below the floor, gathered by a loop.
+pub fn cold_names(rooms: &[Room], floor: u32) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for room in rooms {
+        if room.reading < floor {
+            out.push(room.name.clone());
+        }
+    }
+    out
+}
+
+/// A report line and the count of rooms on it, two accumulators of a loop.
+pub fn report(rooms: &[Room]) -> (String, u32) {
+    let mut line = String::new();
+    let mut seen: u32 = 0;
+    for room in rooms {
+        if room.name.is_empty() {
+            line.push('?');
+        } else {
+            line.push_str(&room.name);
+        }
+        line.push(';');
+        seen = seen.saturating_add(1);
+    }
+    (line, seen)
+}
+
+/// The readings of each room, flattened over a pair pattern.
+pub fn readings_of(entries: &[(String, u32)]) -> Vec<u32> {
+    let mut out: Vec<u32> = Vec::new();
+    for (_, reading) in entries {
+        out.push(*reading);
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -168,6 +204,14 @@ mod tests {
         assert!(scheduled(&["hall".to_string()], "hall"));
         assert_eq!(pairs(&[("hall".to_string(), -2)]), vec!["hall=-2".to_string()]);
         assert_eq!(blank(), "");
+    }
+
+    #[test]
+    fn the_roster_loops_over_its_rooms() {
+        let rooms = vec![room("hall", 15), room("", 21)];
+        assert_eq!(cold_names(&rooms, 18), vec!["hall".to_string()]);
+        assert_eq!(report(&rooms), ("hall;?;".to_string(), 2));
+        assert_eq!(readings_of(&[("a".to_string(), 3)]), vec![3]);
     }
 
     #[test]
