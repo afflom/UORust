@@ -799,7 +799,23 @@ fn audience(ctx: &Ctx<'_>) -> (Named, Named, Viewpoints) {
         .filter(|d| !d.is_empty())
         .collect::<Vec<_>>()
         .join(" ");
-    let concerns = vec![
+    // UR-R04: every package author is a stakeholder.
+    for author in &authors {
+        let name = author
+            .split('<')
+            .next()
+            .unwrap_or(author)
+            .trim()
+            .to_string();
+        stakeholders.push((
+            a(&format!("stakeholderAuthor{}", pascal(&[&name]))),
+            (
+                name,
+                format!("Listed as an author of the {} workspace.", ws.name),
+            ),
+        ));
+    }
+    let mut concerns = vec![
         (
             a("concernFunctionality"),
             (
@@ -838,6 +854,26 @@ fn audience(ctx: &Ctx<'_>) -> (Named, Named, Viewpoints) {
             ),
         ),
     ];
+    // UR-R03: a crate's doc comment states the concern the crate answers.
+    for (pkg, package) in ws.packages.iter().enumerate() {
+        for (t, target) in package.targets.iter().enumerate() {
+            let Some(component) = ctx.targets.get(&(pkg, t)) else {
+                continue;
+            };
+            let doc = package
+                .files
+                .iter()
+                .find(|f| f.rel == target.src)
+                .map(|f| summary(&f.doc))
+                .unwrap_or_default();
+            if !doc.is_empty() {
+                concerns.push((
+                    a(&format!("concernCrate{}", Ctx::component_suffix(component))),
+                    (target.name.clone(), doc),
+                ));
+            }
+        }
+    }
     let user = if has_kind(ws, TargetKind::Bin) {
         a("stakeholderCliUsers")
     } else if has_kind(ws, TargetKind::Lib) {
@@ -1163,22 +1199,6 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
             }
         }
     }
-    // Examples are acceptance rows of the crate's library features.
-    for package in &ws.packages {
-        for target in package
-            .targets
-            .iter()
-            .filter(|t| t.kind == TargetKind::Example)
-        {
-            let name = format!("acExample{}", pascal(&[&package.name, &target.name]));
-            let span = Span {
-                file: target.src.clone(),
-                line: 1,
-            };
-            let text = format!("The example {} at {} builds.", target.name, target.src);
-            push(ctx, Decl::value(name, "String", string(&text)), &span);
-        }
-    }
     // Admission: a feature without acceptance is refused, not emitted.
     let mut admitted = Vec::new();
     for feature in features {
@@ -1213,6 +1233,40 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
                 .1
                 .push(feature.id.clone());
         }
+    }
+    // UR-R09: an example is a journey through the features its main calls.
+    let feature_of: BTreeMap<&String, &String> = admitted
+        .iter()
+        .flat_map(|f| f.calls.iter().map(move |c| (c, &f.id)))
+        .collect();
+    for r in ctx.all_fns() {
+        let f = ctx.func(r);
+        if f.name != "main" || ctx.kind(r) != &TargetKind::Example {
+            continue;
+        }
+        let file = ctx.file(r);
+        let package = ctx.package(r);
+        let mut callees: Vec<FnRef> = ctx.calls.get(&r).into_iter().flatten().copied().collect();
+        callees.sort_by_key(|c| (ctx.func(*c).span.clone(), *c));
+        let mut steps: Vec<String> = Vec::new();
+        for callee in callees {
+            if let Some(feature) = call_of.get(&callee).and_then(|c| feature_of.get(c)) {
+                if steps.last() != Some(*feature) {
+                    steps.push((*feature).clone());
+                }
+            }
+        }
+        if steps.is_empty() {
+            continue;
+        }
+        let target = &package.targets[file.target].name;
+        journeys.insert(
+            qualified(
+                IFACE,
+                &format!("journeyExample{}", pascal(&[&package.name, target])),
+            ),
+            (qualified(ARCH, "stakeholderLibraryUsers"), steps),
+        );
     }
     for (journey, (actor, steps)) in &journeys {
         decls.push(Decl::value(
@@ -2233,6 +2287,9 @@ fn quality(ctx: &mut Ctx<'_>, features: usize) -> Module {
             unsafe_sites,
         ),
     ];
+    // UR-R23: each denied or forbidden lint is a requirement, measured by the
+    // count of lints the workspace denies.
+    let lint_names: Vec<String> = lints.iter().map(|l| pascal(&[l])).collect();
     if let Some(minor) = msrv {
         measures.push(("Flexibility", "Adaptability", "MinimumRustMinor", minor));
     }
@@ -2278,6 +2335,12 @@ fn quality(ctx: &mut Ctx<'_>, features: usize) -> Module {
                     qualified(QUAL, &format!("subcharacteristic{}", m.1)),
                 )
             })
+            .chain(lint_names.iter().map(|l| {
+                (
+                    qualified(QUAL, &format!("requirementLint{l}")),
+                    qualified(QUAL, "subcharacteristicFaultlessness"),
+                )
+            }))
             .collect(),
     );
     let req_index: BTreeMap<String, usize> =

@@ -62,66 +62,80 @@ definition{
 }
 
 definition{
+  name: concernCrateBinThermo,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 0, name := "thermo", text := "Prints whether to heat, for a reading given on the command line."})
+}
+
+definition{
+  name: concernCrateLibThermoCore,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 1, name := "thermo_core", text := "Thermostat control: decides from a reading and a target whether to heat."})
+}
+
+definition{
   name: concernFunctionality,
   parameters: [],
   result: Foundation.Arch::Concern,
-  body: (record Foundation.Arch::Concern {index := 0, name := "Functionality", text := "Reads a target temperature and a reading and prints whether to heat. Decides when a thermostat heats, from readings and a target."})
+  body: (record Foundation.Arch::Concern {index := 2, name := "Functionality", text := "Reads a target temperature and a reading and prints whether to heat. Decides when a thermostat heats, from readings and a target."})
 }
 
 definition{
   name: concernQuality,
   parameters: [],
   result: Foundation.Arch::Concern,
-  body: (record Foundation.Arch::Concern {index := 1, name := "Quality", text := "Documentation coverage, tests, lint levels and the minimum supported Rust."})
+  body: (record Foundation.Arch::Concern {index := 3, name := "Quality", text := "Documentation coverage, tests, lint levels and the minimum supported Rust."})
 }
 
 definition{
   name: concernSecurity,
   parameters: [],
   result: Foundation.Arch::Concern,
-  body: (record Foundation.Arch::Concern {index := 2, name := "Security", text := "Files, network, processes, environment and unsafe code the targets reach."})
+  body: (record Foundation.Arch::Concern {index := 4, name := "Security", text := "Files, network, processes, environment and unsafe code the targets reach."})
 }
 
 definition{
   name: concernSupplyChain,
   parameters: [],
   result: Foundation.Arch::Concern,
-  body: (record Foundation.Arch::Concern {index := 3, name := "Supply chain", text := "The 2 packages Cargo.lock pins and their sources."})
+  body: (record Foundation.Arch::Concern {index := 5, name := "Supply chain", text := "The 2 packages Cargo.lock pins and their sources."})
 }
 
 definition{
   name: viewpointMaintenance,
   parameters: [],
   result: Foundation.Arch::Viewpoint,
-  body: (record Foundation.Arch::Viewpoint {index := 0, stakeholderIndex := 2, concernIndex := 0, modelKindIndex := 0})
+  body: (record Foundation.Arch::Viewpoint {index := 0, stakeholderIndex := 2, concernIndex := 2, modelKindIndex := 0})
 }
 
 definition{
   name: viewpointQuality,
   parameters: [],
   result: Foundation.Arch::Viewpoint,
-  body: (record Foundation.Arch::Viewpoint {index := 1, stakeholderIndex := 3, concernIndex := 1, modelKindIndex := 1})
+  body: (record Foundation.Arch::Viewpoint {index := 1, stakeholderIndex := 3, concernIndex := 3, modelKindIndex := 1})
 }
 
 definition{
   name: viewpointSecurity,
   parameters: [],
   result: Foundation.Arch::Viewpoint,
-  body: (record Foundation.Arch::Viewpoint {index := 2, stakeholderIndex := 4, concernIndex := 2, modelKindIndex := 2})
+  body: (record Foundation.Arch::Viewpoint {index := 2, stakeholderIndex := 4, concernIndex := 4, modelKindIndex := 2})
 }
 
 definition{
   name: viewpointSupplyChain,
   parameters: [],
   result: Foundation.Arch::Viewpoint,
-  body: (record Foundation.Arch::Viewpoint {index := 3, stakeholderIndex := 4, concernIndex := 3, modelKindIndex := 2})
+  body: (record Foundation.Arch::Viewpoint {index := 3, stakeholderIndex := 4, concernIndex := 5, modelKindIndex := 2})
 }
 
 definition{
   name: viewpointUsage,
   parameters: [],
   result: Foundation.Arch::Viewpoint,
-  body: (record Foundation.Arch::Viewpoint {index := 4, stakeholderIndex := 0, concernIndex := 0, modelKindIndex := 0})
+  body: (record Foundation.Arch::Viewpoint {index := 4, stakeholderIndex := 0, concernIndex := 2, modelKindIndex := 0})
 }
 
 definition{

@@ -118,13 +118,6 @@ definition{
 }
 
 definition{
-  name: acExampleThermoCoreDecide,
-  parameters: [],
-  result: String,
-  body: "The example decide at thermo-core/examples/decide.rs builds."
-}
-
-definition{
   name: featureThermoCore,
   parameters: [],
   result: Foundation.Arch::Feature,
@@ -150,6 +143,13 @@ definition{
   parameters: [],
   result: Foundation.Arch::Journey,
   body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderCliUsers", steps := (cons "Interface::featureThermoMain" (nil String))})
+}
+
+definition{
+  name: journeyExampleThermoCoreDecide,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (nil String))})
 }
 
 definition{
