@@ -234,6 +234,8 @@ note = "A module is an OPM object; its public functions are the processes that z
 
 # Acceptance vectors: generated from the rule above; the application replays
 # them in order. `request_hex` is the request's bytes, `response` its answer.
+# A [[workbench_vector]] is framed for the page's workbench (`ui-route` or `ui-raw`,
+# a unit separator, then the request) and answers JSON; only the application replays it.
 
 [[vector]]
 case = "route UR-R01"
@@ -429,3 +431,33 @@ response = "refused ambiguous\nfact test-fn\nfact doctest"
 case = "refused ambiguous after agreement"
 request_hex = "66732d7573650a66732d7573650a6e65742d757365"
 response = "refused ambiguous\nfact fs-use\nfact net-use"
+
+[[workbench_vector]]
+case = "workbench error-enum"
+request_hex = "75692d726f7574651f6572726f722d656e756d"
+response = "{\"version\":1,\"status\":\"ok\",\"operation\":\"route\",\"message\":\"Routed: every kind names this route. The lines give the route, the fact kind, the Prism record kind and its facet.\",\"rows\":4,\"columns\":1,\"cells\":[\"route UR-R12\",\"fact error-enum\",\"record LexLean.inductive\",\"facet behavior\"],\"details\":[],\"request\":\"error-enum\",\"response\":\"route UR-R12\\nfact error-enum\\nrecord LexLean.inductive\\nfacet behavior\",\"error\":\"\"}"
+
+[[workbench_vector]]
+case = "workbench unsafe-block"
+request_hex = "75692d726f7574651f756e736166652d626c6f636b"
+response = "{\"version\":1,\"status\":\"ok\",\"operation\":\"route\",\"message\":\"Routed: every kind names this route. The lines give the route, the fact kind, the Prism record kind and its facet.\",\"rows\":4,\"columns\":1,\"cells\":[\"route UR-R14\",\"fact unsafe-block\",\"record Foundation.Sec::Threat\",\"facet sec\"],\"details\":[],\"request\":\"unsafe-block\",\"response\":\"route UR-R14\\nfact unsafe-block\\nrecord Foundation.Sec::Threat\\nfacet sec\",\"error\":\"\"}"
+
+[[workbench_vector]]
+case = "workbench same-route"
+request_hex = "75692d726f7574651f746573742d666e0a746573742d666e"
+response = "{\"version\":1,\"status\":\"ok\",\"operation\":\"route\",\"message\":\"Routed: every kind names this route. The lines give the route, the fact kind, the Prism record kind and its facet.\",\"rows\":4,\"columns\":1,\"cells\":[\"route UR-R10\",\"fact test-fn\",\"record Feature.acceptance\",\"facet features\"],\"details\":[],\"request\":\"test-fn\\ntest-fn\",\"response\":\"route UR-R10\\nfact test-fn\\nrecord Feature.acceptance\\nfacet features\",\"error\":\"\"}"
+
+[[workbench_vector]]
+case = "workbench ambiguous"
+request_hex = "75692d726f7574651f6572726f722d656e756d0a73746174652d656e756d"
+response = "{\"version\":1,\"status\":\"error\",\"operation\":\"route\",\"message\":\"Not routed: the fact is refused or the request is invalid. The details name the reason; its fix is listed under refusals and errors.\",\"rows\":0,\"columns\":0,\"cells\":[],\"details\":[\"refused ambiguous\",\"fact error-enum\",\"fact state-enum\"],\"request\":\"error-enum\\nstate-enum\",\"response\":\"refused ambiguous\\nfact error-enum\\nfact state-enum\",\"error\":\"ambiguous\"}"
+
+[[workbench_vector]]
+case = "workbench unknown"
+request_hex = "75692d726f7574651f737472756374"
+response = "{\"version\":1,\"status\":\"error\",\"operation\":\"route\",\"message\":\"Not routed: the fact is refused or the request is invalid. The details name the reason; its fix is listed under refusals and errors.\",\"rows\":0,\"columns\":0,\"cells\":[],\"details\":[\"refused unknown-fact\",\"fact struct\"],\"request\":\"struct\",\"response\":\"refused unknown-fact\\nfact struct\",\"error\":\"unknown-fact\"}"
+
+[[workbench_vector]]
+case = "workbench raw"
+request_hex = "75692d7261771f7075622d666e"
+response = "{\"version\":1,\"status\":\"ok\",\"operation\":\"raw\",\"message\":\"Routed: every kind names this route. The lines give the route, the fact kind, the Prism record kind and its facet.\",\"rows\":4,\"columns\":1,\"cells\":[\"route UR-R07\",\"fact pub-fn\",\"record Feature.calls\",\"facet features\"],\"details\":[],\"request\":\"pub-fn\",\"response\":\"route UR-R07\\nfact pub-fn\\nrecord Feature.calls\\nfacet features\",\"error\":\"\"}"
