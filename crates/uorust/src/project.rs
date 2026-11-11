@@ -58,6 +58,10 @@ struct Ctx<'a> {
     ws: &'a Workspace,
     refusals: BTreeSet<Refusal>,
     residue: BTreeMap<String, (Span, Residue)>,
+    /// Functions that perform an operating-system effect, directly or
+    /// through a function that does: the I/O shell, recorded with the effect
+    /// instead of as residue.
+    effects: BTreeMap<String, (Span, String)>,
     /// `(package, target index)` of a product target -> component ID.
     targets: BTreeMap<(usize, usize), String>,
     components: Vec<Component>,
@@ -174,6 +178,7 @@ pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec
         ws,
         refusals: BTreeSet::new(),
         residue: BTreeMap::new(),
+        effects: BTreeMap::new(),
         targets: BTreeMap::new(),
         components: Vec::new(),
         index: BTreeMap::new(),
@@ -2859,6 +2864,42 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
         }
     }
     let all = ctx.all_fns();
+    // The I/O shell: a function that performs an effect, or calls one that does.
+    let mut effectful: BTreeMap<FnRef, String> = BTreeMap::new();
+    for &r in &all {
+        if let Some((cap, op)) = ctx
+            .func(r)
+            .block
+            .as_ref()
+            .and_then(crate::ingest::effect_of)
+        {
+            effectful.insert(r, format!("{} effect: {op}", cap.key()));
+        }
+    }
+    loop {
+        let mut grew = false;
+        for &r in &all {
+            if effectful.contains_key(&r) {
+                continue;
+            }
+            let via = ctx
+                .calls
+                .get(&r)
+                .and_then(|callees| callees.iter().find(|c| effectful.contains_key(c)));
+            if let Some(&callee) = via {
+                let reason = format!(
+                    "calls {}, which {}",
+                    ctx.path(callee),
+                    effect_phrase(&effectful[&callee])
+                );
+                effectful.insert(r, reason);
+                grew = true;
+            }
+        }
+        if !grew {
+            break;
+        }
+    }
     let mut candidates = Vec::new();
     let mut names: BTreeMap<String, FnRef> = BTreeMap::new();
     for &r in &all {
@@ -2908,9 +2949,15 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
                     block,
                 });
             }
-            std::ops::ControlFlow::Break(reason) => {
-                ctx.residue.insert(ctx.path(r), (f.span.clone(), reason));
-            }
+            std::ops::ControlFlow::Break(reason) => match effectful.get(&r) {
+                Some(effect) => {
+                    ctx.effects
+                        .insert(ctx.path(r), (f.span.clone(), effect.clone()));
+                }
+                None => {
+                    ctx.residue.insert(ctx.path(r), (f.span.clone(), reason));
+                }
+            },
         }
     }
     // A parameter may not be spelled like a definition: generated Lean would
@@ -2938,9 +2985,16 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
     }
     let out = lift::lift_all(&candidates, &types);
     for (rust, reason) in out.failed {
-        if let Some(r) = names.get(&rust) {
-            ctx.residue
-                .insert(ctx.path(*r), (ctx.func(*r).span.clone(), reason));
+        if let Some(&r) = names.get(&rust) {
+            let span = ctx.func(r).span.clone();
+            match effectful.get(&r) {
+                Some(effect) => {
+                    ctx.effects.insert(ctx.path(r), (span, effect.clone()));
+                }
+                None => {
+                    ctx.residue.insert(ctx.path(r), (span, reason));
+                }
+            }
         }
     }
     // The enums, structs and tuples the lifted definitions name, each after
@@ -3138,11 +3192,22 @@ fn toml_string(text: &str) -> String {
     out
 }
 
+/// How an effect reads after "which": `performs a Fs effect: std::fs::read`.
+fn effect_phrase(effect: &str) -> String {
+    match effect.strip_prefix("calls ") {
+        Some(_) => "reaches an effect".to_string(),
+        None => format!("performs a {effect}"),
+    }
+}
+
 fn frontier(ctx: &Ctx<'_>) -> String {
     let mut out = String::from(
         "# frontier.toml: what uorust did not admit or lift, each with a typed reason.\n\
          # A refusal is an open claim: the router proposed it and admission would\n\
-         # not decide it. A residue row is a function outside the lift's floor.\n\n\
+         # not decide it. A residue row is a pure function outside the lift's floor.\n\
+         # An effect row is the I/O shell: a function that performs an operating-system\n\
+         # effect (file system, process, environment, network), or calls one that does;\n\
+         # the security facet records each effect as a capability of its crate.\n\n\
          spec = \"uorust/frontier/1\"\n",
     );
     for r in &ctx.refusals {
@@ -3161,6 +3226,14 @@ fn frontier(ctx: &Ctx<'_>) -> String {
             toml_string(&span.render()),
             reason.code(),
             toml_string(&reason.detail())
+        ));
+    }
+    for (path, (span, effect)) in &ctx.effects {
+        out.push_str(&format!(
+            "\n[[effect]]\nfunction = {}\nspan = {}\neffect = {}\n",
+            toml_string(path),
+            toml_string(&span.render()),
+            toml_string(effect)
         ));
     }
     out

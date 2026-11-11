@@ -1091,3 +1091,47 @@ impl<'ast> Visit<'ast> for CapabilityScan<'_> {
         syn::visit::visit_item_foreign_mod(self, node);
     }
 }
+
+/// The first operating-system effect a function body performs directly: a
+/// call through `std::fs`, `std::process`, `std::env` or `std::net`, or a
+/// file-system query on a path (`exists`, `is_dir`, `read_dir`, ...). The
+/// capability is the one the security facet already records for the crate.
+pub(crate) fn effect_of(block: &syn::Block) -> Option<(Capability, String)> {
+    struct Scan(Option<(Capability, String)>);
+    impl<'ast> Visit<'ast> for Scan {
+        fn visit_path(&mut self, node: &'ast syn::Path) {
+            let segments: Vec<String> = node.segments.iter().map(|s| s.ident.to_string()).collect();
+            // A bare `Command::X` is the workspace's own type unless it is
+            // `Command::new`, the constructor of `std::process::Command`.
+            let own_command = segments.first().is_some_and(|s| s == "Command")
+                && segments.get(1).is_some_and(|s| s != "new");
+            if self.0.is_none() && segments.len() >= 2 && !own_command {
+                if let Some(cap) = CapabilityScan::classify(&segments) {
+                    self.0 = Some((cap, segments.join("::")));
+                }
+            }
+            syn::visit::visit_path(self, node);
+        }
+
+        fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
+            const FS_QUERIES: [&str; 8] = [
+                "exists",
+                "try_exists",
+                "is_file",
+                "is_dir",
+                "read_dir",
+                "canonicalize",
+                "metadata",
+                "symlink_metadata",
+            ];
+            let name = node.method.to_string();
+            if self.0.is_none() && node.args.is_empty() && FS_QUERIES.contains(&name.as_str()) {
+                self.0 = Some((Capability::Fs, format!("Path::{name}")));
+            }
+            syn::visit::visit_expr_method_call(self, node);
+        }
+    }
+    let mut scan = Scan(None);
+    scan.visit_block(block);
+    scan.0
+}

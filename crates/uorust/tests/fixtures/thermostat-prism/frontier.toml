@@ -1,6 +1,9 @@
 # frontier.toml: what uorust did not admit or lift, each with a typed reason.
 # A refusal is an open claim: the router proposed it and admission would
-# not decide it. A residue row is a function outside the lift's floor.
+# not decide it. A residue row is a pure function outside the lift's floor.
+# An effect row is the I/O shell: a function that performs an operating-system
+# effect (file system, process, environment, network), or calls one that does;
+# the security facet records each effect as a capability of its crate.
 
 spec = "uorust/frontier/1"
 
@@ -13,13 +16,6 @@ detail = "no RustSec advisory database was given (--advisories), so no locked pa
 
 [[residue]]
 status = "open"
-function = "thermo_core::config::load_target"
-span = "thermo-core/src/config.rs:28"
-reason = "type"
-detail = "type outside the lift: std::path::Path"
-
-[[residue]]
-status = "open"
 function = "thermo_core::config::parse_target"
 span = "thermo-core/src/config.rs:23"
 reason = "form"
@@ -27,14 +23,17 @@ detail = "expression form outside the lift: method call .trim"
 
 [[residue]]
 status = "open"
-function = "thermo_core::config::target_from_env"
-span = "thermo-core/src/config.rs:34"
-reason = "form"
-detail = "expression form outside the lift: ? outside a let"
-
-[[residue]]
-status = "open"
 function = "thermo_core::midpoint"
 span = "thermo-core/src/lib.rs:73"
 reason = "arithmetic"
 detail = "integer operator + wraps or panics depending on the build profile"
+
+[[effect]]
+function = "thermo_core::config::load_target"
+span = "thermo-core/src/config.rs:28"
+effect = "Fs effect: fs::read_to_string"
+
+[[effect]]
+function = "thermo_core::config::target_from_env"
+span = "thermo-core/src/config.rs:34"
+effect = "Env effect: std::env::var"

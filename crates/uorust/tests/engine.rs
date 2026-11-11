@@ -147,8 +147,23 @@ fn the_floor_lifts_and_the_rest_is_typed_residue_ue_04() {
             })
     };
     assert!(residue("thermo_core::midpoint", "arithmetic"), "{frontier}");
+    // The I/O shell is an effect row, not residue: `load_target` reads a file
+    // and `target_from_env` reads the environment, directly or through it.
+    let effect = |function: &str, needle: &str| {
+        frontier
+            .split("[[effect]]")
+            .skip(1)
+            .any(|row| row.contains(&format!("function = \"{function}\"")) && row.contains(needle))
+    };
     assert!(
-        residue("thermo_core::config::load_target", "type"),
+        effect(
+            "thermo_core::config::load_target",
+            "Fs effect: fs::read_to_string"
+        ),
+        "{frontier}"
+    );
+    assert!(
+        !residue("thermo_core::config::load_target", "type"),
         "{frontier}"
     );
 }
