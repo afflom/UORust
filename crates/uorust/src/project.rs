@@ -507,9 +507,22 @@ fn resolve(ctx: &mut Ctx<'_>) {
                 let owner = segments[segments.len() - 2];
                 if let Some(&pkg) = crate_idents.get(first) {
                     candidates.retain(|r| r.pkg == pkg && ctx.kind(*r) == &TargetKind::Lib);
-                } else if first == "crate" || first == "self" || first == "super" {
+                } else if first.starts_with(|c: char| c.is_ascii_lowercase()) {
+                    // `crate::`, `self::`, `super::` or a local module path:
+                    // only a function of the caller's own target whose module
+                    // ends with that path. Anything else (`std::fs::read`, an
+                    // external crate) is not a workspace call.
+                    let module: Vec<&str> = segments[..segments.len() - 1]
+                        .iter()
+                        .copied()
+                        .filter(|s| !matches!(*s, "crate" | "self" | "super"))
+                        .filter(|s| !s.starts_with(|c: char| c.is_ascii_uppercase()))
+                        .collect();
+                    let module = module.join("::");
                     candidates.retain(|r| {
-                        r.pkg == caller.pkg && ctx.file(*r).target == ctx.file(caller).target
+                        r.pkg == caller.pkg
+                            && ctx.file(*r).target == ctx.file(caller).target
+                            && (module.is_empty() || ctx.file(*r).module.ends_with(&module))
                     });
                 }
                 if owner == "Self" {
@@ -1134,7 +1147,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
                         file: target.src.clone(),
                         line: 1,
                     });
-                let call = format!("call{}Main", pascal(&[bin]));
+                let call = format!("callCli{}Main", pascal(&[bin]));
                 let text = if doc.is_empty() {
                     format!("{bin}: the binary's entry point.")
                 } else {
@@ -1164,7 +1177,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
             } else {
                 for (variant, span) in subcommands {
                     let command = kebab(&variant.name);
-                    let call = format!("call{}{}", pascal(&[bin]), pascal(&[&variant.name]));
+                    let call = format!("callCli{}{}", pascal(&[bin]), pascal(&[&variant.name]));
                     let doc = summary(&variant.doc);
                     let text = if doc.is_empty() {
                         format!("{bin} {command}")

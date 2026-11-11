@@ -111,7 +111,7 @@ definition{
 }
 
 definition{
-  name: callThermoMain,
+  name: callCliThermoMain,
   parameters: [],
   result: String,
   body: "thermo: Prints whether to heat, for a reading given on the command line."
@@ -135,7 +135,7 @@ definition{
   name: featureThermoMain,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo: Prints whether to heat, for a reading given on the command line.", calls := (cons "Interface::callThermoMain" (nil String)), acceptance := (cons "Interface::acThermoCliCliColdReadingHeats" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "thermo: Prints whether to heat, for a reading given on the command line.", calls := (cons "Interface::callCliThermoMain" (nil String)), acceptance := (cons "Interface::acThermoCliCliColdReadingHeats" (nil String))})
 }
 
 definition{

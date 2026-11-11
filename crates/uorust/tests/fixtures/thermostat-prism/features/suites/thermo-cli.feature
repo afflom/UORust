@@ -6,5 +6,5 @@ Feature: thermo-cli
   @FT-03 @build
   Scenario: thermo: Prints whether to heat, for a reading given on the command line.
     Given the record Interface::featureThermoMain
-    When the interface call Interface::callThermoMain is made
+    When the interface call Interface::callCliThermoMain is made
     Then the acceptance row Interface::acThermoCliCliColdReadingHeats holds
