@@ -483,6 +483,24 @@ fn resolve(ctx: &mut Ctx<'_>) {
                             .collect()
                     })
                     .unwrap_or_default();
+                // A method a trait declares, with every other candidate an
+                // implementation of that trait, is a call of the trait's
+                // interface.
+                let declared: Vec<FnRef> = candidates
+                    .iter()
+                    .copied()
+                    .filter(|r| ctx.func(*r).in_trait)
+                    .collect();
+                if let [decl] = declared.as_slice() {
+                    let name = ctx.func(*decl).owner.clone();
+                    let through = candidates
+                        .iter()
+                        .all(|r| r == decl || ctx.func(*r).implements == name);
+                    if through {
+                        out.insert(*decl);
+                        continue;
+                    }
+                }
                 if let [only] = candidates.as_slice() {
                     out.insert(*only);
                 }

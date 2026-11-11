@@ -29,6 +29,7 @@ model does not sanction.
 | `UE-05` | `build` | The engine's router equals model/routes.toml route for route and answers every router vector of that table exactly |
 | `UE-06` | `build` | Every way a run can end without a projection is a typed UorustError variant with a negative test |
 | `UE-07` | `build` | just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check |
+| `UE-08` | `build` | A public trait's methods are interface calls its module's feature names, and a method call through the trait resolves to the trait's declaration |
 
 ## self-model
 

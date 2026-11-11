@@ -242,3 +242,25 @@ fn vv_runs_the_sdk_checks_on_both_projections_ue_07() {
         assert!(recipe.contains(needle), "the uorust recipe lacks `{needle}`:\n{recipe}");
     }
 }
+
+#[test]
+fn pub_trait_methods_are_interface_calls_ue_08() {
+    let files = project(&fixture(), "thermostat");
+    let interface = text(&files, "src/Interface.lex.tex");
+    for call in ["Read", "Calibrated"] {
+        assert!(
+            interface.contains(&format!("name: callThermoCoreSensorSensor{call},")),
+            "{interface}"
+        );
+    }
+    let feature = interface
+        .split("definition{")
+        .find(|d| d.contains("name: featureThermoCoreSensor,"))
+        .expect("the sensor module is a feature");
+    assert!(feature.contains("\"Interface::callThermoCoreSensorSensorRead\""));
+    assert!(feature.contains("\"Interface::callThermoCoreSensorSensorCalibrated\""));
+    assert!(
+        feature.contains("\"Interface::acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue\""),
+        "{feature}"
+    );
+}

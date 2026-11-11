@@ -503,7 +503,7 @@ pub(crate) fn tidy(text: &str) -> String {
 #[allow(clippy::too_many_arguments)]
 fn function(
     sig: &syn::Signature,
-    block: &syn::Block,
+    block: Option<&syn::Block>,
     attrs: &[syn::Attribute],
     public: bool,
     owner: Option<String>,
@@ -513,7 +513,9 @@ fn function(
 ) -> FnFact {
     let doc = doc_of(attrs);
     let mut body = BodyScan::default();
-    body.visit_block(block);
+    if let Some(block) = block {
+        body.visit_block(block);
+    }
     let test = attrs
         .iter()
         .any(|a| a.path().segments.last().is_some_and(|s| s.ident == "test"));
@@ -535,7 +537,9 @@ fn function(
         asserts: body.asserts,
         transitions: body.transitions,
         item: Some(sig.clone()),
-        block: Some(block.clone()),
+        block: block.cloned(),
+        in_trait: false,
+        implements: None,
     }
 }
 
@@ -554,7 +558,14 @@ fn items(
             syn::Item::Fn(f) => {
                 let public = matches!(f.vis, syn::Visibility::Public(_));
                 file.fns.push(function(
-                    &f.sig, &f.block, &f.attrs, public, None, rel, in_test, lib,
+                    &f.sig,
+                    Some(&f.block),
+                    &f.attrs,
+                    public,
+                    None,
+                    rel,
+                    in_test,
+                    lib,
                 ));
             }
             syn::Item::Impl(imp) => {
@@ -564,19 +575,45 @@ fn items(
                         file.error_impls.push(self_ty.clone());
                     }
                 }
+                let implements = imp
+                    .trait_
+                    .as_ref()
+                    .and_then(|(path, _)| path.segments.last())
+                    .map(|s| s.ident.to_string());
                 for member in &imp.items {
                     if let syn::ImplItem::Fn(f) = member {
                         let public = matches!(f.vis, syn::Visibility::Public(_));
-                        file.fns.push(function(
+                        let mut fact = function(
                             &f.sig,
-                            &f.block,
+                            Some(&f.block),
                             &f.attrs,
                             public,
                             Some(self_ty.clone()),
                             rel,
                             in_test,
                             lib,
-                        ));
+                        );
+                        fact.implements.clone_from(&implements);
+                        file.fns.push(fact);
+                    }
+                }
+            }
+            syn::Item::Trait(t) => {
+                let public = matches!(t.vis, syn::Visibility::Public(_));
+                for member in &t.items {
+                    if let syn::TraitItem::Fn(f) = member {
+                        let mut fact = function(
+                            &f.sig,
+                            f.default.as_ref(),
+                            &f.attrs,
+                            public,
+                            Some(t.ident.to_string()),
+                            rel,
+                            in_test,
+                            lib,
+                        );
+                        fact.in_trait = true;
+                        file.fns.push(fact);
                     }
                 }
             }

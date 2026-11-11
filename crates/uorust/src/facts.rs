@@ -118,6 +118,11 @@ pub(crate) struct FnFact {
     pub(crate) transitions: Vec<(String, String, String)>,
     pub(crate) item: Option<syn::Signature>,
     pub(crate) block: Option<syn::Block>,
+    /// The method is declared by a trait (`owner` names the trait), not by
+    /// an `impl`.
+    pub(crate) in_trait: bool,
+    /// For a method of `impl Trait for Type`: the trait's last segment.
+    pub(crate) implements: Option<String>,
 }
 
 #[derive(Clone, Debug)]

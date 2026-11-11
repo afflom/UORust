@@ -1,6 +1,7 @@
 //! Thermostat control: decides from a reading and a target whether to heat.
 
 pub mod config;
+pub mod sensor;
 
 /// The controller's operating mode.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

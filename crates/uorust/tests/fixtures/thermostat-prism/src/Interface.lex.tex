@@ -16,28 +16,35 @@ definition{
   name: acThermoCoreThermoCoreHeatsWhenCold,
   parameters: [],
   result: String,
-  body: "heats_when_cold at thermo-core/src/lib.rs:80: A cold room heats."
+  body: "heats_when_cold at thermo-core/src/lib.rs:81: A cold room heats."
 }
 
 definition{
   name: acThermoCoreThermoCoreBandIsInclusive,
   parameters: [],
   result: String,
-  body: "band_is_inclusive at thermo-core/src/lib.rs:86 passes."
+  body: "band_is_inclusive at thermo-core/src/lib.rs:87 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreIdleRoomThatIsColdHeats,
   parameters: [],
   result: String,
-  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:92 passes."
+  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:93 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreMidpointOfABand,
   parameters: [],
   result: String,
-  body: "midpoint_of_a_band at thermo-core/src/lib.rs:98 passes."
+  body: "midpoint_of_a_band at thermo-core/src/lib.rs:99 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue,
+  parameters: [],
+  result: String,
+  body: "a_fixed_sensor_reads_its_value at thermo-core/src/sensor.rs:28 passes."
 }
 
 definition{
@@ -51,7 +58,7 @@ definition{
   name: acDocThermoCoreShouldHeat,
   parameters: [],
   result: String,
-  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:22 pass."
+  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:23 pass."
 }
 
 definition{
@@ -111,6 +118,20 @@ definition{
 }
 
 definition{
+  name: callThermoCoreSensorSensorRead,
+  parameters: [],
+  result: String,
+  body: "thermo_core::sensor::Sensor::read: fn read(&self) -> u32"
+}
+
+definition{
+  name: callThermoCoreSensorSensorCalibrated,
+  parameters: [],
+  result: String,
+  body: "thermo_core::sensor::Sensor::calibrated: fn calibrated(&self, offset: u32) -> u32"
+}
+
+definition{
   name: callCliThermoMain,
   parameters: [],
   result: String,
@@ -129,6 +150,13 @@ definition{
   parameters: [],
   result: Foundation.Arch::Feature,
   body: (record Foundation.Arch::Feature {statement := "thermo_core::config: Reads the target temperature from a file or the environment.", calls := (cons "Interface::callThermoCoreConfigParseTarget" (cons "Interface::callThermoCoreConfigLoadTarget" (cons "Interface::callThermoCoreConfigTargetFromEnv" (nil String)))), acceptance := (cons "Interface::acThermoCoreConfigParsesAWholeNumber" (nil String))})
+}
+
+definition{
+  name: featureThermoCoreSensor,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::sensor: Temperature sensors the controller reads from.", calls := (cons "Interface::callThermoCoreSensorSensorRead" (cons "Interface::callThermoCoreSensorSensorCalibrated" (nil String))), acceptance := (cons "Interface::acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue" (nil String))})
 }
 
 definition{
@@ -156,7 +184,7 @@ definition{
   name: journeyLibraryThermoCore,
   parameters: [],
   result: Foundation.Arch::Journey,
-  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreConfig" (nil String)))})
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreConfig" (cons "Interface::featureThermoCoreSensor" (nil String))))})
 }
 \end{semanticmodule}
 \end{lexlean}

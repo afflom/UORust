@@ -48,3 +48,9 @@ Feature: engine
     Given the Justfile
     When the suite exercises UE-07
     Then vv runs the uorust recipe, which runs the three SDK checks on both projections
+
+  @UE-08 @build
+  Scenario: A public trait's methods are interface calls its module's feature names, and a method call through the trait resolves to the trait's declaration
+    Given the fixture workspace, whose sensor module declares pub trait Sensor implemented by Fixed
+    When the suite exercises UE-08
+    Then Interface declares callThermoCoreSensorSensorRead and callThermoCoreSensorSensorCalibrated, and featureThermoCoreSensor names both and is accepted by the test that calls Fixed(20).read()

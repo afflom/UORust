@@ -24,3 +24,10 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreConfigLoadTarget is made
     And the interface call Interface::callThermoCoreConfigTargetFromEnv is made
     Then the acceptance row Interface::acThermoCoreConfigParsesAWholeNumber holds
+
+  @FT-03 @build
+  Scenario: thermo_core::sensor: Temperature sensors the controller reads from.
+    Given the record Interface::featureThermoCoreSensor
+    When the interface call Interface::callThermoCoreSensorSensorRead is made
+    And the interface call Interface::callThermoCoreSensorSensorCalibrated is made
+    Then the acceptance row Interface::acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue holds
