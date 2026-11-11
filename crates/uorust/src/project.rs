@@ -84,6 +84,8 @@ struct Notes {
     /// Functions at the boundary with a foreign crate: a parameter or the
     /// result is a type of a registry dependency that has no LexLean model.
     foreign: BTreeMap<String, (Span, String)>,
+    /// Functions the lift took: the definition each lifted to.
+    lifted: BTreeMap<String, (Span, String)>,
 }
 
 impl Model {
@@ -142,6 +144,24 @@ impl Model {
             }
         }
         notes.residue.insert(self.path(r), (span, reason));
+    }
+
+    /// A function the lift did not take: an effect row when it reaches an
+    /// effect, otherwise residue or a foreign row.
+    fn stopped(
+        &self,
+        notes: &mut Notes,
+        effectful: &BTreeMap<FnRef, String>,
+        r: FnRef,
+        reason: Residue,
+    ) {
+        let span = self.func(r).span.clone();
+        match effectful.get(&r) {
+            Some(effect) => {
+                notes.effects.insert(self.path(r), (span, effect.clone()));
+            }
+            None => self.record_residue(notes, r, span, reason),
+        }
     }
 
     fn product(&self, r: FnRef) -> bool {
@@ -3008,23 +3028,35 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     for &r in &all {
         let f = ctx.func(r);
         let types = &scopes[r.pkg];
+        if !ctx.product(r) {
+            continue;
+        }
         // Inherent methods of a type the lift names lift with `self` as their
-        // first parameter; trait methods and methods of other types do not.
-        let method = match &f.owner {
-            None => None,
-            Some(o)
-                if !f.in_trait
-                    && f.implements.is_none()
-                    && (types.enums.contains_key(&types.resolve(o))
-                        || types.structs.contains_key(&types.resolve(o))) =>
+        // first parameter; trait methods and methods of other types stop, each
+        // with a row of its own.
+        let method = match (&f.owner, &f.implements) {
+            (None, _) => None,
+            (Some(_), _) if f.in_trait => {
+                let reason = Residue::Signature("a method a trait declares".to_string());
+                ctx.stopped(notes, &effectful, r, reason);
+                continue;
+            }
+            (Some(_), Some(t)) => {
+                let reason = Residue::Signature(format!("implements the trait {t}"));
+                ctx.stopped(notes, &effectful, r, reason);
+                continue;
+            }
+            (Some(o), None)
+                if types.enums.contains_key(&types.resolve(o))
+                    || types.structs.contains_key(&types.resolve(o)) =>
             {
                 Some(types.resolve(o))
             }
-            Some(_) => continue,
+            (Some(o), None) => {
+                ctx.stopped(notes, &effectful, r, Residue::Type(o.clone()));
+                continue;
+            }
         };
-        if !ctx.product(r) || f.name == "main" {
-            continue;
-        }
         let fn_syntax = syntax.function(&ctx.file(r).rel, r.idx);
         let sig = &fn_syntax.signature;
         let Some(block) = &fn_syntax.block else {
@@ -3058,14 +3090,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     block,
                 });
             }
-            std::ops::ControlFlow::Break(reason) => match effectful.get(&r) {
-                Some(effect) => {
-                    notes
-                        .effects
-                        .insert(ctx.path(r), (f.span.clone(), effect.clone()));
-                }
-                None => ctx.record_residue(notes, r, f.span.clone(), reason),
-            },
+            std::ops::ControlFlow::Break(reason) => ctx.stopped(notes, &effectful, r, reason),
         }
     }
     let mut shared: BTreeMap<String, usize> = BTreeMap::new();
@@ -3117,16 +3142,19 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         let out = lift::lift_all(candidates, types);
         for (rust, reason) in out.failed {
             if let Some(&r) = names.get(&rust) {
-                let span = ctx.func(r).span.clone();
-                match effectful.get(&r) {
-                    Some(effect) => {
-                        notes.effects.insert(ctx.path(r), (span, effect.clone()));
-                    }
-                    None => ctx.record_residue(notes, r, span, reason),
-                }
+                ctx.stopped(notes, &effectful, r, reason);
             }
         }
         mentioned.extend(out.types);
+        for c in candidates {
+            if out.decls.iter().any(|d| d.name() == c.name) {
+                let r = names[&c.rust];
+                notes.lifted.insert(
+                    ctx.path(r),
+                    (ctx.func(r).span.clone(), qualified(BEHAVIOR, &c.name)),
+                );
+            }
+        }
         let sigs: BTreeMap<String, lift::Sig> = candidates
             .iter()
             .filter(|c| out.decls.iter().any(|d| d.name() == c.name))
@@ -3421,7 +3449,9 @@ fn frontier(notes: &Notes) -> String {
          # effect (file system, process, environment, network), or calls one that does;\n\
          # the security facet records each effect as a capability of its crate.\n\
          # A foreign row is a function whose parameter or result is a type of a registry\n\
-         # dependency (syn, toml, serde_json, ...) that has no LexLean model.\n\n\
+         # dependency (syn, toml, serde_json, ...) that has no LexLean model.\n\
+         # A lifted row names the definition a function lifted to. Every function of\n\
+         # product code has exactly one residue, foreign, effect or lifted row.\n\n\
          spec = \"uorust/frontier/1\"\n",
     );
     for r in &notes.refusals {
@@ -3456,6 +3486,14 @@ fn frontier(notes: &Notes) -> String {
             toml_string(path),
             toml_string(&span.render()),
             toml_string(effect)
+        ));
+    }
+    for (path, (span, definition)) in &notes.lifted {
+        out.push_str(&format!(
+            "\n[[lifted]]\nfunction = {}\nspan = {}\ndefinition = {}\n",
+            toml_string(path),
+            toml_string(&span.render()),
+            toml_string(definition)
         ));
     }
     out

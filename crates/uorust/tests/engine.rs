@@ -36,6 +36,16 @@ fn project(root: &Path, name: &str) -> BTreeMap<String, Vec<u8>> {
     uorust::project_workspace(root, &options(name)).expect("projects")
 }
 
+/// The frontier without its lifted rows, which come last: what did not lift.
+fn unlifted(files: &BTreeMap<String, Vec<u8>>) -> String {
+    let frontier = text(files, "frontier.toml");
+    frontier
+        .split("\n[[lifted]]")
+        .next()
+        .unwrap_or_default()
+        .to_string()
+}
+
 fn text(files: &BTreeMap<String, Vec<u8>>, path: &str) -> String {
     String::from_utf8(files.get(path).cloned().unwrap_or_default()).expect("utf-8")
 }
@@ -388,7 +398,7 @@ fn the_widened_lift_covers_the_fixture_ue_11() {
     assert!(behavior.contains("name: Band,"));
     assert!(behavior.contains("statement: ((freezing (-3 : Int64)) = true),"));
     assert!(behavior.contains("axioms: [propext]"));
-    let frontier = text(&files, "frontier.toml");
+    let frontier = unlifted(&files);
     assert!(!frontier.contains("function = \"thermo_core::midpoint\""));
     assert!(
         !frontier.contains("function = \"thermo_core::band::"),
@@ -442,7 +452,7 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         let d = decl(name);
         assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");
     }
-    let frontier = text(&files, "frontier.toml");
+    let frontier = unlifted(&files);
     assert!(!frontier.contains("thermo_core::roster::"), "{frontier}");
 }
 
@@ -756,5 +766,135 @@ fn residue_never_grows_on_the_way_to_zero_ue_16() {
                 "{name}: an effect row without its effect: {row}"
             );
         }
+    }
+}
+
+/// Every function of product code, counted from the source apart from the
+/// engine: free functions, inherent and trait-impl methods and trait methods
+/// at item level, outside `#[cfg(test)]` modules and not `#[test]`, in the
+/// `src/` tree of every package under `root`.
+fn product_functions(root: &Path) -> Vec<String> {
+    fn cfg_test(attrs: &[syn::Attribute]) -> bool {
+        attrs.iter().any(|a| {
+            a.path().is_ident("cfg")
+                && quote::ToTokens::to_token_stream(a)
+                    .to_string()
+                    .contains("test")
+        })
+    }
+    fn is_test(attrs: &[syn::Attribute]) -> bool {
+        attrs
+            .iter()
+            .any(|a| a.path().segments.last().is_some_and(|s| s.ident == "test"))
+    }
+    fn items(list: &[syn::Item], at: &str, out: &mut Vec<String>) {
+        for item in list {
+            match item {
+                syn::Item::Fn(f) if !is_test(&f.attrs) => out.push(format!("{at}{}", f.sig.ident)),
+                syn::Item::Impl(i) => {
+                    for m in &i.items {
+                        if let syn::ImplItem::Fn(f) = m {
+                            if !is_test(&f.attrs) {
+                                out.push(format!("{at}impl {}", f.sig.ident));
+                            }
+                        }
+                    }
+                }
+                syn::Item::Trait(t) => {
+                    for m in &t.items {
+                        if let syn::TraitItem::Fn(f) = m {
+                            out.push(format!("{at}trait {}", f.sig.ident));
+                        }
+                    }
+                }
+                syn::Item::Mod(m) if !cfg_test(&m.attrs) => {
+                    if let Some((_, inner)) = &m.content {
+                        items(inner, at, out);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    fn walk(dir: &Path, top: bool, out: &mut Vec<String>) {
+        let mut entries: Vec<PathBuf> = std::fs::read_dir(dir)
+            .expect("dir")
+            .map(|e| e.expect("entry").path())
+            .collect();
+        entries.sort();
+        if !top && entries.iter().any(|p| p.ends_with("Cargo.toml")) {
+            return;
+        }
+        for path in entries {
+            let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if path.is_dir() {
+                if !matches!(name, "target" | "fixtures") {
+                    walk(&path, false, out);
+                }
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                let text = std::fs::read_to_string(&path).expect("source");
+                let file = syn::parse_file(&text).expect("parses");
+                items(&file.items, &format!("{}: ", path.display()), out);
+            }
+        }
+    }
+    fn packages(dir: &Path, out: &mut Vec<String>) {
+        if dir.join("Cargo.toml").is_file() && dir.join("src").is_dir() {
+            walk(&dir.join("src"), true, out);
+        }
+        let mut subdirs: Vec<PathBuf> = std::fs::read_dir(dir)
+            .expect("dir")
+            .map(|e| e.expect("entry").path())
+            .filter(|p| p.is_dir())
+            .collect();
+        subdirs.sort();
+        for sub in subdirs {
+            let name = sub.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if !matches!(
+                name,
+                "target" | "fixtures" | "src" | "node_modules" | ".git" | "tests"
+            ) {
+                packages(&sub, out);
+            }
+        }
+    }
+    let mut out = Vec::new();
+    packages(root, &mut out);
+    out
+}
+
+#[test]
+fn every_function_of_product_code_has_exactly_one_row_ue_16() {
+    for (root, name) in [(root(), "uorust"), (fixture(), "thermostat")] {
+        let files = project(&root, name);
+        let frontier: toml::Value =
+            toml::from_str(&text(&files, "frontier.toml")).expect("frontier parses");
+        let mut rows: BTreeMap<String, Vec<&str>> = BTreeMap::new();
+        for table in ["residue", "foreign", "effect", "lifted"] {
+            for row in frontier
+                .get(table)
+                .and_then(|v| v.as_array())
+                .into_iter()
+                .flatten()
+            {
+                let function = row
+                    .get("function")
+                    .and_then(|v| v.as_str())
+                    .expect("a function")
+                    .to_string();
+                rows.entry(function).or_default().push(table);
+            }
+        }
+        for (function, tables) in &rows {
+            assert_eq!(tables.len(), 1, "{name}: {function} has rows in {tables:?}");
+        }
+        let source = product_functions(&root);
+        assert_eq!(
+            rows.len(),
+            source.len(),
+            "{name}: {} functions of product code, {} with a row",
+            source.len(),
+            rows.len()
+        );
     }
 }

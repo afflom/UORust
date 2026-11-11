@@ -1,8 +1,10 @@
 # The most residue rows each projection may have (UE-16), and the most
 # foreign rows (functions at the boundary with a registry crate's types). The
 # goal is 0 residue; foreign rows shrink as logic moves into pure cores.
-# Lower a ceiling in the commit that lifts more, never raise it.
-self = 117
-fixture = 1
+# Lower a ceiling in the commit that lifts more. Raise one only in the commit
+# that gives a row to functions that had none, and say so: every function of
+# product code has exactly one row (UE-16), so nothing is skipped silently.
+self = 163
+fixture = 5
 self_foreign = 43
 fixture_foreign = 0

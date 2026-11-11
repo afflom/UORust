@@ -6,6 +6,8 @@
 # the security facet records each effect as a capability of its crate.
 # A foreign row is a function whose parameter or result is a type of a registry
 # dependency (syn, toml, serde_json, ...) that has no LexLean model.
+# A lifted row names the definition a function lifted to. Every function of
+# product code has exactly one residue, foreign, effect or lifted row.
 
 spec = "uorust/frontier/1"
 
@@ -18,10 +20,43 @@ detail = "no RustSec advisory database was given (--advisories), so no locked pa
 
 [[residue]]
 status = "open"
+function = "thermo_core::config::ConfigError::fmt"
+span = "thermo-core/src/config.rs:15"
+reason = "signature"
+detail = "signature outside the lift: implements the trait Display"
+
+[[residue]]
+status = "open"
 function = "thermo_core::config::parse_target"
 span = "thermo-core/src/config.rs:23"
 reason = "form"
 detail = "expression form outside the lift: method call .trim"
+
+[[residue]]
+status = "open"
+function = "thermo_core::sensor::Fixed::read"
+span = "thermo-core/src/sensor.rs:18"
+reason = "signature"
+detail = "signature outside the lift: implements the trait Sensor"
+
+[[residue]]
+status = "open"
+function = "thermo_core::sensor::Sensor::calibrated"
+span = "thermo-core/src/sensor.rs:9"
+reason = "signature"
+detail = "signature outside the lift: a method a trait declares"
+
+[[residue]]
+status = "open"
+function = "thermo_core::sensor::Sensor::read"
+span = "thermo-core/src/sensor.rs:6"
+reason = "signature"
+detail = "signature outside the lift: a method a trait declares"
+
+[[effect]]
+function = "thermo::main"
+span = "thermo-cli/src/main.rs:6"
+effect = "Env effect: std::env::args"
 
 [[effect]]
 function = "thermo_core::config::load_target"
@@ -32,3 +67,213 @@ effect = "Fs effect: fs::read_to_string"
 function = "thermo_core::config::target_from_env"
 span = "thermo-core/src/config.rs:34"
 effect = "Env effect: std::env::var"
+
+[[lifted]]
+function = "thermo_core::band::above"
+span = "thermo-core/src/band.rs:56"
+definition = "Behavior::above"
+
+[[lifted]]
+function = "thermo_core::band::checked"
+span = "thermo-core/src/band.rs:46"
+definition = "Behavior::checkedValue"
+
+[[lifted]]
+function = "thermo_core::band::checked_midpoint"
+span = "thermo-core/src/band.rs:20"
+definition = "Behavior::checkedMidpoint"
+
+[[lifted]]
+function = "thermo_core::band::delta"
+span = "thermo-core/src/band.rs:41"
+definition = "Behavior::delta"
+
+[[lifted]]
+function = "thermo_core::band::fan_label"
+span = "thermo-core/src/band.rs:86"
+definition = "Behavior::fanLabel"
+
+[[lifted]]
+function = "thermo_core::band::first_reading"
+span = "thermo-core/src/band.rs:70"
+definition = "Behavior::firstReading"
+
+[[lifted]]
+function = "thermo_core::band::freezing"
+span = "thermo-core/src/band.rs:36"
+definition = "Behavior::freezing"
+
+[[lifted]]
+function = "thermo_core::band::heat_for"
+span = "thermo-core/src/band.rs:80"
+definition = "Behavior::heatFor"
+
+[[lifted]]
+function = "thermo_core::band::is_celsius"
+span = "thermo-core/src/band.rs:51"
+definition = "Behavior::isCelsius"
+
+[[lifted]]
+function = "thermo_core::band::labelled"
+span = "thermo-core/src/band.rs:95"
+definition = "Behavior::labelled"
+
+[[lifted]]
+function = "thermo_core::band::shortfall"
+span = "thermo-core/src/band.rs:31"
+definition = "Behavior::shortfall"
+
+[[lifted]]
+function = "thermo_core::band::target_or"
+span = "thermo-core/src/band.rs:75"
+definition = "Behavior::targetOr"
+
+[[lifted]]
+function = "thermo_core::band::tick"
+span = "thermo-core/src/band.rs:26"
+definition = "Behavior::tick"
+
+[[lifted]]
+function = "thermo_core::band::width"
+span = "thermo-core/src/band.rs:15"
+definition = "Behavior::width"
+
+[[lifted]]
+function = "thermo_core::halt"
+span = "thermo-core/src/lib.rs:64"
+definition = "Behavior::halt"
+
+[[lifted]]
+function = "thermo_core::midpoint"
+span = "thermo-core/src/lib.rs:73"
+definition = "Behavior::midpoint"
+
+[[lifted]]
+function = "thermo_core::next_mode"
+span = "thermo-core/src/lib.rs:35"
+definition = "Behavior::nextMode"
+
+[[lifted]]
+function = "thermo_core::roster::Room::is_cold"
+span = "thermo-core/src/roster.rs:16"
+definition = "Behavior::roomIsCold"
+
+[[lifted]]
+function = "thermo_core::roster::Room::label"
+span = "thermo-core/src/roster.rs:29"
+definition = "Behavior::roomLabel"
+
+[[lifted]]
+function = "thermo_core::roster::Room::reread"
+span = "thermo-core/src/roster.rs:21"
+definition = "Behavior::roomReread"
+
+[[lifted]]
+function = "thermo_core::roster::all_within"
+span = "thermo-core/src/roster.rs:53"
+definition = "Behavior::allWithin"
+
+[[lifted]]
+function = "thermo_core::roster::any_cold"
+span = "thermo-core/src/roster.rs:48"
+definition = "Behavior::anyCold"
+
+[[lifted]]
+function = "thermo_core::roster::blank"
+span = "thermo-core/src/roster.rs:132"
+definition = "Behavior::blank"
+
+[[lifted]]
+function = "thermo_core::roster::clamp"
+span = "thermo-core/src/roster.rs:120"
+definition = "Behavior::clamp"
+
+[[lifted]]
+function = "thermo_core::roster::closed"
+span = "thermo-core/src/roster.rs:110"
+definition = "Behavior::closed"
+
+[[lifted]]
+function = "thermo_core::roster::cold"
+span = "thermo-core/src/roster.rs:43"
+definition = "Behavior::cold"
+
+[[lifted]]
+function = "thermo_core::roster::cold_count"
+span = "thermo-core/src/roster.rs:68"
+definition = "Behavior::coldCount"
+
+[[lifted]]
+function = "thermo_core::roster::cold_names"
+span = "thermo-core/src/roster.rs:137"
+definition = "Behavior::coldNames"
+
+[[lifted]]
+function = "thermo_core::roster::first_cold"
+span = "thermo-core/src/roster.rs:58"
+definition = "Behavior::firstCold"
+
+[[lifted]]
+function = "thermo_core::roster::has_target"
+span = "thermo-core/src/roster.rs:105"
+definition = "Behavior::hasTarget"
+
+[[lifted]]
+function = "thermo_core::roster::highest"
+span = "thermo-core/src/roster.rs:63"
+definition = "Behavior::highest"
+
+[[lifted]]
+function = "thermo_core::roster::label_width"
+span = "thermo-core/src/roster.rs:115"
+definition = "Behavior::labelWidth"
+
+[[lifted]]
+function = "thermo_core::roster::names"
+span = "thermo-core/src/roster.rs:38"
+definition = "Behavior::names"
+
+[[lifted]]
+function = "thermo_core::roster::pairs"
+span = "thermo-core/src/roster.rs:83"
+definition = "Behavior::pairs"
+
+[[lifted]]
+function = "thermo_core::roster::readings_of"
+span = "thermo-core/src/roster.rs:164"
+definition = "Behavior::readingsOf"
+
+[[lifted]]
+function = "thermo_core::roster::report"
+span = "thermo-core/src/roster.rs:148"
+definition = "Behavior::report"
+
+[[lifted]]
+function = "thermo_core::roster::roll"
+span = "thermo-core/src/roster.rs:78"
+definition = "Behavior::roll"
+
+[[lifted]]
+function = "thermo_core::roster::rooms_of"
+span = "thermo-core/src/roster.rs:99"
+definition = "Behavior::roomsOf"
+
+[[lifted]]
+function = "thermo_core::roster::scheduled"
+span = "thermo-core/src/roster.rs:73"
+definition = "Behavior::scheduled"
+
+[[lifted]]
+function = "thermo_core::roster::target_of"
+span = "thermo-core/src/roster.rs:91"
+definition = "Behavior::targetOf"
+
+[[lifted]]
+function = "thermo_core::should_heat"
+span = "thermo-core/src/lib.rs:25"
+definition = "Behavior::shouldHeat"
+
+[[lifted]]
+function = "thermo_core::within_band"
+span = "thermo-core/src/lib.rs:30"
+definition = "Behavior::withinBand"
