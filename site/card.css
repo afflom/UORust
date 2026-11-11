@@ -1,0 +1,41 @@
+/* UORust's own layer over the template frame: the uor.foundation look.
+   Tokens from UOR-Foundation/website src/index.css (--fd-bg 0 0% 4%,
+   --fd-panel 0 0% 7%, --fd-fg 0 0% 98%, --fd-dim 0 0% 60%, --fd-line 0 0% 20%),
+   mapped onto the frame's brand variables. Headings name Space Grotesk and
+   code JetBrains Mono, as uor.foundation does; the page loads no font beyond
+   the frame's own, so each falls back to the bundled Geist faces. */
+:root {
+  --font-display: "Space Grotesk", Archivo, Geist, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Geist Mono, ui-monospace, monospace;
+  --background: hsl(0 0% 98%);
+  --foreground: hsl(0 0% 7%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 7%);
+  --secondary: hsl(0 0% 93%);
+  --muted: hsl(0 0% 93%);
+  --muted-foreground: hsl(0 0% 34%);
+  --accent: hsl(0 0% 90%);
+  --border: hsl(0 0% 84%);
+  --input: hsl(0 0% 84%);
+  --primary: hsl(0 0% 7%);
+  --primary-foreground: hsl(0 0% 98%);
+}
+.dark {
+  --background: hsl(0 0% 4%);
+  --foreground: hsl(0 0% 98%);
+  --card: hsl(0 0% 7%);
+  --card-foreground: hsl(0 0% 98%);
+  --popover: hsl(0 0% 7%);
+  --popover-foreground: hsl(0 0% 98%);
+  --primary: hsl(0 0% 98%);
+  --primary-foreground: hsl(0 0% 4%);
+  --secondary: hsl(0 0% 10%);
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(0 0% 10%);
+  --muted-foreground: hsl(0 0% 64%);
+  --accent: hsl(0 0% 12%);
+  --accent-foreground: hsl(0 0% 98%);
+  --border: hsl(0 0% 20%);
+  --input: hsl(0 0% 20%);
+  --ring: hsl(0 0% 38%);
+}
