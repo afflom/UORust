@@ -31,6 +31,7 @@ model does not sanction.
 | `UE-07` | `build` | just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check |
 | `UE-08` | `build` | A public trait's methods are interface calls its module's feature names, and a method call through the trait resolves to the trait's declaration |
 | `UE-09` | `build` | Each module with processes is its own OPM view beside its component's: the component is the object, the module's functions are its processes, and each process zooms into the processes it calls in the module |
+| `UE-10` | `build` | The Behavior and SupplyChain modules take their titles from uorust.titles, a glossary package the projection carries and locks |
 
 ## self-model
 

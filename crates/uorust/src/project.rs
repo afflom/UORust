@@ -33,6 +33,7 @@ const NAT: &str = "lexlean.std.nat@1.2.0";
 const PARCH: &str = "prism.arch@1.0.0";
 const PSEC: &str = "prism.sec@1.0.0";
 const PQUAL: &str = "prism.qual@1.0.0";
+const TITLES: &str = "uorust.titles@1.0.0";
 
 /// A function in the workspace: package, file and position in the file.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -251,6 +252,7 @@ pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec
          [[lexicon_source]]\npackage = \"prism.arch\"\nkind = \"path\"\npath = \"language/prism.arch\"\n\n\
          [[lexicon_source]]\npackage = \"prism.qual\"\nkind = \"path\"\npath = \"language/prism.qual\"\n\n\
          [[lexicon_source]]\npackage = \"prism.sec\"\nkind = \"path\"\npath = \"language/prism.sec\"\n\n\
+         [[lexicon_source]]\npackage = \"uorust.titles\"\nkind = \"path\"\npath = \"language/uorust.titles\"\n\n\
          [limits]\nmax_file_bytes = 4194304\nmax_total_source_bytes = 67108864\n\
          max_primitive_atoms = 2000000\nmax_token_lattice_edges = 4000000\nmax_parse_states = 4000000\n\
          max_ir_nodes = 2000000\nmax_scope_depth = 1024\nmax_import_depth = 128\nmax_diagnostics = 256\n\
@@ -2753,9 +2755,9 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
     }
     Module {
         name: BEHAVIOR.into(),
-        glossaries: vec![BOOL, NAT],
+        glossaries: vec![BOOL, NAT, TITLES],
         imports: Vec::new(),
-        title: "Boolean",
+        title: "Lifted Rust behavior",
         decls,
     }
 }
@@ -2795,9 +2797,9 @@ fn supply(ctx: &Ctx<'_>) -> Module {
     }
     Module {
         name: SUPPLY.into(),
-        glossaries: vec![BOOL, NAT],
+        glossaries: vec![BOOL, NAT, TITLES],
         imports: Vec::new(),
-        title: "Boolean",
+        title: "Locked supply chain",
         decls,
     }
 }

@@ -60,3 +60,9 @@ Feature: engine
     Given the fixture workspace, whose config module's load_target calls parse_target
     When the suite exercises UE-09
     Then Design declares the view opmModuleLibThermoCoreConfig with an invocation and a zoom from load_target to parse_target, and one view per other module
+
+  @UE-10 @build
+  Scenario: The Behavior and SupplyChain modules take their titles from uorust.titles, a glossary package the projection carries and locks
+    Given the fixture workspace
+    When the suite exercises UE-10
+    Then Behavior is titled Lifted Rust behavior and SupplyChain Locked supply chain, both use uorust.titles@1.0.0, and lexlean.toml and lexlean.lock name language/uorust.titles

@@ -5,6 +5,9 @@
 //! Their digests are part of `lexlean.lock`, so they are embedded, not written
 //! by hand: the facet language packages, the Foundation facet modules, the
 //! threat-model module and the Lean toolchain pin.
+//!
+//! `language/uorust.titles` is the engine's own glossary: the label words that
+//! title the Behavior and SupplyChain modules, which no facet glossary names.
 
 /// `(path inside the projection, bytes)`, sorted by path.
 pub(crate) const FIXED: &[(&str, &str)] = &[
@@ -219,6 +222,18 @@ pub(crate) const FIXED: &[(&str, &str)] = &[
     (
         "lean-toolchain",
         include_str!("../assets/project/lean-toolchain"),
+    ),
+    (
+        "language/uorust.titles/entries/behavior.toml",
+        include_str!("../assets/project/language/uorust.titles/entries/behavior.toml"),
+    ),
+    (
+        "language/uorust.titles/entries/supply-chain.toml",
+        include_str!("../assets/project/language/uorust.titles/entries/supply-chain.toml"),
+    ),
+    (
+        "language/uorust.titles/lexicon.toml",
+        include_str!("../assets/project/language/uorust.titles/lexicon.toml"),
     ),
     (
         "src/Foundation/Arch.lex.tex",

@@ -285,3 +285,25 @@ fn each_module_is_an_opm_view_ue_09() {
     assert!(zoom.contains("subprocess := \"Design::processThermoCoreConfigParseTarget\""));
     assert!(design.contains("name: opmModuleLibThermoCoreConfigInvokesThermoCoreConfigLoadTargetThermoCoreConfigParseTarget,"));
 }
+
+#[test]
+fn engine_modules_have_their_own_titles_ue_10() {
+    let files = project(&fixture(), "thermostat");
+    for (module, title) in [
+        ("src/Behavior.lex.tex", "Lifted Rust behavior"),
+        ("src/SupplyChain.lex.tex", "Locked supply chain"),
+    ] {
+        let source = text(&files, module);
+        assert!(source.contains("\\useglossary{uorust.titles@1.0.0}"));
+        assert!(source.contains(&format!("\\title{{{title}}}")), "{source}");
+    }
+    for path in ["lexlean.toml", "lexlean.lock"] {
+        assert!(text(&files, path).contains("language/uorust.titles"));
+    }
+    let surfaces: String = ["behavior", "supply-chain"]
+        .iter()
+        .map(|e| text(&files, &format!("language/uorust.titles/entries/{e}.toml")))
+        .collect();
+    assert!(surfaces.contains("surface = \"Lifted Rust behavior\""));
+    assert!(surfaces.contains("surface = \"Locked supply chain\""));
+}
