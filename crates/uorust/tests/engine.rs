@@ -90,13 +90,21 @@ fn ambiguity_is_refused_with_a_typed_open_claim_ue_03() {
                 "src/lib.rs",
                 "//! Planted defects.\npub mod a;\npub mod b;\npub use a::*;\n\n/// Calls go.\npub fn run() -> u8 {\n    go()\n}\n",
             ),
-            ("src/a.rs", "/// One.\npub fn go() -> u8 {\n    1\n}\n"),
+            (
+                "src/a.rs",
+                "/// One.\npub fn go() -> u8 {\n    1\n}\n\n/// Both a state and an error.\n#[derive(Debug)]\npub enum LoadState {\n    /// Idle.\n    Idle,\n    /// Done.\n    Done,\n}\n\nimpl std::fmt::Display for LoadState {\n    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n        write!(f, \"{self:?}\")\n    }\n}\n\nimpl std::error::Error for LoadState {}\n",
+            ),
             ("src/b.rs", "/// Two.\npub fn go() -> u8 {\n    2\n}\n"),
         ],
     );
     let files = project(&dir, "amb");
     let frontier = text(&files, "frontier.toml");
-    for reason in ["ambiguous-call", "feature-without-acceptance", "no-msrv"] {
+    for reason in [
+        "ambiguous-call",
+        "ambiguous-fact",
+        "feature-without-acceptance",
+        "no-msrv",
+    ] {
         assert!(
             frontier.contains(&format!("reason = \"{reason}\"")),
             "{reason} missing:\n{frontier}"
@@ -108,6 +116,9 @@ fn ambiguity_is_refused_with_a_typed_open_claim_ue_03() {
         !interface.contains("Foundation.Arch::Feature {"),
         "an unaccepted feature was emitted:\n{interface}"
     );
+    let behavior = text(&files, "src/Behavior.lex.tex");
+    assert!(!behavior.contains("LoadStateFailure"), "{behavior}");
+    assert!(!text(&files, "src/Design.lex.tex").contains("LoadState"));
     let quality = text(&files, "src/Quality.lex.tex");
     assert!(!quality.contains("MinimumRustMinor"));
     let _ = std::fs::remove_dir_all(dir);

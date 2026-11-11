@@ -26,7 +26,7 @@ use std::path::Path;
 
 pub use error::UorustError;
 pub use project::Options;
-pub use route::{Route, ROUTES};
+pub use route::{classify, respond, Route, Routing, REQUEST_LIMIT, ROUTES};
 
 /// The name of the file that lists what a projection wrote, with digests.
 pub const MANIFEST: &str = "uorust.manifest";

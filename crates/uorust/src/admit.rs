@@ -22,6 +22,12 @@ pub(crate) enum Refusal {
     Collision { span: Span, name: String },
     /// A state machine has no `#[default]` variant and no unique source state.
     NoInitialState { span: Span, machine: String },
+    /// A fact carries two tags the router routes differently.
+    AmbiguousFact {
+        span: Span,
+        fact: String,
+        tags: Vec<String>,
+    },
     /// A package declares no `rust-version`, so no MSRV measure exists.
     NoMsrv { package: String },
 }
@@ -36,18 +42,19 @@ impl Refusal {
             Self::Collision { .. } => "name-collision",
             Self::NoInitialState { .. } => "no-initial-state",
             Self::NoMsrv { .. } => "no-msrv",
+            Self::AmbiguousFact { .. } => "ambiguous-fact",
         }
     }
 
     pub(crate) fn route(&self) -> &'static str {
         match self {
-            Self::Unparsable { .. } => "crate-target",
-            Self::AmbiguousCall { .. } => "call-graph",
-            Self::ExternalPath { .. } => "dependency-edge",
-            Self::Unaccepted { .. } => "module-feature",
-            Self::Collision { .. } => "pure-fn",
-            Self::NoInitialState { .. } => "state-enum",
-            Self::NoMsrv { .. } => "quality",
+            Self::Unparsable { .. } => "UR-R28",
+            Self::AmbiguousCall { .. } => "UR-R27",
+            Self::ExternalPath { .. } => "UR-R05",
+            Self::Unaccepted { .. } => "UR-R10",
+            Self::Collision { .. } => "UR-R13",
+            Self::NoInitialState { .. } | Self::AmbiguousFact { .. } => "UR-R26",
+            Self::NoMsrv { .. } => "UR-R24",
         }
     }
 
@@ -57,7 +64,8 @@ impl Refusal {
             | Self::AmbiguousCall { span, .. }
             | Self::Unaccepted { span, .. }
             | Self::Collision { span, .. }
-            | Self::NoInitialState { span, .. } => span.render(),
+            | Self::NoInitialState { span, .. }
+            | Self::AmbiguousFact { span, .. } => span.render(),
             Self::ExternalPath { package, .. } | Self::NoMsrv { package } => {
                 format!("{package}/Cargo.toml")
             }
@@ -89,6 +97,10 @@ impl Refusal {
                  enters"
             ),
             Self::NoMsrv { .. } => "the package declares no rust-version".to_string(),
+            Self::AmbiguousFact { fact, tags, .. } => format!(
+                "{fact} is both {}; the router refuses it as ambiguous",
+                tags.join(" and ")
+            ),
         }
     }
 }

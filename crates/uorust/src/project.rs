@@ -63,6 +63,8 @@ struct Ctx<'a> {
     edges: BTreeMap<String, (String, String)>,
     /// Resolved calls: caller -> callees.
     calls: BTreeMap<FnRef, BTreeSet<FnRef>>,
+    /// The route the router admitted for each enum: `(package, file, enum)`.
+    enum_routes: BTreeMap<(usize, usize, usize), &'static str>,
 }
 
 impl<'a> Ctx<'a> {
@@ -173,6 +175,7 @@ pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec
         index: BTreeMap::new(),
         edges: BTreeMap::new(),
         calls: BTreeMap::new(),
+        enum_routes: BTreeMap::new(),
     };
     for package in &ws.packages {
         for file in &package.files {
@@ -195,6 +198,7 @@ pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec
     components(&mut ctx);
     edges(&mut ctx);
     resolve(&mut ctx);
+    route_enums(&mut ctx);
 
     let prefix = pascal(&[&options.name]);
     let mut modules = Vec::new();
@@ -315,7 +319,7 @@ fn components(ctx: &mut Ctx<'_>) {
         for (t, target) in package.targets.iter().enumerate() {
             let (kind, tag) = match target.kind {
                 TargetKind::Lib => ("service", "Lib"),
-                TargetKind::Bin => ("cliAdapter", "Bin"),
+                TargetKind::Bin => ("releaseBinary", "Bin"),
                 _ => continue,
             };
             let root = package.files.iter().find(|f| f.rel == target.src);
@@ -1249,8 +1253,11 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
 }
 
 /// Unit-variant enums of product code named for a state, or with transitions.
-fn state_enums(ctx: &Ctx<'_>) -> Vec<(usize, usize, usize)> {
-    let mut out = Vec::new();
+/// Ask the router for every enum of product code: `error-enum` when it is named
+/// for an error or implements `Error`, `state-enum` when it is fieldless and
+/// named for a state or matched in transitions. An enum with both tags is
+/// refused as ambiguous and becomes neither record.
+fn route_enums(ctx: &mut Ctx<'_>) {
     let transitions: BTreeSet<String> = ctx
         .all_fns()
         .into_iter()
@@ -1280,13 +1287,39 @@ fn state_enums(ctx: &Ctx<'_>) -> Vec<(usize, usize, usize)> {
                     .derives
                     .iter()
                     .any(|d| matches!(d.as_str(), "Subcommand" | "ValueEnum" | "Parser"));
+                let mut tags = Vec::new();
+                if !e.variants.is_empty()
+                    && (e.name.ends_with("Error") || file.error_impls.contains(&e.name))
+                {
+                    tags.push("error-enum");
+                }
                 if unit && !cli && (named || transitions.contains(&e.name)) {
-                    out.push((pkg, fi, ei));
+                    tags.push("state-enum");
+                }
+                match crate::route::classify(tags) {
+                    Some(crate::route::Routing::Routed(route)) => {
+                        ctx.enum_routes.insert((pkg, fi, ei), route.id);
+                    }
+                    Some(crate::route::Routing::Ambiguous(a, b)) => {
+                        ctx.refusals.insert(Refusal::AmbiguousFact {
+                            span: e.span.clone(),
+                            fact: e.name.clone(),
+                            tags: vec![a, b],
+                        });
+                    }
+                    Some(crate::route::Routing::Unknown(_)) | None => {}
                 }
             }
         }
     }
-    out
+}
+
+fn state_enums(ctx: &Ctx<'_>) -> Vec<(usize, usize, usize)> {
+    ctx.enum_routes
+        .iter()
+        .filter(|(_, route)| **route == "UR-R26")
+        .map(|(key, _)| *key)
+        .collect()
 }
 
 fn design(ctx: &mut Ctx<'_>) -> Module {
@@ -2359,17 +2392,16 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
         enums.remove(name);
     }
     // Typed failures: every error enum's variants, as an inductive.
-    for package in &ws.packages {
-        for file in &package.files {
+    for (pkg, package) in ws.packages.iter().enumerate() {
+        for (fi, file) in package.files.iter().enumerate() {
             if !matches!(
                 package.targets[file.target].kind,
                 TargetKind::Lib | TargetKind::Bin
             ) {
                 continue;
             }
-            for e in &file.enums {
-                let error = e.name.ends_with("Error") || file.error_impls.contains(&e.name);
-                if !error || e.variants.is_empty() || enums.contains_key(&e.name) {
+            for (ei, e) in file.enums.iter().enumerate() {
+                if ctx.enum_routes.get(&(pkg, fi, ei)) != Some(&"UR-R12") {
                     continue;
                 }
                 let name = format!("{}Failure", pascal(&[&e.name]));

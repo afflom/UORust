@@ -26,6 +26,7 @@ model does not sanction.
 | `UE-02` | `build` | Two projections of the same workspace are byte-identical, for the fixture and for this workspace |
 | `UE-03` | `build` | Admission refuses an ambiguous call, a feature without acceptance and a missing MSRV with typed refusals recorded as open claims, and emits no record for them |
 | `UE-04` | `build` | Total functions over bool, unsigned comparisons and unit enums lift to LexLean definitions, closed assertions over them become decide theorems, and every other function is residue with a typed reason |
+| `UE-05` | `build` | The engine's router equals model/routes.toml route for route and answers every router vector of that table exactly |
 | `UE-06` | `build` | Every way a run can end without a projection is a typed UorustError variant with a negative test |
 | `UE-07` | `build` | just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check |
 

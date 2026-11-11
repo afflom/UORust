@@ -18,9 +18,9 @@ Feature: engine
 
   @UE-03 @build
   Scenario: Admission refuses an ambiguous call, a feature without acceptance and a missing MSRV with typed refusals recorded as open claims, and emits no record for them
-    Given a workspace whose call is ambiguous, whose functions are untested and which declares no rust-version
+    Given a workspace whose call is ambiguous, whose enum is both an error and a state, whose functions are untested and which declares no rust-version
     When the suite exercises UE-03
-    Then frontier.toml records ambiguous-call, feature-without-acceptance and no-msrv refusals with status open
+    Then frontier.toml records ambiguous-call, ambiguous-fact, feature-without-acceptance and no-msrv refusals with status open
     And the Interface module declares no feature
 
   @UE-04 @build
@@ -29,6 +29,13 @@ Feature: engine
     When the suite exercises UE-04
     Then Behavior defines shouldHeat, withinBand, nextMode and halt with decide theorems from the fixture's assertions
     And frontier.toml records midpoint as arithmetic residue and parse_target as type residue
+
+  @UE-05 @build
+  Scenario: The engine's router equals model/routes.toml route for route and answers every router vector of that table exactly
+    Given the route table in model/routes.toml
+    When the suite exercises UE-05
+    Then uorust::ROUTES lists the same routes in the same order
+    And uorust::respond answers each non-workbench vector with its response
 
   @UE-06 @build
   Scenario: Every way a run can end without a projection is a typed UorustError variant with a negative test
