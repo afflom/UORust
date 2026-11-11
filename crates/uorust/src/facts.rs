@@ -191,6 +191,12 @@ pub(crate) struct FileSyntax {
     pub(crate) fns: Vec<FnSyntax>,
     /// The named fields of each of [`SourceFile::structs`].
     pub(crate) structs: Vec<Vec<(String, syn::Type)>>,
+    /// The payload of each variant of each of [`SourceFile::enums`]: its
+    /// fields, named or positional, in order. Empty for a generic enum.
+    pub(crate) enums: Vec<crate::lift::RawVariants>,
+    /// The constants of product code outside tests: name, type, and the
+    /// value as a block, which lifts like a function of no parameters.
+    pub(crate) consts: Vec<(String, syn::Type, syn::Block)>,
 }
 
 /// One function's syntax.

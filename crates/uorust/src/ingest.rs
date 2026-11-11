@@ -858,24 +858,41 @@ fn items(
                     }
                 }
             }
-            syn::Item::Enum(e) => file.enums.push(EnumFact {
-                name: e.ident.to_string(),
-                span: Span {
-                    file: rel.to_string(),
-                    line: e.ident.span().start().line,
-                },
-                derives: derives(&attrs(&e.attrs)),
-                variants: e
-                    .variants
-                    .iter()
-                    .map(|v| Variant {
-                        name: v.ident.to_string(),
-                        unit: matches!(v.fields, syn::Fields::Unit),
-                        doc: doc_of(&attrs(&v.attrs)),
-                        default: attrs(&v.attrs).iter().any(|a| named(a, "default")),
-                    })
-                    .collect(),
-            }),
+            syn::Item::Enum(e) => {
+                syntax.enums.push(if e.generics.params.is_empty() {
+                    e.variants
+                        .iter()
+                        .map(|v| {
+                            let fields = v
+                                .fields
+                                .iter()
+                                .map(|f| (f.ident.as_ref().map(ToString::to_string), f.ty.clone()))
+                                .collect();
+                            (v.ident.to_string(), fields)
+                        })
+                        .collect()
+                } else {
+                    Vec::new()
+                });
+                file.enums.push(EnumFact {
+                    name: e.ident.to_string(),
+                    span: Span {
+                        file: rel.to_string(),
+                        line: e.ident.span().start().line,
+                    },
+                    derives: derives(&attrs(&e.attrs)),
+                    variants: e
+                        .variants
+                        .iter()
+                        .map(|v| Variant {
+                            name: v.ident.to_string(),
+                            unit: matches!(v.fields, syn::Fields::Unit),
+                            doc: doc_of(&attrs(&v.attrs)),
+                            default: attrs(&v.attrs).iter().any(|a| named(a, "default")),
+                        })
+                        .collect(),
+                });
+            }
             syn::Item::Struct(st) if st.generics.params.is_empty() => {
                 if let syn::Fields::Named(named) = &st.fields {
                     file.structs.push(StructFact {
@@ -893,6 +910,14 @@ fn items(
                             .collect(),
                     );
                 }
+            }
+            syn::Item::Const(c) if !in_test && product && c.generics.params.is_empty() => {
+                let value = &*c.expr;
+                syntax.consts.push((
+                    c.ident.to_string(),
+                    (*c.ty).clone(),
+                    syn::parse_quote!({ #value }),
+                ));
             }
             syn::Item::Use(u) => {
                 let mut out = Vec::new();

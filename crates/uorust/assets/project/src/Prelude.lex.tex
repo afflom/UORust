@@ -1,0 +1,563 @@
+\begin{lexlean}{Prelude}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{uorust.titles@1.0.0}
+\title{Lifted text prelude}
+\begin{semanticmodule}
+inductive{
+  name: ParseIntError,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: Empty, fields: []},
+    {name: InvalidDigit, fields: []},
+    {name: PosOverflow, fields: []},
+    {name: NegOverflow, fields: []}
+  ]
+}
+
+definition{
+  name: textCode,
+  parameters: [bytes : Bytes, offset : Nat],
+  result: Nat,
+  body: (match (prim index bytes offset : (Option UInt8))
+    | Option.none => 256
+    | Option.some byte => (prim to_nat byte : Nat)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textCut,
+  parameters: [bytes : Bytes, start : Nat, stop : Nat],
+  result: String,
+  body: (match (prim slice bytes start (prim subtract stop start : Nat) : (Option Bytes))
+    | Option.none => ""
+    | Option.some piece => (match (prim utf8_decode piece : (Option String))
+      | Option.none => ""
+      | Option.some text => text)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textAt,
+  parameters: [bytes : Bytes, offset : Nat, pattern : Bytes],
+  result: Bool,
+  body: (match (prim slice bytes offset (prim length pattern : Nat) : (Option Bytes))
+    | Option.none => false
+    | Option.some piece => (prim equal piece pattern : Bool))
+}
+
+definition{
+  name: textLength,
+  parameters: [text : String],
+  result: Nat,
+  body: (prim length (prim utf8_encode text : Bytes) : Nat)
+}
+
+definition{
+  name: textSlice,
+  parameters: [text : String, start : Nat, stop : Nat],
+  result: String,
+  body: (textCut (prim utf8_encode text : Bytes) start stop),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textAsciiSpace,
+  parameters: [code : Nat],
+  result: Bool,
+  body: ((code =? 32) || ((9 <=? code) && (code <=? 13)))
+}
+
+definition{
+  name: textSpaceAt,
+  parameters: [bytes : Bytes, offset : Nat],
+  result: Nat,
+  body: (let lead : Nat := (textCode bytes offset); (let byte1 : Nat := (textCode bytes (offset + 1)); (let byte2 : Nat := (textCode bytes (offset + 2)); (if (textAsciiSpace lead) then 1 else (if (lead =? 194) then (if ((byte1 =? 133) || (byte1 =? 160)) then 2 else 0) else (if (lead =? 225) then (if ((byte1 =? 154) && (byte2 =? 128)) then 3 else 0) else (if (lead =? 226) then (if (byte1 =? 128) then (if (((128 <=? byte2) && (byte2 <=? 138)) || ((byte2 =? 168) || ((byte2 =? 169) || (byte2 =? 175)))) then 3 else 0) else (if ((byte1 =? 129) && (byte2 =? 159)) then 3 else 0)) else (if ((lead =? 227) && ((byte1 =? 128) && (byte2 =? 128))) then 3 else 0)))))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textSpaceBefore,
+  parameters: [bytes : Bytes, stop : Nat],
+  result: Nat,
+  body: (if (stop =? 0) then 0 else (if (textAsciiSpace (textCode bytes (prim subtract stop 1 : Nat))) then 1 else (if ((2 <=? stop) && ((textSpaceAt bytes (prim subtract stop 2 : Nat)) =? 2)) then 2 else (if ((3 <=? stop) && ((textSpaceAt bytes (prim subtract stop 3 : Nat)) =? 3)) then 3 else 0)))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textSkipSpaces,
+  parameters: [fuel : Nat, bytes : Bytes, offset : Nat],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => offset
+    | Nat.succ rest => (let width : Nat := (textSpaceAt bytes offset); (if (width =? 0) then offset else (textSkipSpaces rest bytes (offset + width))))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textBackSpaces,
+  parameters: [fuel : Nat, bytes : Bytes, stop : Nat],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => stop
+    | Nat.succ rest => (let width : Nat := (textSpaceBefore bytes stop); (if (width =? 0) then stop else (textBackSpaces rest bytes (prim subtract stop width : Nat))))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textTrimStart,
+  parameters: [text : String],
+  result: String,
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let total : Nat := (prim length bytes : Nat); (textCut bytes (textSkipSpaces total bytes 0) total))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textTrimEnd,
+  parameters: [text : String],
+  result: String,
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let total : Nat := (prim length bytes : Nat); (textCut bytes 0 (textBackSpaces total bytes total)))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textTrim,
+  parameters: [text : String],
+  result: String,
+  body: (textTrimEnd (textTrimStart text)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textStartsWith,
+  parameters: [text : String, pattern : String],
+  result: Bool,
+  body: (textAt (prim utf8_encode text : Bytes) 0 (prim utf8_encode pattern : Bytes))
+}
+
+definition{
+  name: textEndsWith,
+  parameters: [text : String, pattern : String],
+  result: Bool,
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let needle : Bytes := (prim utf8_encode pattern : Bytes); (let total : Nat := (prim length bytes : Nat); (let width : Nat := (prim length needle : Nat); ((width <=? total) && (textAt bytes (prim subtract total width : Nat) needle))))))
+}
+
+definition{
+  name: textFindFrom,
+  parameters: [fuel : Nat, bytes : Bytes, pattern : Bytes, offset : Nat],
+  result: (Option Nat),
+  body: (match fuel
+    | Nat.zero => (ctor Option.none [Nat])
+    | Nat.succ rest => (if ((prim length bytes : Nat) <? (offset + (prim length pattern : Nat))) then (ctor Option.none [Nat]) else (if (textAt bytes offset pattern) then (ctor Option.some [Nat] offset) else (textFindFrom rest bytes pattern (offset + 1))))),
+  recursive_argument: fuel
+}
+
+definition{
+  name: textFindBack,
+  parameters: [fuel : Nat, bytes : Bytes, pattern : Bytes, offset : Nat],
+  result: (Option Nat),
+  body: (match fuel
+    | Nat.zero => (ctor Option.none [Nat])
+    | Nat.succ rest => (if (textAt bytes offset pattern) then (ctor Option.some [Nat] offset) else (if (offset =? 0) then (ctor Option.none [Nat]) else (textFindBack rest bytes pattern (prim subtract offset 1 : Nat))))),
+  recursive_argument: fuel
+}
+
+definition{
+  name: textFirst,
+  parameters: [text : String, pattern : String],
+  result: (Option Nat),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (textFindFrom ((prim length bytes : Nat) + 1) bytes (prim utf8_encode pattern : Bytes) 0))
+}
+
+definition{
+  name: textLast,
+  parameters: [text : String, pattern : String],
+  result: (Option Nat),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let needle : Bytes := (prim utf8_encode pattern : Bytes); (let total : Nat := (prim length bytes : Nat); (let width : Nat := (prim length needle : Nat); (if (width <=? total) then (textFindBack (total + 1) bytes needle (prim subtract total width : Nat)) else (ctor Option.none [Nat]))))))
+}
+
+definition{
+  name: textContains,
+  parameters: [text : String, pattern : String],
+  result: Bool,
+  body: (match (textFirst text pattern) | Option.none => false | Option.some offset => true)
+}
+
+definition{
+  name: textStripPrefix,
+  parameters: [text : String, pattern : String],
+  result: (Option String),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let needle : Bytes := (prim utf8_encode pattern : Bytes); (if (textAt bytes 0 needle) then (ctor Option.some [String] (textCut bytes (prim length needle : Nat) (prim length bytes : Nat))) else (ctor Option.none [String])))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textStripSuffix,
+  parameters: [text : String, pattern : String],
+  result: (Option String),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let total : Nat := (prim length bytes : Nat); (let width : Nat := (textLength pattern); (if (textEndsWith text pattern) then (ctor Option.some [String] (textCut bytes 0 (prim subtract total width : Nat))) else (ctor Option.none [String]))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textCharWidth,
+  parameters: [lead : Nat],
+  result: Nat,
+  body: (if (lead <? 128) then 1 else (if (lead <? 224) then 2 else (if (lead <? 240) then 3 else 4)))
+}
+
+definition{
+  name: textCharsFrom,
+  parameters: [fuel : Nat, bytes : Bytes, offset : Nat],
+  result: (List String),
+  body: (match fuel
+    | Nat.zero => (nil String)
+    | Nat.succ rest => (if ((prim length bytes : Nat) <=? offset) then (nil String) else (let width : Nat := (textCharWidth (textCode bytes offset)); (cons (textCut bytes offset (offset + width)) (textCharsFrom rest bytes (offset + width)))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textChars,
+  parameters: [text : String],
+  result: (List String),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (textCharsFrom (prim length bytes : Nat) bytes 0)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textBytesFrom,
+  parameters: [fuel : Nat, bytes : Bytes, offset : Nat],
+  result: (List Nat),
+  body: (match fuel
+    | Nat.zero => (nil Nat)
+    | Nat.succ rest => (match (prim index bytes offset : (Option UInt8))
+      | Option.none => (nil Nat)
+      | Option.some byte => (cons (prim to_nat byte : Nat) (textBytesFrom rest bytes (offset + 1))))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textBytes,
+  parameters: [text : String],
+  result: (List Nat),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (textBytesFrom (prim length bytes : Nat) bytes 0)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textReverse,
+  parameters: [items : (List String), out : (List String)],
+  result: (List String),
+  body: (match items | List.nil => out | List.cons head tail => (textReverse tail (cons head out))),
+  recursive_argument: items
+}
+
+definition{
+  name: textSplitFrom,
+  parameters: [fuel : Nat, bytes : Bytes, pattern : Bytes, start : Nat, offset : Nat],
+  result: (List String),
+  body: (match fuel
+    | Nat.zero => (cons (textCut bytes start (prim length bytes : Nat)) (nil String))
+    | Nat.succ rest => (if ((prim length bytes : Nat) <? (offset + (prim length pattern : Nat))) then (cons (textCut bytes start (prim length bytes : Nat)) (nil String)) else (if (textAt bytes offset pattern) then (cons (textCut bytes start offset) (textSplitFrom rest bytes pattern (offset + (prim length pattern : Nat)) (offset + (prim length pattern : Nat)))) else (textSplitFrom rest bytes pattern start (offset + 1))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textSplit,
+  parameters: [text : String, pattern : String],
+  result: (List String),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let needle : Bytes := (prim utf8_encode pattern : Bytes); (if ((prim length needle : Nat) =? 0) then (cons "" (prim append (textChars text) (cons "" (nil String)) : (List String))) else (textSplitFrom ((prim length bytes : Nat) + 1) bytes needle 0 0)))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textRsplitFrom,
+  parameters: [fuel : Nat, bytes : Bytes, pattern : Bytes, stop : Nat, offset : Nat],
+  result: (List String),
+  body: (match fuel
+    | Nat.zero => (cons (textCut bytes 0 stop) (nil String))
+    | Nat.succ rest => (if (offset <? (prim length pattern : Nat)) then (cons (textCut bytes 0 stop) (nil String)) else (if (textAt bytes (prim subtract offset (prim length pattern : Nat) : Nat) pattern) then (cons (textCut bytes offset stop) (textRsplitFrom rest bytes pattern (prim subtract offset (prim length pattern : Nat) : Nat) (prim subtract offset (prim length pattern : Nat) : Nat))) else (textRsplitFrom rest bytes pattern stop (prim subtract offset 1 : Nat))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textRsplit,
+  parameters: [text : String, pattern : String],
+  result: (List String),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let needle : Bytes := (prim utf8_encode pattern : Bytes); (if ((prim length needle : Nat) =? 0) then (textReverse (textSplit text pattern) (nil String)) else (textRsplitFrom ((prim length bytes : Nat) + 1) bytes needle (prim length bytes : Nat) (prim length bytes : Nat))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textLinesFrom,
+  parameters: [fuel : Nat, bytes : Bytes, start : Nat, offset : Nat],
+  result: (List String),
+  body: (match fuel
+    | Nat.zero => (nil String)
+    | Nat.succ rest => (if ((prim length bytes : Nat) <=? offset) then (if ((prim length bytes : Nat) <=? start) then (nil String) else (cons (textCut bytes start (prim length bytes : Nat)) (nil String))) else (if ((textCode bytes offset) =? 10) then (let stop : Nat := (if ((start <? offset) && ((textCode bytes (prim subtract offset 1 : Nat)) =? 13)) then (prim subtract offset 1 : Nat) else offset); (cons (textCut bytes start stop) (textLinesFrom rest bytes (offset + 1) (offset + 1)))) else (textLinesFrom rest bytes start (offset + 1))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textLines,
+  parameters: [text : String],
+  result: (List String),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (textLinesFrom ((prim length bytes : Nat) + 1) bytes 0 0)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textWordsFrom,
+  parameters: [fuel : Nat, bytes : Bytes, start : Nat, offset : Nat],
+  result: (List String),
+  body: (match fuel
+    | Nat.zero => (nil String)
+    | Nat.succ rest => (if ((prim length bytes : Nat) <=? offset) then (if (start <? offset) then (cons (textCut bytes start offset) (nil String)) else (nil String)) else (let width : Nat := (textSpaceAt bytes offset); (if (width =? 0) then (textWordsFrom rest bytes start (offset + 1)) else (if (start <? offset) then (cons (textCut bytes start offset) (textWordsFrom rest bytes (offset + width) (offset + width))) else (textWordsFrom rest bytes (offset + width) (offset + width))))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textWords,
+  parameters: [text : String],
+  result: (List String),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (textWordsFrom ((prim length bytes : Nat) + 1) bytes 0 0)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textRepeat,
+  parameters: [count : Nat, text : String],
+  result: String,
+  body: (match count
+    | Nat.zero => ""
+    | Nat.succ rest => (prim join (cons text (cons (textRepeat rest text) (nil String))) "" : String)),
+  axioms: [propext],
+  recursive_argument: count
+}
+
+definition{
+  name: textMapFrom,
+  parameters: [fuel : Nat, bytes : Bytes, offset : Nat, low : Nat, table : Bytes, out : Bytes],
+  result: Bytes,
+  body: (match fuel
+    | Nat.zero => out
+    | Nat.succ rest => (match (prim slice bytes offset 1 : (Option Bytes))
+      | Option.none => out
+      | Option.some byte => (let code : Nat := (textCode bytes offset); (let mapped : Bytes := (if ((low <=? code) && (code <? (low + 26))) then (match (prim slice table (prim subtract code low : Nat) 1 : (Option Bytes))
+        | Option.none => byte
+        | Option.some other => other) else byte); (textMapFrom rest bytes (offset + 1) low table (prim append out mapped : Bytes)))))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textMapCase,
+  parameters: [text : String, low : Nat, table : Bytes],
+  result: String,
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (match (prim utf8_decode (textMapFrom (prim length bytes : Nat) bytes 0 low table (prim utf8_encode "" : Bytes)) : (Option String))
+    | Option.none => text
+    | Option.some out => out)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textAsciiLower,
+  parameters: [text : String],
+  result: String,
+  body: (textMapCase text 65 0x6162636465666768696a6b6c6d6e6f707172737475767778797a),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textAsciiUpper,
+  parameters: [text : String],
+  result: String,
+  body: (textMapCase text 97 0x4142434445464748494a4b4c4d4e4f505152535455565758595a),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textLead,
+  parameters: [text : String],
+  result: Nat,
+  body: (textCode (prim utf8_encode text : Bytes) 0),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAscii,
+  parameters: [text : String],
+  result: Bool,
+  body: ((textLead text) <? 128),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiDigit,
+  parameters: [text : String],
+  result: Bool,
+  body: (let code : Nat := (textLead text); ((48 <=? code) && (code <=? 57))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiUppercase,
+  parameters: [text : String],
+  result: Bool,
+  body: (let code : Nat := (textLead text); ((65 <=? code) && (code <=? 90))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiLowercase,
+  parameters: [text : String],
+  result: Bool,
+  body: (let code : Nat := (textLead text); ((97 <=? code) && (code <=? 122))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiAlphabetic,
+  parameters: [text : String],
+  result: Bool,
+  body: ((textIsAsciiUppercase text) || (textIsAsciiLowercase text)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiAlphanumeric,
+  parameters: [text : String],
+  result: Bool,
+  body: ((textIsAsciiAlphabetic text) || (textIsAsciiDigit text)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiHexdigit,
+  parameters: [text : String],
+  result: Bool,
+  body: (let code : Nat := (textLead text); ((textIsAsciiDigit text) || (((65 <=? code) && (code <=? 70)) || ((97 <=? code) && (code <=? 102))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiWhitespace,
+  parameters: [text : String],
+  result: Bool,
+  body: (let code : Nat := (textLead text); ((code =? 32) || ((code =? 9) || ((code =? 10) || ((code =? 12) || (code =? 13)))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiPunctuation,
+  parameters: [text : String],
+  result: Bool,
+  body: (let code : Nat := (textLead text); (((33 <=? code) && (code <=? 47)) || (((58 <=? code) && (code <=? 64)) || (((91 <=? code) && (code <=? 96)) || ((123 <=? code) && (code <=? 126)))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsAsciiControl,
+  parameters: [text : String],
+  result: Bool,
+  body: (let code : Nat := (textLead text); ((code <? 32) || (code =? 127))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsWhitespace,
+  parameters: [text : String],
+  result: Bool,
+  body: (not ((textSpaceAt (prim utf8_encode text : Bytes) 0) =? 0)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textIsControl,
+  parameters: [text : String],
+  result: Bool,
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let lead : Nat := (textCode bytes 0); (let byte1 : Nat := (textCode bytes 1); ((lead <? 32) || ((lead =? 127) || ((lead =? 194) && ((128 <=? byte1) && (byte1 <=? 159)))))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textDigitsFrom,
+  parameters: [fuel : Nat, bytes : Bytes, offset : Nat, value : Nat, maximum : Nat],
+  result: (Result Nat ParseIntError),
+  body: (match fuel
+    | Nat.zero => (ctor Result.ok [Nat, ParseIntError] value)
+    | Nat.succ rest => (if ((prim length bytes : Nat) <=? offset) then (ctor Result.ok [Nat, ParseIntError] value) else (let code : Nat := (textCode bytes offset); (if ((48 <=? code) && (code <=? 57)) then (let next : Nat := ((prim multiply value 10 : Nat) + (prim subtract code 48 : Nat)); (if (maximum <? next) then (ctor Result.error [Nat, ParseIntError] (ctor ParseIntError.PosOverflow)) else (textDigitsFrom rest bytes (offset + 1) next maximum))) else (ctor Result.error [Nat, ParseIntError] (ctor ParseIntError.InvalidDigit)))))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: textParseNat,
+  parameters: [text : String, maximum : Nat],
+  result: (Result Nat ParseIntError),
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let total : Nat := (prim length bytes : Nat); (if (total =? 0) then (ctor Result.error [Nat, ParseIntError] (ctor ParseIntError.Empty)) else (if ((textCode bytes 0) =? 43) then (if (total =? 1) then (ctor Result.error [Nat, ParseIntError] (ctor ParseIntError.InvalidDigit)) else (textDigitsFrom total bytes 1 0 maximum)) else (textDigitsFrom total bytes 0 0 maximum))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: textReplace,
+  parameters: [text : String, pattern : String, replacement : String],
+  result: String,
+  body: (prim join (textSplit text pattern) replacement : String),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textSkipMatches,
+  parameters: [fuel : Nat, bytes : Bytes, pattern : Bytes, offset : Nat],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => offset
+    | Nat.succ rest => (if (textAt bytes offset pattern) then (textSkipMatches rest bytes pattern (offset + (prim length pattern : Nat))) else offset)),
+  recursive_argument: fuel
+}
+
+definition{
+  name: textBackMatches,
+  parameters: [fuel : Nat, bytes : Bytes, pattern : Bytes, stop : Nat],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => stop
+    | Nat.succ rest => (if (((prim length pattern : Nat) <=? stop) && (textAt bytes (prim subtract stop (prim length pattern : Nat) : Nat) pattern)) then (textBackMatches rest bytes pattern (prim subtract stop (prim length pattern : Nat) : Nat)) else stop)),
+  recursive_argument: fuel
+}
+
+definition{
+  name: textTrimStartMatches,
+  parameters: [text : String, pattern : String],
+  result: String,
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let needle : Bytes := (prim utf8_encode pattern : Bytes); (if ((prim length needle : Nat) =? 0) then text else (textCut bytes (textSkipMatches (prim length bytes : Nat) bytes needle 0) (prim length bytes : Nat))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textTrimEndMatches,
+  parameters: [text : String, pattern : String],
+  result: String,
+  body: (let bytes : Bytes := (prim utf8_encode text : Bytes); (let needle : Bytes := (prim utf8_encode pattern : Bytes); (if ((prim length needle : Nat) =? 0) then text else (textCut bytes 0 (textBackMatches (prim length bytes : Nat) bytes needle (prim length bytes : Nat)))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textTrimMatches,
+  parameters: [text : String, pattern : String],
+  result: String,
+  body: (textTrimEndMatches (textTrimStartMatches text pattern) pattern),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

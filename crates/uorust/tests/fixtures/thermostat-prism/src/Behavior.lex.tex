@@ -2,6 +2,7 @@
 \useglossary{lexlean.std.bool@1.2.0}
 \useglossary{lexlean.std.nat@1.2.0}
 \useglossary{uorust.titles@1.0.0}
+\importmodule{Prelude}
 \title{Lifted Rust behavior}
 \begin{semanticmodule}
 inductive{
@@ -40,6 +41,13 @@ structure{
 }
 
 structure{
+  name: TupleNatRoom,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: Nat}, {name: item1, type: Room}]
+}
+
+structure{
   name: TupleNatNat,
   type_parameters: [],
   parameters: [],
@@ -58,6 +66,13 @@ structure{
   type_parameters: [],
   parameters: [],
   fields: [{name: item0, type: String}, {name: item1, type: Int64}]
+}
+
+structure{
+  name: TupleStringString,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: String}, {name: item1, type: String}]
 }
 
 structure{
@@ -172,6 +187,16 @@ definition{
   result: String,
   body: (prim join (cons value (cons " " (cons unit (nil String)))) "" : String),
   axioms: [propext]
+}
+
+definition{
+  name: parseTarget,
+  parameters: [text : String],
+  result: (Result Nat ConfigError),
+  body: (match (Prelude::textParseNat (Prelude::textTrim text) 4294967295)
+    | Result.ok value3 => (ctor Result.ok [Nat, ConfigError] value3)
+    | Result.error item2 => (ctor Result.error [Nat, ConfigError] (ctor ConfigError.NotANumber))),
+  axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
@@ -535,6 +560,261 @@ definition{
   parameters: [entries : (List TupleStringNat)],
   result: (List Nat),
   body: (let out : (List Nat) := (nil Nat); (let state7 : (List Nat) := (readingsOfLoop1 entries out); state7))
+}
+
+definition{
+  name: lineRoomPart1,
+  parameters: [line : String],
+  result: (Option TupleStringString),
+  body: (match (Prelude::textFirst line "=")
+    | Option.none => (ctor Option.none [TupleStringString])
+    | Option.some at2 => (ctor Option.some [TupleStringString] (record TupleStringString {item0 := (Prelude::textSlice line 0 at2), item1 := (Prelude::textSlice line (at2 + (Prelude::textLength "=")) (Prelude::textLength line))}))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: lineRoom,
+  parameters: [line : String],
+  result: (Option String),
+  body: (match (lineRoomPart1 line)
+    | Option.none => (ctor Option.none [String])
+    | Option.some tried1 => (let pair3 : TupleStringString := tried1; (let name : String := (project pair3 item0); (let item4 : String := (project pair3 item1); (let name5 : String := (Prelude::textTrim name); (if (prim equal name5 "" : Bool) then (ctor Option.none [String]) else (ctor Option.some [String] name5))))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: lineTargetPart1,
+  parameters: [line : String],
+  result: (Option TupleStringString),
+  body: (match (Prelude::textLast line "=")
+    | Option.none => (ctor Option.none [TupleStringString])
+    | Option.some at2 => (ctor Option.some [TupleStringString] (record TupleStringString {item0 := (Prelude::textSlice line 0 at2), item1 := (Prelude::textSlice line (at2 + (Prelude::textLength "=")) (Prelude::textLength line))}))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: lineTarget,
+  parameters: [line : String],
+  result: (Option Nat),
+  body: (match (lineTargetPart1 line)
+    | Option.none => (ctor Option.none [Nat])
+    | Option.some tried1 => (let pair3 : TupleStringString := tried1; (let item4 : String := (project pair3 item0); (let value : String := (project pair3 item1); (match (Prelude::textParseNat (Prelude::textTrimEnd (Prelude::textTrimStart value)) 4294967295)
+      | Result.ok value5 => (ctor Option.some [Nat] value5)
+      | Result.error error6 => (ctor Option.none [Nat])))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: scheduleRoomsLoop1,
+  parameters: [items4 : (List String), state1 : (List String)],
+  result: (List String),
+  body: (match items4
+    | List.nil => state1
+    | List.cons line rest5 => (let line2 : String := (Prelude::textTrim line); (if ((prim equal line2 "" : Bool) || (Prelude::textStartsWith line2 "#")) then (scheduleRoomsLoop1 rest5 state1) else (let out3 : (List String) := (prim append state1 (cons line2 (nil String)) : (List String)); (scheduleRoomsLoop1 rest5 out3))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items4
+}
+
+definition{
+  name: scheduleRooms,
+  parameters: [text : String],
+  result: (List String),
+  body: (let out : (List String) := (nil String); (let state6 : (List String) := (scheduleRoomsLoop1 (Prelude::textLines text) out); state6)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: roomsUntilStopLoop1,
+  parameters: [items3 : (List String), state1 : (List String)],
+  result: (List String),
+  body: (match items3
+    | List.nil => state1
+    | List.cons item rest4 => (if (prim equal item "stop" : Bool) then state1 else (let out2 : (List String) := (prim append state1 (cons item (nil String)) : (List String)); (roomsUntilStopLoop1 rest4 out2)))),
+  recursive_argument: items3
+}
+
+definition{
+  name: roomsUntilStop,
+  parameters: [list : String],
+  result: (List String),
+  body: (let out : (List String) := (nil String); (let state5 : (List String) := (roomsUntilStopLoop1 (Prelude::textSplit list ", ") out); state5)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: tagPart1,
+  parameters: [text : String],
+  result: String,
+  body: (match (Prelude::textStripPrefix text "room:")
+    | Option.none => text
+    | Option.some value1 => value1),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: tagPart2,
+  parameters: [bare : String],
+  result: String,
+  body: (match (Prelude::textStripSuffix bare "!")
+    | Option.none => bare
+    | Option.some value2 => value2),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: tag,
+  parameters: [text : String],
+  result: String,
+  body: (let bare : String := (tagPart1 text); (let bare3 : String := (tagPart2 bare); (Prelude::textAsciiLower bare3))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: isZone,
+  parameters: [label : String],
+  result: Bool,
+  body: (((Prelude::textEndsWith label "-zone") || (Prelude::textContains label "wing")) || (prim equal (Prelude::textAsciiUpper label) "ZONE" : Bool)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: divider,
+  parameters: [widthArg : Nat],
+  result: String,
+  body: (Prelude::textRepeat widthArg "-"),
+  axioms: [propext]
+}
+
+definition{
+  name: signKindLoop1,
+  parameters: [items3 : (List String), state1 : Nat],
+  result: Nat,
+  body: (match items3
+    | List.nil => state1
+    | List.cons c rest4 => (let kind2 : Nat := (if (prim equal c "-" : Bool) then 1 else (if (prim equal c "+" : Bool) then 2 else (if ((not (prim less_than c "0" : Bool)) && (not (prim less_than "9" c : Bool))) then 3 else (if (Prelude::textIsWhitespace c) then 4 else 5)))); kind2)),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items3
+}
+
+definition{
+  name: signKind,
+  parameters: [reading : String],
+  result: Nat,
+  body: (let kind : Nat := 0; (let state5 : Nat := (signKindLoop1 (Prelude::textChars reading) kind); state5)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: digitCountLoop1,
+  parameters: [items3 : (List Nat), state1 : Nat],
+  result: Nat,
+  body: (match items3
+    | List.nil => state1
+    | List.cons byte rest4 => (if ((48 <=? byte) && (byte <=? 57)) then (let count2 : Nat := (if ((state1 + 1) <? 4294967296) then (state1 + 1) else 4294967295); (digitCountLoop1 rest4 count2)) else (digitCountLoop1 rest4 state1))),
+  recursive_argument: items3
+}
+
+definition{
+  name: digitCount,
+  parameters: [reading : String],
+  result: Nat,
+  body: (let count : Nat := 0; (let state5 : Nat := (digitCountLoop1 (Prelude::textBytes reading) count); state5)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: numberedEnumerate1,
+  parameters: [items3 : (List Room), index2 : Nat],
+  result: (List TupleNatRoom),
+  body: (match items3
+    | List.nil => (nil TupleNatRoom)
+    | List.cons item1 rest4 => (cons (record TupleNatRoom {item0 := index2, item1 := item1}) (numberedEnumerate1 rest4 (index2 + 1)))),
+  recursive_argument: items3
+}
+
+definition{
+  name: positions,
+  parameters: [],
+  result: (List String),
+  body: (cons "first" (cons "second" (cons "later" (nil String))))
+}
+
+definition{
+  name: firstIsPart1,
+  parameters: [name : String, rooms : (List Room)],
+  result: (Option String),
+  body: (match (prim index rooms 0 : (Option Room))
+    | Option.none => (ctor Option.none [String])
+    | Option.some room => (ctor Option.some [String] (project room name)))
+}
+
+definition{
+  name: firstIs,
+  parameters: [rooms : (List Room), name : String],
+  result: Bool,
+  body: (match (firstIsPart1 name rooms)
+    | Option.none => (match (ctor Option.some [String] name)
+      | Option.none => true
+      | Option.some right3 => false)
+    | Option.some left2 => (match (ctor Option.some [String] name)
+      | Option.none => false
+      | Option.some right3 => (prim equal left2 right3 : Bool)))
+}
+
+definition{
+  name: firstWord,
+  parameters: [text : String],
+  result: (Option String),
+  body: (match (prim index (Prelude::textWords text) 0 : (Option String))
+    | Option.none => (ctor Option.none [String])
+    | Option.some tried1 => (ctor Option.some [String] tried1)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: spelledMap1,
+  parameters: [items1 : (List String)],
+  result: (List String),
+  body: (match items1
+    | List.nil => (nil String)
+    | List.cons c rest2 => (cons c (spelledMap1 rest2))),
+  recursive_argument: items1
+}
+
+definition{
+  name: spelled,
+  parameters: [label : String],
+  result: String,
+  body: (let letters : (List String) := (spelledMap1 (Prelude::textChars label)); (prim join letters "." : String)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: numberedPart2,
+  parameters: [i : Nat],
+  result: String,
+  body: (match (prim index (positions) (if (i <=? 2) then i else 2) : (Option String))
+    | Option.none => ""
+    | Option.some item7 => item7)
+}
+
+definition{
+  name: numberedLoop3,
+  parameters: [items9 : (List TupleNatRoom), state5 : (List String)],
+  result: (List String),
+  body: (match items9
+    | List.nil => state5
+    | List.cons pair6 rest10 => (let i : Nat := (project pair6 item0); (let room : Room := (project pair6 item1); (let out8 : (List String) := (prim append state5 (cons (prim join (cons (numberedPart2 i) (cons ":" (cons (project room name) (nil String)))) "" : String) (nil String)) : (List String)); (numberedLoop3 rest10 out8))))),
+  axioms: [propext],
+  recursive_argument: items9
+}
+
+definition{
+  name: numbered,
+  parameters: [rooms : (List Room)],
+  result: (List String),
+  body: (let out : (List String) := (nil String); (let state11 : (List String) := (numberedLoop3 (numberedEnumerate1 rooms 0) out); state11)),
+  axioms: [propext]
 }
 
 theorem{

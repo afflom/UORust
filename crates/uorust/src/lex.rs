@@ -170,6 +170,12 @@ pub(crate) enum Decl {
         name: String,
         constructors: Vec<String>,
     },
+    /// An inductive whose constructors carry fields: `(constructor, field
+    /// types)`.
+    Data {
+        name: String,
+        constructors: Vec<(String, Vec<String>)>,
+    },
     Definition {
         name: String,
         parameters: Vec<(String, String)>,
@@ -193,6 +199,7 @@ impl Decl {
         match self {
             Self::Structure { name, .. }
             | Self::Inductive { name, .. }
+            | Self::Data { name, .. }
             | Self::Definition { name, .. }
             | Self::Theorem { name, .. } => name,
         }
@@ -275,6 +282,22 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
             let items: Vec<String> = constructors
                 .iter()
                 .map(|ctor| format!("{{name: {ctor}, fields: []}}"))
+                .collect();
+            let head = [
+                format!("name: {name}"),
+                "type_parameters: []".to_string(),
+                "parameters: []".to_string(),
+            ];
+            let mut flat = head.to_vec();
+            flat.push(format!("constructors: [{}]", items.join(", ")));
+            let mut broken: Vec<String> = head.iter().map(|m| format!("  {m}")).collect();
+            broken.push(list("constructors", &items, 2, false));
+            members("inductive", &flat, &broken, true)
+        }
+        Decl::Data { name, constructors } => {
+            let items: Vec<String> = constructors
+                .iter()
+                .map(|(ctor, fields)| format!("{{name: {ctor}, fields: [{}]}}", fields.join(", ")))
                 .collect();
             let head = [
                 format!("name: {name}"),

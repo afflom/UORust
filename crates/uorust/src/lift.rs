@@ -81,6 +81,10 @@ pub(crate) enum Ty {
     /// A signed integer of this many bits, held as `Int64`.
     Int(u32),
     Str,
+    /// A `char`, held as the one-character string it is.
+    Char,
+    /// The error of an integer `parse`: the prelude's `ParseIntError`.
+    ParseError,
     /// A unit-variant enum or a struct.
     Named(String),
     Option(Box<Ty>),
@@ -103,7 +107,8 @@ impl Ty {
             Self::Bool => "Bool".into(),
             Self::Nat(_) => "Nat".into(),
             Self::Int(_) => "Int64".into(),
-            Self::Str => "String".into(),
+            Self::Str | Self::Char => "String".into(),
+            Self::ParseError => format!("{PRELUDE}::ParseIntError"),
             Self::Named(n) => n.clone(),
             Self::Option(t) => format!("(Option {})", t.render()),
             Self::Outcome(t, e) => format!("(Result {} {})", t.render(), e.render()),
@@ -126,7 +131,8 @@ impl Ty {
             Self::Bool => "Bool".into(),
             Self::Nat(_) => "Nat".into(),
             Self::Int(_) => "Int".into(),
-            Self::Str => "String".into(),
+            Self::Str | Self::Char => "String".into(),
+            Self::ParseError => "ParseIntError".into(),
             Self::Named(n) => n.clone(),
             Self::Option(t) => format!("Option{}", t.tag()),
             Self::Outcome(t, e) => format!("Result{}{}", t.tag(), e.tag()),
@@ -164,6 +170,17 @@ impl Ty {
     }
 }
 
+/// The names of the enums and structs among the types a type mentions.
+fn named_in(types: &BTreeSet<Ty>) -> BTreeSet<String> {
+    types
+        .iter()
+        .filter_map(|t| match t {
+            Ty::Named(n) => Some(n.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
 /// The structure a tuple type lifts to: `TupleNatBool` for `(u32, bool)`.
 pub(crate) fn tuple_name(ts: &[Ty]) -> String {
     let tags: String = ts.iter().map(Ty::tag).collect();
@@ -179,9 +196,159 @@ pub(crate) struct Types {
     /// A Rust type name -> the LexLean name it lifts to, where the crate's
     /// name qualifies it apart from another crate's type of the same name.
     pub(crate) aliases: BTreeMap<String, String>,
+    /// Enums whose variants carry data -> each variant and its fields:
+    /// the Rust field name of a struct variant, and the type.
+    pub(crate) datas: BTreeMap<String, Vec<(String, Vec<DataField>)>>,
+}
+
+/// A field of a data-carrying variant: its Rust name, if any, and its type.
+pub(crate) type DataField = (Option<String>, Ty);
+
+/// The fields of each variant of a data-carrying enum, as Rust writes them.
+pub(crate) type RawVariants = Vec<(String, Vec<(Option<String>, syn::Type)>)>;
+
+/// Whether `ty` names `me` only where Lean accepts a nested occurrence:
+/// directly, or inside `Option`, `List` or `Result`.
+fn nested_ok(ty: &Ty, me: &str) -> bool {
+    match ty {
+        Ty::Option(t) | Ty::List(t) => nested_ok(t, me),
+        Ty::Outcome(t, e) => nested_ok(t, me) && nested_ok(e, me),
+        Ty::Tuple(_) | Ty::Map(..) | Ty::Set(..) => {
+            let mut inner = BTreeSet::new();
+            ty.mentions(&mut inner);
+            !inner.contains(&Ty::Named(me.to_string()))
+        }
+        _ => true,
+    }
 }
 
 impl Types {
+    /// The lifted types with data-carrying enums among them: every type to
+    /// the fixpoint where each names only types that lift, and no two name
+    /// each other (a data enum may name itself).
+    pub(crate) fn with_data(
+        enums: BTreeMap<String, Vec<String>>,
+        datas: &BTreeMap<String, RawVariants>,
+        structs: &BTreeMap<String, Vec<(String, syn::Type)>>,
+        aliases: BTreeMap<String, String>,
+    ) -> Self {
+        let base = Self::new(enums, structs, aliases);
+        let mut names: BTreeSet<String> = datas
+            .keys()
+            .filter(|n| {
+                !base.enums.contains_key(*n)
+                    && !base.structs.contains_key(*n)
+                    && !BARE_TYPES.contains(&n.as_str())
+                    && !n.starts_with("LexLean")
+                    && !n.starts_with("Tuple")
+                    && !datas[*n].is_empty()
+                    && datas[*n]
+                        .iter()
+                        .all(|(v, _)| !RESERVED.contains(&v.as_str()))
+            })
+            .cloned()
+            .collect();
+        let mut struct_names: BTreeSet<String> = structs.keys().cloned().collect();
+        loop {
+            let probe = Self {
+                datas: names.iter().map(|n| (n.clone(), Vec::new())).collect(),
+                structs: struct_names
+                    .iter()
+                    .filter(|n| !base.enums.contains_key(*n))
+                    .map(|n| (n.clone(), Vec::new()))
+                    .collect(),
+                ..base.clone()
+            };
+            let mut lifted = BTreeMap::new();
+            for name in &names {
+                let mut variants = Vec::new();
+                let mut ok = true;
+                for (variant, fields) in &datas[name] {
+                    let mut tys = Vec::new();
+                    for (field, t) in fields {
+                        match probe.ty(t) {
+                            Continue(ty) if nested_ok(&ty, name) => tys.push((field.clone(), ty)),
+                            _ => ok = false,
+                        }
+                    }
+                    variants.push((variant.clone(), tys));
+                }
+                if ok {
+                    lifted.insert(name.clone(), variants);
+                }
+            }
+            let mut fields_of = BTreeMap::new();
+            for name in &struct_names {
+                let Some(raw) = structs.get(name) else {
+                    continue;
+                };
+                let mut fields = Vec::new();
+                let mut ok = !raw.is_empty();
+                for (field, t) in raw {
+                    match probe.ty(t) {
+                        Continue(ty) => fields.push((local_name(field), ty)),
+                        Break(_) => ok = false,
+                    }
+                }
+                if ok {
+                    fields_of.insert(name.clone(), fields);
+                }
+            }
+            // The named types each type mentions, and those on a cycle
+            // through another type, or a structure through itself.
+            let mut graph: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+            for (name, variants) in &lifted {
+                let mut out = BTreeSet::new();
+                for (_, fields) in variants {
+                    for (_, t) in fields {
+                        t.mentions(&mut out);
+                    }
+                }
+                graph.insert(name.clone(), named_in(&out));
+            }
+            for (name, fields) in &fields_of {
+                let mut out = BTreeSet::new();
+                for (_, t) in fields {
+                    t.mentions(&mut out);
+                }
+                graph.insert(name.clone(), named_in(&out));
+            }
+            let cyclic: BTreeSet<String> = graph
+                .keys()
+                .filter(|start| {
+                    let mut seen = BTreeSet::new();
+                    let mut stack: Vec<&String> = graph[*start]
+                        .iter()
+                        .filter(|n| *n != *start || fields_of.contains_key(*start))
+                        .collect();
+                    while let Some(n) = stack.pop() {
+                        if n == *start {
+                            return true;
+                        }
+                        if seen.insert(n.clone()) {
+                            if let Some(next) = graph.get(n) {
+                                stack.extend(next.iter().filter(|m| *m != n));
+                            }
+                        }
+                    }
+                    false
+                })
+                .cloned()
+                .collect();
+            lifted.retain(|n, _| !cyclic.contains(n));
+            fields_of.retain(|n, _| !cyclic.contains(n));
+            if lifted.len() == names.len() && fields_of.len() == struct_names.len() {
+                return Self {
+                    datas: lifted,
+                    structs: fields_of,
+                    ..base
+                };
+            }
+            names = lifted.into_keys().collect();
+            struct_names = fields_of.into_keys().collect();
+        }
+    }
+
     /// The structs whose every field lifts, to the fixpoint where a struct
     /// only names enums and structs that lift.
     /// Rust type names `aliases` maps to the LexLean names the maps are
@@ -214,6 +381,7 @@ impl Types {
                 enums: enums.clone(),
                 structs: names.iter().map(|n| (n.clone(), Vec::new())).collect(),
                 aliases: aliases.clone(),
+                datas: BTreeMap::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -234,6 +402,7 @@ impl Types {
                     enums,
                     structs: lifted,
                     aliases,
+                    datas: BTreeMap::new(),
                 };
             }
             names = lifted.into_keys().collect();
@@ -295,6 +464,7 @@ impl Types {
                     ("i32", []) => Ty::Int(32),
                     ("i64", []) => Ty::Int(64),
                     ("String", []) => Ty::Str,
+                    ("char", []) => Ty::Char,
                     ("Option", [t]) => Ty::Option(Box::new(t.clone())),
                     ("Result", [t, e]) => Ty::Outcome(Box::new(t.clone()), Box::new(e.clone())),
                     ("Vec", [t]) => Ty::List(Box::new(t.clone())),
@@ -305,7 +475,8 @@ impl Types {
                     ("HashSet", [t]) => Ty::Set(Box::new(t.clone()), false),
                     (n, [])
                         if self.enums.contains_key(&self.resolve(n))
-                            || self.structs.contains_key(&self.resolve(n)) =>
+                            || self.structs.contains_key(&self.resolve(n))
+                            || self.datas.contains_key(&self.resolve(n)) =>
                     {
                         Ty::Named(self.resolve(n))
                     }
@@ -344,7 +515,9 @@ impl Types {
                     match owner {
                         Some(o)
                             if plain
-                                && (self.enums.contains_key(o) || self.structs.contains_key(o)) =>
+                                && (self.enums.contains_key(o)
+                                    || self.structs.contains_key(o)
+                                    || self.datas.contains_key(o)) =>
                         {
                             params.push((
                                 "self".to_string(),
@@ -580,6 +753,11 @@ struct Ctx<'a> {
     /// The statements in hand are the function's own, in tail position, so
     /// an early `return` leaves the function.
     top: bool,
+    /// The locals of the loop whose step the statements in hand are: a
+    /// `continue` there is the step's value, a `break` its last.
+    looping: Option<Vec<String>>,
+    /// Binders still in scope whose Rust local a later binding renamed.
+    hidden: Vec<String>,
 }
 
 /// A structurally recursive definition an iterator chain lifts to: it walks
@@ -594,11 +772,31 @@ pub(crate) struct Helper {
     pub(crate) calls: BTreeSet<String>,
     /// The Lean axioms the closure's primitives elaborate with.
     pub(crate) axioms: BTreeSet<String>,
+    /// It recurses on its first parameter; a hoisted operand does not.
+    pub(crate) recursive: bool,
 }
 
 impl Ctx<'_> {
+    /// A fresh name for a helper of the function being lifted.
+    fn helper_name(&self, kind: &str) -> String {
+        let helpers = self.helpers.borrow();
+        let mut n = helpers.len() + 1;
+        loop {
+            let candidate = format!("{}{kind}{n}", self.own);
+            if !self.fns.values().any(|f| f.name == candidate)
+                && !helpers.iter().any(|h| h.name == candidate)
+                && !self.taken(&candidate)
+            {
+                return candidate;
+            }
+            n += 1;
+        }
+    }
+
     fn taken(&self, name: &str) -> bool {
-        self.locals.values().any(|(n, _)| n == name) || self.fns.values().any(|f| f.name == name)
+        self.locals.values().any(|(n, _)| n == name)
+            || self.hidden.iter().any(|n| n == name)
+            || self.fns.values().any(|f| f.name == name)
     }
 
     /// A LexLean binder for a Rust name: a binder may not shadow another.
@@ -608,7 +806,9 @@ impl Ctx<'_> {
             name = self.fresh(&name);
         }
         let mut next = self.clone();
-        next.locals.insert(ident.to_string(), (name.clone(), ty));
+        if let Some((old, _)) = next.locals.insert(ident.to_string(), (name.clone(), ty)) {
+            next.hidden.push(old);
+        }
         (next, name)
     }
 
@@ -665,9 +865,57 @@ fn flat_text(e: Expr) -> Lift<String> {
     }
 }
 
+/// An operand on one line. A `match` or `let` there becomes a definition of
+/// its own, a helper that takes the locals it names, called in its place.
 fn flat_of(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(String, Ty)> {
-    let (x, t) = expr(e, ctx, want)?;
-    Continue((flat_text(x)?, t))
+    let calls = RefCell::new(BTreeSet::new());
+    let axioms = RefCell::new(BTreeSet::new());
+    let descends = RefCell::new(BTreeSet::new());
+    let scope = Ctx {
+        calls: &calls,
+        axioms: &axioms,
+        descends: &descends,
+        top: false,
+        looping: None,
+        hidden: Vec::new(),
+        ..ctx.clone()
+    };
+    let (x, t) = expr(e, &scope, want)?;
+    drop(scope);
+    let (calls, axioms, descends) = (
+        calls.into_inner(),
+        axioms.into_inner(),
+        descends.into_inner(),
+    );
+    if let Continue(text) = flat_text(x.clone()) {
+        ctx.calls.borrow_mut().extend(calls);
+        ctx.axioms.borrow_mut().extend(axioms);
+        ctx.descends.borrow_mut().extend(descends);
+        return Continue((text, t));
+    }
+    if !descends.is_empty() {
+        return Break(Residue::Form(
+            "recursion inside a match or let in an operand".to_string(),
+        ));
+    }
+    let caps = captures(ctx, &[x.flat()], &[]);
+    let name = ctx.helper_name("Part");
+    let mut parts = vec![name.clone()];
+    parts.extend(caps.iter().map(|(c, _)| c.clone()));
+    ctx.helpers.borrow_mut().push(Helper {
+        name: name.clone(),
+        params: caps
+            .iter()
+            .map(|(c, ty)| (c.clone(), ty.render()))
+            .collect(),
+        result: t.render(),
+        body: x,
+        calls,
+        axioms,
+        recursive: false,
+    });
+    ctx.calls.borrow_mut().insert(format!("#{name}"));
+    Continue((format!("({})", parts.join(" ")), t))
 }
 
 fn int_literal(e: &syn::Expr) -> Option<u128> {
@@ -690,16 +938,23 @@ fn is_literal(e: &syn::Expr) -> bool {
     }
 }
 
-/// A LexLean string literal holding exactly `text`, when it has no control
-/// characters.
+/// A LexLean string literal holding exactly `text`, control characters
+/// escaped.
 fn exact_string(text: &str) -> Option<String> {
-    if text.chars().any(char::is_control) {
-        return None;
+    let mut out = String::from("\"");
+    for c in text.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\t' => out.push_str("\\t"),
+            '\r' => out.push_str("\\r"),
+            c if c.is_control() => out.push_str(&format!("\\u{:04x}", u32::from(c))),
+            c => out.push(c),
+        }
     }
-    Some(format!(
-        "\"{}\"",
-        text.replace('\\', "\\\\").replace('"', "\\\"")
-    ))
+    out.push('"');
+    Some(out)
 }
 
 fn literal_of(lit: &syn::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, Ty)> {
@@ -741,6 +996,18 @@ fn literal_of(lit: &syn::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, 
             Some(text) => flat(text, Ty::Str),
             None => Break(Residue::Form("string with control characters".to_string())),
         },
+        syn::Lit::Char(c) if !negative => match exact_string(&c.value().to_string()) {
+            Some(text) => flat(text, Ty::Char),
+            None => Break(Residue::Form("string with control characters".to_string())),
+        },
+        syn::Lit::Byte(b) if !negative => flat(b.value().to_string(), Ty::Nat(Some(8))),
+        syn::Lit::ByteStr(b) if !negative => {
+            let mut list = "(nil Nat)".to_string();
+            for byte in b.value().iter().rev() {
+                list = format!("(cons {byte} {list})");
+            }
+            flat(list, Ty::List(Box::new(Ty::Nat(Some(8)))))
+        }
         _ => Break(Residue::Form("literal".to_string())),
     }
 }
@@ -752,11 +1019,39 @@ fn ctor(path: &syn::Path, types: &Types) -> Option<(String, String)> {
     }
     let owner = types.resolve(&path.segments[n - 2].ident.to_string());
     let variant = path.segments[n - 1].ident.to_string();
-    types
+    let unit = types
         .enums
         .get(&owner)
-        .filter(|vs| vs.contains(&variant))
-        .map(|_| (owner, variant))
+        .is_some_and(|vs| vs.contains(&variant))
+        || types
+            .datas
+            .get(&owner)
+            .is_some_and(|vs| vs.iter().any(|(v, fs)| *v == variant && fs.is_empty()));
+    unit.then_some((owner, variant))
+}
+
+/// Whether a type is a data-carrying enum.
+fn types_has_data(t: &Ty, types: &Types) -> bool {
+    matches!(t, Ty::Named(n) if types.datas.contains_key(n))
+}
+
+/// A variant of a data-carrying enum a path names, and its fields.
+fn data_variant<'t>(
+    path: &syn::Path,
+    types: &'t Types,
+) -> Option<(String, String, &'t [DataField])> {
+    let n = path.segments.len();
+    if n < 2 {
+        return None;
+    }
+    let owner = types.resolve(&path.segments[n - 2].ident.to_string());
+    let variant = path.segments[n - 1].ident.to_string();
+    let (_, fields) = types
+        .datas
+        .get(&owner)?
+        .iter()
+        .find(|(v, _)| *v == variant)?;
+    Some((owner, variant, fields))
 }
 
 /// `None`, `Some`, `Ok` or `Err`, written bare or through `Option::`/`Result::`.
@@ -794,6 +1089,17 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             if let Some(ident) = p.path.get_ident() {
                 if let Some((name, ty)) = ctx.locals.get(&ident.to_string()) {
                     return flat(name.clone(), ty.clone());
+                }
+            }
+            // A constant: a definition of no parameters.
+            if let Some(ident) = p.path.get_ident() {
+                let key = ident.to_string();
+                if let Some(sig) = ctx.fns.get(&key).filter(|s| s.params.is_empty()) {
+                    if key == ctx.current {
+                        return Break(Residue::Form("a constant that names itself".to_string()));
+                    }
+                    ctx.calls.borrow_mut().insert(key);
+                    return flat(format!("({})", sig.name), sig.result.clone());
                 }
             }
             if wrapper(&p.path) == Some("None") {
@@ -868,12 +1174,15 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             let arms: Vec<(&syn::Pat, Body<'_>)> = m
                 .arms
                 .iter()
-                .map(|a| (&a.pat, Body::Expr(&a.body)))
+                .map(|a| match &a.pat {
+                    syn::Pat::Guard(g) => (&*g.pat, Body::Guarded(&g.guard, &a.body)),
+                    p => (p, Body::Expr(&a.body)),
+                })
                 .collect();
             matching(&m.expr, &arms, ctx, want)
         }
         syn::Expr::Call(c) => call(c, ctx, want),
-        syn::Expr::MethodCall(m) => method(m, ctx),
+        syn::Expr::MethodCall(m) => method(m, ctx, want),
         syn::Expr::Field(f) => {
             let (base, bt) = flat_of(&f.base, ctx, None)?;
             match (&f.member, &bt) {
@@ -895,6 +1204,38 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                 },
                 _ => Break(Residue::Form("field access".to_string())),
             }
+        }
+        // `E::V { a, b }`: a struct variant, its fields in declaration order.
+        syn::Expr::Struct(s)
+            if s.rest.is_none()
+                && s.qself.is_none()
+                && data_variant(&s.path, ctx.types).is_some() =>
+        {
+            let Some((owner, variant, fields)) = data_variant(&s.path, ctx.types) else {
+                return Break(Residue::Form("struct variant".to_string()));
+            };
+            let mut given = BTreeMap::new();
+            for fv in &s.fields {
+                let syn::Member::Named(id) = &fv.member else {
+                    return Break(Residue::Form("struct variant field".to_string()));
+                };
+                given.insert(id.to_string(), &fv.expr);
+            }
+            if given.len() != fields.len() {
+                return Break(Residue::Form("struct variant literal".to_string()));
+            }
+            let mut parts = vec![format!("ctor {owner}.{variant}")];
+            for (name, ty) in fields {
+                let Some(value) = name.as_ref().and_then(|n| given.get(n)) else {
+                    return Break(Residue::Form("struct variant literal".to_string()));
+                };
+                let (v, vt) = flat_of(value, ctx, Some(ty))?;
+                if !vt.same(ty) {
+                    return Break(Residue::Form("struct variant field of another type".into()));
+                }
+                parts.push(v);
+            }
+            flat(format!("({})", parts.join(" ")), Ty::Named(owner))
         }
         syn::Expr::Struct(s) if s.rest.is_none() && s.qself.is_none() => {
             let Some(name) = s
@@ -962,10 +1303,107 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                 _ => Break(Residue::Form("narrowing or sign-changing cast".to_string())),
             }
         }
+        // `xs[i]`: the element, and where Rust's bounds check panics, the
+        // type's default, as Lean's `xs[i]!` is.
+        syn::Expr::Index(ix) => {
+            let (base, bt) = flat_of(&ix.expr, ctx, None)?;
+            let Ty::List(elem) = &bt else {
+                return Break(Residue::Form(format!("index of {}", bt.render())));
+            };
+            let (i, it) = flat_of(&ix.index, ctx, Some(&Ty::Nat(None)))?;
+            if !matches!(it, Ty::Nat(_)) {
+                return Break(Residue::Form("index by a range".to_string()));
+            }
+            let Some(d) = default_of(elem, ctx.types) else {
+                return Break(Residue::Form("index of a type with no value".to_string()));
+            };
+            let v = ctx.fresh("item");
+            Continue((
+                Expr::Match {
+                    scrutinee: format!("(prim index {base} {i} : (Option {}))", elem.render()),
+                    arms: vec![
+                        ("Option.none".into(), Expr::Flat(d)),
+                        (format!("Option.some {v}"), Expr::Flat(v)),
+                    ],
+                },
+                (**elem).clone(),
+            ))
+        }
+        syn::Expr::Continue(c) => loop_exit(ctx, c.label.is_some(), false),
+        syn::Expr::Break(b) if b.expr.is_none() => loop_exit(ctx, b.label.is_some(), true),
         syn::Expr::Try(_) => Break(Residue::Form("? outside a let".to_string())),
         syn::Expr::Macro(m) if m.mac.path.is_ident("format") => format_macro(&m.mac, ctx),
+        // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
+        syn::Expr::Macro(m) if m.mac.path.is_ident("matches") => {
+            let Ok((scrutinee, pat)) =
+                m.mac.parse_body_with(|input: syn::parse::ParseStream<'_>| {
+                    let e: syn::Expr = input.parse()?;
+                    input.parse::<syn::Token![,]>()?;
+                    let p = syn::Pat::parse_multi_with_leading_vert(input)?;
+                    let _ = input.parse::<Option<syn::Token![,]>>()?;
+                    Ok((e, p))
+                })
+            else {
+                return Break(Residue::Form("matches! with a guard".to_string()));
+            };
+            let yes: syn::Expr = syn::parse_quote!(true);
+            let no: syn::Expr = syn::parse_quote!(false);
+            let wild = syn::Pat::Wild(syn::PatWild {
+                attrs: Vec::new(),
+                underscore_token: syn::token::Underscore::default(),
+            });
+            let arms = vec![(&pat, Body::Expr(&yes)), (&wild, Body::Expr(&no))];
+            matching(&scrutinee, &arms, ctx, Some(&Ty::Bool))
+        }
+        syn::Expr::Macro(m) if m.mac.path.is_ident("vec") => {
+            use syn::punctuated::Punctuated;
+            let Ok(items) = m
+                .mac
+                .parse_body_with(Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated)
+            else {
+                return Break(Residue::Form("vec! of a repeated value".to_string()));
+            };
+            let items: Vec<syn::Expr> = items.into_iter().collect();
+            list_of(&items, ctx, want)
+        }
+        syn::Expr::Array(a) => {
+            let items: Vec<syn::Expr> = a.elems.iter().cloned().collect();
+            list_of(&items, ctx, want)
+        }
         _ => Break(Residue::Form(kind_of(e))),
     }
+}
+
+/// An array or `vec!` of items, as the list of them.
+fn list_of(items: &[syn::Expr], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+    let mut elem = match want {
+        Some(Ty::List(t) | Ty::Set(t, _)) => Some((**t).clone()),
+        _ => None,
+    };
+    let mut parts = Vec::new();
+    for item in items {
+        let (v, vt) = flat_of(item, ctx, elem.as_ref())?;
+        match &elem {
+            Some(t) if !t.same(&vt) => {
+                return Break(Residue::Form(
+                    "a list of items of different types".to_string(),
+                ))
+            }
+            Some(_) => {}
+            None => elem = Some(vt),
+        }
+        parts.push(v);
+    }
+    let Some(elem) = elem else {
+        return Break(Residue::Form(
+            "an empty list of an unknown type".to_string(),
+        ));
+    };
+    let mut list = format!("(nil {})", elem.render());
+    for part in parts.iter().rev() {
+        list = format!("(cons {part} {list})");
+    }
+    Continue((Expr::Flat(list), Ty::List(Box::new(elem))))
 }
 
 /// `format!` whose holes are all strings: the pieces joined.
@@ -1114,12 +1552,21 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                 (Ty::Bool | Ty::Named(_), B::Ne(_)) if is_enum_or_bool(&lt, ctx) => {
                     format!("(not {})", same_constructor(&lt, &l, &r))
                 }
-                (Ty::Int(_) | Ty::Str, B::Eq(_)) => format!("(prim equal {l} {r} : Bool)"),
-                (Ty::Int(_) | Ty::Str, B::Ne(_)) => format!("(not (prim equal {l} {r} : Bool))"),
-                (Ty::Int(_), B::Lt(_) | B::Gt(_) | B::Le(_) | B::Ge(_)) => {
+                (Ty::Int(_) | Ty::Str | Ty::Char, B::Eq(_)) => {
+                    format!("(prim equal {l} {r} : Bool)")
+                }
+                (Ty::Int(_) | Ty::Str | Ty::Char, B::Ne(_)) => {
+                    format!("(not (prim equal {l} {r} : Bool))")
+                }
+                // Strings order by their scalar values, as Rust's `str` and
+                // `char` do.
+                (Ty::Int(_) | Ty::Str | Ty::Char, B::Lt(_) | B::Gt(_) | B::Le(_) | B::Ge(_)) => {
                     // Int64's order is decided through propositional
-                    // extensionality.
+                    // extensionality; a string's through its scalars.
                     ctx.axioms.borrow_mut().insert("propext".to_string());
+                    if !matches!(lt, Ty::Int(_)) {
+                        ctx.axioms.borrow_mut().extend(ALL_AXIOMS.map(String::from));
+                    }
                     let (x, y) = match b.op {
                         B::Lt(_) | B::Ge(_) => (&l, &r),
                         _ => (&r, &l),
@@ -1130,6 +1577,55 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                     } else {
                         format!("(not {less})")
                     }
+                }
+                (Ty::Option(inner), B::Eq(_) | B::Ne(_)) => {
+                    let (x, y) = (ctx.fresh("left"), ctx.fresh("right"));
+                    let same = match &**inner {
+                        Ty::Bool | Ty::Named(_) if is_enum_or_bool(inner, ctx) => {
+                            same_constructor(inner, &x, &y)
+                        }
+                        t => match equality(t, &x, &y) {
+                            Some(e) => e,
+                            None => {
+                                return Break(Residue::Form(format!(
+                                    "comparison {} of {}",
+                                    op_text(),
+                                    lt.render()
+                                )))
+                            }
+                        },
+                    };
+                    let eq = matches!(b.op, B::Eq(_));
+                    let (yes, no) = if eq {
+                        ("true", "false")
+                    } else {
+                        ("false", "true")
+                    };
+                    let same = if eq { same } else { format!("(not {same})") };
+                    let none_r = Expr::Match {
+                        scrutinee: r.clone(),
+                        arms: vec![
+                            ("Option.none".into(), Expr::Flat(yes.into())),
+                            (format!("Option.some {y}"), Expr::Flat(no.into())),
+                        ],
+                    };
+                    let some_r = Expr::Match {
+                        scrutinee: r.clone(),
+                        arms: vec![
+                            ("Option.none".into(), Expr::Flat(no.into())),
+                            (format!("Option.some {y}"), Expr::Flat(same)),
+                        ],
+                    };
+                    return Continue((
+                        Expr::Match {
+                            scrutinee: l.clone(),
+                            arms: vec![
+                                ("Option.none".into(), none_r),
+                                (format!("Option.some {x}"), some_r),
+                            ],
+                        },
+                        Ty::Bool,
+                    ));
                 }
                 _ => {
                     return Break(Residue::Form(format!(
@@ -1227,6 +1723,23 @@ fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)>
             _ => Break(Residue::Form("result of an unknown type".to_string())),
         };
     }
+    // `E::V(a, b)`: a variant of a data-carrying enum.
+    if let Some((owner, variant, fields)) = data_variant(&p.path, ctx.types) {
+        if fields.len() != c.args.len() {
+            return Break(Residue::Form(format!(
+                "{owner}::{variant} of another arity"
+            )));
+        }
+        let mut parts = vec![format!("ctor {owner}.{variant}")];
+        for (arg, (_, ty)) in c.args.iter().zip(fields) {
+            let (v, vt) = flat_of(arg, ctx, Some(ty))?;
+            if !vt.same(ty) {
+                return Break(Residue::Form(format!("{owner}::{variant} of another type")));
+            }
+            parts.push(v);
+        }
+        return flat(format!("({})", parts.join(" ")), Ty::Named(owner));
+    }
     let segments: Vec<String> = p
         .path
         .segments
@@ -1293,10 +1806,273 @@ fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)>
     flat(format!("({})", parts.join(" ")), sig.result.clone())
 }
 
+/// The module of the byte-level text prelude every projection carries.
+pub(crate) const PRELUDE: &str = "Prelude";
+
+/// The prelude's source: the definitions string methods lift to.
+pub(crate) const PRELUDE_SOURCE: &str = include_str!("../assets/project/src/Prelude.lex.tex");
+
+/// The Lean axioms a prelude definition elaborates with, as its source
+/// declares them.
+fn prelude_axioms(name: &str) -> Vec<String> {
+    let Some(start) = PRELUDE_SOURCE.find(&format!("  name: {name},\n")) else {
+        return Vec::new();
+    };
+    let decl = &PRELUDE_SOURCE[start..];
+    let decl = &decl[..decl.find("\n}\n").unwrap_or(decl.len())];
+    decl.find("  axioms: [")
+        .and_then(|i| {
+            let list = &decl[i + "  axioms: [".len()..];
+            list.find(']').map(|j| &list[..j])
+        })
+        .map(|list| {
+            list.split(',')
+                .map(|a| a.trim().to_string())
+                .filter(|a| !a.is_empty())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// A call of a prelude definition, with the axioms it brings.
+fn prelude(ctx: &Ctx<'_>, name: &str, args: &[&str]) -> String {
+    ctx.axioms.borrow_mut().extend(prelude_axioms(name));
+    format!("({PRELUDE}::{name} {})", args.join(" "))
+}
+
+/// The methods of `str` and `char` over the prelude: `None` when the method
+/// is none of them.
+#[allow(clippy::too_many_lines)]
+fn text_method(
+    m: &syn::ExprMethodCall,
+    name: &str,
+    r: &str,
+    rt: &Ty,
+    args: &[&syn::Expr],
+    ctx: &Ctx<'_>,
+    want: Option<&Ty>,
+) -> Lift<Option<(Expr, Ty)>> {
+    let flat = |s: String, t: Ty| Continue(Some((Expr::Flat(s), t)));
+    // A pattern: a string or a character.
+    let pattern = |a: &syn::Expr| -> Lift<String> {
+        let (v, vt) = flat_of(a, ctx, Some(&Ty::Str))?;
+        match vt {
+            Ty::Str | Ty::Char => Continue(v),
+            _ => Break(Residue::Form(format!("a .{name} pattern that is not text"))),
+        }
+    };
+    let opt = |t: Ty| Ty::Option(Box::new(t));
+    let list = |t: Ty| Ty::List(Box::new(t));
+    let chars = rt == &Ty::Char;
+    match (name, args) {
+        ("len", []) if !chars => flat(prelude(ctx, "textLength", &[r]), Ty::Nat(None)),
+        ("as_str" | "as_ref" | "into" | "to_owned" | "borrow", []) => {
+            flat(r.to_string(), rt.clone())
+        }
+        ("to_string", []) => flat(r.to_string(), Ty::Str),
+        ("trim", []) => flat(prelude(ctx, "textTrim", &[r]), Ty::Str),
+        ("trim_start", []) => flat(prelude(ctx, "textTrimStart", &[r]), Ty::Str),
+        ("trim_end", []) => flat(prelude(ctx, "textTrimEnd", &[r]), Ty::Str),
+        // A predicate on the first or last character.
+        ("starts_with" | "ends_with", [f]) if !chars && matches!(f, syn::Expr::Closure(_)) => {
+            let lam = lambda(f, &[Ty::Char], ctx, Some(&Ty::Bool))?;
+            if lam.ty != Ty::Bool {
+                return Break(Residue::Form(format!(
+                    "a .{name} predicate of another type"
+                )));
+            }
+            ctx.calls.borrow_mut().extend(lam.calls.iter().cloned());
+            ctx.axioms.borrow_mut().extend(lam.axioms.iter().cloned());
+            let all = prelude(ctx, "textChars", &[r]);
+            let at = if name == "starts_with" {
+                "0".to_string()
+            } else {
+                format!("(prim subtract (prim length {all} : Nat) 1 : Nat)")
+            };
+            Continue(Some((
+                Expr::Match {
+                    scrutinee: format!("(prim index {all} {at} : (Option String))"),
+                    arms: vec![
+                        ("Option.none".into(), Expr::Flat("false".into())),
+                        (
+                            format!("Option.some {}", lam.binders[0]),
+                            lam.wrap(lam.core.clone()),
+                        ),
+                    ],
+                },
+                Ty::Bool,
+            )))
+        }
+        ("starts_with" | "ends_with" | "contains", [p]) if !chars => {
+            let p = pattern(p)?;
+            let f = match name {
+                "starts_with" => "textStartsWith",
+                "ends_with" => "textEndsWith",
+                _ => "textContains",
+            };
+            flat(prelude(ctx, f, &[r, &p]), Ty::Bool)
+        }
+        ("strip_prefix" | "strip_suffix", [p]) if !chars => {
+            let p = pattern(p)?;
+            let f = if name == "strip_prefix" {
+                "textStripPrefix"
+            } else {
+                "textStripSuffix"
+            };
+            flat(prelude(ctx, f, &[r, &p]), opt(Ty::Str))
+        }
+        ("find" | "rfind", [p]) if !chars => {
+            let p = pattern(p)?;
+            let f = if name == "find" {
+                "textFirst"
+            } else {
+                "textLast"
+            };
+            flat(prelude(ctx, f, &[r, &p]), opt(Ty::Nat(None)))
+        }
+        ("split" | "rsplit", [p]) if !chars => {
+            let p = pattern(p)?;
+            let f = if name == "split" {
+                "textSplit"
+            } else {
+                "textRsplit"
+            };
+            flat(prelude(ctx, f, &[r, &p]), list(Ty::Str))
+        }
+        ("split_once" | "rsplit_once", [p]) if !chars => {
+            let p = pattern(p)?;
+            let f = if name == "split_once" {
+                "textFirst"
+            } else {
+                "textLast"
+            };
+            let pair = Ty::Tuple(vec![Ty::Str, Ty::Str]);
+            pair.mentions(&mut ctx.seen.borrow_mut());
+            let at = ctx.fresh("at");
+            let whole = prelude(ctx, "textLength", &[r]);
+            let width = prelude(ctx, "textLength", &[&p]);
+            let before = prelude(ctx, "textSlice", &[r, "0", &at]);
+            let after = prelude(ctx, "textSlice", &[r, &format!("({at} + {width})"), &whole]);
+            let body = Expr::Match {
+                scrutinee: prelude(ctx, f, &[r, &p]),
+                arms: vec![
+                    (
+                        "Option.none".into(),
+                        Expr::Flat(format!("(ctor Option.none [{}])", pair.render())),
+                    ),
+                    (
+                        format!("Option.some {at}"),
+                        Expr::Flat(format!(
+                            "(ctor Option.some [{0}] (record {0} {{item0 := {before}, item1 := {after}}}))",
+                            pair.render()
+                        )),
+                    ),
+                ],
+            };
+            Continue(Some((body, opt(pair))))
+        }
+        ("replace", [from, to]) if !chars => {
+            let from = pattern(from)?;
+            let (to, tt) = flat_of(to, ctx, Some(&Ty::Str))?;
+            if !matches!(tt, Ty::Str | Ty::Char) {
+                return Break(Residue::Form("a replacement that is not text".into()));
+            }
+            flat(prelude(ctx, "textReplace", &[r, &from, &to]), Ty::Str)
+        }
+        ("trim_start_matches" | "trim_end_matches" | "trim_matches", [p]) if !chars => {
+            let p = pattern(p)?;
+            let f = match name {
+                "trim_start_matches" => "textTrimStartMatches",
+                "trim_end_matches" => "textTrimEndMatches",
+                _ => "textTrimMatches",
+            };
+            flat(prelude(ctx, f, &[r, &p]), Ty::Str)
+        }
+        ("lines", []) if !chars => flat(prelude(ctx, "textLines", &[r]), list(Ty::Str)),
+        ("split_whitespace", []) if !chars => flat(prelude(ctx, "textWords", &[r]), list(Ty::Str)),
+        ("chars", []) if !chars => flat(prelude(ctx, "textChars", &[r]), list(Ty::Char)),
+        ("bytes" | "as_bytes", []) if !chars => {
+            flat(prelude(ctx, "textBytes", &[r]), list(Ty::Nat(Some(8))))
+        }
+        ("repeat", [n]) if !chars => {
+            let (n, nt) = flat_of(n, ctx, Some(&Ty::Nat(None)))?;
+            if !matches!(nt, Ty::Nat(_)) {
+                return Break(Residue::Form("a repeat count that is not a number".into()));
+            }
+            flat(prelude(ctx, "textRepeat", &[&n, r]), Ty::Str)
+        }
+        ("to_ascii_lowercase", []) => flat(prelude(ctx, "textAsciiLower", &[r]), rt.clone()),
+        ("to_ascii_uppercase", []) => flat(prelude(ctx, "textAsciiUpper", &[r]), rt.clone()),
+        ("eq_ignore_ascii_case", [other]) => {
+            let (o, ot) = flat_of(other, ctx, Some(rt))?;
+            if !ot.same(rt) {
+                return Break(Residue::Form("eq_ignore_ascii_case of another type".into()));
+            }
+            let a = prelude(ctx, "textAsciiLower", &[r]);
+            let b = prelude(ctx, "textAsciiLower", &[&o]);
+            flat(format!("(prim equal {a} {b} : Bool)"), Ty::Bool)
+        }
+        ("is_ascii", []) => flat(prelude(ctx, "textIsAscii", &[r]), Ty::Bool),
+        (
+            "is_ascii_digit"
+            | "is_ascii_uppercase"
+            | "is_ascii_lowercase"
+            | "is_ascii_alphabetic"
+            | "is_ascii_alphanumeric"
+            | "is_ascii_hexdigit"
+            | "is_ascii_whitespace"
+            | "is_ascii_punctuation"
+            | "is_ascii_control"
+            | "is_whitespace"
+            | "is_control",
+            [],
+        ) if chars => {
+            let f = match name {
+                "is_ascii_digit" => "textIsAsciiDigit",
+                "is_ascii_uppercase" => "textIsAsciiUppercase",
+                "is_ascii_lowercase" => "textIsAsciiLowercase",
+                "is_ascii_alphabetic" => "textIsAsciiAlphabetic",
+                "is_ascii_alphanumeric" => "textIsAsciiAlphanumeric",
+                "is_ascii_hexdigit" => "textIsAsciiHexdigit",
+                "is_ascii_whitespace" => "textIsAsciiWhitespace",
+                "is_ascii_punctuation" => "textIsAsciiPunctuation",
+                "is_ascii_control" => "textIsAsciiControl",
+                "is_whitespace" => "textIsWhitespace",
+                _ => "textIsControl",
+            };
+            flat(prelude(ctx, f, &[r]), Ty::Bool)
+        }
+        ("parse", []) if !chars => {
+            let target = match &m.turbofish {
+                Some(t) => match t.args.iter().collect::<Vec<_>>().as_slice() {
+                    [syn::GenericArgument::Type(t)] => Some(ctx.types.ty(t)?),
+                    _ => None,
+                },
+                None => match want {
+                    Some(Ty::Outcome(t, _) | Ty::Option(t)) => Some((**t).clone()),
+                    _ => None,
+                },
+            };
+            let bits = match target {
+                Some(Ty::Nat(Some(bits))) if bits <= 64 => bits,
+                Some(Ty::Nat(None)) => {
+                    return Break(Residue::Width(".parse into usize".to_string()))
+                }
+                _ => return Break(Residue::Form("parse into a type outside the lift".into())),
+            };
+            flat(
+                prelude(ctx, "textParseNat", &[r, max_of(bits)]),
+                Ty::Outcome(Box::new(Ty::Nat(Some(bits))), Box::new(Ty::ParseError)),
+            )
+        }
+        _ => Continue(None),
+    }
+}
+
 /// The axioms of the runtime's string length and decimal formatting.
 const ALL_AXIOMS: [&str; 3] = ["Classical.choice", "Quot.sound", "propext"];
 
-fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
+fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
     let name = m.method.to_string();
     // `s.chars().count()`: the number of characters, which is LexLean's
@@ -1311,7 +2087,18 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
             }
         }
     }
-    let (r, rt) = flat_of(&m.receiver, ctx, None)?;
+    // What the receiver must be for the result to be what is wanted: a
+    // `parse` takes its target from the `Option` or `Result` around it.
+    let receiver_want = match (name.as_str(), want) {
+        ("ok", Some(Ty::Option(t))) | ("map_err", Some(Ty::Outcome(t, _))) => {
+            Some(Ty::Outcome(t.clone(), Box::new(Ty::ParseError)))
+        }
+        ("unwrap_or" | "unwrap_or_default" | "unwrap" | "expect", Some(t)) => {
+            Some(Ty::Option(Box::new(t.clone())))
+        }
+        _ => None,
+    };
+    let (r, rt) = flat_of(&m.receiver, ctx, receiver_want.as_ref())?;
     let args: Vec<&syn::Expr> = m.args.iter().collect();
     let arg = |want: &Ty| -> Lift<String> {
         let [a] = args.as_slice() else {
@@ -1333,7 +2120,11 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
         let key = format!("{owner}::{name}");
         if let Some(sig) = ctx.fns.get(&key) {
             if key == ctx.current {
-                return Break(Residue::Form("a method that calls itself".to_string()));
+                // Recursion on a sub-term of `self` descends; any other does not.
+                if ctx.tails.get(&r) != ctx.params.first() {
+                    return Break(Residue::Form("a method that calls itself".to_string()));
+                }
+                ctx.descends.borrow_mut().insert(0);
             }
             if sig.params.len() != args.len() + 1 {
                 return Break(Residue::Call(key));
@@ -1348,16 +2139,28 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                 }
                 parts.push(v);
             }
-            ctx.calls.borrow_mut().insert(key);
+            if key != ctx.current {
+                ctx.calls.borrow_mut().insert(key);
+            }
             return flat(format!("({})", parts.join(" ")), sig.result.clone());
         }
     }
     if matches!(rt, Ty::Map(..) | Ty::Set(..)) {
         return collection(&name, &r, &rt, &args, ctx);
     }
+    if matches!(rt, Ty::Str | Ty::Char) {
+        if let Some(lifted) = text_method(m, &name, &r, &rt, &args, ctx, want)? {
+            return Continue(lifted);
+        }
+    }
     if let Ty::List(elem) = &rt {
         if let Some(lifted) = combinator(m, &name, &r, elem, &args, ctx)? {
             return Continue(lifted);
+        }
+    }
+    if rt == Ty::Nat(Some(8)) && args.is_empty() {
+        if let Some(test) = ascii_byte(&name, &r) {
+            return flat(test, Ty::Bool);
         }
     }
     match (&rt, name.as_str()) {
@@ -1579,8 +2382,329 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                 opt(t),
             ))
         }
+        (Ty::Option(_) | Ty::Outcome(..), _) => wrapped_method(&name, &r, &rt, &args, ctx),
         _ => Break(Residue::Form(format!("method call .{name}"))),
     }
+}
+
+/// A value of a type, where the lift needs one that nothing observes: what
+/// a Rust `unwrap` or index panics to. Lean's own `get!` returns the same
+/// `default`, so the definition agrees with Rust wherever Rust returns.
+pub(crate) fn default_of(ty: &Ty, types: &Types) -> Option<String> {
+    default_in(ty, types, 0)
+}
+
+fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
+    if depth > 16 {
+        return None;
+    }
+    Some(match ty {
+        Ty::Bool => "false".into(),
+        Ty::Nat(_) => "0".into(),
+        Ty::Int(_) => "(0 : Int64)".into(),
+        Ty::Str | Ty::Char => "\"\"".into(),
+        Ty::ParseError => format!("(ctor {PRELUDE}::ParseIntError.InvalidDigit)"),
+        Ty::Option(t) => format!("(ctor Option.none [{}])", t.render()),
+        Ty::Outcome(..) => return None,
+        Ty::List(t) | Ty::Set(t, _) => format!("(nil {})", t.render()),
+        Ty::Map(..) => format!("(nil {})", ty.entry().render()),
+        Ty::Tuple(ts) => {
+            let mut parts = Vec::new();
+            for (i, t) in ts.iter().enumerate() {
+                parts.push(format!("item{i} := {}", default_in(t, types, depth + 1)?));
+            }
+            format!("(record {} {{{}}})", tuple_name(ts), parts.join(", "))
+        }
+        Ty::Named(n) => {
+            if let Some(vs) = types.enums.get(n) {
+                format!("(ctor {n}.{})", vs.first()?)
+            } else if let Some(vs) = types.datas.get(n) {
+                // The first variant whose fields all have a value.
+                vs.iter().find_map(|(v, fields)| {
+                    let mut parts = vec![format!("ctor {n}.{v}")];
+                    for (_, t) in fields {
+                        parts.push(default_in(t, types, depth + 1)?);
+                    }
+                    Some(format!("({})", parts.join(" ")))
+                })?
+            } else {
+                let fields = types.structs.get(n)?;
+                let mut parts = Vec::new();
+                for (f, t) in fields {
+                    parts.push(format!("{f} := {}", default_in(t, types, depth + 1)?));
+                }
+                format!("(record {n} {{{}}})", parts.join(", "))
+            }
+        }
+    })
+}
+
+/// The combinators of `Option` and `Result`, each a match on the receiver:
+/// `map`, `and_then`, `map_err`, `filter`, `is_some_and`, `is_none_or`,
+/// `is_ok_and`, `ok_or`, `err`, `unwrap_or`, `unwrap_or_else`,
+/// `unwrap_or_default`, `unwrap` and `expect`.
+#[allow(clippy::too_many_lines)]
+fn wrapped_method(
+    name: &str,
+    r: &str,
+    rt: &Ty,
+    args: &[&syn::Expr],
+    ctx: &Ctx<'_>,
+) -> Lift<(Expr, Ty)> {
+    let bad = || Break(Residue::Form(format!("method call .{name}")));
+    let some = |t: &Ty, v: &str| format!("(ctor Option.some [{}] {v})", t.render());
+    let none = |t: &Ty| format!("(ctor Option.none [{}])", t.render());
+    let opt = |t: &Ty| Ty::Option(Box::new(t.clone()));
+    // The receiver's value, its failure, and the constructor patterns.
+    let (value, failure) = match rt {
+        Ty::Option(t) => ((**t).clone(), None),
+        Ty::Outcome(t, e) => ((**t).clone(), Some((**e).clone())),
+        _ => return bad(),
+    };
+    let ok_pattern = |v: &str| {
+        if failure.is_some() {
+            format!("Result.ok {v}")
+        } else {
+            format!("Option.some {v}")
+        }
+    };
+    let fail_pattern = |e: &str| {
+        if failure.is_some() {
+            format!("Result.error {e}")
+        } else {
+            "Option.none".to_string()
+        }
+    };
+    let result_of = |t: &Ty, e: &Ty| format!("[{}, {}]", t.render(), e.render());
+    let two = |ok_v: &str, ok: Expr, fail_e: &str, fail: Expr| Expr::Match {
+        scrutinee: r.to_string(),
+        arms: if failure.is_some() {
+            vec![(ok_pattern(ok_v), ok), (fail_pattern(fail_e), fail)]
+        } else {
+            vec![(fail_pattern(fail_e), fail), (ok_pattern(ok_v), ok)]
+        },
+    };
+    let closure = |f: &syn::Expr, params: &[Ty], want: Option<&Ty>| -> Lift<Lambda> {
+        let lam = lambda(f, params, ctx, want)?;
+        ctx.calls.borrow_mut().extend(lam.calls.iter().cloned());
+        ctx.axioms.borrow_mut().extend(lam.axioms.iter().cloned());
+        Continue(lam)
+    };
+    let fresh_e = ctx.fresh("error");
+    match (name, args) {
+        ("map", [f]) => {
+            let lam = closure(f, std::slice::from_ref(&value), None)?;
+            let v = lam.binders[0].clone();
+            let body = lam.wrap(lam.core.clone());
+            match &failure {
+                None => Continue((
+                    two(&v, wrap_some(&lam.ty, body), "", Expr::Flat(none(&lam.ty))),
+                    opt(&lam.ty),
+                )),
+                Some(e) => Continue((
+                    two(
+                        &v,
+                        wrap_ctor(&format!("Result.ok {}", result_of(&lam.ty, e)), body),
+                        &fresh_e,
+                        Expr::Flat(format!(
+                            "(ctor Result.error {} {fresh_e})",
+                            result_of(&lam.ty, e)
+                        )),
+                    ),
+                    Ty::Outcome(Box::new(lam.ty.clone()), Box::new(e.clone())),
+                )),
+            }
+        }
+        ("map_or", [d, f]) => {
+            let lam = closure(f, std::slice::from_ref(&value), None)?;
+            let (dv, dt) = flat_of(d, ctx, Some(&lam.ty))?;
+            if !dt.same(&lam.ty) {
+                return Break(Residue::Form("map_or of another type".into()));
+            }
+            let v = lam.binders[0].clone();
+            let body = lam.wrap(lam.core.clone());
+            Continue((two(&v, body, &fresh_e, Expr::Flat(dv)), lam.ty.clone()))
+        }
+        ("map_err", [f]) => {
+            let Some(e) = &failure else { return bad() };
+            let lam = closure(f, std::slice::from_ref(e), None)?;
+            let v = ctx.fresh("value");
+            let x = lam.binders[0].clone();
+            let body = lam.wrap(lam.core.clone());
+            let types = result_of(&value, &lam.ty);
+            Continue((
+                two(
+                    &v,
+                    Expr::Flat(format!("(ctor Result.ok {types} {v})")),
+                    &x,
+                    wrap_ctor(&format!("Result.error {types}"), body),
+                ),
+                Ty::Outcome(Box::new(value.clone()), Box::new(lam.ty.clone())),
+            ))
+        }
+        ("and_then", [f]) => {
+            let lam = closure(f, std::slice::from_ref(&value), None)?;
+            let v = lam.binders[0].clone();
+            let body = lam.wrap(lam.core.clone());
+            let fail = match (&failure, &lam.ty) {
+                (None, Ty::Option(u)) => none(u),
+                (Some(e), Ty::Outcome(u, e2)) if e.same(e2) => {
+                    format!("(ctor Result.error {} {fresh_e})", result_of(u, e))
+                }
+                _ => return Break(Residue::Form("and_then of another type".into())),
+            };
+            Continue((two(&v, body, &fresh_e, Expr::Flat(fail)), lam.ty.clone()))
+        }
+        ("filter", [f]) if failure.is_none() => {
+            let lam = closure(f, std::slice::from_ref(&value), Some(&Ty::Bool))?;
+            if lam.ty != Ty::Bool {
+                return bad();
+            }
+            let v = lam.binders[0].clone();
+            let test = lam.wrap(format!(
+                "(if {} then {} else {})",
+                lam.core,
+                some(&value, &v),
+                none(&value)
+            ));
+            Continue((two(&v, test, "", Expr::Flat(none(&value))), rt.clone()))
+        }
+        ("is_some_and" | "is_none_or" | "is_ok_and" | "is_err_and", [f]) => {
+            let on_err = name == "is_err_and";
+            let param = if on_err {
+                match &failure {
+                    Some(e) => e.clone(),
+                    None => return bad(),
+                }
+            } else {
+                value.clone()
+            };
+            let lam = closure(f, std::slice::from_ref(&param), Some(&Ty::Bool))?;
+            if lam.ty != Ty::Bool {
+                return bad();
+            }
+            let b = lam.binders[0].clone();
+            let test = lam.wrap(lam.core.clone());
+            let otherwise = Expr::Flat((name == "is_none_or").to_string());
+            if on_err {
+                let v = ctx.fresh("value");
+                return Continue((two(&v, otherwise, &b, test), Ty::Bool));
+            }
+            Continue((two(&b, test, &fresh_e, otherwise), Ty::Bool))
+        }
+        ("ok_or", [e]) if failure.is_none() => {
+            let (ev, et) = flat_of(e, ctx, None)?;
+            let v = ctx.fresh("value");
+            let types = result_of(&value, &et);
+            Continue((
+                two(
+                    &v,
+                    Expr::Flat(format!("(ctor Result.ok {types} {v})")),
+                    "",
+                    Expr::Flat(format!("(ctor Result.error {types} {ev})")),
+                ),
+                Ty::Outcome(Box::new(value.clone()), Box::new(et)),
+            ))
+        }
+        ("err", []) => {
+            let Some(e) = &failure else { return bad() };
+            let v = ctx.fresh("value");
+            Continue((
+                two(
+                    &v,
+                    Expr::Flat(none(e)),
+                    &fresh_e,
+                    Expr::Flat(some(e, &fresh_e)),
+                ),
+                opt(e),
+            ))
+        }
+        ("unwrap_or", [d]) => {
+            let (dv, dt) = flat_of(d, ctx, Some(&value))?;
+            if !dt.same(&value) {
+                return Break(Residue::Form("unwrap_or of another type".into()));
+            }
+            let v = ctx.fresh("value");
+            Continue((
+                two(&v, Expr::Flat(v.clone()), &fresh_e, Expr::Flat(dv)),
+                value,
+            ))
+        }
+        ("unwrap_or_else", [f]) => {
+            let params: Vec<Ty> = failure.iter().cloned().collect();
+            let lam = closure(f, &params, Some(&value))?;
+            if !lam.ty.same(&value) {
+                return Break(Residue::Form("unwrap_or_else of another type".into()));
+            }
+            let e = lam
+                .binders
+                .first()
+                .cloned()
+                .unwrap_or_else(|| fresh_e.clone());
+            let v = ctx.fresh("value");
+            let fallback = lam.wrap(lam.core.clone());
+            Continue((two(&v, Expr::Flat(v.clone()), &e, fallback), value))
+        }
+        ("unwrap_or_default" | "unwrap" | "expect", _) => {
+            let rust_default = name == "unwrap_or_default";
+            if rust_default && matches!(value, Ty::Named(_)) {
+                return Break(Residue::Form("unwrap_or_default of a named type".into()));
+            }
+            let Some(d) = default_of(&value, ctx.types) else {
+                return Break(Residue::Form(format!(".{name} of a type with no value")));
+            };
+            let v = ctx.fresh("value");
+            Continue((
+                two(&v, Expr::Flat(v.clone()), &fresh_e, Expr::Flat(d)),
+                value,
+            ))
+        }
+        _ => bad(),
+    }
+}
+
+/// `(ctor Option.some [T] body)` around a body that may hold lets.
+fn wrap_some(t: &Ty, body: Expr) -> Expr {
+    wrap_ctor(&format!("Option.some [{}]", t.render()), body)
+}
+
+/// A constructor applied to the tail of a body: lets stay outside.
+fn wrap_ctor(ctor: &str, body: Expr) -> Expr {
+    map_tails(body, &|tail| format!("(ctor {ctor} {tail})"))
+}
+
+/// The ASCII class tests of a byte, as ranges of its value.
+fn ascii_byte(name: &str, b: &str) -> Option<String> {
+    let range = |lo: u8, hi: u8| format!("(({lo} <=? {b}) && ({b} <=? {hi}))");
+    let upper = range(b'A', b'Z');
+    let lower = range(b'a', b'z');
+    let digit = range(b'0', b'9');
+    Some(match name {
+        "is_ascii" => format!("({b} <? 128)"),
+        "is_ascii_digit" => digit,
+        "is_ascii_uppercase" => upper,
+        "is_ascii_lowercase" => lower,
+        "is_ascii_alphabetic" => format!("({upper} || {lower})"),
+        "is_ascii_alphanumeric" => format!("({upper} || ({lower} || {digit}))"),
+        "is_ascii_hexdigit" => format!(
+            "({digit} || ({} || {}))",
+            range(b'A', b'F'),
+            range(b'a', b'f')
+        ),
+        "is_ascii_whitespace" => format!(
+            "(({b} =? 32) || (({b} =? 9) || (({b} =? 10) || (({b} =? 12) || ({b} =? 13)))))"
+        ),
+        "is_ascii_punctuation" => format!(
+            "({} || ({} || ({} || {})))",
+            range(33, 47),
+            range(58, 64),
+            range(91, 96),
+            range(123, 126)
+        ),
+        "is_ascii_control" => format!("(({b} <? 32) || ({b} =? 127))"),
+        "is_ascii_graphic" => range(33, 126),
+        _ => return None,
+    })
 }
 
 /// A closure lifted in a scope of its own.
@@ -1599,10 +2723,15 @@ struct Lambda {
 impl Lambda {
     /// The body's projections around a term that uses its binders.
     fn wrap(&self, term: String) -> Expr {
+        self.wrap_expr(Expr::Flat(term))
+    }
+
+    /// The body's projections around an expression that uses its binders.
+    fn wrap_expr(&self, term: Expr) -> Expr {
         self.lets
             .iter()
             .rev()
-            .fold(Expr::Flat(term), |body, (name, ty, value)| Expr::Let {
+            .fold(term, |body, (name, ty, value)| Expr::Let {
                 name: name.clone(),
                 ty: ty.clone(),
                 value: Box::new(Expr::Flat(value.clone())),
@@ -1660,6 +2789,8 @@ fn lambda(e: &syn::Expr, params: &[Ty], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lif
         descends: &descends,
         tails: BTreeMap::new(),
         top: false,
+        looping: None,
+        hidden: Vec::new(),
         ..ctx.clone()
     };
     let mut binders = Vec::new();
@@ -1702,7 +2833,7 @@ fn captures(ctx: &Ctx<'_>, texts: &[String], bound: &[String]) -> Vec<(String, T
 /// The recursive call of a walk, given the values it threads.
 type Recur<'a> = &'a dyn Fn(&[String]) -> String;
 /// A walk's step from its recursive call.
-type Step<'a> = &'a dyn Fn(Recur<'_>) -> String;
+type Step<'a> = &'a dyn Fn(Recur<'_>, &str) -> Expr;
 
 /// A walk over a list: a helper that matches its first parameter and calls
 /// itself on the tail. `lead` are parameters after the list that the walk
@@ -1750,7 +2881,7 @@ fn walk(
         parts.extend(cap_names.iter().cloned());
         format!("({})", parts.join(" "))
     };
-    let step = cons(&recur);
+    let step = cons(&recur, &rest);
     let mut params = vec![(items.clone(), Ty::List(Box::new(elem.clone())).render())];
     params.extend(lead.iter().map(|(n, t, _)| (n.clone(), t.render())));
     params.extend(caps.iter().map(|(n, t)| (n.clone(), t.render())));
@@ -1762,11 +2893,12 @@ fn walk(
             scrutinee: items,
             arms: vec![
                 ("List.nil".to_string(), Expr::Flat(nil)),
-                (format!("List.cons {head} {rest}"), lam.wrap(step)),
+                (format!("List.cons {head} {rest}"), lam.wrap_expr(step)),
             ],
         },
         calls: lam.calls.clone(),
         axioms: lam.axioms.clone(),
+        recursive: true,
     });
     ctx.calls.borrow_mut().insert(format!("#{name}"));
     let mut parts = vec![name, list.to_string()];
@@ -1779,7 +2911,7 @@ fn walk(
 fn equality(ty: &Ty, a: &str, b: &str) -> Option<String> {
     match ty {
         Ty::Nat(_) => Some(format!("({a} =? {b})")),
-        Ty::Str | Ty::Int(_) => Some(format!("(prim equal {a} {b} : Bool)")),
+        Ty::Str | Ty::Char | Ty::Int(_) => Some(format!("(prim equal {a} {b} : Bool)")),
         _ => None,
     }
 }
@@ -1833,11 +2965,11 @@ fn lookup(
         _ => (Ty::Bool, "false".to_string(), "true".to_string()),
     };
     let probe_arg = probe.clone();
-    let cons = |rec: Recur<'_>| {
-        format!(
+    let cons = |rec: Recur<'_>, _: &str| {
+        Expr::Flat(format!(
             "(if {test} then {hit} else {})",
             rec(std::slice::from_ref(&probe_arg))
-        )
+        ))
     };
     Continue(walk(
         ctx,
@@ -1905,7 +3037,7 @@ fn collection(
                 calls: BTreeSet::new(),
                 axioms: BTreeSet::new(),
             };
-            let cons = |rec: Recur<'_>| format!("(cons {core} {})", rec(&[]));
+            let cons = |rec: Recur<'_>, _: &str| Expr::Flat(format!("(cons {core} {})", rec(&[])));
             let kind = if name == "keys" { "Keys" } else { "Values" };
             Continue(walk(
                 ctx,
@@ -1992,9 +3124,9 @@ fn combinator(
                 ),
             };
             let elem_text = elem.render();
-            let cons = |rec: Recur<'_>| -> String {
+            let cons = |rec: Recur<'_>, _: &str| -> Expr {
                 let next = rec(&[]);
-                match name {
+                Expr::Flat(match name {
                     "map" => format!("(cons {core} {next})"),
                     "filter" => format!("(if {core} then (cons {head} {next}) else {next})"),
                     "any" => format!("(if {core} then true else {next})"),
@@ -2002,7 +3134,7 @@ fn combinator(
                     _ => format!(
                         "(if {core} then (ctor Option.some [{elem_text}] {head}) else {next})"
                     ),
-                }
+                })
             };
             Continue(Some(walk(
                 ctx,
@@ -2026,7 +3158,7 @@ fn combinator(
             let acc = lam.binders[0].clone();
             let head = lam.binders[1].clone();
             let core = lam.core.clone();
-            let cons = |rec: Recur<'_>| rec(std::slice::from_ref(&core));
+            let cons = |rec: Recur<'_>, _: &str| Expr::Flat(rec(std::slice::from_ref(&core)));
             Continue(Some(walk(
                 ctx,
                 "Fold",
@@ -2040,6 +3172,244 @@ fn combinator(
                 &cons,
             )))
         }
+        ("next" | "first", []) => flat(
+            format!("(prim index {r} 0 : (Option {}))", elem.render()),
+            Ty::Option(Box::new(elem.clone())),
+        ),
+        ("last", []) => flat(
+            format!(
+                "(prim index {r} (prim subtract (prim length {r} : Nat) 1 : Nat) : (Option {}))",
+                elem.render()
+            ),
+            Ty::Option(Box::new(elem.clone())),
+        ),
+        ("nth", [n]) => {
+            let (n, nt) = flat_of(n, ctx, Some(&Ty::Nat(None)))?;
+            if !matches!(nt, Ty::Nat(_)) {
+                return Break(Residue::Form("nth of another type".into()));
+            }
+            flat(
+                format!("(prim index {r} {n} : (Option {}))", elem.render()),
+                Ty::Option(Box::new(elem.clone())),
+            )
+        }
+        ("chain", [other]) => {
+            let (o, ot) = flat_of(other, ctx, Some(&list))?;
+            if !ot.same(&list) {
+                return Break(Residue::Form("chain of another type".into()));
+            }
+            flat(format!("(prim append {r} {o} : {})", list.render()), list)
+        }
+        ("rev" | "enumerate", []) => {
+            let head = ctx.fresh("item");
+            let lam = Lambda {
+                binders: vec![head.clone()],
+                lets: Vec::new(),
+                core: head.clone(),
+                ty: elem.clone(),
+                calls: BTreeSet::new(),
+                axioms: BTreeSet::new(),
+            };
+            if name == "rev" {
+                let e = elem.render();
+                let cons = |rec: Recur<'_>, _: &str| {
+                    Expr::Flat(format!(
+                        "(prim append {} (cons {head} (nil {e})) : (List {e}))",
+                        rec(&[])
+                    ))
+                };
+                return Continue(Some(walk(
+                    ctx,
+                    "Rev",
+                    r,
+                    elem,
+                    &lam,
+                    &head,
+                    &[],
+                    &list,
+                    format!("(nil {e})"),
+                    &cons,
+                )));
+            }
+            let pair = Ty::Tuple(vec![Ty::Nat(None), elem.clone()]);
+            pair.mentions(&mut ctx.seen.borrow_mut());
+            let index = ctx.fresh("index");
+            let pair_name = pair.render();
+            let cons = |rec: Recur<'_>, _: &str| {
+                Expr::Flat(format!(
+                    "(cons (record {pair_name} {{item0 := {index}, item1 := {head}}}) {})",
+                    rec(&[format!("({index} + 1)")])
+                ))
+            };
+            Continue(Some(walk(
+                ctx,
+                "Enumerate",
+                r,
+                elem,
+                &lam,
+                &head,
+                &[(index.clone(), Ty::Nat(None), "0".into())],
+                &Ty::List(Box::new(pair.clone())),
+                format!("(nil {pair_name})"),
+                &cons,
+            )))
+        }
+        ("skip" | "take", [n]) => {
+            let (n, nt) = flat_of(n, ctx, Some(&Ty::Nat(None)))?;
+            if !matches!(nt, Ty::Nat(_)) {
+                return Break(Residue::Form(format!(".{name} of another type")));
+            }
+            let head = ctx.fresh("item");
+            let count = ctx.fresh("count");
+            let lam = Lambda {
+                binders: vec![head.clone()],
+                lets: Vec::new(),
+                core: head.clone(),
+                ty: elem.clone(),
+                calls: BTreeSet::new(),
+                axioms: BTreeSet::new(),
+            };
+            let e = elem.render();
+            let take = name == "take";
+            let cons = |rec: Recur<'_>, _: &str| {
+                let fewer = rec(&[format!("(prim subtract {count} 1 : Nat)")]);
+                let same = rec(std::slice::from_ref(&count));
+                Expr::Flat(if take {
+                    format!("(if ({count} =? 0) then (nil {e}) else (cons {head} {fewer}))")
+                } else {
+                    format!("(if ({count} =? 0) then (cons {head} {same}) else {fewer})")
+                })
+            };
+            let kind = if take { "Take" } else { "Skip" };
+            Continue(Some(walk(
+                ctx,
+                kind,
+                r,
+                elem,
+                &lam,
+                &head,
+                &[(count.clone(), Ty::Nat(None), n)],
+                &list,
+                format!("(nil {e})"),
+                &cons,
+            )))
+        }
+        ("take_while" | "skip_while" | "position", [f]) => {
+            let lam = lambda(f, std::slice::from_ref(elem), ctx, Some(&Ty::Bool))?;
+            if lam.ty != Ty::Bool {
+                return Break(Residue::Form(format!(
+                    "a .{name} predicate of another type"
+                )));
+            }
+            let head = lam.binders[0].clone();
+            let core = lam.core.clone();
+            let e = elem.render();
+            if name == "position" {
+                let index = ctx.fresh("index");
+                let cons = |rec: Recur<'_>, _: &str| {
+                    Expr::Flat(format!(
+                        "(if {core} then (ctor Option.some [Nat] {index}) else {})",
+                        rec(&[format!("({index} + 1)")])
+                    ))
+                };
+                return Continue(Some(walk(
+                    ctx,
+                    "Position",
+                    r,
+                    elem,
+                    &lam,
+                    &head,
+                    &[(index.clone(), Ty::Nat(None), "0".into())],
+                    &Ty::Option(Box::new(Ty::Nat(None))),
+                    "(ctor Option.none [Nat])".into(),
+                    &cons,
+                )));
+            }
+            let take = name == "take_while";
+            let cons = |rec: Recur<'_>, rest: &str| {
+                let next = rec(&[]);
+                Expr::Flat(if take {
+                    format!("(if {core} then (cons {head} {next}) else (nil {e}))")
+                } else {
+                    format!("(if {core} then {next} else (cons {head} {rest}))")
+                })
+            };
+            let kind = if take { "TakeWhile" } else { "SkipWhile" };
+            Continue(Some(walk(
+                ctx,
+                kind,
+                r,
+                elem,
+                &lam,
+                &head,
+                &[],
+                &list,
+                format!("(nil {e})"),
+                &cons,
+            )))
+        }
+        ("filter_map" | "find_map" | "flat_map", [f]) => {
+            let lam = lambda(f, std::slice::from_ref(elem), ctx, None)?;
+            let inner = match (&lam.ty, name) {
+                (Ty::Option(u), "filter_map" | "find_map") | (Ty::List(u), "flat_map") => {
+                    (**u).clone()
+                }
+                _ => return Break(Residue::Form(format!("a .{name} step of another type"))),
+            };
+            let head = lam.binders[0].clone();
+            let core = lam.core.clone();
+            let found = ctx.fresh("found");
+            let u = inner.render();
+            let (kind, result, nil) = match name {
+                "filter_map" => (
+                    "FilterMap",
+                    Ty::List(Box::new(inner.clone())),
+                    format!("(nil {u})"),
+                ),
+                "find_map" => (
+                    "FindMap",
+                    Ty::Option(Box::new(inner.clone())),
+                    format!("(ctor Option.none [{u}])"),
+                ),
+                _ => (
+                    "FlatMap",
+                    Ty::List(Box::new(inner.clone())),
+                    format!("(nil {u})"),
+                ),
+            };
+            let cons = |rec: Recur<'_>, _: &str| {
+                let next = rec(&[]);
+                match name {
+                    "flat_map" => Expr::Flat(format!("(prim append {core} {next} : (List {u}))")),
+                    _ => Expr::Match {
+                        scrutinee: core.clone(),
+                        arms: vec![
+                            ("Option.none".into(), Expr::Flat(next.clone())),
+                            (
+                                format!("Option.some {found}"),
+                                Expr::Flat(if name == "find_map" {
+                                    format!("(ctor Option.some [{u}] {found})")
+                                } else {
+                                    format!("(cons {found} {next})")
+                                }),
+                            ),
+                        ],
+                    },
+                }
+            };
+            Continue(Some(walk(
+                ctx,
+                kind,
+                r,
+                elem,
+                &lam,
+                &head,
+                &[],
+                &result,
+                nil,
+                &cons,
+            )))
+        }
         _ => Continue(None),
     }
 }
@@ -2049,11 +3419,13 @@ fn combinator(
 enum Body<'a> {
     Expr(&'a syn::Expr),
     Block(&'a syn::Block),
+    /// An arm with a guard: the guard, then the arm's expression.
+    Guarded(&'a syn::Expr, &'a syn::Expr),
 }
 
 fn body(b: Body<'_>, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     match b {
-        Body::Expr(e) => expr(e, ctx, want),
+        Body::Expr(e) | Body::Guarded(_, e) => expr(e, ctx, want),
         Body::Block(b) => block(&b.stmts, ctx, want),
     }
 }
@@ -2065,6 +3437,18 @@ fn binder(p: &syn::Pat) -> Option<Option<String>> {
             Some(Some(i.ident.to_string()))
         }
         syn::Pat::Wild(_) => Some(None),
+        syn::Pat::Reference(r) => binder(&r.pat),
+        // A tuple of names, which the arm binds by projection.
+        syn::Pat::Tuple(t) if t.elems.len() >= 2 => {
+            let mut items = Vec::new();
+            for e in &t.elems {
+                items.push(binder(e)?.unwrap_or_else(|| "_".to_string()));
+            }
+            if items.iter().any(|i| i.starts_with('#')) {
+                return None;
+            }
+            Some(Some(format!("#tuple:{}", items.join(","))))
+        }
         _ => None,
     }
 }
@@ -2129,10 +3513,85 @@ fn shape(p: &syn::Pat) -> Option<Shape> {
     }
 }
 
+/// A pattern of a data-carrying enum's variant: `E::V(a, _)`, `E::V(..)`,
+/// `E::V { a, b: c, .. }`, as its binders in field order.
+fn data_shape(p: &syn::Pat, st: &Ty, types: &Types) -> Option<Shape> {
+    let Ty::Named(n) = st else { return None };
+    let variants = types.datas.get(n)?;
+    let path = match p {
+        syn::Pat::TupleStruct(ts) => &ts.path,
+        syn::Pat::Struct(ps) => &ps.path,
+        _ => return None,
+    };
+    let variant = path.segments.last()?.ident.to_string();
+    let (_, fields) = variants.iter().find(|(v, _)| *v == variant)?;
+    let binders = match p {
+        syn::Pat::TupleStruct(ts) => {
+            let elems: Vec<&syn::Pat> = ts.elems.iter().collect();
+            let rest = elems.iter().position(|e| matches!(e, syn::Pat::Rest(_)));
+            let mut out = Vec::new();
+            match rest {
+                None if elems.len() == fields.len() => {
+                    for e in elems {
+                        out.push(binder(e)?);
+                    }
+                }
+                Some(at) if elems.len() <= fields.len() + 1 => {
+                    for e in &elems[..at] {
+                        out.push(binder(e)?);
+                    }
+                    let after = &elems[at + 1..];
+                    out.extend(std::iter::repeat_n(None, fields.len() + 1 - elems.len()));
+                    for e in after {
+                        out.push(binder(e)?);
+                    }
+                }
+                _ => return None,
+            }
+            out
+        }
+        syn::Pat::Struct(ps) => {
+            let mut given = BTreeMap::new();
+            for f in &ps.fields {
+                let syn::Member::Named(id) = &f.member else {
+                    return None;
+                };
+                given.insert(id.to_string(), binder(&f.pat)?);
+            }
+            if ps.rest.is_none() && given.len() != fields.len() {
+                return None;
+            }
+            let mut out = Vec::new();
+            for (name, _) in fields {
+                out.push(match name {
+                    Some(name) => given.remove(name).flatten(),
+                    None => None,
+                });
+            }
+            if !given.is_empty() {
+                return None;
+            }
+            out
+        }
+        _ => return None,
+    };
+    Some(Shape::Ctor(variant, binders))
+}
+
 /// The constructors of a scrutinee type: `(Rust shape key, LexLean
 /// constructor, binder types)`.
 fn constructors(t: &Ty, types: &Types) -> Option<Vec<(String, String, Vec<Ty>)>> {
     Some(match t {
+        Ty::Named(n) if types.datas.contains_key(n) => types.datas[n]
+            .iter()
+            .map(|(v, fields)| {
+                (
+                    v.clone(),
+                    format!("{n}.{v}"),
+                    fields.iter().map(|(_, t)| t.clone()).collect(),
+                )
+            })
+            .collect(),
         Ty::Named(n) => {
             let vs = types.enums.get(n)?;
             vs.iter()
@@ -2166,15 +3625,23 @@ fn matching(
     want: Option<&Ty>,
 ) -> Lift<(Expr, Ty)> {
     let (s, st) = flat_of(scrutinee, &ctx.below(), None)?;
-    if matches!(st, Ty::Nat(_) | Ty::Int(_)) {
+    if matches!(st, Ty::Nat(_) | Ty::Int(_) | Ty::Str | Ty::Char)
+        || arms.iter().any(|(_, b)| matches!(b, Body::Guarded(..)))
+    {
         return literal_match(&s, &st, arms, ctx, want);
     }
     let mut shapes = Vec::new();
     for (pat, b) in arms {
-        let Some(sh) = shape(pat) else {
-            return Break(Residue::Form("match pattern".to_string()));
+        let cases: Vec<&syn::Pat> = match pat {
+            syn::Pat::Or(o) => o.cases.iter().collect(),
+            p => vec![*p],
         };
-        shapes.push((sh, *b));
+        for case in cases {
+            let Some(sh) = data_shape(case, &st, ctx.types).or_else(|| shape(case)) else {
+                return Break(Residue::Form("match pattern".to_string()));
+            };
+            shapes.push((sh, *b));
+        }
     }
     if st == Ty::Bool {
         let pick = |v: &str| {
@@ -2219,9 +3686,29 @@ fn matching(
         };
         let mut scope = ctx.clone();
         let mut names = Vec::new();
+        let mut lets = Vec::new();
         for (i, ty) in binder_tys.iter().enumerate() {
             let ident = binders.as_ref().and_then(|bs| bs.get(i).cloned().flatten());
             let name = match ident {
+                Some(ident) if ident.starts_with("#tuple:") => {
+                    let items: Vec<&str> = ident["#tuple:".len()..].split(',').collect();
+                    let Ty::Tuple(ts) = ty else {
+                        return Break(Residue::Form("tuple pattern of another type".into()));
+                    };
+                    if ts.len() != items.len() {
+                        return Break(Residue::Form("tuple pattern of another type".into()));
+                    }
+                    let whole = ctx.fresh("pair");
+                    for (k, (item, t)) in items.iter().zip(ts).enumerate() {
+                        if *item == "_" {
+                            continue;
+                        }
+                        let (next, name) = scope.bind(item, t.clone());
+                        scope = next;
+                        lets.push((name, t.render(), format!("(project {whole} item{k})")));
+                    }
+                    whole
+                }
                 Some(ident) => {
                     let (next, name) = scope.bind(&ident, ty.clone());
                     scope = next;
@@ -2234,7 +3721,17 @@ fn matching(
         if lex == "List.cons" && ctx.params.contains(&s) {
             scope.tails.insert(names[1].clone(), s.clone());
         }
+        // A field of the scrutinee's own type is a sub-term: a recursive call
+        // on it descends.
+        if ctx.params.contains(&s) && types_has_data(&st, ctx.types) {
+            for (name, ty) in names.iter().zip(binder_tys) {
+                if ty.same(&st) {
+                    scope.tails.insert(name.clone(), s.clone());
+                }
+            }
+        }
         let (e, t) = body(b, &scope, result.as_ref())?;
+        let e = wrap_lets(lets, e);
         match &result {
             Some(r) if !r.same(&t) => {
                 return Break(Residue::Form("arms of different types".to_string()));
@@ -2259,7 +3756,9 @@ fn matching(
     ))
 }
 
-/// A match on integer literals: a chain of `if`s ending in the wildcard arm.
+/// A match on literals (integers, strings, characters and their ranges), or
+/// with guards: a chain of `if`s ending in an arm that takes every value. An
+/// arm may bind the scrutinee by name, and its guard joins its test.
 fn literal_match(
     s: &str,
     st: &Ty,
@@ -2268,62 +3767,167 @@ fn literal_match(
     want: Option<&Ty>,
 ) -> Lift<(Expr, Ty)> {
     let bad = || Break(Residue::Form("match pattern".to_string()));
-    let mut tests = Vec::new();
-    let mut otherwise = None;
-    for (pat, b) in arms {
-        if otherwise.is_some() {
-            return bad();
+    let constant = |e: &syn::Expr| -> Option<String> {
+        match e {
+            syn::Expr::Lit(l) => match literal_of(&l.lit, Some(st), false) {
+                Continue((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
+                _ => None,
+            },
+            syn::Expr::Unary(u) if matches!(u.op, syn::UnOp::Neg(_)) => match &*u.expr {
+                syn::Expr::Lit(l) => match literal_of(&l.lit, Some(st), true) {
+                    Continue((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
+                    _ => None,
+                },
+                _ => None,
+            },
+            _ => None,
         }
+    };
+    let equal = |k: &str| match st {
+        Ty::Nat(_) => Some(format!("({s} =? {k})")),
+        Ty::Int(_) | Ty::Str | Ty::Char => Some(format!("(prim equal {s} {k} : Bool)")),
+        Ty::Bool => Some(format!("({s} =? {k})")),
+        _ => None,
+    };
+    let at_most = |a: &str, b: &str| -> Option<String> {
+        match st {
+            Ty::Nat(_) => Some(format!("({a} <=? {b})")),
+            Ty::Int(_) => {
+                ctx.axioms.borrow_mut().insert("propext".to_string());
+                Some(format!("(not (prim less_than {b} {a} : Bool))"))
+            }
+            Ty::Str | Ty::Char => {
+                ctx.axioms.borrow_mut().extend(ALL_AXIOMS.map(String::from));
+                Some(format!("(not (prim less_than {b} {a} : Bool))"))
+            }
+            _ => None,
+        }
+    };
+    // Each arm: its test (`None` takes every value), the name it binds the
+    // scrutinee to, and its body.
+    let mut tests: Vec<(Option<String>, Option<String>, Body<'_>)> = Vec::new();
+    for (pat, b) in arms {
         let cases: Vec<&syn::Pat> = match pat {
             syn::Pat::Or(o) => o.cases.iter().collect(),
-            syn::Pat::Wild(_) => {
-                otherwise = Some(*b);
-                continue;
-            }
             p => vec![p],
         };
         let mut conds = Vec::new();
+        let mut all = false;
+        let mut bound = None;
         for case in cases {
-            let syn::Pat::Lit(l) = case else {
-                return bad();
-            };
-            let (k, kt) = match literal_of(&l.lit, Some(st), false) {
-                Continue((Expr::Flat(k), kt)) => (k, kt),
+            match case {
+                syn::Pat::Wild(_) => all = true,
+                syn::Pat::Ident(i) if i.subpat.is_none() && i.by_ref.is_none() => {
+                    let id = i.ident.to_string();
+                    if id == "None" || id.starts_with(char::is_uppercase) {
+                        return bad();
+                    }
+                    all = true;
+                    bound = Some(id);
+                }
+                syn::Pat::Lit(l) => {
+                    let lit = syn::Expr::Lit(l.clone());
+                    let Some(k) = constant(&lit) else {
+                        return bad();
+                    };
+                    let Some(c) = equal(&k) else { return bad() };
+                    conds.push(c);
+                }
+                syn::Pat::Range(rg) => {
+                    let lo = match &rg.start {
+                        Some(e) => match constant(e) {
+                            Some(k) => Some(k),
+                            None => return bad(),
+                        },
+                        None => None,
+                    };
+                    let hi = match &rg.end {
+                        Some(e) => match constant(e) {
+                            Some(k) => Some(k),
+                            None => return bad(),
+                        },
+                        None => None,
+                    };
+                    let mut parts = Vec::new();
+                    if let Some(lo) = lo {
+                        let Some(c) = at_most(&lo, s) else {
+                            return bad();
+                        };
+                        parts.push(c);
+                    }
+                    if let Some(hi) = hi {
+                        let c = if matches!(rg.limits, syn::RangeLimits::Closed(_)) {
+                            at_most(s, &hi)
+                        } else {
+                            at_most(&hi, s).map(|c| format!("(not {c})"))
+                        };
+                        let Some(c) = c else { return bad() };
+                        parts.push(c);
+                    }
+                    match parts.as_slice() {
+                        [] => all = true,
+                        [one] => conds.push(one.clone()),
+                        [a, b] => conds.push(format!("({a} && {b})")),
+                        _ => return bad(),
+                    }
+                }
                 _ => return bad(),
-            };
-            if !kt.same(st) {
+            }
+        }
+        if bound.is_some() && !conds.is_empty() {
+            return bad();
+        }
+        let mut cond = if all {
+            None
+        } else {
+            conds.into_iter().reduce(|a, b| format!("({a} || {b})"))
+        };
+        let mut scope = ctx.clone();
+        if let Some(id) = &bound {
+            scope.locals.insert(id.clone(), (s.to_string(), st.clone()));
+        }
+        if let Body::Guarded(g, _) = b {
+            let (gv, gt) = flat_of(g, &scope.below(), Some(&Ty::Bool))?;
+            if gt != Ty::Bool {
                 return bad();
             }
-            conds.push(if matches!(st, Ty::Int(_)) {
-                format!("(prim equal {s} {k} : Bool)")
-            } else {
-                format!("({s} =? {k})")
+            cond = Some(match cond {
+                Some(c) => format!("({c} && {gv})"),
+                None => gv,
             });
         }
-        let cond = conds
-            .into_iter()
-            .reduce(|a, b| format!("({a} || {b})"))
-            .unwrap_or_default();
-        tests.push((cond, *b));
+        let last = cond.is_none();
+        tests.push((cond, bound, *b));
+        if last {
+            break;
+        }
     }
-    let Some(last) = otherwise else {
+    if tests.last().is_none_or(|(c, _, _)| c.is_some()) {
         return Break(Residue::Form("non-exhaustive match".to_string()));
-    };
+    }
     let mut result = want.cloned();
     let mut bodies = Vec::new();
-    for (_, b) in &tests {
-        let (e, t) = body(*b, ctx, result.as_ref())?;
+    for (cond, bound, b) in &tests {
+        let mut scope = ctx.clone();
+        if let Some(id) = bound {
+            scope.locals.insert(id.clone(), (s.to_string(), st.clone()));
+        }
+        let (e, t) = body(*b, &scope, result.as_ref())?;
         if result.as_ref().is_some_and(|r| !r.same(&t)) {
             return Break(Residue::Form("arms of different types".to_string()));
         }
         result = Some(t);
-        bodies.push(e);
+        bodies.push((cond.clone(), e));
     }
-    let (mut out, t) = body(last, ctx, result.as_ref())?;
-    if result.as_ref().is_some_and(|r| !r.same(&t)) {
-        return Break(Residue::Form("arms of different types".to_string()));
-    }
-    for ((cond, _), e) in tests.into_iter().zip(bodies).rev() {
+    let Some(t) = result else {
+        return Break(Residue::Form("empty match".to_string()));
+    };
+    let mut bodies = bodies.into_iter().rev();
+    let Some((_, mut out)) = bodies.next() else {
+        return Break(Residue::Form("empty match".to_string()));
+    };
+    for (cond, e) in bodies {
+        let Some(cond) = cond else { return bad() };
         out = Expr::If {
             condition: Box::new(Expr::Flat(cond)),
             then: Box::new(e),
@@ -2331,6 +3935,27 @@ fn literal_match(
         };
     }
     Continue((out, t))
+}
+
+/// A branch followed by the statements after it, as one block expression.
+fn then_rest(body: &syn::Expr, rest: &[syn::Stmt]) -> syn::Expr {
+    let mut stmts = match body {
+        syn::Expr::Block(b) if b.label.is_none() => b.block.stmts.clone(),
+        syn::Expr::Tuple(t) if t.elems.is_empty() => Vec::new(),
+        other => vec![syn::Stmt::Expr(
+            other.clone(),
+            Some(syn::token::Semi::default()),
+        )],
+    };
+    stmts.extend(rest.iter().cloned());
+    syn::Expr::Block(syn::ExprBlock {
+        attrs: Vec::new(),
+        label: None,
+        block: syn::Block {
+            brace_token: syn::token::Brace::default(),
+            stmts,
+        },
+    })
 }
 
 /// The `return v` a block is made of, alone: `{ return v; }`.
@@ -2414,7 +4039,7 @@ fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String>
             let piece = match char_text(&m.args[0]) {
                 Some(text) if m.method == "push" => text,
                 _ if m.method == "push_str" => value_of(&m.args[0], &Ty::Str)?,
-                _ => return Break(Residue::Form("push of a character value".to_string())),
+                _ => value_of(&m.args[0], &Ty::Char)?,
             };
             Continue(joined(piece))
         }
@@ -2524,7 +4149,9 @@ fn rebind<'a>(
     let mut scope = ctx.clone();
     if let [one] = state {
         let ty = ctx.locals[one].1.clone();
-        scope.locals.insert(one.clone(), (whole.to_string(), ty));
+        if let Some((old, _)) = scope.locals.insert(one.clone(), (whole.to_string(), ty)) {
+            scope.hidden.push(old);
+        }
         return scope;
     }
     for (i, var) in state.iter().enumerate() {
@@ -2545,6 +4172,25 @@ fn wrap_lets(lets: Vec<(String, String, String)>, body: Expr) -> Expr {
             value: Box::new(Expr::Flat(value)),
             body: Box::new(body),
         })
+}
+
+/// The mark on a loop step's value that ends the walk: a `break`.
+const BREAK: &str = "#break ";
+
+/// The value of a `continue` or `break` in a loop step: the loop's state as
+/// the step leaves it.
+fn loop_exit(ctx: &Ctx<'_>, label: bool, breaks: bool) -> Lift<(Expr, Ty)> {
+    let Some(state) = &ctx.looping else {
+        return Break(Residue::Form(
+            "continue or break outside a loop step".to_string(),
+        ));
+    };
+    if label {
+        return Break(Residue::Form("labelled continue or break".to_string()));
+    }
+    let (v, t) = flat_of(&state_expr(state), ctx, None)?;
+    let v = if breaks { format!("{BREAK}{v}") } else { v };
+    Continue((Expr::Flat(v), t))
 }
 
 /// `for p in xs { body } rest`: a helper that walks `xs` with the locals the
@@ -2586,6 +4232,7 @@ fn for_loop(
         descends: &descends,
         tails: BTreeMap::new(),
         top: false,
+        looping: Some(state.clone()),
         ..ctx.clone()
     };
     // The outer names stay taken inside the step: the step's binders may
@@ -2627,6 +4274,9 @@ fn for_loop(
     let caps = captures(ctx, &[text], std::slice::from_ref(&acc));
     let cap_names: Vec<String> = caps.iter().map(|(c, _)| c.clone()).collect();
     let recur = |s: String| {
+        if let Some(last) = s.strip_prefix(BREAK) {
+            return last.to_string();
+        }
         let mut parts = vec![name.clone(), rest_name.clone(), s];
         parts.extend(cap_names.iter().cloned());
         format!("({})", parts.join(" "))
@@ -2650,6 +4300,7 @@ fn for_loop(
         },
         calls: calls.into_inner(),
         axioms: axioms.into_inner(),
+        recursive: true,
     });
     drop(helpers);
     ctx.calls.borrow_mut().insert(format!("#{name}"));
@@ -2672,10 +4323,98 @@ fn for_loop(
     ))
 }
 
+/// The first `?` an expression evaluates unconditionally, replaced by the
+/// local `var`: its operand. A `?` under a closure, a branch or the right
+/// side of `&&`/`||` may not run, so it stays.
+fn take_try(e: &mut syn::Expr, var: &syn::Ident) -> Option<syn::Expr> {
+    use syn::Expr as E;
+    match e {
+        E::Try(t) => {
+            if let Some(inner) = take_try(&mut t.expr, var) {
+                return Some(inner);
+            }
+            let inner = (*t.expr).clone();
+            *e = syn::parse_quote!(#var);
+            Some(inner)
+        }
+        E::MethodCall(m) => {
+            if let Some(found) = take_try(&mut m.receiver, var) {
+                return Some(found);
+            }
+            m.args.iter_mut().find_map(|a| take_try(a, var))
+        }
+        E::Call(c) => c.args.iter_mut().find_map(|a| take_try(a, var)),
+        E::Field(f) => take_try(&mut f.base, var),
+        E::Paren(p) => take_try(&mut p.expr, var),
+        E::Group(g) => take_try(&mut g.expr, var),
+        E::Reference(r) => take_try(&mut r.expr, var),
+        E::Unary(u) => take_try(&mut u.expr, var),
+        E::Cast(c) => take_try(&mut c.expr, var),
+        E::Index(i) => take_try(&mut i.expr, var).or_else(|| take_try(&mut i.index, var)),
+        E::Binary(b) => {
+            if let Some(found) = take_try(&mut b.left, var) {
+                return Some(found);
+            }
+            if matches!(b.op, syn::BinOp::And(_) | syn::BinOp::Or(_)) {
+                return None;
+            }
+            take_try(&mut b.right, var)
+        }
+        E::Tuple(t) => t.elems.iter_mut().find_map(|a| take_try(a, var)),
+        E::Struct(st) => st
+            .fields
+            .iter_mut()
+            .find_map(|f| take_try(&mut f.expr, var)),
+        E::If(i) => take_try(&mut i.cond, var),
+        E::Match(m) => take_try(&mut m.expr, var),
+        _ => None,
+    }
+}
+
+/// A statement with a `?` inside it, as `let v = e?;` before the statement
+/// with `v` in its place.
+fn hoist_try(stmt: &syn::Stmt, n: usize) -> Option<(syn::Stmt, syn::Stmt)> {
+    let var = syn::Ident::new(&format!("tried{n}"), proc_macro2::Span::call_site());
+    let mut stmt = stmt.clone();
+    let inner = match &mut stmt {
+        syn::Stmt::Expr(e, _) => take_try(e, &var)?,
+        syn::Stmt::Local(l) => {
+            let init = l.init.as_mut()?;
+            if matches!(&*init.expr, syn::Expr::Try(_)) && matches!(l.pat, syn::Pat::Ident(_)) {
+                return None;
+            }
+            take_try(&mut init.expr, &var)?
+        }
+        _ => return None,
+    };
+    let binding: syn::Stmt = syn::parse_quote!(let #var = #inner?;);
+    Some((binding, stmt))
+}
+
 fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+    match stmts.first() {
+        Some(syn::Stmt::Expr(syn::Expr::Continue(c), _)) => {
+            return loop_exit(ctx, c.label.is_some(), false);
+        }
+        Some(syn::Stmt::Expr(syn::Expr::Break(b), _)) if b.expr.is_none() => {
+            return loop_exit(ctx, b.label.is_some(), true);
+        }
+        _ => {}
+    }
+    if ctx.top {
+        if let Some((first, rest)) = stmts.split_first() {
+            let n = *ctx.fresh.borrow() + 1;
+            if let Some((binding, stmt)) = hoist_try(first, n) {
+                *ctx.fresh.borrow_mut() = n;
+                let mut out = vec![binding, stmt];
+                out.extend(rest.iter().cloned());
+                return block(&out, ctx, want);
+            }
+        }
+    }
     match stmts {
         [syn::Stmt::Expr(e, None)] => expr(e, &ctx.below(), want),
-        [syn::Stmt::Expr(syn::Expr::Return(r), _)] if ctx.top => match &r.expr {
+        [syn::Stmt::Expr(syn::Expr::Return(r), _), ..] if ctx.top => match &r.expr {
             Some(v) => expr(v, &ctx.below(), Some(ctx.result)),
             None => Break(Residue::Type("()".to_string())),
         },
@@ -2824,6 +4563,52 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
                 rt,
             ))
         }
+        // `()` as a statement does nothing.
+        [syn::Stmt::Expr(syn::Expr::Tuple(t), _), rest @ ..]
+            if t.elems.is_empty() && !rest.is_empty() =>
+        {
+            block(rest, ctx, want)
+        }
+        // `match e { p => .. } rest`: the rest after each arm.
+        [syn::Stmt::Expr(syn::Expr::Match(m), _), rest @ ..] if !rest.is_empty() => {
+            let bodies: Vec<syn::Expr> = m.arms.iter().map(|a| then_rest(&a.body, rest)).collect();
+            let arms: Vec<(&syn::Pat, Body<'_>)> = m
+                .arms
+                .iter()
+                .zip(&bodies)
+                .map(|(a, b)| match &a.pat {
+                    syn::Pat::Guard(g) => (&*g.pat, Body::Guarded(&g.guard, b)),
+                    p => (p, Body::Expr(b)),
+                })
+                .collect();
+            matching(&m.expr, &arms, ctx, want)
+        }
+        // `if let p = e { .. } [else { .. }] rest`: the rest after each branch.
+        [syn::Stmt::Expr(syn::Expr::If(i), _), rest @ ..]
+            if !rest.is_empty()
+                && matches!(&*i.cond, syn::Expr::Let(_))
+                && returned(&i.then_branch).is_none() =>
+        {
+            let syn::Expr::Let(l) = &*i.cond else {
+                return Break(Residue::Statements);
+            };
+            let then = then_rest(
+                &syn::Expr::Block(syn::ExprBlock {
+                    attrs: Vec::new(),
+                    label: None,
+                    block: i.then_branch.clone(),
+                }),
+                rest,
+            );
+            let unit: syn::Expr = syn::parse_quote!(());
+            let other = then_rest(i.else_branch.as_ref().map_or(&unit, |(_, e)| &**e), rest);
+            let wild = syn::Pat::Wild(syn::PatWild {
+                attrs: Vec::new(),
+                underscore_token: syn::token::Underscore::default(),
+            });
+            let arms = vec![(&*l.pat, Body::Expr(&then)), (&wild, Body::Expr(&other))];
+            matching(&l.expr, &arms, ctx, want)
+        }
         // `if c { .. } [else { .. }] rest` with statements in its branches: the
         // rest after each branch.
         [syn::Stmt::Expr(syn::Expr::If(i), _), rest @ ..]
@@ -2878,6 +4663,11 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
                 return Break(Residue::Form("let else".to_string()));
             }
             if let syn::Expr::Try(t) = &*init.expr {
+                if !ctx.top {
+                    return Break(Residue::Form(
+                        "? below the function's own statements".to_string(),
+                    ));
+                }
                 return question(&t.expr, &ident.ident.to_string(), declared, rest, ctx, want);
             }
             let (value, vt) = flat_of(&init.expr, &ctx.below(), declared.as_ref())?;
@@ -2971,7 +4761,22 @@ pub(crate) struct Lifted {
     pub(crate) types: BTreeSet<Ty>,
     /// Rust name -> the Lean axioms its definition elaborates with.
     pub(crate) axioms: BTreeMap<String, Vec<String>>,
+    /// The lifted functions whose value the kernel cannot compute by
+    /// unfolding: they reach a primitive Lean implements opaquely (string
+    /// encoding, joining, decimal text), so `decide` cannot close a closed
+    /// instance of them.
+    pub(crate) opaque: BTreeSet<String>,
 }
+
+/// The primitives whose Lean definitions the kernel does not unfold.
+const KERNEL_OPAQUE: [&str; 6] = [
+    "prim split_exact",
+    "prim parse_decimal",
+    "prim format_decimal",
+    "prim compare_bytes",
+    "prim utf8_encode",
+    "prim join",
+];
 
 /// Lift every candidate, to the fixpoint where no lifted body calls a function
 /// that failed to lift and no two lifted functions call each other.
@@ -3028,6 +4833,8 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                 own: &c.name,
                 helpers: &helpers,
                 top: true,
+                looping: None,
+                hidden: Vec::new(),
             };
             let lifted = block(&c.block.stmts, &ctx, Some(&c.result));
             drop(ctx);
@@ -3062,7 +4869,11 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                         decls.push((
                             key,
                             Decl::Definition {
-                                recursive: h.params.first().map(|(n, _)| n.clone()),
+                                recursive: if h.recursive {
+                                    h.params.first().map(|(n, _)| n.clone())
+                                } else {
+                                    None
+                                },
                                 name: h.name,
                                 parameters: h.params,
                                 result: h.result,
@@ -3119,11 +4930,64 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                 }
             }
             axioms.retain(|key, _| !key.starts_with('#'));
+            let mut opaque: BTreeSet<String> = decls
+                .iter()
+                .filter(|(_, d)| match d {
+                    Decl::Definition { body, .. } => {
+                        let text = body.flat();
+                        text.contains(&format!("{PRELUDE}::"))
+                            || KERNEL_OPAQUE.iter().any(|p| text.contains(p))
+                    }
+                    _ => false,
+                })
+                .map(|(key, _)| key.clone())
+                .collect();
+            loop {
+                let more: Vec<String> = graph
+                    .iter()
+                    .filter(|(k, callees)| {
+                        !opaque.contains(*k) && callees.iter().any(|c| opaque.contains(c))
+                    })
+                    .map(|(k, _)| k.clone())
+                    .collect();
+                if more.is_empty() {
+                    break;
+                }
+                opaque.extend(more);
+            }
+            opaque.retain(|key| !key.starts_with('#'));
+            // Each definition after the definitions it calls.
+            let mut placed: BTreeSet<String> = BTreeSet::new();
+            let mut ordered = Vec::new();
+            let mut pending: Vec<(String, Decl)> = decls;
+            while !pending.is_empty() {
+                let before = ordered.len();
+                let mut rest = Vec::new();
+                for (key, d) in pending {
+                    let ready = graph.get(&key).is_none_or(|callees| {
+                        callees
+                            .iter()
+                            .all(|c| placed.contains(c) || c == &key || !graph.contains_key(c))
+                    });
+                    if ready {
+                        placed.insert(key);
+                        ordered.push(d);
+                    } else {
+                        rest.push((key, d));
+                    }
+                }
+                if ordered.len() == before {
+                    ordered.extend(rest.into_iter().map(|(_, d)| d));
+                    break;
+                }
+                pending = rest;
+            }
             return Lifted {
-                decls: decls.into_iter().map(|(_, d)| d).collect(),
+                decls: ordered,
                 failed,
                 types,
                 axioms,
+                opaque,
             };
         }
     }
@@ -3414,11 +5278,9 @@ mod tests {
         let folded = lift(
             "fn total(xs: &[u32]) -> Option<u32> { xs.iter().fold(Some(0), |acc, &x| match acc { Some(a) => a.checked_add(x), None => None }) }",
             &plain(),
-        );
-        assert!(
-            folded.is_err(),
-            "a fold step with a match is not one line: {folded:?}"
-        );
+        )
+        .expect("a fold step with a match lifts through a helper");
+        assert!(folded.contains("name: totalPart1,"), "{folded}");
         let sum = lift("fn sum(xs: &[u32]) -> u32 { xs.iter().sum() }", &plain());
         assert!(matches!(sum, Err(Residue::Form(_))), "{sum:?}");
     }
@@ -3461,5 +5323,70 @@ mod tests {
         )
         .expect("lifts");
         assert!(lookup.contains("(prim equal (project item"), "{lookup}");
+    }
+
+    #[test]
+    fn string_methods_lift_to_the_prelude() {
+        let out = lift(
+            "fn t(text: &str) -> Option<u32> { text.trim().parse::<u32>().ok() }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(
+            out.contains("(Prelude::textParseNat (Prelude::textTrim text) 4294967295)"),
+            "{out}"
+        );
+        let out = lift(
+            "fn t(text: &str) -> Option<(String, String)> { let (a, b) = text.split_once('=')?; Some((a.to_string(), b.to_string())) }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(out.contains("(Prelude::textFirst text \"=\")"), "{out}");
+        assert_eq!(
+            lift(
+                "fn t(text: &str) -> String { text.to_lowercase() }",
+                &plain()
+            ),
+            Err(Residue::Form("method call .to_lowercase".to_string()))
+        );
+    }
+
+    #[test]
+    fn character_matches_lift_to_tests() {
+        let out = lift(
+            "fn k(c: char) -> u8 { match c { '-' => 1, '0'..='9' => 2, c if c.is_whitespace() => 3, _ => 4 } }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(out.contains("(prim equal c \"-\" : Bool)"), "{out}");
+        assert!(out.contains("(Prelude::textIsWhitespace c)"), "{out}");
+    }
+
+    #[test]
+    fn loops_continue_break_and_enumerate() {
+        let out = lift(
+            "fn f(xs: &[u32]) -> u32 { let mut n: u32 = 0; for (i, x) in xs.iter().enumerate() { if *x == 0 { continue; } if i > 3 { break; } n = n.saturating_add(1); } n }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(out.contains("fEnumerate"), "{out}");
+        assert!(out.contains("fLoop"), "{out}");
+    }
+
+    #[test]
+    fn a_question_mark_in_an_operand_hoists() {
+        let out = lift(
+            "fn f(o: Option<u32>) -> Option<u32> { Some(o?.min(3)) }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(out.contains("Option.some tried"), "{out}");
+    }
+
+    #[test]
+    fn an_index_is_the_element_or_the_default() {
+        let out = lift("fn f(xs: &[u32]) -> u32 { xs[2] }", &plain()).expect("lifts");
+        assert!(out.contains("(prim index xs 2 : (Option Nat))"), "{out}");
+        assert!(out.contains("Option.none => 0"), "{out}");
     }
 }

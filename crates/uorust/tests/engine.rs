@@ -841,10 +841,14 @@ fn product_functions(root: &Path) -> Vec<String> {
         subdirs.sort();
         for sub in subdirs {
             let name = sub.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            if !matches!(
-                name,
-                "target" | "fixtures" | "src" | "node_modules" | ".git" | "tests"
-            ) {
+            // Dot directories hold build output (`app/.prism` holds the Rust
+            // prismpm generates), never a package of this workspace.
+            if !name.starts_with('.')
+                && !matches!(
+                    name,
+                    "target" | "fixtures" | "src" | "node_modules" | "tests"
+                )
+            {
                 packages(&sub, out);
             }
         }

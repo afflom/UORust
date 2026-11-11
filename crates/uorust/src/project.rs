@@ -2883,9 +2883,10 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     // Unit-variant enums and structs with named fields of product code, by
     // name within each crate; a name a crate declares twice is refused. A
     // name two crates share lifts qualified by each crate's name.
-    let mut scoped: Vec<(Variants, Fields)> = Vec::new();
+    let mut scoped: Vec<(Variants, Fields, Datas)> = Vec::new();
     for package in &ws.packages {
         let mut enums: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut datas: Datas = BTreeMap::new();
         let mut raw_structs: BTreeMap<String, Vec<(String, syn::Type)>> = BTreeMap::new();
         let mut clashing: BTreeSet<String> = BTreeSet::new();
         for file in &package.files {
@@ -2895,11 +2896,27 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             ) {
                 continue;
             }
-            for e in &file.enums {
-                if e.variants.is_empty() || !e.variants.iter().all(|v| v.unit) {
+            for (e, payload) in file.enums.iter().zip(&syntax.files[&file.rel].enums) {
+                if e.variants.is_empty() {
                     continue;
                 }
-                if enums.contains_key(&e.name) {
+                if !e.variants.iter().all(|v| v.unit) {
+                    // An enum whose variants carry data: an inductive with fields.
+                    if payload.is_empty() {
+                        continue;
+                    }
+                    if enums.contains_key(&e.name) || datas.contains_key(&e.name) {
+                        clashing.insert(e.name.clone());
+                        notes.refusals.insert(Refusal::Collision {
+                            span: e.span.clone(),
+                            name: qualified(BEHAVIOR, &e.name),
+                        });
+                        continue;
+                    }
+                    datas.insert(e.name.clone(), payload.clone());
+                    continue;
+                }
+                if enums.contains_key(&e.name) || datas.contains_key(&e.name) {
                     clashing.insert(e.name.clone());
                     notes.refusals.insert(Refusal::Collision {
                         span: e.span.clone(),
@@ -2921,7 +2938,10 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 continue;
             }
             for (st, fields) in file.structs.iter().zip(&syntax.files[&file.rel].structs) {
-                if raw_structs.contains_key(&st.name) || enums.contains_key(&st.name) {
+                if raw_structs.contains_key(&st.name)
+                    || enums.contains_key(&st.name)
+                    || datas.contains_key(&st.name)
+                {
                     clashing.insert(st.name.clone());
                     notes.refusals.insert(Refusal::Collision {
                         span: st.span.clone(),
@@ -2935,19 +2955,20 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         for name in &clashing {
             enums.remove(name);
             raw_structs.remove(name);
+            datas.remove(name);
         }
-        scoped.push((enums, raw_structs));
+        scoped.push((enums, raw_structs, datas));
     }
     let mut crates_of: BTreeMap<String, usize> = BTreeMap::new();
-    for (enums, structs) in &scoped {
-        for name in enums.keys().chain(structs.keys()) {
+    for (enums, structs, datas) in &scoped {
+        for name in enums.keys().chain(structs.keys()).chain(datas.keys()) {
             *crates_of.entry(name.clone()).or_default() += 1;
         }
     }
     let scopes: Vec<Types> = scoped
         .into_iter()
         .zip(&ws.packages)
-        .map(|((enums, structs), package)| {
+        .map(|((enums, structs, datas), package)| {
             let lex = |name: &String| {
                 if crates_of[name] > 1 {
                     format!("{}{name}", pascal(&[&package.name]))
@@ -2958,12 +2979,14 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             let aliases: BTreeMap<String, String> = enums
                 .keys()
                 .chain(structs.keys())
+                .chain(datas.keys())
                 .filter(|n| crates_of[*n] > 1)
                 .map(|n| (n.clone(), lex(n)))
                 .collect();
             let enums = enums.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
             let structs = structs.into_iter().map(|(n, fs)| (lex(&n), fs)).collect();
-            Types::new(enums, &structs, aliases)
+            let datas = datas.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
+            Types::with_data(enums, &datas, &structs, aliases)
         })
         .collect();
     // Every crate's lifted types, for the declarations they emit.
@@ -2971,6 +2994,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     for scope in &scopes {
         types.enums.extend(scope.enums.clone());
         types.structs.extend(scope.structs.clone());
+        types.datas.extend(scope.datas.clone());
     }
     // Typed failures: every error enum's variants, as an inductive.
     for (pkg, package) in ws.packages.iter().enumerate() {
@@ -3062,7 +3086,8 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             }
             (Some(o), None)
                 if types.enums.contains_key(&types.resolve(o))
-                    || types.structs.contains_key(&types.resolve(o)) =>
+                    || types.structs.contains_key(&types.resolve(o))
+                    || types.datas.contains_key(&types.resolve(o)) =>
             {
                 Some(types.resolve(o))
             }
@@ -3105,6 +3130,39 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 });
             }
             std::ops::ControlFlow::Break(reason) => ctx.stopped(notes, &effectful, r, reason),
+        }
+    }
+    // Constants lift as definitions of no parameters.
+    for (pkg, package) in ws.packages.iter().enumerate() {
+        let types = &scopes[pkg];
+        for file in &package.files {
+            if !matches!(
+                package.targets[file.target].kind,
+                TargetKind::Lib | TargetKind::Bin
+            ) {
+                continue;
+            }
+            for (rust, ty, block) in &syntax.files[&file.rel].consts {
+                let std::ops::ControlFlow::Continue(result) = types.ty(ty) else {
+                    continue;
+                };
+                let name = lift::local_name(rust);
+                let (candidates, names) = &mut scoped[pkg];
+                if names.contains_key(rust)
+                    || candidates
+                        .iter()
+                        .any(|c: &Candidate<'_>| c.rust == *rust || c.name == name)
+                {
+                    continue;
+                }
+                candidates.push(Candidate {
+                    rust: rust.clone(),
+                    name,
+                    params: Vec::new(),
+                    result,
+                    block,
+                });
+            }
         }
     }
     let mut shared: BTreeMap<String, usize> = BTreeMap::new();
@@ -3161,17 +3219,22 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         }
         mentioned.extend(out.types);
         for c in candidates {
-            if out.decls.iter().any(|d| d.name() == c.name) {
-                let r = names[&c.rust];
+            // A constant has no function row of its own.
+            if let (true, Some(&r)) = (
+                out.decls.iter().any(|d| d.name() == c.name),
+                names.get(&c.rust),
+            ) {
                 notes.lifted.insert(
                     ctx.path(r),
                     (ctx.func(r).span.clone(), qualified(BEHAVIOR, &c.name)),
                 );
             }
         }
+        // A closed instance is a theorem only where the kernel can compute it.
         let sigs: BTreeMap<String, lift::Sig> = candidates
             .iter()
             .filter(|c| out.decls.iter().any(|d| d.name() == c.name))
+            .filter(|c| !out.opaque.contains(&c.rust))
             .map(|c| {
                 (
                     c.rust.clone(),
@@ -3233,7 +3296,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     Module {
         name: BEHAVIOR.into(),
         glossaries: vec![BOOL, NAT, TITLES],
-        imports: Vec::new(),
+        imports: vec![lift::PRELUDE.into()],
         title: "Lifted Rust behavior",
         decls,
     }
@@ -3276,6 +3339,8 @@ fn equality(name: &str, variants: &[String]) -> Decl {
 type Variants = BTreeMap<String, Vec<String>>;
 /// Structs by name, with their named fields.
 type Fields = BTreeMap<String, Vec<(String, syn::Type)>>;
+/// Data-carrying enum name -> its variants' fields.
+type Datas = BTreeMap<String, lift::RawVariants>;
 /// A crate's lifted functions, by Rust name.
 type Sigs = BTreeMap<String, lift::Sig>;
 /// The Lean axioms of each lifted function, by Rust name.
@@ -3292,6 +3357,29 @@ fn type_decls(
 ) {
     if !emitted.insert(ty.clone()) {
         return;
+    }
+    if let Ty::Named(n) = ty {
+        if let Some(variants) = types.datas.get(n) {
+            for (_, fields) in variants {
+                for (_, t) in fields {
+                    let mut inner = BTreeSet::new();
+                    t.mentions(&mut inner);
+                    for dep in &inner {
+                        type_decls(dep, types, compared, emitted, decls);
+                    }
+                }
+            }
+            decls.push(Decl::Data {
+                name: n.clone(),
+                constructors: variants
+                    .iter()
+                    .map(|(v, fields)| {
+                        (v.clone(), fields.iter().map(|(_, t)| t.render()).collect())
+                    })
+                    .collect(),
+            });
+            return;
+        }
     }
     let fields: Vec<(String, Ty)> = match ty {
         Ty::Named(n) => match (types.enums.get(n), types.structs.get(n)) {
@@ -3321,6 +3409,10 @@ fn type_decls(
         for dep in &inner {
             type_decls(dep, types, compared, emitted, decls);
         }
+    }
+    // Widths and characters render alike: one structure serves them all.
+    if decls.iter().any(|d| d.name() == ty.render()) {
+        return;
     }
     decls.push(Decl::Structure {
         name: ty.render(),

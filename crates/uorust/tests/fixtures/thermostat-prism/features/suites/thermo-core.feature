@@ -71,10 +71,25 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterColdNames is made
     And the interface call Interface::callThermoCoreRosterReport is made
     And the interface call Interface::callThermoCoreRosterReadingsOf is made
+    And the interface call Interface::callThermoCoreRosterLineRoom is made
+    And the interface call Interface::callThermoCoreRosterLineTarget is made
+    And the interface call Interface::callThermoCoreRosterScheduleRooms is made
+    And the interface call Interface::callThermoCoreRosterRoomsUntilStop is made
+    And the interface call Interface::callThermoCoreRosterTag is made
+    And the interface call Interface::callThermoCoreRosterIsZone is made
+    And the interface call Interface::callThermoCoreRosterDivider is made
+    And the interface call Interface::callThermoCoreRosterSignKind is made
+    And the interface call Interface::callThermoCoreRosterDigitCount is made
+    And the interface call Interface::callThermoCoreRosterNumbered is made
+    And the interface call Interface::callThermoCoreRosterPositions is made
+    And the interface call Interface::callThermoCoreRosterFirstIs is made
+    And the interface call Interface::callThermoCoreRosterFirstWord is made
+    And the interface call Interface::callThermoCoreRosterSpelled is made
     Then the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms holds
+    And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsText holds
 
   @FT-05 @build
   Scenario: thermo_core::sensor: Temperature sensors the controller reads from.

@@ -169,6 +169,121 @@ pub fn readings_of(entries: &[(String, u32)]) -> Vec<u32> {
     out
 }
 
+/// A room name read from a line such as `  hall = 20 `.
+pub fn line_room(line: &str) -> Option<String> {
+    let (name, _) = line.split_once('=')?;
+    let name = name.trim();
+    if name.is_empty() {
+        return None;
+    }
+    Some(name.to_string())
+}
+
+/// The target a line sets, after its last `=`.
+pub fn line_target(line: &str) -> Option<u32> {
+    let (_, value) = line.rsplit_once("=")?;
+    value.trim_start().trim_end().parse::<u32>().ok()
+}
+
+/// The rooms of a schedule, one per line, skipping comments and blanks.
+pub fn schedule_rooms(text: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for line in text.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        out.push(line.to_string());
+    }
+    out
+}
+
+/// The rooms of a comma list, up to the first `stop`.
+pub fn rooms_until_stop(list: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for item in list.split(", ") {
+        if item == "stop" {
+            break;
+        }
+        out.push(item.to_string());
+    }
+    out
+}
+
+/// A room tag: `room:` dropped, `!` dropped, lower case.
+pub fn tag(text: &str) -> String {
+    let bare = text.strip_prefix("room:").unwrap_or(text);
+    let bare = bare.strip_suffix('!').unwrap_or(bare);
+    bare.to_ascii_lowercase()
+}
+
+/// True when a label names a zone: it ends with `-zone` or contains `wing`.
+pub fn is_zone(label: &str) -> bool {
+    label.ends_with("-zone") || label.contains("wing") || label.to_ascii_uppercase() == "ZONE"
+}
+
+/// A divider of `width` dashes.
+pub fn divider(width: usize) -> String {
+    "-".repeat(width)
+}
+
+/// The kind of a reading's first character.
+pub fn sign_kind(reading: &str) -> u8 {
+    let mut kind = 0;
+    for c in reading.chars() {
+        kind = match c {
+            '-' => 1,
+            '+' => 2,
+            '0'..='9' => 3,
+            c if c.is_whitespace() => 4,
+            _ => 5,
+        };
+        break;
+    }
+    kind
+}
+
+/// How many digits a reading has, read as bytes.
+pub fn digit_count(reading: &str) -> u32 {
+    let mut count: u32 = 0;
+    for byte in reading.as_bytes() {
+        if byte.is_ascii_digit() {
+            count = count.saturating_add(1);
+        }
+    }
+    count
+}
+
+/// The position of each room in the roster, as `index:name`.
+pub fn numbered(rooms: &[Room]) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for (i, room) in rooms.iter().enumerate() {
+        out.push(format!("{}:{}", positions()[i.min(2)], room.name));
+    }
+    out
+}
+
+/// The position words of the first rooms.
+pub fn positions() -> Vec<String> {
+    vec!["first".to_string(), "second".to_string(), "later".to_string()]
+}
+
+/// The first room's name, when it is the room asked for.
+pub fn first_is(rooms: &[Room], name: &str) -> bool {
+    rooms.first().map(|room| room.name.clone()) == Some(name.to_string())
+}
+
+/// The name before the first space of the first word list, through `?`.
+pub fn first_word(text: &str) -> Option<String> {
+    Some(text.split_whitespace().next()?.to_string())
+}
+
+/// The words of a label, each as its characters joined by dots.
+pub fn spelled(label: &str) -> String {
+    let letters: Vec<String> = label.chars().map(|c| c.to_string()).collect();
+    letters.join(".")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -224,5 +339,25 @@ mod tests {
         assert!(has_target(&hashed, "hall"));
         let shut: BTreeSet<String> = ["den".to_string()].into_iter().collect();
         assert!(closed(&shut, "den"));
+    }
+
+    #[test]
+    fn the_roster_reads_text() {
+        assert_eq!(line_room("  hall = 20 "), Some("hall".to_string()));
+        assert_eq!(line_target("hall = 20 "), Some(20));
+        assert_eq!(
+            schedule_rooms("hall\n# off\n\n den \r\n"),
+            vec!["hall".to_string(), "den".to_string()]
+        );
+        assert_eq!(rooms_until_stop("a, b, stop, c"), vec!["a".to_string(), "b".to_string()]);
+        assert_eq!(tag("room:Hall!"), "hall");
+        assert!(is_zone("east-zone"));
+        assert_eq!(divider(3), "---");
+        assert_eq!(sign_kind("-3"), 1);
+        assert_eq!(digit_count("a12"), 2);
+        assert!(first_is(&[room("hall", 1)], "hall"));
+        assert_eq!(first_word("  den  hall"), Some("den".to_string()));
+        assert_eq!(spelled("ab"), "a.b");
+        assert_eq!(numbered(&[room("hall", 1)]), vec!["first:hall".to_string()]);
     }
 }
