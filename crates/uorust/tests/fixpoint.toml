@@ -1,0 +1,251 @@
+# The fixpoint between the hand model in app/src and uorust's projection of
+# this workspace (UE-14). Every hand record of a checked kind is either paired
+# with the record the engine derives for the same fact, or listed as outside
+# what the code states, with the reason. A pair holds when both records exist
+# and both bodies state the fact; each pair that does not hold is one unit of
+# drift, and the hand model's measureSelfModelDrift sets the threshold at 0.
+
+checked = ["component", "call", "modeledThreat", "modeledControl", "measure"]
+
+[[pair]]
+hand = "callProject"
+derived = "callCliUorustProject"
+fact = "uorust project"
+
+[[pair]]
+hand = "callCheck"
+derived = "callCliUorustCheck"
+fact = "uorust check"
+
+[[pair]]
+hand = "callRoutes"
+derived = "callCliUorustRoutes"
+fact = "uorust routes"
+
+[[pair]]
+hand = "callProjectWorkspace"
+derived = "callUorustProjectWorkspace"
+fact = "uorust::project_workspace"
+
+[[pair]]
+hand = "callRespond"
+derived = "callUorustRouteRespond"
+fact = "uorust::route::respond"
+
+[[pair]]
+hand = "componentCli"
+derived = "componentBinUorust"
+fact = "ComponentKind.releaseBinary"
+
+[[pair]]
+hand = "componentRouter"
+derived = "featureUorustRoute"
+fact = "Prism record"
+
+[[pair]]
+hand = "modeledThreatUnsafeMemory"
+derived = "modeledThreatLibUorustMemory"
+fact = "Memory corruption"
+
+[[pair]]
+hand = "modeledThreatUnsafeMemory"
+derived = "modeledThreatBinUorustMemory"
+fact = "Memory corruption"
+
+[[pair]]
+hand = "modeledThreatDependencyCompromise"
+derived = "modeledThreatDependencySubstitution"
+fact = "replaced by"
+
+[[pair]]
+hand = "modeledControlForbidUnsafe"
+derived = "modeledControlLibUorustMemory"
+fact = "forbid(unsafe_code)"
+
+[[pair]]
+hand = "modeledControlCargoDeny"
+derived = "modeledControlDependencySubstitution"
+fact = "cargo deny"
+
+[[pair]]
+hand = "modeledControlLockedBuild"
+derived = "modeledControlDependencySubstitution"
+fact = "Cargo.lock"
+
+[[pair]]
+hand = "measureMinimumRustMinor"
+derived = "measureMinimumRustMinor"
+fact = "threshold := 89"
+
+[[pair]]
+hand = "measureUnsafeBlocks"
+derived = "measureUnsafeAndForeignSites"
+fact = "threshold := 0"
+
+[[outside]]
+hand = "componentIngest"
+reason = "a stage inside the uorust library; the engine projects at crate and public-module granularity"
+
+[[outside]]
+hand = "componentAdmission"
+reason = "a stage inside the uorust library; the engine projects at crate and public-module granularity"
+
+[[outside]]
+hand = "componentEmitter"
+reason = "a stage inside the uorust library; the engine projects at crate and public-module granularity"
+
+[[outside]]
+hand = "componentRouteGuest"
+reason = "the LexLean route guest in app/, not Rust code of this workspace"
+
+[[outside]]
+hand = "componentRouteCli"
+reason = "the uorust-routes binary of the app, built from the LexLean model, not Rust code of this workspace"
+
+[[outside]]
+hand = "componentPagesSite"
+reason = "the Pages workbench in site/, not Rust code"
+
+[[outside]]
+hand = "componentSubjectWorkspace"
+reason = "an external system: whatever workspace uorust is pointed at"
+
+[[outside]]
+hand = "componentCargo"
+reason = "an external tool the code does not invoke or link"
+
+[[outside]]
+hand = "componentCratesIo"
+reason = "an external registry; Cargo.lock names it only as a source string"
+
+[[outside]]
+hand = "componentRustc"
+reason = "an external tool the code does not invoke or link"
+
+[[outside]]
+hand = "componentPrismPm"
+reason = "an external tool run by the Justfile, not by the code"
+
+[[outside]]
+hand = "componentGitHubActions"
+reason = "CI, stated by .github/workflows, which the engine does not read"
+
+[[outside]]
+hand = "callPrismPmCheck"
+reason = "a prismpm command, not a uorust entry point"
+
+[[outside]]
+hand = "callPagesRoute"
+reason = "an operation of the Pages workbench, not Rust code"
+
+[[outside]]
+hand = "modeledThreatBuildScriptExecution"
+reason = "a property of what the code does not do (run build scripts), which no fact states"
+
+[[outside]]
+hand = "modeledThreatSourceExfiltration"
+reason = "a property of what the code does not do (open a network connection), which no fact states"
+
+[[outside]]
+hand = "modeledThreatCraftedSourceExhaustion"
+reason = "a design argument about bounded ingest, not a fact kind the engine reads"
+
+[[outside]]
+hand = "modeledThreatMisroutedFact"
+reason = "a threat to the route table's meaning, judged by the reviewer, not stated by the code"
+
+[[outside]]
+hand = "modeledThreatDisputedProjection"
+reason = "a threat to the projection's meaning, judged by the reviewer, not stated by the code"
+
+[[outside]]
+hand = "modeledThreatPathEscape"
+reason = "a property of output path handling that no fact kind records"
+
+[[outside]]
+hand = "modeledThreatWorkflowTokenAbuse"
+reason = "CI, stated by .github/workflows, which the engine does not read"
+
+[[outside]]
+hand = "modeledThreatTamperedPages"
+reason = "the Pages site, not Rust code"
+
+[[outside]]
+hand = "modeledThreatPagesHostSubstitution"
+reason = "the Pages site, not Rust code"
+
+[[outside]]
+hand = "modeledControlNoBuildExecution"
+reason = "answers a threat outside the code's facts"
+
+[[outside]]
+hand = "modeledControlOffline"
+reason = "answers a threat outside the code's facts"
+
+[[outside]]
+hand = "modeledControlBoundedIngest"
+reason = "answers a threat outside the code's facts"
+
+[[outside]]
+hand = "modeledControlVerifiedRouteTable"
+reason = "answers a threat outside the code's facts; the route table itself is compared below"
+
+[[outside]]
+hand = "modeledControlRouterConformance"
+reason = "answers a threat outside the code's facts"
+
+[[outside]]
+hand = "modeledControlTypedRefusal"
+reason = "answers a threat outside the code's facts"
+
+[[outside]]
+hand = "modeledControlDeterministicOutput"
+reason = "answers a threat outside the code's facts"
+
+[[outside]]
+hand = "modeledControlConfinedOutput"
+reason = "answers a threat outside the code's facts"
+
+[[outside]]
+hand = "modeledControlPinnedWorkflows"
+reason = "CI, stated by .github/workflows, which the engine does not read"
+
+[[outside]]
+hand = "modeledControlArtifactClosure"
+reason = "the release archive, built by the app, not Rust code"
+
+[[outside]]
+hand = "measureRoutedFactKinds"
+reason = "a property of the route table, compared below rather than as a measure"
+
+[[outside]]
+hand = "measureRouteVectors"
+reason = "a property of model/routes.toml vectors, not of the code"
+
+[[outside]]
+hand = "measureSelfModelDrift"
+reason = "the measure this file is the gate for"
+
+[[outside]]
+hand = "measureRerunDifferingBytes"
+reason = "a run-time property measured by UE-02, not a fact the code states"
+
+[[outside]]
+hand = "measureSelfProjectionSeconds"
+reason = "a run-time property, not a fact the code states"
+
+[[outside]]
+hand = "measureRouteRequestBytes"
+reason = "the app's request bound, not a fact of this workspace's code"
+
+[[outside]]
+hand = "measureUnregisteredTests"
+reason = "a property of model/ids.toml, which the engine does not read"
+
+[[outside]]
+hand = "measureClippyWarnings"
+reason = "a run-time property of clippy, not a fact the code states"
+
+[[outside]]
+hand = "measureRouteCliNeededLibraries"
+reason = "a property of the app's built binary, not of this workspace's code"

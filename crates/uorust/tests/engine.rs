@@ -1,5 +1,5 @@
 //! The engine against its fixture, against this workspace, and against planted
-//! defects (`UE-01` .. `UE-07`).
+//! defects (`UE-01` .. `UE-14`).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -444,4 +444,158 @@ fn every_feature_of_this_workspace_is_accepted_ue_13() {
             "{feature}"
         );
     }
+}
+
+/// The `definition{...}` records of the given module texts, by name.
+fn records(files: impl IntoIterator<Item = String>) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for body in files {
+        for chunk in body.split("definition{").skip(1) {
+            let first = chunk.lines().next().unwrap_or_default();
+            let record = if first.contains("body:") {
+                first
+            } else {
+                chunk.split("\n}").next().unwrap_or_default()
+            };
+            let Some(name) = record.split("name: ").nth(1) else {
+                continue;
+            };
+            let name: String = name
+                .chars()
+                .take_while(char::is_ascii_alphanumeric)
+                .collect();
+            out.insert(name, record.to_string());
+        }
+    }
+    out
+}
+
+/// A `key := "value"` field of a rendered record.
+fn field<'a>(record: &'a str, key: &str) -> &'a str {
+    let start = record
+        .find(&format!("{key} := \""))
+        .unwrap_or_else(|| panic!("no {key} in {record}"))
+        + key.len()
+        + 5;
+    let end = record[start..].find('"').expect("closing quote");
+    &record[start..start + end]
+}
+
+#[test]
+fn the_self_projection_reproduces_the_hand_model_ue_14() {
+    let app = root().join("app/src");
+    let hand_files: Vec<String> = std::fs::read_dir(&app)
+        .expect("app/src")
+        .map(|entry| entry.expect("entry").path())
+        .filter(|path| path.to_string_lossy().ends_with(".lex.tex"))
+        .map(|path| std::fs::read_to_string(path).expect("hand module"))
+        .collect();
+    let hand = records(hand_files);
+    let files = project(&root(), "uorust");
+    let derived = records(
+        files
+            .iter()
+            .filter(|(path, _)| path.starts_with("src/") && path.ends_with(".lex.tex"))
+            .map(|(_, bytes)| String::from_utf8(bytes.clone()).expect("utf-8")),
+    );
+
+    let table: toml::Value = toml::from_str(
+        &std::fs::read_to_string(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixpoint.toml"),
+        )
+        .expect("fixpoint.toml"),
+    )
+    .expect("fixpoint.toml parses");
+    let rows = |key: &str| {
+        table
+            .get(key)
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default()
+    };
+    let get = |row: &toml::Value, key: &str| -> String {
+        row.get(key)
+            .and_then(|v| v.as_str())
+            .expect(key)
+            .to_string()
+    };
+
+    // Each pair whose two records do not both state the fact is drift.
+    let mut drift = Vec::new();
+    let mut accounted = std::collections::BTreeSet::new();
+    for row in rows("pair") {
+        let (h, d, fact) = (get(&row, "hand"), get(&row, "derived"), get(&row, "fact"));
+        accounted.insert(h.clone());
+        for (side, name, set) in [("hand", &h, &hand), ("derived", &d, &derived)] {
+            match set.get(name) {
+                None => drift.push(format!("{side} record {name} is missing")),
+                Some(body) if !body.contains(&fact) => {
+                    drift.push(format!("{side} record {name} does not state `{fact}`"));
+                }
+                Some(_) => {}
+            }
+        }
+    }
+    for row in rows("outside") {
+        let h = get(&row, "hand");
+        assert!(
+            hand.contains_key(&h),
+            "outside row names no hand record: {h}"
+        );
+        assert!(
+            !get(&row, "reason").is_empty(),
+            "{h} is outside without a reason"
+        );
+        assert!(
+            accounted.insert(h.clone()),
+            "{h} is both paired and outside"
+        );
+    }
+    // Every hand record of a checked kind is accounted for, one way or the other.
+    let checked: Vec<String> = rows("checked")
+        .iter()
+        .map(|v| v.as_str().expect("prefix").to_string())
+        .collect();
+    for name in hand.keys() {
+        let kind = checked.iter().find(|prefix| {
+            name.strip_prefix(prefix.as_str())
+                .and_then(|rest| rest.chars().next())
+                .is_some_and(|c| c.is_ascii_uppercase())
+        });
+        if kind.is_some() && !accounted.contains(name) {
+            drift.push(format!("hand record {name} is neither paired nor outside"));
+        }
+    }
+
+    // The route table: the hand model's `routes`, in order, is uorust::ROUTES.
+    let routes = &hand.get("routes").expect("hand routes")[..];
+    let hand_routes: Vec<[String; 4]> = routes
+        .split("record Route {")
+        .skip(1)
+        .map(|r| {
+            let r = r.split('}').next().unwrap_or_default();
+            ["id", "rustFact", "prismRecord", "facet"].map(|k| field(r, k).to_string())
+        })
+        .collect();
+    let code_routes: Vec<[String; 4]> = uorust::ROUTES
+        .iter()
+        .map(|r| [r.id, r.rust_fact, r.prism_record, r.facet].map(str::to_string))
+        .collect();
+    if hand_routes != code_routes {
+        drift.push(format!(
+            "route table differs:\nhand {hand_routes:?}\ncode {code_routes:?}"
+        ));
+    }
+
+    assert!(
+        hand.get("measureSelfModelDrift")
+            .is_some_and(|m| m.contains("threshold := 0")),
+        "the hand model's drift threshold is 0"
+    );
+    assert!(
+        drift.is_empty(),
+        "self-model drift {}:\n{}",
+        drift.len(),
+        drift.join("\n")
+    );
 }

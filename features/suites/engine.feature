@@ -84,3 +84,9 @@ Feature: engine
     Given this workspace, whose repo-model codegen and xtask binary have their own tests
     When the suite exercises UE-13
     Then frontier.toml records no feature-without-acceptance refusal, and Interface declares featureRepoModelCodegen and featureXtaskMain
+
+  @UE-14 @build
+  Scenario: uorust run on its own source reproduces its hand model: every hand component, call, threat, control and quality measure in app/src is paired with the derived record that states the same fact or listed as outside the code with a reason, the hand route table equals uorust::ROUTES, and the drift is 0
+    Given this workspace and the hand model in app/src, with crates/uorust/tests/fixpoint.toml pairing their records
+    When the suite exercises UE-14
+    Then every paired record on both sides states its fact, every checked hand record is paired or outside, the route tables agree, and the drift is 0

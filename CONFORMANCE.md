@@ -35,6 +35,7 @@ model does not sanction.
 | `UE-11` | `build` | Unsigned arithmetic whose overflow the code names, signed integers, strings, structs, tuples, Option, Result with ?, slices with structural recursion, integer matches and string format! lift to LexLean definitions that lexlean verify accepts, with the Lean axioms they need declared |
 | `UE-12` | `build` | A RustSec advisory that affects a locked package's version is a Risk on the supply chain, answered by the advisory gate or accepted where deny.toml ignores it with its reason; one nothing answers is refused, and a run without a database records that none was consulted |
 | `UE-13` | `build` | Every feature of this workspace's own projection is admitted: each library module and binary entry point is exercised by a test, doctest or example, directly or through a helper of the test's file |
+| `UE-14` | `build` | uorust run on its own source reproduces its hand model: every hand component, call, threat, control and quality measure in app/src is paired with the derived record that states the same fact or listed as outside the code with a reason, the hand route table equals uorust::ROUTES, and the drift is 0 |
 
 ## self-model
 
