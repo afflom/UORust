@@ -15,14 +15,33 @@
 # state: a capability that is not built does not get a row, and every row in this
 # file is built.
 #
-# The first row is the template's own Prism application in `app/` (TC-01).
+# The SM rows are UORust's own Prism model in `app/`: the route table it
+# applies and every facet of UORust itself.
 # A capability starts with a row here; `just new-capability` writes the row,
 # its scenario and its failing test in the order `AGENTS.md` sets out.
 
 spec = "template/1"
 
 [[id]]
-id = "TC-01"
+id = "SM-01"
 level = "build"
-suite = "contract"
-statement = "The checker answers conformant exactly when every universal policy file's observed digest equals its locked digest"
+suite = "self-model"
+statement = "UORust's application answers the route table of model/routes.toml route for route, and replays every router and workbench vector of that file in order"
+
+[[id]]
+id = "SM-02"
+level = "build"
+suite = "self-model"
+statement = "The route table's theorems state, over the whole table and by decide, that every fact kind routes to its own row, that facts are distinct, and that any two kinds naming different routes are refused as ambiguous"
+
+[[id]]
+id = "SM-03"
+level = "build"
+suite = "self-model"
+statement = "UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, and quality, each with records, and every module title has a project-local glossary entry"
+
+[[id]]
+id = "SM-04"
+level = "build"
+suite = "self-model"
+statement = "The threat model maps every threat to a control with evidence or accepts it with a rationale, and every control's evidence names a gate, proof or review"

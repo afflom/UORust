@@ -45,11 +45,12 @@ test:
 deny:
     cargo deny --all-features check
 
-# The template's own Prism application, the contract checker. The model must
-# be canonical and locked. `prismpm verify` builds the holo, replaying its
-# acceptance vectors in the compiled guest, then has the Lean kernel and
-# leanchecker check every theorem (`TC-01`) and the generated code against the
-# model. It runs the build itself, so a separate `prismpm build` would repeat it.
+# UORust's own Prism model: the route table as an application and every facet
+# of UORust. The model must be canonical and locked. `prismpm verify` builds
+# the holo, replaying its acceptance vectors in the compiled guest, then has the
+# Lean kernel and leanchecker check every theorem (`SM-02`) and the generated
+# code against the model. It runs the build itself, so a separate
+# `prismpm build` would repeat it.
 app:
     cd app && lexlean fmt --check && lexlean lock --check
     prismpm --project app verify
