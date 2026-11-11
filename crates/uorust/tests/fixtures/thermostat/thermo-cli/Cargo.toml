@@ -1,0 +1,17 @@
+[package]
+name = "thermo-cli"
+description = "Reads a target temperature and a reading and prints whether to heat."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "thermo"
+path = "src/main.rs"
+
+[dependencies]
+thermo-core = { path = "../thermo-core", version = "0.1.0" }
+
+[lints]
+workspace = true

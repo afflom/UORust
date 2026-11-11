@@ -113,6 +113,19 @@ fn effective_lines(text: &str) -> Vec<(usize, &str)> {
     out
 }
 
+/// The only error types a shipped crate may name, plus the declaration check at
+/// a declared boundary, which is not the operation failing.
+///
+/// `UorustError` is the engine's: it reports only that no projection exists
+/// (the workspace cannot be read, the output directory is not the engine's, the
+/// committed projection is stale), never a bound of the engine's own choosing.
+/// An ambiguity in the workspace is not an error at all: admission records it
+/// as a typed refusal in `frontier.toml`. Every variant is typed, modeled
+/// (`UE-06`) and covered by a negative test in `crates/uorust/tests`, so the
+/// addition keeps R5 instead of loosening it; the tests below prove the gate
+/// still rejects every other error type.
+const SANCTIONED: [&str; 4] = ["NotAProduct", "ObservedBound", "KappaError", "UorustError"];
+
 /// R5: no arbitrary limitation. Every bound is a property of the caller's
 /// chosen instantiation, never of the code.
 ///
@@ -121,9 +134,7 @@ fn effective_lines(text: &str) -> Vec<(usize, &str)> {
 /// negative testing is only honest if there is nothing to test negatively.
 pub fn audit_limits(root: &Path) -> Result<(), Fail> {
     let sources = shipped_sources(root)?;
-    // The only error type a shipped crate may name, plus the declaration check at
-    // a declared boundary, which is not the operation failing.
-    let sanctioned = ["NotAProduct", "ObservedBound", "KappaError"];
+    let sanctioned = SANCTIONED;
 
     let mut violations = Vec::new();
     for src in &sources {
@@ -264,4 +275,58 @@ fn gather_all(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), Fail> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn shipped_crate(source: &str) -> PathBuf {
+        let root = std::env::temp_dir().join(format!(
+            "audit-limits-{}-{}",
+            std::process::id(),
+            source.len()
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        let src = root.join("crates/shipped/src");
+        std::fs::create_dir_all(&src).expect("temp crate");
+        std::fs::write(
+            root.join("crates/shipped/Cargo.toml"),
+            "[package]\nname = \"shipped\"\n",
+        )
+        .expect("manifest");
+        std::fs::write(src.join("lib.rs"), source).expect("source");
+        root
+    }
+
+    #[test]
+    fn the_engine_error_is_sanctioned() {
+        let root = shipped_crate("pub fn f() -> Result<(), UorustError> { Ok(()) }\n");
+        assert!(audit_limits(&root).is_ok());
+    }
+
+    #[test]
+    fn any_other_error_type_is_still_refused() {
+        for other in [
+            "std::io::Error",
+            "String",
+            "Box<dyn std::error::Error>",
+            "Uorust",
+        ] {
+            let root = shipped_crate(&format!("pub fn f() -> Result<(), {other}> {{ Ok(()) }}\n"));
+            let error = audit_limits(&root).expect_err(other).to_string();
+            assert!(error.contains("R5"), "{other}: {error}");
+        }
+    }
+
+    #[test]
+    fn a_publish_false_crate_is_not_audited() {
+        let root = shipped_crate("pub fn f() -> Result<(), String> { Ok(()) }\n");
+        std::fs::write(
+            root.join("crates/shipped/Cargo.toml"),
+            "[package]\nname = \"shipped\"\npublish = false\n",
+        )
+        .expect("manifest");
+        assert!(audit_limits(&root).is_ok());
+    }
 }
