@@ -19,7 +19,7 @@ Feature: self-model
     And each is decided, not assumed
 
   @SM-03 @build
-  Scenario: UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, and quality, each with records, and every module title has a project-local glossary entry
+  Scenario: UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, quality, the browser system release and compliance, each with records, and every module title has a project-local glossary entry
     Given the modules in app/src and the glossaries in app/language
     When the suite exercises SM-03
     Then each facet declares records of its kinds

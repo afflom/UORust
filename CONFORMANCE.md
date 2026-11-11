@@ -24,7 +24,7 @@ model does not sanction.
 | --- | --- | --- |
 | `SM-01` | `build` | UORust's application answers the route table of model/routes.toml route for route, and replays every router and workbench vector of that file in order |
 | `SM-02` | `build` | The route table's theorems state, over the whole table and by decide, that every fact kind routes to its own row, that facts are distinct, and that any two kinds naming different routes are refused as ambiguous |
-| `SM-03` | `build` | UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, and quality, each with records, and every module title has a project-local glossary entry |
+| `SM-03` | `build` | UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, quality, the browser system release and compliance, each with records, and every module title has a project-local glossary entry |
 | `SM-04` | `build` | The threat model maps every threat to a control with evidence or accepts it with a rationale, and every control's evidence names a gate, proof or review |
 
 ## Cited authorities

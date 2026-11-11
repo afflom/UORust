@@ -208,10 +208,10 @@ fn self_model_sm_02() {
     );
 }
 
-/// `SM-03`: UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, and quality, each with records, and every module title has a project-local glossary entry
+/// `SM-03`: UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, quality, the browser system release and compliance, each with records, and every module title has a project-local glossary entry
 #[test]
 fn self_model_sm_03() {
-    let facets: [(&str, &[(&str, usize)]); 5] = [
+    let facets: [(&str, &[(&str, usize)]); 7] = [
         (
             "app/src/Architecture.lex.tex",
             &[
@@ -262,6 +262,14 @@ fn self_model_sm_03() {
                 ("Foundation.Qual::QualityMeasure", 11),
             ],
         ),
+        (
+            "app/src/System.lex.tex",
+            &[
+                ("Production.BrowserSystem::SystemModel", 1),
+                ("Production.BrowserSystem::SystemManifest", 1),
+            ],
+        ),
+        ("app/src/Compliance.lex.tex", &[("(List Obligation)", 1)]),
     ];
     for (path, kinds) in facets {
         let module = read(path);

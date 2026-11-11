@@ -1,0 +1,326 @@
+\begin{lexlean}{Production.BrowserSystem}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Production.Core}
+\title{Browser-resident system model}
+\begin{semanticmodule}
+structure{
+  name: ApplicationProfile,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: contract, type: String},
+    {name: applicationModelDigest, type: String},
+    {name: execution, type: String},
+    {name: persistentStorage, type: String},
+    {name: externalServices, type: String},
+    {name: resources, type: (List String)},
+    {name: capabilities, type: (List String)}
+  ]
+}
+
+structure{
+  name: GeneratedArtifact,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: role, type: String},
+    {name: licenseExpression, type: String}
+  ]
+}
+
+structure{
+  name: Component,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: artifact, type: String},
+    {name: kind, type: String},
+    {name: version, type: String}
+  ]
+}
+
+structure{
+  name: Target,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: kind, type: String},
+    {name: adapterDigest, type: String},
+    {name: apiVersion, type: String},
+    {name: minimumReleaseStatus, type: String}
+  ]
+}
+
+structure{
+  name: SystemModel,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: product, type: Production.Core::Product},
+    {name: applicationProfile, type: ApplicationProfile},
+    {name: artifacts, type: (List GeneratedArtifact)},
+    {name: components, type: (List Component)},
+    {name: targets, type: (List Target)},
+    {name: controls, type: (List String)},
+    {name: standards, type: (List String)}
+  ]
+}
+
+structure{
+  name: SystemManifest,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: applicationModelDigest, type: String},
+    {name: productId, type: String},
+    {name: productVersion, type: String},
+    {name: componentId, type: String},
+    {name: artifactId, type: String},
+    {name: targetId, type: String},
+    {name: controls, type: (List String)}
+  ]
+}
+
+definition{
+  name: equalStrings,
+  parameters: [left : (List String), right : (List String)],
+  result: Bool,
+  body: (match left
+    | List.nil => (match right | List.nil => true | List.cons h t => false)
+    | List.cons head tail => (match right
+      | List.nil => false
+      | List.cons other rest => ((prim equal head other : Bool) && ((equalStrings tail rest) && true)))),
+  recursive_argument: left
+}
+
+definition{
+  name: validProduct,
+  parameters: [product : Production.Core::Product],
+  result: Bool,
+  body: ((equalStrings (project product supportedPlatforms) (cons "browser" (nil String))) && ((not (prim equal (project product id) "" : Bool)) && ((not (prim equal (project product owner) "" : Bool)) && ((not (prim equal (project product sourcePolicy) "" : Bool)) && ((not (prim equal (project product version) "" : Bool)) && (((prim equal (project product lifecycle) "development" : Bool) || ((prim equal (project product lifecycle) "candidate" : Bool) || ((prim equal (project product lifecycle) "accepted" : Bool) || ((prim equal (project product lifecycle) "retired" : Bool) || false)))) && true))))))
+}
+
+definition{
+  name: validApplicationProfile,
+  parameters: [profile : ApplicationProfile],
+  result: Bool,
+  body: ((prim equal (project profile contract) "prismpm/browser-resident-application/1" : Bool) && ((prim equal (project profile execution) "browser-session" : Bool) && ((prim equal (project profile persistentStorage) "none" : Bool) && ((prim equal (project profile externalServices) "none" : Bool) && ((equalStrings (project profile resources) (cons "dom" (cons "webassembly" (nil String)))) && ((equalStrings (project profile capabilities) (cons "portable-static-holo-application" (nil String))) && ((not (prim equal (project profile applicationModelDigest) "" : Bool)) && true)))))))
+}
+
+definition{
+  name: validSelectedApplication,
+  parameters: [component : Component, artifact : GeneratedArtifact],
+  result: Bool,
+  body: ((not (prim equal (project component id) "" : Bool)) && ((not (prim equal (project component version) "" : Bool)) && ((not (prim equal (project artifact id) "" : Bool)) && ((prim equal (project component kind) "browser" : Bool) && ((prim equal (project component artifact) (project artifact id) : Bool) && ((prim equal (project artifact role) "selected-application" : Bool) && ((prim equal (project artifact licenseExpression) "MIT OR Apache-2.0" : Bool) && true)))))))
+}
+
+definition{
+  name: validCommandLineProgram,
+  parameters: [component : Component, artifact : GeneratedArtifact, application : Component],
+  result: Bool,
+  body: ((not (prim equal (project component id) "" : Bool)) && ((not (prim equal (project artifact id) "" : Bool)) && ((prim equal (project component kind) "cli" : Bool) && ((prim equal (project component version) (project application version) : Bool) && ((prim equal (project component artifact) (project artifact id) : Bool) && ((prim equal (project artifact role) "command-line-program" : Bool) && ((prim equal (project artifact licenseExpression) "MIT OR Apache-2.0" : Bool) && true)))))))
+}
+
+definition{
+  name: validTarget,
+  parameters: [target : Target],
+  result: Bool,
+  body: ((not (prim equal (project target id) "" : Bool)) && ((not (prim equal (project target adapterDigest) "" : Bool)) && ((prim equal (project target kind) "github-pages-browser" : Bool) && ((prim equal (project target apiVersion) "github-pages-artifact@v4" : Bool) && (((prim equal (project target minimumReleaseStatus) "development" : Bool) || ((prim equal (project target minimumReleaseStatus) "candidate" : Bool) || ((prim equal (project target minimumReleaseStatus) "accepted" : Bool) || false))) && true)))))
+}
+
+definition{
+  name: distinctFrom,
+  parameters: [
+    identity : String,
+    productId : String,
+    componentId : String,
+    artifactId : String,
+    targetId : String
+  ],
+  result: Bool,
+  body: ((not (prim equal identity productId : Bool)) && ((not (prim equal identity componentId : Bool)) && ((not (prim equal identity artifactId : Bool)) && ((not (prim equal identity targetId : Bool)) && true))))
+}
+
+definition{
+  name: distinctIdentities,
+  parameters: [product : String, component : String, artifact : String, target : String],
+  result: Bool,
+  body: ((not (prim equal product component : Bool)) && ((not (prim equal product artifact : Bool)) && ((not (prim equal product target : Bool)) && ((not (prim equal component artifact : Bool)) && ((not (prim equal component target : Bool)) && ((not (prim equal artifact target : Bool)) && true))))))
+}
+
+definition{
+  name: validSelectedSystem,
+  parameters: [
+    model : SystemModel,
+    manifest : SystemManifest,
+    component : Component,
+    artifact : GeneratedArtifact,
+    target : Target
+  ],
+  result: Bool,
+  body: ((validProduct (project model product)) && ((validApplicationProfile (project model applicationProfile)) && ((equalStrings (project model controls) (cons "application-acceptance" (cons "artifact-closure" (cons "source-proof" (cons "spdx" (nil String)))))) && ((equalStrings (project model standards) (cons "SPDX-3.0.1" (nil String))) && ((validSelectedApplication component artifact) && ((validTarget target) && ((prim equal (project manifest applicationModelDigest) (project (project model applicationProfile) applicationModelDigest) : Bool) && ((prim equal (project manifest productId) (project (project model product) id) : Bool) && ((prim equal (project manifest productVersion) (project (project model product) version) : Bool) && ((prim equal (project manifest componentId) (project component id) : Bool) && ((prim equal (project manifest artifactId) (project artifact id) : Bool) && ((prim equal (project manifest targetId) (project target id) : Bool) && ((equalStrings (project manifest controls) (project model controls)) && ((distinctIdentities (project (project model product) id) (project component id) (project artifact id) (project target id)) && true))))))))))))))
+}
+
+definition{
+  name: validateManifest,
+  parameters: [model : SystemModel, manifest : SystemManifest],
+  result: Bool,
+  body: (match (project model components)
+    | List.nil => false
+    | List.cons component componentRest => (match (project model artifacts)
+      | List.nil => false
+      | List.cons artifact artifactRest => (match (project model targets)
+        | List.nil => false
+        | List.cons target targetRest => (match targetRest
+          | List.nil => (match componentRest
+            | List.nil => (match artifactRest
+              | List.nil => (validSelectedSystem model manifest component artifact target)
+              | List.cons artifactExtra artifactRestExtra => false)
+            | List.cons program programRest => (match programRest
+              | List.nil => (match artifactRest
+                | List.nil => false
+                | List.cons binary binaryRest => (match binaryRest
+                  | List.nil => ((validSelectedSystem model manifest component artifact target) && ((validCommandLineProgram program binary component) && ((distinctFrom (project program id) (project (project model product) id) (project component id) (project artifact id) (project target id)) && ((distinctFrom (project binary id) (project (project model product) id) (project component id) (project artifact id) (project target id)) && ((not (prim equal (project program id) (project binary id) : Bool)) && true)))))
+                  | List.cons binaryExtra binaryRestExtra => false))
+              | List.cons programExtra programRestExtra => false))
+          | List.cons targetExtra targetRestExtra => false))))
+}
+
+definition{
+  name: exampleModel,
+  parameters: [
+    artifacts : (List GeneratedArtifact),
+    components : (List Component),
+    targets : (List Target)
+  ],
+  result: SystemModel,
+  body: (record SystemModel {product := (record Production.Core::Product {id := "browser-cli-product", owner := "UOR Foundation", version := "A", lifecycle := "development", sourcePolicy := "selected LexLean source and kernel proof", supportedPlatforms := (cons "browser" (nil String))}), applicationProfile := (record ApplicationProfile {contract := "prismpm/browser-resident-application/1", applicationModelDigest := "sha256:de510ca735a4394615c29194f3d7b3bcafe3b7b46da6e1b126423df4ce619e4b", execution := "browser-session", persistentStorage := "none", externalServices := "none", resources := (cons "dom" (cons "webassembly" (nil String))), capabilities := (cons "portable-static-holo-application" (nil String))}), artifacts := artifacts, components := components, targets := targets, controls := (cons "application-acceptance" (cons "artifact-closure" (cons "source-proof" (cons "spdx" (nil String))))), standards := (cons "SPDX-3.0.1" (nil String))})
+}
+
+definition{
+  name: exampleManifest,
+  parameters: [],
+  result: SystemManifest,
+  body: (record SystemManifest {applicationModelDigest := "sha256:de510ca735a4394615c29194f3d7b3bcafe3b7b46da6e1b126423df4ce619e4b", productId := "browser-cli-product", productVersion := "A", componentId := "browser-application", artifactId := "generated-application", targetId := "pages", controls := (cons "application-acceptance" (cons "artifact-closure" (cons "source-proof" (cons "spdx" (nil String)))))})
+}
+
+definition{
+  name: exampleApplicationArtifact,
+  parameters: [],
+  result: GeneratedArtifact,
+  body: (record GeneratedArtifact {id := "generated-application", role := "selected-application", licenseExpression := "MIT OR Apache-2.0"})
+}
+
+definition{
+  name: exampleApplicationComponent,
+  parameters: [],
+  result: Component,
+  body: (record Component {id := "browser-application", artifact := "generated-application", kind := "browser", version := "0.1.0"})
+}
+
+definition{
+  name: exampleProgramArtifact,
+  parameters: [artifactId : String],
+  result: GeneratedArtifact,
+  body: (record GeneratedArtifact {id := artifactId, role := "command-line-program", licenseExpression := "MIT OR Apache-2.0"})
+}
+
+definition{
+  name: exampleProgramComponent,
+  parameters: [componentId : String, artifactReference : String, componentVersion : String],
+  result: Component,
+  body: (record Component {id := componentId, artifact := artifactReference, kind := "cli", version := componentVersion})
+}
+
+definition{
+  name: examplePagesTarget,
+  parameters: [targetId : String],
+  result: Target,
+  body: (record Target {id := targetId, kind := "github-pages-browser", adapterDigest := "sha256:59df071a35deca05e62224e43b82d7bc9b5c649f989a3424fd704123633a539e", apiVersion := "github-pages-artifact@v4", minimumReleaseStatus := "development"})
+}
+
+theorem{
+  name: browserOnlySystemIsAdmitted,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (nil GeneratedArtifact)) (cons (exampleApplicationComponent) (nil Component)) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: browserAndCommandLineSystemIsAdmitted,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (exampleProgramArtifact "command-line-program") (nil GeneratedArtifact))) (cons (exampleApplicationComponent) (cons (exampleProgramComponent "command-line" "command-line-program" "0.1.0") (nil Component))) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: secondBrowserComponentIsRefused,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (record GeneratedArtifact {id := "second-application", role := "selected-application", licenseExpression := "MIT OR Apache-2.0"}) (nil GeneratedArtifact))) (cons (exampleApplicationComponent) (cons (record Component {id := "second-browser", artifact := "second-application", kind := "browser", version := "0.1.0"}) (nil Component))) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: twoCommandLineComponentsAreRefused,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (exampleProgramArtifact "command-line-program") (cons (exampleProgramArtifact "second-program") (nil GeneratedArtifact)))) (cons (exampleApplicationComponent) (cons (exampleProgramComponent "command-line" "command-line-program" "0.1.0") (cons (exampleProgramComponent "second-command-line" "second-program" "0.1.0") (nil Component)))) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: commandLineVersionMustMatchTheApplication,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (exampleProgramArtifact "command-line-program") (nil GeneratedArtifact))) (cons (exampleApplicationComponent) (cons (exampleProgramComponent "command-line" "command-line-program" "9.9.9") (nil Component))) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: commandLineComponentMustReferenceItsProgram,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (exampleProgramArtifact "command-line-program") (nil GeneratedArtifact))) (cons (exampleApplicationComponent) (cons (exampleProgramComponent "command-line" "generated-application" "0.1.0") (nil Component))) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: commandLineComponentWithoutProgramIsRefused,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (nil GeneratedArtifact)) (cons (exampleApplicationComponent) (cons (exampleProgramComponent "command-line" "command-line-program" "0.1.0") (nil Component))) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: commandLineProgramWithoutComponentIsRefused,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (exampleProgramArtifact "command-line-program") (nil GeneratedArtifact))) (cons (exampleApplicationComponent) (nil Component)) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: commandLineProgramMustHaveItsRole,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (record GeneratedArtifact {id := "command-line-program", role := "selected-application", licenseExpression := "MIT OR Apache-2.0"}) (nil GeneratedArtifact))) (cons (exampleApplicationComponent) (cons (exampleProgramComponent "command-line" "command-line-program" "0.1.0") (nil Component))) (cons (examplePagesTarget "pages") (nil Target))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: extraTargetIsRefused,
+  parameters: [],
+  statement: ((validateManifest (exampleModel (cons (exampleApplicationArtifact) (cons (exampleProgramArtifact "command-line-program") (nil GeneratedArtifact))) (cons (exampleApplicationComponent) (cons (exampleProgramComponent "command-line" "command-line-program" "0.1.0") (nil Component))) (cons (examplePagesTarget "pages") (cons (examplePagesTarget "second-pages") (nil Target)))) (exampleManifest)) = false),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

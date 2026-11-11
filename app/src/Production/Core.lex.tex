@@ -1,0 +1,151 @@
+\begin{lexlean}{Production.Core}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\title{Production system model}
+\begin{semanticmodule}
+inductive{
+  name: ComponentKind,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: Browser, fields: []},
+    {name: Api, fields: []},
+    {name: Worker, fields: []},
+    {name: Database, fields: []},
+    {name: Broker, fields: []},
+    {name: IdentityProvider, fields: []},
+    {name: TelemetryCollector, fields: []},
+    {name: Migration, fields: []},
+    {name: Job, fields: []}
+  ]
+}
+
+structure{
+  name: Product,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: owner, type: String},
+    {name: version, type: String},
+    {name: lifecycle, type: String},
+    {name: sourcePolicy, type: String},
+    {name: supportedPlatforms, type: (List String)}
+  ]
+}
+
+structure{
+  name: Artifact,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: mediaType, type: String},
+    {name: digest, type: String},
+    {name: licenseExpression, type: String},
+    {name: path, type: String},
+    {name: role, type: String},
+    {name: platformRequirements, type: (List String)}
+  ]
+}
+
+structure{
+  name: ResourceRequirements,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: cpuMillis, type: UInt32},
+    {name: memoryBytes, type: UInt64},
+    {name: replicasMin, type: UInt32},
+    {name: replicasMax, type: UInt32}
+  ]
+}
+
+structure{
+  name: Component,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: kind, type: String},
+    {name: version, type: String},
+    {name: artifact, type: String},
+    {name: capabilities, type: (List String)},
+    {name: command, type: (List String)},
+    {name: dependsOn, type: (List String)},
+    {name: interfaces, type: (List String)},
+    {name: health, type: String},
+    {name: liveness, type: (List String)},
+    {name: parameters, type: (List String)},
+    {name: ports, type: (List String)},
+    {name: readiness, type: (List String)},
+    {name: resources, type: ResourceRequirements},
+    {name: secrets, type: (List String)},
+    {name: startup, type: (List String)},
+    {name: volumes, type: (List String)},
+    {name: isolation, type: String},
+    {name: placement, type: (List String)},
+    {name: platformRequirements, type: (List String)},
+    {name: scalingPolicy, type: (Option String)},
+    {name: failurePolicy, type: String},
+    {name: retryPolicy, type: String},
+    {name: degradationPolicy, type: String},
+    {name: idempotency, type: String}
+  ]
+}
+
+structure{
+  name: Capability,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: kind, type: String},
+    {name: value, type: String},
+    {name: dependsOn, type: (List String)}
+  ]
+}
+
+structure{
+  name: Configuration,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: valueType, type: String},
+    {name: allowed, type: (List String)},
+    {name: defaultValue, type: (Option String)},
+    {name: required, type: Bool},
+    {name: mutable, type: Bool},
+    {name: lateBound, type: Bool},
+    {name: exposure, type: String}
+  ]
+}
+
+structure{
+  name: SecretReference,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: providerKey, type: String},
+    {name: consumers, type: (List String)},
+    {name: rotation, type: String}
+  ]
+}
+
+structure{
+  name: IdentityRequirement,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: issuerParameter, type: String},
+    {name: audiences, type: (List String)},
+    {name: subjects, type: (List String)},
+    {name: roles, type: (List String)}
+  ]
+}
+\end{semanticmodule}
+\end{lexlean}
