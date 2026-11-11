@@ -1411,6 +1411,10 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                 rt.clone(),
             )
         }
+        (Ty::Nat(_), "midpoint") => {
+            let a = arg(&rt)?;
+            flat(format!("(prim quotient ({r} + {a}) 2 0 : Nat)"), rt.clone())
+        }
         (Ty::Nat(_), "min" | "max") => {
             let a = arg(&rt)?;
             let (x, y) = if name == "min" { (&r, &a) } else { (&a, &r) };

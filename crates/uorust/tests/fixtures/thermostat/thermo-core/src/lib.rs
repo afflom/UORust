@@ -69,9 +69,9 @@ pub fn halt(mode: Mode) -> Mode {
     }
 }
 
-/// The midpoint of a band, which wraps on overflow in release builds.
+/// The midpoint of a band, rounded down, without overflow.
 pub fn midpoint(low: u32, high: u32) -> u32 {
-    (low + high) / 2
+    low.midpoint(high)
 }
 
 #[cfg(test)]

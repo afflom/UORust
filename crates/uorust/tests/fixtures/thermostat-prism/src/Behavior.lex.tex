@@ -209,6 +209,13 @@ definition{
 }
 
 definition{
+  name: midpoint,
+  parameters: [low : Nat, high : Nat],
+  result: Nat,
+  body: (prim quotient (low + high) 2 0 : Nat)
+}
+
+definition{
   name: roomIsCold,
   parameters: [selfValue : Room, floor : Nat],
   result: Bool,
@@ -592,6 +599,13 @@ theorem{
   name: acceptThermoCoreBandIsInclusive1,
   parameters: [],
   statement: ((withinBand 10 5 9) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreMidpointOfABand0,
+  parameters: [],
+  statement: ((midpoint 4 8) = 6),
   proof: decide{}
 }
 

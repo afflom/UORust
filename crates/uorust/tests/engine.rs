@@ -138,7 +138,7 @@ fn the_floor_lifts_and_the_rest_is_typed_residue_ue_04() {
     assert!(behavior.contains("statement: ((shouldHeat 18 21) = true),"));
     assert!(behavior.contains("statement: ((withinBand 10 5 9) = false),"));
     assert!(behavior.contains("proof: decide{}"));
-    assert!(!behavior.contains("name: midpoint"));
+    assert!(behavior.contains("(prim quotient (low + high) 2 0 : Nat)"));
     let frontier = text(&files, "frontier.toml");
     let residue = |function: &str, reason: &str| {
         frontier.contains(&format!("function = \"{function}\"\nspan = "))
@@ -146,7 +146,27 @@ fn the_floor_lifts_and_the_rest_is_typed_residue_ue_04() {
                 row.contains(function) && row.contains(&format!("reason = \"{reason}\""))
             })
     };
-    assert!(residue("thermo_core::midpoint", "arithmetic"), "{frontier}");
+    // Arithmetic whose meaning is a build setting stays typed residue.
+    let planted = scratch(
+        "arith",
+        &[
+            (
+                "Cargo.toml",
+                "[package]\nname = \"arith\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+            ),
+            (
+                "src/lib.rs",
+                "/// Overflows.\npub fn mid(a: u32, b: u32) -> u32 {\n    (a + b) / 2\n}\n",
+            ),
+        ],
+    );
+    let planted_frontier = text(&project(&planted, "arith"), "frontier.toml");
+    assert!(
+        planted_frontier.contains("function = \"arith::mid\"")
+            && planted_frontier.contains("reason = \"arithmetic\""),
+        "{planted_frontier}"
+    );
+    let _ = std::fs::remove_dir_all(planted);
     // The I/O shell is an effect row, not residue: `load_target` reads a file
     // and `target_from_env` reads the environment, directly or through it.
     let effect = |function: &str, needle: &str| {
@@ -369,7 +389,7 @@ fn the_widened_lift_covers_the_fixture_ue_11() {
     assert!(behavior.contains("statement: ((freezing (-3 : Int64)) = true),"));
     assert!(behavior.contains("axioms: [propext]"));
     let frontier = text(&files, "frontier.toml");
-    assert!(frontier.contains("function = \"thermo_core::midpoint\""));
+    assert!(!frontier.contains("function = \"thermo_core::midpoint\""));
     assert!(
         !frontier.contains("function = \"thermo_core::band::"),
         "{frontier}"
