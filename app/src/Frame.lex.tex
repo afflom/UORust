@@ -1,0 +1,225 @@
+\begin{lexlean}{Frame}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Guide}
+\title{UORust workbench frames}
+\begin{semanticmodule}
+structure{
+  name: Framed,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: operation, type: String}, {name: payload, type: String}]
+}
+
+definition{
+  name: framedAs,
+  parameters: [prefix : String, operation : String, parts : (List String)],
+  result: (Option Framed),
+  body: (match parts
+    | List.nil => (ctor Option.none [Framed])
+    | List.cons head rest => (match rest
+      | List.nil => (ctor Option.none [Framed])
+      | List.cons payload more => (if (prim equal head prefix : Bool) then (ctor Option.some [Framed] (record Framed {operation := operation, payload := payload})) else (ctor Option.none [Framed]))))
+}
+
+definition{
+  name: unframe,
+  parameters: [text : String],
+  result: (Option Framed),
+  body: (match (prim split_exact text "\u001f" (2 : UInt32) : (Option (List String)))
+    | Option.none => (ctor Option.none [Framed])
+    | Option.some parts => (match (framedAs "ui-route" "route" parts)
+      | Option.some framed => (ctor Option.some [Framed] framed)
+      | Option.none => (framedAs "ui-raw" "raw" parts))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: escapeOctet,
+  parameters: [octet : UInt8],
+  result: String,
+  body: (if (prim equal octet (34 : UInt8) : Bool) then "\\\"" else (if (prim equal octet (92 : UInt8) : Bool) then "\\\\" else (if (prim equal octet (10 : UInt8) : Bool) then "\\n" else (if (prim equal octet (13 : UInt8) : Bool) then "\\r" else (if (prim equal octet (9 : UInt8) : Bool) then "\\t" else (if (prim equal octet (0 : UInt8) : Bool) then "\\u0000" else (if (prim equal octet (1 : UInt8) : Bool) then "\\u0001" else (if (prim equal octet (2 : UInt8) : Bool) then "\\u0002" else (if (prim equal octet (3 : UInt8) : Bool) then "\\u0003" else (if (prim equal octet (4 : UInt8) : Bool) then "\\u0004" else (if (prim equal octet (5 : UInt8) : Bool) then "\\u0005" else (if (prim equal octet (6 : UInt8) : Bool) then "\\u0006" else (if (prim equal octet (7 : UInt8) : Bool) then "\\u0007" else (if (prim equal octet (8 : UInt8) : Bool) then "\\u0008" else (if (prim equal octet (11 : UInt8) : Bool) then "\\u000b" else (if (prim equal octet (12 : UInt8) : Bool) then "\\u000c" else (if (prim equal octet (14 : UInt8) : Bool) then "\\u000e" else (if (prim equal octet (15 : UInt8) : Bool) then "\\u000f" else (if (prim equal octet (16 : UInt8) : Bool) then "\\u0010" else (if (prim equal octet (17 : UInt8) : Bool) then "\\u0011" else (if (prim equal octet (18 : UInt8) : Bool) then "\\u0012" else (if (prim equal octet (19 : UInt8) : Bool) then "\\u0013" else (if (prim equal octet (20 : UInt8) : Bool) then "\\u0014" else (if (prim equal octet (21 : UInt8) : Bool) then "\\u0015" else (if (prim equal octet (22 : UInt8) : Bool) then "\\u0016" else (if (prim equal octet (23 : UInt8) : Bool) then "\\u0017" else (if (prim equal octet (24 : UInt8) : Bool) then "\\u0018" else (if (prim equal octet (25 : UInt8) : Bool) then "\\u0019" else (if (prim equal octet (26 : UInt8) : Bool) then "\\u001a" else (if (prim equal octet (27 : UInt8) : Bool) then "\\u001b" else (if (prim equal octet (28 : UInt8) : Bool) then "\\u001c" else (if (prim equal octet (29 : UInt8) : Bool) then "\\u001d" else (if (prim equal octet (30 : UInt8) : Bool) then "\\u001e" else (if (prim equal octet (31 : UInt8) : Bool) then "\\u001f" else ""))))))))))))))))))))))))))))))))))
+}
+
+definition{
+  name: textOf,
+  parameters: [content : Bytes],
+  result: String,
+  body: (match (prim utf8_decode content : (Option String))
+    | Option.none => ""
+    | Option.some text => text),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: chunk,
+  parameters: [value : Bytes, start : Nat, finish : Nat],
+  result: String,
+  body: (match (prim slice value start (prim subtract finish start : Nat) : (Option Bytes))
+    | Option.none => ""
+    | Option.some part => (textOf part)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: escapeFrom,
+  parameters: [value : Bytes, start : Nat, offset : Nat, remaining : Nat],
+  result: String,
+  body: (match remaining
+    | Nat.zero => (chunk value start offset)
+    | Nat.succ rest => (match (prim index value offset : (Option UInt8))
+      | Option.none => (chunk value start offset)
+      | Option.some octet => (if (prim equal (escapeOctet octet) "" : Bool) then (escapeFrom value start (offset + 1) rest) else (prim join (cons (chunk value start offset) (cons (escapeOctet octet) (cons (escapeFrom value (offset + 1) (offset + 1) rest) (nil String)))) "" : String)))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: remaining
+}
+
+definition{
+  name: escapeText,
+  parameters: [text : String],
+  result: String,
+  body: (escapeFrom (prim utf8_encode text : Bytes) 0 0 (prim length (prim utf8_encode text : Bytes) : Nat)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: jsonString,
+  parameters: [text : String],
+  result: String,
+  body: (prim join (cons "\"" (cons (escapeText text) (cons "\"" (nil String)))) "" : String),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: quoteAll,
+  parameters: [items : (List String)],
+  result: String,
+  body: (match items
+    | List.nil => ""
+    | List.cons head rest => (match rest
+      | List.nil => (jsonString head)
+      | List.cons next more => (prim join (cons (jsonString head) (cons "," (cons (quoteAll rest) (nil String)))) "" : String))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items
+}
+
+definition{
+  name: jsonArray,
+  parameters: [items : (List String)],
+  result: String,
+  body: (prim join (cons "[" (cons (quoteAll items) (cons "]" (nil String)))) "" : String),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: countFrom,
+  parameters: [items : (List String), count : UInt32],
+  result: UInt32,
+  body: (match items
+    | List.nil => count
+    | List.cons head rest => (match (prim checked_add count (1 : UInt32) : (Option UInt32))
+      | Option.none => count
+      | Option.some next => (countFrom rest next))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: items
+}
+
+definition{
+  name: resultJson,
+  parameters: [
+    operation : String,
+    status : String,
+    message : String,
+    rows : UInt32,
+    columns : UInt32,
+    cells : (List String),
+    details : (List String),
+    request : String,
+    response : String,
+    error : String
+  ],
+  result: String,
+  body: (prim join (cons "{\"version\":1,\"status\":" (cons (jsonString status) (cons ",\"operation\":" (cons (jsonString operation) (cons ",\"message\":" (cons (jsonString message) (cons ",\"rows\":" (cons (prim format_decimal rows : String) (cons ",\"columns\":" (cons (prim format_decimal columns : String) (cons ",\"cells\":" (cons (jsonArray cells) (cons ",\"details\":" (cons (jsonArray details) (cons ",\"request\":" (cons (jsonString request) (cons ",\"response\":" (cons (jsonString response) (cons ",\"error\":" (cons (jsonString error) (cons "}" (nil String)))))))))))))))))))))) "" : String),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: lastWord,
+  parameters: [words : (List String)],
+  result: String,
+  body: (match words
+    | List.nil => ""
+    | List.cons head rest => (match rest
+      | List.nil => head
+      | List.cons next more => (lastWord rest))),
+  recursive_argument: words
+}
+
+definition{
+  name: firstWord,
+  parameters: [opening : String],
+  result: String,
+  body: (match (prim split_exact opening " " (4097 : UInt32) : (Option (List String)))
+    | Option.none => ""
+    | Option.some words => (match words | List.nil => "" | List.cons head rest => head)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: errorCode,
+  parameters: [details : (List String)],
+  result: String,
+  body: (match details
+    | List.nil => ""
+    | List.cons opening rest => (match (prim split_exact opening " " (4097 : UInt32) : (Option (List String)))
+      | Option.none => ""
+      | Option.some words => (lastWord words))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: overflowJson,
+  parameters: [operation : String],
+  result: String,
+  body: (resultJson operation "error" (Guide::errorText) (0 : UInt32) (0 : UInt32) (nil String) (cons (Guide::overflowText) (nil String)) "" "" "too-large"),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: wrapLines,
+  parameters: [operation : String, request : String, report : String, lines : (List String)],
+  result: String,
+  body: (match lines
+    | List.nil => (overflowJson operation)
+    | List.cons opening rest => (if (prim equal (firstWord opening) "route" : Bool) then (resultJson operation "ok" (Guide::routedText) (countFrom lines (0 : UInt32)) (1 : UInt32) lines (nil String) request report "") else (resultJson operation "error" (Guide::errorText) (0 : UInt32) (0 : UInt32) (nil String) lines request report (errorCode lines)))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: wrap,
+  parameters: [operation : String, request : String, report : String],
+  result: String,
+  body: (match (prim split_exact report "\n" (8193 : UInt32) : (Option (List String)))
+    | Option.none => (overflowJson operation)
+    | Option.some lines => (wrapLines operation request report lines)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: bounded,
+  parameters: [operation : String, json : Bytes],
+  result: Bytes,
+  body: (if (8192 <? (prim length json : Nat)) then (prim utf8_encode (overflowJson operation) : Bytes) else json),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: answer,
+  parameters: [framed : Framed, report : Bytes],
+  result: Bytes,
+  body: (bounded (project framed operation) (prim utf8_encode (wrap (project framed operation) (project framed payload) (textOf report)) : Bytes)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

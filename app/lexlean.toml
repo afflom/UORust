@@ -1,9 +1,9 @@
 spec = "lexlean/project/1"
-name = "prism-template-contract"
+name = "uorust"
 language = "1.2"
-module_prefix = "PrismTemplateContract"
+module_prefix = "Uorust"
 source_roots = ["src"]
-entrypoints = ["src/Contract.lex.tex"]
+entrypoints = ["src/Architecture.lex.tex", "src/Design.lex.tex", "src/Features.lex.tex", "src/Quality.lex.tex", "src/Routes.lex.tex", "src/Security.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
@@ -17,6 +17,16 @@ kind = "builtin"
 package = "prism.arch"
 kind = "path"
 path = "language/prism.arch"
+
+[[lexicon_source]]
+package = "prism.qual"
+kind = "path"
+path = "language/prism.qual"
+
+[[lexicon_source]]
+package = "prism.sec"
+kind = "path"
+path = "language/prism.sec"
 
 [limits]
 max_file_bytes = 4194304

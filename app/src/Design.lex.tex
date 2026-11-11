@@ -1,0 +1,520 @@
+\begin{lexlean}{Design}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Architecture}
+\importmodule{Foundation.Arch}
+\title{UORust design views}
+\begin{semanticmodule}
+definition{
+  name: processRun,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentCli"})
+}
+
+definition{
+  name: processIngest,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentIngest"})
+}
+
+definition{
+  name: processRoute,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentRouter"})
+}
+
+definition{
+  name: processAdmit,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: processRefuse,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: processRecordClaim,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: processRelease,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: processEmit,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentEmitter"})
+}
+
+definition{
+  name: processReplayVectors,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentRouteGuest"})
+}
+
+definition{
+  name: stateFactProposed,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: stateFactAdmitted,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: stateFactRefused,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: stateFactOpenClaim,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: stateFactReleased,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: viewOpmPipeline,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "The projection process", viewpoint := "Architecture::viewpointPipelineCompleteness", diagram := (ctor Foundation.Arch::DesignDiagram.opmObjectProcess)})
+}
+
+definition{
+  name: viewUmlComponents,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "Components of the pipeline", viewpoint := "Architecture::viewpointPipelineFidelity", diagram := (ctor Foundation.Arch::DesignDiagram.umlComponent)})
+}
+
+definition{
+  name: viewUmlSequence,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "A workspace through ingest, route, admit and emit", viewpoint := "Architecture::viewpointPipelineFidelity", diagram := (ctor Foundation.Arch::DesignDiagram.umlSequence)})
+}
+
+definition{
+  name: viewUmlFactAdmission,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "States of a fact's admission", viewpoint := "Architecture::viewpointRefusal", diagram := (ctor Foundation.Arch::DesignDiagram.umlStateMachine)})
+}
+
+definition{
+  name: thingCli,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentCli"})
+}
+
+definition{
+  name: thingWorkspace,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentSubjectWorkspace"})
+}
+
+definition{
+  name: thingRouter,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentRouter"})
+}
+
+definition{
+  name: thingAdmission,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: thingPrismPm,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentPrismPm"})
+}
+
+definition{
+  name: thingRun,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processRun"})
+}
+
+definition{
+  name: thingIngest,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processIngest"})
+}
+
+definition{
+  name: thingRoute,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processRoute"})
+}
+
+definition{
+  name: thingAdmit,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processAdmit"})
+}
+
+definition{
+  name: thingEmit,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processEmit"})
+}
+
+definition{
+  name: opmStateProposed,
+  parameters: [],
+  result: Foundation.Arch::OpmState,
+  body: (record Foundation.Arch::OpmState {view := "Design::viewOpmPipeline", thing := "Architecture::componentAdmission", state := "Design::stateFactProposed"})
+}
+
+definition{
+  name: opmStateAdmitted,
+  parameters: [],
+  result: Foundation.Arch::OpmState,
+  body: (record Foundation.Arch::OpmState {view := "Design::viewOpmPipeline", thing := "Architecture::componentAdmission", state := "Design::stateFactAdmitted"})
+}
+
+definition{
+  name: opmStateRefused,
+  parameters: [],
+  result: Foundation.Arch::OpmState,
+  body: (record Foundation.Arch::OpmState {view := "Design::viewOpmPipeline", thing := "Architecture::componentAdmission", state := "Design::stateFactRefused"})
+}
+
+definition{
+  name: linkCliRuns,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.agent), source := "Architecture::componentCli", target := "Design::processRun"})
+}
+
+definition{
+  name: linkWorkspaceIngested,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentSubjectWorkspace", target := "Design::processIngest"})
+}
+
+definition{
+  name: linkRouterRoutes,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentRouter", target := "Design::processRoute"})
+}
+
+definition{
+  name: linkAdmissionChanged,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.effect), source := "Architecture::componentAdmission", target := "Design::processAdmit"})
+}
+
+definition{
+  name: linkEmitResult,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.result), source := "Design::processEmit", target := "Architecture::componentPrismPm"})
+}
+
+definition{
+  name: linkIngestInvokesRoute,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processIngest", target := "Design::processRoute"})
+}
+
+definition{
+  name: linkRouteInvokesAdmit,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processRoute", target := "Design::processAdmit"})
+}
+
+definition{
+  name: linkAdmitInvokesEmit,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::viewOpmPipeline", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processAdmit", target := "Design::processEmit"})
+}
+
+definition{
+  name: zoomRun0,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::viewOpmPipeline", process := "Design::processRun", subprocess := "Design::processIngest", order := 0})
+}
+
+definition{
+  name: zoomRun1,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::viewOpmPipeline", process := "Design::processRun", subprocess := "Design::processRoute", order := 1})
+}
+
+definition{
+  name: zoomRun2,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::viewOpmPipeline", process := "Design::processRun", subprocess := "Design::processAdmit", order := 2})
+}
+
+definition{
+  name: zoomRun3,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::viewOpmPipeline", process := "Design::processRun", subprocess := "Design::processEmit", order := 3})
+}
+
+definition{
+  name: umlComponentCli,
+  parameters: [],
+  result: Foundation.Arch::UmlComponent,
+  body: (record Foundation.Arch::UmlComponent {view := "Design::viewUmlComponents", component := "Architecture::componentCli"})
+}
+
+definition{
+  name: umlComponentIngest,
+  parameters: [],
+  result: Foundation.Arch::UmlComponent,
+  body: (record Foundation.Arch::UmlComponent {view := "Design::viewUmlComponents", component := "Architecture::componentIngest"})
+}
+
+definition{
+  name: umlComponentRouter,
+  parameters: [],
+  result: Foundation.Arch::UmlComponent,
+  body: (record Foundation.Arch::UmlComponent {view := "Design::viewUmlComponents", component := "Architecture::componentRouter"})
+}
+
+definition{
+  name: umlComponentAdmission,
+  parameters: [],
+  result: Foundation.Arch::UmlComponent,
+  body: (record Foundation.Arch::UmlComponent {view := "Design::viewUmlComponents", component := "Architecture::componentAdmission"})
+}
+
+definition{
+  name: umlComponentEmitter,
+  parameters: [],
+  result: Foundation.Arch::UmlComponent,
+  body: (record Foundation.Arch::UmlComponent {view := "Design::viewUmlComponents", component := "Architecture::componentEmitter"})
+}
+
+definition{
+  name: connectorCliIngest,
+  parameters: [],
+  result: Foundation.Arch::UmlConnector,
+  body: (record Foundation.Arch::UmlConnector {view := "Design::viewUmlComponents", edge := "Architecture::edgeCliIngest"})
+}
+
+definition{
+  name: connectorIngestRouter,
+  parameters: [],
+  result: Foundation.Arch::UmlConnector,
+  body: (record Foundation.Arch::UmlConnector {view := "Design::viewUmlComponents", edge := "Architecture::edgeIngestRouter"})
+}
+
+definition{
+  name: connectorRouterAdmission,
+  parameters: [],
+  result: Foundation.Arch::UmlConnector,
+  body: (record Foundation.Arch::UmlConnector {view := "Design::viewUmlComponents", edge := "Architecture::edgeRouterAdmission"})
+}
+
+definition{
+  name: connectorAdmissionEmitter,
+  parameters: [],
+  result: Foundation.Arch::UmlConnector,
+  body: (record Foundation.Arch::UmlConnector {view := "Design::viewUmlComponents", edge := "Architecture::edgeAdmissionEmitter"})
+}
+
+definition{
+  name: connectorEmitterCli,
+  parameters: [],
+  result: Foundation.Arch::UmlConnector,
+  body: (record Foundation.Arch::UmlConnector {view := "Design::viewUmlComponents", edge := "Architecture::edgeEmitterCli"})
+}
+
+definition{
+  name: lifelineCli,
+  parameters: [],
+  result: Foundation.Arch::UmlLifeline,
+  body: (record Foundation.Arch::UmlLifeline {view := "Design::viewUmlSequence", component := "Architecture::componentCli", order := 0})
+}
+
+definition{
+  name: lifelineIngest,
+  parameters: [],
+  result: Foundation.Arch::UmlLifeline,
+  body: (record Foundation.Arch::UmlLifeline {view := "Design::viewUmlSequence", component := "Architecture::componentIngest", order := 1})
+}
+
+definition{
+  name: lifelineRouter,
+  parameters: [],
+  result: Foundation.Arch::UmlLifeline,
+  body: (record Foundation.Arch::UmlLifeline {view := "Design::viewUmlSequence", component := "Architecture::componentRouter", order := 2})
+}
+
+definition{
+  name: lifelineAdmission,
+  parameters: [],
+  result: Foundation.Arch::UmlLifeline,
+  body: (record Foundation.Arch::UmlLifeline {view := "Design::viewUmlSequence", component := "Architecture::componentAdmission", order := 3})
+}
+
+definition{
+  name: lifelineEmitter,
+  parameters: [],
+  result: Foundation.Arch::UmlLifeline,
+  body: (record Foundation.Arch::UmlLifeline {view := "Design::viewUmlSequence", component := "Architecture::componentEmitter", order := 4})
+}
+
+definition{
+  name: message0,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::viewUmlSequence", kind := (ctor Foundation.Arch::UmlMessageKind.synchronous), order := 0, source := "Architecture::componentCli", target := "Architecture::componentIngest", process := "Design::processIngest"})
+}
+
+definition{
+  name: message1,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::viewUmlSequence", kind := (ctor Foundation.Arch::UmlMessageKind.synchronous), order := 1, source := "Architecture::componentIngest", target := "Architecture::componentRouter", process := "Design::processRoute"})
+}
+
+definition{
+  name: message2,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::viewUmlSequence", kind := (ctor Foundation.Arch::UmlMessageKind.synchronous), order := 2, source := "Architecture::componentRouter", target := "Architecture::componentAdmission", process := "Design::processAdmit"})
+}
+
+definition{
+  name: message3,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::viewUmlSequence", kind := (ctor Foundation.Arch::UmlMessageKind.synchronous), order := 3, source := "Architecture::componentAdmission", target := "Architecture::componentAdmission", process := "Design::processRefuse"})
+}
+
+definition{
+  name: message4,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::viewUmlSequence", kind := (ctor Foundation.Arch::UmlMessageKind.synchronous), order := 4, source := "Architecture::componentAdmission", target := "Architecture::componentEmitter", process := "Design::processEmit"})
+}
+
+definition{
+  name: message5,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::viewUmlSequence", kind := (ctor Foundation.Arch::UmlMessageKind.reply), order := 5, source := "Architecture::componentEmitter", target := "Architecture::componentAdmission", process := "Design::processEmit"})
+}
+
+definition{
+  name: umlStateFactProposed,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::viewUmlFactAdmission", state := "Design::stateFactProposed", initial := true})
+}
+
+definition{
+  name: umlStateFactAdmitted,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::viewUmlFactAdmission", state := "Design::stateFactAdmitted", initial := false})
+}
+
+definition{
+  name: umlStateFactRefused,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::viewUmlFactAdmission", state := "Design::stateFactRefused", initial := false})
+}
+
+definition{
+  name: umlStateFactOpenClaim,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::viewUmlFactAdmission", state := "Design::stateFactOpenClaim", initial := false})
+}
+
+definition{
+  name: umlStateFactReleased,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::viewUmlFactAdmission", state := "Design::stateFactReleased", initial := false})
+}
+
+definition{
+  name: transition0,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::viewUmlFactAdmission", order := 0, source := "Design::stateFactProposed", target := "Design::stateFactAdmitted", trigger := "Design::processAdmit"})
+}
+
+definition{
+  name: transition1,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::viewUmlFactAdmission", order := 1, source := "Design::stateFactProposed", target := "Design::stateFactRefused", trigger := "Design::processRefuse"})
+}
+
+definition{
+  name: transition2,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::viewUmlFactAdmission", order := 2, source := "Design::stateFactRefused", target := "Design::stateFactOpenClaim", trigger := "Design::processRecordClaim"})
+}
+
+definition{
+  name: transition3,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::viewUmlFactAdmission", order := 3, source := "Design::stateFactAdmitted", target := "Design::stateFactReleased", trigger := "Design::processRelease"})
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,767 @@
+\begin{lexlean}{Security}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\useglossary{prism.sec@1.0.0}
+\importmodule{Architecture}
+\importmodule{Foundation.Sec}
+\importmodule{Production.ThreatModel}
+\title{UORust threat model}
+\begin{semanticmodule}
+definition{
+  name: assetSubjectSource,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 4, componentIndex := 13})
+}
+
+definition{
+  name: assetEmittedModel,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 1, componentIndex := 4})
+}
+
+definition{
+  name: assetSupplyChain,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 5, componentIndex := 3})
+}
+
+definition{
+  name: assetReleaseBinary,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 3, componentIndex := 2})
+}
+
+definition{
+  name: assetCi,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 0, componentIndex := 5})
+}
+
+definition{
+  name: assetPagesSite,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 2, componentIndex := 7})
+}
+
+definition{
+  name: threatBuildScriptExecution,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 0})
+}
+
+definition{
+  name: threatSourceExfiltration,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 7})
+}
+
+definition{
+  name: threatCraftedSourceExhaustion,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 1})
+}
+
+definition{
+  name: threatMisroutedFact,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 4})
+}
+
+definition{
+  name: threatDisputedProjection,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 3})
+}
+
+definition{
+  name: threatDependencyCompromise,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 2})
+}
+
+definition{
+  name: threatUnsafeMemory,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 9})
+}
+
+definition{
+  name: threatPathEscape,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 6})
+}
+
+definition{
+  name: threatWorkflowTokenAbuse,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 10})
+}
+
+definition{
+  name: threatTamperedPages,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 8})
+}
+
+definition{
+  name: threatPagesHostSubstitution,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 5})
+}
+
+definition{
+  name: riskBuildScriptExecution,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 0, assetIndex := 4, threatIndex := 0, likelihood := (ctor Foundation.Sec::Likelihood.medium), impact := (ctor Foundation.Sec::Impact.critical)})
+}
+
+definition{
+  name: riskSourceExfiltration,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 7, assetIndex := 4, threatIndex := 7, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.critical)})
+}
+
+definition{
+  name: riskCraftedSourceExhaustion,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 1, assetIndex := 1, threatIndex := 1, likelihood := (ctor Foundation.Sec::Likelihood.medium), impact := (ctor Foundation.Sec::Impact.minor)})
+}
+
+definition{
+  name: riskMisroutedFact,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 4, assetIndex := 1, threatIndex := 4, likelihood := (ctor Foundation.Sec::Likelihood.medium), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskDisputedProjection,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 3, assetIndex := 1, threatIndex := 3, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.minor)})
+}
+
+definition{
+  name: riskDependencyCompromise,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 2, assetIndex := 5, threatIndex := 2, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.critical)})
+}
+
+definition{
+  name: riskUnsafeMemory,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 9, assetIndex := 3, threatIndex := 9, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskPathEscape,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 6, assetIndex := 3, threatIndex := 6, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskWorkflowTokenAbuse,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 10, assetIndex := 0, threatIndex := 10, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskTamperedPages,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 8, assetIndex := 2, threatIndex := 8, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskPagesHostSubstitution,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 5, assetIndex := 2, threatIndex := 5, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: controlNoBuildExecution,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 7, riskIndex := 0})
+}
+
+definition{
+  name: controlOffline,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 8, riskIndex := 7})
+}
+
+definition{
+  name: controlBoundedIngest,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 1, riskIndex := 1})
+}
+
+definition{
+  name: controlVerifiedRouteTable,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 12, riskIndex := 4})
+}
+
+definition{
+  name: controlRouterConformance,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 10, riskIndex := 4})
+}
+
+definition{
+  name: controlTypedRefusal,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 11, riskIndex := 4})
+}
+
+definition{
+  name: controlDeterministicOutput,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 4, riskIndex := 3})
+}
+
+definition{
+  name: controlCargoDeny,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 2, riskIndex := 2})
+}
+
+definition{
+  name: controlLockedBuild,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 6, riskIndex := 2})
+}
+
+definition{
+  name: controlForbidUnsafe,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 5, riskIndex := 9})
+}
+
+definition{
+  name: controlConfinedOutput,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 3, riskIndex := 6})
+}
+
+definition{
+  name: controlPinnedWorkflows,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 9, riskIndex := 10})
+}
+
+definition{
+  name: controlArtifactClosure,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 0, riskIndex := 8})
+}
+
+definition{
+  name: activityNoBuildExecution,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 7, controlIndex := 7})
+}
+
+definition{
+  name: activityOffline,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 8, controlIndex := 8})
+}
+
+definition{
+  name: activityBoundedIngest,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 1, controlIndex := 1})
+}
+
+definition{
+  name: activityVerifiedRouteTable,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 12, controlIndex := 12})
+}
+
+definition{
+  name: activityRouterConformance,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 10, controlIndex := 10})
+}
+
+definition{
+  name: activityTypedRefusal,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 11, controlIndex := 11})
+}
+
+definition{
+  name: activityDeterministicOutput,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 4, controlIndex := 4})
+}
+
+definition{
+  name: activityCargoDeny,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 2, controlIndex := 2})
+}
+
+definition{
+  name: activityLockedBuild,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 6, controlIndex := 6})
+}
+
+definition{
+  name: activityForbidUnsafe,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 5, controlIndex := 5})
+}
+
+definition{
+  name: activityConfinedOutput,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 3, controlIndex := 3})
+}
+
+definition{
+  name: activityPinnedWorkflows,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 9, controlIndex := 9})
+}
+
+definition{
+  name: activityArtifactClosure,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 0, controlIndex := 0})
+}
+
+definition{
+  name: measurementNoBuildExecution,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 6, controlIndex := 7, passed := true})
+}
+
+definition{
+  name: measurementOffline,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 7, controlIndex := 8, passed := true})
+}
+
+definition{
+  name: measurementBoundedIngest,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 1, controlIndex := 1, passed := true})
+}
+
+definition{
+  name: measurementVerifiedRouteTable,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 11, controlIndex := 12, passed := true})
+}
+
+definition{
+  name: measurementRouterConformance,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 9, controlIndex := 10, passed := true})
+}
+
+definition{
+  name: measurementTypedRefusal,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 10, controlIndex := 11, passed := true})
+}
+
+definition{
+  name: measurementDeterministicOutput,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 3, controlIndex := 4, passed := true})
+}
+
+definition{
+  name: measurementCargoDeny,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 2, controlIndex := 2, passed := true})
+}
+
+definition{
+  name: measurementLockedBuild,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 5, controlIndex := 6, passed := true})
+}
+
+definition{
+  name: measurementForbidUnsafe,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 4, controlIndex := 5, passed := true})
+}
+
+definition{
+  name: measurementPinnedWorkflows,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 8, controlIndex := 9, passed := true})
+}
+
+definition{
+  name: measurementArtifactClosure,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 0, controlIndex := 0, passed := true})
+}
+
+definition{
+  name: threatModelControlSet,
+  parameters: [],
+  result: Production.ThreatModel::ControlSet,
+  body: (record Production.ThreatModel::ControlSet {title := "UORust security controls", text := "uorust reads a Cargo workspace and writes a Prism project. It runs locally, builds nothing it reads, opens no network connection and writes only below its output directory.", version := "0.1.0", lastModified := "2026-11-11T00:00:00Z"})
+}
+
+definition{
+  name: modeledAssetSubjectSource,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetSubjectSource", name := "Subject source code", text := "The manifests, lock file and Rust sources uorust reads. They may be private and must not leave the machine."})
+}
+
+definition{
+  name: modeledAssetEmittedModel,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetEmittedModel", name := "Emitted Prism model", text := "The Prism project uorust writes. Reviewers trust it to state what the source does."})
+}
+
+definition{
+  name: modeledAssetSupplyChain,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetSupplyChain", name := "Supply chain", text := "The locked crates uorust is built from, and the crates the subject workspace locks."})
+}
+
+definition{
+  name: modeledAssetReleaseBinary,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetReleaseBinary", name := "Release binary", text := "The uorust binary developers download and run against their workspaces."})
+}
+
+definition{
+  name: modeledAssetCi,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetCi", name := "CI pipeline", text := "The GitHub Actions workflows that gate every push and deploy the Pages site."})
+}
+
+definition{
+  name: modeledAssetPagesSite,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetPagesSite", name := "Pages site", text := "The published page and the route-table guest it runs."})
+}
+
+definition{
+  name: modeledThreatBuildScriptExecution,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatBuildScriptExecution", name := "Code execution from the subject", text := "A build script or procedural macro in the subject workspace runs on the reviewer's machine while it is modeled.", category := (ctor Production.ThreatModel::Stride.elevationOfPrivilege)})
+}
+
+definition{
+  name: modeledThreatSourceExfiltration,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatSourceExfiltration", name := "Source exfiltration", text := "uorust or one of its dependencies sends the subject's source to a third party.", category := (ctor Production.ThreatModel::Stride.informationDisclosure)})
+}
+
+definition{
+  name: modeledThreatCraftedSourceExhaustion,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatCraftedSourceExhaustion", name := "Crafted source exhausting uorust", text := "A huge or deeply nested source file consumes memory or time until no model is written.", category := (ctor Production.ThreatModel::Stride.denialOfService)})
+}
+
+definition{
+  name: modeledThreatMisroutedFact,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatMisroutedFact", name := "Misrouted fact", text := "A fact becomes the wrong record, or an ambiguous fact is resolved by a default, so the model misstates the source.", category := (ctor Production.ThreatModel::Stride.tampering)})
+}
+
+definition{
+  name: modeledThreatDisputedProjection,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatDisputedProjection", name := "Disputed projection", text := "A user disputes which model uorust produced for a given commit.", category := (ctor Production.ThreatModel::Stride.repudiation)})
+}
+
+definition{
+  name: modeledThreatDependencyCompromise,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatDependencyCompromise", name := "Compromised dependency", text := "A crate uorust is built from is replaced by a malicious or vulnerable version.", category := (ctor Production.ThreatModel::Stride.spoofing)})
+}
+
+definition{
+  name: modeledThreatUnsafeMemory,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatUnsafeMemory", name := "Memory corruption", text := "Unsafe code in uorust corrupts memory while parsing hostile source.", category := (ctor Production.ThreatModel::Stride.elevationOfPrivilege)})
+}
+
+definition{
+  name: modeledThreatPathEscape,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatPathEscape", name := "Write outside the output directory", text := "A crafted crate name makes the emitter write outside the directory given by --out.", category := (ctor Production.ThreatModel::Stride.tampering)})
+}
+
+definition{
+  name: modeledThreatWorkflowTokenAbuse,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatWorkflowTokenAbuse", name := "Workflow token abuse", text := "A third-party action or a persisted credential lets an attacker push or publish from CI.", category := (ctor Production.ThreatModel::Stride.elevationOfPrivilege)})
+}
+
+definition{
+  name: modeledThreatTamperedPages,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatTamperedPages", name := "Tampered Pages artifact", text := "The published page or guest is altered so it routes facts differently from the verified table.", category := (ctor Production.ThreatModel::Stride.tampering)})
+}
+
+definition{
+  name: modeledThreatPagesHostSubstitution,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatPagesHostSubstitution", name := "Compromised Pages host", text := "The host serves a self-consistent altered artifact whose digests match.", category := (ctor Production.ThreatModel::Stride.spoofing)})
+}
+
+definition{
+  name: modeledControlNoBuildExecution,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlNoBuildExecution", name := "No build of the subject", text := "uorust reads the workspace through cargo metadata and syn only; it never compiles the subject or runs its build scripts or macros.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "crates/uorust/src/facts.rs reads sources with syn::parse_file"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-01 projects the fixture workspace without building it"}) (nil Production.ThreatModel::Evidence)))})
+}
+
+definition{
+  name: modeledControlOffline,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlOffline", name := "No network", text := "uorust links no network client, and cargo metadata runs with --offline against the subject's lock file.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "cargo deny check over Cargo.lock"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "no std::net use in crates/uorust"}) (nil Production.ThreatModel::Evidence)))})
+}
+
+definition{
+  name: modeledControlBoundedIngest,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlBoundedIngest", name := "Bounded ingest", text := "Every read is bounded in size and every walk in depth; a bound that is hit ends the run with a typed error.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-06 negative tests for every UorustError variant"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlVerifiedRouteTable,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlVerifiedRouteTable", name := "Verified route table", text := "The route table is a LexLean function proved total and ambiguity-refusing by decide, and checked by the Lean kernel.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.proof), reference := "Routes::routeTableIsTotal"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.proof), reference := "Routes::routeTableRefusesAmbiguity"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "prismpm --project app verify"}) (nil Production.ThreatModel::Evidence))))})
+}
+
+definition{
+  name: modeledControlRouterConformance,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlRouterConformance", name := "Router conformance", text := "The Rust router replays every vector of model/routes.toml, the same vectors the verified guest replays.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-05 crates/uorust/tests/routes.rs"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlTypedRefusal,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlTypedRefusal", name := "Typed refusal", text := "Admission never defaults: an ambiguous, unknown or incomplete fact becomes an open claim with its reason.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-03 typed refusals recorded as open claims"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlDeterministicOutput,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlDeterministicOutput", name := "Deterministic output", text := "Output is a pure function of the workspace and its commit time, written in a fixed order, so a dispute is settled by re-running uorust.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-02 two projections are byte-identical"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlCargoDeny,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlCargoDeny", name := "Dependency policy", text := "cargo deny refuses advisories, unknown registries, wildcard requirements and licenses outside Apache-2.0, MIT and Unicode-3.0.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "just vv deny"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlLockedBuild,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlLockedBuild", name := "Locked build", text := "Every build and test runs with --locked against the committed Cargo.lock.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "just vv lint and test run cargo with --locked"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlForbidUnsafe,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlForbidUnsafe", name := "No unsafe code", text := "#![forbid(unsafe_code)] in every uorust crate makes any unsafe block a compile error.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "rustc forbid(unsafe_code) in crates/uorust/src/main.rs"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlConfinedOutput,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlConfinedOutput", name := "Confined output", text := "The emitter writes only relative paths it generated itself, each checked to stay below the output directory.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "crates/uorust/src/lib.rs write"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlPinnedWorkflows,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlPinnedWorkflows", name := "Pinned workflows", text := "Workflows pin every action by commit, check out with persist-credentials false and are themselves pinned by template.lock.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "xtask audit-bootstrap"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlArtifactClosure,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlArtifactClosure", name := "Artifact closure", text := "prismpm verify replays the acceptance vectors in the built guest and checks the exact file closure of the browser artifact.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "prismpm --project app verify"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: mappingBuildScriptExecution,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatBuildScriptExecution", controls := (cons "Security::controlNoBuildExecution" (nil String))})
+}
+
+definition{
+  name: mappingSourceExfiltration,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatSourceExfiltration", controls := (cons "Security::controlOffline" (nil String))})
+}
+
+definition{
+  name: mappingCraftedSourceExhaustion,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatCraftedSourceExhaustion", controls := (cons "Security::controlBoundedIngest" (nil String))})
+}
+
+definition{
+  name: mappingMisroutedFact,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatMisroutedFact", controls := (cons "Security::controlVerifiedRouteTable" (cons "Security::controlRouterConformance" (cons "Security::controlTypedRefusal" (nil String))))})
+}
+
+definition{
+  name: mappingDisputedProjection,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatDisputedProjection", controls := (cons "Security::controlDeterministicOutput" (nil String))})
+}
+
+definition{
+  name: mappingDependencyCompromise,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatDependencyCompromise", controls := (cons "Security::controlCargoDeny" (cons "Security::controlLockedBuild" (nil String)))})
+}
+
+definition{
+  name: mappingUnsafeMemory,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatUnsafeMemory", controls := (cons "Security::controlForbidUnsafe" (nil String))})
+}
+
+definition{
+  name: mappingPathEscape,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatPathEscape", controls := (cons "Security::controlConfinedOutput" (nil String))})
+}
+
+definition{
+  name: mappingWorkflowTokenAbuse,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatWorkflowTokenAbuse", controls := (cons "Security::controlPinnedWorkflows" (nil String))})
+}
+
+definition{
+  name: mappingTamperedPages,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatTamperedPages", controls := (cons "Security::controlArtifactClosure" (nil String))})
+}
+
+definition{
+  name: acceptedPagesHostSubstitution,
+  parameters: [],
+  result: Production.ThreatModel::AcceptedRisk,
+  body: (record Production.ThreatModel::AcceptedRisk {threat := "Security::threatPagesHostSubstitution", rationale := "The page cannot defend against its own host. A user who needs more can build the route table from the tagged source with prismpm verify and compare."})
+}
+\end{semanticmodule}
+\end{lexlean}

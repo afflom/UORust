@@ -1,0 +1,435 @@
+\begin{lexlean}{Architecture}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Arch}
+\title{UORust architecture description}
+\begin{semanticmodule}
+definition{
+  name: standardIso42010,
+  parameters: [],
+  result: Foundation.Arch::StandardReference,
+  body: (record Foundation.Arch::StandardReference {standardIndex := 4, editionIndex := 0, standardId := "ISO-42010-2022", edition := "2022"})
+}
+
+definition{
+  name: stakeholderRustDeveloper,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 3, name := "Rust developer", text := "Owns a Cargo workspace and runs uorust to get a Prism model of it without writing the model by hand."})
+}
+
+definition{
+  name: stakeholderPrismModeler,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 2, name := "Prism modeler", text := "Reads, checks and extends the Prism project uorust emits, and relies on every record tracing to a source span."})
+}
+
+definition{
+  name: stakeholderSecurityReviewer,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 4, name := "Security reviewer", text := "Reviews the threat model uorust derives from unsafe code, effects and the supply chain, and the controls that answer it."})
+}
+
+definition{
+  name: stakeholderDevRelAuthor,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 0, name := "DevRel author", text := "Writes the walkthroughs and explorers that teach UORust, and covers every facet record with a resource."})
+}
+
+definition{
+  name: stakeholderMaintainer,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 1, name := "Maintainer", text := "Changes the route table, the engine and this model, and keeps the Rust router, the verified table and the Pages site in step."})
+}
+
+definition{
+  name: concernCompleteness,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 0, name := "Completeness of the model", text := "Every fact uorust reads is routed to exactly one record kind or refused; nothing is dropped silently."})
+}
+
+definition{
+  name: concernFidelity,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 3, name := "Fidelity to the source", text := "Every emitted record traces to the Rust item, manifest entry or lock entry it came from."})
+}
+
+definition{
+  name: concernDeterminism,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 1, name := "Deterministic output", text := "Running uorust twice on the same workspace writes byte-identical files."})
+}
+
+definition{
+  name: concernNoDefaults,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 4, name := "No silent defaults", text := "An ambiguous or unknown fact is refused with a typed reason and recorded as an open claim, never resolved by a guess."})
+}
+
+definition{
+  name: concernSupplyChain,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 6, name := "Supply-chain integrity", text := "The released binary, its dependencies and the published page are what the locked sources say they are."})
+}
+
+definition{
+  name: concernReadOnly,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 5, name := "Read-only ingestion", text := "uorust reads the subject workspace and never builds it, runs its build scripts or sends its source anywhere."})
+}
+
+definition{
+  name: concernDiscoverability,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 2, name := "Discoverability", text := "A newcomer can learn what UORust does from its published page and run its route table in the browser."})
+}
+
+definition{
+  name: componentCli,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 2, kind := (ctor Foundation.Arch::ComponentKind.releaseBinary), name := "uorust CLI", text := "The uorust release binary: project, check and routes subcommands over a Cargo workspace."})
+}
+
+definition{
+  name: componentIngest,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 6, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Ingest", text := "Reads cargo metadata, Cargo.lock and every source file through syn into facts carrying their source spans."})
+}
+
+definition{
+  name: componentRouter,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 11, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Router", text := "Maps each fact's kinds to the one Prism record kind of model/routes.toml, or to a typed refusal."})
+}
+
+definition{
+  name: componentAdmission,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 0, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Admission", text := "Admits routed facts whose records are complete and records each refusal as an open claim with its reason."})
+}
+
+definition{
+  name: componentEmitter,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 4, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Emitter", text := "Writes the Prism project: prismpm.toml, lexlean.toml, one module per facet, glossaries and the conformance register, in a fixed order."})
+}
+
+definition{
+  name: componentRouteGuest,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 10, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Route-table guest", text := "The Core-Wasm guest compiled from app/src/Routes.lex.tex: the verified route table, replayed against every acceptance vector."})
+}
+
+definition{
+  name: componentRouteCli,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 9, kind := (ctor Foundation.Arch::ComponentKind.cliAdapter), name := "Route CLI adapter", text := "The generated command-line program that answers the same route requests as the page from a file or standard input."})
+}
+
+definition{
+  name: componentPagesSite,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 7, kind := (ctor Foundation.Arch::ComponentKind.staticSite), name := "Pages site", text := "The GitHub Pages site that describes UORust and runs the route-table guest in the browser."})
+}
+
+definition{
+  name: componentSubjectWorkspace,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 13, kind := (ctor Foundation.Arch::ComponentKind.externalSystem), name := "Subject workspace", text := "The Cargo workspace uorust reads: manifests, lock file and Rust sources."})
+}
+
+definition{
+  name: componentCargo,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 1, kind := (ctor Foundation.Arch::ComponentKind.externalSystem), name := "Cargo", text := "The cargo metadata command that resolves the subject workspace's packages, targets and dependencies."})
+}
+
+definition{
+  name: componentCratesIo,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 3, kind := (ctor Foundation.Arch::ComponentKind.externalSystem), name := "crates.io", text := "The registry the locked dependencies of uorust and of the subject come from."})
+}
+
+definition{
+  name: componentRustc,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 12, kind := (ctor Foundation.Arch::ComponentKind.externalSystem), name := "rustc toolchain", text := "The pinned Rust toolchain that compiles uorust with forbid(unsafe_code) and the workspace lints."})
+}
+
+definition{
+  name: componentPrismPm,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 8, kind := (ctor Foundation.Arch::ComponentKind.externalSystem), name := "PrismPM SDK", text := "The locked PrismPM and LexLean SDK that checks the emitted project and verifies this model."})
+}
+
+definition{
+  name: componentGitHubActions,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 5, kind := (ctor Foundation.Arch::ComponentKind.externalSystem), name := "GitHub Actions", text := "The CI that runs just vv on every push and deploys the Pages site."})
+}
+
+definition{
+  name: edgeWorkspaceIngest,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 19, fromIndex := 13, toIndex := 6, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeCargoIngest,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 3, fromIndex := 1, toIndex := 6, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeWorkspaceCargo,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 18, fromIndex := 13, toIndex := 1, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeCratesIoCargo,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 5, fromIndex := 3, toIndex := 1, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeCliIngest,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 4, fromIndex := 2, toIndex := 6, kind := (ctor Foundation.Arch::EdgeKind.controlFlow)})
+}
+
+definition{
+  name: edgeIngestRouter,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 11, fromIndex := 6, toIndex := 11, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeRouterAdmission,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 15, fromIndex := 11, toIndex := 0, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeAdmissionEmitter,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 2, fromIndex := 0, toIndex := 4, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeEmitterCli,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 7, fromIndex := 4, toIndex := 2, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeEmitterPrismPm,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 8, fromIndex := 4, toIndex := 8, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeRustcCli,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 17, fromIndex := 12, toIndex := 2, kind := (ctor Foundation.Arch::EdgeKind.controlFlow)})
+}
+
+definition{
+  name: edgeCratesIoCli,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 6, fromIndex := 3, toIndex := 2, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeRouterGuest,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 16, fromIndex := 11, toIndex := 10, kind := (ctor Foundation.Arch::EdgeKind.controlFlow)})
+}
+
+definition{
+  name: edgeRouteCliGuest,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 14, fromIndex := 9, toIndex := 10, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeGuestRouteCli,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 10, fromIndex := 10, toIndex := 9, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgePagesGuest,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 12, fromIndex := 7, toIndex := 10, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgeGuestPages,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 9, fromIndex := 10, toIndex := 7, kind := (ctor Foundation.Arch::EdgeKind.dataFlow)})
+}
+
+definition{
+  name: edgePrismPmGuest,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 13, fromIndex := 8, toIndex := 10, kind := (ctor Foundation.Arch::EdgeKind.controlFlow)})
+}
+
+definition{
+  name: edgeActionsPages,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 1, fromIndex := 5, toIndex := 7, kind := (ctor Foundation.Arch::EdgeKind.controlFlow)})
+}
+
+definition{
+  name: edgeActionsCli,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 0, fromIndex := 5, toIndex := 2, kind := (ctor Foundation.Arch::EdgeKind.controlFlow)})
+}
+
+definition{
+  name: viewpointPipelineCompleteness,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 2, stakeholderIndex := 2, concernIndex := 0, modelKindIndex := 0})
+}
+
+definition{
+  name: viewpointPipelineFidelity,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 3, stakeholderIndex := 3, concernIndex := 3, modelKindIndex := 0})
+}
+
+definition{
+  name: viewpointRefusal,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 5, stakeholderIndex := 2, concernIndex := 4, modelKindIndex := 0})
+}
+
+definition{
+  name: viewpointDeterminism,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 0, stakeholderIndex := 1, concernIndex := 1, modelKindIndex := 1})
+}
+
+definition{
+  name: viewpointSupplyChain,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 6, stakeholderIndex := 4, concernIndex := 6, modelKindIndex := 2})
+}
+
+definition{
+  name: viewpointReadOnly,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 4, stakeholderIndex := 4, concernIndex := 5, modelKindIndex := 2})
+}
+
+definition{
+  name: viewpointDiscoverability,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 1, stakeholderIndex := 0, concernIndex := 2, modelKindIndex := 0})
+}
+
+definition{
+  name: viewPipelineCompleteness,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 2, viewpointIndex := 2, modelKindIndex := 0})
+}
+
+definition{
+  name: viewPipelineFidelity,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 3, viewpointIndex := 3, modelKindIndex := 0})
+}
+
+definition{
+  name: viewRefusal,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 5, viewpointIndex := 5, modelKindIndex := 0})
+}
+
+definition{
+  name: viewDeterminism,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 0, viewpointIndex := 0, modelKindIndex := 1})
+}
+
+definition{
+  name: viewSupplyChain,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 6, viewpointIndex := 6, modelKindIndex := 2})
+}
+
+definition{
+  name: viewReadOnly,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 4, viewpointIndex := 4, modelKindIndex := 2})
+}
+
+definition{
+  name: viewDiscoverability,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 1, viewpointIndex := 1, modelKindIndex := 0})
+}
+\end{semanticmodule}
+\end{lexlean}

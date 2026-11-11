@@ -1,0 +1,210 @@
+\begin{lexlean}{Features}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Architecture}
+\importmodule{Foundation.Arch}
+\importmodule{Routes}
+\title{UORust features and journeys}
+\begin{semanticmodule}
+definition{
+  name: callProject,
+  parameters: [],
+  result: String,
+  body: "uorust project WORKSPACE --out DIR"
+}
+
+definition{
+  name: callCheck,
+  parameters: [],
+  result: String,
+  body: "uorust check WORKSPACE --out DIR"
+}
+
+definition{name: callRoutes, parameters: [], result: String, body: "uorust routes"}
+
+definition{
+  name: callProjectWorkspace,
+  parameters: [],
+  result: String,
+  body: "uorust::project_workspace"
+}
+
+definition{name: callRespond, parameters: [], result: String, body: "uorust::route::respond"}
+
+definition{
+  name: callPrismPmCheck,
+  parameters: [],
+  result: String,
+  body: "prismpm --project DIR check"
+}
+
+definition{
+  name: callPagesRoute,
+  parameters: [],
+  result: String,
+  body: "the Route operation of the Pages workbench"
+}
+
+definition{
+  name: acceptFixtureProjection,
+  parameters: [],
+  result: String,
+  body: "UE-01: the fixture workspace projects into exactly the committed Prism project, which prismpm check accepts"
+}
+
+definition{
+  name: acceptByteIdentical,
+  parameters: [],
+  result: String,
+  body: "UE-02: two projections of the same workspace are byte-identical"
+}
+
+definition{
+  name: acceptTypedRefusals,
+  parameters: [],
+  result: String,
+  body: "UE-03: admission refuses ambiguous and incomplete facts as open claims"
+}
+
+definition{
+  name: acceptLift,
+  parameters: [],
+  result: String,
+  body: "UE-04: total functions lift to LexLean definitions; the rest is typed residue"
+}
+
+definition{
+  name: acceptRouterConformance,
+  parameters: [],
+  result: String,
+  body: "UE-05: the Rust router answers every vector of model/routes.toml"
+}
+
+definition{
+  name: acceptTypedErrors,
+  parameters: [],
+  result: String,
+  body: "UE-06: every failed run is a typed UorustError with a negative test"
+}
+
+definition{
+  name: acceptGate,
+  parameters: [],
+  result: String,
+  body: "UE-07: just vv checks the fixture and self projections with prismpm check"
+}
+
+definition{
+  name: acceptRouteTheorems,
+  parameters: [],
+  result: String,
+  body: "UR-01: the route table is total and refuses ambiguity, by decide"
+}
+
+definition{
+  name: featureProjectWorkspace,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Project a Cargo workspace into a complete Prism project in one command.", calls := (cons "Features::callProject" (cons "Features::callProjectWorkspace" (nil String))), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptGate" (nil String)))})
+}
+
+definition{
+  name: featureCheckProjection,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Check that a directory holds exactly the current projection of a workspace.", calls := (cons "Features::callCheck" (nil String)), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptByteIdentical" (nil String)))})
+}
+
+definition{
+  name: featureRouteFacts,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Route each kind of Rust fact to the one Prism record kind it becomes, or refuse it with a reason.", calls := (cons "Routes::dispatch" (cons "Features::callRespond" (cons "Features::callRoutes" (nil String)))), acceptance := (cons "Routes::acceptanceVectors" (cons "Features::acceptRouterConformance" (cons "Features::acceptRouteTheorems" (nil String))))})
+}
+
+definition{
+  name: featureRefuseAmbiguity,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Refuse an ambiguous or unknown fact as an open claim instead of choosing a record by default.", calls := (cons "Features::callProjectWorkspace" (cons "Features::callRespond" (nil String))), acceptance := (cons "Features::acceptTypedRefusals" (cons "Features::acceptRouteTheorems" (nil String)))})
+}
+
+definition{
+  name: featureLiftBehavior,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Lift total Rust functions to LexLean definitions and decide their closed assertions as theorems.", calls := (cons "Features::callProjectWorkspace" (nil String)), acceptance := (cons "Features::acceptLift" (nil String))})
+}
+
+definition{
+  name: featureDeterministicOutput,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Write byte-identical output on every run, so a projection can be committed and checked.", calls := (cons "Features::callProject" (cons "Features::callCheck" (nil String))), acceptance := (cons "Features::acceptByteIdentical" (nil String))})
+}
+
+definition{
+  name: featureTypedErrors,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "End every failed run with a typed error that names its cause.", calls := (cons "Features::callProject" (cons "Features::callCheck" (nil String))), acceptance := (cons "Features::acceptTypedErrors" (nil String))})
+}
+
+definition{
+  name: featureCheckedOutput,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Emit a project the locked PrismPM SDK accepts.", calls := (cons "Features::callPrismPmCheck" (nil String)), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptGate" (nil String)))})
+}
+
+definition{
+  name: featureSelfModel,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Model UORust itself in every Prism facet and verify that model with the same SDK.", calls := (cons "Features::callPrismPmCheck" (nil String)), acceptance := (cons "Features::acceptGate" (cons "Features::acceptRouteTheorems" (nil String)))})
+}
+
+definition{
+  name: featureBrowserRoutes,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "Run the verified route table in the browser on the Pages site.", calls := (cons "Features::callPagesRoute" (cons "Routes::dispatch" (nil String))), acceptance := (cons "Routes::acceptanceVectors" (nil String))})
+}
+
+definition{
+  name: journeyRustDeveloper,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderRustDeveloper", steps := (cons "Features::featureProjectWorkspace" (cons "Features::featureCheckedOutput" (cons "Features::featureDeterministicOutput" (cons "Features::featureCheckProjection" (nil String)))))})
+}
+
+definition{
+  name: journeyPrismModeler,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderPrismModeler", steps := (cons "Features::featureRouteFacts" (cons "Features::featureRefuseAmbiguity" (cons "Features::featureLiftBehavior" (cons "Features::featureCheckedOutput" (nil String)))))})
+}
+
+definition{
+  name: journeySecurityReviewer,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderSecurityReviewer", steps := (cons "Features::featureProjectWorkspace" (cons "Features::featureRefuseAmbiguity" (cons "Features::featureTypedErrors" (nil String))))})
+}
+
+definition{
+  name: journeyDevRelAuthor,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderDevRelAuthor", steps := (cons "Features::featureBrowserRoutes" (cons "Features::featureRouteFacts" (cons "Features::featureSelfModel" (nil String))))})
+}
+
+definition{
+  name: journeyMaintainer,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderMaintainer", steps := (cons "Features::featureSelfModel" (cons "Features::featureRouteFacts" (cons "Features::featureDeterministicOutput" (cons "Features::featureCheckProjection" (nil String)))))})
+}
+\end{semanticmodule}
+\end{lexlean}

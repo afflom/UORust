@@ -1,0 +1,325 @@
+\begin{lexlean}{Routes}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.View.Text.V1.Model}
+\importmodule{Foundation.View.Text.V3.Model}
+\importmodule{Frame}
+\importmodule{Guide}
+\title{UORust route table}
+\begin{semanticmodule}
+structure{
+  name: Route,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: index, type: Nat},
+    {name: id, type: String},
+    {name: rustFact, type: String},
+    {name: prismRecord, type: String},
+    {name: facet, type: String}
+  ]
+}
+
+inductive{
+  name: Verdict,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: Routed, fields: [Route, String]},
+    {name: Empty, fields: []},
+    {name: TooLarge, fields: []},
+    {name: InvalidUtf8, fields: []},
+    {name: BlankFact, fields: []},
+    {name: UnknownFact, fields: [String]},
+    {name: Ambiguous, fields: [String, String]}
+  ]
+}
+
+definition{
+  name: routes,
+  parameters: [],
+  result: (List Route),
+  body: (cons (record Route {index := 0, id := "UR-R01", rustFact := "crate-bin-target", prismRecord := "Foundation.Arch::Component", facet := "arch"}) (cons (record Route {index := 1, id := "UR-R02", rustFact := "crate-lib-target", prismRecord := "Foundation.Arch::Component", facet := "arch"}) (cons (record Route {index := 2, id := "UR-R03", rustFact := "crate-doc", prismRecord := "Foundation.Arch::Concern", facet := "arch"}) (cons (record Route {index := 3, id := "UR-R04", rustFact := "package-author", prismRecord := "Foundation.Arch::Stakeholder", facet := "arch"}) (cons (record Route {index := 4, id := "UR-R05", rustFact := "dependency-edge", prismRecord := "Foundation.Arch::Edge", facet := "arch"}) (cons (record Route {index := 5, id := "UR-R06", rustFact := "clap-subcommand", prismRecord := "Foundation.Arch::Feature", facet := "features"}) (cons (record Route {index := 6, id := "UR-R07", rustFact := "pub-fn", prismRecord := "Feature.calls", facet := "features"}) (cons (record Route {index := 7, id := "UR-R08", rustFact := "pub-trait", prismRecord := "Feature.calls", facet := "features"}) (cons (record Route {index := 8, id := "UR-R09", rustFact := "example-target", prismRecord := "Foundation.Arch::Journey", facet := "features"}) (cons (record Route {index := 9, id := "UR-R10", rustFact := "test-fn", prismRecord := "Feature.acceptance", facet := "features"}) (cons (record Route {index := 10, id := "UR-R11", rustFact := "doctest", prismRecord := "Feature.acceptance", facet := "features"}) (cons (record Route {index := 11, id := "UR-R12", rustFact := "error-enum", prismRecord := "LexLean.inductive", facet := "behavior"}) (cons (record Route {index := 12, id := "UR-R13", rustFact := "fn-body", prismRecord := "LexLean.definition", facet := "behavior"}) (cons (record Route {index := 13, id := "UR-R14", rustFact := "unsafe-block", prismRecord := "Foundation.Sec::Threat", facet := "sec"}) (cons (record Route {index := 14, id := "UR-R15", rustFact := "ffi-extern", prismRecord := "Foundation.Sec::Threat", facet := "sec"}) (cons (record Route {index := 15, id := "UR-R16", rustFact := "fs-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"}) (cons (record Route {index := 16, id := "UR-R17", rustFact := "net-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"}) (cons (record Route {index := 17, id := "UR-R18", rustFact := "process-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"}) (cons (record Route {index := 18, id := "UR-R19", rustFact := "env-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"}) (cons (record Route {index := 19, id := "UR-R20", rustFact := "forbid-unsafe", prismRecord := "Foundation.Sec::ApplicationSecurityControl", facet := "sec"}) (cons (record Route {index := 20, id := "UR-R21", rustFact := "advisory", prismRecord := "Foundation.Sec::Risk", facet := "sec"}) (cons (record Route {index := 21, id := "UR-R22", rustFact := "lock-package", prismRecord := "System.SpdxPackage", facet := "release"}) (cons (record Route {index := 22, id := "UR-R23", rustFact := "lint-config", prismRecord := "Foundation.Qual::QualityRequirement", facet := "qual"}) (cons (record Route {index := 23, id := "UR-R24", rustFact := "rust-version", prismRecord := "Foundation.Qual::QualityRequirement", facet := "qual"}) (cons (record Route {index := 24, id := "UR-R25", rustFact := "bench-target", prismRecord := "Foundation.Qual::QualityMeasure", facet := "qual"}) (cons (record Route {index := 25, id := "UR-R26", rustFact := "state-enum", prismRecord := "Foundation.Arch::UmlState", facet := "design"}) (cons (record Route {index := 26, id := "UR-R27", rustFact := "call-edge", prismRecord := "Foundation.Arch::UmlMessage", facet := "design"}) (cons (record Route {index := 27, id := "UR-R28", rustFact := "module", prismRecord := "Foundation.Arch::OpmThing", facet := "design"}) (nil Route)))))))))))))))))))))))))))))
+}
+
+definition{
+  name: facets,
+  parameters: [],
+  result: (List String),
+  body: (cons "arch" (cons "features" (cons "behavior" (cons "design" (cons "sec" (cons "qual" (cons "release" (nil String))))))))
+}
+
+definition{
+  name: lookup,
+  parameters: [table : (List Route), tag : String],
+  result: (Option Route),
+  body: (match table
+    | List.nil => (ctor Option.none [Route])
+    | List.cons head rest => (if (prim equal (project head rustFact) tag : Bool) then (ctor Option.some [Route] head) else (lookup rest tag))),
+  recursive_argument: table
+}
+
+definition{
+  name: routeOf,
+  parameters: [tag : String],
+  result: (Option Route),
+  body: (if (prim equal tag "crate-bin-target" : Bool) then (ctor Option.some [Route] (record Route {index := 0, id := "UR-R01", rustFact := "crate-bin-target", prismRecord := "Foundation.Arch::Component", facet := "arch"})) else (if (prim equal tag "crate-lib-target" : Bool) then (ctor Option.some [Route] (record Route {index := 1, id := "UR-R02", rustFact := "crate-lib-target", prismRecord := "Foundation.Arch::Component", facet := "arch"})) else (if (prim equal tag "crate-doc" : Bool) then (ctor Option.some [Route] (record Route {index := 2, id := "UR-R03", rustFact := "crate-doc", prismRecord := "Foundation.Arch::Concern", facet := "arch"})) else (if (prim equal tag "package-author" : Bool) then (ctor Option.some [Route] (record Route {index := 3, id := "UR-R04", rustFact := "package-author", prismRecord := "Foundation.Arch::Stakeholder", facet := "arch"})) else (if (prim equal tag "dependency-edge" : Bool) then (ctor Option.some [Route] (record Route {index := 4, id := "UR-R05", rustFact := "dependency-edge", prismRecord := "Foundation.Arch::Edge", facet := "arch"})) else (if (prim equal tag "clap-subcommand" : Bool) then (ctor Option.some [Route] (record Route {index := 5, id := "UR-R06", rustFact := "clap-subcommand", prismRecord := "Foundation.Arch::Feature", facet := "features"})) else (if (prim equal tag "pub-fn" : Bool) then (ctor Option.some [Route] (record Route {index := 6, id := "UR-R07", rustFact := "pub-fn", prismRecord := "Feature.calls", facet := "features"})) else (if (prim equal tag "pub-trait" : Bool) then (ctor Option.some [Route] (record Route {index := 7, id := "UR-R08", rustFact := "pub-trait", prismRecord := "Feature.calls", facet := "features"})) else (if (prim equal tag "example-target" : Bool) then (ctor Option.some [Route] (record Route {index := 8, id := "UR-R09", rustFact := "example-target", prismRecord := "Foundation.Arch::Journey", facet := "features"})) else (if (prim equal tag "test-fn" : Bool) then (ctor Option.some [Route] (record Route {index := 9, id := "UR-R10", rustFact := "test-fn", prismRecord := "Feature.acceptance", facet := "features"})) else (if (prim equal tag "doctest" : Bool) then (ctor Option.some [Route] (record Route {index := 10, id := "UR-R11", rustFact := "doctest", prismRecord := "Feature.acceptance", facet := "features"})) else (if (prim equal tag "error-enum" : Bool) then (ctor Option.some [Route] (record Route {index := 11, id := "UR-R12", rustFact := "error-enum", prismRecord := "LexLean.inductive", facet := "behavior"})) else (if (prim equal tag "fn-body" : Bool) then (ctor Option.some [Route] (record Route {index := 12, id := "UR-R13", rustFact := "fn-body", prismRecord := "LexLean.definition", facet := "behavior"})) else (if (prim equal tag "unsafe-block" : Bool) then (ctor Option.some [Route] (record Route {index := 13, id := "UR-R14", rustFact := "unsafe-block", prismRecord := "Foundation.Sec::Threat", facet := "sec"})) else (if (prim equal tag "ffi-extern" : Bool) then (ctor Option.some [Route] (record Route {index := 14, id := "UR-R15", rustFact := "ffi-extern", prismRecord := "Foundation.Sec::Threat", facet := "sec"})) else (if (prim equal tag "fs-use" : Bool) then (ctor Option.some [Route] (record Route {index := 15, id := "UR-R16", rustFact := "fs-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"})) else (if (prim equal tag "net-use" : Bool) then (ctor Option.some [Route] (record Route {index := 16, id := "UR-R17", rustFact := "net-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"})) else (if (prim equal tag "process-use" : Bool) then (ctor Option.some [Route] (record Route {index := 17, id := "UR-R18", rustFact := "process-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"})) else (if (prim equal tag "env-use" : Bool) then (ctor Option.some [Route] (record Route {index := 18, id := "UR-R19", rustFact := "env-use", prismRecord := "Foundation.Sec::Asset", facet := "sec"})) else (if (prim equal tag "forbid-unsafe" : Bool) then (ctor Option.some [Route] (record Route {index := 19, id := "UR-R20", rustFact := "forbid-unsafe", prismRecord := "Foundation.Sec::ApplicationSecurityControl", facet := "sec"})) else (if (prim equal tag "advisory" : Bool) then (ctor Option.some [Route] (record Route {index := 20, id := "UR-R21", rustFact := "advisory", prismRecord := "Foundation.Sec::Risk", facet := "sec"})) else (if (prim equal tag "lock-package" : Bool) then (ctor Option.some [Route] (record Route {index := 21, id := "UR-R22", rustFact := "lock-package", prismRecord := "System.SpdxPackage", facet := "release"})) else (if (prim equal tag "lint-config" : Bool) then (ctor Option.some [Route] (record Route {index := 22, id := "UR-R23", rustFact := "lint-config", prismRecord := "Foundation.Qual::QualityRequirement", facet := "qual"})) else (if (prim equal tag "rust-version" : Bool) then (ctor Option.some [Route] (record Route {index := 23, id := "UR-R24", rustFact := "rust-version", prismRecord := "Foundation.Qual::QualityRequirement", facet := "qual"})) else (if (prim equal tag "bench-target" : Bool) then (ctor Option.some [Route] (record Route {index := 24, id := "UR-R25", rustFact := "bench-target", prismRecord := "Foundation.Qual::QualityMeasure", facet := "qual"})) else (if (prim equal tag "state-enum" : Bool) then (ctor Option.some [Route] (record Route {index := 25, id := "UR-R26", rustFact := "state-enum", prismRecord := "Foundation.Arch::UmlState", facet := "design"})) else (if (prim equal tag "call-edge" : Bool) then (ctor Option.some [Route] (record Route {index := 26, id := "UR-R27", rustFact := "call-edge", prismRecord := "Foundation.Arch::UmlMessage", facet := "design"})) else (if (prim equal tag "module" : Bool) then (ctor Option.some [Route] (record Route {index := 27, id := "UR-R28", rustFact := "module", prismRecord := "Foundation.Arch::OpmThing", facet := "design"})) else (ctor Option.none [Route])))))))))))))))))))))))))))))
+}
+
+definition{
+  name: agree,
+  parameters: [lead : Route, leadTag : String, rest : (List String)],
+  result: Verdict,
+  body: (match rest
+    | List.nil => (ctor Verdict.Routed lead leadTag)
+    | List.cons tag more => (if (prim equal tag "" : Bool) then (ctor Verdict.BlankFact) else (match (routeOf tag)
+      | Option.none => (ctor Verdict.UnknownFact tag)
+      | Option.some route => (if (prim equal (project route id) (project lead id) : Bool) then (agree lead leadTag more) else (ctor Verdict.Ambiguous leadTag tag))))),
+  recursive_argument: rest
+}
+
+definition{
+  name: classify,
+  parameters: [tags : (List String)],
+  result: Verdict,
+  body: (match tags
+    | List.nil => (ctor Verdict.Empty)
+    | List.cons tag rest => (if (prim equal tag "" : Bool) then (ctor Verdict.BlankFact) else (match (routeOf tag)
+      | Option.none => (ctor Verdict.UnknownFact tag)
+      | Option.some route => (agree route tag rest))))
+}
+
+definition{
+  name: line,
+  parameters: [label : String, value : String],
+  result: String,
+  body: (prim join (cons label (cons value (nil String))) " " : String),
+  axioms: [propext]
+}
+
+definition{
+  name: render,
+  parameters: [verdict : Verdict],
+  result: String,
+  body: (match verdict
+    | Verdict.Routed route tag => (prim join (cons (line "route" (project route id)) (cons (line "fact" tag) (cons (line "record" (project route prismRecord)) (cons (line "facet" (project route facet)) (nil String))))) "\n" : String)
+    | Verdict.Empty => "error empty"
+    | Verdict.TooLarge => "error too-large"
+    | Verdict.InvalidUtf8 => "error invalid-utf8"
+    | Verdict.BlankFact => "error blank-fact"
+    | Verdict.UnknownFact tag => (prim join (cons "refused unknown-fact" (cons (line "fact" tag) (nil String))) "\n" : String)
+    | Verdict.Ambiguous lead other => (prim join (cons "refused ambiguous" (cons (line "fact" lead) (cons (line "fact" other) (nil String)))) "\n" : String)),
+  axioms: [propext]
+}
+
+definition{
+  name: verdictOf,
+  parameters: [request : Bytes],
+  result: Verdict,
+  body: (if ((prim length request : Nat) =? 0) then (ctor Verdict.Empty) else (if (512 <? (prim length request : Nat)) then (ctor Verdict.TooLarge) else (match (prim utf8_decode request : (Option String))
+    | Option.none => (ctor Verdict.InvalidUtf8)
+    | Option.some text => (match (prim split_exact text "\n" (513 : UInt32) : (Option (List String)))
+      | Option.none => (ctor Verdict.TooLarge)
+      | Option.some tags => (classify tags))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: textDispatch,
+  parameters: [request : Bytes],
+  result: Bytes,
+  body: (prim utf8_encode (render (verdictOf request)) : Bytes),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: dispatch,
+  parameters: [request : Bytes],
+  result: Bytes,
+  body: (match (prim utf8_decode request : (Option String))
+    | Option.none => (textDispatch request)
+    | Option.some text => (match (Frame::unframe text)
+      | Option.none => (textDispatch request)
+      | Option.some framed => (Frame::answer framed (textDispatch (prim utf8_encode (project framed payload) : Bytes))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: routesTo,
+  parameters: [verdict : Verdict, route : Route],
+  result: Bool,
+  body: (match verdict
+    | Verdict.Routed chosen tag => ((prim equal (project chosen id) (project route id) : Bool) && (prim equal tag (project route rustFact) : Bool))
+    | Verdict.Empty => false
+    | Verdict.TooLarge => false
+    | Verdict.InvalidUtf8 => false
+    | Verdict.BlankFact => false
+    | Verdict.UnknownFact tag => false
+    | Verdict.Ambiguous lead other => false)
+}
+
+definition{
+  name: isAmbiguous,
+  parameters: [verdict : Verdict, lead : String, other : String],
+  result: Bool,
+  body: (match verdict
+    | Verdict.Routed chosen tag => false
+    | Verdict.Empty => false
+    | Verdict.TooLarge => false
+    | Verdict.InvalidUtf8 => false
+    | Verdict.BlankFact => false
+    | Verdict.UnknownFact tag => false
+    | Verdict.Ambiguous left right => ((prim equal left lead : Bool) && (prim equal right other : Bool)))
+}
+
+definition{
+  name: isUnknown,
+  parameters: [verdict : Verdict, fact : String],
+  result: Bool,
+  body: (match verdict
+    | Verdict.Routed chosen tag => false
+    | Verdict.Empty => false
+    | Verdict.TooLarge => false
+    | Verdict.InvalidUtf8 => false
+    | Verdict.BlankFact => false
+    | Verdict.UnknownFact tag => (prim equal tag fact : Bool)
+    | Verdict.Ambiguous left right => false)
+}
+
+definition{
+  name: indexedFrom,
+  parameters: [position : Nat, table : (List Route)],
+  result: Bool,
+  body: (match table
+    | List.nil => true
+    | List.cons head rest => (((project head index) =? position) && (indexedFrom (position + 1) rest))),
+  recursive_argument: table
+}
+
+definition{
+  name: listsString,
+  parameters: [names : (List String), name : String],
+  result: Bool,
+  body: (match names
+    | List.nil => false
+    | List.cons head rest => (if (prim equal head name : Bool) then true else (listsString rest name))),
+  recursive_argument: names
+}
+
+definition{
+  name: facetsKnown,
+  parameters: [table : (List Route)],
+  result: Bool,
+  body: (match table
+    | List.nil => true
+    | List.cons head rest => ((listsString (facets) (project head facet)) && (facetsKnown rest))),
+  recursive_argument: table
+}
+
+definition{
+  name: everyFactRoutesHome,
+  parameters: [table : (List Route)],
+  result: Bool,
+  body: (match table
+    | List.nil => true
+    | List.cons head rest => ((routesTo (classify (cons (project head rustFact) (nil String))) head) && (everyFactRoutesHome rest))),
+  recursive_argument: table
+}
+
+definition{
+  name: refusedAgainst,
+  parameters: [lead : Route, table : (List Route)],
+  result: Bool,
+  body: (match table
+    | List.nil => true
+    | List.cons head rest => ((if ((project head index) =? (project lead index)) then (routesTo (classify (cons (project lead rustFact) (cons (project head rustFact) (nil String)))) lead) else (isAmbiguous (classify (cons (project lead rustFact) (cons (project head rustFact) (nil String)))) (project lead rustFact) (project head rustFact))) && (refusedAgainst lead rest))),
+  recursive_argument: table
+}
+
+definition{
+  name: everyPairDecided,
+  parameters: [leads : (List Route), table : (List Route)],
+  result: Bool,
+  body: (match leads
+    | List.nil => true
+    | List.cons head rest => ((refusedAgainst head table) && (everyPairDecided rest table))),
+  recursive_argument: leads
+}
+
+definition{
+  name: firstMatchIsSelf,
+  parameters: [table : (List Route)],
+  result: Bool,
+  body: (match table
+    | List.nil => true
+    | List.cons head rest => ((match (lookup (routes) (project head rustFact))
+      | Option.none => false
+      | Option.some found => ((project found index) =? (project head index))) && (firstMatchIsSelf rest))),
+  recursive_argument: table
+}
+
+theorem{
+  name: routeFactsAreDistinct,
+  parameters: [],
+  statement: ((firstMatchIsSelf (routes)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: routeIndexesArePositions,
+  parameters: [],
+  statement: ((indexedFrom 0 (routes)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: routeFacetsAreKnown,
+  parameters: [],
+  statement: ((facetsKnown (routes)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: routeTableIsTotal,
+  parameters: [],
+  statement: ((everyFactRoutesHome (routes)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: routeTableRefusesAmbiguity,
+  parameters: [],
+  statement: ((everyPairDecided (routes) (routes)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: unknownFactIsRefused,
+  parameters: [],
+  statement: ((isUnknown (classify (cons "struct" (nil String))) "struct") = true),
+  proof: decide{}
+}
+
+theorem{
+  name: unknownAfterKnownIsRefused,
+  parameters: [],
+  statement: ((isUnknown (classify (cons "pub-fn" (cons "macro-rules" (nil String)))) "macro-rules") = true),
+  proof: decide{}
+}
+
+definition{
+  name: acceptanceVectors,
+  parameters: [],
+  result: (List Foundation.View.Text.V1.Model::AcceptanceVector),
+  body: (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x63726174652d62696e2d746172676574, response := 0x726f7574652055522d5230310a666163742063726174652d62696e2d7461726765740a7265636f726420466f756e646174696f6e2e417263683a3a436f6d706f6e656e740a66616365742061726368}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x63726174652d6c69622d746172676574, response := 0x726f7574652055522d5230320a666163742063726174652d6c69622d7461726765740a7265636f726420466f756e646174696f6e2e417263683a3a436f6d706f6e656e740a66616365742061726368}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x63726174652d646f63, response := 0x726f7574652055522d5230330a666163742063726174652d646f630a7265636f726420466f756e646174696f6e2e417263683a3a436f6e6365726e0a66616365742061726368}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x7061636b6167652d617574686f72, response := 0x726f7574652055522d5230340a66616374207061636b6167652d617574686f720a7265636f726420466f756e646174696f6e2e417263683a3a5374616b65686f6c6465720a66616365742061726368}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x646570656e64656e63792d65646765, response := 0x726f7574652055522d5230350a6661637420646570656e64656e63792d656467650a7265636f726420466f756e646174696f6e2e417263683a3a456467650a66616365742061726368}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x636c61702d737562636f6d6d616e64, response := 0x726f7574652055522d5230360a6661637420636c61702d737562636f6d6d616e640a7265636f726420466f756e646174696f6e2e417263683a3a466561747572650a6661636574206665617475726573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x7075622d666e, response := 0x726f7574652055522d5230370a66616374207075622d666e0a7265636f726420466561747572652e63616c6c730a6661636574206665617475726573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x7075622d7472616974, response := 0x726f7574652055522d5230380a66616374207075622d74726169740a7265636f726420466561747572652e63616c6c730a6661636574206665617475726573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6578616d706c652d746172676574, response := 0x726f7574652055522d5230390a66616374206578616d706c652d7461726765740a7265636f726420466f756e646174696f6e2e417263683a3a4a6f75726e65790a6661636574206665617475726573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x746573742d666e, response := 0x726f7574652055522d5231300a6661637420746573742d666e0a7265636f726420466561747572652e616363657074616e63650a6661636574206665617475726573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x646f6374657374, response := 0x726f7574652055522d5231310a6661637420646f63746573740a7265636f726420466561747572652e616363657074616e63650a6661636574206665617475726573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6572726f722d656e756d, response := 0x726f7574652055522d5231320a66616374206572726f722d656e756d0a7265636f7264204c65784c65616e2e696e647563746976650a6661636574206265686176696f72}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x666e2d626f6479, response := 0x726f7574652055522d5231330a6661637420666e2d626f64790a7265636f7264204c65784c65616e2e646566696e6974696f6e0a6661636574206265686176696f72}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x756e736166652d626c6f636b, response := 0x726f7574652055522d5231340a6661637420756e736166652d626c6f636b0a7265636f726420466f756e646174696f6e2e5365633a3a5468726561740a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6666692d65787465726e, response := 0x726f7574652055522d5231350a66616374206666692d65787465726e0a7265636f726420466f756e646174696f6e2e5365633a3a5468726561740a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x66732d757365, response := 0x726f7574652055522d5231360a666163742066732d7573650a7265636f726420466f756e646174696f6e2e5365633a3a41737365740a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6e65742d757365, response := 0x726f7574652055522d5231370a66616374206e65742d7573650a7265636f726420466f756e646174696f6e2e5365633a3a41737365740a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x70726f636573732d757365, response := 0x726f7574652055522d5231380a666163742070726f636573732d7573650a7265636f726420466f756e646174696f6e2e5365633a3a41737365740a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x656e762d757365, response := 0x726f7574652055522d5231390a6661637420656e762d7573650a7265636f726420466f756e646174696f6e2e5365633a3a41737365740a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x666f726269642d756e73616665, response := 0x726f7574652055522d5232300a6661637420666f726269642d756e736166650a7265636f726420466f756e646174696f6e2e5365633a3a4170706c69636174696f6e5365637572697479436f6e74726f6c0a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x61647669736f7279, response := 0x726f7574652055522d5232310a666163742061647669736f72790a7265636f726420466f756e646174696f6e2e5365633a3a5269736b0a666163657420736563}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6c6f636b2d7061636b616765, response := 0x726f7574652055522d5232320a66616374206c6f636b2d7061636b6167650a7265636f72642053797374656d2e537064785061636b6167650a66616365742072656c65617365}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6c696e742d636f6e666967, response := 0x726f7574652055522d5232330a66616374206c696e742d636f6e6669670a7265636f726420466f756e646174696f6e2e5175616c3a3a5175616c697479526571756972656d656e740a6661636574207175616c}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x727573742d76657273696f6e, response := 0x726f7574652055522d5232340a6661637420727573742d76657273696f6e0a7265636f726420466f756e646174696f6e2e5175616c3a3a5175616c697479526571756972656d656e740a6661636574207175616c}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x62656e63682d746172676574, response := 0x726f7574652055522d5232350a666163742062656e63682d7461726765740a7265636f726420466f756e646174696f6e2e5175616c3a3a5175616c6974794d6561737572650a6661636574207175616c}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x73746174652d656e756d, response := 0x726f7574652055522d5232360a666163742073746174652d656e756d0a7265636f726420466f756e646174696f6e2e417263683a3a556d6c53746174650a66616365742064657369676e}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x63616c6c2d65646765, response := 0x726f7574652055522d5232370a666163742063616c6c2d656467650a7265636f726420466f756e646174696f6e2e417263683a3a556d6c4d6573736167650a66616365742064657369676e}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6d6f64756c65, response := 0x726f7574652055522d5232380a66616374206d6f64756c650a7265636f726420466f756e646174696f6e2e417263683a3a4f706d5468696e670a66616365742064657369676e}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x746573742d666e0a746573742d666e, response := 0x726f7574652055522d5231300a6661637420746573742d666e0a7265636f726420466561747572652e616363657074616e63650a6661636574206665617475726573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x, response := 0x6572726f7220656d707479}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161, response := 0x6572726f7220746f6f2d6c61726765}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0xff, response := 0x6572726f7220696e76616c69642d75746638}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x7075622d666e0a, response := 0x6572726f7220626c616e6b2d66616374}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x0a7075622d666e, response := 0x6572726f7220626c616e6b2d66616374}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x737472756374, response := 0x7265667573656420756e6b6e6f776e2d666163740a6661637420737472756374}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x7075622d666e0a6d6163726f2d72756c6573, response := 0x7265667573656420756e6b6e6f776e2d666163740a66616374206d6163726f2d72756c6573}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x6572726f722d656e756d0a73746174652d656e756d, response := 0x7265667573656420616d626967756f75730a66616374206572726f722d656e756d0a666163742073746174652d656e756d}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x746573742d666e0a646f6374657374, response := 0x7265667573656420616d626967756f75730a6661637420746573742d666e0a6661637420646f6374657374}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x66732d7573650a66732d7573650a6e65742d757365, response := 0x7265667573656420616d626967756f75730a666163742066732d7573650a66616374206e65742d757365}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x75692d726f7574651f6572726f722d656e756d, response := 0x7b2276657273696f6e223a312c22737461747573223a226f6b222c226f7065726174696f6e223a22726f757465222c226d657373616765223a22526f757465643a206576657279206b696e64206e616d6573207468697320726f7574652e20546865206c696e657320676976652074686520726f7574652c207468652066616374206b696e642c2074686520507269736d207265636f7264206b696e6420616e64206974732066616365742e222c22726f7773223a342c22636f6c756d6e73223a312c2263656c6c73223a5b22726f7574652055522d523132222c2266616374206572726f722d656e756d222c227265636f7264204c65784c65616e2e696e64756374697665222c226661636574206265686176696f72225d2c2264657461696c73223a5b5d2c2272657175657374223a226572726f722d656e756d222c22726573706f6e7365223a22726f7574652055522d5231325c6e66616374206572726f722d656e756d5c6e7265636f7264204c65784c65616e2e696e647563746976655c6e6661636574206265686176696f72222c226572726f72223a22227d}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x75692d726f7574651f756e736166652d626c6f636b, response := 0x7b2276657273696f6e223a312c22737461747573223a226f6b222c226f7065726174696f6e223a22726f757465222c226d657373616765223a22526f757465643a206576657279206b696e64206e616d6573207468697320726f7574652e20546865206c696e657320676976652074686520726f7574652c207468652066616374206b696e642c2074686520507269736d207265636f7264206b696e6420616e64206974732066616365742e222c22726f7773223a342c22636f6c756d6e73223a312c2263656c6c73223a5b22726f7574652055522d523134222c226661637420756e736166652d626c6f636b222c227265636f726420466f756e646174696f6e2e5365633a3a546872656174222c22666163657420736563225d2c2264657461696c73223a5b5d2c2272657175657374223a22756e736166652d626c6f636b222c22726573706f6e7365223a22726f7574652055522d5231345c6e6661637420756e736166652d626c6f636b5c6e7265636f726420466f756e646174696f6e2e5365633a3a5468726561745c6e666163657420736563222c226572726f72223a22227d}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x75692d726f7574651f746573742d666e0a746573742d666e, response := 0x7b2276657273696f6e223a312c22737461747573223a226f6b222c226f7065726174696f6e223a22726f757465222c226d657373616765223a22526f757465643a206576657279206b696e64206e616d6573207468697320726f7574652e20546865206c696e657320676976652074686520726f7574652c207468652066616374206b696e642c2074686520507269736d207265636f7264206b696e6420616e64206974732066616365742e222c22726f7773223a342c22636f6c756d6e73223a312c2263656c6c73223a5b22726f7574652055522d523130222c226661637420746573742d666e222c227265636f726420466561747572652e616363657074616e6365222c226661636574206665617475726573225d2c2264657461696c73223a5b5d2c2272657175657374223a22746573742d666e5c6e746573742d666e222c22726573706f6e7365223a22726f7574652055522d5231305c6e6661637420746573742d666e5c6e7265636f726420466561747572652e616363657074616e63655c6e6661636574206665617475726573222c226572726f72223a22227d}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x75692d726f7574651f6572726f722d656e756d0a73746174652d656e756d, response := 0x7b2276657273696f6e223a312c22737461747573223a226572726f72222c226f7065726174696f6e223a22726f757465222c226d657373616765223a224e6f7420726f757465643a2074686520666163742069732072656675736564206f7220746865207265717565737420697320696e76616c69642e205468652064657461696c73206e616d652074686520726561736f6e3b2069747320666978206973206c697374656420756e646572207265667573616c7320616e64206572726f72732e222c22726f7773223a302c22636f6c756d6e73223a302c2263656c6c73223a5b5d2c2264657461696c73223a5b227265667573656420616d626967756f7573222c2266616374206572726f722d656e756d222c22666163742073746174652d656e756d225d2c2272657175657374223a226572726f722d656e756d5c6e73746174652d656e756d222c22726573706f6e7365223a227265667573656420616d626967756f75735c6e66616374206572726f722d656e756d5c6e666163742073746174652d656e756d222c226572726f72223a22616d626967756f7573227d}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x75692d726f7574651f737472756374, response := 0x7b2276657273696f6e223a312c22737461747573223a226572726f72222c226f7065726174696f6e223a22726f757465222c226d657373616765223a224e6f7420726f757465643a2074686520666163742069732072656675736564206f7220746865207265717565737420697320696e76616c69642e205468652064657461696c73206e616d652074686520726561736f6e3b2069747320666978206973206c697374656420756e646572207265667573616c7320616e64206572726f72732e222c22726f7773223a302c22636f6c756d6e73223a302c2263656c6c73223a5b5d2c2264657461696c73223a5b227265667573656420756e6b6e6f776e2d66616374222c226661637420737472756374225d2c2272657175657374223a22737472756374222c22726573706f6e7365223a227265667573656420756e6b6e6f776e2d666163745c6e6661637420737472756374222c226572726f72223a22756e6b6e6f776e2d66616374227d}) (cons (record Foundation.View.Text.V1.Model::AcceptanceVector {request := 0x75692d7261771f7075622d666e, response := 0x7b2276657273696f6e223a312c22737461747573223a226f6b222c226f7065726174696f6e223a22726177222c226d657373616765223a22526f757465643a206576657279206b696e64206e616d6573207468697320726f7574652e20546865206c696e657320676976652074686520726f7574652c207468652066616374206b696e642c2074686520507269736d207265636f7264206b696e6420616e64206974732066616365742e222c22726f7773223a342c22636f6c756d6e73223a312c2263656c6c73223a5b22726f7574652055522d523037222c2266616374207075622d666e222c227265636f726420466561747572652e63616c6c73222c226661636574206665617475726573225d2c2264657461696c73223a5b5d2c2272657175657374223a227075622d666e222c22726573706f6e7365223a22726f7574652055522d5230375c6e66616374207075622d666e5c6e7265636f726420466561747572652e63616c6c735c6e6661636574206665617475726573222c226572726f72223a22227d}) (nil Foundation.View.Text.V1.Model::AcceptanceVector))))))))))))))))))))))))))))))))))))))))))))))
+}
+
+definition{
+  name: application,
+  parameters: [],
+  result: Foundation.View.Text.V3.Model::TextApplication,
+  body: (record Foundation.View.Text.V3.Model::TextApplication {profile := "prismpm/text-application/3", name := "UORust", cargoName := "uorust", cargoVersion := "0.1.0", cargoDescription := "Routes each kind of Rust fact UORust reads from a Cargo workspace to the one Prism record kind it emits, or refuses it.", cargoRepository := "https://github.com/afflom/uorust", cargoHomepage := "https://afflom.github.io/uorust/", libraryRoots := (cons "Uorust.Routes.dispatch" (nil String)), acceptanceVectors := (acceptanceVectors), entryRoot := "Uorust.Routes.dispatch", coreContract := "hologram:guest/core-wasm@1", requestMaximum := (512 : UInt32), responseMaximum := (8192 : UInt32), guestAllocationMaximum := (513 : UInt32), coreMemoryPages := (ctor Option.some [UInt32] (32 : UInt32)), coreStackBytes := (ctor Option.some [UInt32] (65536 : UInt32)), capabilitiesEmpty := true, fatArchive := true, primaryLayer := (0 : UInt8), viewLayer := (1 : UInt8), view := (record Foundation.View.Text.V1.Model::TextView {title := "UORust route table", heading := "UORust route table", inputLabel := "Rust fact kinds, one per line", submitLabel := "Route", outputLabel := "Route or refusal", inputError := "Enter UTF-8 text of at most 512 bytes.", responseError := "The answer could not be displayed."}), cli := (record Foundation.View.Text.V3.Model::TextCli {command := "route", description := "UORust reads a Cargo workspace and writes a complete Prism model of it. This page runs UORust's route table, the verified function that decides which Prism record each kind of Rust fact becomes, or refuses the fact.\n", usageCode := (64 : UInt8), ioCode := (74 : UInt8), limitCode := (ctor Option.none [UInt8]), outcomes := (cons (record Foundation.View.Text.V3.Model::TextCliOutcome {name := "routed", prefix := "route ", exitCode := (0 : UInt8)}) (cons (record Foundation.View.Text.V3.Model::TextCliOutcome {name := "refused", prefix := "refused ", exitCode := (1 : UInt8)}) (cons (record Foundation.View.Text.V3.Model::TextCliOutcome {name := "error", prefix := "error ", exitCode := (2 : UInt8)}) (nil Foundation.View.Text.V3.Model::TextCliOutcome)))), sections := (cons (record Foundation.View.Text.V3.Model::TextCliSection {title := "REQUEST", body := "One kind of Rust fact per line, such as pub-fn, error-enum or unsafe-block. Every line must name the same route.\n"}) (cons (record Foundation.View.Text.V3.Model::TextCliSection {title := "ANSWER", body := "    route ID, fact KIND, record PRISM-RECORD, facet FACET\n        the one route every kind names\n    refused unknown-fact, fact KIND\n        no route names the kind\n    refused ambiguous, fact KIND, fact KIND\n        two kinds name different routes\n    error REASON\n        the request is empty, too large, not UTF-8 or has a blank line\n"}) (nil Foundation.View.Text.V3.Model::TextCliSection))), examples := (cons (record Foundation.View.Text.V3.Model::TextCliExample {name := "routed", text := "error-enum"}) (cons (record Foundation.View.Text.V3.Model::TextCliExample {name := "ambiguous", text := "error-enum\nstate-enum"}) (nil Foundation.View.Text.V3.Model::TextCliExample)))}), workbench := (ctor Option.some [Foundation.View.Text.V3.Model::WorkbenchView] (Guide::view))})
+}
+\end{semanticmodule}
+\end{lexlean}

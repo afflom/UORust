@@ -1,0 +1,410 @@
+\begin{lexlean}{Foundation.View.Text.V3.Model}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.View.Text.V1.Model}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+  name: TextCliOutcome,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: name, type: String}, {name: prefix, type: String}, {name: exitCode, type: UInt8}]
+}
+
+structure{
+  name: TextCliSection,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: title, type: String}, {name: body, type: String}]
+}
+
+structure{
+  name: TextCliExample,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: name, type: String}, {name: text, type: String}]
+}
+
+structure{
+  name: TextCli,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: command, type: String},
+    {name: description, type: String},
+    {name: usageCode, type: UInt8},
+    {name: ioCode, type: UInt8},
+    {name: limitCode, type: (Option UInt8)},
+    {name: outcomes, type: (List TextCliOutcome)},
+    {name: sections, type: (List TextCliSection)},
+    {name: examples, type: (List TextCliExample)}
+  ]
+}
+
+inductive{
+  name: TextCliFailure,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: UnknownFlag, fields: []},
+    {name: ExtraArgument, fields: []},
+    {name: MissingCommand, fields: []},
+    {name: UnknownCommand, fields: []},
+    {name: UnknownExample, fields: []},
+    {name: InputMissing, fields: []},
+    {name: InputOpen, fields: []},
+    {name: InputType, fields: []},
+    {name: InputRead, fields: []},
+    {name: OutputWrite, fields: []},
+    {name: InputLimit, fields: []},
+    {name: AdapterAllocation, fields: []},
+    {name: ComputeFailure, fields: []},
+    {name: OutputLimit, fields: []},
+    {name: ReportUnclassified, fields: []}
+  ]
+}
+
+inductive{
+  name: TextCliFailureClass,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: Usage, fields: []},
+    {name: Io, fields: []},
+    {name: Limit, fields: []},
+    {name: Fault, fields: []}
+  ]
+}
+
+definition{
+  name: failureClass,
+  parameters: [failure : TextCliFailure],
+  result: TextCliFailureClass,
+  body: (match failure
+    | TextCliFailure.UnknownFlag => (ctor TextCliFailureClass.Usage)
+    | TextCliFailure.ExtraArgument => (ctor TextCliFailureClass.Usage)
+    | TextCliFailure.MissingCommand => (ctor TextCliFailureClass.Usage)
+    | TextCliFailure.UnknownCommand => (ctor TextCliFailureClass.Usage)
+    | TextCliFailure.UnknownExample => (ctor TextCliFailureClass.Usage)
+    | TextCliFailure.InputMissing => (ctor TextCliFailureClass.Io)
+    | TextCliFailure.InputOpen => (ctor TextCliFailureClass.Io)
+    | TextCliFailure.InputType => (ctor TextCliFailureClass.Io)
+    | TextCliFailure.InputRead => (ctor TextCliFailureClass.Io)
+    | TextCliFailure.OutputWrite => (ctor TextCliFailureClass.Io)
+    | TextCliFailure.InputLimit => (ctor TextCliFailureClass.Limit)
+    | TextCliFailure.AdapterAllocation => (ctor TextCliFailureClass.Fault)
+    | TextCliFailure.ComputeFailure => (ctor TextCliFailureClass.Fault)
+    | TextCliFailure.OutputLimit => (ctor TextCliFailureClass.Fault)
+    | TextCliFailure.ReportUnclassified => (ctor TextCliFailureClass.Fault)),
+  axioms: []
+}
+
+inductive{
+  name: FieldKind,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: Text, fields: []},
+    {name: Multiline, fields: []},
+    {name: Natural, fields: []},
+    {name: Choice, fields: []}
+  ]
+}
+
+inductive{
+  name: Palette,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Indigo, fields: []}, {name: Ocean, fields: []}]
+}
+
+inductive{
+  name: Density,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Comfortable, fields: []}, {name: Compact, fields: []}]
+}
+
+inductive{
+  name: Width,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Balanced, fields: []}, {name: Wide, fields: []}]
+}
+
+inductive{
+  name: ColorScheme,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: System, fields: []}, {name: Light, fields: []}, {name: Dark, fields: []}]
+}
+
+inductive{
+  name: WasmCachePolicy,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: NoStore, fields: []}]
+}
+
+structure{
+  name: Choice,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: value, type: String}, {name: label, type: String}]
+}
+
+structure{
+  name: Field,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: label, type: String},
+    {name: kind, type: FieldKind},
+    {name: help, type: String},
+    {name: placeholder, type: String},
+    {name: initialValue, type: String},
+    {name: required, type: Bool},
+    {name: choices, type: (List Choice)}
+  ]
+}
+
+structure{
+  name: Example,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: label, type: String},
+    {name: description, type: String},
+    {name: values, type: (List String)},
+    {name: expectedResponse, type: String},
+    {name: explanation, type: String}
+  ]
+}
+
+structure{
+  name: Operation,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: label, type: String},
+    {name: summary, type: String},
+    {name: help, type: String},
+    {name: requestPrefix, type: String},
+    {name: fields, type: (List Field)},
+    {name: examples, type: (List Example)}
+  ]
+}
+
+structure{
+  name: Section,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: title, type: String},
+    {name: paragraphs, type: (List String)}
+  ]
+}
+
+structure{
+  name: Link,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: label, type: String}, {name: httpsUrl, type: String}]
+}
+
+structure{
+  name: ErrorHint,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: code, type: String},
+    {name: title, type: String},
+    {name: explanation, type: String},
+    {name: recovery, type: String},
+    {name: fields, type: (List String)}
+  ]
+}
+
+structure{
+  name: StatusCopy,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: scriptRequired, type: String},
+    {name: initializing, type: String},
+    {name: ready, type: String},
+    {name: running, type: String},
+    {name: cancelling, type: String},
+    {name: cancelled, type: String},
+    {name: timeout, type: String},
+    {name: loadError, type: String},
+    {name: computeError, type: String},
+    {name: inputError, type: String},
+    {name: responseError, type: String}
+  ]
+}
+
+structure{
+  name: Design,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: palette, type: Palette},
+    {name: density, type: Density},
+    {name: width, type: Width},
+    {name: colorScheme, type: ColorScheme}
+  ]
+}
+
+structure{
+  name: RawEditor,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: requestPrefix, type: String},
+    {name: label, type: String},
+    {name: help, type: String},
+    {name: placeholder, type: String},
+    {name: initialValue, type: String},
+    {name: submitLabel, type: String},
+    {name: responseLabel, type: String},
+    {name: expanded, type: Bool}
+  ]
+}
+
+structure{
+  name: DisplaySpec,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: title, type: String},
+    {name: emptyText, type: String},
+    {name: rawLabel, type: String},
+    {name: maximumCells, type: UInt32},
+    {name: maximumDetails, type: UInt32}
+  ]
+}
+
+structure{
+  name: Execution,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: timeoutMilliseconds, type: UInt32},
+    {name: cancelLabel, type: String},
+    {name: retryLabel, type: String},
+    {name: wasmCachePolicy, type: WasmCachePolicy}
+  ]
+}
+
+structure{
+  name: WorkbenchLabels,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: navigation, type: String},
+    {name: operation, type: String},
+    {name: examples, type: String},
+    {name: loadExample, type: String},
+    {name: compute, type: String},
+    {name: guide, type: String},
+    {name: links, type: String},
+    {name: fields, type: String},
+    {name: expectedResponse, type: String},
+    {name: details, type: String},
+    {name: resultTable, type: String},
+    {name: row, type: String},
+    {name: column, type: String},
+    {name: request, type: String},
+    {name: reset, type: String},
+    {name: skipToWorkbench, type: String}
+  ]
+}
+
+structure{
+  name: WorkbenchView,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: title, type: String},
+    {name: heading, type: String},
+    {name: purpose, type: String},
+    {name: audience, type: String},
+    {name: guidance, type: (List String)},
+    {name: initialOperation, type: String},
+    {name: initialExample, type: String},
+    {name: operations, type: (List Operation)},
+    {name: sections, type: (List Section)},
+    {name: links, type: (List Link)},
+    {name: errors, type: (List ErrorHint)},
+    {name: statuses, type: StatusCopy},
+    {name: design, type: Design},
+    {name: raw, type: RawEditor},
+    {name: response, type: DisplaySpec},
+    {name: execution, type: Execution},
+    {name: labels, type: WorkbenchLabels}
+  ]
+}
+
+structure{
+  name: TextApplication,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: profile, type: String},
+    {name: name, type: String},
+    {name: cargoName, type: String},
+    {name: cargoVersion, type: String},
+    {name: cargoDescription, type: String},
+    {name: cargoRepository, type: String},
+    {name: cargoHomepage, type: String},
+    {name: libraryRoots, type: (List String)},
+    {name: acceptanceVectors, type: (List Foundation.View.Text.V1.Model::AcceptanceVector)},
+    {name: entryRoot, type: String},
+    {name: coreContract, type: String},
+    {name: requestMaximum, type: UInt32},
+    {name: responseMaximum, type: UInt32},
+    {name: guestAllocationMaximum, type: UInt32},
+    {name: coreMemoryPages, type: (Option UInt32)},
+    {name: coreStackBytes, type: (Option UInt32)},
+    {name: capabilitiesEmpty, type: Bool},
+    {name: fatArchive, type: Bool},
+    {name: primaryLayer, type: UInt8},
+    {name: viewLayer, type: UInt8},
+    {name: view, type: Foundation.View.Text.V1.Model::TextView},
+    {name: cli, type: TextCli},
+    {name: workbench, type: (Option WorkbenchView)}
+  ]
+}
+
+definition{name: defaultCoreMemoryPages, parameters: [], result: UInt32, body: (32 : UInt32)}
+
+definition{name: defaultCoreStackBytes, parameters: [], result: UInt32, body: (65536 : UInt32)}
+
+definition{
+  name: coreMemoryPagesOrDefault,
+  parameters: [pages : (Option UInt32)],
+  result: UInt32,
+  body: (match pages | Option.none => (defaultCoreMemoryPages) | Option.some value => value)
+}
+
+definition{
+  name: coreStackBytesOrDefault,
+  parameters: [bytes : (Option UInt32)],
+  result: UInt32,
+  body: (match bytes | Option.none => (defaultCoreStackBytes) | Option.some value => value)
+}
+
+definition{
+  name: textApplicationProfile,
+  parameters: [],
+  result: String,
+  body: "prismpm/text-application/3"
+}
+\end{semanticmodule}
+\end{lexlean}
