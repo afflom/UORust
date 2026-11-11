@@ -96,3 +96,9 @@ Feature: engine
     Given the thermostat fixture, whose roster module uses iterator chains with closures, methods taking self, BTreeMap, HashMap and BTreeSet reads, early returns, let else, tuple lets and for loops that push onto locals
     When the suite exercises UE-15
     Then every roster function and method is a LexLean definition, each chain a helper with recursive_argument, no roster function is residue, and lexlean verify passes on the committed projection
+
+  @UE-16 @build
+  Scenario: Residue only shrinks on the way to zero
+    Given this workspace, the thermostat fixture and the committed residue ceilings
+    When the suite exercises UE-16
+    Then neither projection has more residue rows than its ceiling, every residue row is typed, and every effect row names its effect

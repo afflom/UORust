@@ -664,3 +664,56 @@ fn the_self_projection_reproduces_the_hand_model_ue_14() {
         drift.join("\n")
     );
 }
+
+#[test]
+fn residue_never_grows_on_the_way_to_zero_ue_16() {
+    let ceiling: toml::Value = toml::from_str(
+        &std::fs::read_to_string(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/residue-ceiling.toml"),
+        )
+        .expect("residue-ceiling.toml"),
+    )
+    .expect("parses");
+    for (key, root, name) in [
+        ("self", root(), "uorust"),
+        ("fixture", fixture(), "thermostat"),
+    ] {
+        let files = project(&root, name);
+        let frontier: toml::Value =
+            toml::from_str(&text(&files, "frontier.toml")).expect("frontier parses");
+        let rows = |table: &str| {
+            frontier
+                .get(table)
+                .and_then(|v| v.as_array())
+                .cloned()
+                .unwrap_or_default()
+        };
+        let residue = rows("residue");
+        let limit = ceiling
+            .get(key)
+            .and_then(toml::Value::as_integer)
+            .and_then(|n| usize::try_from(n).ok())
+            .expect("a ceiling");
+        assert!(
+            residue.len() <= limit,
+            "{name}: {} residue rows, over the ceiling {limit}",
+            residue.len()
+        );
+        for row in &residue {
+            for field in ["function", "span", "reason", "detail"] {
+                assert!(row.get(field).is_some(), "{name}: untyped residue {row}");
+            }
+        }
+        // An effect row names the effect it performs or reaches.
+        for row in rows("effect") {
+            let effect = row
+                .get("effect")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default();
+            assert!(
+                effect.contains(" effect: ") || effect.contains("reaches an effect"),
+                "{name}: an effect row without its effect: {row}"
+            );
+        }
+    }
+}
