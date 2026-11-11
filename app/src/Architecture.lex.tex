@@ -431,5 +431,67 @@ definition{
   result: Foundation.Arch::View,
   body: (record Foundation.Arch::View {index := 1, viewpointIndex := 1, modelKindIndex := 0})
 }
+
+structure{
+  name: Narrative,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: record, type: String}, {name: name, type: String}, {name: text, type: String}]
+}
+
+definition{
+  name: viewpointNarratives,
+  parameters: [],
+  result: (List Narrative),
+  body: (cons (record Narrative {record := "Architecture::viewpointPipelineCompleteness", name := "Pipeline for completeness", text := "Where each fact is routed, admitted or refused, so none is dropped."}) (cons (record Narrative {record := "Architecture::viewpointPipelineFidelity", name := "Pipeline for fidelity", text := "Which component carries a fact's source span to the record it becomes."}) (cons (record Narrative {record := "Architecture::viewpointRefusal", name := "Admission for refusal", text := "How an ambiguous or unknown fact becomes an open claim instead of a record."}) (cons (record Narrative {record := "Architecture::viewpointDeterminism", name := "Emission for determinism", text := "What fixes the order and bytes of the emitted files."}) (cons (record Narrative {record := "Architecture::viewpointSupplyChain", name := "Supply chain", text := "Where the crates, the toolchain and the released binary come from."}) (cons (record Narrative {record := "Architecture::viewpointReadOnly", name := "Ingestion boundary", text := "What uorust reads from the subject workspace and what it never does with it."}) (cons (record Narrative {record := "Architecture::viewpointDiscoverability", name := "Published page", text := "What the Pages site shows and runs."}) (nil Narrative))))))))
+}
+
+definition{
+  name: edgeRecords,
+  parameters: [],
+  result: (List Foundation.Arch::Edge),
+  body: (cons (edgeWorkspaceIngest) (cons (edgeCargoIngest) (cons (edgeWorkspaceCargo) (cons (edgeCratesIoCargo) (cons (edgeCliIngest) (cons (edgeIngestRouter) (cons (edgeRouterAdmission) (cons (edgeAdmissionEmitter) (cons (edgeEmitterCli) (cons (edgeEmitterPrismPm) (cons (edgeRustcCli) (cons (edgeCratesIoCli) (cons (edgeRouterGuest) (cons (edgeRouteCliGuest) (cons (edgeGuestRouteCli) (cons (edgePagesGuest) (cons (edgeGuestPages) (cons (edgePrismPmGuest) (cons (edgeActionsPages) (cons (edgeActionsCli) (nil Foundation.Arch::Edge)))))))))))))))))))))
+}
+
+definition{
+  name: viewpointRecords,
+  parameters: [],
+  result: (List Foundation.Arch::Viewpoint),
+  body: (cons (viewpointPipelineCompleteness) (cons (viewpointPipelineFidelity) (cons (viewpointRefusal) (cons (viewpointDeterminism) (cons (viewpointSupplyChain) (cons (viewpointReadOnly) (cons (viewpointDiscoverability) (nil Foundation.Arch::Viewpoint))))))))
+}
+
+definition{
+  name: edgesWithin,
+  parameters: [items : (List Foundation.Arch::Edge), count : Nat],
+  result: Bool,
+  body: (match items
+    | List.nil => true
+    | List.cons head rest => (((project head fromIndex) <? count) && (((project head toIndex) <? count) && ((not ((project head fromIndex) =? (project head toIndex))) && (edgesWithin rest count))))),
+  recursive_argument: items
+}
+
+definition{
+  name: viewpointsFrame,
+  parameters: [items : (List Foundation.Arch::Viewpoint), stakeholders : Nat, concerns : Nat],
+  result: Bool,
+  body: (match items
+    | List.nil => true
+    | List.cons head rest => (((project head stakeholderIndex) <? stakeholders) && (((project head concernIndex) <? concerns) && (((project head modelKindIndex) <? 3) && (viewpointsFrame rest stakeholders concerns))))),
+  recursive_argument: items
+}
+
+theorem{
+  name: edgesJoinDistinctComponents,
+  parameters: [],
+  statement: ((edgesWithin (edgeRecords) 14) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: viewpointsFrameDeclaredConcerns,
+  parameters: [],
+  statement: ((viewpointsFrame (viewpointRecords) 5 7) = true),
+  proof: decide{}
+}
 \end{semanticmodule}
 \end{lexlean}
