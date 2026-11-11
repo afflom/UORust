@@ -61,6 +61,15 @@ cargo run --locked -p uorust -- routes
 the current projection, and `routes` prints the route table. Check the result
 with the locked SDK: `prismpm --project path/to/prism-project check`.
 
+The verified route table also ships on its own. `prismpm --project app build`
+writes static `uorust-routes` programs for `x86_64` and `aarch64` Linux beside
+the holo, generated from the model with no handwritten dispatch:
+
+```sh
+printf 'error-enum' | uorust-routes route              # route UR-R12 ... exit 0
+printf 'error-enum\nstate-enum' | uorust-routes route  # refused ambiguous ... exit 1
+```
+
 ## The route table
 
 [`model/routes.toml`](model/routes.toml) is the one source both
