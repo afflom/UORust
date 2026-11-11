@@ -1,0 +1,431 @@
+# model/routes.toml --- UORust's route table, the single source both sides read.
+#
+# A route maps one kind of Rust fact, which the ingest stage reads from a Cargo
+# workspace (`cargo metadata`, `Cargo.lock`, `syn`), to the one kind of Prism
+# record the emitter writes for it, and the facet that record belongs to.
+#
+# Two implementations of this table must agree byte for byte:
+#
+# * the LexLean model `app/src/Routes.lex.tex`, UORust's own Prism application,
+#   whose acceptance vectors (below, `[[vector]]`) are replayed in the compiled
+#   guest by `prismpm verify` and whose theorems prove the table total and
+#   ambiguity refused;
+# * the Rust router in `crates/uorust*`, whose conformance test replays the same
+#   vectors.
+#
+# `crates/conformance/tests/routes.rs` holds the model to this file: every
+# route here is a row of the model's table, in this order, and every vector
+# here is an acceptance vector of the application, in this order.
+#
+# Request: one fact's classification tags, one per line, UTF-8, at most 512
+# bytes. Response: lines joined with a line feed, no trailing line feed.
+#
+#   every tag known, all naming one route -> route <id> / fact <tag> /
+#                                            record <prism_record> / facet <facet>
+#   empty request                         -> error empty
+#   more than 512 bytes                   -> error too-large
+#   not UTF-8                             -> error invalid-utf8
+#   a blank line                          -> error blank-fact
+#   a tag no route names                  -> refused unknown-fact / fact <tag>
+#   two known tags naming different routes-> refused ambiguous / fact <a> / fact <b>
+#
+# The first offending line decides a refusal or error. A refusal is never a default:
+# the engine records it as an open claim against the fact's source span.
+#
+# `facet` is one of: arch, features, behavior, design, sec, qual, release.
+
+spec = "uorust/routes/1"
+
+[[route]]
+id = "UR-R01"
+rust_fact = "crate-bin-target"
+prism_record = "Foundation.Arch::Component"
+facet = "arch"
+note = "A [[bin]] target is a component of kind releaseBinary."
+
+[[route]]
+id = "UR-R02"
+rust_fact = "crate-lib-target"
+prism_record = "Foundation.Arch::Component"
+facet = "arch"
+note = "A [lib] target is a component of kind service."
+
+[[route]]
+id = "UR-R03"
+rust_fact = "crate-doc"
+prism_record = "Foundation.Arch::Concern"
+facet = "arch"
+note = "A crate-level doc comment states the concern the crate answers."
+
+[[route]]
+id = "UR-R04"
+rust_fact = "package-author"
+prism_record = "Foundation.Arch::Stakeholder"
+facet = "arch"
+note = "An authors entry or CODEOWNERS owner is a stakeholder."
+
+[[route]]
+id = "UR-R05"
+rust_fact = "dependency-edge"
+prism_record = "Foundation.Arch::Edge"
+facet = "arch"
+note = "A workspace-internal dependency is a control-flow edge between components."
+
+[[route]]
+id = "UR-R06"
+rust_fact = "clap-subcommand"
+prism_record = "Foundation.Arch::Feature"
+facet = "features"
+note = "A clap subcommand is a feature realized by the call it dispatches to."
+
+[[route]]
+id = "UR-R07"
+rust_fact = "pub-fn"
+prism_record = "Feature.calls"
+facet = "features"
+note = "A public function is an interface call a feature names."
+
+[[route]]
+id = "UR-R08"
+rust_fact = "pub-trait"
+prism_record = "Feature.calls"
+facet = "features"
+note = "A public trait method is an interface call a feature names."
+
+[[route]]
+id = "UR-R09"
+rust_fact = "example-target"
+prism_record = "Foundation.Arch::Journey"
+facet = "features"
+note = "An [[example]] target is a journey through the features it calls."
+
+[[route]]
+id = "UR-R10"
+rust_fact = "test-fn"
+prism_record = "Feature.acceptance"
+facet = "features"
+note = "A #[test] function is an acceptance row of the feature it exercises."
+
+[[route]]
+id = "UR-R11"
+rust_fact = "doctest"
+prism_record = "Feature.acceptance"
+facet = "features"
+note = "A doc test is an acceptance row of the item it documents."
+
+[[route]]
+id = "UR-R12"
+rust_fact = "error-enum"
+prism_record = "LexLean.inductive"
+facet = "behavior"
+note = "An enum that implements Error is a typed failure, an inductive with one constructor per variant."
+
+[[route]]
+id = "UR-R13"
+rust_fact = "fn-body"
+prism_record = "LexLean.definition"
+facet = "behavior"
+note = "A function body is lifted to a LexLean definition; what does not lift is residue in frontier.toml."
+
+[[route]]
+id = "UR-R14"
+rust_fact = "unsafe-block"
+prism_record = "Foundation.Sec::Threat"
+facet = "sec"
+note = "An unsafe block is a memory-safety threat (elevation of privilege)."
+
+[[route]]
+id = "UR-R15"
+rust_fact = "ffi-extern"
+prism_record = "Foundation.Sec::Threat"
+facet = "sec"
+note = "An extern block crosses the language boundary: a threat (elevation of privilege)."
+
+[[route]]
+id = "UR-R16"
+rust_fact = "fs-use"
+prism_record = "Foundation.Sec::Asset"
+facet = "sec"
+note = "A std::fs use is a file-system capability: an asset."
+
+[[route]]
+id = "UR-R17"
+rust_fact = "net-use"
+prism_record = "Foundation.Sec::Asset"
+facet = "sec"
+note = "A std::net use is a network capability: an asset."
+
+[[route]]
+id = "UR-R18"
+rust_fact = "process-use"
+prism_record = "Foundation.Sec::Asset"
+facet = "sec"
+note = "A std::process use is a process capability: an asset."
+
+[[route]]
+id = "UR-R19"
+rust_fact = "env-use"
+prism_record = "Foundation.Sec::Asset"
+facet = "sec"
+note = "A std::env use reads the environment: an asset."
+
+[[route]]
+id = "UR-R20"
+rust_fact = "forbid-unsafe"
+prism_record = "Foundation.Sec::ApplicationSecurityControl"
+facet = "sec"
+note = "#![forbid(unsafe_code)] is a control whose evidence is the compiler gate."
+
+[[route]]
+id = "UR-R21"
+rust_fact = "advisory"
+prism_record = "Foundation.Sec::Risk"
+facet = "sec"
+note = "A RustSec advisory against a locked package is a risk on the supply chain."
+
+[[route]]
+id = "UR-R22"
+rust_fact = "lock-package"
+prism_record = "System.SpdxPackage"
+facet = "release"
+note = "A Cargo.lock package is an SPDX package of the release's bill of materials."
+
+[[route]]
+id = "UR-R23"
+rust_fact = "lint-config"
+prism_record = "Foundation.Qual::QualityRequirement"
+facet = "qual"
+note = "A [lints] table entry is a maintainability requirement."
+
+[[route]]
+id = "UR-R24"
+rust_fact = "rust-version"
+prism_record = "Foundation.Qual::QualityRequirement"
+facet = "qual"
+note = "The rust-version (MSRV) field is a portability requirement."
+
+[[route]]
+id = "UR-R25"
+rust_fact = "bench-target"
+prism_record = "Foundation.Qual::QualityMeasure"
+facet = "qual"
+note = "A [[bench]] target is a performance-efficiency measure."
+
+[[route]]
+id = "UR-R26"
+rust_fact = "state-enum"
+prism_record = "Foundation.Arch::UmlState"
+facet = "design"
+note = "A fieldless enum matched in transitions is a UML state machine; each variant a state."
+
+[[route]]
+id = "UR-R27"
+rust_fact = "call-edge"
+prism_record = "Foundation.Arch::UmlMessage"
+facet = "design"
+note = "A call across crates is a synchronous message of the UML sequence view."
+
+[[route]]
+id = "UR-R28"
+rust_fact = "module"
+prism_record = "Foundation.Arch::OpmThing"
+facet = "design"
+note = "A module is an OPM object; its public functions are the processes that zoom into it."
+
+# Acceptance vectors: generated from the rule above; the application replays
+# them in order. `request_hex` is the request's bytes, `response` its answer.
+
+[[vector]]
+case = "route UR-R01"
+request_hex = "63726174652d62696e2d746172676574"
+response = "route UR-R01\nfact crate-bin-target\nrecord Foundation.Arch::Component\nfacet arch"
+
+[[vector]]
+case = "route UR-R02"
+request_hex = "63726174652d6c69622d746172676574"
+response = "route UR-R02\nfact crate-lib-target\nrecord Foundation.Arch::Component\nfacet arch"
+
+[[vector]]
+case = "route UR-R03"
+request_hex = "63726174652d646f63"
+response = "route UR-R03\nfact crate-doc\nrecord Foundation.Arch::Concern\nfacet arch"
+
+[[vector]]
+case = "route UR-R04"
+request_hex = "7061636b6167652d617574686f72"
+response = "route UR-R04\nfact package-author\nrecord Foundation.Arch::Stakeholder\nfacet arch"
+
+[[vector]]
+case = "route UR-R05"
+request_hex = "646570656e64656e63792d65646765"
+response = "route UR-R05\nfact dependency-edge\nrecord Foundation.Arch::Edge\nfacet arch"
+
+[[vector]]
+case = "route UR-R06"
+request_hex = "636c61702d737562636f6d6d616e64"
+response = "route UR-R06\nfact clap-subcommand\nrecord Foundation.Arch::Feature\nfacet features"
+
+[[vector]]
+case = "route UR-R07"
+request_hex = "7075622d666e"
+response = "route UR-R07\nfact pub-fn\nrecord Feature.calls\nfacet features"
+
+[[vector]]
+case = "route UR-R08"
+request_hex = "7075622d7472616974"
+response = "route UR-R08\nfact pub-trait\nrecord Feature.calls\nfacet features"
+
+[[vector]]
+case = "route UR-R09"
+request_hex = "6578616d706c652d746172676574"
+response = "route UR-R09\nfact example-target\nrecord Foundation.Arch::Journey\nfacet features"
+
+[[vector]]
+case = "route UR-R10"
+request_hex = "746573742d666e"
+response = "route UR-R10\nfact test-fn\nrecord Feature.acceptance\nfacet features"
+
+[[vector]]
+case = "route UR-R11"
+request_hex = "646f6374657374"
+response = "route UR-R11\nfact doctest\nrecord Feature.acceptance\nfacet features"
+
+[[vector]]
+case = "route UR-R12"
+request_hex = "6572726f722d656e756d"
+response = "route UR-R12\nfact error-enum\nrecord LexLean.inductive\nfacet behavior"
+
+[[vector]]
+case = "route UR-R13"
+request_hex = "666e2d626f6479"
+response = "route UR-R13\nfact fn-body\nrecord LexLean.definition\nfacet behavior"
+
+[[vector]]
+case = "route UR-R14"
+request_hex = "756e736166652d626c6f636b"
+response = "route UR-R14\nfact unsafe-block\nrecord Foundation.Sec::Threat\nfacet sec"
+
+[[vector]]
+case = "route UR-R15"
+request_hex = "6666692d65787465726e"
+response = "route UR-R15\nfact ffi-extern\nrecord Foundation.Sec::Threat\nfacet sec"
+
+[[vector]]
+case = "route UR-R16"
+request_hex = "66732d757365"
+response = "route UR-R16\nfact fs-use\nrecord Foundation.Sec::Asset\nfacet sec"
+
+[[vector]]
+case = "route UR-R17"
+request_hex = "6e65742d757365"
+response = "route UR-R17\nfact net-use\nrecord Foundation.Sec::Asset\nfacet sec"
+
+[[vector]]
+case = "route UR-R18"
+request_hex = "70726f636573732d757365"
+response = "route UR-R18\nfact process-use\nrecord Foundation.Sec::Asset\nfacet sec"
+
+[[vector]]
+case = "route UR-R19"
+request_hex = "656e762d757365"
+response = "route UR-R19\nfact env-use\nrecord Foundation.Sec::Asset\nfacet sec"
+
+[[vector]]
+case = "route UR-R20"
+request_hex = "666f726269642d756e73616665"
+response = "route UR-R20\nfact forbid-unsafe\nrecord Foundation.Sec::ApplicationSecurityControl\nfacet sec"
+
+[[vector]]
+case = "route UR-R21"
+request_hex = "61647669736f7279"
+response = "route UR-R21\nfact advisory\nrecord Foundation.Sec::Risk\nfacet sec"
+
+[[vector]]
+case = "route UR-R22"
+request_hex = "6c6f636b2d7061636b616765"
+response = "route UR-R22\nfact lock-package\nrecord System.SpdxPackage\nfacet release"
+
+[[vector]]
+case = "route UR-R23"
+request_hex = "6c696e742d636f6e666967"
+response = "route UR-R23\nfact lint-config\nrecord Foundation.Qual::QualityRequirement\nfacet qual"
+
+[[vector]]
+case = "route UR-R24"
+request_hex = "727573742d76657273696f6e"
+response = "route UR-R24\nfact rust-version\nrecord Foundation.Qual::QualityRequirement\nfacet qual"
+
+[[vector]]
+case = "route UR-R25"
+request_hex = "62656e63682d746172676574"
+response = "route UR-R25\nfact bench-target\nrecord Foundation.Qual::QualityMeasure\nfacet qual"
+
+[[vector]]
+case = "route UR-R26"
+request_hex = "73746174652d656e756d"
+response = "route UR-R26\nfact state-enum\nrecord Foundation.Arch::UmlState\nfacet design"
+
+[[vector]]
+case = "route UR-R27"
+request_hex = "63616c6c2d65646765"
+response = "route UR-R27\nfact call-edge\nrecord Foundation.Arch::UmlMessage\nfacet design"
+
+[[vector]]
+case = "route UR-R28"
+request_hex = "6d6f64756c65"
+response = "route UR-R28\nfact module\nrecord Foundation.Arch::OpmThing\nfacet design"
+
+[[vector]]
+case = "same route twice"
+request_hex = "746573742d666e0a746573742d666e"
+response = "route UR-R10\nfact test-fn\nrecord Feature.acceptance\nfacet features"
+
+[[vector]]
+case = "error empty"
+request_hex = ""
+response = "error empty"
+
+[[vector]]
+case = "error too-large"
+request_hex = "616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161"
+response = "error too-large"
+
+[[vector]]
+case = "error invalid-utf8"
+request_hex = "ff"
+response = "error invalid-utf8"
+
+[[vector]]
+case = "error blank-fact"
+request_hex = "7075622d666e0a"
+response = "error blank-fact"
+
+[[vector]]
+case = "error blank-fact first"
+request_hex = "0a7075622d666e"
+response = "error blank-fact"
+
+[[vector]]
+case = "refused unknown-fact"
+request_hex = "737472756374"
+response = "refused unknown-fact\nfact struct"
+
+[[vector]]
+case = "refused unknown-fact after a known fact"
+request_hex = "7075622d666e0a6d6163726f2d72756c6573"
+response = "refused unknown-fact\nfact macro-rules"
+
+[[vector]]
+case = "refused ambiguous"
+request_hex = "6572726f722d656e756d0a73746174652d656e756d"
+response = "refused ambiguous\nfact error-enum\nfact state-enum"
+
+[[vector]]
+case = "refused ambiguous same record"
+request_hex = "746573742d666e0a646f6374657374"
+response = "refused ambiguous\nfact test-fn\nfact doctest"
+
+[[vector]]
+case = "refused ambiguous after agreement"
+request_hex = "66732d7573650a66732d7573650a6e65742d757365"
+response = "refused ambiguous\nfact fs-use\nfact net-use"
