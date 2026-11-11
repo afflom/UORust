@@ -147,6 +147,7 @@ is a row in [`model/ids.toml`](model/ids.toml), a scenario in
 | `just vv` | The whole gate: format, model and audits, the SDK's template and lock checks, Clippy, the tests, `cargo deny`, and the verified build of `app/`. |
 | `just app` | Checks `app/` is canonical and locked, then builds and verifies its holo. |
 | `just model-write` | Regenerates `CONFORMANCE.md` from `model/`. |
+| `just self-model-write` | Regenerates the route table, its vectors and the facet modules of `app/` from `model/routes.toml` and `scripts/self-model/`, then locks, formats and rebinds the System release digest. `just self-model-check` (in `just vv`) fails when a committed file differs from what the generators write. |
 | `just new-capability <ID> <level> <suite> "<statement>"` | Registers a capability with its scenario and failing test. |
 
 For the Prism language, the facet metamodel and the SDK, read the

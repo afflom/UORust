@@ -29,6 +29,7 @@ without the other two.
 | `check-model` | `CONFORMANCE.md` disagrees with the register | rejected |
 | `audit-deferral` | a deferral marker in a crate and in the gate's own source | both rejected |
 | honesty meta-gate | an ID with no test | rejected |
+| `self-model-check` | a hand edit of a generated module (a stakeholder renamed in `app/src/Architecture.lex.tex`) | rejected |
 | `self_model_sm_01` | a route dropped from `app/src/Routes.lex.tex`, or a vector of `model/routes.toml` missing from the application | both rejected |
 | `prismpm verify` | an acceptance vector set without the exact guest-allocation boundary | rejected (PP2009) |
 | `audit-bootstrap` | a floating/copied action, mutable SDK tag, changed universal file, narrowed boundary, shallow/credential-retaining checkout, copied project renderer, omitted standards lock, acceptance bypass, deploy-job signing privilege, incomplete release lifecycle, or a bootstrap that drops a native architecture from main or tags, cancels or replaces a main run, or skips runs by path, condition or matrix exclusion | all rejected |

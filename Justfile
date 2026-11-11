@@ -8,7 +8,7 @@
 default: vv
 
 # The whole gate.
-vv: fmt-check model template-check lint test deny app uorust
+vv: fmt-check model template-check self-model-check lint test deny app uorust
     @echo "vv: the acceptance gate passed"
 
 fmt-check:
@@ -88,3 +88,14 @@ model-write:
 #     just new-capability CX-01 build parsing "A parsed document round-trips"
 new-capability id level suite statement:
     cargo run -q --locked -p xtask -- new-capability {{quote(id)}} {{quote(level)}} {{quote(suite)}} {{quote(statement)}}
+
+# UORust's self model is generated: model/routes.toml and
+# scripts/self-model/facets.py write the route table, its vectors and the facet
+# modules of app/. The check regenerates them in a scratch copy and compares
+# byte for byte; the writer regenerates in place, locks, formats, and rebinds
+# the System release digest that `prismpm check` reports (PP2101).
+self-model-check:
+    scripts/self-model/check.sh
+
+self-model-write:
+    scripts/self-model/write.sh
