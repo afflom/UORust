@@ -176,14 +176,20 @@ pub(crate) struct Types {
     pub(crate) enums: BTreeMap<String, Vec<String>>,
     /// Struct name -> fields `(LexLean name, type)` in declaration order.
     pub(crate) structs: BTreeMap<String, Vec<(String, Ty)>>,
+    /// A Rust type name -> the LexLean name it lifts to, where the crate's
+    /// name qualifies it apart from another crate's type of the same name.
+    pub(crate) aliases: BTreeMap<String, String>,
 }
 
 impl Types {
     /// The structs whose every field lifts, to the fixpoint where a struct
     /// only names enums and structs that lift.
+    /// Rust type names `aliases` maps to the LexLean names the maps are
+    /// keyed by: a crate's own names, apart from another crate's.
     pub(crate) fn new(
         enums: BTreeMap<String, Vec<String>>,
         structs: &BTreeMap<String, Vec<(String, syn::Type)>>,
+        aliases: BTreeMap<String, String>,
     ) -> Self {
         let enums: BTreeMap<String, Vec<String>> = enums
             .into_iter()
@@ -207,6 +213,7 @@ impl Types {
             let probe = Self {
                 enums: enums.clone(),
                 structs: names.iter().map(|n| (n.clone(), Vec::new())).collect(),
+                aliases: aliases.clone(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -226,10 +233,19 @@ impl Types {
                 return Self {
                     enums,
                     structs: lifted,
+                    aliases,
                 };
             }
             names = lifted.into_keys().collect();
         }
+    }
+
+    /// The LexLean name of a Rust type name.
+    pub(crate) fn resolve(&self, rust: &str) -> String {
+        self.aliases
+            .get(rust)
+            .cloned()
+            .unwrap_or_else(|| rust.to_string())
     }
 
     pub(crate) fn ty(&self, t: &syn::Type) -> Lift<Ty> {
@@ -287,8 +303,11 @@ impl Types {
                     ("HashMap", [k, v]) => Ty::Map(Box::new(k.clone()), Box::new(v.clone()), false),
                     ("BTreeSet", [t]) => Ty::Set(Box::new(t.clone()), true),
                     ("HashSet", [t]) => Ty::Set(Box::new(t.clone()), false),
-                    (n, []) if self.enums.contains_key(n) || self.structs.contains_key(n) => {
-                        Ty::Named(n.to_string())
+                    (n, [])
+                        if self.enums.contains_key(&self.resolve(n))
+                            || self.structs.contains_key(&self.resolve(n)) =>
+                    {
+                        Ty::Named(self.resolve(n))
                     }
                     _ => return bad(),
                 };
@@ -731,7 +750,7 @@ fn ctor(path: &syn::Path, types: &Types) -> Option<(String, String)> {
     if n < 2 {
         return None;
     }
-    let owner = path.segments[n - 2].ident.to_string();
+    let owner = types.resolve(&path.segments[n - 2].ident.to_string());
     let variant = path.segments[n - 1].ident.to_string();
     types
         .enums
@@ -878,7 +897,11 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             }
         }
         syn::Expr::Struct(s) if s.rest.is_none() && s.qself.is_none() => {
-            let Some(name) = s.path.get_ident().map(ToString::to_string) else {
+            let Some(name) = s
+                .path
+                .get_ident()
+                .map(|i| ctx.types.resolve(&i.to_string()))
+            else {
                 return Break(Residue::Form("struct path".to_string()));
             };
             let Some(fields) = ctx.types.structs.get(&name) else {
@@ -1086,10 +1109,10 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                 (Ty::Nat(_), B::Gt(_)) => format!("({r} <? {l})"),
                 (Ty::Nat(_), B::Ge(_)) => format!("({r} <=? {l})"),
                 (Ty::Bool | Ty::Named(_), B::Eq(_)) if is_enum_or_bool(&lt, ctx) => {
-                    format!("({l} =? {r})")
+                    same_constructor(&lt, &l, &r)
                 }
                 (Ty::Bool | Ty::Named(_), B::Ne(_)) if is_enum_or_bool(&lt, ctx) => {
-                    format!("(not ({l} =? {r}))")
+                    format!("(not {})", same_constructor(&lt, &l, &r))
                 }
                 (Ty::Int(_) | Ty::Str, B::Eq(_)) => format!("(prim equal {l} {r} : Bool)"),
                 (Ty::Int(_) | Ty::Str, B::Ne(_)) => format!("(not (prim equal {l} {r} : Bool))"),
@@ -1134,6 +1157,23 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
         }
         _ => Break(Residue::Arithmetic(op_text())),
     }
+}
+
+/// Equality of two values of a unit-variant enum, through the enum's own
+/// equality definition (`=?` is `Nat`'s), or of two `Bool`s, by cases on the
+/// left.
+fn same_constructor(ty: &Ty, l: &str, r: &str) -> String {
+    match ty {
+        Ty::Named(n) => format!("({} {l} {r})", equality_name(n)),
+        _ => format!("(if {l} then {r} else (not {r}))"),
+    }
+}
+
+/// The definition that decides equality of a unit-variant enum's values,
+/// which the projection emits after the enum for every enum a lifted body
+/// compares.
+pub(crate) fn equality_name(enum_name: &str) -> String {
+    format!("equal{enum_name}")
 }
 
 fn is_enum_or_bool(t: &Ty, ctx: &Ctx<'_>) -> bool {
@@ -1217,7 +1257,7 @@ fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)>
         } else {
             owner.as_str()
         };
-        let key = format!("{owner}::{method}");
+        let key = format!("{}::{method}", ctx.types.resolve(owner));
         if ctx.fns.contains_key(&key) {
             name = key;
         }
@@ -3349,7 +3389,7 @@ mod tests {
             "Band".to_string(),
             vec![("low".to_string(), ty.clone()), ("high".to_string(), ty)],
         );
-        let types = Types::new(BTreeMap::new(), &raw);
+        let types = Types::new(BTreeMap::new(), &raw, BTreeMap::new());
         let out = lift(
             "fn widen(b: Band) -> (u32, bool) { (b.high, b.low <= b.high) }",
             &types,

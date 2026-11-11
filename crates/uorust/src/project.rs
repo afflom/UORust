@@ -10,7 +10,7 @@ use crate::facts::{
     Capability, FnFact, FnSyntax, Package, SourceFile, Span, Syntax, TargetKind, Workspace,
 };
 use crate::ingest::summary;
-use crate::lex::{pascal, string, string_list, Decl, Module};
+use crate::lex::{pascal, string, string_list, Decl, Expr, Module};
 use crate::lift::{self, Candidate, Residue, Ty, Types};
 
 /// What a projection is parameterised by beyond the workspace.
@@ -2806,11 +2806,14 @@ fn quality(ctx: &mut Ctx<'_>, features: usize) -> Module {
 fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
     let ws = ctx.ws;
     let mut decls = Vec::new();
-    // Unit-variant enums of product code, by name; a name two crates share is refused.
-    let mut enums: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    let mut enum_spans: BTreeMap<String, Span> = BTreeMap::new();
-    let mut clashing: BTreeSet<String> = BTreeSet::new();
+    // Unit-variant enums and structs with named fields of product code, by
+    // name within each crate; a name a crate declares twice is refused. A
+    // name two crates share lifts qualified by each crate's name.
+    let mut scoped: Vec<(Variants, Fields)> = Vec::new();
     for package in &ws.packages {
+        let mut enums: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut raw_structs: BTreeMap<String, Vec<(String, syn::Type)>> = BTreeMap::new();
+        let mut clashing: BTreeSet<String> = BTreeSet::new();
         for file in &package.files {
             if !matches!(
                 package.targets[file.target].kind,
@@ -2834,13 +2837,8 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
                     e.name.clone(),
                     e.variants.iter().map(|v| v.name.clone()).collect(),
                 );
-                enum_spans.insert(e.name.clone(), e.span.clone());
             }
         }
-    }
-    // Structs with named fields, by name, refused the same way.
-    let mut raw_structs: BTreeMap<String, Vec<(String, syn::Type)>> = BTreeMap::new();
-    for package in &ws.packages {
         for file in &package.files {
             if !matches!(
                 package.targets[file.target].kind,
@@ -2860,12 +2858,46 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
                 raw_structs.insert(st.name.clone(), fields.clone());
             }
         }
+        for name in &clashing {
+            enums.remove(name);
+            raw_structs.remove(name);
+        }
+        scoped.push((enums, raw_structs));
     }
-    for name in &clashing {
-        enums.remove(name);
-        raw_structs.remove(name);
+    let mut crates_of: BTreeMap<String, usize> = BTreeMap::new();
+    for (enums, structs) in &scoped {
+        for name in enums.keys().chain(structs.keys()) {
+            *crates_of.entry(name.clone()).or_default() += 1;
+        }
     }
-    let types = Types::new(enums, &raw_structs);
+    let scopes: Vec<Types> = scoped
+        .into_iter()
+        .zip(&ws.packages)
+        .map(|((enums, structs), package)| {
+            let lex = |name: &String| {
+                if crates_of[name] > 1 {
+                    format!("{}{name}", pascal(&[&package.name]))
+                } else {
+                    name.clone()
+                }
+            };
+            let aliases: BTreeMap<String, String> = enums
+                .keys()
+                .chain(structs.keys())
+                .filter(|n| crates_of[*n] > 1)
+                .map(|n| (n.clone(), lex(n)))
+                .collect();
+            let enums = enums.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
+            let structs = structs.into_iter().map(|(n, fs)| (lex(&n), fs)).collect();
+            Types::new(enums, &structs, aliases)
+        })
+        .collect();
+    // Every crate's lifted types, for the declarations they emit.
+    let mut types = Types::default();
+    for scope in &scopes {
+        types.enums.extend(scope.enums.clone());
+        types.structs.extend(scope.structs.clone());
+    }
     // Typed failures: every error enum's variants, as an inductive.
     for (pkg, package) in ws.packages.iter().enumerate() {
         for (fi, file) in package.files.iter().enumerate() {
@@ -2926,10 +2958,16 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
             break;
         }
     }
-    let mut candidates = Vec::new();
-    let mut names: BTreeMap<String, FnRef> = BTreeMap::new();
+    // Each crate lifts on its own: its types, and calls among its functions.
+    // A function name two crates share lifts qualified by the crate's name.
+    let mut scoped: Vec<(Vec<Candidate<'_>>, BTreeMap<String, FnRef>)> = ws
+        .packages
+        .iter()
+        .map(|_| (Vec::new(), BTreeMap::new()))
+        .collect();
     for &r in &all {
         let f = ctx.func(r);
+        let types = &scopes[r.pkg];
         // Inherent methods of a type the lift names lift with `self` as their
         // first parameter; trait methods and methods of other types do not.
         let method = match &f.owner {
@@ -2937,9 +2975,10 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
             Some(o)
                 if !f.in_trait
                     && f.implements.is_none()
-                    && (types.enums.contains_key(o) || types.structs.contains_key(o)) =>
+                    && (types.enums.contains_key(&types.resolve(o))
+                        || types.structs.contains_key(&types.resolve(o))) =>
             {
-                Some(o.as_str())
+                Some(types.resolve(o))
             }
             Some(_) => continue,
         };
@@ -2951,14 +2990,15 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
         let Some(block) = &fn_syntax.block else {
             continue;
         };
-        let (rust, name) = match method {
+        let (rust, name) = match &method {
             Some(o) => (
                 format!("{o}::{}", f.name),
                 lift::local_name(&format!("{o}_{}", f.name)),
             ),
             None => (f.name.clone(), lift::local_name(&f.name)),
         };
-        match types.signature(sig, method) {
+        let (candidates, names) = &mut scoped[r.pkg];
+        match types.signature(sig, method.as_deref()) {
             std::ops::ControlFlow::Continue((params, result)) => {
                 if names.contains_key(&rust)
                     || candidates.iter().any(|c: &Candidate<'_>| c.name == name)
@@ -2987,63 +3027,98 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
             },
         }
     }
-    // A parameter may not be spelled like a definition: generated Lean would
-    // capture the definition.
-    let defined: BTreeSet<String> = candidates.iter().map(|c| c.name.clone()).collect();
-    for c in &mut candidates {
-        let mut taken: BTreeSet<String> = c.params.iter().map(|(_, n, _)| n.clone()).collect();
-        for (_, n, _) in &mut c.params {
-            if defined.contains(n.as_str()) {
-                let mut k = 1;
-                let renamed = loop {
-                    let candidate = format!(
-                        "{n}Arg{}",
-                        if k == 1 { String::new() } else { k.to_string() }
-                    );
-                    if !defined.contains(&candidate) && !taken.contains(&candidate) {
-                        break candidate;
-                    }
-                    k += 1;
-                };
-                taken.insert(renamed.clone());
-                *n = renamed;
+    let mut shared: BTreeMap<String, usize> = BTreeMap::new();
+    for (candidates, _) in &scoped {
+        for c in candidates {
+            *shared.entry(c.name.clone()).or_default() += 1;
+        }
+    }
+    for ((candidates, _), package) in scoped.iter_mut().zip(&ws.packages) {
+        for c in candidates.iter_mut() {
+            if shared[&c.name] > 1 {
+                c.name = lift::local_name(&format!("{}_{}", package.name, c.name));
             }
         }
     }
-    let out = lift::lift_all(&candidates, &types);
-    for (rust, reason) in out.failed {
-        if let Some(&r) = names.get(&rust) {
-            let span = ctx.func(r).span.clone();
-            match effectful.get(&r) {
-                Some(effect) => {
-                    ctx.effects.insert(ctx.path(r), (span, effect.clone()));
+    // A parameter may not be spelled like a definition: generated Lean would
+    // capture the definition.
+    let defined: BTreeSet<String> = scoped
+        .iter()
+        .flat_map(|(candidates, _)| candidates.iter().map(|c| c.name.clone()))
+        .collect();
+    for (candidates, _) in &mut scoped {
+        for c in candidates.iter_mut() {
+            let mut taken: BTreeSet<String> = c.params.iter().map(|(_, n, _)| n.clone()).collect();
+            for (_, n, _) in &mut c.params {
+                if defined.contains(n.as_str()) {
+                    let mut k = 1;
+                    let renamed = loop {
+                        let candidate = format!(
+                            "{n}Arg{}",
+                            if k == 1 { String::new() } else { k.to_string() }
+                        );
+                        if !defined.contains(&candidate) && !taken.contains(&candidate) {
+                            break candidate;
+                        }
+                        k += 1;
+                    };
+                    taken.insert(renamed.clone());
+                    *n = renamed;
                 }
-                None => ctx.record_residue(r, span, reason),
             }
         }
+    }
+    let mut lifted = Vec::new();
+    let mut mentioned: BTreeSet<Ty> = BTreeSet::new();
+    // Per crate: the lifted functions' signatures and their axioms.
+    let mut results: Vec<(Sigs, Axioms)> = Vec::new();
+    for ((candidates, names), types) in scoped.iter().zip(&scopes) {
+        let out = lift::lift_all(candidates, types);
+        for (rust, reason) in out.failed {
+            if let Some(&r) = names.get(&rust) {
+                let span = ctx.func(r).span.clone();
+                match effectful.get(&r) {
+                    Some(effect) => {
+                        ctx.effects.insert(ctx.path(r), (span, effect.clone()));
+                    }
+                    None => ctx.record_residue(r, span, reason),
+                }
+            }
+        }
+        mentioned.extend(out.types);
+        let sigs: BTreeMap<String, lift::Sig> = candidates
+            .iter()
+            .filter(|c| out.decls.iter().any(|d| d.name() == c.name))
+            .map(|c| {
+                (
+                    c.rust.clone(),
+                    lift::Sig {
+                        name: c.name.clone(),
+                        params: c.params.iter().map(|(_, _, t)| t.clone()).collect(),
+                        result: c.result.clone(),
+                    },
+                )
+            })
+            .collect();
+        lifted.extend(out.decls);
+        results.push((sigs, out.axioms));
     }
     // The enums, structs and tuples the lifted definitions name, each after
     // the types its fields name.
-    let mut emitted: BTreeSet<Ty> = BTreeSet::new();
-    for ty in &out.types {
-        type_decls(ty, &types, &mut emitted, &mut decls);
-    }
-    let results: BTreeMap<String, lift::Sig> = candidates
-        .iter()
-        .filter(|c| out.decls.iter().any(|d| d.name() == c.name))
-        .map(|c| {
-            (
-                c.rust.clone(),
-                lift::Sig {
-                    name: c.name.clone(),
-                    params: c.params.iter().map(|(_, _, t)| t.clone()).collect(),
-                    result: c.result.clone(),
-                },
-            )
+    let rendered: Vec<String> = lifted.iter().map(crate::lex::render_decl).collect();
+    let compared: BTreeSet<String> = types
+        .enums
+        .keys()
+        .filter(|n| {
+            let call = format!("({} ", lift::equality_name(n));
+            rendered.iter().any(|d| d.contains(&call))
         })
+        .cloned()
         .collect();
-    let lifted = out.decls;
-    let axioms = out.axioms;
+    let mut emitted: BTreeSet<Ty> = BTreeSet::new();
+    for ty in &mentioned {
+        type_decls(ty, &types, &compared, &mut emitted, &mut decls);
+    }
     decls.extend(lifted);
     // Closed assertions of tests over lifted functions are theorems.
     let mut theorems = BTreeSet::new();
@@ -3052,8 +3127,9 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
         if !f.test {
             continue;
         }
+        let (sigs, axioms) = &results[r.pkg];
         for (i, (kind, args)) in ctx.syntax(syntax, r).asserts.iter().enumerate() {
-            if let Some((statement, callee)) = lift::acceptance(kind, args, &results, &types) {
+            if let Some((statement, callee)) = lift::acceptance(kind, args, sigs, &scopes[r.pkg]) {
                 let name = format!("accept{}{}", pascal(&[&ctx.package(r).name, &f.name]), i);
                 if theorems.insert(name.clone()) {
                     decls.push(Decl::Theorem {
@@ -3075,9 +3151,57 @@ fn behavior(ctx: &mut Ctx<'_>, syntax: &Syntax) -> Module {
     }
 }
 
+/// The definition deciding equality of a unit-variant enum's values: a
+/// match on both.
+fn equality(name: &str, variants: &[String]) -> Decl {
+    let arms = |left: &String| {
+        variants
+            .iter()
+            .map(|v| (format!("{name}.{v}"), Expr::Flat((v == left).to_string())))
+            .collect()
+    };
+    Decl::Definition {
+        name: lift::equality_name(name),
+        parameters: vec![("left".into(), name.into()), ("right".into(), name.into())],
+        result: "Bool".into(),
+        body: Expr::Match {
+            scrutinee: "left".into(),
+            arms: variants
+                .iter()
+                .map(|v| {
+                    (
+                        format!("{name}.{v}"),
+                        Expr::Match {
+                            scrutinee: "right".into(),
+                            arms: arms(v),
+                        },
+                    )
+                })
+                .collect(),
+        },
+        axioms: Vec::new(),
+        recursive: None,
+    }
+}
+
+/// Unit-variant enums by name, with their variants.
+type Variants = BTreeMap<String, Vec<String>>;
+/// Structs by name, with their named fields.
+type Fields = BTreeMap<String, Vec<(String, syn::Type)>>;
+/// A crate's lifted functions, by Rust name.
+type Sigs = BTreeMap<String, lift::Sig>;
+/// The Lean axioms of each lifted function, by Rust name.
+type Axioms = BTreeMap<String, Vec<String>>;
+
 /// The declaration of a named type or tuple, after those of the types its
 /// fields name.
-fn type_decls(ty: &Ty, types: &Types, emitted: &mut BTreeSet<Ty>, decls: &mut Vec<Decl>) {
+fn type_decls(
+    ty: &Ty,
+    types: &Types,
+    compared: &BTreeSet<String>,
+    emitted: &mut BTreeSet<Ty>,
+    decls: &mut Vec<Decl>,
+) {
     if !emitted.insert(ty.clone()) {
         return;
     }
@@ -3088,6 +3212,9 @@ fn type_decls(ty: &Ty, types: &Types, emitted: &mut BTreeSet<Ty>, decls: &mut Ve
                     name: n.clone(),
                     constructors: variants.clone(),
                 });
+                if compared.contains(n) {
+                    decls.push(equality(n, variants));
+                }
                 return;
             }
             (None, Some(fields)) => fields.clone(),
@@ -3104,7 +3231,7 @@ fn type_decls(ty: &Ty, types: &Types, emitted: &mut BTreeSet<Ty>, decls: &mut Ve
         let mut inner = BTreeSet::new();
         t.mentions(&mut inner);
         for dep in &inner {
-            type_decls(dep, types, emitted, decls);
+            type_decls(dep, types, compared, emitted, decls);
         }
     }
     decls.push(Decl::Structure {
