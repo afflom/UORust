@@ -30,28 +30,49 @@ definition{
   name: acThermoCoreThermoCoreHeatsWhenCold,
   parameters: [],
   result: String,
-  body: "heats_when_cold at thermo-core/src/lib.rs:82: A cold room heats."
+  body: "heats_when_cold at thermo-core/src/lib.rs:83: A cold room heats."
 }
 
 definition{
   name: acThermoCoreThermoCoreBandIsInclusive,
   parameters: [],
   result: String,
-  body: "band_is_inclusive at thermo-core/src/lib.rs:88 passes."
+  body: "band_is_inclusive at thermo-core/src/lib.rs:89 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreIdleRoomThatIsColdHeats,
   parameters: [],
   result: String,
-  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:94 passes."
+  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:95 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreMidpointOfABand,
   parameters: [],
   result: String,
-  body: "midpoint_of_a_band at thermo-core/src/lib.rs:100 passes."
+  body: "midpoint_of_a_band at thermo-core/src/lib.rs:101 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreRosterTheRosterReadsItsRooms,
+  parameters: [],
+  result: String,
+  body: "the_roster_reads_its_rooms at thermo-core/src/roster.rs:148 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps,
+  parameters: [],
+  result: String,
+  body: "the_roster_folds_and_clamps at thermo-core/src/roster.rs:161 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreRosterTheRosterReadsItsMaps,
+  parameters: [],
+  result: String,
+  body: "the_roster_reads_its_maps at thermo-core/src/roster.rs:174 passes."
 }
 
 definition{
@@ -72,7 +93,7 @@ definition{
   name: acDocThermoCoreShouldHeat,
   parameters: [],
   result: String,
-  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:24 pass."
+  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:25 pass."
 }
 
 definition{
@@ -230,6 +251,146 @@ definition{
 }
 
 definition{
+  name: callThermoCoreRosterRoomIsCold,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::Room::is_cold: fn is_cold(&self, floor: u32) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterRoomReread,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::Room::reread: fn reread(&self, reading: u32) -> Self"
+}
+
+definition{
+  name: callThermoCoreRosterRoomLabel,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::Room::label: fn label(&self) -> String"
+}
+
+definition{
+  name: callThermoCoreRosterNames,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::names: fn names(rooms: &[Room]) -> Vec<String>"
+}
+
+definition{
+  name: callThermoCoreRosterCold,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::cold: fn cold(rooms: &[Room], floor: u32) -> Vec<Room>"
+}
+
+definition{
+  name: callThermoCoreRosterAnyCold,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::any_cold: fn any_cold(rooms: &[Room], floor: u32) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterAllWithin,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::all_within: fn all_within(readings: &[u32], low: u32, high: u32) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterFirstCold,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::first_cold: fn first_cold(rooms: &[Room], floor: u32) -> Option<Room>"
+}
+
+definition{
+  name: callThermoCoreRosterHighest,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::highest: fn highest(readings: &[u32]) -> u32"
+}
+
+definition{
+  name: callThermoCoreRosterColdCount,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::cold_count: fn cold_count(rooms: &[Room], floor: u32) -> usize"
+}
+
+definition{
+  name: callThermoCoreRosterScheduled,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::scheduled: fn scheduled(schedule: &[String], room: &str) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterRoll,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::roll: fn roll(rooms: &[Room]) -> String"
+}
+
+definition{
+  name: callThermoCoreRosterPairs,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::pairs: fn pairs(entries: &[(String, i64)]) -> Vec<String>"
+}
+
+definition{
+  name: callThermoCoreRosterTargetOf,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::target_of: fn target_of(targets: &BTreeMap<String, u32>, room: &str) -> u32"
+}
+
+definition{
+  name: callThermoCoreRosterRoomsOf,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::rooms_of: fn rooms_of(targets: &BTreeMap<String, u32>) -> Vec<String>"
+}
+
+definition{
+  name: callThermoCoreRosterHasTarget,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::has_target: fn has_target(targets: &HashMap<String, u32>, room: &str) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterClosed,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::closed: fn closed(rooms: &BTreeSet<String>, room: &str) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterLabelWidth,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::label_width: fn label_width(label: &str) -> usize"
+}
+
+definition{
+  name: callThermoCoreRosterClamp,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::clamp: fn clamp(band:(u32, u32), reading: u32) -> u32"
+}
+
+definition{
+  name: callThermoCoreRosterBlank,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::blank: fn blank() -> String"
+}
+
+definition{
   name: callThermoCoreSensorSensorRead,
   parameters: [],
   result: String,
@@ -272,6 +433,13 @@ definition{
 }
 
 definition{
+  name: featureThermoCoreRoster,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::roster: Rooms, their readings and the schedule that names them.", calls := (cons "Interface::callThermoCoreRosterRoomIsCold" (cons "Interface::callThermoCoreRosterRoomReread" (cons "Interface::callThermoCoreRosterRoomLabel" (cons "Interface::callThermoCoreRosterNames" (cons "Interface::callThermoCoreRosterCold" (cons "Interface::callThermoCoreRosterAnyCold" (cons "Interface::callThermoCoreRosterAllWithin" (cons "Interface::callThermoCoreRosterFirstCold" (cons "Interface::callThermoCoreRosterHighest" (cons "Interface::callThermoCoreRosterColdCount" (cons "Interface::callThermoCoreRosterScheduled" (cons "Interface::callThermoCoreRosterRoll" (cons "Interface::callThermoCoreRosterPairs" (cons "Interface::callThermoCoreRosterTargetOf" (cons "Interface::callThermoCoreRosterRoomsOf" (cons "Interface::callThermoCoreRosterHasTarget" (cons "Interface::callThermoCoreRosterClosed" (cons "Interface::callThermoCoreRosterLabelWidth" (cons "Interface::callThermoCoreRosterClamp" (cons "Interface::callThermoCoreRosterBlank" (nil String))))))))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms" (nil String))))})
+}
+
+definition{
   name: featureThermoCoreSensor,
   parameters: [],
   result: Foundation.Arch::Feature,
@@ -303,7 +471,7 @@ definition{
   name: journeyLibraryThermoCore,
   parameters: [],
   result: Foundation.Arch::Journey,
-  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreBand" (cons "Interface::featureThermoCoreConfig" (cons "Interface::featureThermoCoreSensor" (nil String)))))})
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreBand" (cons "Interface::featureThermoCoreConfig" (cons "Interface::featureThermoCoreRoster" (cons "Interface::featureThermoCoreSensor" (nil String))))))})
 }
 \end{semanticmodule}
 \end{lexlean}

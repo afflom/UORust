@@ -46,6 +46,33 @@ Feature: thermo-core
     Then the acceptance row Interface::acThermoCoreConfigParsesAWholeNumber holds
 
   @FT-04 @build
+  Scenario: thermo_core::roster: Rooms, their readings and the schedule that names them.
+    Given the record Interface::featureThermoCoreRoster
+    When the interface call Interface::callThermoCoreRosterRoomIsCold is made
+    And the interface call Interface::callThermoCoreRosterRoomReread is made
+    And the interface call Interface::callThermoCoreRosterRoomLabel is made
+    And the interface call Interface::callThermoCoreRosterNames is made
+    And the interface call Interface::callThermoCoreRosterCold is made
+    And the interface call Interface::callThermoCoreRosterAnyCold is made
+    And the interface call Interface::callThermoCoreRosterAllWithin is made
+    And the interface call Interface::callThermoCoreRosterFirstCold is made
+    And the interface call Interface::callThermoCoreRosterHighest is made
+    And the interface call Interface::callThermoCoreRosterColdCount is made
+    And the interface call Interface::callThermoCoreRosterScheduled is made
+    And the interface call Interface::callThermoCoreRosterRoll is made
+    And the interface call Interface::callThermoCoreRosterPairs is made
+    And the interface call Interface::callThermoCoreRosterTargetOf is made
+    And the interface call Interface::callThermoCoreRosterRoomsOf is made
+    And the interface call Interface::callThermoCoreRosterHasTarget is made
+    And the interface call Interface::callThermoCoreRosterClosed is made
+    And the interface call Interface::callThermoCoreRosterLabelWidth is made
+    And the interface call Interface::callThermoCoreRosterClamp is made
+    And the interface call Interface::callThermoCoreRosterBlank is made
+    Then the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
+    And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps holds
+    And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms holds
+
+  @FT-05 @build
   Scenario: thermo_core::sensor: Temperature sensors the controller reads from.
     Given the record Interface::featureThermoCoreSensor
     When the interface call Interface::callThermoCoreSensorSensorRead is made

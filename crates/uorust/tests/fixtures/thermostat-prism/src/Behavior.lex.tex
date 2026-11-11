@@ -33,6 +33,34 @@ inductive{
 }
 
 structure{
+  name: Room,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: name, type: String}, {name: reading, type: Nat}]
+}
+
+structure{
+  name: TupleNatNat,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: Nat}, {name: item1, type: Nat}]
+}
+
+structure{
+  name: TupleStringNat,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: String}, {name: item1, type: Nat}]
+}
+
+structure{
+  name: TupleStringInt,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: String}, {name: item1, type: Int64}]
+}
+
+structure{
   name: TupleBandBool,
   type_parameters: [],
   parameters: [],
@@ -162,11 +190,11 @@ definition{
 
 definition{
   name: nextMode,
-  parameters: [mode : Mode, cold : Bool, hot : Bool],
+  parameters: [mode : Mode, coldArg : Bool, hot : Bool],
   result: Mode,
   body: (match mode
-    | Mode.Idle => (if cold then (ctor Mode.Heating) else (if hot then (ctor Mode.Cooling) else (ctor Mode.Idle)))
-    | Mode.Heating => (if cold then (ctor Mode.Heating) else (ctor Mode.Idle))
+    | Mode.Idle => (if coldArg then (ctor Mode.Heating) else (if hot then (ctor Mode.Cooling) else (ctor Mode.Idle)))
+    | Mode.Heating => (if coldArg then (ctor Mode.Heating) else (ctor Mode.Idle))
     | Mode.Cooling => (if hot then (ctor Mode.Cooling) else (ctor Mode.Idle)))
 }
 
@@ -179,6 +207,275 @@ definition{
     | Mode.Heating => (ctor Mode.Idle)
     | Mode.Cooling => (ctor Mode.Idle))
 }
+
+definition{
+  name: roomIsCold,
+  parameters: [selfValue : Room, floor : Nat],
+  result: Bool,
+  body: ((project selfValue reading) <? floor)
+}
+
+definition{
+  name: roomReread,
+  parameters: [selfValue : Room, reading : Nat],
+  result: Room,
+  body: (record Room {name := (project selfValue name), reading := reading})
+}
+
+definition{
+  name: roomLabel,
+  parameters: [selfValue : Room],
+  result: String,
+  body: (if (prim equal (project selfValue name) "" : Bool) then "unnamed" else (project selfValue name))
+}
+
+definition{
+  name: namesMap1,
+  parameters: [items1 : (List Room)],
+  result: (List String),
+  body: (match items1
+    | List.nil => (nil String)
+    | List.cons room rest2 => (cons (project room name) (namesMap1 rest2))),
+  recursive_argument: items1
+}
+
+definition{
+  name: names,
+  parameters: [rooms : (List Room)],
+  result: (List String),
+  body: (namesMap1 rooms)
+}
+
+definition{
+  name: coldFilter1,
+  parameters: [items1 : (List Room), floor : Nat],
+  result: (List Room),
+  body: (match items1
+    | List.nil => (nil Room)
+    | List.cons room rest2 => (if (roomIsCold room floor) then (cons room (coldFilter1 rest2 floor)) else (coldFilter1 rest2 floor))),
+  recursive_argument: items1
+}
+
+definition{
+  name: cold,
+  parameters: [rooms : (List Room), floor : Nat],
+  result: (List Room),
+  body: (coldFilter1 rooms floor)
+}
+
+definition{
+  name: anyColdAny1,
+  parameters: [items1 : (List Room), floor : Nat],
+  result: Bool,
+  body: (match items1
+    | List.nil => false
+    | List.cons room rest2 => (if ((project room reading) <? floor) then true else (anyColdAny1 rest2 floor))),
+  recursive_argument: items1
+}
+
+definition{
+  name: anyCold,
+  parameters: [rooms : (List Room), floor : Nat],
+  result: Bool,
+  body: (anyColdAny1 rooms floor)
+}
+
+definition{
+  name: allWithinAll1,
+  parameters: [items1 : (List Nat), high : Nat, low : Nat],
+  result: Bool,
+  body: (match items1
+    | List.nil => true
+    | List.cons r rest2 => (if ((low <=? r) && (r <=? high)) then (allWithinAll1 rest2 high low) else false)),
+  recursive_argument: items1
+}
+
+definition{
+  name: allWithin,
+  parameters: [readings : (List Nat), low : Nat, high : Nat],
+  result: Bool,
+  body: (allWithinAll1 readings high low)
+}
+
+definition{
+  name: firstColdFind1,
+  parameters: [items1 : (List Room), floor : Nat],
+  result: (Option Room),
+  body: (match items1
+    | List.nil => (ctor Option.none [Room])
+    | List.cons room rest2 => (if (roomIsCold room floor) then (ctor Option.some [Room] room) else (firstColdFind1 rest2 floor))),
+  recursive_argument: items1
+}
+
+definition{
+  name: firstCold,
+  parameters: [rooms : (List Room), floor : Nat],
+  result: (Option Room),
+  body: (firstColdFind1 rooms floor)
+}
+
+definition{
+  name: highestFold1,
+  parameters: [items1 : (List Nat), best : Nat],
+  result: Nat,
+  body: (match items1
+    | List.nil => best
+    | List.cons r rest2 => (highestFold1 rest2 (if (best <=? r) then r else best))),
+  recursive_argument: items1
+}
+
+definition{
+  name: highest,
+  parameters: [readings : (List Nat)],
+  result: Nat,
+  body: (highestFold1 readings 0)
+}
+
+definition{
+  name: coldCountFilter1,
+  parameters: [items1 : (List Room), floor : Nat],
+  result: (List Room),
+  body: (match items1
+    | List.nil => (nil Room)
+    | List.cons room rest2 => (if (roomIsCold room floor) then (cons room (coldCountFilter1 rest2 floor)) else (coldCountFilter1 rest2 floor))),
+  recursive_argument: items1
+}
+
+definition{
+  name: coldCount,
+  parameters: [rooms : (List Room), floor : Nat],
+  result: Nat,
+  body: (prim length (coldCountFilter1 rooms floor) : Nat)
+}
+
+definition{
+  name: scheduledContains1,
+  parameters: [items3 : (List String), needle2 : String],
+  result: Bool,
+  body: (match items3
+    | List.nil => false
+    | List.cons item1 rest4 => (if (prim equal item1 needle2 : Bool) then true else (scheduledContains1 rest4 needle2))),
+  recursive_argument: items3
+}
+
+definition{
+  name: scheduled,
+  parameters: [schedule : (List String), room : String],
+  result: Bool,
+  body: (scheduledContains1 schedule room)
+}
+
+definition{
+  name: roll,
+  parameters: [rooms : (List Room)],
+  result: String,
+  body: (prim join (names rooms) ", " : String),
+  axioms: [propext]
+}
+
+definition{
+  name: pairsMap1,
+  parameters: [items2 : (List TupleStringInt)],
+  result: (List String),
+  body: (match items2
+    | List.nil => (nil String)
+    | List.cons pair1 rest3 => (let name : String := (project pair1 item0); (let reading : Int64 := (project pair1 item1); (cons (prim join (cons name (cons "=" (cons (prim format_decimal reading : String) (nil String)))) "" : String) (pairsMap1 rest3))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items2
+}
+
+definition{
+  name: pairs,
+  parameters: [entries : (List TupleStringInt)],
+  result: (List String),
+  body: (pairsMap1 entries),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: targetOfGet1,
+  parameters: [items3 : (List TupleStringNat), needle2 : String],
+  result: (Option Nat),
+  body: (match items3
+    | List.nil => (ctor Option.none [Nat])
+    | List.cons item1 rest4 => (if (prim equal (project item1 item0) needle2 : Bool) then (ctor Option.some [Nat] (project item1 item1)) else (targetOfGet1 rest4 needle2))),
+  recursive_argument: items3
+}
+
+definition{
+  name: targetOf,
+  parameters: [targets : (List TupleStringNat), room : String],
+  result: Nat,
+  body: (match (targetOfGet1 targets room) | Option.none => 18 | Option.some target => target)
+}
+
+definition{
+  name: roomsOfKeys1,
+  parameters: [items2 : (List TupleStringNat)],
+  result: (List String),
+  body: (match items2
+    | List.nil => (nil String)
+    | List.cons entry1 rest3 => (cons (project entry1 item0) (roomsOfKeys1 rest3))),
+  recursive_argument: items2
+}
+
+definition{
+  name: roomsOf,
+  parameters: [targets : (List TupleStringNat)],
+  result: (List String),
+  body: (roomsOfKeys1 targets)
+}
+
+definition{
+  name: hasTargetHas1,
+  parameters: [items3 : (List TupleStringNat), needle2 : String],
+  result: Bool,
+  body: (match items3
+    | List.nil => false
+    | List.cons item1 rest4 => (if (prim equal (project item1 item0) needle2 : Bool) then true else (hasTargetHas1 rest4 needle2))),
+  recursive_argument: items3
+}
+
+definition{
+  name: hasTarget,
+  parameters: [targets : (List TupleStringNat), room : String],
+  result: Bool,
+  body: (hasTargetHas1 targets room)
+}
+
+definition{
+  name: closedContains1,
+  parameters: [items3 : (List String), needle2 : String],
+  result: Bool,
+  body: (match items3
+    | List.nil => false
+    | List.cons item1 rest4 => (if (prim equal item1 needle2 : Bool) then true else (closedContains1 rest4 needle2))),
+  recursive_argument: items3
+}
+
+definition{
+  name: closed,
+  parameters: [rooms : (List String), room : String],
+  result: Bool,
+  body: (closedContains1 rooms room)
+}
+
+definition{
+  name: labelWidth,
+  parameters: [label : String],
+  result: Nat,
+  body: (prim length label : Nat),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: clamp,
+  parameters: [band : TupleNatNat, reading : Nat],
+  result: Nat,
+  body: (let pair1 : TupleNatNat := band; (let low : Nat := (project pair1 item0); (let high : Nat := (project pair1 item1); (if (high <? low) then reading else (if (reading <? low) then low else (if (reading <=? high) then reading else high))))))
+}
+
+definition{name: blank, parameters: [], result: String, body: ""}
 
 theorem{
   name: acceptThermoCoreCountersAndSignedReadings0,
@@ -243,6 +540,14 @@ theorem{
   parameters: [],
   statement: ((withinBand 10 5 9) = false),
   proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreTheRosterFoldsAndClamps5,
+  parameters: [],
+  statement: ((labelWidth "hall") = 4),
+  proof: decide{},
+  axioms: [Classical.choice, Quot.sound, propext]
 }
 \end{semanticmodule}
 \end{lexlean}

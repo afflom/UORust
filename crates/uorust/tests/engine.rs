@@ -1,5 +1,5 @@
 //! The engine against its fixture, against this workspace, and against planted
-//! defects (`UE-01` .. `UE-14`).
+//! defects (`UE-01` .. `UE-15`).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -359,6 +359,51 @@ fn the_widened_lift_covers_the_fixture_ue_11() {
         !frontier.contains("function = \"thermo_core::band::"),
         "{frontier}"
     );
+}
+
+#[test]
+fn iterator_chains_methods_and_maps_lift_ue_15() {
+    let files = project(&fixture(), "thermostat");
+    let behavior = text(&files, "src/Behavior.lex.tex");
+    let decl = |name: &str| -> String {
+        behavior
+            .split("definition{")
+            .find(|d| d.contains(&format!("name: {name},")))
+            .unwrap_or_else(|| panic!("{name} is lifted:\n{behavior}"))
+            .to_string()
+    };
+    for (name, needle) in [
+        ("roomIsCold", "parameters: [selfValue : Room, floor : Nat]"),
+        ("roomReread", "result: Room,"),
+        ("roomLabel", "then \"unnamed\" else"),
+        ("namesMap1", "recursive_argument: items"),
+        ("names", "(namesMap1 rooms)"),
+        ("coldFilter1", "(roomIsCold room floor)"),
+        ("anyColdAny1", "then true else"),
+        ("allWithinAll1", "else false"),
+        ("firstColdFind1", "(ctor Option.some [Room] room)"),
+        ("highestFold1", "| List.nil => best"),
+        (
+            "coldCount",
+            "(prim length (coldCountFilter1 rooms floor) : Nat)",
+        ),
+        ("scheduledContains1", "(prim equal item"),
+        ("roll", "(prim join (names rooms) \", \" : String)"),
+        ("pairs", "axioms: [Classical.choice, Quot.sound, propext]"),
+        ("targetOf", "| Option.none => 18"),
+        ("roomsOf", "(List TupleStringNat)"),
+        ("hasTarget", "(hasTargetHas1 targets room)"),
+        ("closed", "(closedContains1 rooms room)"),
+        ("labelWidth", "(prim length label : Nat)"),
+        ("clamp", "(let low : Nat := (project pair"),
+        ("blank", "body: \"\""),
+        ("nextMode", "coldArg : Bool"),
+    ] {
+        let d = decl(name);
+        assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");
+    }
+    let frontier = text(&files, "frontier.toml");
+    assert!(!frontier.contains("thermo_core::roster::"), "{frontier}");
 }
 
 #[test]

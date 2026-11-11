@@ -36,6 +36,7 @@ model does not sanction.
 | `UE-12` | `build` | A RustSec advisory that affects a locked package's version is a Risk on the supply chain, answered by the advisory gate or accepted where deny.toml ignores it with its reason; one nothing answers is refused, and a run without a database records that none was consulted |
 | `UE-13` | `build` | Every feature of this workspace's own projection is admitted: each library module and binary entry point is exercised by a test, doctest or example, directly or through a helper of the test's file |
 | `UE-14` | `build` | uorust run on its own source reproduces its hand model: every hand component, call, threat, control and quality measure in app/src is paired with the derived record that states the same fact or listed as outside the code with a reason, the hand route table equals uorust::ROUTES, and the drift is 0 |
+| `UE-15` | `build` | Iterator chains over slices and vectors (iter, map, filter, any, all, find, fold, count, contains, collect, join) lift to structurally recursive helpers, inherent methods of a lifted type lift with self as their first parameter, ordered maps and sets lift read-only as lists of entries with hash collections confined to lookups, and early returns, let else and tuple lets at a function's own statements lift, all verified in Lean |
 
 ## self-model
 

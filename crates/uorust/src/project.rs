@@ -2863,24 +2863,45 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
     let mut names: BTreeMap<String, FnRef> = BTreeMap::new();
     for &r in &all {
         let f = ctx.func(r);
-        if !ctx.product(r) || f.owner.is_some() || f.name == "main" {
+        // Inherent methods of a type the lift names lift with `self` as their
+        // first parameter; trait methods and methods of other types do not.
+        let method = match &f.owner {
+            None => None,
+            Some(o)
+                if !f.in_trait
+                    && f.implements.is_none()
+                    && (types.enums.contains_key(o) || types.structs.contains_key(o)) =>
+            {
+                Some(o.as_str())
+            }
+            Some(_) => continue,
+        };
+        if !ctx.product(r) || f.name == "main" {
             continue;
         }
         let Some(sig) = &f.item else { continue };
         let Some(block) = &f.block else { continue };
-        let name = lift::local_name(&f.name);
-        match types.signature(sig) {
+        let (rust, name) = match method {
+            Some(o) => (
+                format!("{o}::{}", f.name),
+                lift::local_name(&format!("{o}_{}", f.name)),
+            ),
+            None => (f.name.clone(), lift::local_name(&f.name)),
+        };
+        match types.signature(sig, method) {
             std::ops::ControlFlow::Continue((params, result)) => {
-                if names.contains_key(&f.name) {
+                if names.contains_key(&rust)
+                    || candidates.iter().any(|c: &Candidate<'_>| c.name == name)
+                {
                     ctx.refusals.insert(Refusal::Collision {
                         span: f.span.clone(),
                         name: qualified(BEHAVIOR, &name),
                     });
                     continue;
                 }
-                names.insert(f.name.clone(), r);
+                names.insert(rust.clone(), r);
                 candidates.push(Candidate {
-                    rust: f.name.clone(),
+                    rust,
                     name,
                     params,
                     result,
@@ -2889,6 +2910,29 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
             }
             std::ops::ControlFlow::Break(reason) => {
                 ctx.residue.insert(ctx.path(r), (f.span.clone(), reason));
+            }
+        }
+    }
+    // A parameter may not be spelled like a definition: generated Lean would
+    // capture the definition.
+    let defined: BTreeSet<String> = candidates.iter().map(|c| c.name.clone()).collect();
+    for c in &mut candidates {
+        let mut taken: BTreeSet<String> = c.params.iter().map(|(_, n, _)| n.clone()).collect();
+        for (_, n, _) in &mut c.params {
+            if defined.contains(n.as_str()) {
+                let mut k = 1;
+                let renamed = loop {
+                    let candidate = format!(
+                        "{n}Arg{}",
+                        if k == 1 { String::new() } else { k.to_string() }
+                    );
+                    if !defined.contains(&candidate) && !taken.contains(&candidate) {
+                        break candidate;
+                    }
+                    k += 1;
+                };
+                taken.insert(renamed.clone());
+                *n = renamed;
             }
         }
     }

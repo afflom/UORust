@@ -27,11 +27,18 @@ statement = "thermo_core::config: Reads the target temperature from a file or th
 id = "FT-04"
 level = "build"
 suite = "thermo-core"
+record = "Interface::featureThermoCoreRoster"
+statement = "thermo_core::roster: Rooms, their readings and the schedule that names them."
+
+[[id]]
+id = "FT-05"
+level = "build"
+suite = "thermo-core"
 record = "Interface::featureThermoCoreSensor"
 statement = "thermo_core::sensor: Temperature sensors the controller reads from."
 
 [[id]]
-id = "FT-05"
+id = "FT-06"
 level = "build"
 suite = "thermo-cli"
 record = "Interface::featureThermoMain"
