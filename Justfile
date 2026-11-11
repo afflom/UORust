@@ -55,15 +55,17 @@ app:
     cd app && lexlean fmt --check && lexlean lock --check
     prismpm --project app verify
 
-# UE-01, UE-07: the engine's projections, checked by the SDK. The committed
-# fixture projection must be current and accepted; a fresh projection of this
-# workspace must be accepted too. The stamp is fixed so the bytes are.
+# UE-01, UE-07, UE-11: the engine's projections, checked by the SDK. The
+# committed fixture projection must be current and accepted; a fresh projection
+# of this workspace must be accepted too. `lexlean verify` elaborates both in
+# Lean, so every lifted definition type-checks and every acceptance theorem is
+# proved. The stamp is fixed so the bytes are.
 uorust:
     cargo run -q --locked -p uorust -- check crates/uorust/tests/fixtures/thermostat --out crates/uorust/tests/fixtures/thermostat-prism --name thermostat --last-modified 2026-11-11T00:00:00Z
-    cd crates/uorust/tests/fixtures/thermostat-prism && lexlean fmt --check && lexlean lock --check && prismpm check
+    cd crates/uorust/tests/fixtures/thermostat-prism && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
     rm -rf target/uorust-self
     cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z
-    cd target/uorust-self && lexlean fmt --check && lexlean lock --check && prismpm check
+    cd target/uorust-self && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
 
 # Only the meta-gate, while iterating on a scenario. `test` already runs it.
 bdd:

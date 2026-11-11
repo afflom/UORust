@@ -12,8 +12,8 @@ use syn::visit::Visit;
 
 use crate::error::{io, UorustError};
 use crate::facts::{
-    Capability, Dep, EnumFact, FnFact, LockedPackage, Package, SourceFile, Span, Target,
-    TargetKind, Variant, Workspace,
+    Capability, Dep, EnumFact, FnFact, LockedPackage, Package, SourceFile, Span, StructFact,
+    Target, TargetKind, Variant, Workspace,
 };
 
 /// Read a workspace from its root directory.
@@ -635,6 +635,22 @@ fn items(
                     })
                     .collect(),
             }),
+            syn::Item::Struct(st) if st.generics.params.is_empty() => {
+                if let syn::Fields::Named(named) = &st.fields {
+                    file.structs.push(StructFact {
+                        name: st.ident.to_string(),
+                        span: Span {
+                            file: rel.to_string(),
+                            line: line_of(st.ident.span()),
+                        },
+                        fields: named
+                            .named
+                            .iter()
+                            .filter_map(|f| Some((f.ident.as_ref()?.to_string(), f.ty.clone())))
+                            .collect(),
+                    });
+                }
+            }
             syn::Item::Use(u) => {
                 let mut out = Vec::new();
                 use_paths(&u.tree, &mut Vec::new(), &mut out);

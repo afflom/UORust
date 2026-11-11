@@ -13,18 +13,25 @@ statement = "thermo_core: Thermostat control: decides from a reading and a targe
 id = "FT-02"
 level = "build"
 suite = "thermo-core"
+record = "Interface::featureThermoCoreBand"
+statement = "thermo_core::band: Temperature bands, counters and readings."
+
+[[id]]
+id = "FT-03"
+level = "build"
+suite = "thermo-core"
 record = "Interface::featureThermoCoreConfig"
 statement = "thermo_core::config: Reads the target temperature from a file or the environment."
 
 [[id]]
-id = "FT-03"
+id = "FT-04"
 level = "build"
 suite = "thermo-core"
 record = "Interface::featureThermoCoreSensor"
 statement = "thermo_core::sensor: Temperature sensors the controller reads from."
 
 [[id]]
-id = "FT-04"
+id = "FT-05"
 level = "build"
 suite = "thermo-cli"
 record = "Interface::featureThermoMain"

@@ -9,7 +9,8 @@
 /// The formatter's line width.
 const WIDTH: usize = 100;
 
-/// An expression: a flat term, or a `match` whose arms break onto lines.
+/// An expression: a flat term, or a form whose `match` may break its arms
+/// onto lines.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) enum Expr {
     /// A term printed on one line.
@@ -25,13 +26,27 @@ pub(crate) enum Expr {
         then: Box<Expr>,
         otherwise: Box<Expr>,
     },
+    /// `(let name : type := value; body)`.
+    Let {
+        name: String,
+        ty: String,
+        value: Box<Expr>,
+        body: Box<Expr>,
+    },
+}
+
+/// A piece of a compound expression: fixed text or a sub-expression.
+enum Piece<'a> {
+    Text(String),
+    Sub(&'a Expr),
 }
 
 impl Expr {
+    /// No `match` or `let` anywhere: a definition holding it may print flat.
     fn is_flat(&self) -> bool {
         match self {
             Self::Flat(_) => true,
-            Self::Match { .. } => false,
+            Self::Match { .. } | Self::Let { .. } => false,
             Self::If {
                 condition,
                 then,
@@ -40,33 +55,104 @@ impl Expr {
         }
     }
 
-    /// The text of the expression; arms of the match at `depth` start on a new
-    /// line indented by `2 + 2 * depth`.
-    pub(crate) fn render(&self, depth: usize) -> String {
+    /// The whole expression on one line.
+    pub(crate) fn flat(&self) -> String {
         match self {
             Self::Flat(text) => text.clone(),
+            Self::Match { scrutinee, arms } => {
+                let mut out = format!("(match {scrutinee}");
+                for (pattern, arm) in arms {
+                    out.push_str(&format!(" | {pattern} => {}", arm.flat()));
+                }
+                out.push(')');
+                out
+            }
+            _ => self
+                .pieces()
+                .iter()
+                .map(|p| match p {
+                    Piece::Text(t) => t.clone(),
+                    Piece::Sub(e) => e.flat(),
+                })
+                .collect(),
+        }
+    }
+
+    fn pieces(&self) -> Vec<Piece<'_>> {
+        match self {
             Self::If {
                 condition,
                 then,
                 otherwise,
-            } => format!(
-                "(if {} then {} else {})",
-                condition.render(depth),
-                then.render(depth),
-                otherwise.render(depth)
-            ),
+            } => vec![
+                Piece::Text("(if ".into()),
+                Piece::Sub(condition),
+                Piece::Text(" then ".into()),
+                Piece::Sub(then),
+                Piece::Text(" else ".into()),
+                Piece::Sub(otherwise),
+                Piece::Text(")".into()),
+            ],
+            Self::Let {
+                name,
+                ty,
+                value,
+                body,
+            } => vec![
+                Piece::Text(format!("(let {name} : {ty} := ")),
+                Piece::Sub(value),
+                Piece::Text("; ".into()),
+                Piece::Sub(body),
+                Piece::Text(")".into()),
+            ],
+            _ => Vec::new(),
+        }
+    }
+
+    /// The text of the expression at nesting `depth`, starting at column
+    /// `col` with `trail` characters after it on its last line. A `match`
+    /// stays on one line when that line fits the width; otherwise each arm
+    /// starts a line indented by `4 + 2 * depth`.
+    pub(crate) fn render_at(&self, depth: usize, col: usize, trail: usize) -> String {
+        let flat = self.flat();
+        if col + flat.len() + trail <= WIDTH {
+            return flat;
+        }
+        match self {
+            Self::Flat(text) => text.clone(),
             Self::Match { scrutinee, arms } => {
-                let indent = " ".repeat(4 + 2 * depth);
+                let indent = 4 + 2 * depth;
                 let mut out = format!("(match {scrutinee}");
-                for (pattern, arm) in arms {
+                for (i, (pattern, arm)) in arms.iter().enumerate() {
+                    let head = format!("{}| {pattern} => ", " ".repeat(indent));
+                    let last = if i + 1 == arms.len() { trail + 1 } else { 0 };
                     out.push('\n');
-                    out.push_str(&indent);
-                    out.push_str("| ");
-                    out.push_str(pattern);
-                    out.push_str(" => ");
-                    out.push_str(&arm.render(depth + 1));
+                    out.push_str(&head);
+                    out.push_str(&arm.render_at(depth + 1, head.len(), last));
                 }
                 out.push(')');
+                out
+            }
+            _ => {
+                let pieces = self.pieces();
+                let mut out = String::new();
+                for (i, piece) in pieces.iter().enumerate() {
+                    match piece {
+                        Piece::Text(t) => out.push_str(t),
+                        Piece::Sub(e) => {
+                            let after: usize = pieces[i + 1..]
+                                .iter()
+                                .map(|p| match p {
+                                    Piece::Text(t) => t.len(),
+                                    Piece::Sub(e) => e.flat().len(),
+                                })
+                                .sum();
+                            let at = out.rsplit('\n').next().map_or(0, str::len);
+                            let column = if out.contains('\n') { at } else { col + at };
+                            out.push_str(&e.render_at(depth, column, after + trail));
+                        }
+                    }
+                }
                 out
             }
         }
@@ -89,11 +175,16 @@ pub(crate) enum Decl {
         parameters: Vec<(String, String)>,
         result: String,
         body: Expr,
+        /// The Lean axioms the definition's elaboration depends on.
+        axioms: Vec<String>,
+        /// The parameter a structurally recursive definition descends on.
+        recursive: Option<String>,
     },
     Theorem {
         name: String,
         statement: String,
         proof: String,
+        axioms: Vec<String>,
     },
 }
 
@@ -114,6 +205,8 @@ impl Decl {
             parameters: Vec::new(),
             result: result.into(),
             body: Expr::Flat(body),
+            axioms: Vec::new(),
+            recursive: None,
         }
     }
 }
@@ -199,39 +292,60 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
             parameters,
             result,
             body,
+            axioms,
+            recursive,
         } => {
             let ps = params(parameters);
-            let flat = vec![
+            let mut flat = vec![
                 format!("name: {name}"),
                 format!("parameters: [{}]", ps.join(", ")),
                 format!("result: {result}"),
-                format!("body: {}", body.render(0)),
+                format!("body: {}", body.flat()),
             ];
-            let broken = vec![
+            let trail = usize::from(recursive.is_some() || !axioms.is_empty());
+            let mut broken = vec![
                 format!("  name: {name}"),
                 list("parameters", &ps, 2, true),
                 format!("  result: {result}"),
-                format!("  body: {}", body.render(0)),
+                format!("  body: {}", body.render_at(0, 8, trail)),
             ];
-            members("definition", &flat, &broken, body.is_flat())
+            if !axioms.is_empty() {
+                flat.push(format!("axioms: [{}]", axioms.join(", ")));
+                broken.push(list("axioms", axioms, 2, recursive.is_some()));
+            }
+            if let Some(arg) = recursive {
+                flat.push(format!("recursive_argument: {arg}"));
+                broken.push(format!("  recursive_argument: {arg}"));
+            }
+            members(
+                "definition",
+                &flat,
+                &broken,
+                body.is_flat() && recursive.is_none(),
+            )
         }
         Decl::Theorem {
             name,
             statement,
             proof,
+            axioms,
         } => {
-            let flat = vec![
+            let mut flat = vec![
                 format!("name: {name}"),
                 "parameters: []".to_string(),
                 format!("statement: {statement}"),
                 format!("proof: {proof}"),
             ];
-            let broken = vec![
+            let mut broken = vec![
                 format!("  name: {name}"),
                 "  parameters: []".to_string(),
                 format!("  statement: {statement}"),
                 format!("  proof: {proof}"),
             ];
+            if !axioms.is_empty() {
+                flat.push(format!("axioms: [{}]", axioms.join(", ")));
+                broken.push(list("axioms", axioms, 2, false));
+            }
             members("theorem", &flat, &broken, true)
         }
     }

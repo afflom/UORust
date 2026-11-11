@@ -1,5 +1,6 @@
 //! Thermostat control: decides from a reading and a target whether to heat.
 
+pub mod band;
 pub mod config;
 pub mod sensor;
 

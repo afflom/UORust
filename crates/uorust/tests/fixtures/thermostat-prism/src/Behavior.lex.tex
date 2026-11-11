@@ -11,11 +11,139 @@ inductive{
   constructors: [{name: Unreadable, fields: []}, {name: NotANumber, fields: []}]
 }
 
+structure{
+  name: Band,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: low, type: Nat}, {name: high, type: Nat}]
+}
+
+inductive{
+  name: ConfigError,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Unreadable, fields: []}, {name: NotANumber, fields: []}]
+}
+
 inductive{
   name: Mode,
   type_parameters: [],
   parameters: [],
   constructors: [{name: Idle, fields: []}, {name: Heating, fields: []}, {name: Cooling, fields: []}]
+}
+
+structure{
+  name: TupleBandBool,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: Band}, {name: item1, type: Bool}]
+}
+
+definition{
+  name: width,
+  parameters: [band : Band],
+  result: (Option Nat),
+  body: (if ((project band low) <=? (project band high)) then (ctor Option.some [Nat] (prim subtract (project band high) (project band low) : Nat)) else (ctor Option.none [Nat]))
+}
+
+definition{
+  name: checkedMidpoint,
+  parameters: [band : Band],
+  result: (Option Nat),
+  body: (match (if (((project band low) + (project band high)) <? 4294967296) then (ctor Option.some [Nat] ((project band low) + (project band high))) else (ctor Option.none [Nat]))
+    | Option.none => (ctor Option.none [Nat])
+    | Option.some sum => (ctor Option.some [Nat] (prim quotient sum 2 0 : Nat)))
+}
+
+definition{
+  name: tick,
+  parameters: [counter : Nat],
+  result: Nat,
+  body: (prim remainder (counter + 1) 256 0 : Nat)
+}
+
+definition{
+  name: shortfall,
+  parameters: [band : Band, current : Nat],
+  result: Nat,
+  body: (prim subtract (project band low) current : Nat)
+}
+
+definition{
+  name: freezing,
+  parameters: [outdoor : Int64],
+  result: Bool,
+  body: (not (prim less_than (0 : Int64) outdoor : Bool)),
+  axioms: [propext]
+}
+
+definition{
+  name: delta,
+  parameters: [before : Int64, after : Int64],
+  result: (Option Int64),
+  body: (prim checked_subtract after before : (Option Int64))
+}
+
+definition{
+  name: checkedValue,
+  parameters: [band : Band],
+  result: TupleBandBool,
+  body: (record TupleBandBool {item0 := band, item1 := ((project band low) <=? (project band high))})
+}
+
+definition{
+  name: isCelsius,
+  parameters: [unit : String],
+  result: Bool,
+  body: ((prim equal unit "C" : Bool) || (prim equal unit "celsius" : Bool))
+}
+
+definition{
+  name: above,
+  parameters: [readings : (List Nat), target : Nat],
+  result: Nat,
+  body: (match readings
+    | List.nil => 0
+    | List.cons firstValue rest => (if (target <? firstValue) then (if (((above rest target) + 1) <? 4294967296) then ((above rest target) + 1) else 4294967295) else (above rest target))),
+  recursive_argument: readings
+}
+
+definition{
+  name: firstReading,
+  parameters: [readings : (List Nat)],
+  result: (Option Nat),
+  body: (prim index readings 0 : (Option Nat))
+}
+
+definition{
+  name: targetOr,
+  parameters: [setting : (Option Nat), default : Nat],
+  result: Nat,
+  body: (match setting | Option.none => default | Option.some value1 => value1)
+}
+
+definition{
+  name: heatFor,
+  parameters: [band : (Result Band ConfigError), current : Nat],
+  result: (Result Bool ConfigError),
+  body: (match band
+    | Result.ok band2 => (ctor Result.ok [Bool, ConfigError] (current <? (project band2 low)))
+    | Result.error error1 => (ctor Result.error [Bool, ConfigError] error1))
+}
+
+definition{
+  name: fanLabel,
+  parameters: [speed : Nat],
+  result: String,
+  body: (if (speed =? 0) then "off" else (if ((speed =? 1) || (speed =? 2)) then "low" else "high"))
+}
+
+definition{
+  name: labelled,
+  parameters: [value : String, unit : String],
+  result: String,
+  body: (prim join (cons value (cons " " (cons unit (nil String)))) "" : String),
+  axioms: [propext]
 }
 
 definition{
@@ -50,6 +178,43 @@ definition{
     | Mode.Idle => (ctor Mode.Idle)
     | Mode.Heating => (ctor Mode.Idle)
     | Mode.Cooling => (ctor Mode.Idle))
+}
+
+theorem{
+  name: acceptThermoCoreCountersAndSignedReadings0,
+  parameters: [],
+  statement: ((tick 255) = 0),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreCountersAndSignedReadings1,
+  parameters: [],
+  statement: ((freezing (-3 : Int64)) = true),
+  proof: decide{},
+  axioms: [propext]
+}
+
+theorem{
+  name: acceptThermoCoreCountersAndSignedReadings2,
+  parameters: [],
+  statement: ((freezing (4 : Int64)) = false),
+  proof: decide{},
+  axioms: [propext]
+}
+
+theorem{
+  name: acceptThermoCoreCountersAndSignedReadings4,
+  parameters: [],
+  statement: ((isCelsius "C") = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreCountersAndSignedReadings5,
+  parameters: [],
+  statement: ((isCelsius "F") = false),
+  proof: decide{}
 }
 
 theorem{

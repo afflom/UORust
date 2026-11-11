@@ -13,31 +13,45 @@ definition{
 }
 
 definition{
+  name: acThermoCoreThermoCoreBandBandsMeasureAndCount,
+  parameters: [],
+  result: String,
+  body: "bands_measure_and_count at thermo-core/src/band.rs:104 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreBandCountersAndSignedReadings,
+  parameters: [],
+  result: String,
+  body: "counters_and_signed_readings at thermo-core/src/band.rs:117 passes."
+}
+
+definition{
   name: acThermoCoreThermoCoreHeatsWhenCold,
   parameters: [],
   result: String,
-  body: "heats_when_cold at thermo-core/src/lib.rs:81: A cold room heats."
+  body: "heats_when_cold at thermo-core/src/lib.rs:82: A cold room heats."
 }
 
 definition{
   name: acThermoCoreThermoCoreBandIsInclusive,
   parameters: [],
   result: String,
-  body: "band_is_inclusive at thermo-core/src/lib.rs:87 passes."
+  body: "band_is_inclusive at thermo-core/src/lib.rs:88 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreIdleRoomThatIsColdHeats,
   parameters: [],
   result: String,
-  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:93 passes."
+  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:94 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreMidpointOfABand,
   parameters: [],
   result: String,
-  body: "midpoint_of_a_band at thermo-core/src/lib.rs:99 passes."
+  body: "midpoint_of_a_band at thermo-core/src/lib.rs:100 passes."
 }
 
 definition{
@@ -58,7 +72,105 @@ definition{
   name: acDocThermoCoreShouldHeat,
   parameters: [],
   result: String,
-  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:23 pass."
+  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:24 pass."
+}
+
+definition{
+  name: callThermoCoreBandWidth,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::width: fn width(band: Band) -> Option<u32>"
+}
+
+definition{
+  name: callThermoCoreBandCheckedMidpoint,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::checked_midpoint: fn checked_midpoint(band: Band) -> Option<u32>"
+}
+
+definition{
+  name: callThermoCoreBandTick,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::tick: fn tick(counter: u8) -> u8"
+}
+
+definition{
+  name: callThermoCoreBandShortfall,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::shortfall: fn shortfall(band: Band, current: u32) -> u32"
+}
+
+definition{
+  name: callThermoCoreBandFreezing,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::freezing: fn freezing(outdoor: i64) -> bool"
+}
+
+definition{
+  name: callThermoCoreBandDelta,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::delta: fn delta(before: i64, after: i64) -> Option<i64>"
+}
+
+definition{
+  name: callThermoCoreBandChecked,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::checked: fn checked(band: Band) -> (Band, bool)"
+}
+
+definition{
+  name: callThermoCoreBandIsCelsius,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::is_celsius: fn is_celsius(unit: &str) -> bool"
+}
+
+definition{
+  name: callThermoCoreBandAbove,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::above: fn above(readings: &[u32], target: u32) -> u32"
+}
+
+definition{
+  name: callThermoCoreBandFirstReading,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::first_reading: fn first_reading(readings: &[u32]) -> Option<u32>"
+}
+
+definition{
+  name: callThermoCoreBandTargetOr,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::target_or: fn target_or(setting: Option<u32>, default: u32) -> u32"
+}
+
+definition{
+  name: callThermoCoreBandHeatFor,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::heat_for: fn heat_for(band: Result<Band, ConfigError>, current: u32) -> Result<bool, ConfigError>"
+}
+
+definition{
+  name: callThermoCoreBandFanLabel,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::fan_label: fn fan_label(speed: u8) -> &'static str"
+}
+
+definition{
+  name: callThermoCoreBandLabelled,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::labelled: fn labelled(value: &str, unit: &str) -> String"
 }
 
 definition{
@@ -146,6 +258,13 @@ definition{
 }
 
 definition{
+  name: featureThermoCoreBand,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::band: Temperature bands, counters and readings.", calls := (cons "Interface::callThermoCoreBandWidth" (cons "Interface::callThermoCoreBandCheckedMidpoint" (cons "Interface::callThermoCoreBandTick" (cons "Interface::callThermoCoreBandShortfall" (cons "Interface::callThermoCoreBandFreezing" (cons "Interface::callThermoCoreBandDelta" (cons "Interface::callThermoCoreBandChecked" (cons "Interface::callThermoCoreBandIsCelsius" (cons "Interface::callThermoCoreBandAbove" (cons "Interface::callThermoCoreBandFirstReading" (cons "Interface::callThermoCoreBandTargetOr" (cons "Interface::callThermoCoreBandHeatFor" (cons "Interface::callThermoCoreBandFanLabel" (cons "Interface::callThermoCoreBandLabelled" (nil String))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreBandBandsMeasureAndCount" (cons "Interface::acThermoCoreThermoCoreBandCountersAndSignedReadings" (nil String)))})
+}
+
+definition{
   name: featureThermoCoreConfig,
   parameters: [],
   result: Foundation.Arch::Feature,
@@ -184,7 +303,7 @@ definition{
   name: journeyLibraryThermoCore,
   parameters: [],
   result: Foundation.Arch::Journey,
-  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreConfig" (cons "Interface::featureThermoCoreSensor" (nil String))))})
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreBand" (cons "Interface::featureThermoCoreConfig" (cons "Interface::featureThermoCoreSensor" (nil String)))))})
 }
 \end{semanticmodule}
 \end{lexlean}

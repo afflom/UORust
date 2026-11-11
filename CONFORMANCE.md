@@ -32,6 +32,7 @@ model does not sanction.
 | `UE-08` | `build` | A public trait's methods are interface calls its module's feature names, and a method call through the trait resolves to the trait's declaration |
 | `UE-09` | `build` | Each module with processes is its own OPM view beside its component's: the component is the object, the module's functions are its processes, and each process zooms into the processes it calls in the module |
 | `UE-10` | `build` | The Behavior and SupplyChain modules take their titles from uorust.titles, a glossary package the projection carries and locks |
+| `UE-11` | `build` | Unsigned arithmetic whose overflow the code names, signed integers, strings, structs, tuples, Option, Result with ?, slices with structural recursion, integer matches and string format! lift to LexLean definitions that lexlean verify accepts, with the Lean axioms they need declared |
 
 ## self-model
 

@@ -147,7 +147,7 @@ fn the_floor_lifts_and_the_rest_is_typed_residue_ue_04() {
     };
     assert!(residue("thermo_core::midpoint", "arithmetic"), "{frontier}");
     assert!(
-        residue("thermo_core::config::parse_target", "type"),
+        residue("thermo_core::config::load_target", "type"),
         "{frontier}"
     );
 }
@@ -235,9 +235,9 @@ fn vv_runs_the_sdk_checks_on_both_projections_ue_07() {
         .join("\n");
     for needle in [
         "check crates/uorust/tests/fixtures/thermostat",
-        "cd crates/uorust/tests/fixtures/thermostat-prism && lexlean fmt --check && lexlean lock --check && prismpm check",
+        "cd crates/uorust/tests/fixtures/thermostat-prism && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check",
         "project . --out target/uorust-self",
-        "cd target/uorust-self && lexlean fmt --check && lexlean lock --check && prismpm check",
+        "cd target/uorust-self && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check",
     ] {
         assert!(recipe.contains(needle), "the uorust recipe lacks `{needle}`:\n{recipe}");
     }
@@ -306,4 +306,53 @@ fn engine_modules_have_their_own_titles_ue_10() {
         .collect();
     assert!(surfaces.contains("surface = \"Lifted Rust behavior\""));
     assert!(surfaces.contains("surface = \"Locked supply chain\""));
+}
+
+#[test]
+fn the_widened_lift_covers_the_fixture_ue_11() {
+    let files = project(&fixture(), "thermostat");
+    let behavior = text(&files, "src/Behavior.lex.tex");
+    for (name, needle) in [
+        (
+            "width",
+            "(prim subtract (project band high) (project band low) : Nat)",
+        ),
+        ("checkedMidpoint", "<? 4294967296)"),
+        ("tick", "(prim remainder (counter + 1) 256 0 : Nat)"),
+        (
+            "shortfall",
+            "(prim subtract (project band low) current : Nat)",
+        ),
+        ("freezing", "(prim less_than (0 : Int64) outdoor : Bool)"),
+        (
+            "delta",
+            "(prim checked_subtract after before : (Option Int64))",
+        ),
+        ("checkedValue", "(record TupleBandBool {item0 := band"),
+        ("isCelsius", "(prim equal unit \"C\" : Bool)"),
+        ("above", "recursive_argument: readings"),
+        ("firstReading", "(prim index readings 0 : (Option Nat))"),
+        ("targetOr", "| Option.some"),
+        ("heatFor", "(ctor Result.error [Bool, ConfigError]"),
+        ("fanLabel", "(if (speed =? 0) then \"off\""),
+        (
+            "labelled",
+            "(prim join (cons value (cons \" \" (cons unit (nil String)))) \"\" : String)",
+        ),
+    ] {
+        let decl = behavior
+            .split("definition{")
+            .find(|d| d.contains(&format!("name: {name},")))
+            .unwrap_or_else(|| panic!("{name} is lifted:\n{behavior}"));
+        assert!(decl.contains(needle), "{name} lacks {needle}:\n{decl}");
+    }
+    assert!(behavior.contains("name: Band,"));
+    assert!(behavior.contains("statement: ((freezing (-3 : Int64)) = true),"));
+    assert!(behavior.contains("axioms: [propext]"));
+    let frontier = text(&files, "frontier.toml");
+    assert!(frontier.contains("function = \"thermo_core::midpoint\""));
+    assert!(
+        !frontier.contains("function = \"thermo_core::band::"),
+        "{frontier}"
+    );
 }

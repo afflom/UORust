@@ -8,8 +8,8 @@ use sha2::{Digest, Sha256};
 use crate::admit::Refusal;
 use crate::facts::{Capability, FnFact, Package, SourceFile, Span, TargetKind, Workspace};
 use crate::ingest::summary;
-use crate::lex::{camel, pascal, string, string_list, Decl, Module};
-use crate::lift::{self, Candidate, Enums, Residue};
+use crate::lex::{pascal, string, string_list, Decl, Module};
+use crate::lift::{self, Candidate, Residue, Ty, Types};
 
 /// What a projection is parameterised by beyond the workspace.
 #[derive(Clone, Debug)]
@@ -2598,7 +2598,7 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
     let ws = ctx.ws;
     let mut decls = Vec::new();
     // Unit-variant enums of product code, by name; a name two crates share is refused.
-    let mut enums: Enums = Enums::new();
+    let mut enums: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut enum_spans: BTreeMap<String, Span> = BTreeMap::new();
     let mut clashing: BTreeSet<String> = BTreeSet::new();
     for package in &ws.packages {
@@ -2629,9 +2629,34 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
             }
         }
     }
+    // Structs with named fields, by name, refused the same way.
+    let mut raw_structs: BTreeMap<String, Vec<(String, syn::Type)>> = BTreeMap::new();
+    for package in &ws.packages {
+        for file in &package.files {
+            if !matches!(
+                package.targets[file.target].kind,
+                TargetKind::Lib | TargetKind::Bin
+            ) {
+                continue;
+            }
+            for st in &file.structs {
+                if raw_structs.contains_key(&st.name) || enums.contains_key(&st.name) {
+                    clashing.insert(st.name.clone());
+                    ctx.refusals.insert(Refusal::Collision {
+                        span: st.span.clone(),
+                        name: qualified(BEHAVIOR, &st.name),
+                    });
+                    continue;
+                }
+                raw_structs.insert(st.name.clone(), st.fields.clone());
+            }
+        }
+    }
     for name in &clashing {
         enums.remove(name);
+        raw_structs.remove(name);
     }
+    let types = Types::new(enums, &raw_structs);
     // Typed failures: every error enum's variants, as an inductive.
     for (pkg, package) in ws.packages.iter().enumerate() {
         for (fi, file) in package.files.iter().enumerate() {
@@ -2670,8 +2695,8 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
         }
         let Some(sig) = &f.item else { continue };
         let Some(block) = &f.block else { continue };
-        let name = camel(&[&f.name]);
-        match lift::signature(sig, &enums) {
+        let name = lift::local_name(&f.name);
+        match types.signature(sig) {
             std::ops::ControlFlow::Continue((params, result)) => {
                 if names.contains_key(&f.name) {
                     ctx.refusals.insert(Refusal::Collision {
@@ -2694,44 +2719,35 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
             }
         }
     }
-    let (lifted, failed) = lift::lift_all(&candidates, &enums);
-    for (rust, reason) in failed {
+    let out = lift::lift_all(&candidates, &types);
+    for (rust, reason) in out.failed {
         if let Some(r) = names.get(&rust) {
             ctx.residue
                 .insert(ctx.path(*r), (ctx.func(*r).span.clone(), reason));
         }
     }
-    // The inductives the lifted definitions name.
-    let used: BTreeSet<String> = lifted
-        .iter()
-        .flat_map(|d| match d {
-            Decl::Definition {
-                parameters, result, ..
-            } => parameters
-                .iter()
-                .map(|(_, t)| t.clone())
-                .chain(std::iter::once(result.clone()))
-                .collect::<Vec<_>>(),
-            _ => Vec::new(),
-        })
-        .filter(|t| enums.contains_key(t))
-        .collect();
-    for name in &used {
-        decls.push(Decl::Inductive {
-            name: name.clone(),
-            constructors: enums[name].clone(),
-        });
+    // The enums, structs and tuples the lifted definitions name, each after
+    // the types its fields name.
+    let mut emitted: BTreeSet<Ty> = BTreeSet::new();
+    for ty in &out.types {
+        type_decls(ty, &types, &mut emitted, &mut decls);
     }
-    let results: BTreeMap<String, (String, String)> = lifted
+    let results: BTreeMap<String, lift::Sig> = candidates
         .iter()
-        .filter_map(|d| match d {
-            Decl::Definition { name, result, .. } => candidates
-                .iter()
-                .find(|c| &c.name == name)
-                .map(|c| (c.rust.clone(), (name.clone(), result.clone()))),
-            _ => None,
+        .filter(|c| out.decls.iter().any(|d| d.name() == c.name))
+        .map(|c| {
+            (
+                c.rust.clone(),
+                lift::Sig {
+                    name: c.name.clone(),
+                    params: c.params.iter().map(|(_, _, t)| t.clone()).collect(),
+                    result: c.result.clone(),
+                },
+            )
         })
         .collect();
+    let lifted = out.decls;
+    let axioms = out.axioms;
     decls.extend(lifted);
     // Closed assertions of tests over lifted functions are theorems.
     let mut theorems = BTreeSet::new();
@@ -2741,13 +2757,14 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
             continue;
         }
         for (i, (kind, args)) in f.asserts.iter().enumerate() {
-            if let Some(statement) = lift::acceptance(kind, args, &results, &enums) {
+            if let Some((statement, callee)) = lift::acceptance(kind, args, &results, &types) {
                 let name = format!("accept{}{}", pascal(&[&ctx.package(r).name, &f.name]), i);
                 if theorems.insert(name.clone()) {
                     decls.push(Decl::Theorem {
                         name,
                         statement,
                         proof: "decide{}".to_string(),
+                        axioms: axioms.get(&callee).cloned().unwrap_or_default(),
                     });
                 }
             }
@@ -2760,6 +2777,47 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
         title: "Lifted Rust behavior",
         decls,
     }
+}
+
+/// The declaration of a named type or tuple, after those of the types its
+/// fields name.
+fn type_decls(ty: &Ty, types: &Types, emitted: &mut BTreeSet<Ty>, decls: &mut Vec<Decl>) {
+    if !emitted.insert(ty.clone()) {
+        return;
+    }
+    let fields: Vec<(String, Ty)> = match ty {
+        Ty::Named(n) => match (types.enums.get(n), types.structs.get(n)) {
+            (Some(variants), _) => {
+                decls.push(Decl::Inductive {
+                    name: n.clone(),
+                    constructors: variants.clone(),
+                });
+                return;
+            }
+            (None, Some(fields)) => fields.clone(),
+            (None, None) => return,
+        },
+        Ty::Tuple(ts) => ts
+            .iter()
+            .enumerate()
+            .map(|(i, t)| (format!("item{i}"), t.clone()))
+            .collect(),
+        _ => return,
+    };
+    for (_, t) in &fields {
+        let mut inner = BTreeSet::new();
+        t.mentions(&mut inner);
+        for dep in &inner {
+            type_decls(dep, types, emitted, decls);
+        }
+    }
+    decls.push(Decl::Structure {
+        name: ty.render(),
+        fields: fields
+            .iter()
+            .map(|(f, t)| (f.clone(), t.render()))
+            .collect(),
+    });
 }
 
 fn supply(ctx: &Ctx<'_>) -> Module {

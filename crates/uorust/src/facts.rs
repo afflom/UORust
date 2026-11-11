@@ -90,6 +90,7 @@ pub(crate) struct SourceFile {
     pub(crate) forbids_unsafe: bool,
     pub(crate) fns: Vec<FnFact>,
     pub(crate) enums: Vec<EnumFact>,
+    pub(crate) structs: Vec<StructFact>,
     pub(crate) error_impls: Vec<String>,
     pub(crate) capabilities: Vec<(Capability, Span, String)>,
     /// `use` imports: the imported name -> the path it names.
@@ -132,6 +133,14 @@ pub(crate) struct EnumFact {
     pub(crate) derives: Vec<String>,
     /// Variant name, whether it is a unit variant, its doc, whether `#[default]`.
     pub(crate) variants: Vec<Variant>,
+}
+
+/// A struct with named fields and no generic parameters.
+#[derive(Clone, Debug)]
+pub(crate) struct StructFact {
+    pub(crate) name: String,
+    pub(crate) span: Span,
+    pub(crate) fields: Vec<(String, syn::Type)>,
 }
 
 #[derive(Clone, Debug)]

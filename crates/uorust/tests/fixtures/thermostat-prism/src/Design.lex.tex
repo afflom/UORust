@@ -13,6 +13,104 @@ definition{
 }
 
 definition{
+  name: processThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandCheckedMidpoint,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandTick,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandShortfall,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandFreezing,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandDelta,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandChecked,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandIsCelsius,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandAbove,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandFirstReading,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandTargetOr,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandHeatFor,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandFanLabel,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandLabelled,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreConfigParseTarget,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -307,6 +405,202 @@ definition{
 }
 
 definition{
+  name: opmLibThermoCoreThingThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandWidth"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandWidth"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandCheckedMidpoint,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandCheckedMidpoint"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandCheckedMidpoint,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandCheckedMidpoint"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandTick,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandTick"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandTick,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandTick"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandShortfall,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandShortfall"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandShortfall,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandShortfall"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandFreezing,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandFreezing"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandFreezing,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandFreezing"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandDelta,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandDelta"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandDelta,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandDelta"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandChecked,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandChecked"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandChecked,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandChecked"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandIsCelsius,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandIsCelsius"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandIsCelsius,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandIsCelsius"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandAbove,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandAbove"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandAbove,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandAbove"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandFirstReading,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandFirstReading"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandFirstReading,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandFirstReading"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandTargetOr,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandTargetOr"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandTargetOr,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandTargetOr"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandHeatFor,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandHeatFor"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandHeatFor,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandHeatFor"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandFanLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandFanLabel"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandFanLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandFanLabel"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandLabelled,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandLabelled"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandLabelled,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelled"})
+}
+
+definition{
   name: opmLibThermoCoreThingThermoCoreConfigParseTarget,
   parameters: [],
   result: Foundation.Arch::OpmThing,
@@ -591,6 +885,216 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreMidpoint"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBand,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "thermo_core::band processes", viewpoint := "Architecture::viewpointMaintenance", diagram := (ctor Foundation.Arch::DesignDiagram.opmObjectProcess)})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandObject,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandWidth"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandWidth"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandCheckedMidpoint,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandCheckedMidpoint"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandCheckedMidpoint,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandCheckedMidpoint"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandTick,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandTick"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandTick,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandTick"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandShortfall,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandShortfall"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandShortfall,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandShortfall"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandFreezing,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandFreezing"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandFreezing,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandFreezing"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandDelta,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandDelta"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandDelta,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandDelta"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandChecked,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandChecked"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandChecked,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandChecked"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandIsCelsius,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandIsCelsius"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandIsCelsius,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandIsCelsius"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandAbove,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandAbove"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandAbove,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandAbove"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandFirstReading,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandFirstReading"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandFirstReading,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandFirstReading"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandTargetOr,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandTargetOr"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandTargetOr,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandTargetOr"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandHeatFor,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandHeatFor"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandHeatFor,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandHeatFor"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandFanLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandFanLabel"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandFanLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandFanLabel"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandLabelled,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandLabelled"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandLabelled,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelled"})
 }
 
 definition{

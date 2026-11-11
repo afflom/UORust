@@ -18,6 +18,26 @@ Feature: thermo-core
     And the acceptance row Interface::acThermoCoreThermoCoreMidpointOfABand holds
 
   @FT-02 @build
+  Scenario: thermo_core::band: Temperature bands, counters and readings.
+    Given the record Interface::featureThermoCoreBand
+    When the interface call Interface::callThermoCoreBandWidth is made
+    And the interface call Interface::callThermoCoreBandCheckedMidpoint is made
+    And the interface call Interface::callThermoCoreBandTick is made
+    And the interface call Interface::callThermoCoreBandShortfall is made
+    And the interface call Interface::callThermoCoreBandFreezing is made
+    And the interface call Interface::callThermoCoreBandDelta is made
+    And the interface call Interface::callThermoCoreBandChecked is made
+    And the interface call Interface::callThermoCoreBandIsCelsius is made
+    And the interface call Interface::callThermoCoreBandAbove is made
+    And the interface call Interface::callThermoCoreBandFirstReading is made
+    And the interface call Interface::callThermoCoreBandTargetOr is made
+    And the interface call Interface::callThermoCoreBandHeatFor is made
+    And the interface call Interface::callThermoCoreBandFanLabel is made
+    And the interface call Interface::callThermoCoreBandLabelled is made
+    Then the acceptance row Interface::acThermoCoreThermoCoreBandBandsMeasureAndCount holds
+    And the acceptance row Interface::acThermoCoreThermoCoreBandCountersAndSignedReadings holds
+
+  @FT-03 @build
   Scenario: thermo_core::config: Reads the target temperature from a file or the environment.
     Given the record Interface::featureThermoCoreConfig
     When the interface call Interface::callThermoCoreConfigParseTarget is made
@@ -25,7 +45,7 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreConfigTargetFromEnv is made
     Then the acceptance row Interface::acThermoCoreConfigParsesAWholeNumber holds
 
-  @FT-03 @build
+  @FT-04 @build
   Scenario: thermo_core::sensor: Temperature sensors the controller reads from.
     Given the record Interface::featureThermoCoreSensor
     When the interface call Interface::callThermoCoreSensorSensorRead is made
