@@ -428,3 +428,20 @@ fn advisories_are_risks_on_the_supply_chain_ue_12() {
     assert!(!text(&files, "src/Security.lex.tex").contains("Advisory"));
     let _ = std::fs::remove_dir_all(copy);
 }
+
+#[test]
+fn every_feature_of_this_workspace_is_accepted_ue_13() {
+    let files = project(&root(), "uorust");
+    let frontier = text(&files, "frontier.toml");
+    assert!(
+        !frontier.contains("feature-without-acceptance"),
+        "{frontier}"
+    );
+    let interface = text(&files, "src/Interface.lex.tex");
+    for feature in ["featureRepoModelCodegen", "featureXtaskMain"] {
+        assert!(
+            interface.contains(&format!("name: {feature},")),
+            "{feature}"
+        );
+    }
+}

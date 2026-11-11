@@ -117,3 +117,9 @@ id = "UE-12"
 level = "build"
 suite = "engine"
 statement = "A RustSec advisory that affects a locked package's version is a Risk on the supply chain, answered by the advisory gate or accepted where deny.toml ignores it with its reason; one nothing answers is refused, and a run without a database records that none was consulted"
+
+[[id]]
+id = "UE-13"
+level = "build"
+suite = "engine"
+statement = "Every feature of this workspace's own projection is admitted: each library module and binary entry point is exercised by a test, doctest or example, directly or through a helper of the test's file"

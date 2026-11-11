@@ -131,3 +131,22 @@ pub fn render_conformance(model: &Model) -> String {
 
     out
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// CM-01: the committed table is exactly the rendering of the register,
+    /// and it lists every registered ID.
+    #[test]
+    fn the_committed_table_is_the_rendering_of_the_register_cm_01() {
+        let model = Model::load_from_repo_root().expect("model loads");
+        let rendered = render_conformance(&model);
+        let committed = std::fs::read_to_string(crate::repo_root().join(CONFORMANCE_PATH))
+            .expect("CONFORMANCE.md is committed");
+        assert_eq!(rendered, committed, "run `just model-write`");
+        for row in &model.ids.id {
+            assert!(rendered.contains(&row.id), "{} is not in the table", row.id);
+        }
+    }
+}

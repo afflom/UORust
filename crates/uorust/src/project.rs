@@ -1009,6 +1009,34 @@ fn call_name(ctx: &Ctx<'_>, r: FnRef) -> String {
     qualified(IFACE, &format!("call{}", pascal(&parts)))
 }
 
+/// Whether a string literal of `r`, or of a function `r` reaches through
+/// resolved calls, satisfies `pred`: a test that runs the binary through a
+/// helper still runs it.
+fn reaches_literal(ctx: &Ctx<'_>, r: FnRef, pred: impl Fn(&String) -> bool) -> bool {
+    let mut seen = BTreeSet::new();
+    let mut stack = vec![r];
+    while let Some(f) = stack.pop() {
+        if !seen.insert(f) {
+            continue;
+        }
+        if ctx.func(f).literals.iter().any(&pred) {
+            return true;
+        }
+        stack.extend(ctx.calls.get(&f).into_iter().flatten().copied());
+        // Helpers of a test file are not workspace functions the resolver
+        // admits; a bare call to one in the same file still reaches it.
+        let file = ctx.file(f);
+        for call in &ctx.func(f).calls {
+            for (idx, g) in file.fns.iter().enumerate() {
+                if g.owner.is_none() && &g.name == call {
+                    stack.push(FnRef { idx, ..f });
+                }
+            }
+        }
+    }
+    false
+}
+
 fn interface(ctx: &mut Ctx<'_>) -> Interface {
     let ws = ctx.ws;
     let mut decls: Vec<Decl> = Vec::new();
@@ -1201,7 +1229,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
                 }
                 let acceptance: Vec<String> = package_tests
                     .iter()
-                    .filter(|(r, _)| ctx.func(*r).literals.iter().any(|l| l.contains(&exe)))
+                    .filter(|(r, _)| reaches_literal(ctx, *r, |l| l.contains(&exe)))
                     .map(|(_, row)| row.clone())
                     .collect();
                 features.push(Feature {
@@ -1232,7 +1260,7 @@ fn interface(ctx: &mut Ctx<'_>) -> Interface {
                     }
                     let acceptance: Vec<String> = package_tests
                         .iter()
-                        .filter(|(r, _)| ctx.func(*r).literals.contains(&command))
+                        .filter(|(r, _)| reaches_literal(ctx, *r, |l| *l == command))
                         .map(|(_, row)| row.clone())
                         .collect();
                     features.push(Feature {

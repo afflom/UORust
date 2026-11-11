@@ -92,15 +92,25 @@ fn advisories(db: &Path, lock: &[LockedPackage]) -> Result<Advisories, UorustErr
             reason: "not a RustSec advisory database: no crates directory".to_string(),
         });
     }
-    let revision = Command::new("git")
-        .arg("-C")
-        .arg(db)
-        .args(["rev-parse", "HEAD"])
-        .output()
-        .ok()
-        .filter(|o| o.status.success())
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_else(|| "unknown".to_string());
+    // The checkout's commit, when the database is a repository of its own;
+    // a directory inside another repository has no revision of its own.
+    let git = |args: &[&str]| {
+        Command::new("git")
+            .arg("-C")
+            .arg(db)
+            .args(args)
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+    };
+    let own_repo = git(&["rev-parse", "--show-toplevel"])
+        .and_then(|top| PathBuf::from(top).canonicalize().ok())
+        .is_some_and(|top| db.canonicalize().is_ok_and(|d| d == top));
+    let revision = own_repo
+        .then(|| git(&["rev-parse", "HEAD"]))
+        .flatten()
+        .unwrap_or_else(|| "unversioned".to_string());
     let mut hits = Vec::new();
     for package in lock.iter().filter(|p| p.source.starts_with("registry+")) {
         let dir = crates.join(&package.name);

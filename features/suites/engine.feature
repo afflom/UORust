@@ -78,3 +78,9 @@ Feature: engine
     Given the advised fixture, whose Cargo.lock pins smallvec 0.6.9, with five copied RustSec advisories and a deny.toml that ignores RUSTSEC-2018-0018
     When the suite exercises UE-12
     Then Security holds a Risk for each of the four advisories that affect 0.6.9, an AcceptedRisk for the ignored one, failing gate measurements for the rest, and the SDK accepts the projection
+
+  @UE-13 @build
+  Scenario: Every feature of this workspace's own projection is admitted: each library module and binary entry point is exercised by a test, doctest or example, directly or through a helper of the test's file
+    Given this workspace, whose repo-model codegen and xtask binary have their own tests
+    When the suite exercises UE-13
+    Then frontier.toml records no feature-without-acceptance refusal, and Interface declares featureRepoModelCodegen and featureXtaskMain
