@@ -4,6 +4,8 @@
 # An effect row is the I/O shell: a function that performs an operating-system
 # effect (file system, process, environment, network), or calls one that does;
 # the security facet records each effect as a capability of its crate.
+# A foreign row is a function whose parameter or result is a type of a registry
+# dependency (syn, toml, serde_json, ...) that has no LexLean model.
 
 spec = "uorust/frontier/1"
 

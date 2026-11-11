@@ -62,6 +62,9 @@ struct Ctx<'a> {
     /// through a function that does: the I/O shell, recorded with the effect
     /// instead of as residue.
     effects: BTreeMap<String, (Span, String)>,
+    /// Functions at the boundary with a foreign crate: a parameter or the
+    /// result is a type of a registry dependency that has no LexLean model.
+    foreign: BTreeMap<String, (Span, String)>,
     /// `(package, target index)` of a product target -> component ID.
     targets: BTreeMap<(usize, usize), String>,
     components: Vec<Component>,
@@ -115,6 +118,22 @@ impl<'a> Ctx<'a> {
 
     fn component_of(&self, r: FnRef) -> Option<&String> {
         self.targets.get(&(r.pkg, self.file(r).target))
+    }
+
+    /// A function the lift refused: residue, or a foreign row when what
+    /// stopped it is a type of a registry dependency.
+    fn record_residue(&mut self, r: FnRef, span: Span, reason: Residue) {
+        let package = &self.ws.packages[r.pkg];
+        if let Residue::Type(ty) = &reason {
+            if let Some(dep) = foreign_crate(package, ty) {
+                let detail = format!(
+                    "takes or returns {ty}, a type of the {dep} crate with no LexLean model"
+                );
+                self.foreign.insert(self.path(r), (span, detail));
+                return;
+            }
+        }
+        self.residue.insert(self.path(r), (span, reason));
     }
 
     fn product(&self, r: FnRef) -> bool {
@@ -179,6 +198,7 @@ pub(crate) fn project(ws: &Workspace, options: &Options) -> BTreeMap<String, Vec
         refusals: BTreeSet::new(),
         residue: BTreeMap::new(),
         effects: BTreeMap::new(),
+        foreign: BTreeMap::new(),
         targets: BTreeMap::new(),
         components: Vec::new(),
         index: BTreeMap::new(),
@@ -2954,9 +2974,7 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
                     ctx.effects
                         .insert(ctx.path(r), (f.span.clone(), effect.clone()));
                 }
-                None => {
-                    ctx.residue.insert(ctx.path(r), (f.span.clone(), reason));
-                }
+                None => ctx.record_residue(r, f.span.clone(), reason),
             },
         }
     }
@@ -2991,9 +3009,7 @@ fn behavior(ctx: &mut Ctx<'_>) -> Module {
                 Some(effect) => {
                     ctx.effects.insert(ctx.path(r), (span, effect.clone()));
                 }
-                None => {
-                    ctx.residue.insert(ctx.path(r), (span, reason));
-                }
+                None => ctx.record_residue(r, span, reason),
             }
         }
     }
@@ -3192,6 +3208,20 @@ fn toml_string(text: &str) -> String {
     out
 }
 
+/// The registry dependency a type the lift refused belongs to: `syn` for
+/// `syn::Expr`, `&mut toml::Value` or `Option<serde_json::Value>`.
+fn foreign_crate(package: &Package, ty: &str) -> Option<String> {
+    let deps: BTreeSet<String> = package
+        .deps
+        .iter()
+        .filter(|d| d.path.is_none())
+        .map(|d| d.name.replace('-', "_"))
+        .collect();
+    ty.split(|c: char| !(c.is_ascii_alphanumeric() || c == '_' || c == ':'))
+        .filter_map(|word| word.split_once("::").map(|(head, _)| head.to_string()))
+        .find(|head| deps.contains(head))
+}
+
 /// How an effect reads after "which": `performs a Fs effect: std::fs::read`.
 fn effect_phrase(effect: &str) -> String {
     match effect.strip_prefix("calls ") {
@@ -3207,7 +3237,9 @@ fn frontier(ctx: &Ctx<'_>) -> String {
          # not decide it. A residue row is a pure function outside the lift's floor.\n\
          # An effect row is the I/O shell: a function that performs an operating-system\n\
          # effect (file system, process, environment, network), or calls one that does;\n\
-         # the security facet records each effect as a capability of its crate.\n\n\
+         # the security facet records each effect as a capability of its crate.\n\
+         # A foreign row is a function whose parameter or result is a type of a registry\n\
+         # dependency (syn, toml, serde_json, ...) that has no LexLean model.\n\n\
          spec = \"uorust/frontier/1\"\n",
     );
     for r in &ctx.refusals {
@@ -3226,6 +3258,14 @@ fn frontier(ctx: &Ctx<'_>) -> String {
             toml_string(&span.render()),
             reason.code(),
             toml_string(&reason.detail())
+        ));
+    }
+    for (path, (span, detail)) in &ctx.foreign {
+        out.push_str(&format!(
+            "\n[[foreign]]\nfunction = {}\nspan = {}\ndetail = {}\n",
+            toml_string(path),
+            toml_string(&span.render()),
+            toml_string(detail)
         ));
     }
     for (path, (span, effect)) in &ctx.effects {

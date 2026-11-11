@@ -140,4 +140,4 @@ statement = "Iterator chains over slices and vectors (iter, map, filter, any, al
 id = "UE-16"
 level = "build"
 suite = "engine"
-statement = "Residue only shrinks on the way to zero: the self and fixture projections have no more residue rows than crates/uorust/tests/residue-ceiling.toml allows, every residue row is typed, and every effect row names the operating-system effect its function performs or reaches"
+statement = "Residue only shrinks on the way to zero: the self and fixture projections have no more residue rows, and no more foreign rows (functions whose parameter or result is a registry crate type with no LexLean model), than crates/uorust/tests/residue-ceiling.toml allows, every residue row is typed, every foreign row names its crate, and every effect row names the operating-system effect its function performs or reaches"

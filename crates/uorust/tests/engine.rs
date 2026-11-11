@@ -724,6 +724,27 @@ fn residue_never_grows_on_the_way_to_zero_ue_16() {
                 assert!(row.get(field).is_some(), "{name}: untyped residue {row}");
             }
         }
+        let foreign = rows("foreign");
+        let foreign_limit = ceiling
+            .get(format!("{key}_foreign"))
+            .and_then(toml::Value::as_integer)
+            .and_then(|n| usize::try_from(n).ok())
+            .expect("a foreign ceiling");
+        assert!(
+            foreign.len() <= foreign_limit,
+            "{name}: {} foreign rows, over the ceiling {foreign_limit}",
+            foreign.len()
+        );
+        for row in &foreign {
+            let detail = row
+                .get("detail")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default();
+            assert!(
+                detail.contains(" crate with no LexLean model"),
+                "{name}: {row}"
+            );
+        }
         // An effect row names the effect it performs or reaches.
         for row in rows("effect") {
             let effect = row

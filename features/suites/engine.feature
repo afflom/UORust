@@ -101,4 +101,4 @@ Feature: engine
   Scenario: Residue only shrinks on the way to zero
     Given this workspace, the thermostat fixture and the committed residue ceilings
     When the suite exercises UE-16
-    Then neither projection has more residue rows than its ceiling, every residue row is typed, and every effect row names its effect
+    Then neither projection has more residue or foreign rows than its ceilings, every residue row is typed, every foreign row names its crate, and every effect row names its effect
