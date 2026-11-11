@@ -1,0 +1,32 @@
+\begin{lexlean}{SupplyChain}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: LockedPackage,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: name, type: String},
+    {name: version, type: String},
+    {name: source, type: String},
+    {name: checksum, type: String}
+  ]
+}
+
+definition{
+  name: packageThermoCli010,
+  parameters: [],
+  result: LockedPackage,
+  body: (record LockedPackage {name := "thermo-cli", version := "0.1.0", source := "", checksum := ""})
+}
+
+definition{
+  name: packageThermoCore010,
+  parameters: [],
+  result: LockedPackage,
+  body: (record LockedPackage {name := "thermo-core", version := "0.1.0", source := "", checksum := ""})
+}
+\end{semanticmodule}
+\end{lexlean}

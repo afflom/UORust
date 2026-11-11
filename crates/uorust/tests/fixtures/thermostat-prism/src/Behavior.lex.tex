@@ -1,0 +1,75 @@
+\begin{lexlean}{Behavior}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+inductive{
+  name: Mode,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Idle, fields: []}, {name: Heating, fields: []}, {name: Cooling, fields: []}]
+}
+
+definition{
+  name: shouldHeat,
+  parameters: [current : Nat, target : Nat],
+  result: Bool,
+  body: (current <? target)
+}
+
+definition{
+  name: withinBand,
+  parameters: [current : Nat, low : Nat, high : Nat],
+  result: Bool,
+  body: ((low <=? current) && (current <=? high))
+}
+
+definition{
+  name: nextMode,
+  parameters: [mode : Mode, cold : Bool, hot : Bool],
+  result: Mode,
+  body: (match mode
+    | Mode.Idle => (if cold then (ctor Mode.Heating) else (if hot then (ctor Mode.Cooling) else (ctor Mode.Idle)))
+    | Mode.Heating => (if cold then (ctor Mode.Heating) else (ctor Mode.Idle))
+    | Mode.Cooling => (if hot then (ctor Mode.Cooling) else (ctor Mode.Idle)))
+}
+
+definition{
+  name: halt,
+  parameters: [mode : Mode],
+  result: Mode,
+  body: (match mode
+    | Mode.Idle => (ctor Mode.Idle)
+    | Mode.Heating => (ctor Mode.Idle)
+    | Mode.Cooling => (ctor Mode.Idle))
+}
+
+theorem{
+  name: acceptThermoCoreHeatsWhenCold0,
+  parameters: [],
+  statement: ((shouldHeat 18 21) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreHeatsWhenCold1,
+  parameters: [],
+  statement: ((shouldHeat 22 21) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreBandIsInclusive0,
+  parameters: [],
+  statement: ((withinBand 5 5 9) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreBandIsInclusive1,
+  parameters: [],
+  statement: ((withinBand 10 5 9) = false),
+  proof: decide{}
+}
+\end{semanticmodule}
+\end{lexlean}

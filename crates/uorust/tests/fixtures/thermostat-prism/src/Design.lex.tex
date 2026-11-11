@@ -1,0 +1,435 @@
+\begin{lexlean}{Design}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Arch}
+\title{design view}
+\begin{semanticmodule}
+definition{
+  name: processThermoMain,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentBinThermo"})
+}
+
+definition{
+  name: processThermoCoreConfigParseTarget,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreConfigLoadTarget,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreConfigTargetFromEnv,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreShouldHeat,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreWithinBand,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreNextMode,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreHalt,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreMidpoint,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: stateThermoCoreModeIdle,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: stateThermoCoreModeHeating,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: stateThermoCoreModeCooling,
+  parameters: [],
+  result: Foundation.Arch::SystemState,
+  body: (record Foundation.Arch::SystemState {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: umlComponents,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "Components and dependencies", viewpoint := "Architecture::viewpointMaintenance", diagram := (ctor Foundation.Arch::DesignDiagram.umlComponent)})
+}
+
+definition{
+  name: umlBinThermo,
+  parameters: [],
+  result: Foundation.Arch::UmlComponent,
+  body: (record Foundation.Arch::UmlComponent {view := "Design::umlComponents", component := "Architecture::componentBinThermo"})
+}
+
+definition{
+  name: umlLibThermoCore,
+  parameters: [],
+  result: Foundation.Arch::UmlComponent,
+  body: (record Foundation.Arch::UmlComponent {view := "Design::umlComponents", component := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: umlConnectorBinThermoToLibThermoCore,
+  parameters: [],
+  result: Foundation.Arch::UmlConnector,
+  body: (record Foundation.Arch::UmlConnector {view := "Design::umlComponents", edge := "Architecture::edgeBinThermoToLibThermoCore"})
+}
+
+definition{
+  name: sequenceThermoMain,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "thermo::main calls", viewpoint := "Architecture::viewpointUsage", diagram := (ctor Foundation.Arch::DesignDiagram.umlSequence)})
+}
+
+definition{
+  name: lifelineThermoMainBinThermo,
+  parameters: [],
+  result: Foundation.Arch::UmlLifeline,
+  body: (record Foundation.Arch::UmlLifeline {view := "Design::sequenceThermoMain", component := "Architecture::componentBinThermo", order := 0})
+}
+
+definition{
+  name: lifelineThermoMainLibThermoCore,
+  parameters: [],
+  result: Foundation.Arch::UmlLifeline,
+  body: (record Foundation.Arch::UmlLifeline {view := "Design::sequenceThermoMain", component := "Architecture::componentLibThermoCore", order := 1})
+}
+
+definition{
+  name: messageThermoMain0,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::sequenceThermoMain", kind := (ctor Foundation.Arch::UmlMessageKind.synchronous), order := 0, source := "Architecture::componentBinThermo", target := "Architecture::componentLibThermoCore", process := "Design::processThermoCoreConfigTargetFromEnv"})
+}
+
+definition{
+  name: messageThermoMain1,
+  parameters: [],
+  result: Foundation.Arch::UmlMessage,
+  body: (record Foundation.Arch::UmlMessage {view := "Design::sequenceThermoMain", kind := (ctor Foundation.Arch::UmlMessageKind.synchronous), order := 1, source := "Architecture::componentBinThermo", target := "Architecture::componentLibThermoCore", process := "Design::processThermoCoreShouldHeat"})
+}
+
+definition{
+  name: machineThermoCoreMode,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "Mode states", viewpoint := "Architecture::viewpointMaintenance", diagram := (ctor Foundation.Arch::DesignDiagram.umlStateMachine)})
+}
+
+definition{
+  name: umlstateThermoCoreModeIdle,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::machineThermoCoreMode", state := "Design::stateThermoCoreModeIdle", initial := true})
+}
+
+definition{
+  name: umlstateThermoCoreModeHeating,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::machineThermoCoreMode", state := "Design::stateThermoCoreModeHeating", initial := false})
+}
+
+definition{
+  name: umlstateThermoCoreModeCooling,
+  parameters: [],
+  result: Foundation.Arch::UmlState,
+  body: (record Foundation.Arch::UmlState {view := "Design::machineThermoCoreMode", state := "Design::stateThermoCoreModeCooling", initial := false})
+}
+
+definition{
+  name: transitionThermoCoreMode0,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 0, source := "Design::stateThermoCoreModeCooling", target := "Design::stateThermoCoreModeCooling", trigger := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: transitionThermoCoreMode1,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 1, source := "Design::stateThermoCoreModeCooling", target := "Design::stateThermoCoreModeIdle", trigger := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: transitionThermoCoreMode2,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 2, source := "Design::stateThermoCoreModeHeating", target := "Design::stateThermoCoreModeHeating", trigger := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: transitionThermoCoreMode3,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 3, source := "Design::stateThermoCoreModeHeating", target := "Design::stateThermoCoreModeIdle", trigger := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: transitionThermoCoreMode4,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 4, source := "Design::stateThermoCoreModeIdle", target := "Design::stateThermoCoreModeCooling", trigger := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: transitionThermoCoreMode5,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 5, source := "Design::stateThermoCoreModeIdle", target := "Design::stateThermoCoreModeHeating", trigger := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: transitionThermoCoreMode6,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 6, source := "Design::stateThermoCoreModeIdle", target := "Design::stateThermoCoreModeIdle", trigger := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: transitionThermoCoreMode7,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 7, source := "Design::stateThermoCoreModeCooling", target := "Design::stateThermoCoreModeIdle", trigger := "Design::processThermoCoreHalt"})
+}
+
+definition{
+  name: transitionThermoCoreMode8,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 8, source := "Design::stateThermoCoreModeHeating", target := "Design::stateThermoCoreModeIdle", trigger := "Design::processThermoCoreHalt"})
+}
+
+definition{
+  name: transitionThermoCoreMode9,
+  parameters: [],
+  result: Foundation.Arch::UmlTransition,
+  body: (record Foundation.Arch::UmlTransition {view := "Design::machineThermoCoreMode", order := 9, source := "Design::stateThermoCoreModeIdle", target := "Design::stateThermoCoreModeIdle", trigger := "Design::processThermoCoreHalt"})
+}
+
+definition{
+  name: opmBinThermo,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "thermo processes", viewpoint := "Architecture::viewpointMaintenance", diagram := (ctor Foundation.Arch::DesignDiagram.opmObjectProcess)})
+}
+
+definition{
+  name: opmBinThermoObject,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmBinThermo", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentBinThermo"})
+}
+
+definition{
+  name: opmBinThermoThingThermoMain,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmBinThermo", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoMain"})
+}
+
+definition{
+  name: opmBinThermoInstrumentThermoMain,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmBinThermo", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentBinThermo", target := "Design::processThermoMain"})
+}
+
+definition{
+  name: opmLibThermoCore,
+  parameters: [],
+  result: Foundation.Arch::DesignView,
+  body: (record Foundation.Arch::DesignView {title := "thermo_core processes", viewpoint := "Architecture::viewpointMaintenance", diagram := (ctor Foundation.Arch::DesignDiagram.opmObjectProcess)})
+}
+
+definition{
+  name: opmLibThermoCoreObject,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.object), subject := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreConfigParseTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreConfigParseTarget"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreConfigParseTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreConfigParseTarget"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreConfigLoadTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreConfigLoadTarget"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreConfigLoadTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreConfigLoadTarget"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreConfigLoadTargetThermoCoreConfigParseTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreConfigLoadTarget", target := "Design::processThermoCoreConfigParseTarget"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreConfigTargetFromEnv,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreConfigTargetFromEnv"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreConfigTargetFromEnv,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreConfigTargetFromEnv"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreShouldHeat,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreShouldHeat"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreShouldHeat,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreShouldHeat"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreWithinBand,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreWithinBand"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreWithinBand,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreWithinBand"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreNextMode,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreNextMode,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreNextMode"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreHalt,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreHalt"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreHalt,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreHalt"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreMidpoint,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreMidpoint"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreMidpoint,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreMidpoint"})
+}
+
+definition{
+  name: opmLibThermoCoreStateThermoCoreModeIdle,
+  parameters: [],
+  result: Foundation.Arch::OpmState,
+  body: (record Foundation.Arch::OpmState {view := "Design::opmLibThermoCore", thing := "Architecture::componentLibThermoCore", state := "Design::stateThermoCoreModeIdle"})
+}
+
+definition{
+  name: opmLibThermoCoreStateThermoCoreModeHeating,
+  parameters: [],
+  result: Foundation.Arch::OpmState,
+  body: (record Foundation.Arch::OpmState {view := "Design::opmLibThermoCore", thing := "Architecture::componentLibThermoCore", state := "Design::stateThermoCoreModeHeating"})
+}
+
+definition{
+  name: opmLibThermoCoreStateThermoCoreModeCooling,
+  parameters: [],
+  result: Foundation.Arch::OpmState,
+  body: (record Foundation.Arch::OpmState {view := "Design::opmLibThermoCore", thing := "Architecture::componentLibThermoCore", state := "Design::stateThermoCoreModeCooling"})
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -559,7 +559,7 @@ fn items(
             }
             syn::Item::Impl(imp) => {
                 let self_ty = tidy(&imp.self_ty.to_token_stream().to_string());
-                if let Some((_, path, _)) = &imp.trait_ {
+                if let Some((path, _)) = &imp.trait_ {
                     if path.segments.last().is_some_and(|s| s.ident == "Error") {
                         file.error_impls.push(self_ty.clone());
                     }
@@ -733,7 +733,7 @@ impl<'ast> Visit<'ast> for BodyScan {
             };
             let mut targets = Vec::new();
             arm_targets(&arm.body, &mut targets);
-            if let (Some((e1, a)), None) = (from, &arm.guard) {
+            if let Some((e1, a)) = from {
                 for (e2, b) in targets.into_iter().filter_map(enum_path) {
                     if e1 == e2 {
                         self.transitions.push((e1.clone(), a.clone(), b));
@@ -841,7 +841,7 @@ impl<'ast> Visit<'ast> for CapabilityScan<'_> {
     }
 
     fn visit_signature(&mut self, node: &'ast syn::Signature) {
-        if let Some(token) = node.unsafety {
+        if let syn::Safety::Unsafe(token) = node.safety {
             self.note(
                 Capability::Unsafe,
                 token.span,

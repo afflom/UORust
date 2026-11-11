@@ -1,0 +1,33 @@
+# frontier.toml: what uorust did not admit or lift, each with a typed reason.
+# A refusal is an open claim: the router proposed it and admission would
+# not decide it. A residue row is a function outside the lift's floor.
+
+spec = "uorust/frontier/1"
+
+[[residue]]
+status = "open"
+function = "thermo_core::config::load_target"
+span = "thermo-core/src/config.rs:28"
+reason = "type"
+detail = "type outside the floor: &std::path::Path"
+
+[[residue]]
+status = "open"
+function = "thermo_core::config::parse_target"
+span = "thermo-core/src/config.rs:23"
+reason = "type"
+detail = "type outside the floor: &str"
+
+[[residue]]
+status = "open"
+function = "thermo_core::config::target_from_env"
+span = "thermo-core/src/config.rs:34"
+reason = "type"
+detail = "type outside the floor: Option<u32>"
+
+[[residue]]
+status = "open"
+function = "thermo_core::midpoint"
+span = "thermo-core/src/lib.rs:70"
+reason = "arithmetic"
+detail = "integer operator + wraps or panics depending on the build profile"

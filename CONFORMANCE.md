@@ -18,6 +18,17 @@ The three honesty levels (R2):
 `cargo xtask audit-limits` fails if any code path returns an error the
 model does not sanction.
 
+## engine
+
+| ID | Level | Statement |
+| --- | --- | --- |
+| `UE-01` | `build` | uorust projects the fixture workspace into exactly the committed Prism project, which lexlean fmt, lexlean lock and prismpm check accept |
+| `UE-02` | `build` | Two projections of the same workspace are byte-identical, for the fixture and for this workspace |
+| `UE-03` | `build` | Admission refuses an ambiguous call, a feature without acceptance and a missing MSRV with typed refusals recorded as open claims, and emits no record for them |
+| `UE-04` | `build` | Total functions over bool, unsigned comparisons and unit enums lift to LexLean definitions, closed assertions over them become decide theorems, and every other function is residue with a typed reason |
+| `UE-06` | `build` | Every way a run can end without a projection is a typed UorustError variant with a negative test |
+| `UE-07` | `build` | just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check |
+
 ## self-model
 
 | ID | Level | Statement |

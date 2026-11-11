@@ -86,7 +86,7 @@ pub(crate) fn signature(
 ) -> Lift<(Vec<(String, String)>, String)> {
     if !sig.generics.params.is_empty()
         || sig.asyncness.is_some()
-        || sig.unsafety.is_some()
+        || matches!(sig.safety, syn::Safety::Unsafe(_))
         || sig.variadic.is_some()
     {
         return Break(Residue::Signature(
@@ -261,9 +261,6 @@ fn matching(m: &syn::ExprMatch, ctx: &Ctx<'_>) -> Lift<Expr> {
     let mut arms: Vec<(Vec<String>, &syn::Expr)> = Vec::new();
     let mut wildcard: Option<&syn::Expr> = None;
     for arm in &m.arms {
-        if arm.guard.is_some() {
-            return Break(Residue::Form("match guard".to_string()));
-        }
         let mut names = Vec::new();
         let pats: Vec<&syn::Pat> = match &arm.pat {
             syn::Pat::Or(o) => o.cases.iter().collect(),

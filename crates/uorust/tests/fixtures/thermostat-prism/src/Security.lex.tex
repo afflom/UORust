@@ -1,0 +1,507 @@
+\begin{lexlean}{Security}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\useglossary{prism.sec@1.0.0}
+\importmodule{Foundation.Sec}
+\importmodule{Production.ThreatModel}
+\title{security threat}
+\begin{semanticmodule}
+definition{
+  name: assetBinThermoEnv,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 0, componentIndex := 0})
+}
+
+definition{
+  name: assetBinThermoMemory,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 1, componentIndex := 0})
+}
+
+definition{
+  name: assetBinThermoProcess,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 2, componentIndex := 0})
+}
+
+definition{
+  name: assetLibThermoCoreEnv,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 3, componentIndex := 1})
+}
+
+definition{
+  name: assetLibThermoCoreFs,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 4, componentIndex := 1})
+}
+
+definition{
+  name: assetLibThermoCoreMemory,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 5, componentIndex := 1})
+}
+
+definition{
+  name: assetLockedDependencies,
+  parameters: [],
+  result: Foundation.Sec::Asset,
+  body: (record Foundation.Sec::Asset {index := 6, componentIndex := 0})
+}
+
+definition{
+  name: threatBinThermoEnv,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 0})
+}
+
+definition{
+  name: threatBinThermoMemory,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 1})
+}
+
+definition{
+  name: threatBinThermoProcess,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 2})
+}
+
+definition{
+  name: threatDependencySubstitution,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 3})
+}
+
+definition{
+  name: threatLibThermoCoreEnv,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 4})
+}
+
+definition{
+  name: threatLibThermoCoreFs,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 5})
+}
+
+definition{
+  name: threatLibThermoCoreMemory,
+  parameters: [],
+  result: Foundation.Sec::Threat,
+  body: (record Foundation.Sec::Threat {index := 6})
+}
+
+definition{
+  name: riskBinThermoEnv,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 0, assetIndex := 0, threatIndex := 0, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskBinThermoMemory,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 1, assetIndex := 1, threatIndex := 1, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.critical)})
+}
+
+definition{
+  name: riskBinThermoProcess,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 2, assetIndex := 2, threatIndex := 2, likelihood := (ctor Foundation.Sec::Likelihood.medium), impact := (ctor Foundation.Sec::Impact.critical)})
+}
+
+definition{
+  name: riskDependencySubstitution,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 3, assetIndex := 6, threatIndex := 3, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.critical)})
+}
+
+definition{
+  name: riskLibThermoCoreEnv,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 4, assetIndex := 3, threatIndex := 4, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskLibThermoCoreFs,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 5, assetIndex := 4, threatIndex := 5, likelihood := (ctor Foundation.Sec::Likelihood.medium), impact := (ctor Foundation.Sec::Impact.major)})
+}
+
+definition{
+  name: riskLibThermoCoreMemory,
+  parameters: [],
+  result: Foundation.Sec::Risk,
+  body: (record Foundation.Sec::Risk {index := 6, assetIndex := 5, threatIndex := 6, likelihood := (ctor Foundation.Sec::Likelihood.low), impact := (ctor Foundation.Sec::Impact.critical)})
+}
+
+definition{
+  name: controlBinThermoEnv,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 0, riskIndex := 0})
+}
+
+definition{
+  name: controlBinThermoMemory,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 1, riskIndex := 1})
+}
+
+definition{
+  name: controlBinThermoProcess,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 2, riskIndex := 2})
+}
+
+definition{
+  name: controlDependencySubstitution,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 3, riskIndex := 3})
+}
+
+definition{
+  name: controlLibThermoCoreEnv,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 4, riskIndex := 4})
+}
+
+definition{
+  name: controlLibThermoCoreFs,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 5, riskIndex := 5})
+}
+
+definition{
+  name: controlLibThermoCoreMemory,
+  parameters: [],
+  result: Foundation.Sec::ApplicationSecurityControl,
+  body: (record Foundation.Sec::ApplicationSecurityControl {index := 6, riskIndex := 6})
+}
+
+definition{
+  name: activityBinThermoEnv,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 0, controlIndex := 0})
+}
+
+definition{
+  name: activityBinThermoMemory,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 1, controlIndex := 1})
+}
+
+definition{
+  name: activityBinThermoProcess,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 2, controlIndex := 2})
+}
+
+definition{
+  name: activityDependencySubstitution,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 3, controlIndex := 3})
+}
+
+definition{
+  name: activityLibThermoCoreEnv,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 4, controlIndex := 4})
+}
+
+definition{
+  name: activityLibThermoCoreFs,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 5, controlIndex := 5})
+}
+
+definition{
+  name: activityLibThermoCoreMemory,
+  parameters: [],
+  result: Foundation.Sec::SecurityActivity,
+  body: (record Foundation.Sec::SecurityActivity {index := 6, controlIndex := 6})
+}
+
+definition{
+  name: measurementBinThermoEnv,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 0, controlIndex := 0, passed := false})
+}
+
+definition{
+  name: measurementBinThermoMemory,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 1, controlIndex := 1, passed := true})
+}
+
+definition{
+  name: measurementBinThermoProcess,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 2, controlIndex := 2, passed := false})
+}
+
+definition{
+  name: measurementDependencySubstitution,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 3, controlIndex := 3, passed := true})
+}
+
+definition{
+  name: measurementLibThermoCoreEnv,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 4, controlIndex := 4, passed := false})
+}
+
+definition{
+  name: measurementLibThermoCoreFs,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 5, controlIndex := 5, passed := false})
+}
+
+definition{
+  name: measurementLibThermoCoreMemory,
+  parameters: [],
+  result: Foundation.Sec::VerificationMeasurement,
+  body: (record Foundation.Sec::VerificationMeasurement {index := 6, controlIndex := 6, passed := true})
+}
+
+definition{
+  name: controlSet,
+  parameters: [],
+  result: Production.ThreatModel::ControlSet,
+  body: (record Production.ThreatModel::ControlSet {title := "thermostat security controls", text := "Controls uorust derived from the thermostat workspace: memory safety, capability sites and the locked dependency graph.", version := "0.1.0", lastModified := "2026-11-11T00:00:00Z"})
+}
+
+definition{
+  name: modeledAssetBinThermoEnv,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetBinThermoEnv", name := "thermo: environment and arguments it reads", text := "Environment and arguments it reads in thermo, at 1 site(s)."})
+}
+
+definition{
+  name: modeledAssetBinThermoMemory,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetBinThermoMemory", name := "thermo memory", text := "The memory of thermo while it runs."})
+}
+
+definition{
+  name: modeledAssetBinThermoProcess,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetBinThermoProcess", name := "thermo: processes it starts", text := "Processes it starts in thermo, at 1 site(s)."})
+}
+
+definition{
+  name: modeledAssetLibThermoCoreEnv,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetLibThermoCoreEnv", name := "thermo_core: environment and arguments it reads", text := "Environment and arguments it reads in thermo_core, at 1 site(s)."})
+}
+
+definition{
+  name: modeledAssetLibThermoCoreFs,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetLibThermoCoreFs", name := "thermo_core: files it reads and writes", text := "Files it reads and writes in thermo_core, at 2 site(s)."})
+}
+
+definition{
+  name: modeledAssetLibThermoCoreMemory,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetLibThermoCoreMemory", name := "thermo_core memory", text := "The memory of thermo_core while it runs."})
+}
+
+definition{
+  name: modeledAssetLockedDependencies,
+  parameters: [],
+  result: Production.ThreatModel::ModeledAsset,
+  body: (record Production.ThreatModel::ModeledAsset {asset := "Security::assetLockedDependencies", name := "Locked dependency graph", text := "The 2 packages Cargo.lock pins."})
+}
+
+definition{
+  name: modeledThreatBinThermoEnv,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatBinThermoEnv", name := "Env misuse in thermo", text := "A variable or argument an attacker sets impersonates the configuration the operator meant.", category := (ctor Production.ThreatModel::Stride.spoofing)})
+}
+
+definition{
+  name: modeledThreatBinThermoMemory,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatBinThermoMemory", name := "Memory corruption in thermo", text := "Unsafe code breaks an invariant the borrow checker would have kept.", category := (ctor Production.ThreatModel::Stride.elevationOfPrivilege)})
+}
+
+definition{
+  name: modeledThreatBinThermoProcess,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatBinThermoProcess", name := "Process misuse in thermo", text := "A started process runs with arguments or a program an attacker chose.", category := (ctor Production.ThreatModel::Stride.elevationOfPrivilege)})
+}
+
+definition{
+  name: modeledThreatDependencySubstitution,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatDependencySubstitution", name := "Dependency substitution", text := "A dependency is replaced by a package with the same name and different code.", category := (ctor Production.ThreatModel::Stride.tampering)})
+}
+
+definition{
+  name: modeledThreatLibThermoCoreEnv,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatLibThermoCoreEnv", name := "Env misuse in thermo_core", text := "A variable or argument an attacker sets impersonates the configuration the operator meant.", category := (ctor Production.ThreatModel::Stride.spoofing)})
+}
+
+definition{
+  name: modeledThreatLibThermoCoreFs,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatLibThermoCoreFs", name := "Fs misuse in thermo_core", text := "A path or file content an attacker controls alters what is read or overwritten.", category := (ctor Production.ThreatModel::Stride.tampering)})
+}
+
+definition{
+  name: modeledThreatLibThermoCoreMemory,
+  parameters: [],
+  result: Production.ThreatModel::ModeledThreat,
+  body: (record Production.ThreatModel::ModeledThreat {threat := "Security::threatLibThermoCoreMemory", name := "Memory corruption in thermo_core", text := "Unsafe code breaks an invariant the borrow checker would have kept.", category := (ctor Production.ThreatModel::Stride.elevationOfPrivilege)})
+}
+
+definition{
+  name: modeledControlBinThermoEnv,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlBinThermoEnv", name := "Reviewed env sites", text := "Each env site of thermo is listed with its span for review.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "thermo-cli/src/main.rs:7 std::env::args"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlBinThermoMemory,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlBinThermoMemory", name := "Unsafe code forbidden", text := "thermo is checked by the borrow checker throughout; no unsafe code is admitted.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "[lints.rust] unsafe_code = forbid in thermo-cli/Cargo.toml"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlBinThermoProcess,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlBinThermoProcess", name := "Reviewed process sites", text := "Each process site of thermo is listed with its span for review.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "thermo-cli/src/main.rs:16 std::process::exit"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlDependencySubstitution,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlDependencySubstitution", name := "Locked and checked dependencies", text := "Every dependency is pinned with its checksum and checked against advisories and licences.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "Cargo.lock pins 2 packages, 0 with a registry checksum"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlLibThermoCoreEnv,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlLibThermoCoreEnv", name := "Reviewed env sites", text := "Each env site of thermo_core is listed with its span for review.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "thermo-core/src/config.rs:35 std::env::var"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: modeledControlLibThermoCoreFs,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlLibThermoCoreFs", name := "Reviewed fs sites", text := "Each fs site of thermo_core is listed with its span for review.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "thermo-core/src/config.rs:3 std::fs"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "thermo-core/src/config.rs:29 fs::read_to_string"}) (nil Production.ThreatModel::Evidence)))})
+}
+
+definition{
+  name: modeledControlLibThermoCoreMemory,
+  parameters: [],
+  result: Production.ThreatModel::ModeledControl,
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlLibThermoCoreMemory", name := "Unsafe code forbidden", text := "thermo_core is checked by the borrow checker throughout; no unsafe code is admitted.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "[lints.rust] unsafe_code = forbid in thermo-core/Cargo.toml"}) (nil Production.ThreatModel::Evidence))})
+}
+
+definition{
+  name: mappingThreatBinThermoEnv,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatBinThermoEnv", controls := (cons "Security::controlBinThermoEnv" (nil String))})
+}
+
+definition{
+  name: mappingThreatBinThermoMemory,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatBinThermoMemory", controls := (cons "Security::controlBinThermoMemory" (nil String))})
+}
+
+definition{
+  name: mappingThreatBinThermoProcess,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatBinThermoProcess", controls := (cons "Security::controlBinThermoProcess" (nil String))})
+}
+
+definition{
+  name: mappingThreatDependencySubstitution,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatDependencySubstitution", controls := (cons "Security::controlDependencySubstitution" (nil String))})
+}
+
+definition{
+  name: mappingThreatLibThermoCoreEnv,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatLibThermoCoreEnv", controls := (cons "Security::controlLibThermoCoreEnv" (nil String))})
+}
+
+definition{
+  name: mappingThreatLibThermoCoreFs,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatLibThermoCoreFs", controls := (cons "Security::controlLibThermoCoreFs" (nil String))})
+}
+
+definition{
+  name: mappingThreatLibThermoCoreMemory,
+  parameters: [],
+  result: Production.ThreatModel::ThreatMapping,
+  body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatLibThermoCoreMemory", controls := (cons "Security::controlLibThermoCoreMemory" (nil String))})
+}
+\end{semanticmodule}
+\end{lexlean}

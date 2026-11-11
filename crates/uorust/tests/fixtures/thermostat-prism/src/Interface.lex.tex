@@ -1,0 +1,162 @@
+\begin{lexlean}{Interface}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Arch}
+\title{feature}
+\begin{semanticmodule}
+definition{
+  name: acThermoCliCliColdReadingHeats,
+  parameters: [],
+  result: String,
+  body: "cold_reading_heats at thermo-cli/tests/cli.rs:7: A cold reading prints heat."
+}
+
+definition{
+  name: acThermoCoreThermoCoreHeatsWhenCold,
+  parameters: [],
+  result: String,
+  body: "heats_when_cold at thermo-core/src/lib.rs:80: A cold room heats."
+}
+
+definition{
+  name: acThermoCoreThermoCoreBandIsInclusive,
+  parameters: [],
+  result: String,
+  body: "band_is_inclusive at thermo-core/src/lib.rs:86 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreIdleRoomThatIsColdHeats,
+  parameters: [],
+  result: String,
+  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:92 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreMidpointOfABand,
+  parameters: [],
+  result: String,
+  body: "midpoint_of_a_band at thermo-core/src/lib.rs:98 passes."
+}
+
+definition{
+  name: acThermoCoreConfigParsesAWholeNumber,
+  parameters: [],
+  result: String,
+  body: "parses_a_whole_number at thermo-core/tests/config.rs:7: A whole number parses; anything else is refused."
+}
+
+definition{
+  name: acDocThermoCoreShouldHeat,
+  parameters: [],
+  result: String,
+  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:22 pass."
+}
+
+definition{
+  name: callThermoCoreConfigParseTarget,
+  parameters: [],
+  result: String,
+  body: "thermo_core::config::parse_target: fn parse_target(text: &str) -> Result<u32, ConfigError>"
+}
+
+definition{
+  name: callThermoCoreConfigLoadTarget,
+  parameters: [],
+  result: String,
+  body: "thermo_core::config::load_target: fn load_target(path: &std::path::Path) -> Result<u32, ConfigError>"
+}
+
+definition{
+  name: callThermoCoreConfigTargetFromEnv,
+  parameters: [],
+  result: String,
+  body: "thermo_core::config::target_from_env: fn target_from_env() -> Option<u32>"
+}
+
+definition{
+  name: callThermoCoreShouldHeat,
+  parameters: [],
+  result: String,
+  body: "thermo_core::should_heat: fn should_heat(current: u32, target: u32) -> bool"
+}
+
+definition{
+  name: callThermoCoreWithinBand,
+  parameters: [],
+  result: String,
+  body: "thermo_core::within_band: fn within_band(current: u32, low: u32, high: u32) -> bool"
+}
+
+definition{
+  name: callThermoCoreNextMode,
+  parameters: [],
+  result: String,
+  body: "thermo_core::next_mode: fn next_mode(mode: Mode, cold: bool, hot: bool) -> Mode"
+}
+
+definition{
+  name: callThermoCoreHalt,
+  parameters: [],
+  result: String,
+  body: "thermo_core::halt: fn halt(mode: Mode) -> Mode"
+}
+
+definition{
+  name: callThermoCoreMidpoint,
+  parameters: [],
+  result: String,
+  body: "thermo_core::midpoint: fn midpoint(low: u32, high: u32) -> u32"
+}
+
+definition{
+  name: callThermoMain,
+  parameters: [],
+  result: String,
+  body: "thermo: Prints whether to heat, for a reading given on the command line."
+}
+
+definition{
+  name: acExampleThermoCoreDecide,
+  parameters: [],
+  result: String,
+  body: "The example decide at thermo-core/examples/decide.rs builds."
+}
+
+definition{
+  name: featureThermoCore,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "thermo_core: Thermostat control: decides from a reading and a target whether to heat.", calls := (cons "Interface::callThermoCoreShouldHeat" (cons "Interface::callThermoCoreWithinBand" (cons "Interface::callThermoCoreNextMode" (cons "Interface::callThermoCoreHalt" (cons "Interface::callThermoCoreMidpoint" (nil String)))))), acceptance := (cons "Interface::acDocThermoCoreShouldHeat" (cons "Interface::acThermoCoreThermoCoreBandIsInclusive" (cons "Interface::acThermoCoreThermoCoreHeatsWhenCold" (cons "Interface::acThermoCoreThermoCoreIdleRoomThatIsColdHeats" (cons "Interface::acThermoCoreThermoCoreMidpointOfABand" (nil String))))))})
+}
+
+definition{
+  name: featureThermoCoreConfig,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::config: Reads the target temperature from a file or the environment.", calls := (cons "Interface::callThermoCoreConfigParseTarget" (cons "Interface::callThermoCoreConfigLoadTarget" (cons "Interface::callThermoCoreConfigTargetFromEnv" (nil String)))), acceptance := (cons "Interface::acThermoCoreConfigParsesAWholeNumber" (nil String))})
+}
+
+definition{
+  name: featureThermoMain,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "thermo: Prints whether to heat, for a reading given on the command line.", calls := (cons "Interface::callThermoMain" (nil String)), acceptance := (cons "Interface::acThermoCliCliColdReadingHeats" (nil String))})
+}
+
+definition{
+  name: journeyCliThermo,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderCliUsers", steps := (cons "Interface::featureThermoMain" (nil String))})
+}
+
+definition{
+  name: journeyLibraryThermoCore,
+  parameters: [],
+  result: Foundation.Arch::Journey,
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreConfig" (nil String)))})
+}
+\end{semanticmodule}
+\end{lexlean}

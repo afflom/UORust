@@ -1,0 +1,197 @@
+\begin{lexlean}{Architecture}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Arch}
+\title{architectural component}
+\begin{semanticmodule}
+definition{
+  name: componentBinThermo,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 0, kind := (ctor Foundation.Arch::ComponentKind.cliAdapter), name := "thermo", text := "Prints whether to heat, for a reading given on the command line."})
+}
+
+definition{
+  name: componentLibThermoCore,
+  parameters: [],
+  result: Foundation.Arch::Component,
+  body: (record Foundation.Arch::Component {index := 1, kind := (ctor Foundation.Arch::ComponentKind.service), name := "thermo_core", text := "Thermostat control: decides from a reading and a target whether to heat."})
+}
+
+definition{
+  name: edgeBinThermoToLibThermoCore,
+  parameters: [],
+  result: Foundation.Arch::Edge,
+  body: (record Foundation.Arch::Edge {index := 0, fromIndex := 0, toIndex := 1, kind := (ctor Foundation.Arch::EdgeKind.controlFlow)})
+}
+
+definition{
+  name: stakeholderCliUsers,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 0, name := "Command-line users", text := "Run the workspace's binaries."})
+}
+
+definition{
+  name: stakeholderLibraryUsers,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 1, name := "Library users", text := "Call the public interface of the workspace's libraries."})
+}
+
+definition{
+  name: stakeholderMaintainers,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 2, name := "Maintainers", text := "Maintain the thermostat workspace and its 2 packages."})
+}
+
+definition{
+  name: stakeholderQualityReviewers,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 3, name := "Quality reviewers", text := "Judge documentation, tests, lints and compatibility."})
+}
+
+definition{
+  name: stakeholderSecurityReviewers,
+  parameters: [],
+  result: Foundation.Arch::Stakeholder,
+  body: (record Foundation.Arch::Stakeholder {index := 4, name := "Security reviewers", text := "Judge what the code can reach beyond computation and what the build trusts."})
+}
+
+definition{
+  name: concernFunctionality,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 0, name := "Functionality", text := "Reads a target temperature and a reading and prints whether to heat. Decides when a thermostat heats, from readings and a target."})
+}
+
+definition{
+  name: concernQuality,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 1, name := "Quality", text := "Documentation coverage, tests, lint levels and the minimum supported Rust."})
+}
+
+definition{
+  name: concernSecurity,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 2, name := "Security", text := "Files, network, processes, environment and unsafe code the targets reach."})
+}
+
+definition{
+  name: concernSupplyChain,
+  parameters: [],
+  result: Foundation.Arch::Concern,
+  body: (record Foundation.Arch::Concern {index := 3, name := "Supply chain", text := "The 2 packages Cargo.lock pins and their sources."})
+}
+
+definition{
+  name: viewpointMaintenance,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 0, stakeholderIndex := 2, concernIndex := 0, modelKindIndex := 0})
+}
+
+definition{
+  name: viewpointQuality,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 1, stakeholderIndex := 3, concernIndex := 1, modelKindIndex := 1})
+}
+
+definition{
+  name: viewpointSecurity,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 2, stakeholderIndex := 4, concernIndex := 2, modelKindIndex := 2})
+}
+
+definition{
+  name: viewpointSupplyChain,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 3, stakeholderIndex := 4, concernIndex := 3, modelKindIndex := 2})
+}
+
+definition{
+  name: viewpointUsage,
+  parameters: [],
+  result: Foundation.Arch::Viewpoint,
+  body: (record Foundation.Arch::Viewpoint {index := 4, stakeholderIndex := 0, concernIndex := 0, modelKindIndex := 0})
+}
+
+definition{
+  name: viewMaintenance,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 0, viewpointIndex := 0, modelKindIndex := 0})
+}
+
+definition{
+  name: viewQuality,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 1, viewpointIndex := 1, modelKindIndex := 1})
+}
+
+definition{
+  name: viewSecurity,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 2, viewpointIndex := 2, modelKindIndex := 2})
+}
+
+definition{
+  name: viewSupplyChain,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 3, viewpointIndex := 3, modelKindIndex := 2})
+}
+
+definition{
+  name: viewUsage,
+  parameters: [],
+  result: Foundation.Arch::View,
+  body: (record Foundation.Arch::View {index := 4, viewpointIndex := 4, modelKindIndex := 0})
+}
+
+definition{
+  name: standardQuality,
+  parameters: [],
+  result: Foundation.Arch::StandardReference,
+  body: (record Foundation.Arch::StandardReference {standardIndex := 0, editionIndex := 0, standardId := "ISO-25010-2023", edition := "2023"})
+}
+
+definition{
+  name: standardRiskManagement,
+  parameters: [],
+  result: Foundation.Arch::StandardReference,
+  body: (record Foundation.Arch::StandardReference {standardIndex := 1, editionIndex := 0, standardId := "ISO-27005-2022", edition := "2022"})
+}
+
+definition{
+  name: standardApplicationSecurity,
+  parameters: [],
+  result: Foundation.Arch::StandardReference,
+  body: (record Foundation.Arch::StandardReference {standardIndex := 2, editionIndex := 0, standardId := "ISO-27034-1-2011", edition := "2011"})
+}
+
+definition{
+  name: standardSecurityControls,
+  parameters: [],
+  result: Foundation.Arch::StandardReference,
+  body: (record Foundation.Arch::StandardReference {standardIndex := 3, editionIndex := 0, standardId := "ISO-27034-5-2017", edition := "2017"})
+}
+
+definition{
+  name: standardArchitectureDescription,
+  parameters: [],
+  result: Foundation.Arch::StandardReference,
+  body: (record Foundation.Arch::StandardReference {standardIndex := 4, editionIndex := 0, standardId := "ISO-42010-2022", edition := "2022"})
+}
+\end{semanticmodule}
+\end{lexlean}
