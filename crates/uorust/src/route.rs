@@ -136,9 +136,9 @@ pub enum Routing {
 }
 
 /// Route a fact by its tags. The first offending tag decides a refusal.
-pub fn classify<'a>(tags: impl IntoIterator<Item = &'a str>) -> Option<Routing> {
+pub fn classify(tags: &[&str]) -> Option<Routing> {
     let mut chosen: Option<(Route, &str)> = None;
-    for tag in tags {
+    for &tag in tags {
         let Some(found) = ROUTES.iter().find(|r| r.rust_fact == tag) else {
             return Some(Routing::Unknown(tag.to_string()));
         };
@@ -172,13 +172,11 @@ pub fn respond(request: &[u8]) -> String {
         tags.push(tag);
         // The first offending line decides: a refusal among the lines so far
         // stands even if a later line is blank.
-        if let Some(refusal @ (Routing::Unknown(_) | Routing::Ambiguous(..))) =
-            classify(tags.iter().copied())
-        {
+        if let Some(refusal @ (Routing::Unknown(_) | Routing::Ambiguous(..))) = classify(&tags) {
             return render(Some(refusal));
         }
     }
-    render(classify(tags))
+    render(classify(&tags))
 }
 
 fn render(routing: Option<Routing>) -> String {

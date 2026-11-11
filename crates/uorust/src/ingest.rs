@@ -22,7 +22,7 @@ pub(crate) fn workspace(
     root: &Path,
     advisory_db: Option<&Path>,
 ) -> Result<(Workspace, Syntax), UorustError> {
-    let root = root.canonicalize().map_err(|e| io(root.to_path_buf(), e))?;
+    let root = root.canonicalize().map_err(|e| io(root, e))?;
     let metadata = metadata(&root)?;
     let root_manifest = read_toml(&root.join("Cargo.toml"))?;
     let workspace_lints = lints_of(root_manifest.get("workspace").and_then(|w| w.get("lints")));
@@ -131,13 +131,13 @@ fn advisories(db: &Path, lock: &[LockedPackage]) -> Result<Advisories, UorustErr
             continue;
         };
         let mut files: Vec<PathBuf> = std::fs::read_dir(&dir)
-            .map_err(|e| io(dir.clone(), e))?
+            .map_err(|e| io(&dir, e))?
             .filter_map(|e| e.ok().map(|e| e.path()))
             .filter(|p| p.extension().is_some_and(|x| x == "md"))
             .collect();
         files.sort();
         for file in files {
-            let text = std::fs::read_to_string(&file).map_err(|e| io(file.clone(), e))?;
+            let text = std::fs::read_to_string(&file).map_err(|e| io(&file, e))?;
             if let Some(advisory) = advisory(&file, &text, &package.name, &version)? {
                 hits.push(advisory);
             }
@@ -285,11 +285,17 @@ fn lints_of(table: Option<&toml::Value>) -> BTreeMap<String, String> {
     out
 }
 
-fn rel(root: &Path, path: &Path) -> String {
-    path.strip_prefix(root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+/// `path` relative to `root`, both as text: the path itself when it is not
+/// inside `root`.
+fn rel(root: &str, path: &str) -> String {
+    match path.strip_prefix(root) {
+        Some("") => String::new(),
+        Some(rest) => match rest.strip_prefix('/') {
+            Some(inner) => inner.to_string(),
+            None => path.to_string(),
+        },
+        None => path.to_string(),
+    }
 }
 
 fn text(value: &Value, key: &str) -> String {
@@ -305,9 +311,12 @@ fn package(
     meta: &Value,
     workspace_lints: &BTreeMap<String, String>,
 ) -> Result<(Package, BTreeMap<String, FileSyntax>), UorustError> {
+    // Paths as the facts hold them: text with `/` separators.
+    let path_text = |path: &Path| path.to_string_lossy().replace('\\', "/");
+    let root_text = path_text(root);
     let manifest = PathBuf::from(text(meta, "manifest_path"));
     let dir_abs = manifest.parent().unwrap_or(root).to_path_buf();
-    let dir = rel(root, &dir_abs);
+    let dir = rel(&root_text, &path_text(&dir_abs));
     let raw = read_toml(&manifest)?;
     let lints = match raw.get("lints") {
         Some(table) if table.get("workspace").and_then(toml::Value::as_bool) == Some(true) => {
@@ -350,7 +359,7 @@ fn package(
         targets.push(Target {
             name: text(target, "name"),
             kind,
-            src: rel(root, Path::new(&text(target, "src_path"))),
+            src: rel(&root_text, &path_text(Path::new(&text(target, "src_path")))),
         });
     }
     targets
@@ -371,7 +380,7 @@ fn package(
                 .and_then(Value::as_str)
                 .unwrap_or("normal")
                 .to_string(),
-            path: path.map(|p| rel(root, &p)),
+            path: path.map(|p| rel(&root_text, &path_text(&p))),
             inside,
         });
     }
@@ -386,7 +395,7 @@ fn package(
     }
     paths.sort();
     for path in paths {
-        let rel_path = rel(root, &path);
+        let rel_path = rel(&root_text, &path_text(&path));
         let Some((target, module)) = assign(&rel_path, &dir, &targets) else {
             continue;
         };

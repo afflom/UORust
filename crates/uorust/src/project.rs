@@ -1521,7 +1521,7 @@ fn route_enums(ctx: &Model) -> (BTreeMap<(usize, usize, usize), &'static str>, V
                 if unit && !cli && (named || transitions.contains(&e.name)) {
                     tags.push("state-enum");
                 }
-                match crate::route::classify(tags) {
+                match crate::route::classify(&tags) {
                     Some(crate::route::Routing::Routed(route)) => {
                         routes.insert((pkg, fi, ei), route.id);
                     }

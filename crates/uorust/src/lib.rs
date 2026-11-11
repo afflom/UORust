@@ -51,9 +51,7 @@ pub fn project_workspace(
 
 /// The workspace's name: its directory name.
 pub fn default_name(root: &Path) -> Result<String, UorustError> {
-    let root = root
-        .canonicalize()
-        .map_err(|e| error::io(root.to_path_buf(), e))?;
+    let root = root.canonicalize().map_err(|e| error::io(root, e))?;
     Ok(root
         .file_name()
         .and_then(|n| n.to_str())

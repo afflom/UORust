@@ -5,7 +5,7 @@
 //! error is a condition under which no projection exists at all.
 
 use std::fmt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Why no projection was written.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -72,9 +72,9 @@ impl fmt::Display for UorustError {
 
 impl std::error::Error for UorustError {}
 
-pub(crate) fn io(path: impl Into<PathBuf>, error: std::io::Error) -> UorustError {
+pub(crate) fn io(path: &Path, error: std::io::Error) -> UorustError {
     UorustError::Io {
-        path: path.into(),
+        path: path.to_path_buf(),
         reason: error.to_string(),
     }
 }
