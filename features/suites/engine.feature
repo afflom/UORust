@@ -54,3 +54,9 @@ Feature: engine
     Given the fixture workspace, whose sensor module declares pub trait Sensor implemented by Fixed
     When the suite exercises UE-08
     Then Interface declares callThermoCoreSensorSensorRead and callThermoCoreSensorSensorCalibrated, and featureThermoCoreSensor names both and is accepted by the test that calls Fixed(20).read()
+
+  @UE-09 @build
+  Scenario: Each module with processes is its own OPM view beside its component's: the component is the object, the module's functions are its processes, and each process zooms into the processes it calls in the module
+    Given the fixture workspace, whose config module's load_target calls parse_target
+    When the suite exercises UE-09
+    Then Design declares the view opmModuleLibThermoCoreConfig with an invocation and a zoom from load_target to parse_target, and one view per other module

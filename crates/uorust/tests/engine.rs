@@ -264,3 +264,24 @@ fn pub_trait_methods_are_interface_calls_ue_08() {
         "{feature}"
     );
 }
+
+#[test]
+fn each_module_is_an_opm_view_ue_09() {
+    let files = project(&fixture(), "thermostat");
+    let design = text(&files, "src/Design.lex.tex");
+    for view in [
+        "opmModuleLibThermoCore",
+        "opmModuleLibThermoCoreConfig",
+        "opmModuleLibThermoCoreSensor",
+        "opmModuleBinThermo",
+    ] {
+        assert!(design.contains(&format!("name: {view},")), "{view}");
+    }
+    let zoom = design
+        .split("definition{")
+        .find(|d| d.contains("name: opmModuleLibThermoCoreConfigZoom"))
+        .expect("load_target zooms into parse_target");
+    assert!(zoom.contains("process := \"Design::processThermoCoreConfigLoadTarget\""));
+    assert!(zoom.contains("subprocess := \"Design::processThermoCoreConfigParseTarget\""));
+    assert!(design.contains("name: opmModuleLibThermoCoreConfigInvokesThermoCoreConfigLoadTargetThermoCoreConfigParseTarget,"));
+}

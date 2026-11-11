@@ -1798,6 +1798,7 @@ fn design(ctx: &mut Ctx<'_>) -> Module {
             }
         }
     }
+    decls.extend(module_opm(ctx, &processes));
     let mut names = BTreeSet::new();
     decls.retain(|d| names.insert(d.name().to_string()));
     Module {
@@ -1807,6 +1808,150 @@ fn design(ctx: &mut Ctx<'_>) -> Module {
         title: "design view",
         decls,
     }
+}
+
+/// OPM per module (UR-R28): the module's component is the object, its
+/// processes are the module's functions, each invocation inside the module is
+/// a link and each process zooms into the processes it calls there.
+fn module_opm(ctx: &Ctx<'_>, processes: &BTreeMap<FnRef, String>) -> Vec<Decl> {
+    let t = "Foundation.Arch::";
+    let mut by_module: BTreeMap<(String, String, String), Vec<FnRef>> = BTreeMap::new();
+    for r in processes.keys() {
+        let Some(component) = ctx.component_of(*r) else {
+            continue;
+        };
+        let file = ctx.file(*r);
+        let target = &ctx.package(*r).targets[file.target].name;
+        let path = if file.module.is_empty() {
+            target.replace('-', "_")
+        } else {
+            format!("{}::{}", target.replace('-', "_"), file.module)
+        };
+        by_module
+            .entry((component.clone(), file.module.clone(), path))
+            .or_default()
+            .push(*r);
+    }
+    let mut decls = Vec::new();
+    for ((component, module, path), procs) in &by_module {
+        let parts: Vec<&str> = module.split("::").filter(|p| !p.is_empty()).collect();
+        let suffix = format!("{}{}", Ctx::component_suffix(component), pascal(&parts));
+        let view = qualified(DESIGN, &format!("opmModule{suffix}"));
+        let name = local(&view).to_string();
+        decls.push(Decl::value(
+            name.clone(),
+            format!("{t}DesignView"),
+            record(
+                &format!("{t}DesignView"),
+                &[
+                    ("title", string(&format!("{path} processes"))),
+                    (
+                        "viewpoint",
+                        string(&qualified(ARCH, "viewpointMaintenance")),
+                    ),
+                    (
+                        "diagram",
+                        format!("(ctor {t}DesignDiagram.opmObjectProcess)"),
+                    ),
+                ],
+            ),
+        ));
+        decls.push(Decl::value(
+            format!("{name}Object"),
+            format!("{t}OpmThing"),
+            record(
+                &format!("{t}OpmThing"),
+                &[
+                    ("view", string(&view)),
+                    ("kind", format!("(ctor {t}OpmThingKind.object)")),
+                    ("subject", string(component)),
+                ],
+            ),
+        ));
+        let in_view: BTreeSet<FnRef> = procs.iter().copied().collect();
+        let short = |r: &FnRef| {
+            local(&processes[r])
+                .trim_start_matches("process")
+                .to_string()
+        };
+        let mut parent: BTreeMap<FnRef, FnRef> = BTreeMap::new();
+        for r in procs {
+            let id = &processes[r];
+            let p = short(r);
+            decls.push(Decl::value(
+                format!("{name}Thing{p}"),
+                format!("{t}OpmThing"),
+                record(
+                    &format!("{t}OpmThing"),
+                    &[
+                        ("view", string(&view)),
+                        ("kind", format!("(ctor {t}OpmThingKind.process)")),
+                        ("subject", string(id)),
+                    ],
+                ),
+            ));
+            decls.push(Decl::value(
+                format!("{name}Instrument{p}"),
+                format!("{t}OpmLink"),
+                record(
+                    &format!("{t}OpmLink"),
+                    &[
+                        ("view", string(&view)),
+                        ("kind", format!("(ctor {t}OpmLinkKind.instrument)")),
+                        ("source", string(component)),
+                        ("target", string(id)),
+                    ],
+                ),
+            ));
+            let mut order = 0usize;
+            for callee in ctx.calls.get(r).into_iter().flatten() {
+                if !in_view.contains(callee) || callee == r {
+                    continue;
+                }
+                let q = short(callee);
+                decls.push(Decl::value(
+                    format!("{name}Invokes{p}{q}"),
+                    format!("{t}OpmLink"),
+                    record(
+                        &format!("{t}OpmLink"),
+                        &[
+                            ("view", string(&view)),
+                            ("kind", format!("(ctor {t}OpmLinkKind.invocation)")),
+                            ("source", string(id)),
+                            ("target", string(&processes[callee])),
+                        ],
+                    ),
+                ));
+                // A process zooms under one parent only, its first caller in
+                // declaration order, and never under its own descendant.
+                let mut ancestor = Some(*r);
+                let mut cycle = false;
+                while let Some(a) = ancestor {
+                    cycle |= a == *callee;
+                    ancestor = parent.get(&a).copied().filter(|_| !cycle);
+                }
+                if cycle || parent.contains_key(callee) {
+                    continue;
+                }
+                parent.insert(*callee, *r);
+                decls.push(Decl::value(
+                    format!("{name}Zoom{p}{q}"),
+                    format!("{t}OpmZoom"),
+                    record(
+                        &format!("{t}OpmZoom"),
+                        &[
+                            ("view", string(&view)),
+                            ("process", string(id)),
+                            ("subprocess", string(&processes[callee])),
+                            ("order", order.to_string()),
+                        ],
+                    ),
+                ));
+                order += 1;
+            }
+        }
+    }
+    decls
 }
 
 struct Threat {
