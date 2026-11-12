@@ -27,10 +27,83 @@ inductive{
 }
 
 inductive{
+  name: Menu,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Choose, fields: [Nat]}, {name: Submenu, fields: [(List (String * Menu))]}]
+}
+
+inductive{
   name: Mode,
   type_parameters: [],
   parameters: [],
   constructors: [{name: Idle, fields: []}, {name: Heating, fields: []}, {name: Cooling, fields: []}]
+}
+
+inductive{
+  name: Phase,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: mk, fields: [String, Step]}],
+  mutual: PhaseGroup
+}
+
+inductive{
+  name: Step,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: Hold, fields: [Nat]},
+    {name: Either, fields: [Step, Step]},
+    {name: Sequence, fields: [(List Phase)]}
+  ],
+  mutual: PhaseGroup
+}
+
+definition{
+  name: field_Phase_label,
+  parameters: [value : Phase],
+  result: String,
+  body: (match value | Phase.mk x0 x1 => x0)
+}
+
+definition{
+  name: field_Phase_step,
+  parameters: [value : Phase],
+  result: Step,
+  body: (match value | Phase.mk x0 x1 => x1)
+}
+
+definition{
+  name: size_of_Phase,
+  parameters: [value : Phase],
+  result: Nat,
+  body: (match value | Phase.mk x0 x1 => (1 + (size_of_Step x1))),
+  mutual: SizeOfPhase,
+  recursive_argument: value
+}
+
+definition{
+  name: size_of_Step,
+  parameters: [value : Step],
+  result: Nat,
+  body: (match value
+    | Step.Hold x0 => 1
+    | Step.Either x0 x1 => ((1 + (size_of_Step x0)) + (size_of_Step x1))
+    | Step.Sequence x0 => (1 + (size_of_list_Phase x0))),
+  mutual: SizeOfPhase,
+  recursive_argument: value
+}
+
+definition{
+  name: size_of_list_Phase,
+  parameters: [value : (List Phase)],
+  result: Nat,
+  body: (match value
+    | List.nil => 0
+    | List.cons x0 x1 => ((1 + (size_of_Phase x0)) + (size_of_list_Phase x1))),
+  mutual: SizeOfPhase,
+  recursive_argument: value
 }
 
 structure{
@@ -787,6 +860,57 @@ definition{
   result: String,
   body: (let letters : (List String) := (spelledMap1 (Prelude::textChars label)); (prim join letters "." : String)),
   axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: decreases_occupiedTarget_0,
+  parameters: [step : Step, occupied : Step, rest1 : Step],
+  statement: ((step = (ctor Step.Either occupied rest1)) -> ((size_of_Step occupied) < (size_of_Step step))),
+  proof: linear_arithmetic{definitions: [size_of_Step]},
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: occupiedTarget,
+  parameters: [step : Step],
+  result: (Option Nat),
+  body: (match step
+    | Step.Hold target => (ctor Option.some [Nat] target)
+    | Step.Either occupied rest1 => (occupiedTarget occupied)
+    | Step.Sequence value2 => (ctor Option.none [Nat])),
+  axioms: [Quot.sound, propext],
+  termination: {evidence: [decreases_occupiedTarget_0], measure: (size_of_Step step)}
+}
+
+definition{
+  name: isSequence,
+  parameters: [step : Step],
+  result: Bool,
+  body: (match step
+    | Step.Hold value1 => false
+    | Step.Either value2 rest3 => false
+    | Step.Sequence value4 => true)
+}
+
+definition{
+  name: hold,
+  parameters: [label : String, target : Nat],
+  result: Phase,
+  body: (ctor Phase.mk label (ctor Step.Hold target))
+}
+
+definition{
+  name: phaseLabel,
+  parameters: [phase : Phase],
+  result: String,
+  body: (field_Phase_label phase)
+}
+
+definition{
+  name: isFinal,
+  parameters: [menu : Menu],
+  result: Bool,
+  body: (match menu | Menu.Choose value1 => true | Menu.Submenu value2 => false)
 }
 
 definition{

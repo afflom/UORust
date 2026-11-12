@@ -92,6 +92,16 @@ Feature: thermo-core
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsText holds
 
   @FT-05 @build
+  Scenario: thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.
+    Given the record Interface::featureThermoCoreSchedule
+    When the interface call Interface::callThermoCoreScheduleOccupiedTarget is made
+    And the interface call Interface::callThermoCoreScheduleIsSequence is made
+    And the interface call Interface::callThermoCoreScheduleHold is made
+    And the interface call Interface::callThermoCoreSchedulePhaseLabel is made
+    And the interface call Interface::callThermoCoreScheduleIsFinal is made
+    Then the acceptance row Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel holds
+
+  @FT-06 @build
   Scenario: thermo_core::sensor: Temperature sensors the controller reads from.
     Given the record Interface::featureThermoCoreSensor
     When the interface call Interface::callThermoCoreSensorSensorRead is made

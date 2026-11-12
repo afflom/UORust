@@ -448,12 +448,24 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         ("reportLoop1", "(record TupleStringNat {item0 := "),
         ("report", "(reportLoop1 rooms (record TupleStringNat"),
         ("readingsOfLoop1", "(prim append state"),
+        // A mutual family: a struct joins its enum as an inductive of one
+        // constructor, read through accessors, and recursion over it is
+        // well-founded on its size.
+        ("phaseLabel", "(field_Phase_label phase)"),
+        ("hold", "(ctor Phase.mk label (ctor Step.Hold target))"),
+        ("size_of_Step", "mutual: SizeOfPhase"),
+        ("occupiedTarget", "measure: (size_of_Step step)"),
+        ("isFinal", "| Menu.Choose"),
     ] {
         let d = decl(name);
         assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");
     }
     let frontier = unlifted(&files);
     assert!(!frontier.contains("thermo_core::roster::"), "{frontier}");
+    assert!(!frontier.contains("thermo_core::schedule::"), "{frontier}");
+    // A pair that names a data enum is a product, which the enum may hold.
+    assert!(behavior.contains("{name: Submenu, fields: [(List (String * Menu))]}"));
+    assert!(behavior.contains("statement: ((step = (ctor Step.Either occupied rest1)) -> ((size_of_Step occupied) < (size_of_Step step)))"));
 }
 
 #[test]

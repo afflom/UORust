@@ -3,6 +3,7 @@
 pub mod band;
 pub mod config;
 pub mod roster;
+pub mod schedule;
 pub mod sensor;
 
 /// The controller's operating mode.

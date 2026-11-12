@@ -163,19 +163,19 @@ definition = "Behavior::parseTarget"
 [[lifted]]
 kappa = "4f526f8236777c68765f05dee4d414ee6e0b72718ab1f484b5b4a1a4c5cea2f0"
 function = "thermo_core::halt"
-span = "thermo-core/src/lib.rs:64"
+span = "thermo-core/src/lib.rs:65"
 definition = "Behavior::halt"
 
 [[lifted]]
 kappa = "c79266f4d2b010be644cf36c10b035b4db86160aaeb803267eb5b5b19ef54dac"
 function = "thermo_core::midpoint"
-span = "thermo-core/src/lib.rs:73"
+span = "thermo-core/src/lib.rs:74"
 definition = "Behavior::midpoint"
 
 [[lifted]]
 kappa = "406163d827d1780088db5937eca7c8639bac4ef31b80648fe5682852e5831f67"
 function = "thermo_core::next_mode"
-span = "thermo-core/src/lib.rs:35"
+span = "thermo-core/src/lib.rs:36"
 definition = "Behavior::nextMode"
 
 [[lifted]]
@@ -401,13 +401,43 @@ span = "thermo-core/src/roster.rs:91"
 definition = "Behavior::targetOf"
 
 [[lifted]]
+kappa = "50adf54ff53750cf3ab3960323f01bdacbebc5ddbbc76c704dd56e8e0134f11c"
+function = "thermo_core::schedule::hold"
+span = "thermo-core/src/schedule.rs:40"
+definition = "Behavior::hold"
+
+[[lifted]]
+kappa = "1775715999472b0ddaac90fa95c94ce5f5bb42dda46b30cd5188a829b4333ef1"
+function = "thermo_core::schedule::is_final"
+span = "thermo-core/src/schedule.rs:62"
+definition = "Behavior::isFinal"
+
+[[lifted]]
+kappa = "e3f1d464ad2e2ec95304c97cdc5bcc790ce43c26d4ed5bd37c393b08c759eb22"
+function = "thermo_core::schedule::is_sequence"
+span = "thermo-core/src/schedule.rs:35"
+definition = "Behavior::isSequence"
+
+[[lifted]]
+kappa = "ca56a24c05c21ceceabdfead934ced56b8b9e4b5febb77591063d1732ebe3d5b"
+function = "thermo_core::schedule::occupied_target"
+span = "thermo-core/src/schedule.rs:26"
+definition = "Behavior::occupiedTarget"
+
+[[lifted]]
+kappa = "ebb603b5f9cb83048154257d6f147835f0e7ecea120f243d8bab117d923be0bf"
+function = "thermo_core::schedule::phase_label"
+span = "thermo-core/src/schedule.rs:48"
+definition = "Behavior::phaseLabel"
+
+[[lifted]]
 kappa = "727b4327a9a70bfd21eeae28700eb0672f4928c31c8ca46493614db36bc04fbd"
 function = "thermo_core::should_heat"
-span = "thermo-core/src/lib.rs:25"
+span = "thermo-core/src/lib.rs:26"
 definition = "Behavior::shouldHeat"
 
 [[lifted]]
 kappa = "551730ece6a49e20c402547a90e678c6e4c1ce29115935122b040d71bef67a59"
 function = "thermo_core::within_band"
-span = "thermo-core/src/lib.rs:30"
+span = "thermo-core/src/lib.rs:31"
 definition = "Behavior::withinBand"

@@ -21,6 +21,7 @@ mod lift;
 mod project;
 pub mod register;
 mod route;
+mod wf;
 
 use std::collections::BTreeMap;
 use std::path::Path;

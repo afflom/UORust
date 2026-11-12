@@ -34,11 +34,18 @@ statement = "thermo_core::roster: Rooms, their readings and the schedule that na
 id = "FT-05"
 level = "build"
 suite = "thermo-core"
+record = "Interface::featureThermoCoreSchedule"
+statement = "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order."
+
+[[id]]
+id = "FT-06"
+level = "build"
+suite = "thermo-core"
 record = "Interface::featureThermoCoreSensor"
 statement = "thermo_core::sensor: Temperature sensors the controller reads from."
 
 [[id]]
-id = "FT-06"
+id = "FT-07"
 level = "build"
 suite = "thermo-cli"
 record = "Interface::featureThermoMain"

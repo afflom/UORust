@@ -8,7 +8,7 @@ use sha2::{Digest, Sha256};
 use crate::admit::Refusal;
 use crate::facts::{Capability, FnFact, Package, SourceFile, Span, Syntax, TargetKind, Workspace};
 use crate::ingest::summary;
-use crate::lex::{pascal, string, string_list, Decl, Expr, Module};
+use crate::lex::{pascal, string, string_list, Arm, Decl, Expr, Module};
 use crate::lift::{self, Candidate, Residue, Ty, Types};
 
 /// What a projection is parameterised by beyond the workspace.
@@ -3031,6 +3031,11 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         types.enums.extend(scope.enums.clone());
         types.structs.extend(scope.structs.clone());
         types.datas.extend(scope.datas.clone());
+        for family in &scope.families {
+            if !types.families.contains(family) {
+                types.families.push(family.clone());
+            }
+        }
     }
     // Typed failures: every error enum's variants, as an inductive.
     for (pkg, package) in ws.packages.iter().enumerate() {
@@ -3163,6 +3168,8 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                         span: f.span.clone(),
                         name: qualified(BEHAVIOR, &name),
                     });
+                    // The register keeps a row for it all the same.
+                    ctx.stopped(notes, &effectful, r, Residue::Collision(name));
                     continue;
                 }
                 names.insert(rust.clone(), r);
@@ -3330,6 +3337,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 if theorems.insert(name.clone()) {
                     decls.push(Decl::Theorem {
                         name,
+                        parameters: Vec::new(),
                         statement,
                         proof: "decide{}".to_string(),
                         axioms: axioms.get(&callee).cloned().unwrap_or_default(),
@@ -3349,11 +3357,14 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
 
 /// The definition deciding equality of a unit-variant enum's values: a
 /// match on both.
-fn equality(name: &str, variants: &[String]) -> Decl {
+fn enum_equality(name: &str, variants: &[String]) -> Decl {
     let arms = |left: &String| {
         variants
             .iter()
-            .map(|v| (format!("{name}.{v}"), Expr::Flat((v == left).to_string())))
+            .map(|v| Arm {
+                pattern: format!("{name}.{v}"),
+                body: Expr::Flat((v == left).to_string()),
+            })
             .collect()
     };
     Decl::Definition {
@@ -3364,19 +3375,19 @@ fn equality(name: &str, variants: &[String]) -> Decl {
             scrutinee: "left".into(),
             arms: variants
                 .iter()
-                .map(|v| {
-                    (
-                        format!("{name}.{v}"),
-                        Expr::Match {
-                            scrutinee: "right".into(),
-                            arms: arms(v),
-                        },
-                    )
+                .map(|v| Arm {
+                    pattern: format!("{name}.{v}"),
+                    body: Expr::Match {
+                        scrutinee: "right".into(),
+                        arms: arms(v),
+                    },
                 })
                 .collect(),
         },
         axioms: Vec::new(),
         recursive: None,
+        termination: None,
+        mutual: None,
     }
 }
 
@@ -3391,6 +3402,164 @@ type Sigs = BTreeMap<String, lift::Sig>;
 /// The Lean axioms of each lifted function, by Rust name.
 type Axioms = BTreeMap<String, Vec<String>>;
 
+/// A recursive family, after the types its members name: one inductive per
+/// member (one mutual group when there are several, a struct as an
+/// inductive of one constructor `mk`), the accessors of the structs' fields,
+/// and, for a nested family, the mutual group of its size functions that
+/// well-founded recursion over it measures by.
+fn family_decls(
+    family: &BTreeSet<String>,
+    types: &Types,
+    compared: &BTreeSet<String>,
+    emitted: &mut BTreeSet<Ty>,
+    decls: &mut Vec<Decl>,
+) {
+    for m in family {
+        emitted.insert(Ty::Named(m.clone()));
+    }
+    for m in family {
+        for t in types.member_fields(m) {
+            let mut inner = BTreeSet::new();
+            t.mentions(&mut inner);
+            for dep in &inner {
+                type_decls(dep, types, compared, emitted, decls);
+            }
+        }
+    }
+    let first = family.iter().next().cloned().unwrap_or_default();
+    let label = (family.len() > 1).then(|| format!("{first}Group"));
+    // Each member's constructors: name and field types.
+    let ctors = |m: &String| -> Vec<(String, Vec<Ty>)> {
+        match types.datas.get(m) {
+            Some(variants) => variants
+                .iter()
+                .map(|(v, fs)| (v.clone(), fs.iter().map(|(_, t)| t.clone()).collect()))
+                .collect(),
+            None => vec![(
+                "mk".to_string(),
+                types.structs[m].iter().map(|(_, t)| t.clone()).collect(),
+            )],
+        }
+    };
+    for m in family {
+        decls.push(Decl::Data {
+            name: m.clone(),
+            constructors: ctors(m)
+                .into_iter()
+                .map(|(c, fs)| (c, fs.iter().map(Ty::render).collect()))
+                .collect(),
+            mutual: label.clone(),
+        });
+    }
+    for m in family.iter().filter(|m| types.boxed(m)) {
+        let fields = &types.structs[m];
+        let binders: Vec<String> = (0..fields.len()).map(|i| format!("x{i}")).collect();
+        for (i, (f, t)) in fields.iter().enumerate() {
+            decls.push(Decl::Definition {
+                name: Types::accessor(m, f),
+                parameters: vec![("value".into(), m.clone())],
+                result: t.render(),
+                body: Expr::Match {
+                    scrutinee: "value".into(),
+                    arms: vec![Arm {
+                        pattern: format!("{m}.mk {}", binders.join(" ")),
+                        body: Expr::Flat(binders[i].clone()),
+                    }],
+                },
+                axioms: Vec::new(),
+                recursive: None,
+                termination: None,
+                mutual: None,
+            });
+        }
+    }
+    if !types.nested(&first) || !types.sizable(family) {
+        return;
+    }
+    // The types the sizes range over: the members, then the lists and
+    // options of members the members hold.
+    let mut domains: Vec<Ty> = family.iter().map(|m| Ty::Named(m.clone())).collect();
+    for m in family {
+        for t in types.member_fields(m) {
+            if !matches!(t, Ty::Named(_))
+                && types.size_name(&t, family).is_some()
+                && !domains.contains(&t)
+            {
+                domains.push(t);
+            }
+        }
+    }
+    let size_label = format!("SizeOf{first}");
+    let measure = |t: &Ty, v: &str| types.size_name(t, family).map(|f| format!("({f} {v})"));
+    let sum = |base: &str, parts: Vec<String>| {
+        parts
+            .into_iter()
+            .fold(base.to_string(), |acc, p| format!("({acc} + {p})"))
+    };
+    for d in &domains {
+        let arms: Vec<Arm> = match d {
+            Ty::Named(m) => ctors(m)
+                .into_iter()
+                .map(|(c, fs)| {
+                    let names: Vec<String> = (0..fs.len()).map(|i| format!("x{i}")).collect();
+                    let parts = fs
+                        .iter()
+                        .zip(&names)
+                        .filter_map(|(t, v)| measure(t, v))
+                        .collect();
+                    Arm {
+                        pattern: format!(
+                            "{m}.{c}{}",
+                            names.iter().map(|v| format!(" {v}")).collect::<String>()
+                        ),
+                        body: Expr::Flat(sum("1", parts)),
+                    }
+                })
+                .collect(),
+            Ty::List(t) => vec![
+                Arm {
+                    pattern: "List.nil".into(),
+                    body: Expr::Flat("0".into()),
+                },
+                Arm {
+                    pattern: "List.cons x0 x1".into(),
+                    body: Expr::Flat(sum(
+                        "1",
+                        vec![
+                            measure(t, "x0").unwrap_or_default(),
+                            measure(d, "x1").unwrap_or_default(),
+                        ],
+                    )),
+                },
+            ],
+            Ty::Option(t) => vec![
+                Arm {
+                    pattern: "Option.none".into(),
+                    body: Expr::Flat("0".into()),
+                },
+                Arm {
+                    pattern: "Option.some x0".into(),
+                    body: Expr::Flat(sum("1", vec![measure(t, "x0").unwrap_or_default()])),
+                },
+            ],
+            _ => continue,
+        };
+        decls.push(Decl::Definition {
+            name: types.size_name(d, family).unwrap_or_default(),
+            parameters: vec![("value".into(), d.render())],
+            result: "Nat".into(),
+            body: Expr::Match {
+                scrutinee: "value".into(),
+                arms,
+            },
+            axioms: Vec::new(),
+            recursive: Some("value".into()),
+            termination: None,
+            mutual: Some(size_label.clone()),
+        });
+    }
+}
+
 /// The declaration of a named type or tuple, after those of the types its
 /// fields name.
 fn type_decls(
@@ -3404,6 +3573,12 @@ fn type_decls(
         return;
     }
     if let Ty::Named(n) = ty {
+        if let Some(family) = types.family_of(n) {
+            if family.len() > 1 || types.boxed(n) || types.nested(n) {
+                family_decls(&family.clone(), types, compared, emitted, decls);
+                return;
+            }
+        }
         if let Some(variants) = types.datas.get(n) {
             for (_, fields) in variants {
                 for (_, t) in fields {
@@ -3422,6 +3597,7 @@ fn type_decls(
                         (v.clone(), fields.iter().map(|(_, t)| t.render()).collect())
                     })
                     .collect(),
+                mutual: None,
             });
             return;
         }
@@ -3434,7 +3610,7 @@ fn type_decls(
                     constructors: variants.clone(),
                 });
                 if compared.contains(n) {
-                    decls.push(equality(n, variants));
+                    decls.push(enum_equality(n, variants));
                 }
                 return;
             }

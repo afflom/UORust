@@ -16,10 +16,7 @@ pub(crate) enum Expr {
     /// A term printed on one line.
     Flat(String),
     /// `(match scrutinee | pattern => expr ...)`.
-    Match {
-        scrutinee: String,
-        arms: Vec<(String, Expr)>,
-    },
+    Match { scrutinee: String, arms: Vec<Arm> },
     /// `(if condition then a else b)` where a branch may hold a match.
     If {
         condition: Box<Expr>,
@@ -33,6 +30,13 @@ pub(crate) enum Expr {
         value: Box<Expr>,
         body: Box<Expr>,
     },
+}
+
+/// One arm of a `match`: its pattern and its value.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Arm {
+    pub(crate) pattern: String,
+    pub(crate) body: Expr,
 }
 
 /// A piece of a compound expression: fixed text or a sub-expression.
@@ -61,8 +65,8 @@ impl Expr {
             Self::Flat(text) => text.clone(),
             Self::Match { scrutinee, arms } => {
                 let mut out = format!("(match {scrutinee}");
-                for (pattern, arm) in arms {
-                    out.push_str(&format!(" | {pattern} => {}", arm.flat()));
+                for arm in arms {
+                    out.push_str(&format!(" | {} => {}", arm.pattern, arm.body.flat()));
                 }
                 out.push(')');
                 out
@@ -123,12 +127,12 @@ impl Expr {
             Self::Match { scrutinee, arms } => {
                 let indent = 4 + 2 * depth;
                 let mut out = format!("(match {scrutinee}");
-                for (i, (pattern, arm)) in arms.iter().enumerate() {
-                    let head = format!("{}| {pattern} => ", " ".repeat(indent));
+                for (i, arm) in arms.iter().enumerate() {
+                    let head = format!("{}| {} => ", " ".repeat(indent), arm.pattern);
                     let last = if i + 1 == arms.len() { trail + 1 } else { 0 };
                     out.push('\n');
                     out.push_str(&head);
-                    out.push_str(&arm.render_at(depth + 1, head.len(), last));
+                    out.push_str(&arm.body.render_at(depth + 1, head.len(), last));
                 }
                 out.push(')');
                 out
@@ -175,6 +179,8 @@ pub(crate) enum Decl {
     Data {
         name: String,
         constructors: Vec<(String, Vec<String>)>,
+        /// The label of the mutual group the inductive is declared in.
+        mutual: Option<String>,
     },
     Definition {
         name: String,
@@ -185,9 +191,15 @@ pub(crate) enum Decl {
         axioms: Vec<String>,
         /// The parameter a structurally recursive definition descends on.
         recursive: Option<String>,
+        /// A well-founded definition's measure and, for each recursive call
+        /// in pre-order, the theorem stating that the call decreases it.
+        termination: Option<(String, Vec<String>)>,
+        /// The label of the mutual group the definition is declared in.
+        mutual: Option<String>,
     },
     Theorem {
         name: String,
+        parameters: Vec<(String, String)>,
         statement: String,
         proof: String,
         axioms: Vec<String>,
@@ -214,6 +226,8 @@ impl Decl {
             body: Expr::Flat(body),
             axioms: Vec::new(),
             recursive: None,
+            termination: None,
+            mutual: None,
         }
     }
 }
@@ -294,10 +308,32 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
             broken.push(list("constructors", &items, 2, false));
             members("inductive", &flat, &broken, true)
         }
-        Decl::Data { name, constructors } => {
+        Decl::Data {
+            name,
+            constructors,
+            mutual,
+        } => {
             let items: Vec<String> = constructors
                 .iter()
                 .map(|(ctor, fields)| format!("{{name: {ctor}, fields: [{}]}}", fields.join(", ")))
+                .collect();
+            // A constructor too long for its line is broken one member per
+            // line, its fields one per line.
+            let lines: Vec<String> = constructors
+                .iter()
+                .zip(&items)
+                .enumerate()
+                .map(|(i, ((ctor, fields), item))| {
+                    let comma = i + 1 < items.len();
+                    if 4 + item.len() + usize::from(comma) <= WIDTH {
+                        item.clone()
+                    } else {
+                        format!(
+                            "{{\n      name: {ctor},\n{}\n    }}",
+                            list("fields", fields, 6, false)
+                        )
+                    }
+                })
                 .collect();
             let head = [
                 format!("name: {name}"),
@@ -307,7 +343,11 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
             let mut flat = head.to_vec();
             flat.push(format!("constructors: [{}]", items.join(", ")));
             let mut broken: Vec<String> = head.iter().map(|m| format!("  {m}")).collect();
-            broken.push(list("constructors", &items, 2, false));
+            broken.push(list("constructors", &lines, 2, mutual.is_some()));
+            if let Some(label) = mutual {
+                flat.push(format!("mutual: {label}"));
+                broken.push(format!("  mutual: {label}"));
+            }
             members("inductive", &flat, &broken, true)
         }
         Decl::Definition {
@@ -317,6 +357,8 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
             body,
             axioms,
             recursive,
+            termination,
+            mutual,
         } => {
             let ps = params(parameters);
             let mut flat = vec![
@@ -325,7 +367,8 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
                 format!("result: {result}"),
                 format!("body: {}", body.flat()),
             ];
-            let trail = usize::from(recursive.is_some() || !axioms.is_empty());
+            let more = recursive.is_some() || termination.is_some() || mutual.is_some();
+            let trail = usize::from(more || !axioms.is_empty());
             let mut broken = vec![
                 format!("  name: {name}"),
                 list("parameters", &ps, 2, true),
@@ -334,34 +377,50 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
             ];
             if !axioms.is_empty() {
                 flat.push(format!("axioms: [{}]", axioms.join(", ")));
-                broken.push(list("axioms", axioms, 2, recursive.is_some()));
+                broken.push(list("axioms", axioms, 2, more));
+            }
+            if let Some(label) = mutual {
+                flat.push(format!("mutual: {label}"));
+                broken.push(format!("  mutual: {label}"));
             }
             if let Some(arg) = recursive {
                 flat.push(format!("recursive_argument: {arg}"));
                 broken.push(format!("  recursive_argument: {arg}"));
             }
-            members(
-                "definition",
-                &flat,
-                &broken,
-                body.is_flat() && recursive.is_none(),
-            )
+            if let Some((measure, evidence)) = termination {
+                let clause = format!(
+                    "termination: {{evidence: [{}], measure: {measure}}}",
+                    evidence.join(", ")
+                );
+                flat.push(clause.clone());
+                if 2 + clause.len() <= WIDTH {
+                    broken.push(format!("  {clause}"));
+                } else {
+                    broken.push(format!(
+                        "  termination: {{\n{},\n    measure: {measure}\n  }}",
+                        list("evidence", evidence, 4, true)
+                    ));
+                }
+            }
+            members("definition", &flat, &broken, body.is_flat() && !more)
         }
         Decl::Theorem {
             name,
+            parameters,
             statement,
             proof,
             axioms,
         } => {
+            let ps = params(parameters);
             let mut flat = vec![
                 format!("name: {name}"),
-                "parameters: []".to_string(),
+                format!("parameters: [{}]", ps.join(", ")),
                 format!("statement: {statement}"),
                 format!("proof: {proof}"),
             ];
             let mut broken = vec![
                 format!("  name: {name}"),
-                "  parameters: []".to_string(),
+                list("parameters", &ps, 2, true),
                 format!("  statement: {statement}"),
                 format!("  proof: {proof}"),
             ];

@@ -20,7 +20,7 @@ use std::ops::ControlFlow::{self, Break, Continue};
 /// A lift step: the value, or the residue that stops the lift.
 pub(crate) type Lift<T> = ControlFlow<Residue, T>;
 
-use crate::lex::{camel, Decl, Expr};
+use crate::lex::{camel, Arm, Decl, Expr};
 
 /// Why a function stays in the frontier.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -40,6 +40,8 @@ pub(crate) enum Residue {
     Form(String),
     /// A call to a function that is not lifted.
     Call(String),
+    /// Another function of the crate lifts to the same LexLean name.
+    Collision(String),
 }
 
 impl Residue {
@@ -52,6 +54,7 @@ impl Residue {
             Self::Width(_) => "width",
             Self::Form(_) => "form",
             Self::Call(_) => "call",
+            Self::Collision(_) => "collision",
         }
     }
 
@@ -68,6 +71,7 @@ impl Residue {
             }
             Self::Form(f) => format!("expression form outside the lift: {f}"),
             Self::Call(c) => format!("calls {c}, which is not lifted"),
+            Self::Collision(n) => format!("another function of the crate is also named {n}"),
         }
     }
 }
@@ -92,6 +96,10 @@ pub(crate) enum Ty {
     Outcome(Box<Ty>, Box<Ty>),
     List(Box<Ty>),
     Tuple(Vec<Ty>),
+    /// A pair that names a data-carrying enum: Lean's product `(A * B)`,
+    /// which an inductive may hold itself in (`Vec<(String, Self)>`), where
+    /// a generated tuple structure would make the two mutually recursive.
+    Pair(Vec<Ty>),
     /// A map read and never built, held as the list of its entries; `true`
     /// when its iteration order is its key order (`BTreeMap`).
     Map(Box<Ty>, Box<Ty>, bool),
@@ -114,6 +122,7 @@ impl Ty {
             Self::Outcome(t, e) => format!("(Result {} {})", t.render(), e.render()),
             Self::List(t) | Self::Set(t, _) => format!("(List {})", t.render()),
             Self::Tuple(ts) => tuple_name(ts),
+            Self::Pair(ts) => format!("({} * {})", ts[0].render(), ts[1].render()),
             Self::Map(..) => format!("(List {})", self.entry().render()),
         }
     }
@@ -138,6 +147,7 @@ impl Ty {
             Self::Outcome(t, e) => format!("Result{}{}", t.tag(), e.tag()),
             Self::List(t) | Self::Set(t, _) => format!("List{}", t.tag()),
             Self::Tuple(ts) => tuple_name(ts),
+            Self::Pair(ts) => format!("Pair{}{}", ts[0].tag(), ts[1].tag()),
             Self::Map(..) => format!("List{}", self.entry().tag()),
         }
     }
@@ -155,6 +165,11 @@ impl Ty {
             }
             Self::Tuple(ts) => {
                 out.insert(self.clone());
+                for t in ts {
+                    t.mentions(out);
+                }
+            }
+            Self::Pair(ts) => {
                 for t in ts {
                     t.mentions(out);
                 }
@@ -187,6 +202,42 @@ pub(crate) fn tuple_name(ts: &[Ty]) -> String {
     format!("Tuple{tags}")
 }
 
+/// A struct value from its fields in declaration order: a record, or the
+/// constructor `mk` of a struct of a recursive family.
+fn struct_value(name: &str, fields: &[(&String, String)], types: &Types) -> String {
+    if types.boxed(name) {
+        let args: String = fields.iter().map(|(_, v)| format!(" {v}")).collect();
+        format!("(ctor {name}.mk{args})")
+    } else {
+        let parts: Vec<String> = fields.iter().map(|(f, v)| format!("{f} := {v}")).collect();
+        format!("(record {name} {{{}}})", parts.join(", "))
+    }
+}
+
+/// The `i`-th item of a tuple value `whole` of type `ty`.
+pub(crate) fn tuple_item(ty: &Ty, whole: &str, i: usize) -> String {
+    match ty {
+        Ty::Pair(_) if i == 0 => format!("(first {whole})"),
+        Ty::Pair(_) => format!("(second {whole})"),
+        _ => format!("(project {whole} item{i})"),
+    }
+}
+
+/// A tuple value of type `ty` from its items.
+pub(crate) fn tuple_value(ty: &Ty, items: &[String]) -> String {
+    match ty {
+        Ty::Pair(_) => format!("({}, {})", items[0], items[1]),
+        _ => {
+            let parts: Vec<String> = items
+                .iter()
+                .enumerate()
+                .map(|(i, v)| format!("item{i} := {v}"))
+                .collect();
+            format!("(record {} {{{}}})", ty.render(), parts.join(", "))
+        }
+    }
+}
+
 /// The unit-variant enums and the structs the lift can name.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Types {
@@ -199,6 +250,56 @@ pub(crate) struct Types {
     /// Enums whose variants carry data -> each variant and its fields:
     /// the Rust field name of a struct variant, and the type.
     pub(crate) datas: BTreeMap<String, Vec<(String, Vec<DataField>)>>,
+    /// The recursive families: the enums and structs that name themselves
+    /// or each other, each one inductive group.
+    pub(crate) families: Vec<BTreeSet<String>>,
+}
+
+/// The strongly connected components of a graph, each one set.
+fn strong_components(graph: &BTreeMap<String, BTreeSet<String>>) -> Vec<BTreeSet<String>> {
+    let reach = |start: &String| {
+        let mut seen = BTreeSet::new();
+        let mut stack: Vec<&String> = graph.get(start).into_iter().flatten().collect();
+        while let Some(n) = stack.pop() {
+            if seen.insert(n.clone()) {
+                stack.extend(graph.get(n).into_iter().flatten());
+            }
+        }
+        seen
+    };
+    let reaches: BTreeMap<&String, BTreeSet<String>> =
+        graph.keys().map(|n| (n, reach(n))).collect();
+    let mut out: Vec<BTreeSet<String>> = Vec::new();
+    for n in graph.keys() {
+        if out.iter().any(|c| c.contains(n)) {
+            continue;
+        }
+        let mut family: BTreeSet<String> = reaches[n]
+            .iter()
+            .filter(|m| reaches.get(m).is_some_and(|r| r.contains(n)))
+            .cloned()
+            .collect();
+        family.insert(n.clone());
+        out.push(family);
+    }
+    out
+}
+
+/// Whether every occurrence of a member of `family` in `ty` is strictly
+/// positive and nested only where Lean nests an inductive: directly, or
+/// under `Option`, `List`, `Result` or a product.
+fn positive(ty: &Ty, family: &BTreeSet<String>) -> bool {
+    match ty {
+        Ty::Option(t) | Ty::List(t) => positive(t, family),
+        Ty::Outcome(t, e) => positive(t, family) && positive(e, family),
+        Ty::Pair(ts) => ts.iter().all(|t| positive(t, family)),
+        Ty::Tuple(_) | Ty::Map(..) | Ty::Set(..) => {
+            let mut inner = BTreeSet::new();
+            ty.mentions(&mut inner);
+            named_in(&inner).is_disjoint(family)
+        }
+        _ => true,
+    }
 }
 
 /// A field of a data-carrying variant: its Rust name, if any, and its type.
@@ -213,6 +314,7 @@ fn nested_ok(ty: &Ty, me: &str) -> bool {
     match ty {
         Ty::Option(t) | Ty::List(t) => nested_ok(t, me),
         Ty::Outcome(t, e) => nested_ok(t, me) && nested_ok(e, me),
+        Ty::Pair(ts) => ts.iter().all(|t| nested_ok(t, me)),
         Ty::Tuple(_) | Ty::Map(..) | Ty::Set(..) => {
             let mut inner = BTreeSet::new();
             ty.mentions(&mut inner);
@@ -313,34 +415,46 @@ impl Types {
                 }
                 graph.insert(name.clone(), named_in(&out));
             }
-            let cyclic: BTreeSet<String> = graph
-                .keys()
-                .filter(|start| {
-                    let mut seen = BTreeSet::new();
-                    let mut stack: Vec<&String> = graph[*start]
-                        .iter()
-                        .filter(|n| *n != *start || fields_of.contains_key(*start))
-                        .collect();
-                    while let Some(n) = stack.pop() {
-                        if n == *start {
-                            return true;
-                        }
-                        if seen.insert(n.clone()) {
-                            if let Some(next) = graph.get(n) {
-                                stack.extend(next.iter().filter(|m| *m != n));
-                            }
-                        }
-                    }
-                    false
-                })
-                .cloned()
-                .collect();
+            // A family of types that name each other is one mutual group,
+            // where every occurrence of a member is strictly positive: held
+            // directly or under `Option`, `Vec` or `Result`. One through a
+            // generated tuple structure, a map or a set is refused.
+            let mut cyclic = BTreeSet::new();
+            let mut families = Vec::new();
+            for family in strong_components(&graph) {
+                let recursive = family.len() > 1 || family.iter().all(|n| graph[n].contains(n));
+                if !recursive {
+                    continue;
+                }
+                let fields = family.iter().flat_map(|n| {
+                    lifted
+                        .get(n)
+                        .into_iter()
+                        .flatten()
+                        .flat_map(|(_, fs)| fs.iter().map(|(_, t)| t.clone()))
+                        .chain(
+                            fields_of
+                                .get(n)
+                                .into_iter()
+                                .flatten()
+                                .map(|(_, t)| t.clone()),
+                        )
+                        .collect::<Vec<_>>()
+                });
+                let positive = fields.clone().all(|t| positive(&t, &family));
+                if positive {
+                    families.push(family);
+                } else {
+                    cyclic.extend(family);
+                }
+            }
             lifted.retain(|n, _| !cyclic.contains(n));
             fields_of.retain(|n, _| !cyclic.contains(n));
             if lifted.len() == names.len() && fields_of.len() == struct_names.len() {
                 return Self {
                     datas: lifted,
                     structs: fields_of,
+                    families,
                     ..base
                 };
             }
@@ -382,6 +496,7 @@ impl Types {
                 structs: names.iter().map(|n| (n.clone(), Vec::new())).collect(),
                 aliases: aliases.clone(),
                 datas: BTreeMap::new(),
+                families: Vec::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -403,10 +518,107 @@ impl Types {
                     structs: lifted,
                     aliases,
                     datas: BTreeMap::new(),
+                    families: Vec::new(),
                 };
             }
             names = lifted.into_keys().collect();
         }
+    }
+
+    /// The type of a tuple of these items: a product when it is a pair that
+    /// names a data-carrying enum, a generated structure otherwise.
+    pub(crate) fn tuple(&self, ts: Vec<Ty>) -> Ty {
+        let mut inner = BTreeSet::new();
+        for t in &ts {
+            t.mentions(&mut inner);
+        }
+        let data = named_in(&inner).iter().any(|n| self.datas.contains_key(n));
+        if ts.len() == 2 && data {
+            Ty::Pair(ts)
+        } else {
+            Ty::Tuple(ts)
+        }
+    }
+
+    /// The recursive family a named type belongs to.
+    pub(crate) fn family_of(&self, name: &str) -> Option<&BTreeSet<String>> {
+        self.families.iter().find(|f| f.contains(name))
+    }
+
+    /// A struct of a recursive family: declared as an inductive of one
+    /// constructor `mk`, its fields read through generated accessors, since
+    /// a structure cannot join a mutual group.
+    pub(crate) fn boxed(&self, name: &str) -> bool {
+        self.structs.contains_key(name) && self.family_of(name).is_some()
+    }
+
+    /// The field types of a member of a family, over all its constructors.
+    pub(crate) fn member_fields(&self, name: &str) -> Vec<Ty> {
+        let data = self.datas.get(name).into_iter().flatten();
+        let mut out: Vec<Ty> = data
+            .flat_map(|(_, fs)| fs.iter().map(|(_, t)| t.clone()))
+            .collect();
+        out.extend(
+            self.structs
+                .get(name)
+                .into_iter()
+                .flatten()
+                .map(|(_, t)| t.clone()),
+        );
+        out
+    }
+
+    /// A type Lean calls nested or mutual: its family has more than one
+    /// member, or a member occurs under a container. A function recursing
+    /// on one is well-founded on its size, not structural.
+    pub(crate) fn nested(&self, name: &str) -> bool {
+        let Some(family) = self.family_of(name) else {
+            return false;
+        };
+        family.len() > 1
+            || family.iter().any(|m| {
+                self.member_fields(m).iter().any(|t| {
+                    !matches!(t, Ty::Named(_)) && {
+                        let mut inner = BTreeSet::new();
+                        t.mentions(&mut inner);
+                        !named_in(&inner).is_disjoint(family)
+                    }
+                })
+            })
+    }
+
+    /// The size function of a type of a nested family: the members, and
+    /// lists and options of them. `None` for any other type.
+    pub(crate) fn size_name(&self, ty: &Ty, family: &BTreeSet<String>) -> Option<String> {
+        match ty {
+            Ty::Named(n) if family.contains(n) => Some(format!("size_of_{n}")),
+            Ty::List(t) => match &**t {
+                Ty::Named(n) if family.contains(n) => Some(format!("size_of_list_{n}")),
+                _ => None,
+            },
+            Ty::Option(t) => match &**t {
+                Ty::Named(n) if family.contains(n) => Some(format!("size_of_option_{n}")),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    /// Whether a nested family has a structural size: every occurrence of a
+    /// member is direct, or the whole element of a list or an option.
+    pub(crate) fn sizable(&self, family: &BTreeSet<String>) -> bool {
+        family.iter().all(|m| {
+            self.member_fields(m).iter().all(|t| {
+                let mut inner = BTreeSet::new();
+                t.mentions(&mut inner);
+                named_in(&inner).is_disjoint(family) || self.size_name(t, family).is_some()
+            })
+        })
+    }
+
+    /// The accessor of a field of a struct of a recursive family.
+    pub(crate) fn accessor(name: &str, field: &str) -> String {
+        format!("field_{name}_{field}")
     }
 
     /// The LexLean name of a Rust type name.
@@ -433,7 +645,7 @@ impl Types {
                 for e in &tp.elems {
                     ts.push(self.ty(e)?);
                 }
-                Continue(Ty::Tuple(ts))
+                Continue(self.tuple(ts))
             }
             syn::Type::Path(p) if p.qself.is_none() && p.path.segments.len() == 1 => {
                 let seg = &p.path.segments[0];
@@ -1196,12 +1408,21 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                     else {
                         return Break(Residue::Form("field of an unknown struct".to_string()));
                     };
-                    flat(format!("(project {base} {name})"), ty.clone())
+                    if ctx.types.boxed(s) {
+                        flat(
+                            format!("({} {base})", Types::accessor(s, &name)),
+                            ty.clone(),
+                        )
+                    } else {
+                        flat(format!("(project {base} {name})"), ty.clone())
+                    }
                 }
-                (syn::Member::Unnamed(i), Ty::Tuple(ts)) => match ts.get(i.index as usize) {
-                    Some(ty) => flat(format!("(project {base} item{})", i.index), ty.clone()),
-                    None => Break(Residue::Form("tuple field".to_string())),
-                },
+                (syn::Member::Unnamed(i), Ty::Tuple(ts) | Ty::Pair(ts)) => {
+                    match ts.get(i.index as usize) {
+                        Some(ty) => flat(tuple_item(&bt, &base, i.index as usize), ty.clone()),
+                        None => Break(Residue::Form("tuple field".to_string())),
+                    }
+                }
                 _ => Break(Residue::Form("field access".to_string())),
             }
         }
@@ -1267,29 +1488,26 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                 if !vt.same(ty) {
                     return Break(Residue::Form("struct field of another type".to_string()));
                 }
-                parts.push(format!("{field} := {v}"));
+                parts.push((field, v));
             }
-            flat(
-                format!("(record {name} {{{}}})", parts.join(", ")),
-                Ty::Named(name),
-            )
+            flat(struct_value(&name, &parts, ctx.types), Ty::Named(name))
         }
         syn::Expr::Tuple(t) if t.elems.len() >= 2 => {
             let wants: Vec<Option<&Ty>> = match want {
-                Some(Ty::Tuple(ts)) if ts.len() == t.elems.len() => ts.iter().map(Some).collect(),
+                Some(Ty::Tuple(ts) | Ty::Pair(ts)) if ts.len() == t.elems.len() => {
+                    ts.iter().map(Some).collect()
+                }
                 _ => vec![None; t.elems.len()],
             };
             let mut parts = Vec::new();
             let mut tys = Vec::new();
-            for (i, (e, w)) in t.elems.iter().zip(wants).enumerate() {
+            for (e, w) in t.elems.iter().zip(wants) {
                 let (v, vt) = flat_of(e, ctx, w)?;
-                parts.push(format!("item{i} := {v}"));
+                parts.push(v);
                 tys.push(vt);
             }
-            flat(
-                format!("(record {} {{{}}})", tuple_name(&tys), parts.join(", ")),
-                Ty::Tuple(tys),
-            )
+            let ty = ctx.types.tuple(tys);
+            flat(tuple_value(&ty, &parts), ty)
         }
         syn::Expr::Cast(c) => {
             let (v, vt) = flat_of(&c.expr, ctx, None)?;
@@ -1322,8 +1540,14 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                 Expr::Match {
                     scrutinee: format!("(prim index {base} {i} : (Option {}))", elem.render()),
                     arms: vec![
-                        ("Option.none".into(), Expr::Flat(d)),
-                        (format!("Option.some {v}"), Expr::Flat(v)),
+                        Arm {
+                            pattern: "Option.none".into(),
+                            body: Expr::Flat(d),
+                        },
+                        Arm {
+                            pattern: format!("Option.some {v}"),
+                            body: Expr::Flat(v),
+                        },
                     ],
                 },
                 (**elem).clone(),
@@ -1605,23 +1829,41 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                     let none_r = Expr::Match {
                         scrutinee: r.clone(),
                         arms: vec![
-                            ("Option.none".into(), Expr::Flat(yes.into())),
-                            (format!("Option.some {y}"), Expr::Flat(no.into())),
+                            Arm {
+                                pattern: "Option.none".into(),
+                                body: Expr::Flat(yes.into()),
+                            },
+                            Arm {
+                                pattern: format!("Option.some {y}"),
+                                body: Expr::Flat(no.into()),
+                            },
                         ],
                     };
                     let some_r = Expr::Match {
                         scrutinee: r.clone(),
                         arms: vec![
-                            ("Option.none".into(), Expr::Flat(no.into())),
-                            (format!("Option.some {y}"), Expr::Flat(same)),
+                            Arm {
+                                pattern: "Option.none".into(),
+                                body: Expr::Flat(no.into()),
+                            },
+                            Arm {
+                                pattern: format!("Option.some {y}"),
+                                body: Expr::Flat(same),
+                            },
                         ],
                     };
                     return Continue((
                         Expr::Match {
                             scrutinee: l.clone(),
                             arms: vec![
-                                ("Option.none".into(), none_r),
-                                (format!("Option.some {x}"), some_r),
+                                Arm {
+                                    pattern: "Option.none".into(),
+                                    body: none_r,
+                                },
+                                Arm {
+                                    pattern: format!("Option.some {x}"),
+                                    body: some_r,
+                                },
                             ],
                         },
                         Ty::Bool,
@@ -1897,11 +2139,14 @@ fn text_method(
                 Expr::Match {
                     scrutinee: format!("(prim index {all} {at} : (Option String))"),
                     arms: vec![
-                        ("Option.none".into(), Expr::Flat("false".into())),
-                        (
-                            format!("Option.some {}", lam.binders[0]),
-                            lam.wrap(lam.core.clone()),
-                        ),
+                        Arm {
+                            pattern: "Option.none".into(),
+                            body: Expr::Flat("false".into()),
+                        },
+                        Arm {
+                            pattern: format!("Option.some {}", lam.binders[0]),
+                            body: lam.wrap(lam.core.clone()),
+                        },
                     ],
                 },
                 Ty::Bool,
@@ -1959,19 +2204,10 @@ fn text_method(
             let after = prelude(ctx, "textSlice", &[r, &format!("({at} + {width})"), &whole]);
             let body = Expr::Match {
                 scrutinee: prelude(ctx, f, &[r, &p]),
-                arms: vec![
-                    (
-                        "Option.none".into(),
-                        Expr::Flat(format!("(ctor Option.none [{}])", pair.render())),
-                    ),
-                    (
-                        format!("Option.some {at}"),
-                        Expr::Flat(format!(
+                arms: vec![Arm { pattern: "Option.none".into(), body: Expr::Flat(format!("(ctor Option.none [{}])", pair.render())) }, Arm { pattern: format!("Option.some {at}"), body: Expr::Flat(format!(
                             "(ctor Option.some [{0}] (record {0} {{item0 := {before}, item1 := {after}}}))",
                             pair.render()
-                        )),
-                    ),
-                ],
+                        )) }],
             };
             Continue(Some((body, opt(pair))))
         }
@@ -2334,8 +2570,14 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Ex
                 Expr::Match {
                     scrutinee: r,
                     arms: vec![
-                        ("Option.none".into(), Expr::Flat(n.into())),
-                        (format!("Option.some {v}"), Expr::Flat(s.into())),
+                        Arm {
+                            pattern: "Option.none".into(),
+                            body: Expr::Flat(n.into()),
+                        },
+                        Arm {
+                            pattern: format!("Option.some {v}"),
+                            body: Expr::Flat(s.into()),
+                        },
                     ],
                 },
                 Ty::Bool,
@@ -2348,8 +2590,14 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Ex
                 Expr::Match {
                     scrutinee: r,
                     arms: vec![
-                        ("Option.none".into(), Expr::Flat(d)),
-                        (format!("Option.some {v}"), Expr::Flat(v.clone())),
+                        Arm {
+                            pattern: "Option.none".into(),
+                            body: Expr::Flat(d),
+                        },
+                        Arm {
+                            pattern: format!("Option.some {v}"),
+                            body: Expr::Flat(v.clone()),
+                        },
                     ],
                 },
                 (**t).clone(),
@@ -2366,8 +2614,14 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Ex
                 Expr::Match {
                     scrutinee: r,
                     arms: vec![
-                        (format!("Result.ok {v}"), Expr::Flat(o.into())),
-                        (format!("Result.error {e}"), Expr::Flat(x.into())),
+                        Arm {
+                            pattern: format!("Result.ok {v}"),
+                            body: Expr::Flat(o.into()),
+                        },
+                        Arm {
+                            pattern: format!("Result.error {e}"),
+                            body: Expr::Flat(x.into()),
+                        },
                     ],
                 },
                 Ty::Bool,
@@ -2379,8 +2633,14 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Ex
                 Expr::Match {
                     scrutinee: r,
                     arms: vec![
-                        (format!("Result.ok {v}"), Expr::Flat(some(t, &v))),
-                        (format!("Result.error {e}"), Expr::Flat(none(t))),
+                        Arm {
+                            pattern: format!("Result.ok {v}"),
+                            body: Expr::Flat(some(t, &v)),
+                        },
+                        Arm {
+                            pattern: format!("Result.error {e}"),
+                            body: Expr::Flat(none(t)),
+                        },
                     ],
                 },
                 opt(t),
@@ -2412,12 +2672,12 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
         Ty::Outcome(..) => return None,
         Ty::List(t) | Ty::Set(t, _) => format!("(nil {})", t.render()),
         Ty::Map(..) => format!("(nil {})", ty.entry().render()),
-        Ty::Tuple(ts) => {
+        Ty::Tuple(ts) | Ty::Pair(ts) => {
             let mut parts = Vec::new();
-            for (i, t) in ts.iter().enumerate() {
-                parts.push(format!("item{i} := {}", default_in(t, types, depth + 1)?));
+            for t in ts {
+                parts.push(default_in(t, types, depth + 1)?);
             }
-            format!("(record {} {{{}}})", tuple_name(ts), parts.join(", "))
+            tuple_value(ty, &parts)
         }
         Ty::Named(n) => {
             if let Some(vs) = types.enums.get(n) {
@@ -2435,9 +2695,9 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
                 let fields = types.structs.get(n)?;
                 let mut parts = Vec::new();
                 for (f, t) in fields {
-                    parts.push(format!("{f} := {}", default_in(t, types, depth + 1)?));
+                    parts.push((f, default_in(t, types, depth + 1)?));
                 }
-                format!("(record {n} {{{}}})", parts.join(", "))
+                struct_value(n, &parts, types)
             }
         }
     })
@@ -2483,9 +2743,27 @@ fn wrapped_method(
     let two = |ok_v: &str, ok: Expr, fail_e: &str, fail: Expr| Expr::Match {
         scrutinee: r.to_string(),
         arms: if failure.is_some() {
-            vec![(ok_pattern(ok_v), ok), (fail_pattern(fail_e), fail)]
+            vec![
+                Arm {
+                    pattern: ok_pattern(ok_v),
+                    body: ok,
+                },
+                Arm {
+                    pattern: fail_pattern(fail_e),
+                    body: fail,
+                },
+            ]
         } else {
-            vec![(fail_pattern(fail_e), fail), (ok_pattern(ok_v), ok)]
+            vec![
+                Arm {
+                    pattern: fail_pattern(fail_e),
+                    body: fail,
+                },
+                Arm {
+                    pattern: ok_pattern(ok_v),
+                    body: ok,
+                },
+            ]
         },
     };
     let closure = |f: &syn::Expr, params: &[Ty], want: Option<&Ty>| -> Lift<Lambda> {
@@ -2760,13 +3038,15 @@ fn bind_pat<'a>(
         (syn::Pat::Wild(_), _) => Continue((ctx.clone(), ctx.fresh("item"))),
         (syn::Pat::Reference(r), _) => bind_pat(&r.pat, ty, ctx, lets, nested),
         (syn::Pat::Type(pt), _) => bind_pat(&pt.pat, ty, ctx, lets, nested),
-        (syn::Pat::Tuple(tp), Ty::Tuple(ts)) if !nested && tp.elems.len() == ts.len() => {
+        (syn::Pat::Tuple(tp), Ty::Tuple(ts) | Ty::Pair(ts))
+            if !nested && tp.elems.len() == ts.len() =>
+        {
             let whole = ctx.fresh("pair");
             let mut scope = ctx.clone();
             for (i, (e, t)) in tp.elems.iter().zip(ts).enumerate() {
                 let (next, name) = bind_pat(e, t, &scope, lets, true)?;
                 scope = next;
-                lets.push((name, t.render(), format!("(project {whole} item{i})")));
+                lets.push((name, t.render(), tuple_item(ty, &whole, i)));
             }
             Continue((scope, whole))
         }
@@ -2896,8 +3176,14 @@ fn walk(
         body: Expr::Match {
             scrutinee: items,
             arms: vec![
-                ("List.nil".to_string(), Expr::Flat(nil)),
-                (format!("List.cons {head} {rest}"), lam.wrap_expr(step)),
+                Arm {
+                    pattern: "List.nil".to_string(),
+                    body: Expr::Flat(nil),
+                },
+                Arm {
+                    pattern: format!("List.cons {head} {rest}"),
+                    body: lam.wrap_expr(step),
+                },
             ],
         },
         calls: lam.calls.clone(),
@@ -3235,13 +3521,14 @@ fn combinator(
                     &cons,
                 )));
             }
-            let pair = Ty::Tuple(vec![Ty::Nat(None), elem.clone()]);
+            let pair = ctx.types.tuple(vec![Ty::Nat(None), elem.clone()]);
             pair.mentions(&mut ctx.seen.borrow_mut());
             let index = ctx.fresh("index");
             let pair_name = pair.render();
+            let item = tuple_value(&pair, &[index.clone(), head.clone()]);
             let cons = |rec: Recur<'_>, _: &str| {
                 Expr::Flat(format!(
-                    "(cons (record {pair_name} {{item0 := {index}, item1 := {head}}}) {})",
+                    "(cons {item} {})",
                     rec(&[format!("({index} + 1)")])
                 ))
             };
@@ -3388,15 +3675,18 @@ fn combinator(
                     _ => Expr::Match {
                         scrutinee: core.clone(),
                         arms: vec![
-                            ("Option.none".into(), Expr::Flat(next.clone())),
-                            (
-                                format!("Option.some {found}"),
-                                Expr::Flat(if name == "find_map" {
+                            Arm {
+                                pattern: "Option.none".into(),
+                                body: Expr::Flat(next.clone()),
+                            },
+                            Arm {
+                                pattern: format!("Option.some {found}"),
+                                body: Expr::Flat(if name == "find_map" {
                                     format!("(ctor Option.some [{u}] {found})")
                                 } else {
                                     format!("(cons {found} {next})")
                                 }),
-                            ),
+                            },
                         ],
                     },
                 }
@@ -3696,7 +3986,7 @@ fn matching(
             let name = match ident {
                 Some(ident) if ident.starts_with("#tuple:") => {
                     let items: Vec<&str> = ident["#tuple:".len()..].split(',').collect();
-                    let Ty::Tuple(ts) = ty else {
+                    let (Ty::Tuple(ts) | Ty::Pair(ts)) = ty else {
                         return Break(Residue::Form("tuple pattern of another type".into()));
                     };
                     if ts.len() != items.len() {
@@ -3709,7 +3999,7 @@ fn matching(
                         }
                         let (next, name) = scope.bind(item, t.clone());
                         scope = next;
-                        lets.push((name, t.render(), format!("(project {whole} item{k})")));
+                        lets.push((name, t.render(), tuple_item(ty, &whole, k)));
                     }
                     whole
                 }
@@ -3746,7 +4036,7 @@ fn matching(
             .chain(names)
             .collect::<Vec<_>>()
             .join(" ");
-        out.push((pattern, e));
+        out.push(Arm { pattern, body: e });
     }
     let Some(result) = result else {
         return Break(Residue::Form("empty match".to_string()));
@@ -4125,7 +4415,10 @@ fn map_tails(e: Expr, f: &dyn Fn(String) -> String) -> Expr {
             scrutinee,
             arms: arms
                 .into_iter()
-                .map(|(p, b)| (p, map_tails(b, f)))
+                .map(|a| Arm {
+                    pattern: a.pattern,
+                    body: map_tails(a.body, f),
+                })
                 .collect(),
         },
         Expr::Let {
@@ -4298,8 +4591,14 @@ fn for_loop(
         body: Expr::Match {
             scrutinee: items,
             arms: vec![
-                ("List.nil".to_string(), Expr::Flat(acc)),
-                (format!("List.cons {head} {rest_name}"), body),
+                Arm {
+                    pattern: "List.nil".to_string(),
+                    body: Expr::Flat(acc),
+                },
+                Arm {
+                    pattern: format!("List.cons {head} {rest_name}"),
+                    body,
+                },
             ],
         },
         calls: calls.into_inner(),
@@ -4812,9 +5111,27 @@ fn question(
         format!("Result.ok {name}")
     };
     let arms = if matches!(st, Ty::Option(_)) {
-        vec![(early.0, Expr::Flat(early.1)), (ok, rest)]
+        vec![
+            Arm {
+                pattern: early.0,
+                body: Expr::Flat(early.1),
+            },
+            Arm {
+                pattern: ok,
+                body: rest,
+            },
+        ]
     } else {
-        vec![(ok, rest), (early.0, Expr::Flat(early.1))]
+        vec![
+            Arm {
+                pattern: ok,
+                body: rest,
+            },
+            Arm {
+                pattern: early.0,
+                body: Expr::Flat(early.1),
+            },
+        ]
     };
     Continue((Expr::Match { scrutinee: s, arms }, rt))
 }
@@ -4928,8 +5245,23 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                 Continue(_) => Break(Residue::Form("a body of another type".to_string())),
                 Break(r) => Break(r),
             };
+            let outcome = match outcome {
+                Continue((body, Some(arg))) => well_founded(c, &body, &arg, types).map_continue(
+                    |(recursive, termination, theorems)| (body, recursive, termination, theorems),
+                ),
+                Continue((body, None)) => Continue((body, None, None, Vec::new())),
+                Break(r) => Break(r),
+            };
             match outcome {
-                Continue((body, recursive)) => {
+                Continue((body, recursive, termination, theorems)) => {
+                    // A well-founded definition elaborates with its evidence.
+                    let mut evidence_axioms = BTreeSet::new();
+                    for t in theorems {
+                        if let Decl::Theorem { axioms, .. } = &t {
+                            evidence_axioms.extend(axioms.iter().cloned());
+                        }
+                        decls.push((format!("#{}", t.name()), t));
+                    }
                     graph.insert(c.rust.clone(), calls.into_inner());
                     let mut seen = seen.into_inner();
                     for (_, _, t) in &c.params {
@@ -4937,7 +5269,9 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                     }
                     c.result.mentions(&mut seen);
                     mentioned.insert(c.rust.clone(), seen);
-                    own.insert(c.rust.clone(), axioms.into_inner());
+                    let mut axioms = axioms.into_inner();
+                    axioms.extend(evidence_axioms);
+                    own.insert(c.rust.clone(), axioms);
                     for h in helpers.into_inner() {
                         let key = format!("#{}", h.name);
                         graph.insert(key.clone(), h.calls);
@@ -4955,6 +5289,8 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                                 result: h.result,
                                 body: h.body,
                                 axioms: Vec::new(),
+                                termination: None,
+                                mutual: None,
                             },
                         ));
                     }
@@ -4971,6 +5307,8 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                             body,
                             axioms: Vec::new(),
                             recursive,
+                            termination,
+                            mutual: None,
                         },
                     ));
                 }
@@ -5009,6 +5347,11 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
             let mut opaque: BTreeSet<String> = decls
                 .iter()
                 .filter(|(_, d)| match d {
+                    // Well-founded recursion does not reduce in the kernel.
+                    Decl::Definition {
+                        termination: Some(_),
+                        ..
+                    } => true,
                     Decl::Definition { body, .. } => {
                         let text = body.flat();
                         text.contains(&format!("{PRELUDE}::"))
@@ -5067,6 +5410,105 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
             };
         }
     }
+}
+
+/// The recursion of a candidate descending on `arg`: structural, or, over
+/// a nested or mutual family, well-founded on the family's size with one
+/// evidence theorem per recursive call.
+#[allow(clippy::type_complexity)]
+fn well_founded(
+    c: &Candidate<'_>,
+    body: &Expr,
+    arg: &str,
+    types: &Types,
+) -> Lift<(Option<String>, Option<(String, Vec<String>)>, Vec<Decl>)> {
+    let structural = || Continue((Some(arg.to_string()), None, Vec::new()));
+    let Some(index) = c.params.iter().position(|(_, n, _)| n == arg) else {
+        return structural();
+    };
+    let Ty::Named(n) = &c.params[index].2 else {
+        return structural();
+    };
+    if !types.nested(n) {
+        return structural();
+    }
+    let family = types.family_of(n).cloned().unwrap_or_default();
+    let refused = || {
+        Break(Residue::Form(format!(
+            "recursion over the nested type {n} that LexLean cannot measure"
+        )))
+    };
+    if !types.sizable(&family) {
+        return refused();
+    }
+    let size = format!("size_of_{n}");
+    let binder_types = |ctor: &str| -> Option<Vec<String>> {
+        let (owner, variant) = ctor.rsplit_once('.')?;
+        if let Some(vs) = types.datas.get(owner) {
+            let (_, fs) = vs.iter().find(|(v, _)| v == variant)?;
+            return Some(fs.iter().map(|(_, t)| t.render()).collect());
+        }
+        if types.boxed(owner) && variant == "mk" {
+            return Some(
+                types.structs[owner]
+                    .iter()
+                    .map(|(_, t)| t.render())
+                    .collect(),
+            );
+        }
+        types
+            .enums
+            .get(owner)
+            .filter(|vs| vs.iter().any(|v| v == variant))
+            .map(|_| Vec::new())
+    };
+    let params: Vec<(String, String)> = c
+        .params
+        .iter()
+        .map(|(_, n, t)| (n.clone(), t.render()))
+        .collect();
+    let Some(obligations) =
+        crate::wf::obligations(&c.name, &params, index, &size, &body.flat(), &binder_types)
+    else {
+        return refused();
+    };
+    let mut definitions: Vec<String> = Vec::new();
+    for m in &family {
+        definitions.push(format!("size_of_{m}"));
+        definitions.push(format!("size_of_list_{m}"));
+        definitions.push(format!("size_of_option_{m}"));
+        if let Some(fields) = types.structs.get(m).filter(|_| types.boxed(m)) {
+            definitions.extend(fields.iter().map(|(f, _)| Types::accessor(m, f)));
+        }
+    }
+    let used: BTreeSet<String> = obligations
+        .iter()
+        .flat_map(|(_, s)| {
+            s.split(|ch: char| !ch.is_alphanumeric() && ch != '_')
+                .map(String::from)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    definitions.retain(|d| used.contains(d));
+    definitions.sort();
+    let mut theorems = Vec::new();
+    let mut evidence = Vec::new();
+    for (i, (parameters, statement)) in obligations.into_iter().enumerate() {
+        let name = format!("decreases_{}_{i}", c.name);
+        evidence.push(name.clone());
+        theorems.push(Decl::Theorem {
+            name,
+            parameters,
+            statement,
+            proof: format!(
+                "linear_arithmetic{{definitions: [{}]}}",
+                definitions.join(", ")
+            ),
+            // What omega's elaboration depends on.
+            axioms: vec!["Quot.sound".to_string(), "propext".to_string()],
+        });
+    }
+    Continue((None, Some((format!("({size} {arg})"), evidence)), theorems))
 }
 
 /// The functions on a call cycle through another function.

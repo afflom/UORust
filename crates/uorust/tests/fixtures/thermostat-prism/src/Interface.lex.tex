@@ -30,28 +30,28 @@ definition{
   name: acThermoCoreThermoCoreHeatsWhenCold,
   parameters: [],
   result: String,
-  body: "heats_when_cold at thermo-core/src/lib.rs:83: A cold room heats."
+  body: "heats_when_cold at thermo-core/src/lib.rs:84: A cold room heats."
 }
 
 definition{
   name: acThermoCoreThermoCoreBandIsInclusive,
   parameters: [],
   result: String,
-  body: "band_is_inclusive at thermo-core/src/lib.rs:89 passes."
+  body: "band_is_inclusive at thermo-core/src/lib.rs:90 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreIdleRoomThatIsColdHeats,
   parameters: [],
   result: String,
-  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:95 passes."
+  body: "idle_room_that_is_cold_heats at thermo-core/src/lib.rs:96 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreMidpointOfABand,
   parameters: [],
   result: String,
-  body: "midpoint_of_a_band at thermo-core/src/lib.rs:101 passes."
+  body: "midpoint_of_a_band at thermo-core/src/lib.rs:102 passes."
 }
 
 definition{
@@ -104,10 +104,17 @@ definition{
 }
 
 definition{
+  name: acThermoCoreScheduleAHeldPhaseKeepsItsLabel,
+  parameters: [],
+  result: String,
+  body: "a_held_phase_keeps_its_label at thermo-core/tests/schedule.rs:7: A held phase keeps its label and is no sequence."
+}
+
+definition{
   name: acDocThermoCoreShouldHeat,
   parameters: [],
   result: String,
-  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:25 pass."
+  body: "The 1 doctest(s) of thermo_core::should_heat at thermo-core/src/lib.rs:26 pass."
 }
 
 definition{
@@ -524,6 +531,41 @@ definition{
 }
 
 definition{
+  name: callThermoCoreScheduleOccupiedTarget,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::occupied_target: fn occupied_target(step: &Step) -> Option<u32>"
+}
+
+definition{
+  name: callThermoCoreScheduleIsSequence,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::is_sequence: fn is_sequence(step: &Step) -> bool"
+}
+
+definition{
+  name: callThermoCoreScheduleHold,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::hold: fn hold(label: &str, target: u32) -> Phase"
+}
+
+definition{
+  name: callThermoCoreSchedulePhaseLabel,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::phase_label: fn phase_label(phase: &Phase) -> String"
+}
+
+definition{
+  name: callThermoCoreScheduleIsFinal,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::is_final: fn is_final(menu: &Menu) -> bool"
+}
+
+definition{
   name: callThermoCoreSensorSensorRead,
   parameters: [],
   result: String,
@@ -573,6 +615,13 @@ definition{
 }
 
 definition{
+  name: featureThermoCoreSchedule,
+  parameters: [],
+  result: Foundation.Arch::Feature,
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (nil String)))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (nil String))})
+}
+
+definition{
   name: featureThermoCoreSensor,
   parameters: [],
   result: Foundation.Arch::Feature,
@@ -604,7 +653,7 @@ definition{
   name: journeyLibraryThermoCore,
   parameters: [],
   result: Foundation.Arch::Journey,
-  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreBand" (cons "Interface::featureThermoCoreConfig" (cons "Interface::featureThermoCoreRoster" (cons "Interface::featureThermoCoreSensor" (nil String))))))})
+  body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderLibraryUsers", steps := (cons "Interface::featureThermoCore" (cons "Interface::featureThermoCoreBand" (cons "Interface::featureThermoCoreConfig" (cons "Interface::featureThermoCoreRoster" (cons "Interface::featureThermoCoreSchedule" (cons "Interface::featureThermoCoreSensor" (nil String)))))))})
 }
 \end{semanticmodule}
 \end{lexlean}
