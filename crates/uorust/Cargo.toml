@@ -12,9 +12,10 @@ readme = "../../README.md"
 keywords = ["prism", "lexlean", "cargo", "workspace", "model"]
 categories = ["development-tools", "command-line-utilities"]
 # The packaged crate is the source and the project assets it embeds
-# (`include_str!` of assets/project/...), with the manifest and the README
-# cargo adds: the test fixtures stay in the repository.
-include = ["/src/**/*.rs", "/assets/**"]
+# (`include_str!` of assets/project/... and of the MIR path's std table and
+# vendored std MIR, mir/std.toml and mir/std.mir), with the manifest and the
+# README cargo adds: the test fixtures stay in the repository.
+include = ["/src/**/*.rs", "/assets/**", "/mir/std.toml", "/mir/std.mir"]
 
 # cargo-binstall installs the archive release.yml attaches to the release:
 # uorust-<target>.tar.gz (a .zip on Windows) holding uorust-<target>/uorust.
