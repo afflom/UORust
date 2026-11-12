@@ -130,6 +130,9 @@ jobs:
             writeFileSync("site/app.json", `${JSON.stringify(app, null, 2)}\n`);
           ' "$FINGERPRINT" "$ATTESTATION_URL"
           node bootstrap/page.mjs site
+          # The product home in the uor.foundation brand, read from the model,
+          # and a "Docs" link to it on the app page (scripts/experience/site.py).
+          python3 -I scripts/experience/site.py . site
           node bootstrap/precache.mjs site
       - name: Lighthouse at 100 on mobile, before anything is deployed
         shell: bash

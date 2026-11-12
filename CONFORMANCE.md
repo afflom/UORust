@@ -47,6 +47,8 @@ model does not sanction.
 | `SM-02` | `build` | The route table's theorems state, over the whole table and by decide, that every fact kind routes to its own row, that facts are distinct, and that any two kinds naming different routes are refused as ambiguous |
 | `SM-03` | `build` | UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, quality, the browser system release and compliance, each with records, and every module title has a project-local glossary entry |
 | `SM-04` | `build` | The threat model maps every threat to a control with evidence or accepts it with a rationale, and every control's evidence names a gate, proof or review |
+| `SM-05` | `build` | UORust's brand identity and design system are read from uor.foundation: every Wheeler brand element and every W3C design token of the pinned site, each with its source span, and every text and focus colour the site sets on a surface meets its WCAG 2.2 contrast criterion |
+| `SM-06` | `build` | UORust's context of use (ISO 9241-11) is read from its own model: every journey's actor is a user group, every journey a goal whose tasks are its steps in order and each accepted, every user-facing component a technical environment, and every goal's usability measured or recorded open |
 
 ## Cited authorities
 

@@ -2,12 +2,18 @@
 # `just generate` (every writer the gate checks the output of) through the
 # locked SDK and, when anything changed, pushes the result as one commit and
 # dispatches the gate and the page for it. Nobody has to remember a writer:
-# a push that forgot one is followed by the commit that runs it.
+# a push that forgot one is followed by the commit that runs it. Each hour it
+# also re-pins the brand to uor.foundation's newest main (brand/foundation.lock),
+# so the brand, design and context-of-use facets regenerate from it; a site
+# change that breaks a WCAG contrast fails the writer and is not pinned.
 name: generate
 
 on:
   push:
     branches: [main]
+  # Hourly, so the brand follows uor.foundation without a push here.
+  schedule:
+    - cron: '41 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -32,6 +38,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Follow uor.foundation, the brand authority
+        shell: bash
+        run: |
+          python3 -I scripts/experience/authority.py . --follow
+          # Keep the new pin only when its brand still meets WCAG 2.2.
+          if ! python3 -I scripts/experience/experience.py "$(mktemp -d)" .; then
+            git checkout -- brand
+            echo "::warning::uor.foundation's newest main breaks a WCAG 2.2 contrast; the brand stays pinned"
+          fi
       - name: Run every writer through the locked SDK
         shell: bash
         run: scripts/ci/sdk.sh 'just generate'
@@ -41,5 +56,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           scripts/ci/push.sh "Regenerate the generated files" \
-            "CONFORMANCE.md app model frontier.toml crates/uorust/tests/fixtures/thermostat-prism" \
+            "CONFORMANCE.md app model brand frontier.toml crates/uorust/tests/fixtures/thermostat-prism" \
             bootstrap.yml pages.yml

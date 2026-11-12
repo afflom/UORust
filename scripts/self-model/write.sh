@@ -5,6 +5,10 @@
 #                               app/src/Guide.lex.tex (sections, examples) and the
 #                               [[vector]] / [[workbench_vector]] rows of routes.toml
 #   scripts/self-model/facets.py -> Architecture, Design, Features, Security, Quality
+#   scripts/experience/experience.py -> Brand, Users, Foundation.Experience.V1.Model,
+#                               brand/tokens.json and brand/foundation.css, read
+#                               from uor.foundation (brand/foundation.lock) and
+#                               the facets above
 #
 # then lock and format the LexLean project, run `prismpm check`, and rebind the
 # application-model digest in app/src/System.lex.tex when the check reports
@@ -15,6 +19,8 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root"
 python3 -I scripts/self-model/routes.py "$root"
 python3 -I scripts/self-model/facets.py "$root" "$root" >/dev/null
+python3 -I scripts/experience/authority.py "$root" --check >/dev/null
+python3 -I scripts/experience/experience.py "$root" "$root"
 (cd app && lexlean lock >/dev/null && lexlean fmt >/dev/null)
 if ! out=$(prismpm --project app check 2>&1); then
   old=$(sed -n 's/.*binds application model "\(sha256:[0-9a-f]*\)".*/\1/p' <<<"$out")
