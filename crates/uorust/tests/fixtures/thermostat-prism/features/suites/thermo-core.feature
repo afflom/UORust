@@ -100,6 +100,8 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterOwnRooms is made
     And the interface call Interface::callThermoCoreRosterAllGroupsNamed is made
     And the interface call Interface::callThermoCoreRosterTrimmed is made
+    And the interface call Interface::callThermoCoreRosterUrgentRooms is made
+    And the interface call Interface::callThermoCoreRosterBandWidths is made
     And the interface call Interface::callThermoCoreRosterQueue is made
     And the interface call Interface::callThermoCoreRosterSortsBefore is made
     And the interface call Interface::callThermoCoreRosterSameZone is made

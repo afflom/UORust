@@ -127,6 +127,25 @@ inductive{
   constructors: [{name: Low, fields: []}, {name: Normal, fields: []}, {name: Urgent, fields: []}]
 }
 
+definition{
+  name: equalPriority,
+  parameters: [left : Priority, right : Priority],
+  result: Bool,
+  body: (match left
+    | Priority.Low => (match right
+      | Priority.Low => true
+      | Priority.Normal => false
+      | Priority.Urgent => false)
+    | Priority.Normal => (match right
+      | Priority.Low => false
+      | Priority.Normal => true
+      | Priority.Urgent => false)
+    | Priority.Urgent => (match right
+      | Priority.Low => false
+      | Priority.Normal => false
+      | Priority.Urgent => true))
+}
+
 structure{
   name: Request,
   type_parameters: [],
@@ -201,6 +220,13 @@ structure{
   type_parameters: [],
   parameters: [],
   fields: [{name: item0, type: String}, {name: item1, type: String}]
+}
+
+structure{
+  name: TupleStringTupleNatNat,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: String}, {name: item1, type: TupleNatNat}]
 }
 
 structure{
@@ -1560,6 +1586,50 @@ definition{
   result: (List String),
   body: (trimmedMap3 (trimmedMap2 (trimmedMap1 namesArg))),
   axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: urgentRoomsFilter1,
+  parameters: [items2 : (List Request)],
+  result: (List Request),
+  body: (match items2
+    | List.nil => (nil Request)
+    | List.cons pair1 rest3 => (let priority : Priority := (project pair1 priority); (if (equalPriority priority (ctor Priority.Urgent)) then (cons pair1 (urgentRoomsFilter1 rest3)) else (urgentRoomsFilter1 rest3)))),
+  recursive_argument: items2
+}
+
+definition{
+  name: urgentRoomsMap2,
+  parameters: [items5 : (List Request)],
+  result: (List String),
+  body: (match items5
+    | List.nil => (nil String)
+    | List.cons pair4 rest6 => (let room : String := (project pair4 room); (cons room (urgentRoomsMap2 rest6)))),
+  recursive_argument: items5
+}
+
+definition{
+  name: urgentRooms,
+  parameters: [requests : (List Request)],
+  result: (List String),
+  body: (urgentRoomsMap2 (urgentRoomsFilter1 requests))
+}
+
+definition{
+  name: bandWidthsMap1,
+  parameters: [items4 : (List TupleStringTupleNatNat)],
+  result: (List Nat),
+  body: (match items4
+    | List.nil => (nil Nat)
+    | List.cons pair1 rest5 => (let item2 : String := (project pair1 item0); (let pair3 : TupleNatNat := (project pair1 item1); (let low : Nat := (project pair3 item0); (let high : Nat := (project pair3 item1); (cons (prim subtract high low : Nat) (bandWidthsMap1 rest5))))))),
+  recursive_argument: items4
+}
+
+definition{
+  name: bandWidths,
+  parameters: [bands : (List TupleStringTupleNatNat)],
+  result: (List Nat),
+  body: (bandWidthsMap1 bands)
 }
 
 definition{

@@ -3798,6 +3798,37 @@ impl Lambda {
 /// The projections bound so far come in and go out with the new ones.
 type Lets = Vec<(String, String, String)>;
 
+/// A tuple or struct pattern: the whole bound to a fresh binder, and each
+/// part's pattern bound to its item or field of it, in turn, so a part's
+/// own parts follow it.
+fn bind_parts(
+    parts: &[(&rs::Pat, Ty, String)],
+    ty: &Ty,
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    lets: Lets,
+) -> Lift<(Ctx, String, Acc, Lets)> {
+    let (whole, mut acc) = ctx.fresh(env, acc, "pair");
+    let mut scope = ctx.clone();
+    let mut lets = lets;
+    for (pat, t, part) in parts {
+        let (next, name, after, inner) = bind_pat(pat, t, env, &scope, acc, Vec::new())?;
+        scope = next;
+        acc = after;
+        let value = match (ty, part.parse::<usize>()) {
+            (Ty::Tuple(_) | Ty::Pair(_), Ok(i)) => tuple_item(ty, &whole, i),
+            (Ty::Named(n), _) if env.types.boxed(n) => {
+                format!("({} {whole})", Types::accessor(n, part))
+            }
+            _ => format!("(project {whole} {part})"),
+        };
+        lets.push((name, t.render(), value));
+        lets.extend(inner);
+    }
+    Ok((scope, whole, acc, lets))
+}
+
 fn bind_pat(
     p: &rs::Pat,
     ty: &Ty,
@@ -3805,7 +3836,6 @@ fn bind_pat(
     ctx: &Ctx,
     acc: Acc,
     lets: Lets,
-    nested: bool,
 ) -> Lift<(Ctx, String, Acc, Lets)> {
     match (p, ty) {
         (rs::Pat::Ident(i), _) if i.subpat.is_none() && !i.by_ref => {
@@ -3816,20 +3846,41 @@ fn bind_pat(
             let (name, acc) = ctx.fresh(env, acc, "item");
             Ok((ctx.clone(), name, acc, lets))
         }
-        (rs::Pat::Reference(r), _) => bind_pat(r, ty, env, ctx, acc, lets, nested),
-        (rs::Pat::Type(pt), _) => bind_pat(&pt.pat, ty, env, ctx, acc, lets, nested),
-        (rs::Pat::Tuple(tp), Ty::Tuple(ts) | Ty::Pair(ts)) if !nested && tp.len() == ts.len() => {
-            let (whole, mut acc) = ctx.fresh(env, acc, "pair");
-            let mut scope = ctx.clone();
-            let mut lets = lets;
-            for (i, (e, t)) in tp.iter().zip(ts).enumerate() {
-                let (next, name, after, more) = bind_pat(e, t, env, &scope, acc, lets, true)?;
-                scope = next;
-                acc = after;
-                lets = more;
-                lets.push((name, t.render(), tuple_item(ty, &whole, i)));
+        (rs::Pat::Reference(r), _) => bind_pat(r, ty, env, ctx, acc, lets),
+        (rs::Pat::Type(pt), _) => bind_pat(&pt.pat, ty, env, ctx, acc, lets),
+        (rs::Pat::Tuple(tp), Ty::Tuple(ts) | Ty::Pair(ts)) if tp.len() == ts.len() => {
+            let parts: Vec<(&rs::Pat, Ty, String)> = tp
+                .iter()
+                .zip(ts)
+                .enumerate()
+                .map(|(i, (e, t))| (e, t.clone(), format!("{i}")))
+                .collect();
+            bind_parts(&parts, ty, env, ctx, acc, lets)
+        }
+        // `S { a, b: p, .. }`: each named field's pattern, from the value.
+        (rs::Pat::Struct(ps), Ty::Named(n)) if !ps.path.segments.is_empty() => {
+            let fields = env
+                .types
+                .structs
+                .get(n)
+                .ok_or_else(|| Residue::Form("closure pattern".to_string()))?;
+            let last = ps.path.segments.last().map(|s| env.types.resolve(&s.ident));
+            if last.as_deref() != Some(n.as_str()) || (!ps.rest && ps.fields.len() != fields.len())
+            {
+                return Err(Residue::Form("closure pattern".to_string()));
             }
-            Ok((scope, whole, acc, lets))
+            let mut parts = Vec::new();
+            for f in &ps.fields {
+                let rs::Member::Named(m) = &f.member else {
+                    return Err(Residue::Form("closure pattern".to_string()));
+                };
+                let field = local_name(m);
+                let Some((_, t)) = fields.iter().find(|(name, _)| *name == field) else {
+                    return Err(Residue::Form("closure pattern".to_string()));
+                };
+                parts.push((&f.pat, t.clone(), field));
+            }
+            bind_parts(&parts, ty, env, ctx, acc, lets)
         }
         _ => Err(Residue::Form("closure pattern".to_string())),
     }
@@ -3926,7 +3977,7 @@ fn lambda(
     let mut binders = Vec::new();
     let mut lets = Vec::new();
     for (p, ty) in c.inputs.iter().zip(params) {
-        let (mut next, name, after, more) = bind_pat(p, ty, env, &scope, acc, lets, false)?;
+        let (mut next, name, after, more) = bind_pat(p, ty, env, &scope, acc, lets)?;
         // An element of a list that is a sub-term of a parameter is one.
         if let (Some(param), true) = (&ctx.elements, binders.is_empty()) {
             next.tails.insert(name.clone(), param.clone());
@@ -5981,8 +6032,7 @@ fn for_loop(
     }
     let (current, acc) = base.fresh(env, acc, "state");
     let (scope, acc, lets) = rebind(env, &base, acc, &state, &current, Vec::new());
-    let (mut scope, head, acc, pat_lets) =
-        bind_pat(&f.pat, &elem, env, &scope, acc, Vec::new(), false)?;
+    let (mut scope, head, acc, pat_lets) = bind_pat(&f.pat, &elem, env, &scope, acc, Vec::new())?;
     // Each element of a list that is a sub-term of a parameter is one: a
     // recursive call on it descends, and the loop and the function are one
     // mutual group.
@@ -6345,8 +6395,7 @@ fn block(
                 return Err(Residue::Statements);
             };
             let ((value, vt), acc) = flat_of(&init.expr, env, &ctx.below(), acc, None)?;
-            let (scope, whole, acc, lets) =
-                bind_pat(&local.pat, &vt, env, ctx, acc, Vec::new(), false)?;
+            let (scope, whole, acc, lets) = bind_pat(&local.pat, &vt, env, ctx, acc, Vec::new())?;
             let ((body, bt), acc) = block(rest, env, &scope, acc, want)?;
             let body = lets
                 .into_iter()

@@ -431,13 +431,19 @@ reason = "statements"
 detail = "the body has statements other than let"
 
 [[residue]]
-kappa = "0494e14c80f7066d09a97b0b63c4dce61f354b7590a3a2f5a2c2e92f8a757f01"
+kappa = "7899d8426f50a4b12c11bfc0b184577c4aff6479099b38e263242046da9a172f"
+function = "uorust::lift::bind_parts"
+reason = "form"
+detail = "expression form outside the lift: let pattern"
+
+[[residue]]
+kappa = "f147f754c42637e3e104c708d47b510a652564b4d68c61f9f100e829884a44d0"
 function = "uorust::lift::bind_pat"
 reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "7669ca780e002edc0b5c94af764c9efec6f00c22793a1fb120607a89f02c11cf"
+kappa = "13ec938541aba033f83ac3ea372fabb05c3a848d88fcb718bf73c32c0a746a02"
 function = "uorust::lift::block"
 reason = "form"
 detail = "expression form outside the lift: method call .split_first"
@@ -536,7 +542,7 @@ detail = "calls default_in, which is not lifted"
 kappa = "9e8508713c08474fd350961d0a121c24eecbf839974941d5f1a89f71ce178831"
 function = "uorust::lift::disjoint"
 reason = "form"
-detail = "expression form outside the lift: closure pattern"
+detail = "expression form outside the lift: matches! with a guard"
 
 [[residue]]
 kappa = "4a2bd233f7536206283dfc7be0a4d3589954167c2ac4a9c025a34dd254b8fdae"
@@ -548,7 +554,7 @@ detail = "expression form outside the lift: match pattern"
 kappa = "da25b1ed1e5c0f8771890c6624454330a2a8d7fdc57446d7873c5d65273e5116"
 function = "uorust::lift::expr"
 reason = "form"
-detail = "expression form outside the lift: closure pattern"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "40976fde3fb1ede63ab4af6b98c4f6b03ae187c37b4a6cd573d8fa9e503a1815"
@@ -559,14 +565,14 @@ detail = "expression form outside the lift: let pattern"
 [[residue]]
 kappa = "31756052a18a818f643af52790720902c36db358dcc6bf4d7d1498d1693ac6f8"
 function = "uorust::lift::expr_inner"
-reason = "call"
-detail = "calls expr_form, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "811bb9d880cca64939c3be1bf820981f99af07c95e55435b9b2079cd479b2a4c"
 function = "uorust::lift::flat_of"
-reason = "form"
-detail = "expression form outside the lift: closure pattern"
+reason = "call"
+detail = "calls expr, which is not lifted"
 
 [[residue]]
 kappa = "b2422fb1d47c5414c85c72d7d224b5612c9546d54ec7b270855fabf7d8bbd281"
@@ -575,10 +581,10 @@ reason = "form"
 detail = "expression form outside the lift: method call .flat"
 
 [[residue]]
-kappa = "ac51867b59ad9d64290a180a6d01412e2313729f2667b9f5a612b8ad08453285"
+kappa = "a951d6d8a0abb189145a32bf745e79eb69adc83b984123fcbf4b62c3210e75f0"
 function = "uorust::lift::for_loop"
 reason = "form"
-detail = "expression form outside the lift: closure pattern"
+detail = "expression form outside the lift: expr::return"
 
 [[residue]]
 kappa = "88e492d4fb051262a1877f920d1211e3e3c7b58f4d7f14b3f2039492d7aabf1c"
@@ -647,7 +653,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "ad79e09766b91f84e435c61acd31a2990fa7c5327a8f0a20dbb6081662422aec"
+kappa = "cdb4cd83014e2d5981dab5f819db603f3f3017262a9d62f328fc37dca7ba6d9a"
 function = "uorust::lift::lambda"
 reason = "form"
 detail = "expression form outside the lift: method call .as_ref"
@@ -698,13 +704,13 @@ detail = "calls camel, which is not lifted"
 kappa = "43dba0c48970133c1e182044bc1c8d7f2b652b565ef5f10b58940b6a1145d11f"
 function = "uorust::lift::lookup"
 reason = "form"
-detail = "expression form outside the lift: closure pattern"
+detail = "expression form outside the lift: match or let inside an operand"
 
 [[residue]]
 kappa = "7a45ae3515dfce9acfa5c595f856563367bc8da743a10fa83f8f95d88696f9c9"
 function = "uorust::lift::loop_exit"
-reason = "form"
-detail = "expression form outside the lift: closure pattern"
+reason = "call"
+detail = "calls flat_of, which is not lifted"
 
 [[residue]]
 kappa = "7cb67742b421f0888841ef056e7ecff891f816c94bf174543e99c3e1c83cd119"
@@ -764,7 +770,7 @@ detail = "expression form outside the lift: let pattern"
 kappa = "61dc9e6bf1c38ca8ea473d0515b3ca32575daa394edc12ad87c95fa117060360"
 function = "uorust::lift::question"
 reason = "form"
-detail = "expression form outside the lift: closure pattern"
+detail = "expression form outside the lift: expr::return"
 
 [[residue]]
 kappa = "fdb579f576c613cc9a534cd104248c89813241d849541bde44508648211ab087"
@@ -859,8 +865,8 @@ detail = "expression form outside the lift: let of another type"
 [[residue]]
 kappa = "d9f9b8410d812adddc5e299607b4f06c8b44bb3c5f644b284894755990469286"
 function = "uorust::lift::take_first"
-reason = "form"
-detail = "expression form outside the lift: closure pattern"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
 kappa = "e6b71134830c74921546e1adc5a297d2a73cd75e20a530868be45ad287b15645"
@@ -914,7 +920,7 @@ detail = "expression form outside the lift: method call .clone"
 kappa = "ebe0e63a8809ecb2ee36f4a5d18ebced2e1f5c1748676561f6a3c764c78e9b3d"
 function = "uorust::lift::used_type"
 reason = "form"
-detail = "expression form outside the lift: closure pattern"
+detail = "expression form outside the lift: let of another type"
 
 [[residue]]
 kappa = "722ec6163f662fbae4b509270d75a7912953ab98cec8803d5d13b5acfc2304bc"
@@ -986,7 +992,7 @@ detail = "calls laid, which is not lifted"
 kappa = "91e6e27e4221ce4d5a01771f932640b4646a909cac93e6a835651fba4f928016"
 function = "uorust::order::by_constructors"
 reason = "form"
-detail = "expression form outside the lift: closure pattern"
+detail = "expression form outside the lift: expr::range"
 
 [[residue]]
 kappa = "fcd925e1e74a22ebcd131388bfca50d9cfe635a6a61afb876d4cea56976bdf08"
@@ -1173,12 +1179,6 @@ kappa = "dfc0d7cab9d26456c3716f11b6f77193223b923bb050d34e875d8a1b9e8c9a22"
 function = "uorust::project::foreign_crate"
 reason = "form"
 detail = "expression form outside the lift: expr::closure"
-
-[[residue]]
-kappa = "d36eb912c42106f9bd67f2867518cfdbfffeecf4bb11ced9fc05ed44888599de"
-function = "uorust::project::frontier"
-reason = "form"
-detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
 kappa = "077974d42b8e07285d55f7dcfbf4d4ad615fd98302b24fb234b7fe1c0effa08d"
@@ -2206,6 +2206,11 @@ definition = "Behavior::capabilityThreat"
 kappa = "c6951291ecff4927d2b9505a29ccc11dea40f935c633cd4a889d4a9d6da200d9"
 function = "uorust::project::effect_phrase"
 definition = "Behavior::effectPhrase"
+
+[[lifted]]
+kappa = "d36eb912c42106f9bd67f2867518cfdbfffeecf4bb11ced9fc05ed44888599de"
+function = "uorust::project::frontier"
+definition = "Behavior::frontier"
 
 [[lifted]]
 kappa = "b7e4b24a14d2c275154c81442b53315c7fa340af0221c91f351a55e5984051d6"

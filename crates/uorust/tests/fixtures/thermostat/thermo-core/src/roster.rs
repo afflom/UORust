@@ -403,6 +403,23 @@ pub fn trimmed(names: &[String]) -> Vec<String> {
         .collect()
 }
 
+/// The urgent requests' rooms, read through a struct pattern.
+pub fn urgent_rooms(requests: &[Request]) -> Vec<String> {
+    requests
+        .iter()
+        .filter(|Request { priority, .. }| *priority == Priority::Urgent)
+        .map(|Request { room, .. }| room.clone())
+        .collect()
+}
+
+/// The width of each named band, read through a nested tuple pattern.
+pub fn band_widths(bands: &[(String, (u32, u32))]) -> Vec<u32> {
+    bands
+        .iter()
+        .map(|(_, (low, high))| high.saturating_sub(*low))
+        .collect()
+}
+
 /// The distinct requests, in the order they sort in.
 pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
     let mut out = BTreeSet::new();
