@@ -90,6 +90,13 @@ definition{
 }
 
 definition{
+  name: acThermoCoreThermoCoreScheduleNestedPatternsChooseTheArm,
+  parameters: [],
+  result: String,
+  body: "nested_patterns_choose_the_arm at thermo-core/src/schedule.rs:163 passes."
+}
+
+definition{
   name: acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue,
   parameters: [],
   result: String,
@@ -622,6 +629,41 @@ definition{
 }
 
 definition{
+  name: callThermoCoreScheduleFirstHold,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::first_hold: fn first_hold(step: &Step) -> Option<u32>"
+}
+
+definition{
+  name: callThermoCoreScheduleSingleLabel,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::single_label: fn single_label(phases: &[Phase]) -> Option<String>"
+}
+
+definition{
+  name: callThermoCoreScheduleModeFor,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::mode_for: fn mode_for(cold: bool, hot: bool) -> crate::Mode"
+}
+
+definition{
+  name: callThermoCoreScheduleComfortable,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::comfortable: fn comfortable(band: crate::band::Band) -> bool"
+}
+
+definition{
+  name: callThermoCoreScheduleEither,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::either: fn either(occupied: Step, otherwise: Step) -> Step"
+}
+
+definition{
   name: callThermoCoreSensorSensorRead,
   parameters: [],
   result: String,
@@ -674,7 +716,7 @@ definition{
   name: featureThermoCoreSchedule,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (cons "Interface::callThermoCoreScheduleLabelOr" (cons "Interface::callThermoCoreScheduleLabels" (cons "Interface::callThermoCoreScheduleHeldTargets" (cons "Interface::callThermoCoreScheduleDescribe" (cons "Interface::callThermoCoreScheduleValidate" (nil String))))))))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (cons "Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (cons "Interface::callThermoCoreScheduleLabelOr" (cons "Interface::callThermoCoreScheduleLabels" (cons "Interface::callThermoCoreScheduleHeldTargets" (cons "Interface::callThermoCoreScheduleDescribe" (cons "Interface::callThermoCoreScheduleValidate" (cons "Interface::callThermoCoreScheduleFirstHold" (cons "Interface::callThermoCoreScheduleSingleLabel" (cons "Interface::callThermoCoreScheduleModeFor" (cons "Interface::callThermoCoreScheduleComfortable" (cons "Interface::callThermoCoreScheduleEither" (nil String)))))))))))))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (cons "Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder" (cons "Interface::acThermoCoreThermoCoreScheduleNestedPatternsChooseTheArm" (nil String))))})
 }
 
 definition{

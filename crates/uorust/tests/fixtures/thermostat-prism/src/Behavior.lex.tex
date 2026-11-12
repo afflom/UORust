@@ -880,8 +880,8 @@ definition{
 
 theorem{
   name: decreases_occupiedTarget_0,
-  parameters: [step : Step, occupied : Step, rest1 : Step],
-  statement: ((step = (ctor Step.Either occupied rest1)) -> ((size_of_Step occupied) < (size_of_Step step))),
+  parameters: [step : Step, occupied : Step, rest : Step],
+  statement: ((step = (ctor Step.Either occupied rest)) -> ((size_of_Step occupied) < (size_of_Step step))),
   proof: linear_arithmetic{definitions: [size_of_Step]},
   axioms: [Quot.sound, propext]
 }
@@ -892,8 +892,8 @@ definition{
   result: (Option Nat),
   body: (match step
     | Step.Hold target => (ctor Option.some [Nat] target)
-    | Step.Either occupied rest1 => (occupiedTarget occupied)
-    | Step.Sequence value2 => (ctor Option.none [Nat])),
+    | Step.Either occupied rest => (occupiedTarget occupied)
+    | Step.Sequence value => (ctor Option.none [Nat])),
   axioms: [Quot.sound, propext],
   termination: {evidence: [decreases_occupiedTarget_0], measure: (size_of_Step step)}
 }
@@ -903,9 +903,9 @@ definition{
   parameters: [step : Step],
   result: Bool,
   body: (match step
-    | Step.Hold value1 => false
-    | Step.Either value2 rest3 => false
-    | Step.Sequence value4 => true)
+    | Step.Hold value => false
+    | Step.Either value rest => false
+    | Step.Sequence value => true)
 }
 
 definition{
@@ -926,7 +926,7 @@ definition{
   name: isFinal,
   parameters: [menu : Menu],
   result: Bool,
-  body: (match menu | Menu.Choose value1 => true | Menu.Submenu value2 => false)
+  body: (match menu | Menu.Choose value => true | Menu.Submenu value => false)
 }
 
 definition{
@@ -1023,6 +1023,66 @@ definition{
   body: (if (prim equal (field_Phase_label phase) "" : Bool) then (ctor Result.error [Unit, String] "a phase has no label") else (ctor Result.ok [Unit, String] ()))
 }
 
+definition{
+  name: firstHold,
+  parameters: [step : Step],
+  result: (Option Nat),
+  body: (match step
+    | Step.Hold value => (if (value =? 0) then (ctor Option.none [Nat]) else (occupiedTarget step))
+    | Step.Either value other => (if (isSequence other) then (ctor Option.none [Nat]) else (occupiedTarget step))
+    | Step.Sequence value => (occupiedTarget step)),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: singleLabel,
+  parameters: [phases : (List Phase)],
+  result: (Option String),
+  body: (match phases
+    | List.nil => (ctor Option.none [String])
+    | List.cons value rest => (match (field_Phase_step value)
+      | Step.Hold value1 => (match rest
+        | List.nil => (let label : String := (field_Phase_label value); (ctor Option.some [String] label))
+        | List.cons value2 rest3 => (ctor Option.none [String]))
+      | Step.Either value4 rest5 => (ctor Option.none [String])
+      | Step.Sequence value6 => (ctor Option.none [String])))
+}
+
+definition{
+  name: modeFor,
+  parameters: [coldArg : Bool, hot : Bool],
+  result: Mode,
+  body: (if coldArg then (if hot then (ctor Mode.Idle) else (ctor Mode.Heating)) else (if hot then (ctor Mode.Cooling) else (ctor Mode.Idle)))
+}
+
+definition{
+  name: comfortablePart1,
+  parameters: [low : Nat],
+  result: Bool,
+  body: (let t : Nat := low; ((18 <=? t) && (t <=? 24)))
+}
+
+definition{
+  name: comfortablePart2,
+  parameters: [high : Nat],
+  result: Bool,
+  body: (let t : Nat := high; ((18 <=? t) && (t <=? 24)))
+}
+
+definition{
+  name: comfortable,
+  parameters: [band : Band],
+  result: Bool,
+  body: (let low : Nat := (project band low); (let high : Nat := (project band high); ((comfortablePart1 low) && (comfortablePart2 high))))
+}
+
+definition{
+  name: either,
+  parameters: [occupied : Step, otherwise : Step],
+  result: Step,
+  body: (ctor Step.Either occupied otherwise)
+}
+
 definition{name: heldUnit, parameters: [], result: String, body: "C"}
 
 definition{
@@ -1065,6 +1125,20 @@ theorem{
   name: acceptThermoCoreBandsMeasureAndCount3,
   parameters: [],
   statement: ((above (cons 17 (cons 19 (cons 23 (nil Nat)))) 18) = 2),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreBandsMeasureAndCount4,
+  parameters: [],
+  statement: ((firstReading (nil Nat)) = (ctor Option.none [Nat])),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreBandsMeasureAndCount5,
+  parameters: [],
+  statement: ((targetOr (ctor Option.none [Nat]) 21) = 21),
   proof: decide{}
 }
 
@@ -1184,9 +1258,44 @@ theorem{
 }
 
 theorem{
+  name: acceptThermoCoreTheRosterFoldsAndClamps6,
+  parameters: [],
+  statement: ((scheduled (cons "hall" (nil String)) "hall") = true),
+  proof: decide{}
+}
+
+theorem{
   name: acceptThermoCoreTheRosterFoldsAndClamps8,
   parameters: [],
   statement: ((blank) = ""),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreNestedPatternsChooseTheArm3,
+  parameters: [],
+  statement: ((singleLabel (nil Phase)) = (ctor Option.none [String])),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreNestedPatternsChooseTheArm7,
+  parameters: [],
+  statement: ((comfortable (record Band {low := 18, high := 22})) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreNestedPatternsChooseTheArm8,
+  parameters: [],
+  statement: ((comfortable (record Band {low := 16, high := 22})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreAHeldPhaseKeepsItsLabel1,
+  parameters: [],
+  statement: ((isSequence (ctor Step.Hold 21)) = false),
   proof: decide{}
 }
 \end{semanticmodule}

@@ -106,8 +106,14 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreScheduleHeldTargets is made
     And the interface call Interface::callThermoCoreScheduleDescribe is made
     And the interface call Interface::callThermoCoreScheduleValidate is made
+    And the interface call Interface::callThermoCoreScheduleFirstHold is made
+    And the interface call Interface::callThermoCoreScheduleSingleLabel is made
+    And the interface call Interface::callThermoCoreScheduleModeFor is made
+    And the interface call Interface::callThermoCoreScheduleComfortable is made
+    And the interface call Interface::callThermoCoreScheduleEither is made
     Then the acceptance row Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel holds
     And the acceptance row Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder holds
+    And the acceptance row Interface::acThermoCoreThermoCoreScheduleNestedPatternsChooseTheArm holds
 
   @FT-06 @build
   Scenario: thermo_core::sensor: Temperature sensors the controller reads from.

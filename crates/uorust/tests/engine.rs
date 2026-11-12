@@ -480,7 +480,7 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
     assert!(!frontier.contains("thermo_core::schedule::"), "{frontier}");
     // A pair that names a data enum is a product, which the enum may hold.
     assert!(behavior.contains("{name: Submenu, fields: [(List (String * Menu))]}"));
-    assert!(behavior.contains("statement: ((step = (ctor Step.Either occupied rest1)) -> ((size_of_Step occupied) < (size_of_Step step)))"));
+    assert!(behavior.contains("statement: ((step = (ctor Step.Either occupied rest)) -> ((size_of_Step occupied) < (size_of_Step step)))"));
 }
 
 #[test]

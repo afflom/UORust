@@ -510,6 +510,41 @@ definition{
 }
 
 definition{
+  name: processThermoCoreScheduleFirstHold,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreScheduleSingleLabel,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreScheduleModeFor,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreScheduleComfortable,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreScheduleEither,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -1805,6 +1840,90 @@ definition{
 }
 
 definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleFirstHold,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleFirstHold"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleFirstHold,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleFirstHold"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreScheduleFirstHoldThermoCoreScheduleOccupiedTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleFirstHold", target := "Design::processThermoCoreScheduleOccupiedTarget"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreScheduleFirstHoldThermoCoreScheduleIsSequence,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleFirstHold", target := "Design::processThermoCoreScheduleIsSequence"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleSingleLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleSingleLabel"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleSingleLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleSingleLabel"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleModeFor,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleModeFor"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleModeFor,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleModeFor"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleComfortable,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleComfortable"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleComfortable,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleComfortable"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleEither,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleEither"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleEither,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleEither"})
+}
+
+definition{
   name: opmLibThermoCoreThingThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::OpmThing,
@@ -3055,6 +3174,90 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleValidate"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleFirstHold,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleFirstHold"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleFirstHold,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleFirstHold"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreScheduleFirstHoldThermoCoreScheduleOccupiedTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleFirstHold", target := "Design::processThermoCoreScheduleOccupiedTarget"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreScheduleFirstHoldThermoCoreScheduleIsSequence,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleFirstHold", target := "Design::processThermoCoreScheduleIsSequence"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleSingleLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleSingleLabel"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleSingleLabel,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleSingleLabel"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleModeFor,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleModeFor"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleModeFor,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleModeFor"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleComfortable,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleComfortable"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleComfortable,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleComfortable"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleEither,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleEither"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleEither,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleEither"})
 }
 
 definition{

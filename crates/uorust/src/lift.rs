@@ -981,6 +981,18 @@ struct Ctx {
     hidden: Vec<String>,
     /// The `use` imports of the function's file: name -> the path it names.
     imports: BTreeMap<String, String>,
+    /// The closures `let` binds, by Rust name: a call of one is its body
+    /// with its parameters bound to the arguments.
+    closures: BTreeMap<String, Closure>,
+}
+
+/// A closure a `let` binds: its parameters, its body, and the locals in
+/// scope where it is written, which its body reads.
+#[derive(Clone)]
+struct Closure {
+    inputs: Vec<rs::Pat>,
+    body: rs::RustExpr,
+    locals: BTreeMap<String, (String, Ty)>,
 }
 
 /// What lifting a body gathers as it goes. Each step takes it and gives
@@ -2095,6 +2107,58 @@ fn is_enum_or_bool(t: &Ty, env: &Env) -> bool {
     }
 }
 
+/// A call of a closure a `let` bound: its body, in the scope it was
+/// written in, with each parameter bound to its argument.
+fn applied_closure(
+    closure: &Closure,
+    args: &[rs::RustExpr],
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    if closure.inputs.len() != args.len() {
+        return Err(Residue::Form("a closure call of another arity".to_string()));
+    }
+    let mut scope = ctx.clone();
+    scope.locals = closure.locals.clone();
+    // The binders of the call's scope stay taken, so a parameter's binder
+    // does not shadow one an argument names.
+    scope
+        .hidden
+        .extend(ctx.locals.values().map(|(name, _)| name.clone()));
+    let mut lets = Vec::new();
+    let mut acc = acc;
+    for (input, arg) in closure.inputs.iter().zip(args) {
+        let (pat, declared) = match input {
+            rs::Pat::Type(pt) => (&*pt.pat, Some(env.types.ty(&pt.ty)?)),
+            p => (p, None),
+        };
+        let ((value, ty), after) = flat_of(arg, env, &ctx.below(), acc, declared.as_ref())?;
+        acc = after;
+        if declared.as_ref().is_some_and(|d| !d.same(&ty)) {
+            return Err(Residue::Form(
+                "a closure argument of another type".to_string(),
+            ));
+        }
+        let rust = match pat {
+            rs::Pat::Ident(i) if i.subpat.is_none() => i.ident.clone(),
+            rs::Pat::Reference(r) => match &**r {
+                rs::Pat::Ident(i) if i.subpat.is_none() => i.ident.clone(),
+                _ => return Err(Residue::Form("closure pattern".to_string())),
+            },
+            rs::Pat::Wild => continue,
+            _ => return Err(Residue::Form("closure pattern".to_string())),
+        };
+        let (next, name, after) = scope.bind(env, acc, &rust, ty.clone());
+        scope = next;
+        acc = after;
+        lets.push((name, ty.render(), value));
+    }
+    let ((e, t), acc) = expr(&closure.body, env, &scope.below(), acc, want)?;
+    Ok(((wrap_lets(lets, e), t), acc))
+}
+
 fn call(
     c: &rs::ExprCall,
     env: &Env,
@@ -2106,6 +2170,9 @@ fn call(
     let rs::RustExpr::Path(p) = &*c.func else {
         return Err(Residue::Form("call of an expression".to_string()));
     };
+    if let Some(closure) = p.get_ident().and_then(|i| ctx.closures.get(i)) {
+        return applied_closure(closure, &c.args, env, ctx, acc, want);
+    }
     if let (Some(w), [arg]) = (wrapper(p), c.args.iter().collect::<Vec<_>>().as_slice()) {
         return match (w, want) {
             ("Some", _) => {
@@ -2199,6 +2266,11 @@ fn call(
         // A capacity is a hint to the allocator: the value is the empty list.
         ([s, n], [_], Some(t @ Ty::List(inner))) if s == "Vec" && n == "with_capacity" => {
             return flat(format!("(nil {})", inner.render()), t.clone(), acc);
+        }
+        // A box is its value: LexLean holds every value by reference.
+        ([s, n], [a], _) if s == "Box" && n == "new" => {
+            let ((v, vt), acc) = flat_of(a, env, ctx, acc, want)?;
+            return flat(v, vt, acc);
         }
         ([s, n], [a], _) if s == "String" && n == "from" => {
             let ((v, vt), acc) = flat_of(a, env, ctx, acc, Some(&Ty::Str))?;
@@ -4231,144 +4303,6 @@ fn body(b: Body<'_>, env: &Env, ctx: &Ctx, acc: Acc, want: Option<&Ty>) -> Lift<
     }
 }
 
-/// The binder of a sub-pattern: a name, or `_`.
-fn binder(p: &rs::Pat) -> Option<Option<String>> {
-    match p {
-        rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => Some(Some(i.ident.to_string())),
-        rs::Pat::Wild => Some(None),
-        rs::Pat::Reference(r) => binder(r),
-        // A tuple of names, which the arm binds by projection.
-        rs::Pat::Tuple(t) if t.len() >= 2 => {
-            let mut items = Vec::new();
-            for e in t {
-                items.push(binder(e)?.unwrap_or_else(|| "_".to_string()));
-            }
-            if items.iter().any(|i| i.starts_with('#')) {
-                return None;
-            }
-            Some(Some(format!("#tuple:{}", items.join(","))))
-        }
-        _ => None,
-    }
-}
-
-/// A constructor pattern: `None`, `Some(x)`, `Ok(x)`, `Err(x)`, `E::V`, a
-/// slice pattern, `true`/`false`, or `_`.
-enum Shape {
-    Wild,
-    Ctor(String, Vec<Option<String>>),
-}
-
-fn shape(p: &rs::Pat) -> Option<Shape> {
-    match p {
-        rs::Pat::Wild => Some(Shape::Wild),
-        rs::Pat::Ident(i) if i.ident == "None" && i.subpat.is_none() => {
-            Some(Shape::Ctor("None".into(), Vec::new()))
-        }
-        rs::Pat::Path(pp) => {
-            let segs: Vec<String> = pp.segments.iter().map(|s| s.ident.to_string()).collect();
-            if wrapper(pp) == Some("None") {
-                return Some(Shape::Ctor("None".into(), Vec::new()));
-            }
-            Some(Shape::Ctor(segs.join("::"), Vec::new()))
-        }
-        rs::Pat::TupleStruct(ts) => {
-            let w = wrapper(&ts.path)?;
-            let [inner] = ts.elems.iter().collect::<Vec<_>>()[..] else {
-                return None;
-            };
-            Some(Shape::Ctor(w.into(), vec![binder(inner)?]))
-        }
-        rs::Pat::Lit(rs::Lit::Bool(b)) => Some(Shape::Ctor(b.to_string(), Vec::new())),
-        rs::Pat::Slice(s) => {
-            let elems: Vec<&rs::Pat> = s.iter().collect();
-            match elems.as_slice() {
-                [] => Some(Shape::Ctor("[]".into(), Vec::new())),
-                [head, tail] => {
-                    let tail = match tail {
-                        rs::Pat::Rest => None,
-                        rs::Pat::Ident(i) => match &i.subpat {
-                            Some(sub) if matches!(**sub, rs::Pat::Rest) => {
-                                Some(i.ident.to_string())
-                            }
-                            _ => return None,
-                        },
-                        _ => return None,
-                    };
-                    Some(Shape::Ctor("[..]".into(), vec![binder(head)?, tail]))
-                }
-                _ => None,
-            }
-        }
-        _ => None,
-    }
-}
-
-/// A pattern of a data-carrying enum's variant: `E::V(a, _)`, `E::V(..)`,
-/// `E::V { a, b: c, .. }`, as its binders in field order.
-fn data_shape(p: &rs::Pat, st: &Ty, types: &Types) -> Option<Shape> {
-    let Ty::Named(n) = st else { return None };
-    let variants = types.datas.get(n)?;
-    let path = match p {
-        rs::Pat::TupleStruct(ts) => &ts.path,
-        rs::Pat::Struct(ps) => &ps.path,
-        _ => return None,
-    };
-    let variant = path.segments.last()?.ident.to_string();
-    let (_, fields) = variants.iter().find(|(v, _)| *v == variant)?;
-    let binders = match p {
-        rs::Pat::TupleStruct(ts) => {
-            let elems: Vec<&rs::Pat> = ts.elems.iter().collect();
-            let rest = elems.iter().position(|e| matches!(e, rs::Pat::Rest));
-            let mut out = Vec::new();
-            match rest {
-                None if elems.len() == fields.len() => {
-                    for e in elems {
-                        out.push(binder(e)?);
-                    }
-                }
-                Some(at) if elems.len() <= fields.len() + 1 => {
-                    for e in &elems[..at] {
-                        out.push(binder(e)?);
-                    }
-                    let after = &elems[at + 1..];
-                    out.extend(std::iter::repeat_n(None, fields.len() + 1 - elems.len()));
-                    for e in after {
-                        out.push(binder(e)?);
-                    }
-                }
-                _ => return None,
-            }
-            out
-        }
-        rs::Pat::Struct(ps) => {
-            let mut given = BTreeMap::new();
-            for f in &ps.fields {
-                let rs::Member::Named(id) = &f.member else {
-                    return None;
-                };
-                given.insert(id.to_string(), binder(&f.pat)?);
-            }
-            if !ps.rest && given.len() != fields.len() {
-                return None;
-            }
-            let mut out = Vec::new();
-            for (name, _) in fields {
-                out.push(match name {
-                    Some(name) => given.remove(name).flatten(),
-                    None => None,
-                });
-            }
-            if !given.is_empty() {
-                return None;
-            }
-            out
-        }
-        _ => return None,
-    };
-    Some(Shape::Ctor(variant, binders))
-}
-
 /// The constructors of a scrutinee type: `(Rust shape key, LexLean
 /// constructor, binder types)`.
 fn constructors(t: &Ty, types: &Types) -> Option<Vec<(String, String, Vec<Ty>)>> {
@@ -4409,174 +4343,226 @@ fn constructors(t: &Ty, types: &Types) -> Option<Vec<(String, String, Vec<Ty>)>>
     })
 }
 
-fn matching(
-    scrutinee: &rs::RustExpr,
-    arms: &[(&rs::Pat, Body<'_>)],
-    env: &Env,
-    ctx: &Ctx,
-    acc: Acc,
-    want: Option<&Ty>,
-) -> Lift<((Expr, Ty), Acc)> {
-    let ((s, st), acc) = flat_of(scrutinee, env, &ctx.below(), acc, None)?;
-    if matches!(st, Ty::Nat(_) | Ty::Int(_) | Ty::Str | Ty::Char)
-        || arms.iter().any(|(_, b)| matches!(b, Body::Guarded(..)))
-    {
-        return literal_match(&s, &st, arms, env, ctx, acc, want);
-    }
-    let mut shapes = Vec::new();
-    for (pat, b) in arms {
-        let cases: Vec<&rs::Pat> = match pat {
-            rs::Pat::Or(o) => o.iter().collect(),
-            p => vec![*p],
-        };
-        for case in cases {
-            let Some(sh) = data_shape(case, &st, &env.types).or_else(|| shape(case)) else {
-                return Err(Residue::Form("match pattern".to_string()));
-            };
-            shapes.push((sh, *b));
-        }
-    }
-    if st == Ty::Bool {
-        let pick = |v: &str| {
-            shapes.iter().find_map(|(sh, b)| match sh {
-                Shape::Ctor(k, _) if k == v => Some(*b),
-                Shape::Wild => Some(*b),
-                Shape::Ctor(..) => None,
-            })
-        };
-        let (Some(t), Some(f)) = (pick("true"), pick("false")) else {
-            return Err(Residue::Form("non-exhaustive match".to_string()));
-        };
-        let ((then, tt), acc) = body(t, env, ctx, acc, want)?;
-        let ((other, ot), acc) = body(f, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
-        if !tt.same(&ot) {
-            return Err(Residue::Form("arms of different types".to_string()));
-        }
-        return Ok((
-            (
-                Expr::If {
-                    condition: Box::new(Expr::Flat(s)),
-                    then: Box::new(then),
-                    otherwise: Box::new(other),
-                },
-                tt,
-            ),
-            acc,
-        ));
-    }
-    let Some(ctors) = constructors(&st, &env.types) else {
-        return Err(Residue::Form(format!("match on {}", st.render())));
-    };
-    let mut out = Vec::new();
-    let mut result: Option<Ty> = want.cloned();
-    let mut acc = acc;
-    for (key, lex, binder_tys) in &ctors {
-        let found = shapes.iter().find_map(|(sh, b)| match sh {
-            Shape::Ctor(k, binders) => {
-                let k = k.rsplit("::").next().unwrap_or(k);
-                (k == key).then(|| (Some(binders.clone()), *b))
-            }
-            Shape::Wild => Some((None, *b)),
-        });
-        let Some((binders, b)) = found else {
-            return Err(Residue::Form("non-exhaustive match".to_string()));
-        };
-        let mut scope = ctx.clone();
-        let mut names = Vec::new();
-        let mut lets = Vec::new();
-        for (i, ty) in binder_tys.iter().enumerate() {
-            let ident = binders.as_ref().and_then(|bs| bs.get(i).cloned().flatten());
-            let name = match ident {
-                Some(ident) if ident.starts_with("#tuple:") => {
-                    let items: Vec<&str> = ident["#tuple:".len()..].split(',').collect();
-                    let (Ty::Tuple(ts) | Ty::Pair(ts)) = ty else {
-                        return Err(Residue::Form("tuple pattern of another type".into()));
-                    };
-                    if ts.len() != items.len() {
-                        return Err(Residue::Form("tuple pattern of another type".into()));
-                    }
-                    let (whole, after) = ctx.fresh(env, acc, "pair");
-                    acc = after;
-                    for (k, (item, t)) in items.iter().zip(ts).enumerate() {
-                        if *item == "_" {
-                            continue;
-                        }
-                        let (next, name, after) = scope.bind(env, acc, item, t.clone());
-                        scope = next;
-                        acc = after;
-                        lets.push((name, t.render(), tuple_item(ty, &whole, k)));
-                    }
-                    whole
-                }
-                Some(ident) => {
-                    let (next, name, after) = scope.bind(env, acc, &ident, ty.clone());
-                    scope = next;
-                    acc = after;
-                    name
-                }
-                None => {
-                    let (name, after) = ctx.fresh(env, acc, if i == 0 { "value" } else { "rest" });
-                    acc = after;
-                    name
-                }
-            };
-            names.push(name);
-        }
-        if lex == "List.cons" && ctx.params.contains(&s) {
-            scope.tails.insert(names[1].clone(), s.clone());
-        }
-        // A field of the scrutinee's own type is a sub-term: a recursive call
-        // on it descends.
-        if ctx.params.contains(&s) && types_has_data(&st, &env.types) {
-            for (name, ty) in names.iter().zip(binder_tys) {
-                if ty.same(&st) {
-                    scope.tails.insert(name.clone(), s.clone());
-                }
-            }
-        }
-        let ((e, t), after) = body(b, env, &scope, acc, result.as_ref())?;
-        acc = after;
-        let e = wrap_lets(lets, e);
-        match &result {
-            Some(r) if !r.same(&t) => {
-                return Err(Residue::Form("arms of different types".to_string()));
-            }
-            _ => result = Some(t),
-        }
-        let pattern = std::iter::once(lex.clone())
-            .chain(names)
-            .collect::<Vec<_>>()
-            .join(" ");
-        out.push(Arm { pattern, body: e });
-    }
-    let Some(result) = result else {
-        return Err(Residue::Form("empty match".to_string()));
-    };
-    Ok((
-        (
-            Expr::Match {
-                scrutinee: s,
-                arms: out,
-            },
-            result,
-        ),
-        acc,
-    ))
+/// A cell of the match compiler: one Rust pattern, a wildcard the compiler
+/// fills in, or the elements of a slice pattern after its head.
+#[derive(Clone, Copy, PartialEq)]
+enum Cell<'a> {
+    Pat(&'a rs::Pat),
+    Wild,
+    Elems(&'a [rs::Pat]),
 }
 
-/// A match on literals (integers, strings, characters and their ranges), or
-/// with guards: a chain of `if`s ending in an arm that takes every value. An
-/// arm may bind the scrutinee by name, and its guard joins its test.
-fn literal_match(
-    s: &str,
-    st: &Ty,
-    arms: &[(&rs::Pat, Body<'_>)],
-    env: &Env,
-    ctx: &Ctx,
-    acc: Acc,
-    want: Option<&Ty>,
-) -> Lift<((Expr, Ty), Acc)> {
-    let bad = || Err(Residue::Form("match pattern".to_string()));
+/// What a cell tests of its column, once the names it binds are taken.
+enum Head<'a> {
+    /// Every value.
+    Any,
+    /// A constructor, by its Rust key, with a cell for each field.
+    Ctor(String, Vec<Cell<'a>>),
+    /// A tuple's or a structure's items, in order.
+    Items(Vec<Cell<'a>>),
+    /// A literal or a range, tested on the value.
+    Test(&'a rs::Pat),
+    /// Alternatives.
+    Or(Vec<Cell<'a>>),
+}
+
+/// A row of the match compiler: a cell per column, the Rust names its
+/// cells bind (with the value and type each names), and its arm.
+#[derive(Clone)]
+struct Row<'a> {
+    /// The arm the row is of: the alternatives of an or-pattern are rows
+    /// of one arm.
+    arm: usize,
+    cells: Vec<Cell<'a>>,
+    binds: Vec<(String, String, Ty)>,
+    body: Body<'a>,
+}
+
+/// A column of the match compiler: the value it tests, and its type.
+#[derive(Clone)]
+struct Column {
+    value: String,
+    ty: Ty,
+}
+
+/// The Rust key of a constructor path: `Some`, `Ok`, `Err`, `None`, or the
+/// variant's own name.
+fn ctor_key(path: &rs::Path) -> String {
+    match wrapper(path) {
+        Some(w) => w.to_string(),
+        None => path
+            .segments
+            .last()
+            .map(|s| s.ident.clone())
+            .unwrap_or_default(),
+    }
+}
+
+/// Whether a slice element is `..` or `name @ ..`.
+fn is_rest(p: &rs::Pat) -> bool {
+    match p {
+        rs::Pat::Rest => true,
+        rs::Pat::Ident(i) => matches!(i.subpat.as_deref(), Some(rs::Pat::Rest)),
+        _ => false,
+    }
+}
+
+/// The head of the elements of a slice pattern: `[]`, the rest, or the
+/// first element and the elements after it.
+fn slice_head(elems: &[rs::Pat]) -> Option<(Vec<String>, Head<'_>)> {
+    match elems {
+        [] => Some((Vec::new(), Head::Ctor("[]".into(), Vec::new()))),
+        [rs::Pat::Rest] => Some((Vec::new(), Head::Any)),
+        [rs::Pat::Ident(i)] if is_rest(&elems[0]) => Some((vec![i.ident.clone()], Head::Any)),
+        [first, rest @ ..] => {
+            if is_rest(first) {
+                return None;
+            }
+            let cells = vec![Cell::Pat(first), Cell::Elems(rest)];
+            Some((Vec::new(), Head::Ctor("[..]".into(), cells)))
+        }
+    }
+}
+
+/// The cells of a struct pattern, a field's in the order `names` gives
+/// (LexLean names): the pattern given for it, or a wildcard where `..`
+/// leaves it out.
+fn struct_cells<'a>(ps: &'a rs::PatStruct, names: &[String]) -> Option<Vec<Cell<'a>>> {
+    let mut cells = Vec::new();
+    for name in names {
+        let given = ps
+            .fields
+            .iter()
+            .find(|f| matches!(&f.member, rs::Member::Named(n) if local_name(n) == *name));
+        match given {
+            Some(f) => cells.push(Cell::Pat(&f.pat)),
+            None if ps.rest => cells.push(Cell::Wild),
+            None => return None,
+        }
+    }
+    let used = cells.iter().filter(|c| matches!(c, Cell::Pat(_))).count();
+    (used == ps.fields.len()).then_some(cells)
+}
+
+/// The names a cell binds and what it tests, in a column of type `ty`.
+fn head<'a>(cell: Cell<'a>, ty: &Ty, types: &Types) -> Option<(Vec<String>, Head<'a>)> {
+    match cell {
+        Cell::Wild => Some((Vec::new(), Head::Any)),
+        Cell::Elems(elems) => slice_head(elems),
+        Cell::Pat(p) => pat_head(p, ty, types),
+    }
+}
+
+fn pat_head<'a>(p: &'a rs::Pat, ty: &Ty, types: &Types) -> Option<(Vec<String>, Head<'a>)> {
+    match p {
+        rs::Pat::Wild | rs::Pat::Rest => Some((Vec::new(), Head::Any)),
+        rs::Pat::Reference(inner) => pat_head(inner, ty, types),
+        rs::Pat::Type(t) => pat_head(&t.pat, ty, types),
+        rs::Pat::Ident(i) => match &i.subpat {
+            Some(sub) => {
+                let (names, h) = pat_head(sub, ty, types)?;
+                let mut all = vec![i.ident.clone()];
+                all.extend(names);
+                Some((all, h))
+            }
+            None => {
+                let unit = constructors(ty, types).is_some_and(|cs| {
+                    cs.iter()
+                        .any(|(k, _, fields)| *k == i.ident && fields.is_empty())
+                });
+                if unit && i.ident.starts_with(char::is_uppercase) {
+                    Some((Vec::new(), Head::Ctor(i.ident.clone(), Vec::new())))
+                } else {
+                    Some((vec![i.ident.clone()], Head::Any))
+                }
+            }
+        },
+        rs::Pat::Path(path) => Some((Vec::new(), Head::Ctor(ctor_key(path), Vec::new()))),
+        rs::Pat::Lit(rs::Lit::Bool(b)) => Some((Vec::new(), Head::Ctor(b.to_string(), Vec::new()))),
+        rs::Pat::Lit(_) | rs::Pat::Range(_) => Some((Vec::new(), Head::Test(p))),
+        rs::Pat::Tuple(items) => Some((
+            Vec::new(),
+            Head::Items(items.iter().map(Cell::Pat).collect()),
+        )),
+        rs::Pat::Slice(elems) => slice_head(elems),
+        rs::Pat::Or(alts) => Some((Vec::new(), Head::Or(alts.iter().map(Cell::Pat).collect()))),
+        rs::Pat::TupleStruct(ts) => {
+            let key = ctor_key(&ts.path);
+            let ctors = constructors(ty, types)?;
+            let (_, _, fields) = ctors.iter().find(|(k, _, _)| *k == key)?;
+            let arity = fields.len();
+            let cells: Vec<Cell<'a>> =
+                match ts.elems.iter().position(|e| matches!(e, rs::Pat::Rest)) {
+                    None => ts.elems.iter().map(Cell::Pat).collect(),
+                    Some(at) => {
+                        let before = &ts.elems[..at];
+                        let after = &ts.elems[at + 1..];
+                        let given = before.len() + after.len();
+                        if given > arity {
+                            return None;
+                        }
+                        before
+                            .iter()
+                            .map(Cell::Pat)
+                            .chain(std::iter::repeat_n(Cell::Wild, arity - given))
+                            .chain(after.iter().map(Cell::Pat))
+                            .collect()
+                    }
+                };
+            (cells.len() == arity).then_some((Vec::new(), Head::Ctor(key, cells)))
+        }
+        rs::Pat::Struct(ps) => {
+            let Ty::Named(n) = ty else { return None };
+            if let Some(variants) = types.datas.get(n) {
+                let key = ctor_key(&ps.path);
+                let (_, fields) = variants.iter().find(|(v, _)| *v == key)?;
+                let names: Vec<String> = fields
+                    .iter()
+                    .map(|(name, _)| name.as_deref().map(local_name).unwrap_or_default())
+                    .collect();
+                let cells = struct_cells(ps, &names)?;
+                return Some((Vec::new(), Head::Ctor(key, cells)));
+            }
+            let fields = types.structs.get(n)?;
+            let names: Vec<String> = fields.iter().map(|(f, _)| f.clone()).collect();
+            Some((Vec::new(), Head::Items(struct_cells(ps, &names)?)))
+        }
+        rs::Pat::Guard(_) | rs::Pat::Other => None,
+    }
+}
+
+/// The row's heads at column `j`, one row per alternative of an or-pattern,
+/// each with the names the cell binds there.
+fn heads_at<'a>(
+    row: &Row<'a>,
+    j: usize,
+    col: &Column,
+    types: &Types,
+) -> Option<Vec<(Row<'a>, Head<'a>)>> {
+    let (names, h) = head(row.cells[j], &col.ty, types)?;
+    let mut row = row.clone();
+    row.binds.extend(
+        names
+            .into_iter()
+            .map(|n| (n, col.value.clone(), col.ty.clone())),
+    );
+    match h {
+        Head::Or(alts) => {
+            let mut out = Vec::new();
+            for alt in alts {
+                let mut one = row.clone();
+                one.cells[j] = alt;
+                out.extend(heads_at(&one, j, col, types)?);
+            }
+            Some(out)
+        }
+        h => Some(vec![(row, h)]),
+    }
+}
+
+/// The test that a value `s` of a literal type `st` matches a literal or
+/// range pattern, and the state with the axioms the test elaborates with.
+fn literal_test(s: &str, st: &Ty, p: &rs::Pat, acc: Acc) -> Option<(String, Acc)> {
     let constant = |e: &rs::RustExpr| -> Option<String> {
         match e {
             rs::RustExpr::Lit(l) => match literal_of(l, Some(st), false) {
@@ -4593,12 +4579,6 @@ fn literal_match(
             _ => None,
         }
     };
-    let equal = |k: &str| match st {
-        Ty::Nat(_) => Some(format!("({s} =? {k})")),
-        Ty::Int(_) | Ty::Str | Ty::Char => Some(format!("(prim equal {s} {k} : Bool)")),
-        Ty::Bool => Some(format!("({s} =? {k})")),
-        _ => None,
-    };
     let at_most = |a: &str, b: &str| -> Option<String> {
         match st {
             Ty::Nat(_) => Some(format!("({a} <=? {b})")),
@@ -4614,143 +4594,377 @@ fn literal_match(
         Ty::Str | Ty::Char => acc.all_axioms(),
         _ => acc,
     };
+    match p {
+        rs::Pat::Lit(l) => {
+            let k = constant(&rs::RustExpr::Lit(l.clone()))?;
+            let test = match st {
+                Ty::Nat(_) => format!("({s} =? {k})"),
+                Ty::Int(_) | Ty::Str | Ty::Char => format!("(prim equal {s} {k} : Bool)"),
+                _ => return None,
+            };
+            Some((test, acc))
+        }
+        rs::Pat::Range(rg) => {
+            let mut acc = acc;
+            let mut parts = Vec::new();
+            if let Some(e) = &rg.start {
+                let lo = constant(e)?;
+                parts.push(at_most(&lo, s)?);
+                acc = ordered(acc);
+            }
+            if let Some(e) = &rg.end {
+                let hi = constant(e)?;
+                let c = if rg.closed {
+                    at_most(s, &hi)?
+                } else {
+                    format!("(not {})", at_most(&hi, s)?)
+                };
+                parts.push(c);
+                acc = ordered(acc);
+            }
+            match parts.as_slice() {
+                [one] => Some((one.clone(), acc)),
+                [a, b] => Some((format!("({a} && {b})"), acc)),
+                _ => None,
+            }
+        }
+        _ => None,
+    }
+}
+
+/// A match: its scrutinee once, then its arms compiled to LexLean matches
+/// on one constructor at a time and `if` tests on literals and guards.
+fn matching<'a>(
+    scrutinee: &rs::RustExpr,
+    arms: &[(&'a rs::Pat, Body<'a>)],
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    // A tuple written in place is its items, a column each.
+    let parts: Vec<&rs::RustExpr> = match scrutinee {
+        rs::RustExpr::Tuple(items) if items.len() >= 2 => items.iter().collect(),
+        one => vec![one],
+    };
+    let mut cols = Vec::new();
     let mut acc = acc;
-    // Each arm: its test (`None` takes every value), the name it binds the
-    // scrutinee to, and its body.
-    let mut tests: Vec<(Option<String>, Option<String>, Body<'_>)> = Vec::new();
-    for (pat, b) in arms {
-        let cases: Vec<&rs::Pat> = match pat {
-            rs::Pat::Or(o) => o.iter().collect(),
-            p => vec![p],
-        };
-        let mut conds = Vec::new();
-        let mut all = false;
-        let mut bound = None;
-        for case in cases {
-            match case {
-                rs::Pat::Wild => all = true,
-                rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => {
-                    let id = i.ident.to_string();
-                    if id == "None" || id.starts_with(char::is_uppercase) {
-                        return bad();
-                    }
-                    all = true;
-                    bound = Some(id);
-                }
-                rs::Pat::Lit(l) => {
-                    let lit = rs::RustExpr::Lit(l.clone());
-                    let Some(k) = constant(&lit) else {
-                        return bad();
-                    };
-                    let Some(c) = equal(&k) else { return bad() };
-                    conds.push(c);
-                }
-                rs::Pat::Range(rg) => {
-                    let lo = match &rg.start {
-                        Some(e) => match constant(e) {
-                            Some(k) => Some(k),
-                            None => return bad(),
-                        },
-                        None => None,
-                    };
-                    let hi = match &rg.end {
-                        Some(e) => match constant(e) {
-                            Some(k) => Some(k),
-                            None => return bad(),
-                        },
-                        None => None,
-                    };
-                    let mut parts = Vec::new();
-                    if let Some(lo) = lo {
-                        let Some(c) = at_most(&lo, s) else {
-                            return bad();
-                        };
-                        acc = ordered(acc);
-                        parts.push(c);
-                    }
-                    if let Some(hi) = hi {
-                        let c = if rg.closed {
-                            at_most(s, &hi)
-                        } else {
-                            at_most(&hi, s).map(|c| format!("(not {c})"))
-                        };
-                        let Some(c) = c else { return bad() };
-                        acc = ordered(acc);
-                        parts.push(c);
-                    }
-                    match parts.as_slice() {
-                        [] => all = true,
-                        [one] => conds.push(one.clone()),
-                        [a, b] => conds.push(format!("({a} && {b})")),
-                        _ => return bad(),
-                    }
-                }
-                _ => return bad(),
+    for part in &parts {
+        let ((value, ty), after) = flat_of(part, env, &ctx.below(), acc, None)?;
+        acc = after;
+        cols.push(Column { value, ty });
+    }
+    let spread = |p: &'a rs::Pat| -> Vec<Cell<'a>> {
+        match p {
+            rs::Pat::Tuple(items) if parts.len() > 1 && items.len() == parts.len() => {
+                items.iter().map(Cell::Pat).collect()
             }
+            _ if parts.len() > 1 && matches!(p, rs::Pat::Wild) => vec![Cell::Wild; parts.len()],
+            _ => vec![Cell::Pat(p)],
         }
-        if bound.is_some() && !conds.is_empty() {
-            return bad();
-        }
-        let mut cond = if all {
-            None
+    };
+    let rows: Option<Vec<Row<'a>>> = arms
+        .iter()
+        .enumerate()
+        .map(|(arm, (p, b))| {
+            let cells = spread(p);
+            (cells.len() == cols.len()).then_some(Row {
+                arm,
+                cells,
+                binds: Vec::new(),
+                body: *b,
+            })
+        })
+        .collect();
+    let Some(rows) = rows else {
+        return Err(Residue::Form("match pattern".to_string()));
+    };
+    compile(&cols, &rows, env, ctx, acc, want)
+}
+
+/// The row's cells with the cells at column `j` in place of its cell there.
+fn replaced<'a>(row: &Row<'a>, j: usize, cells: Vec<Cell<'a>>) -> Vec<Cell<'a>> {
+    let mut out = row.cells[..j].to_vec();
+    out.extend(cells);
+    out.extend(row.cells[j + 1..].iter().copied());
+    out
+}
+
+/// The rows of a match over the columns, as one expression: the first row
+/// whose cells all match, and whose guard holds, gives the value.
+fn compile<'a>(
+    cols: &[Column],
+    rows: &[Row<'a>],
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    let refuse = || Err(Residue::Form("match pattern".to_string()));
+    let Some((first, rest)) = rows.split_first() else {
+        return Err(Residue::Form("non-exhaustive match".to_string()));
+    };
+    // The first column the first row tests, and the names it binds before.
+    let mut binds = first.binds.clone();
+    let mut tested = None;
+    for (j, (cell, col)) in first.cells.iter().zip(cols).enumerate() {
+        let Some((names, h)) = head(*cell, &col.ty, &env.types) else {
+            return refuse();
+        };
+        if matches!(h, Head::Any) {
+            binds.extend(
+                names
+                    .into_iter()
+                    .map(|n| (n, col.value.clone(), col.ty.clone())),
+            );
         } else {
-            conds.into_iter().reduce(|a, b| format!("({a} || {b})"))
-        };
-        let mut scope = ctx.clone();
-        if let Some(id) = &bound {
-            scope.locals.insert(id.clone(), (s.to_string(), st.clone()));
-        }
-        if let Body::Guarded(g, _) = b {
-            let ((gv, gt), after) = flat_of(g, env, &scope.below(), acc, Some(&Ty::Bool))?;
-            acc = after;
-            if gt != Ty::Bool {
-                return bad();
-            }
-            cond = Some(match cond {
-                Some(c) => format!("({c} && {gv})"),
-                None => gv,
-            });
-        }
-        let last = cond.is_none();
-        tests.push((cond, bound, *b));
-        if last {
+            tested = Some(j);
             break;
         }
     }
-    if tests.last().is_none_or(|(c, _, _)| c.is_some()) {
-        return Err(Residue::Form("non-exhaustive match".to_string()));
-    }
-    let mut result = want.cloned();
-    let mut bodies = Vec::new();
-    for (cond, bound, b) in &tests {
+    let Some(j) = tested else {
+        // The first row matches every value: its arm, when its guard holds.
+        // A name bound to a part of the scrutinee is a binder of its own,
+        // so what the arm lifts to names it.
         let mut scope = ctx.clone();
-        if let Some(id) = bound {
-            scope.locals.insert(id.clone(), (s.to_string(), st.clone()));
+        let mut lets = Vec::new();
+        let mut acc = acc;
+        for (rust, value, ty) in binds {
+            if value.chars().all(|c| c.is_alphanumeric() || c == '_') {
+                if let Some((old, _)) = scope.locals.insert(rust, (value, ty)) {
+                    scope.hidden.push(old);
+                }
+            } else {
+                let (next, name, after) = scope.bind(env, acc, &rust, ty.clone());
+                scope = next;
+                acc = after;
+                lets.push((name, ty.render(), value));
+            }
         }
-        let ((e, t), after) = body(*b, env, &scope, acc, result.as_ref())?;
-        acc = after;
-        if result.as_ref().is_some_and(|r| !r.same(&t)) {
+        let Body::Guarded(g, e) = first.body else {
+            let ((e, t), acc) = body(first.body, env, &scope, acc, want)?;
+            return Ok(((wrap_lets(lets, e), t), acc));
+        };
+        let ((gv, gt), acc) = flat_of(g, env, &scope.below(), acc, Some(&Ty::Bool))?;
+        if gt != Ty::Bool {
+            return Err(Residue::Form("non-boolean guard".to_string()));
+        }
+        let ((then, tt), acc) = expr(e, env, &scope, acc, want)?;
+        let ((other, ot), acc) = compile(cols, rest, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
+        if !tt.same(&ot) {
             return Err(Residue::Form("arms of different types".to_string()));
         }
-        result = Some(t);
-        bodies.push((cond.clone(), e));
-    }
-    let Some(t) = result else {
-        return Err(Residue::Form("empty match".to_string()));
-    };
-    let mut bodies = bodies.into_iter().rev();
-    let Some((_, mut out)) = bodies.next() else {
-        return Err(Residue::Form("empty match".to_string()));
-    };
-    for (cond, e) in bodies {
-        let Some(cond) = cond else { return bad() };
-        out = Expr::If {
-            condition: Box::new(Expr::Flat(cond)),
-            then: Box::new(e),
-            otherwise: Box::new(out),
+        let e = Expr::If {
+            condition: Box::new(Expr::Flat(gv)),
+            then: Box::new(then),
+            otherwise: Box::new(other),
         };
+        return Ok(((wrap_lets(lets, e), tt), acc));
+    };
+    let col = &cols[j];
+    let mut heads = Vec::new();
+    for row in rows {
+        let Some(hs) = heads_at(row, j, col, &env.types) else {
+            return refuse();
+        };
+        heads.extend(hs);
     }
-    Ok(((out, t), acc))
+    let around = |middle: Vec<Column>| -> Vec<Column> {
+        let mut out = cols[..j].to_vec();
+        out.extend(middle);
+        out.extend(cols[j + 1..].iter().cloned());
+        out
+    };
+    // A tuple or a structure: a column for each item.
+    let items: Option<Vec<Column>> = match &col.ty {
+        Ty::Tuple(ts) | Ty::Pair(ts) => Some(
+            ts.iter()
+                .enumerate()
+                .map(|(k, t)| Column {
+                    value: tuple_item(&col.ty, &col.value, k),
+                    ty: t.clone(),
+                })
+                .collect(),
+        ),
+        Ty::Named(n) if env.types.structs.contains_key(n) => Some(
+            env.types.structs[n]
+                .iter()
+                .map(|(f, t)| Column {
+                    value: if env.types.boxed(n) {
+                        format!("({} {})", Types::accessor(n, f), col.value)
+                    } else {
+                        format!("(project {} {f})", col.value)
+                    },
+                    ty: t.clone(),
+                })
+                .collect(),
+        ),
+        _ => None,
+    };
+    if let Some(items) = items {
+        let mut next = Vec::new();
+        for (row, h) in &heads {
+            let cells = match h {
+                Head::Any => vec![Cell::Wild; items.len()],
+                Head::Items(cs) if cs.len() == items.len() => cs.clone(),
+                _ => return refuse(),
+            };
+            next.push(Row {
+                cells: replaced(row, j, cells),
+                ..row.clone()
+            });
+        }
+        return compile(&around(items), &next, env, ctx, acc, want);
+    }
+    // A literal or a range: a test, then the rows after it.
+    if let Some((row, Head::Test(_))) = heads.first() {
+        // The alternatives of the first arm that test this column and agree
+        // elsewhere: one test, their disjunction.
+        let mut tests = Vec::new();
+        let mut acc = acc;
+        let mut taken = 0;
+        for (other, h) in &heads {
+            let Head::Test(p) = h else { break };
+            let alike = other.arm == row.arm
+                && other.binds == row.binds
+                && (0..cols.len()).all(|i| i == j || other.cells[i] == row.cells[i]);
+            if !alike {
+                break;
+            }
+            let Some((test, after)) = literal_test(&col.value, &col.ty, p, acc) else {
+                return refuse();
+            };
+            acc = after;
+            tests.push(test);
+            taken += 1;
+        }
+        let Some(test) = tests.into_iter().reduce(|a, b| format!("({a} || {b})")) else {
+            return refuse();
+        };
+        let mut matched = row.clone();
+        matched.cells[j] = Cell::Wild;
+        let after: Vec<Row<'_>> = heads[taken..].iter().map(|(r, _)| r.clone()).collect();
+        let then_rows: Vec<Row<'_>> = std::iter::once(matched)
+            .chain(after.iter().cloned())
+            .collect();
+        let ((then, tt), acc) = compile(cols, &then_rows, env, ctx, acc, want)?;
+        let ((other, ot), acc) = compile(cols, &after, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
+        if !tt.same(&ot) {
+            return Err(Residue::Form("arms of different types".to_string()));
+        }
+        let e = Expr::If {
+            condition: Box::new(Expr::Flat(test)),
+            then: Box::new(then),
+            otherwise: Box::new(other),
+        };
+        return Ok(((e, tt), acc));
+    }
+    // The rows a constructor's values reach, its fields' cells in place
+    // of the column's.
+    let reach = |key: &str, arity: usize| -> Option<Vec<Row<'_>>> {
+        let mut out = Vec::new();
+        for (row, h) in &heads {
+            let cells = match h {
+                Head::Any => vec![Cell::Wild; arity],
+                Head::Ctor(k, cs) if k == key && cs.len() == arity => cs.clone(),
+                Head::Ctor(k, _) if k != key => continue,
+                _ => return None,
+            };
+            out.push(Row {
+                cells: replaced(row, j, cells),
+                ..row.clone()
+            });
+        }
+        Some(out)
+    };
+    if col.ty == Ty::Bool {
+        let (Some(yes), Some(no)) = (reach("true", 0), reach("false", 0)) else {
+            return refuse();
+        };
+        let ((then, tt), acc) = compile(&around(Vec::new()), &yes, env, ctx, acc, want)?;
+        let want = Some(want.unwrap_or(&tt));
+        let ((other, ot), acc) = compile(&around(Vec::new()), &no, env, ctx, acc, want)?;
+        if !tt.same(&ot) {
+            return Err(Residue::Form("arms of different types".to_string()));
+        }
+        let e = Expr::If {
+            condition: Box::new(Expr::Flat(col.value.clone())),
+            then: Box::new(then),
+            otherwise: Box::new(other),
+        };
+        return Ok(((e, tt), acc));
+    }
+    let Some(ctors) = constructors(&col.ty, &env.types) else {
+        return Err(Residue::Form(format!("match on {}", col.ty.render())));
+    };
+    let mut out = Vec::new();
+    let mut result: Option<Ty> = want.cloned();
+    let mut acc = acc;
+    for (key, lex, field_tys) in &ctors {
+        let Some(next) = reach(key, field_tys.len()) else {
+            return refuse();
+        };
+        // Each field's binder: the name the first row reaching it gives it,
+        // or a fresh one.
+        let mut scope = ctx.clone();
+        let mut names = Vec::new();
+        for (i, ty) in field_tys.iter().enumerate() {
+            let given = next.iter().find_map(|row| match row.cells[j + i] {
+                Cell::Pat(rs::Pat::Ident(id)) if id.subpat.is_none() => Some(local_name(&id.ident)),
+                _ => None,
+            });
+            let base = given.unwrap_or_else(|| {
+                if i == 0 {
+                    "value".into()
+                } else {
+                    "rest".into()
+                }
+            });
+            let (name, after) = if scope.taken(env, &base) {
+                scope.fresh(env, acc, &base)
+            } else {
+                (base, acc)
+            };
+            acc = after;
+            scope.hidden.push(name.clone());
+            names.push(Column {
+                value: name,
+                ty: ty.clone(),
+            });
+        }
+        if ctx.params.contains(&col.value) {
+            // The tail of a list parameter, and a field of a data parameter's
+            // own type, are sub-terms: a recursive call on one descends.
+            for (i, field) in names.iter().enumerate() {
+                let tail = lex == "List.cons" && i == 1;
+                if tail || (types_has_data(&col.ty, &env.types) && field.ty.same(&col.ty)) {
+                    scope.tails.insert(field.value.clone(), col.value.clone());
+                }
+            }
+        }
+        let binders: Vec<String> = names.iter().map(|c| c.value.clone()).collect();
+        let ((e, t), after) = compile(&around(names), &next, env, &scope, acc, result.as_ref())?;
+        acc = after;
+        match &result {
+            Some(r) if !r.same(&t) => {
+                return Err(Residue::Form("arms of different types".to_string()));
+            }
+            _ => result = Some(t),
+        }
+        let pattern = std::iter::once(lex.clone())
+            .chain(binders)
+            .collect::<Vec<_>>()
+            .join(" ");
+        out.push(Arm { pattern, body: e });
+    }
+    let Some(result) = result else {
+        return Err(Residue::Form("empty match".to_string()));
+    };
+    let e = Expr::Match {
+        scrutinee: col.value.clone(),
+        arms: out,
+    };
+    Ok(((e, result), acc))
 }
 
 /// A branch followed by the statements after it, as one block expression.
@@ -5676,15 +5890,30 @@ fn block(
                     rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => {
                         (i, Some(env.types.ty(&pt.ty)?))
                     }
-                    _ => return Err(Residue::Form("let pattern".to_string())),
+                    other => return let_pattern(other, local, rest, env, ctx, acc, want),
                 },
-                _ => return Err(Residue::Form("let pattern".to_string())),
+                other => return let_pattern(other, local, rest, env, ctx, acc, want),
             };
             let Some(init) = &local.init else {
                 return Err(Residue::Statements);
             };
             if init.diverge.is_some() {
                 return Err(Residue::Form("let else".to_string()));
+            }
+            if let rs::RustExpr::Closure(c) = &*init.expr {
+                if c.asyncness || declared.is_some() {
+                    return Err(Residue::Form("expr::closure".to_string()));
+                }
+                let mut scope = ctx.clone();
+                scope.closures.insert(
+                    ident.ident.clone(),
+                    Closure {
+                        inputs: c.inputs.clone(),
+                        body: (*c.body).clone(),
+                        locals: ctx.locals.clone(),
+                    },
+                );
+                return block(rest, env, &scope, acc, want);
             }
             if let rs::RustExpr::Try(t) = &*init.expr {
                 if !ctx.top {
@@ -5724,6 +5953,29 @@ fn block(
         }
         _ => Err(Residue::Statements),
     }
+}
+
+/// `let P = e; rest` where `P` takes every value of `e`: a match of one arm.
+fn let_pattern(
+    pat: &rs::Pat,
+    local: &rs::Local,
+    rest: &[rs::Stmt],
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    let Some(init) = &local.init else {
+        return Err(Residue::Statements);
+    };
+    if init.diverge.is_some() || matches!(&*init.expr, rs::RustExpr::Try(_)) {
+        return Err(Residue::Form("let pattern".to_string()));
+    }
+    let tail = rs::Block {
+        stmts: rest.to_vec(),
+    };
+    let arms = vec![(pat, Body::Block(&tail))];
+    matching(&init.expr, &arms, env, ctx, acc, want)
 }
 
 /// `Vec::new()` or `Vec::with_capacity(n)`: a vector whose element type the
@@ -5950,6 +6202,7 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                 top: true,
                 looping: None,
                 hidden: Vec::new(),
+                closures: BTreeMap::new(),
                 imports: c.imports.clone(),
             };
             let lifted = block(&c.block.stmts, &env, &ctx, Acc::default(), Some(&c.result));
@@ -6277,12 +6530,68 @@ fn literal(e: &rs::RustExpr, want: &Ty, types: &Types) -> Option<String> {
             },
             _ => None,
         },
+        rs::RustExpr::Path(p) if wrapper(p) == Some("None") => match want {
+            Ty::Option(inner) => Some(format!("(ctor Option.none [{}])", inner.render())),
+            _ => None,
+        },
         rs::RustExpr::Path(p) => {
             let (owner, variant) = ctor(p, types)?;
             (Ty::Named(owner.clone()) == *want).then(|| format!("(ctor {owner}.{variant})"))
         }
         rs::RustExpr::Paren(p) => literal(p, want, types),
         rs::RustExpr::Reference(r) => literal(&r.expr, want, types),
+        // `"text".to_string()`: the string.
+        rs::RustExpr::MethodCall(m)
+            if *want == Ty::Str
+                && m.args.is_empty()
+                && matches!(m.method.as_str(), "to_string" | "to_owned" | "into") =>
+        {
+            match &*m.receiver {
+                rs::RustExpr::Lit(rs::Lit::Str(_)) => literal(&m.receiver, want, types),
+                _ => None,
+            }
+        }
+        // `S { a: lit, .. }`: a structure of literals, every field given.
+        rs::RustExpr::Struct(st) if !st.rest && !st.qself => {
+            // The crate declares a structure's name once: its last segment.
+            let name = types.resolve(&st.path.segments.last()?.ident);
+            let fields = types.structs.get(&name)?;
+            if *want != Ty::Named(name.clone()) || st.fields.len() != fields.len() {
+                return None;
+            }
+            let mut parts = Vec::new();
+            for (field, ty) in fields {
+                let given = st.fields.iter().find(
+                    |f| matches!(&f.member, rs::Member::Named(n) if local_name(n) == *field),
+                )?;
+                parts.push((field, literal(&given.expr, ty, types)?));
+            }
+            Some(struct_value(&name, &parts, types))
+        }
+        // `Some(lit)`, and `E::V(lit, ..)` of a data-carrying enum.
+        rs::RustExpr::Call(c) => {
+            let rs::RustExpr::Path(p) = &*c.func else {
+                return None;
+            };
+            match (wrapper(p), want, c.args.as_slice()) {
+                (Some("Some"), Ty::Option(inner), [one]) => Some(format!(
+                    "(ctor Option.some [{}] {})",
+                    inner.render(),
+                    literal(one, inner, types)?
+                )),
+                _ => {
+                    let (owner, variant, fields) = data_variant(p, types)?;
+                    if Ty::Named(owner.clone()) != *want || fields.len() != c.args.len() {
+                        return None;
+                    }
+                    let mut parts = vec![format!("ctor {owner}.{variant}")];
+                    for (arg, (_, ty)) in c.args.iter().zip(fields) {
+                        parts.push(literal(arg, ty, types)?);
+                    }
+                    Some(format!("({})", parts.join(" ")))
+                }
+            }
+        }
         // `[a, b]`: a list of literals.
         rs::RustExpr::Array(items) => {
             let Ty::List(elem) = want else {
@@ -6347,7 +6656,12 @@ pub(crate) fn acceptance(
         }
         ("assert_eq", [left, right, ..]) => {
             let (call, result, name) = applied(left, lifted, types)?;
-            if !matches!(result, Ty::Bool | Ty::Nat(_) | Ty::Str) {
+            let decidable = |t: &Ty| matches!(t, Ty::Bool | Ty::Nat(_) | Ty::Str);
+            let comparable = match &result {
+                Ty::Option(inner) => decidable(inner),
+                t => decidable(t),
+            };
+            if !comparable {
                 return None;
             }
             let value = literal(right, &result, types)?;

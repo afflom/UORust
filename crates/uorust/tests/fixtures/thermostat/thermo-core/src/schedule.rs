@@ -111,3 +111,65 @@ pub fn validate(phase: &Phase) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// The target a step holds first: none for a hold at zero, none when the
+/// other choice of an `Either` is a sequence, else the occupied target.
+pub fn first_hold(step: &Step) -> Option<u32> {
+    match step {
+        Step::Hold(0) => None,
+        Step::Either(_, other) if is_sequence(other) => None,
+        other => occupied_target(other),
+    }
+}
+
+/// The label of a schedule of exactly one phase that holds a target.
+pub fn single_label(phases: &[Phase]) -> Option<String> {
+    match phases {
+        [Phase {
+            label,
+            step: Step::Hold(_),
+        }] => Some(label.clone()),
+        _ => None,
+    }
+}
+
+/// The mode two readings choose: heat when only cold, cool when only hot.
+pub fn mode_for(cold: bool, hot: bool) -> crate::Mode {
+    match (cold, hot) {
+        (true, false) => crate::Mode::Heating,
+        (false, true) => crate::Mode::Cooling,
+        _ => crate::Mode::Idle,
+    }
+}
+
+/// Whether both ends of a band lie in the comfort range: a let pattern
+/// takes the band apart and a closure tests each end.
+pub fn comfortable(band: crate::band::Band) -> bool {
+    let crate::band::Band { low, high } = band;
+    let comfy = |t: u32| t >= 18 && t <= 24;
+    comfy(low) && comfy(high)
+}
+
+/// A choice between two steps, each boxed.
+pub fn either(occupied: Step, otherwise: Step) -> Step {
+    Step::Either(Box::new(occupied), Box::new(otherwise))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nested_patterns_choose_the_arm() {
+        assert_eq!(first_hold(&Step::Hold(0)), None);
+        assert_eq!(first_hold(&Step::Hold(19)), Some(19));
+        assert_eq!(single_label(&[hold("day", 21)]), Some("day".to_string()));
+        assert_eq!(single_label(&[]), None);
+        assert_eq!(mode_for(true, false), crate::Mode::Heating);
+        assert_eq!(mode_for(false, true), crate::Mode::Cooling);
+        assert_eq!(mode_for(true, true), crate::Mode::Idle);
+        assert!(comfortable(crate::band::Band { low: 18, high: 22 }));
+        assert!(!comfortable(crate::band::Band { low: 16, high: 22 }));
+        assert!(!is_sequence(&either(Step::Hold(16), Step::Hold(21))));
+    }
+}
