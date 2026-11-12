@@ -465,6 +465,23 @@ pub fn warm(reading: u32) -> Option<u32> {
     (reading >= 18).then_some(reading)
 }
 
+/// The rooms booked for heating, in booking order and by name.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Bookings {
+    /// The rooms in the order they were booked.
+    pub order: Vec<String>,
+    /// The rooms by name.
+    pub by_name: BTreeSet<String>,
+}
+
+/// The bookings with one more room.
+pub fn booked(bookings: &Bookings, room: &str) -> Bookings {
+    let mut out = bookings.clone();
+    out.order.push(room.to_string());
+    out.by_name.insert(room.to_string());
+    out
+}
+
 /// The room a zone names, doubled, when it names one room.
 pub fn doubled_room(zone: &Zone) -> Option<String> {
     let room = match zone {
@@ -622,6 +639,11 @@ mod tests {
             Some("denden".to_string())
         );
         assert_eq!(doubled_room(&Zone::Group(Vec::new())), None);
+        let none = Bookings {
+            order: Vec::new(),
+            by_name: BTreeSet::new(),
+        };
+        assert_eq!(booked(&none, "den").order, vec!["den".to_string()]);
         assert!(all_named(&Zone::Group(vec![Zone::Room(
             "hall".to_string()
         )])));

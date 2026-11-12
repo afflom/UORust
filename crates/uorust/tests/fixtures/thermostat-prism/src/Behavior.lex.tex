@@ -19,6 +19,13 @@ structure{
   fields: [{name: low, type: Nat}, {name: high, type: Nat}]
 }
 
+structure{
+  name: Bookings,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: order, type: (List String)}, {name: byName, type: (List String)}]
+}
+
 inductive{
   name: CmpOrdering,
   type_parameters: [],
@@ -1690,6 +1697,25 @@ definition{
   parameters: [reading : Nat],
   result: (Option Nat),
   body: (if (18 <=? reading) then (ctor Option.some [Nat] reading) else (ctor Option.none [Nat]))
+}
+
+definition{
+  name: bookedInsert1,
+  parameters: [items2 : (List String), item3 : String],
+  result: (List String),
+  body: (match items2
+    | List.nil => (cons item3 (nil String))
+    | List.cons head4 rest5 => (if (prim equal item3 head4 : Bool) then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool) then (cons item3 (cons head4 rest5)) else (cons head4 (bookedInsert1 rest5 item3))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items2
+}
+
+definition{
+  name: booked,
+  parameters: [bookings : Bookings, room : String],
+  result: Bookings,
+  body: (let out : Bookings := bookings; (let out1 : Bookings := (record Bookings {order := (prim append (project out order) (cons room (nil String)) : (List String)), byName := (project out byName)}); (let out6 : Bookings := (record Bookings {order := (project out1 order), byName := (bookedInsert1 (project out1 byName) room)}); out6))),
+  axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{

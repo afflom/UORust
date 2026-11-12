@@ -96,22 +96,15 @@ enum Step {
 /// The enclosing branches and the argument texts of one recursive call.
 type Site = (Vec<Step>, Vec<String>);
 
-/// Every word a node holds.
-fn words(node: &Node, out: &mut Vec<String>) {
-    match node {
-        Node::Word(w) => out.push(w.clone()),
-        Node::Form(inner, _) => inner.iter().for_each(|n| words(n, out)),
-        Node::Group(text) => out.extend(
-            text.split(|c: char| !c.is_alphanumeric() && c != '_')
-                .map(String::from),
-        ),
-    }
-}
-
+/// Whether a node holds the word `name`.
 fn mentions(node: &Node, name: &str) -> bool {
-    let mut ws = Vec::new();
-    words(node, &mut ws);
-    ws.iter().any(|w| w == name)
+    match node {
+        Node::Word(w) => w == name,
+        Node::Form(inner, _) => inner.iter().any(|n| mentions(n, name)),
+        Node::Group(text) => text
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .any(|w| w == name),
+    }
 }
 
 /// The recursive calls of `name` in `node`, in pre-order, or `None` where

@@ -529,8 +529,8 @@ detail = "calls default_in, which is not lifted"
 [[residue]]
 kappa = "9e8508713c08474fd350961d0a121c24eecbf839974941d5f1a89f71ce178831"
 function = "uorust::lift::disjoint"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "form"
+detail = "expression form outside the lift: struct Path"
 
 [[residue]]
 kappa = "4a2bd233f7536206283dfc7be0a4d3589954167c2ac4a9c025a34dd254b8fdae"
@@ -595,8 +595,8 @@ detail = "calls pat_head, which is not lifted"
 [[residue]]
 kappa = "686e48b8cdb843c2638585af3bcaba76f9f41ada490d53a69cf22cf84ea9b394"
 function = "uorust::lift::heads_at"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "call"
+detail = "calls new, which is not lifted"
 
 [[residue]]
 kappa = "53b1ca514f3600f95a869edd040bda9dc90e1b166e0519c252a1d1f237796f59"
@@ -887,13 +887,13 @@ reason = "form"
 detail = "expression form outside the lift: struct ExprBlock"
 
 [[residue]]
-kappa = "787f0b5c4c55b4d11ec570ddbc6ac0f342e54c2e345381bf0ca7e1eafa7b18e2"
+kappa = "f7fcf0859d8ef01e1eeb7014d3745b64a1b7cae64407673d78440c70acafe046"
 function = "uorust::lift::update_target"
 reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "10271a12792bec1e6e99bb8df169d3605897c3bd5fa0222e07190bd936753cfc"
+kappa = "65132eb1f99b06c1239e46f121a176044bc169df462c13828d3f99f8fee47513"
 function = "uorust::lift::updated"
 reason = "type"
 detail = "type outside the lift: rs::RustExpr"
@@ -1313,10 +1313,10 @@ reason = "form"
 detail = "expression form outside the lift: method call .div_euclid"
 
 [[residue]]
-kappa = "05ffa5e76a9ee6f1f3c11830fd81958c7dd950610439914ab37fba566bfa2226"
+kappa = "29888b797d045591f8f9907adbf76a408c76eae1df9ab6ba14e511930728ca83"
 function = "uorust::wf::mentions"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "ad63b6c9e88f61283b6289a82a589966a0130e51bf2340f2c2b8ec9cab7e2323"
@@ -1335,12 +1335,6 @@ kappa = "78c4510e160e8536446c8e115e5bf7026e53d0d1e8c840a0e0d8f6dc1072545b"
 function = "uorust::wf::sites"
 reason = "type"
 detail = "type outside the lift: &mut Vec<Step>"
-
-[[residue]]
-kappa = "4770b7ba560cf6dfbd4cd41049bf553df31cae6aff654a10b7334ca0deca6b35"
-function = "uorust::wf::words"
-reason = "type"
-detail = "type outside the lift: &mut Vec<String>"
 
 [[residue]]
 kappa = "144be536cd1b2e3e2af8c52d3ee25bd06ceeedf5752a471e096ebd94ecc76aa6"
@@ -2074,6 +2068,11 @@ definition = "Behavior::leaves"
 kappa = "00dd4b7aa3f789faa5fc54ce0721af8049fc1c373b84380c6d75064f5f28bd01"
 function = "uorust::lift::max_of"
 definition = "Behavior::maxOf"
+
+[[lifted]]
+kappa = "a9b8ffb5ab52b803002c411d2daad4c44ed29a51db7c6b3c26509f07e0a3eb1f"
+function = "uorust::lift::named_field"
+definition = "Behavior::namedField"
 
 [[lifted]]
 kappa = "673cdbb5ad7f9344acbfbe2ef0a1450e9feaa5e71070d015d54f12e0ade9a6e4"

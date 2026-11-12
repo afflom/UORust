@@ -5756,13 +5756,21 @@ fn update_target(e: &rs::RustExpr) -> Option<String> {
         rs::RustExpr::MethodCall(m)
             if matches!(m.method.as_str(), "push" | "push_str" | "extend") && m.args.len() == 1 =>
         {
-            ident(&m.receiver)
+            ident(&m.receiver).or_else(|| ident(&named_field(&m.receiver)?.base))
         }
         // The value of `insert` (whether it was new, or the replaced value)
         // is dropped where it is a statement of a loop.
         rs::RustExpr::MethodCall(m) if m.method == "insert" && (1..=2).contains(&m.args.len()) => {
-            ident(&m.receiver)
+            ident(&m.receiver).or_else(|| ident(&named_field(&m.receiver)?.base))
         }
+        _ => None,
+    }
+}
+
+/// `x.f`: a named field of a value.
+fn named_field(e: &rs::RustExpr) -> Option<&rs::ExprField> {
+    match e {
+        rs::RustExpr::Field(f) if matches!(f.member, rs::Member::Named(_)) => Some(f),
         _ => None,
     }
 }
@@ -5801,6 +5809,46 @@ fn updated(
         }
     };
     match (e, ty) {
+        // `x.f.push(v)`: the structure `x` with its field `f` updated.
+        (rs::RustExpr::MethodCall(m), Ty::Named(name)) if named_field(&m.receiver).is_some() => {
+            let Some(f) = named_field(&m.receiver) else {
+                return Err(Residue::Form("an update outside the lift".to_string()));
+            };
+            let rs::Member::Named(member) = &f.member else {
+                return Err(Residue::Form("an update outside the lift".to_string()));
+            };
+            let Some(fields) = env.types.structs.get(name) else {
+                return Err(Residue::Form(format!("a field update of {name}")));
+            };
+            let target = local_name(member);
+            let Some((_, fty)) = fields.iter().find(|(f, _)| *f == target) else {
+                return Err(Residue::Form(format!("a field update of {name}")));
+            };
+            let read = |field: &String| {
+                if env.types.boxed(name) {
+                    format!("({} {current})", Types::accessor(name, field))
+                } else {
+                    format!("(project {current} {field})")
+                }
+            };
+            let call = rs::RustExpr::MethodCall(rs::ExprMethodCall {
+                receiver: f.base.clone(),
+                ..m.clone()
+            });
+            let (v, acc) = updated(&call, fty, &read(&target), env, ctx, acc)?;
+            let parts: Vec<(&String, String)> = fields
+                .iter()
+                .map(|(field, _)| {
+                    let value = if *field == target {
+                        v.clone()
+                    } else {
+                        read(field)
+                    };
+                    (field, value)
+                })
+                .collect();
+            Ok((struct_value(name, &parts, &env.types), acc))
+        }
         (rs::RustExpr::Assign(a), Ty::Named(name))
             if matches!(&*a.left, rs::RustExpr::Field(_)) =>
         {
