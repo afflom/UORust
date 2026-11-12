@@ -100,35 +100,35 @@ definition{
   name: componentCli,
   parameters: [],
   result: Foundation.Arch::Component,
-  body: (record Foundation.Arch::Component {index := 2, kind := (ctor Foundation.Arch::ComponentKind.releaseBinary), name := "uorust CLI", text := "The uorust release binary: project, check and routes subcommands over a Cargo workspace."})
+  body: (record Foundation.Arch::Component {index := 2, kind := (ctor Foundation.Arch::ComponentKind.releaseBinary), name := "uorust CLI", text := "Project any Cargo workspace into a complete, checked Prism project."})
 }
 
 definition{
   name: componentIngest,
   parameters: [],
   result: Foundation.Arch::Component,
-  body: (record Foundation.Arch::Component {index := 6, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Ingest", text := "Reads cargo metadata, Cargo.lock and every source file through syn into facts carrying their source spans."})
+  body: (record Foundation.Arch::Component {index := 6, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Ingest", text := "Ingest: cargo metadata, the manifests, Cargo.lock and every source file, parsed with syn, into facts with spans."})
 }
 
 definition{
   name: componentRouter,
   parameters: [],
   result: Foundation.Arch::Component,
-  body: (record Foundation.Arch::Component {index := 11, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Router", text := "Maps each fact's kinds to the one Prism record kind of model/routes.toml, or to a typed refusal."})
+  body: (record Foundation.Arch::Component {index := 11, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Router", text := "The route table and the router: which kind of Rust fact becomes which kind of Prism record in which facet."})
 }
 
 definition{
   name: componentAdmission,
   parameters: [],
   result: Foundation.Arch::Component,
-  body: (record Foundation.Arch::Component {index := 0, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Admission", text := "Admits routed facts whose records are complete and records each refusal as an open claim with its reason."})
+  body: (record Foundation.Arch::Component {index := 0, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Admission", text := "Admission: what the router proposes is admitted, or refused with a typed reason that becomes an open claim."})
 }
 
 definition{
   name: componentEmitter,
   parameters: [],
   result: Foundation.Arch::Component,
-  body: (record Foundation.Arch::Component {index := 4, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Emitter", text := "Writes the Prism project: prismpm.toml, lexlean.toml, one module per facet, glossaries and the conformance register, in a fixed order."})
+  body: (record Foundation.Arch::Component {index := 4, kind := (ctor Foundation.Arch::ComponentKind.service), name := "Emitter", text := "Projection: admitted facts to the files of a Prism project, byte for byte the same for the same workspace."})
 }
 
 definition{
@@ -444,6 +444,26 @@ definition{
   parameters: [],
   result: (List Narrative),
   body: (cons (record Narrative {record := "Architecture::viewpointPipelineCompleteness", name := "Pipeline for completeness", text := "Where each fact is routed, admitted or refused, so none is dropped."}) (cons (record Narrative {record := "Architecture::viewpointPipelineFidelity", name := "Pipeline for fidelity", text := "Which component carries a fact's source span to the record it becomes."}) (cons (record Narrative {record := "Architecture::viewpointRefusal", name := "Admission for refusal", text := "How an ambiguous or unknown fact becomes an open claim instead of a record."}) (cons (record Narrative {record := "Architecture::viewpointDeterminism", name := "Emission for determinism", text := "What fixes the order and bytes of the emitted files."}) (cons (record Narrative {record := "Architecture::viewpointSupplyChain", name := "Supply chain", text := "Where the crates, the toolchain and the released binary come from."}) (cons (record Narrative {record := "Architecture::viewpointReadOnly", name := "Ingestion boundary", text := "What uorust reads from the subject workspace and what it never does with it."}) (cons (record Narrative {record := "Architecture::viewpointDiscoverability", name := "Published page", text := "What the Pages site shows and runs."}) (nil Narrative))))))))
+}
+
+structure{
+  name: Source,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: record, type: String},
+    {name: path, type: String},
+    {name: firstLine, type: Nat},
+    {name: lastLine, type: Nat},
+    {name: kappa, type: String}
+  ]
+}
+
+definition{
+  name: sourcesOfComponents,
+  parameters: [],
+  result: (List Source),
+  body: (cons (record Source {record := "Architecture::componentCli", path := "crates/uorust/src/main.rs", firstLine := 11, lastLine := 11, kappa := "9feda9039936628c20d48d073d19543dceb0179afac10266dce3a5f70b27903e"}) (cons (record Source {record := "Architecture::componentIngest", path := "crates/uorust/src/ingest.rs", firstLine := 1, lastLine := 2, kappa := "bdb55facbab0f5fa8479b4a55743528fdf46a0a2df19586831f9d2b72a2e7b2d"}) (cons (record Source {record := "Architecture::componentRouter", path := "crates/uorust/src/route.rs", firstLine := 1, lastLine := 2, kappa := "8e418eb8172505eb52f82e9275238ce6d3d274396e28bbc08acb1477d19663e1"}) (cons (record Source {record := "Architecture::componentAdmission", path := "crates/uorust/src/admit.rs", firstLine := 1, lastLine := 2, kappa := "5738d758bec2b4cb7b803984d07daa63b11a36c4806a2f0f154ad486b63050f0"}) (cons (record Source {record := "Architecture::componentEmitter", path := "crates/uorust/src/project.rs", firstLine := 1, lastLine := 2, kappa := "9baee0b98ed2c72622a0aed605dd23e2cb874fa4efcdb94b9b8cbb608b87c924"}) (nil Source))))))
 }
 
 definition{

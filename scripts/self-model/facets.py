@@ -1,9 +1,129 @@
 """Emit UORust's facet modules (Architecture, Design, Features, Security, Quality)
-with every index equal to the record's position in identifier order."""
-import sys
+with every index equal to the record's position in identifier order.
+
+What the sources state is read from them, not restated: the text of the
+components and features UORust's code documents, the register rows that are
+the features' acceptance and the controls' gate evidence, the source lines a
+review names, and every quality threshold. Each such record is listed with the
+span it was read from and that span's κ (Architecture::Source), so a change of
+the source is a change of the model that `just self-model-check` reports.
+
+    python3 -I facets.py OUT_ROOT [SOURCE_ROOT]
+"""
+import hashlib, re, sys, tomllib
 
 root = sys.argv[1]
+SRC = sys.argv[2] if len(sys.argv) > 2 else root
 OUT = f"{root}/app/src"
+
+# ---------------------------------------------------------------- Sources
+SPAN_DOMAIN = "uorust/span/1"
+SOURCES = {}  # module -> [(record, path, first, last, kappa)]
+
+def lines_of(path):
+    return open(f"{SRC}/{path}", encoding="utf-8").read().split("\n")
+
+def kappa(path, first, last):
+    """κ of a span: SHA-256 of the domain, the path and the span's lines."""
+    text = "\n".join(lines_of(path)[first - 1:last])
+    return hashlib.sha256(f"{SPAN_DOMAIN}\0{path}\0{text}".encode()).hexdigest()
+
+def cite(module, record, path, first, last):
+    SOURCES.setdefault(module, []).append((record, path, first, last, kappa(path, first, last)))
+
+def plain(text):
+    """Rust doc Markdown to plain text: links and code spans keep their words."""
+    text = re.sub(r"\[`?([^`\]]+)`?\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"\[`([^`\]]+)`\]", r"\1", text)
+    return text.replace("`", "")
+
+def doc_sentence(path, first, marker):
+    """The first sentence of the doc comment that starts at line `first`: its
+    text and the last line it spans."""
+    lines = lines_of(path)
+    words, at = [], first - 1
+    while at < len(lines) and lines[at].strip().startswith(marker):
+        body = lines[at].strip()[len(marker):].strip()
+        assert body, f"{path}:{at + 1}: a doc sentence ends before a blank doc line"
+        words.append(body)
+        if re.search(r"\.(\s|$)", body):
+            break
+        at += 1
+    text = " ".join(words)
+    end = re.search(r"\.(\s|$)", text)
+    assert end, f"{path}:{first}: no sentence"
+    return plain(text[: end.start() + 1]), at + 1
+
+def module_doc(module, record, path):
+    text, last = doc_sentence(path, 1, "//!")
+    cite(module, record, path, 1, last)
+    return text
+
+def item_doc(module, record, path, item):
+    """The first sentence of the `///` doc of the item whose line starts with `item`."""
+    lines = lines_of(path)
+    at = next(i for i, l in enumerate(lines) if l.strip().startswith(item))
+    while lines[at - 1].strip().startswith("#["):
+        at -= 1
+    top = at
+    while lines[top - 1].strip().startswith("///"):
+        top -= 1
+    assert top < at, f"{path}: {item} has no doc"
+    text, last = doc_sentence(path, top + 1, "///")
+    cite(module, record, path, top + 1, last)
+    return text
+
+def line_of(module, record, path, needle):
+    """The one line of `path` holding `needle`, cited; its number."""
+    hits = [i + 1 for i, l in enumerate(lines_of(path)) if needle in l]
+    assert len(hits) == 1, f"{path}: {needle!r} on lines {hits}"
+    cite(module, record, path, hits[0], hits[0])
+    return hits[0]
+
+IDS = {r["id"]: r for r in tomllib.loads(open(f"{SRC}/model/ids.toml", encoding="utf-8").read())["id"]}
+
+def register_row(module, record, rid):
+    """A register row's statement, cited by its statement line."""
+    lines = lines_of("model/ids.toml")
+    at = lines.index(f'id = "{rid}"')
+    stmt = next(i for i in range(at, len(lines)) if lines[i].startswith("statement = "))
+    cite(module, record, "model/ids.toml", stmt + 1, stmt + 1)
+    return IDS[rid]["statement"]
+
+def clap_call(module, record, sub):
+    """The command line of a `uorust` subcommand, read from its clap declaration:
+    the variant's argument struct gives the positional and required options."""
+    path = "crates/uorust/src/main.rs"
+    lines = lines_of(path)
+    variant = sub[0].upper() + sub[1:]
+    at = next(i for i, l in enumerate(lines) if re.match(rf"\s+{variant}(\(|,)", l))
+    cite(module, record, path, at + 1, at + 1)
+    words = ["uorust", sub]
+    m = re.match(rf"\s+{variant}\((\w+)\),", lines[at])
+    if m:
+        start = next(i for i, l in enumerate(lines) if l.startswith(f"struct {m.group(1)} "))
+        end = next(i for i in range(start, len(lines)) if lines[i] == "}")
+        cite(module, record + "Arguments", path, start + 1, end + 1)
+        long = False
+        for l in lines[start:end]:
+            l = l.strip()
+            if l.startswith("#[arg(long"):
+                long = True
+                continue
+            f = re.match(r"(\w+): (\w+)", l)
+            if f:
+                optional = f.group(2) == "Option"
+                if not optional:
+                    words.append(f"--{f.group(1).replace('_', '-')} {f.group(1).upper()}" if long else f.group(1).upper())
+                long = False
+    return " ".join(words)
+
+def source_list(module):
+    o = "(nil Architecture::Source)"
+    for rec, path, first, last, k in reversed(SOURCES.get(module, [])):
+        o = (f"(cons (record Architecture::Source {{record := {q(rec)}, path := {q(path)}, firstLine := {first}, "
+             f"lastLine := {last}, kappa := {q(k)}}}) {o})")
+    return o
 
 def q(s):
     assert "\n" not in s
@@ -50,11 +170,11 @@ concerns = [
     ("concernDiscoverability", "Discoverability", "A newcomer can learn what UORust does from its published page and run its route table in the browser."),
 ]
 components = [
-    ("componentCli", "releaseBinary", "uorust CLI", "The uorust release binary: project, check and routes subcommands over a Cargo workspace."),
-    ("componentIngest", "service", "Ingest", "Reads cargo metadata, Cargo.lock and every source file through syn into facts carrying their source spans."),
-    ("componentRouter", "service", "Router", "Maps each fact's kinds to the one Prism record kind of model/routes.toml, or to a typed refusal."),
-    ("componentAdmission", "service", "Admission", "Admits routed facts whose records are complete and records each refusal as an open claim with its reason."),
-    ("componentEmitter", "service", "Emitter", "Writes the Prism project: prismpm.toml, lexlean.toml, one module per facet, glossaries and the conformance register, in a fixed order."),
+    ("componentCli", "releaseBinary", "uorust CLI", item_doc(A, "Architecture::componentCli", "crates/uorust/src/main.rs", "struct Cli ")),
+    ("componentIngest", "service", "Ingest", module_doc(A, "Architecture::componentIngest", "crates/uorust/src/ingest.rs")),
+    ("componentRouter", "service", "Router", module_doc(A, "Architecture::componentRouter", "crates/uorust/src/route.rs")),
+    ("componentAdmission", "service", "Admission", module_doc(A, "Architecture::componentAdmission", "crates/uorust/src/admit.rs")),
+    ("componentEmitter", "service", "Emitter", module_doc(A, "Architecture::componentEmitter", "crates/uorust/src/project.rs")),
     ("componentRouteGuest", "service", "Route-table guest", "The Core-Wasm guest compiled from app/src/Routes.lex.tex: the verified route table, replayed against every acceptance vector."),
     ("componentRouteCli", "cliAdapter", "Route CLI adapter", "The generated uorust-routes program that answers the same route requests as the page from a file or standard input."),
     ("componentPagesSite", "staticSite", "Pages site", "The GitHub Pages site that describes UORust and runs the route-table guest in the browser."),
@@ -142,6 +262,15 @@ for n, *_ in reversed(viewpoints):
     t, x = vp_text[n]
     nl = f"(cons (record Narrative {{record := {q('Architecture::' + n)}, name := {q(t)}, text := {q(x)}}}) {nl})"
 out += defn("viewpointNarratives", "(List Narrative)", nl) + "\n"
+out += """structure{
+  name: Source,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: record, type: String}, {name: path, type: String}, {name: firstLine, type: Nat}, {name: lastLine, type: Nat}, {name: kappa, type: String}]
+}
+
+"""
+out += defn("sourcesOfComponents", "(List Source)", source_list(A).replace("Architecture::Source", "Source")) + "\n"
 def lst(names, ty):
     o = f"(nil {ty})"
     for n in reversed(names):
@@ -269,36 +398,38 @@ open(f"{OUT}/Design.lex.tex", "w").write(out)
 
 # ---------------------------------------------------------------- Features
 F = "Features"
+FS = "Features::"
 calls = [
-    ("callProject", "uorust project WORKSPACE --out DIR"),
-    ("callCheck", "uorust check WORKSPACE --out DIR"),
-    ("callRoutes", "uorust routes"),
+    ("callProject", clap_call(F, FS + "callProject", "project")),
+    ("callCheck", clap_call(F, FS + "callCheck", "check")),
+    ("callRoutes", clap_call(F, FS + "callRoutes", "routes")),
     ("callProjectWorkspace", "uorust::project_workspace"),
     ("callRespond", "uorust::route::respond"),
     ("callPrismPmCheck", "prismpm --project DIR check"),
     ("callPagesRoute", "the Route operation of the Pages workbench"),
 ]
-accepts = [
-    ("acceptFixtureProjection", "UE-01: the fixture workspace projects into exactly the committed Prism project, which prismpm check accepts"),
-    ("acceptByteIdentical", "UE-02: two projections of the same workspace are byte-identical"),
-    ("acceptTypedRefusals", "UE-03: admission refuses ambiguous and incomplete facts as open claims"),
-    ("acceptLift", "UE-04: total functions lift to LexLean definitions; the rest is typed residue"),
-    ("acceptRouterConformance", "UE-05: the Rust router answers every vector of model/routes.toml"),
-    ("acceptTypedErrors", "UE-06: every failed run is a typed UorustError with a negative test"),
-    ("acceptGate", "UE-07: just vv checks the fixture and self projections with prismpm check"),
-    ("acceptRouteTheorems", "UR-01: the route table is total and refuses ambiguity, by decide"),
+# The library calls are the public functions they name.
+line_of(F, FS + "callProjectWorkspace", "crates/uorust/src/lib.rs", "pub fn project_workspace(")
+line_of(F, FS + "callRespond", "crates/uorust/src/route.rs", "pub fn respond(")
+# Each acceptance is a register row, stated as the register states it.
+accept_rows = [
+    ("acceptFixtureProjection", "UE-01"), ("acceptByteIdentical", "UE-02"), ("acceptTypedRefusals", "UE-03"),
+    ("acceptLift", "UE-04"), ("acceptRouterConformance", "UE-05"), ("acceptTypedErrors", "UE-06"),
+    ("acceptGate", "UE-07"), ("acceptRouteTheorems", "SM-02"),
 ]
+accepts = [(n, f"{rid}: {register_row(F, FS + n, rid)}") for n, rid in accept_rows]
+# A feature's statement is what the code or the register says it does.
 features = [
-    ("featureProjectWorkspace", "Project a Cargo workspace into a complete Prism project in one command.", ["callProject", "callProjectWorkspace"], ["acceptFixtureProjection", "acceptGate"]),
-    ("featureCheckProjection", "Check that a directory holds exactly the current projection of a workspace.", ["callCheck"], ["acceptFixtureProjection", "acceptByteIdentical"]),
-    ("featureRouteFacts", "Route each kind of Rust fact to the one Prism record kind it becomes, or refuse it with a reason.", ["Routes::dispatch", "callRespond", "callRoutes"], ["Routes::acceptanceVectors", "acceptRouterConformance", "acceptRouteTheorems"]),
-    ("featureRefuseAmbiguity", "Refuse an ambiguous or unknown fact as an open claim instead of choosing a record by default.", ["callProjectWorkspace", "callRespond"], ["acceptTypedRefusals", "acceptRouteTheorems"]),
-    ("featureLiftBehavior", "Lift total Rust functions to LexLean definitions and decide their closed assertions as theorems.", ["callProjectWorkspace"], ["acceptLift"]),
-    ("featureDeterministicOutput", "Write byte-identical output on every run, so a projection can be committed and checked.", ["callProject", "callCheck"], ["acceptByteIdentical"]),
-    ("featureTypedErrors", "End every failed run with a typed error that names its cause.", ["callProject", "callCheck"], ["acceptTypedErrors"]),
-    ("featureCheckedOutput", "Emit a project the locked PrismPM SDK accepts.", ["callPrismPmCheck"], ["acceptFixtureProjection", "acceptGate"]),
-    ("featureSelfModel", "Model UORust itself in every Prism facet and verify that model with the same SDK.", ["callPrismPmCheck"], ["acceptGate", "acceptRouteTheorems"]),
-    ("featureBrowserRoutes", "Run the verified route table in the browser on the Pages site.", ["callPagesRoute", "Routes::dispatch"], ["Routes::acceptanceVectors"]),
+    ("featureProjectWorkspace", item_doc(F, FS + "featureProjectWorkspace", "crates/uorust/src/main.rs", "Project(Args),"), ["callProject", "callProjectWorkspace"], ["acceptFixtureProjection", "acceptGate"]),
+    ("featureCheckProjection", item_doc(F, FS + "featureCheckProjection", "crates/uorust/src/main.rs", "Check(Args),"), ["callCheck"], ["acceptFixtureProjection", "acceptByteIdentical"]),
+    ("featureRouteFacts", module_doc(F, FS + "featureRouteFacts", "crates/uorust/src/route.rs"), ["Routes::dispatch", "callRespond", "callRoutes"], ["Routes::acceptanceVectors", "acceptRouterConformance", "acceptRouteTheorems"]),
+    ("featureRefuseAmbiguity", module_doc(F, FS + "featureRefuseAmbiguity", "crates/uorust/src/admit.rs"), ["callProjectWorkspace", "callRespond"], ["acceptTypedRefusals", "acceptRouteTheorems"]),
+    ("featureLiftBehavior", module_doc(F, FS + "featureLiftBehavior", "crates/uorust/src/lift.rs"), ["callProjectWorkspace"], ["acceptLift"]),
+    ("featureDeterministicOutput", register_row(F, FS + "featureDeterministicOutput", "UE-02"), ["callProject", "callCheck"], ["acceptByteIdentical"]),
+    ("featureTypedErrors", register_row(F, FS + "featureTypedErrors", "UE-06"), ["callProject", "callCheck"], ["acceptTypedErrors"]),
+    ("featureCheckedOutput", register_row(F, FS + "featureCheckedOutput", "UE-07"), ["callPrismPmCheck"], ["acceptFixtureProjection", "acceptGate"]),
+    ("featureSelfModel", register_row(F, FS + "featureSelfModel", "SM-03"), ["callPrismPmCheck"], ["acceptGate", "acceptRouteTheorems"]),
+    ("featureBrowserRoutes", register_row(F, FS + "featureBrowserRoutes", "SM-01"), ["callPagesRoute", "Routes::dispatch"], ["Routes::acceptanceVectors"]),
 ]
 def ref(x): return x if "::" in x else f"Features::{x}"
 journeys = [
@@ -315,11 +446,28 @@ for n, st, cs, acs in features:
     out += defn(n, "Foundation.Arch::Feature", f"(record Foundation.Arch::Feature {{statement := {q(st)}, calls := {strlist([ref(c) for c in cs])}, acceptance := {strlist([ref(a) for a in acs])}}})") + "\n"
 for n, actor, steps in journeys:
     out += defn(n, "Foundation.Arch::Journey", f"(record Foundation.Arch::Journey {{actor := {q(C(actor))}, steps := {strlist(['Features::' + s for s in steps])}}})") + "\n"
+out += defn("sourcesOfFeatures", "(List Architecture::Source)", source_list(F)) + "\n"
 out = out.rstrip("\n") + "\n" + FOOT
 open(f"{OUT}/Features.lex.tex", "w").write(out)
 
 # ---------------------------------------------------------------- Security
 S = "Security"
+SS = "Security::modeled"
+def gate(control, rid):
+    """Gate evidence that is a register row: the row's ID and statement, cited."""
+    return ("gate", f"{rid}: {register_row(S, SS + control[0].upper() + control[1:], rid)}")
+def review(control, path, needle, kind="review"):
+    """Evidence that is one source line: its path, number and text, cited."""
+    at = line_of(S, SS + control[0].upper() + control[1:], path, needle)
+    return (kind, f"{path}:{at} {lines_of(path)[at - 1].strip()}")
+def absent(control, needle):
+    """Review evidence that no line of uorust's code (doc comments aside) names `needle`."""
+    import os
+    base = "crates/uorust/src"
+    for f in sorted(os.listdir(f"{SRC}/{base}")):
+        for i, l in enumerate(lines_of(f"{base}/{f}")):
+            assert needle not in l or l.strip().startswith("//"), f"{base}/{f}:{i + 1} names {needle}"
+    return ("review", f"no line of {base} names {needle} outside a doc comment (checked by scripts/self-model/facets.py)")
 assets = [
     ("assetSubjectSource", "componentSubjectWorkspace", "Subject source code", "The manifests, lock file and Rust sources uorust reads. They may be private and must not leave the machine."),
     ("assetEmittedModel", "componentEmitter", "Emitted Prism model", "The Prism project uorust writes. Reviewers trust it to state what the source does."),
@@ -345,17 +493,17 @@ threats = [
 ]
 controls = [
     # name, threat(for riskIndex), title, text, evidence [(kind, ref)]
-    ("controlNoBuildExecution", "threatBuildScriptExecution", "No build of the subject", "uorust reads the workspace through cargo metadata and syn only; it never compiles the subject or runs its build scripts or macros.", [("review", "crates/uorust/src/facts.rs reads sources with syn::parse_file"), ("gate", "UE-01 projects the fixture workspace without building it")]),
-    ("controlOffline", "threatSourceExfiltration", "No network", "uorust links no network client, and cargo metadata runs with --offline against the subject's lock file.", [("gate", "cargo deny check over Cargo.lock"), ("review", "no std::net use in crates/uorust")]),
-    ("controlBoundedIngest", "threatCraftedSourceExhaustion", "Bounded ingest", "Every read is bounded in size and every walk in depth; a bound that is hit ends the run with a typed error.", [("gate", "UE-06 negative tests for every UorustError variant")]),
+    ("controlNoBuildExecution", "threatBuildScriptExecution", "No build of the subject", "uorust reads the workspace through cargo metadata and syn only; it never compiles the subject or runs its build scripts or macros.", [review("controlNoBuildExecution", "crates/uorust/src/ingest.rs", "syn::parse_file(&text)"), gate("controlNoBuildExecution", "UE-01")]),
+    ("controlOffline", "threatSourceExfiltration", "No network", "uorust links no network client, and cargo metadata runs with --offline against the subject's lock file.", [("gate", "cargo deny check over Cargo.lock"), absent("controlOffline", "std::net")]),
+    ("controlBoundedIngest", "threatCraftedSourceExhaustion", "Bounded ingest", "Every read is bounded in size and every walk in depth; a bound that is hit ends the run with a typed error.", [gate("controlBoundedIngest", "UE-06")]),
     ("controlVerifiedRouteTable", "threatMisroutedFact", "Verified route table", "The route table is a LexLean function proved total and ambiguity-refusing by decide, and checked by the Lean kernel.", [("proof", "Routes::routeTableIsTotal"), ("proof", "Routes::routeTableRefusesAmbiguity"), ("gate", "prismpm --project app verify")]),
-    ("controlRouterConformance", "threatMisroutedFact", "Router conformance", "The Rust router replays every vector of model/routes.toml, the same vectors the verified guest replays.", [("gate", "UE-05 crates/uorust/tests/routes.rs")]),
-    ("controlTypedRefusal", "threatMisroutedFact", "Typed refusal", "Admission never defaults: an ambiguous, unknown or incomplete fact becomes an open claim with its reason.", [("gate", "UE-03 typed refusals recorded as open claims")]),
-    ("controlDeterministicOutput", "threatDisputedProjection", "Deterministic output", "Output is a pure function of the workspace and its commit time, written in a fixed order, so a dispute is settled by re-running uorust.", [("gate", "UE-02 two projections are byte-identical")]),
+    ("controlRouterConformance", "threatMisroutedFact", "Router conformance", "The Rust router replays every vector of model/routes.toml, the same vectors the verified guest replays.", [gate("controlRouterConformance", "UE-05")]),
+    ("controlTypedRefusal", "threatMisroutedFact", "Typed refusal", "Admission never defaults: an ambiguous, unknown or incomplete fact becomes an open claim with its reason.", [gate("controlTypedRefusal", "UE-03")]),
+    ("controlDeterministicOutput", "threatDisputedProjection", "Deterministic output", "Output is a pure function of the workspace and its commit time, written in a fixed order, so a dispute is settled by re-running uorust.", [gate("controlDeterministicOutput", "UE-02")]),
     ("controlCargoDeny", "threatDependencyCompromise", "Dependency policy", "cargo deny refuses advisories, unknown registries, wildcard requirements and licenses outside Apache-2.0, MIT and Unicode-3.0.", [("gate", "just vv deny")]),
     ("controlLockedBuild", "threatDependencyCompromise", "Locked build", "Every build and test runs with --locked against the committed Cargo.lock.", [("gate", "just vv lint and test run cargo with --locked")]),
-    ("controlForbidUnsafe", "threatUnsafeMemory", "No unsafe code", "#![forbid(unsafe_code)] in every uorust crate makes any unsafe block a compile error.", [("gate", "rustc forbid(unsafe_code) in crates/uorust/src/main.rs")]),
-    ("controlConfinedOutput", "threatPathEscape", "Confined output", "The emitter writes only relative paths it generated itself, each checked to stay below the output directory.", [("review", "crates/uorust/src/lib.rs write")]),
+    ("controlForbidUnsafe", "threatUnsafeMemory", "No unsafe code", "#![forbid(unsafe_code)] in every uorust crate makes any unsafe block a compile error.", [review("controlForbidUnsafe", "crates/uorust/src/main.rs", "#![forbid(unsafe_code)]", "gate"), review("controlForbidUnsafe", "crates/uorust/src/lib.rs", "#![forbid(unsafe_code)]", "gate")]),
+    ("controlConfinedOutput", "threatPathEscape", "Confined output", "The emitter writes only relative paths it generated itself, each checked to stay below the output directory.", [review("controlConfinedOutput", "crates/uorust/src/lib.rs", "pub fn write(out: &Path")]),
     ("controlPinnedWorkflows", "threatWorkflowTokenAbuse", "Pinned workflows", "Workflows pin every action by commit, check out with persist-credentials false and are themselves pinned by template.lock.", [("gate", "xtask audit-bootstrap")]),
     ("controlArtifactClosure", "threatTamperedPages", "Artifact closure", "prismpm verify replays the acceptance vectors in the built guest and checks the exact file closure of the browser artifact.", [("gate", "prismpm --project app verify")]),
 ]
@@ -401,13 +549,13 @@ for c in controls:
     out += defn("modeled" + c[0][0].upper() + c[0][1:], "Production.ThreatModel::ModeledControl", f"(record Production.ThreatModel::ModeledControl {{control := {q('Security::' + c[0])}, name := {q(c[2])}, text := {q(c[3])}, evidence := {ev}}})") + "\n"
 for t, cs in mapped.items():
     out += defn("mapping" + t[6:], "Production.ThreatModel::ThreatMapping", f"(record Production.ThreatModel::ThreatMapping {{threat := {q('Security::' + t)}, controls := {strlist(['Security::' + c for c in cs])}}})") + "\n"
+out += defn("sourcesOfControls", "(List Architecture::Source)", source_list(S)) + "\n"
 for t, why in accepted.items():
     out += defn("accepted" + t[6:], "Production.ThreatModel::AcceptedRisk", f"(record Production.ThreatModel::AcceptedRisk {{threat := {q('Security::' + t)}, rationale := {q(why)}}})") + "\n"
 out = out.rstrip("\n") + "\n" + FOOT
 open(f"{OUT}/Security.lex.tex", "w").write(out)
 
 # ---------------------------------------------------------------- Quality
-Qm = "Quality"
 chars = ["characteristicFunctionalSuitability", "characteristicPerformanceEfficiency", "characteristicReliability",
          "characteristicMaintainability", "characteristicFlexibility", "characteristicSecurity"]
 subs = [("subcharacteristicFunctionalCompleteness", "characteristicFunctionalSuitability"),
@@ -420,16 +568,51 @@ subs = [("subcharacteristicFunctionalCompleteness", "characteristicFunctionalSui
         ("subcharacteristicAdaptability", "characteristicFlexibility"),
         ("subcharacteristicInstallability", "characteristicFlexibility"),
         ("subcharacteristicIntegrity", "characteristicSecurity")]
+# Every threshold is derived, never chosen here:
+# - counted from the route table (routes, router vectors) or read from the
+#   manifest (the MSRV), with the span it was read from;
+# - the model's own bound (the request limit, Routes::requestLimit);
+# - the measurement of a comparator pinned in model/comparators.toml;
+# - or 0, for a measure that counts defects (drift, differing bytes,
+#   unregistered tests, warnings, needed libraries, unsafe blocks, unlifted
+#   functions): the requirement is that there are none, and the excess over 0
+#   is the distance to it.
+Qm = "Quality"
+QS = "Quality::"
+ROUTES_TOML = "model/routes.toml"
+routes_lines = lines_of(ROUTES_TOML)
+route_rows = [i + 1 for i, l in enumerate(routes_lines) if l == "[[route]]"]
+vector_rows = [i + 1 for i, l in enumerate(routes_lines) if l == "[[vector]]"]
+cite(Qm, QS + "measureRoutedFactKinds", ROUTES_TOML, route_rows[0], vector_rows[0] - 1)
+cite(Qm, QS + "measureRouteVectors", ROUTES_TOML, vector_rows[0], vector_rows[-1] + 3)
+msrv_line = line_of(Qm, QS + "measureMinimumRustMinor", "Cargo.toml", "rust-version = ")
+msrv_minor = int(re.search(r'"1\.(\d+)', lines_of("Cargo.toml")[msrv_line - 1]).group(1))
+routes_lex = open(f"{root}/app/src/Routes.lex.tex", encoding="utf-8").read()
+request_limit = int(re.search(r"name: requestLimit,\s*parameters: \[\],\s*result: Nat,\s*body: (\d+)", routes_lex).group(1))
+COMPARATORS = "model/comparators.toml"
+comparators = tomllib.loads(open(f"{SRC}/{COMPARATORS}", encoding="utf-8").read())
+def pinned(kind, measure):
+    """The one row of `kind` for `measure` in model/comparators.toml, cited."""
+    rows = [r for r in comparators[kind] if r["measure"] == measure]
+    assert len(rows) == 1, f"{COMPARATORS}: {len(rows)} {kind} rows for {measure}"
+    lines = lines_of(COMPARATORS)
+    heads = [i + 1 for i, l in enumerate(lines) if l == f"[[{kind}]]"]
+    at = [h for h in heads if f'measure = "{measure}"' in lines[h]][0]
+    end = next((i for i in range(at, len(lines)) if lines[i] == ""), len(lines))
+    cite(Qm, QS + measure + kind.capitalize(), COMPARATORS, at, end)
+    return rows[0]["milliseconds"]
+projection_threshold = pinned("comparator", "measureSelfProjectionMilliseconds")
+projection_observed = pinned("observation", "measureSelfProjectionMilliseconds")
 reqs = [  # requirement, sub, measure, threshold
-    ("requirementRouteCoverage", "subcharacteristicFunctionalCompleteness", "measureRoutedFactKinds", 28),
-    ("requirementVectorCoverage", "subcharacteristicFunctionalCorrectness", "measureRouteVectors", 39),
+    ("requirementRouteCoverage", "subcharacteristicFunctionalCompleteness", "measureRoutedFactKinds", len(route_rows)),
+    ("requirementVectorCoverage", "subcharacteristicFunctionalCorrectness", "measureRouteVectors", len(vector_rows)),
     ("requirementSelfFixpoint", "subcharacteristicFunctionalCorrectness", "measureSelfModelDrift", 0),
     ("requirementDeterminism", "subcharacteristicFaultlessness", "measureRerunDifferingBytes", 0),
-    ("requirementSelfProjectionTime", "subcharacteristicTimeBehaviour", "measureSelfProjectionSeconds", 10),
-    ("requirementRequestBound", "subcharacteristicCapacity", "measureRouteRequestBytes", 512),
+    ("requirementSelfProjectionTime", "subcharacteristicTimeBehaviour", "measureSelfProjectionMilliseconds", projection_threshold),
+    ("requirementRequestBound", "subcharacteristicCapacity", "measureRouteRequestBytes", request_limit),
     ("requirementRegisteredTests", "subcharacteristicTestability", "measureUnregisteredTests", 0),
     ("requirementLintClean", "subcharacteristicModifiability", "measureClippyWarnings", 0),
-    ("requirementMsrv", "subcharacteristicAdaptability", "measureMinimumRustMinor", 89),
+    ("requirementMsrv", "subcharacteristicAdaptability", "measureMinimumRustMinor", msrv_minor),
     ("requirementStaticRouteCli", "subcharacteristicInstallability", "measureRouteCliNeededLibraries", 0),
     ("requirementNoUnsafe", "subcharacteristicIntegrity", "measureUnsafeBlocks", 0),
     # Every function of product code lifts: the measure is the number of rows
@@ -439,7 +622,7 @@ reqs = [  # requirement, sub, measure, threshold
     ("requirementEveryFunctionLifted", "subcharacteristicFunctionalCompleteness", "measureUnliftedFunctions", 0),
 ]
 chi = indexed(chars); subi = indexed([s for s, _ in subs]); rqi = indexed([r[0] for r in reqs]); msi = indexed([r[2] for r in reqs])
-out = header(Qm, "UORust quality model", ["Foundation.Qual"], ("prism.arch", "prism.qual"))
+out = header(Qm, "UORust quality model", ["Architecture", "Foundation.Qual", "Routes"], ("prism.arch", "prism.qual"))
 for c in chars:
     out += defn(c, "Foundation.Qual::ProductQualityCharacteristic", f"(record Foundation.Qual::ProductQualityCharacteristic {{index := {chi[c]}}})") + "\n"
 for s_, c in subs:
@@ -473,6 +656,34 @@ theorem{{
   axioms: [Quot.sound, propext]
 }}
 """
+# The thresholds that are bounds of the model are the model's: the request
+# measure's threshold is the route table's request limit.
+out += f"""
+theorem{{
+  name: requestThresholdIsTheTableLimit,
+  parameters: [],
+  statement: ((project (measureRouteRequestBytes) threshold) = (Routes::requestLimit)),
+  proof: decide{{}}
+}}
+"""
+# The pinned observation of a comparator-pinned measure, and its excess over
+# the threshold: none.
+out += f"""
+definition{{
+  name: selfProjectionObservedMilliseconds,
+  parameters: [],
+  result: Nat,
+  body: {projection_observed}
+}}
+
+theorem{{
+  name: selfProjectionHasNoExcess,
+  parameters: [],
+  statement: ((excessOver (project (measureSelfProjectionMilliseconds) threshold) (selfProjectionObservedMilliseconds)) = 0),
+  proof: decide{{}}
+}}
+"""
+out += "\n" + defn("sourcesOfMeasures", "(List Architecture::Source)", source_list(Qm))
 out = out.rstrip("\n") + "\n" + FOOT
 open(f"{OUT}/Quality.lex.tex", "w").write(out)
 

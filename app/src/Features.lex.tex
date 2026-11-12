@@ -11,14 +11,14 @@ definition{
   name: callProject,
   parameters: [],
   result: String,
-  body: "uorust project WORKSPACE --out DIR"
+  body: "uorust project WORKSPACE --out OUT"
 }
 
 definition{
   name: callCheck,
   parameters: [],
   result: String,
-  body: "uorust check WORKSPACE --out DIR"
+  body: "uorust check WORKSPACE --out OUT"
 }
 
 definition{name: callRoutes, parameters: [], result: String, body: "uorust routes"}
@@ -50,126 +50,126 @@ definition{
   name: acceptFixtureProjection,
   parameters: [],
   result: String,
-  body: "UE-01: the fixture workspace projects into exactly the committed Prism project, which prismpm check accepts"
+  body: "UE-01: uorust projects the fixture workspace into exactly the committed Prism project, which lexlean fmt, lexlean lock and prismpm check accept"
 }
 
 definition{
   name: acceptByteIdentical,
   parameters: [],
   result: String,
-  body: "UE-02: two projections of the same workspace are byte-identical"
+  body: "UE-02: Two projections of the same workspace are byte-identical, for the fixture and for this workspace"
 }
 
 definition{
   name: acceptTypedRefusals,
   parameters: [],
   result: String,
-  body: "UE-03: admission refuses ambiguous and incomplete facts as open claims"
+  body: "UE-03: Admission refuses an ambiguous call, a feature without acceptance and a missing MSRV with typed refusals recorded as open claims, and emits no record for them"
 }
 
 definition{
   name: acceptLift,
   parameters: [],
   result: String,
-  body: "UE-04: total functions lift to LexLean definitions; the rest is typed residue"
+  body: "UE-04: Total functions over bool, unsigned comparisons and unit enums lift to LexLean definitions, closed assertions over them become decide theorems, and every other function is residue with a typed reason"
 }
 
 definition{
   name: acceptRouterConformance,
   parameters: [],
   result: String,
-  body: "UE-05: the Rust router answers every vector of model/routes.toml"
+  body: "UE-05: The engine's router equals model/routes.toml route for route and answers every router vector of that table exactly"
 }
 
 definition{
   name: acceptTypedErrors,
   parameters: [],
   result: String,
-  body: "UE-06: every failed run is a typed UorustError with a negative test"
+  body: "UE-06: Every way a run can end without a projection is a typed UorustError variant with a negative test"
 }
 
 definition{
   name: acceptGate,
   parameters: [],
   result: String,
-  body: "UE-07: just vv checks the fixture and self projections with prismpm check"
+  body: "UE-07: just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check"
 }
 
 definition{
   name: acceptRouteTheorems,
   parameters: [],
   result: String,
-  body: "UR-01: the route table is total and refuses ambiguity, by decide"
+  body: "SM-02: The route table's theorems state, over the whole table and by decide, that every fact kind routes to its own row, that facts are distinct, and that any two kinds naming different routes are refused as ambiguous"
 }
 
 definition{
   name: featureProjectWorkspace,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Project a Cargo workspace into a complete Prism project in one command.", calls := (cons "Features::callProject" (cons "Features::callProjectWorkspace" (nil String))), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptGate" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "Write the projection of a workspace into a directory.", calls := (cons "Features::callProject" (cons "Features::callProjectWorkspace" (nil String))), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptGate" (nil String)))})
 }
 
 definition{
   name: featureCheckProjection,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Check that a directory holds exactly the current projection of a workspace.", calls := (cons "Features::callCheck" (nil String)), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptByteIdentical" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "Check that a directory holds exactly the projection of a workspace.", calls := (cons "Features::callCheck" (nil String)), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptByteIdentical" (nil String)))})
 }
 
 definition{
   name: featureRouteFacts,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Route each kind of Rust fact to the one Prism record kind it becomes, or refuse it with a reason.", calls := (cons "Routes::dispatch" (cons "Features::callRespond" (cons "Features::callRoutes" (nil String)))), acceptance := (cons "Routes::acceptanceVectors" (cons "Features::acceptRouterConformance" (cons "Features::acceptRouteTheorems" (nil String))))})
+  body: (record Foundation.Arch::Feature {statement := "The route table and the router: which kind of Rust fact becomes which kind of Prism record in which facet.", calls := (cons "Routes::dispatch" (cons "Features::callRespond" (cons "Features::callRoutes" (nil String)))), acceptance := (cons "Routes::acceptanceVectors" (cons "Features::acceptRouterConformance" (cons "Features::acceptRouteTheorems" (nil String))))})
 }
 
 definition{
   name: featureRefuseAmbiguity,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Refuse an ambiguous or unknown fact as an open claim instead of choosing a record by default.", calls := (cons "Features::callProjectWorkspace" (cons "Features::callRespond" (nil String))), acceptance := (cons "Features::acceptTypedRefusals" (cons "Features::acceptRouteTheorems" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "Admission: what the router proposes is admitted, or refused with a typed reason that becomes an open claim.", calls := (cons "Features::callProjectWorkspace" (cons "Features::callRespond" (nil String))), acceptance := (cons "Features::acceptTypedRefusals" (cons "Features::acceptRouteTheorems" (nil String)))})
 }
 
 definition{
   name: featureLiftBehavior,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Lift total Rust functions to LexLean definitions and decide their closed assertions as theorems.", calls := (cons "Features::callProjectWorkspace" (nil String)), acceptance := (cons "Features::acceptLift" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "Function bodies to LexLean definitions, where the lift is mechanical.", calls := (cons "Features::callProjectWorkspace" (nil String)), acceptance := (cons "Features::acceptLift" (nil String))})
 }
 
 definition{
   name: featureDeterministicOutput,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Write byte-identical output on every run, so a projection can be committed and checked.", calls := (cons "Features::callProject" (cons "Features::callCheck" (nil String))), acceptance := (cons "Features::acceptByteIdentical" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "Two projections of the same workspace are byte-identical, for the fixture and for this workspace", calls := (cons "Features::callProject" (cons "Features::callCheck" (nil String))), acceptance := (cons "Features::acceptByteIdentical" (nil String))})
 }
 
 definition{
   name: featureTypedErrors,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "End every failed run with a typed error that names its cause.", calls := (cons "Features::callProject" (cons "Features::callCheck" (nil String))), acceptance := (cons "Features::acceptTypedErrors" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "Every way a run can end without a projection is a typed UorustError variant with a negative test", calls := (cons "Features::callProject" (cons "Features::callCheck" (nil String))), acceptance := (cons "Features::acceptTypedErrors" (nil String))})
 }
 
 definition{
   name: featureCheckedOutput,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Emit a project the locked PrismPM SDK accepts.", calls := (cons "Features::callPrismPmCheck" (nil String)), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptGate" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check", calls := (cons "Features::callPrismPmCheck" (nil String)), acceptance := (cons "Features::acceptFixtureProjection" (cons "Features::acceptGate" (nil String)))})
 }
 
 definition{
   name: featureSelfModel,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Model UORust itself in every Prism facet and verify that model with the same SDK.", calls := (cons "Features::callPrismPmCheck" (nil String)), acceptance := (cons "Features::acceptGate" (cons "Features::acceptRouteTheorems" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, quality, the browser system release and compliance, each with records, and every module title has a project-local glossary entry", calls := (cons "Features::callPrismPmCheck" (nil String)), acceptance := (cons "Features::acceptGate" (cons "Features::acceptRouteTheorems" (nil String)))})
 }
 
 definition{
   name: featureBrowserRoutes,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "Run the verified route table in the browser on the Pages site.", calls := (cons "Features::callPagesRoute" (cons "Routes::dispatch" (nil String))), acceptance := (cons "Routes::acceptanceVectors" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "UORust's application answers the route table of model/routes.toml route for route, and replays every router and workbench vector of that file in order", calls := (cons "Features::callPagesRoute" (cons "Routes::dispatch" (nil String))), acceptance := (cons "Routes::acceptanceVectors" (nil String))})
 }
 
 definition{
@@ -205,6 +205,13 @@ definition{
   parameters: [],
   result: Foundation.Arch::Journey,
   body: (record Foundation.Arch::Journey {actor := "Architecture::stakeholderMaintainer", steps := (cons "Features::featureSelfModel" (cons "Features::featureRouteFacts" (cons "Features::featureDeterministicOutput" (cons "Features::featureCheckProjection" (nil String)))))})
+}
+
+definition{
+  name: sourcesOfFeatures,
+  parameters: [],
+  result: (List Architecture::Source),
+  body: (cons (record Architecture::Source {record := "Features::callProject", path := "crates/uorust/src/main.rs", firstLine := 23, lastLine := 23, kappa := "c3b8885bfd1306a90c916b3f267289487ff750e69a70d64a846a06a337466c0e"}) (cons (record Architecture::Source {record := "Features::callProjectArguments", path := "crates/uorust/src/main.rs", firstLine := 31, lastLine := 52, kappa := "a81176524876634bdcc885d014c0cceef347bf171496910792be9a68ecdd202e"}) (cons (record Architecture::Source {record := "Features::callCheck", path := "crates/uorust/src/main.rs", firstLine := 25, lastLine := 25, kappa := "03ac534ece29b640314d385649de3bc8db0b719ca630180334b52c63754e212e"}) (cons (record Architecture::Source {record := "Features::callCheckArguments", path := "crates/uorust/src/main.rs", firstLine := 31, lastLine := 52, kappa := "a81176524876634bdcc885d014c0cceef347bf171496910792be9a68ecdd202e"}) (cons (record Architecture::Source {record := "Features::callRoutes", path := "crates/uorust/src/main.rs", firstLine := 27, lastLine := 27, kappa := "bec54c48be6c79a9880c0ace354baedbdc6f9039f3a8beeb88d72aae43ba3540"}) (cons (record Architecture::Source {record := "Features::callProjectWorkspace", path := "crates/uorust/src/lib.rs", firstLine := 40, lastLine := 40, kappa := "5b71df4e2cdc2983559ebad13b2b2a0eb1cef2f7ca5e50d8007f20f4edd32a86"}) (cons (record Architecture::Source {record := "Features::callRespond", path := "crates/uorust/src/route.rs", firstLine := 168, lastLine := 168, kappa := "d5c81a5b9f7a216f5bdf3d9ad4fa9d0dd36bf76df524ffa1e0e0d3a58d67f2a7"}) (cons (record Architecture::Source {record := "Features::acceptFixtureProjection", path := "model/ids.toml", firstLine := 53, lastLine := 53, kappa := "1c8113fdacb2b2ffc506ce327e49490b16e477b18191898b0933a8af0828b467"}) (cons (record Architecture::Source {record := "Features::acceptByteIdentical", path := "model/ids.toml", firstLine := 59, lastLine := 59, kappa := "ce3be3630d5760e4a82917cf2acd16fcb5068e52a2a4c05c3fc3e345e3d0b50f"}) (cons (record Architecture::Source {record := "Features::acceptTypedRefusals", path := "model/ids.toml", firstLine := 65, lastLine := 65, kappa := "5206d14ea60610b613787466024ceb31fe6940986c13d048cab8512308544a00"}) (cons (record Architecture::Source {record := "Features::acceptLift", path := "model/ids.toml", firstLine := 71, lastLine := 71, kappa := "d6ab6ce3b646e0e917e8e07fdf5024ca5274ad31ca167e4722b7f5cd57455de9"}) (cons (record Architecture::Source {record := "Features::acceptRouterConformance", path := "model/ids.toml", firstLine := 77, lastLine := 77, kappa := "bf2efbd58853ca2d8fee835c8387a66d1bb808466f63653f987c609dbb085421"}) (cons (record Architecture::Source {record := "Features::acceptTypedErrors", path := "model/ids.toml", firstLine := 83, lastLine := 83, kappa := "6f685a89e1a12e4d8f2800fa31df1adb8cc5c908d7bbf613e5abcbee258269a7"}) (cons (record Architecture::Source {record := "Features::acceptGate", path := "model/ids.toml", firstLine := 89, lastLine := 89, kappa := "1d50e2afabb6319a39659498a1dd5804e97f8b71527ecca38d24f96e169400e8"}) (cons (record Architecture::Source {record := "Features::acceptRouteTheorems", path := "model/ids.toml", firstLine := 35, lastLine := 35, kappa := "028b8912c2d3362c8314f39ee4ea24420c0d9e4afe99adf0070be28e9f8ed74e"}) (cons (record Architecture::Source {record := "Features::featureProjectWorkspace", path := "crates/uorust/src/main.rs", firstLine := 22, lastLine := 22, kappa := "b0bd9684bd1ada3329ee1163494e43d94c5b7d00b4a518731a812893ee5cdbdb"}) (cons (record Architecture::Source {record := "Features::featureCheckProjection", path := "crates/uorust/src/main.rs", firstLine := 24, lastLine := 24, kappa := "14005137188e019ebac2db5ce52d803f9013f71fce1df16651ad71ea6ae5e27d"}) (cons (record Architecture::Source {record := "Features::featureRouteFacts", path := "crates/uorust/src/route.rs", firstLine := 1, lastLine := 2, kappa := "8e418eb8172505eb52f82e9275238ce6d3d274396e28bbc08acb1477d19663e1"}) (cons (record Architecture::Source {record := "Features::featureRefuseAmbiguity", path := "crates/uorust/src/admit.rs", firstLine := 1, lastLine := 2, kappa := "5738d758bec2b4cb7b803984d07daa63b11a36c4806a2f0f154ad486b63050f0"}) (cons (record Architecture::Source {record := "Features::featureLiftBehavior", path := "crates/uorust/src/lift.rs", firstLine := 1, lastLine := 1, kappa := "5abb1e3b8d573e2c0ccab24f3c1b1e69d0003c1b424229f80c90b4464bf07e75"}) (cons (record Architecture::Source {record := "Features::featureDeterministicOutput", path := "model/ids.toml", firstLine := 59, lastLine := 59, kappa := "ce3be3630d5760e4a82917cf2acd16fcb5068e52a2a4c05c3fc3e345e3d0b50f"}) (cons (record Architecture::Source {record := "Features::featureTypedErrors", path := "model/ids.toml", firstLine := 83, lastLine := 83, kappa := "6f685a89e1a12e4d8f2800fa31df1adb8cc5c908d7bbf613e5abcbee258269a7"}) (cons (record Architecture::Source {record := "Features::featureCheckedOutput", path := "model/ids.toml", firstLine := 89, lastLine := 89, kappa := "1d50e2afabb6319a39659498a1dd5804e97f8b71527ecca38d24f96e169400e8"}) (cons (record Architecture::Source {record := "Features::featureSelfModel", path := "model/ids.toml", firstLine := 41, lastLine := 41, kappa := "75e9c8cf3676d3bee6d6c0be0c65008dcf88e5fe8369d9893e319494096c9a8f"}) (cons (record Architecture::Source {record := "Features::featureBrowserRoutes", path := "model/ids.toml", firstLine := 29, lastLine := 29, kappa := "693e628b7754ec4e9d7aa9ffed21a4e5f616b8ab4b173444768f6b4eccbc187a"}) (nil Architecture::Source))))))))))))))))))))))))))
 }
 \end{semanticmodule}
 \end{lexlean}

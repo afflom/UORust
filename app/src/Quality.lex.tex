@@ -3,7 +3,9 @@
 \useglossary{lexlean.std.nat@1.2.0}
 \useglossary{prism.arch@1.0.0}
 \useglossary{prism.qual@1.0.0}
+\importmodule{Architecture}
 \importmodule{Foundation.Qual}
+\importmodule{Routes}
 \title{UORust quality model}
 \begin{semanticmodule}
 definition{
@@ -213,7 +215,7 @@ definition{
   name: measureRouteVectors,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 5, requirementIndex := 11, threshold := 39})
+  body: (record Foundation.Qual::QualityMeasure {index := 5, requirementIndex := 11, threshold := 40})
 }
 
 definition{
@@ -231,17 +233,17 @@ definition{
 }
 
 definition{
-  name: measureSelfProjectionSeconds,
+  name: measureSelfProjectionMilliseconds,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 8, requirementIndex := 9, threshold := 10})
+  body: (record Foundation.Qual::QualityMeasure {index := 8, requirementIndex := 9, threshold := 16258})
 }
 
 definition{
   name: measureRouteRequestBytes,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 4, requirementIndex := 6, threshold := 512})
+  body: (record Foundation.Qual::QualityMeasure {index := 4, requirementIndex := 6, threshold := 318})
 }
 
 definition{
@@ -323,6 +325,29 @@ theorem{
   statement: (((excessOver threshold before) < (excessOver threshold after)) -> (before < after)),
   proof: linear_arithmetic{definitions: [excessOver]},
   axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: requestThresholdIsTheTableLimit,
+  parameters: [],
+  statement: ((project (measureRouteRequestBytes) threshold) = (Routes::requestLimit)),
+  proof: decide{}
+}
+
+definition{name: selfProjectionObservedMilliseconds, parameters: [], result: Nat, body: 6256}
+
+theorem{
+  name: selfProjectionHasNoExcess,
+  parameters: [],
+  statement: ((excessOver (project (measureSelfProjectionMilliseconds) threshold) (selfProjectionObservedMilliseconds)) = 0),
+  proof: decide{}
+}
+
+definition{
+  name: sourcesOfMeasures,
+  parameters: [],
+  result: (List Architecture::Source),
+  body: (cons (record Architecture::Source {record := "Quality::measureRoutedFactKinds", path := "model/routes.toml", firstLine := 42, lastLine := 242, kappa := "198cf4ec5549212d59ce691f5ab1f8d36856cbee742147e7a76868b6051fe507"}) (cons (record Architecture::Source {record := "Quality::measureRouteVectors", path := "model/routes.toml", firstLine := 243, lastLine := 441, kappa := "12e59c09dd7c6f2dc3d76cae8a69d16e64ecf90fc4b5134888ec4d98214cd26b"}) (cons (record Architecture::Source {record := "Quality::measureMinimumRustMinor", path := "Cargo.toml", firstLine := 9, lastLine := 9, kappa := "e3391fe6467f403d0d0a6eae90ad847f2bd724d8043b3c21d24130b82c9dffec"}) (cons (record Architecture::Source {record := "Quality::measureSelfProjectionMillisecondsComparator", path := "model/comparators.toml", firstLine := 19, lastLine := 25, kappa := "54d5395492e9cfb0d7ec1eccdeb47c8834e1dbc018a80aa486aab455adfc788f"}) (cons (record Architecture::Source {record := "Quality::measureSelfProjectionMillisecondsObservation", path := "model/comparators.toml", firstLine := 27, lastLine := 33, kappa := "46b07a8e4b08a8d3055ef72bdab55ebc3c38a9bf512f561cf1bdf16edd6676f7"}) (nil Architecture::Source))))))
 }
 \end{semanticmodule}
 \end{lexlean}

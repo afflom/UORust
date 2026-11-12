@@ -12,7 +12,7 @@ cp "$root/model/routes.toml" "$work/model/"
 cp -r "$root/scripts/self-model" "$work/scripts/"
 tar -C "$root" --exclude=app/.lexlean --exclude=app/.prism --exclude=app/target --exclude=app/.lake -cf - app | tar -C "$work" -xf -
 python3 -I "$work/scripts/self-model/routes.py" "$work"
-python3 -I "$work/scripts/self-model/facets.py" "$work" >/dev/null
+python3 -I "$work/scripts/self-model/facets.py" "$work" "$root" >/dev/null
 (cd "$work/app" && lexlean fmt >/dev/null)
 status=0
 for file in model/routes.toml app/src/Routes.lex.tex app/src/Guide.lex.tex app/src/Architecture.lex.tex \

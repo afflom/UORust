@@ -1,0 +1,33 @@
+# model/comparators.toml --- the measurements a quality threshold is pinned from.
+#
+# A threshold of the quality model (app/src/Quality.lex.tex) is either derived
+# from the model or the sources (scripts/self-model/facets.py says which), or it
+# is the measurement of a comparator recorded here: what was run, with which
+# tool version, on which host and commit, and what it measured. The observation
+# rows are what UORust itself measured on the same host and commit. The
+# generator cites each row with the κ of its lines, and the model
+# states each observation's excess over its threshold with a decide theorem.
+#
+# Re-measure with the commands below on one host and replace both rows
+# together; a threshold is never edited by hand.
+
+spec = "uorust/comparators/1"
+
+# Projecting a workspace reads it without building it, so it must cost no
+# more than the cheapest build step a Rust developer already runs: a cold
+# `cargo check` of the same workspace.
+[[comparator]]
+measure = "measureSelfProjectionMilliseconds"
+command = "CARGO_TARGET_DIR=$(mktemp -d) cargo check --locked --workspace"
+tool = "cargo 1.97.1 (c980f4866 2026-06-30)"
+host = "Linux x86_64, 4 cores, cloud container"
+commit = "8c1a0bc"
+milliseconds = 16258
+
+[[observation]]
+measure = "measureSelfProjectionMilliseconds"
+command = "uorust project . --out DIR --name uorust --last-modified 2026-11-11T00:00:00Z (release build, warm cargo metadata, mean of two runs)"
+tool = "uorust 0.1.0"
+host = "Linux x86_64, 4 cores, cloud container"
+commit = "8c1a0bc"
+milliseconds = 6256

@@ -146,10 +146,18 @@ oversized, non-UTF-8 or blank-line request.
 | Architecture (ISO/IEC/IEEE 42010) | [`Architecture.lex.tex`](app/src/Architecture.lex.tex) | 5 stakeholders, 7 concerns, 14 components (CLI release binary, ingest, router, admission, emitter, route-table guest, route CLI adapter, Pages static site, and the subject workspace, Cargo, crates.io, rustc, PrismPM and GitHub Actions as external systems), 20 edges, 7 viewpoints, 7 views |
 | Design views (OPM, UML) | [`Design.lex.tex`](app/src/Design.lex.tex) | 4 views: the OPM projection process with its zoom, the UML component view, the ingest, route, admit and emit sequence, and the state machine of a fact's admission |
 | Features and journeys | [`Features.lex.tex`](app/src/Features.lex.tex) | 10 features, each naming its interface calls and acceptance rows; 5 journeys, one per stakeholder |
-| Behavior | [`Routes.lex.tex`](app/src/Routes.lex.tex) | the route table, its dispatch, 7 decide theorems, 45 acceptance vectors |
+| Behavior | [`Routes.lex.tex`](app/src/Routes.lex.tex) | the route table, its dispatch, 7 decide theorems, 46 acceptance vectors, and the request limit derived from the table (the length of a request naming every kind once) |
 | Security and threat model (ISO 27034, 27005, STRIDE) | [`Security.lex.tex`](app/src/Security.lex.tex) | 6 assets, 11 threats and risks, 13 controls with gate, proof or review evidence, threat mappings and one accepted risk |
-| Quality (ISO/IEC 25010:2023) | [`Quality.lex.tex`](app/src/Quality.lex.tex) | 6 characteristics, 10 subcharacteristics, 11 requirements with measures: route coverage, vector coverage, self-model drift, byte-identical re-runs, run time, request bound, registered tests, Clippy warnings, MSRV, static CLI, no unsafe code |
+| Quality (ISO/IEC 25010:2023) | [`Quality.lex.tex`](app/src/Quality.lex.tex) | 6 characteristics, 10 subcharacteristics, 12 requirements with measures: route coverage, vector coverage, self-model drift, byte-identical re-runs, run time, request bound, registered tests, Clippy warnings, MSRV, static CLI, no unsafe code, every function lifted. No threshold is chosen: each is counted from the route table, read from the manifest, the model's own request limit, a comparator measurement pinned in [`model/comparators.toml`](model/comparators.toml), or 0 for a count of defects, with an excess theorem where it is measured |
 | Workbench view | [`Guide.lex.tex`](app/src/Guide.lex.tex), [`Frame.lex.tex`](app/src/Frame.lex.tex) | the page's operations, examples, refusal hints and the route-table guide |
+
+The component, feature, acceptance and evidence text that UORust's code or
+register states is read from it by `scripts/self-model/facets.py`, not
+restated: each such record is listed with its source path, lines and κ (the
+SHA-256 of the span) in `Architecture::sourcesOfComponents`,
+`Features::sourcesOfFeatures`, `Security::sourcesOfControls` and
+`Quality::sourcesOfMeasures`, so `just self-model-check` fails when a cited
+source changes until the model is regenerated.
 
 `prismpm --project app check` checks every facet, including the design views
 (PP2012), features and journeys (PP2014 to PP2018) and the threat model (PP2019

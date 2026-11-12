@@ -14,7 +14,7 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root"
 python3 -I scripts/self-model/routes.py "$root"
-python3 -I scripts/self-model/facets.py "$root" >/dev/null
+python3 -I scripts/self-model/facets.py "$root" "$root" >/dev/null
 (cd app && lexlean lock >/dev/null && lexlean fmt >/dev/null)
 if ! out=$(prismpm --project app check 2>&1); then
   old=$(sed -n 's/.*binds application model "\(sha256:[0-9a-f]*\)".*/\1/p' <<<"$out")

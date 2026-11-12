@@ -600,21 +600,21 @@ definition{
   name: modeledControlNoBuildExecution,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlNoBuildExecution", name := "No build of the subject", text := "uorust reads the workspace through cargo metadata and syn only; it never compiles the subject or runs its build scripts or macros.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "crates/uorust/src/facts.rs reads sources with syn::parse_file"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-01 projects the fixture workspace without building it"}) (nil Production.ThreatModel::Evidence)))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlNoBuildExecution", name := "No build of the subject", text := "uorust reads the workspace through cargo metadata and syn only; it never compiles the subject or runs its build scripts or macros.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "crates/uorust/src/ingest.rs:578 let parsed = match syn::parse_file(&text) {"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-01: uorust projects the fixture workspace into exactly the committed Prism project, which lexlean fmt, lexlean lock and prismpm check accept"}) (nil Production.ThreatModel::Evidence)))})
 }
 
 definition{
   name: modeledControlOffline,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlOffline", name := "No network", text := "uorust links no network client, and cargo metadata runs with --offline against the subject's lock file.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "cargo deny check over Cargo.lock"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "no std::net use in crates/uorust"}) (nil Production.ThreatModel::Evidence)))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlOffline", name := "No network", text := "uorust links no network client, and cargo metadata runs with --offline against the subject's lock file.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "cargo deny check over Cargo.lock"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "no line of crates/uorust/src names std::net outside a doc comment (checked by scripts/self-model/facets.py)"}) (nil Production.ThreatModel::Evidence)))})
 }
 
 definition{
   name: modeledControlBoundedIngest,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlBoundedIngest", name := "Bounded ingest", text := "Every read is bounded in size and every walk in depth; a bound that is hit ends the run with a typed error.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-06 negative tests for every UorustError variant"}) (nil Production.ThreatModel::Evidence))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlBoundedIngest", name := "Bounded ingest", text := "Every read is bounded in size and every walk in depth; a bound that is hit ends the run with a typed error.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-06: Every way a run can end without a projection is a typed UorustError variant with a negative test"}) (nil Production.ThreatModel::Evidence))})
 }
 
 definition{
@@ -628,21 +628,21 @@ definition{
   name: modeledControlRouterConformance,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlRouterConformance", name := "Router conformance", text := "The Rust router replays every vector of model/routes.toml, the same vectors the verified guest replays.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-05 crates/uorust/tests/routes.rs"}) (nil Production.ThreatModel::Evidence))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlRouterConformance", name := "Router conformance", text := "The Rust router replays every vector of model/routes.toml, the same vectors the verified guest replays.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-05: The engine's router equals model/routes.toml route for route and answers every router vector of that table exactly"}) (nil Production.ThreatModel::Evidence))})
 }
 
 definition{
   name: modeledControlTypedRefusal,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlTypedRefusal", name := "Typed refusal", text := "Admission never defaults: an ambiguous, unknown or incomplete fact becomes an open claim with its reason.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-03 typed refusals recorded as open claims"}) (nil Production.ThreatModel::Evidence))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlTypedRefusal", name := "Typed refusal", text := "Admission never defaults: an ambiguous, unknown or incomplete fact becomes an open claim with its reason.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-03: Admission refuses an ambiguous call, a feature without acceptance and a missing MSRV with typed refusals recorded as open claims, and emits no record for them"}) (nil Production.ThreatModel::Evidence))})
 }
 
 definition{
   name: modeledControlDeterministicOutput,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlDeterministicOutput", name := "Deterministic output", text := "Output is a pure function of the workspace and its commit time, written in a fixed order, so a dispute is settled by re-running uorust.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-02 two projections are byte-identical"}) (nil Production.ThreatModel::Evidence))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlDeterministicOutput", name := "Deterministic output", text := "Output is a pure function of the workspace and its commit time, written in a fixed order, so a dispute is settled by re-running uorust.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "UE-02: Two projections of the same workspace are byte-identical, for the fixture and for this workspace"}) (nil Production.ThreatModel::Evidence))})
 }
 
 definition{
@@ -663,14 +663,14 @@ definition{
   name: modeledControlForbidUnsafe,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlForbidUnsafe", name := "No unsafe code", text := "#![forbid(unsafe_code)] in every uorust crate makes any unsafe block a compile error.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "rustc forbid(unsafe_code) in crates/uorust/src/main.rs"}) (nil Production.ThreatModel::Evidence))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlForbidUnsafe", name := "No unsafe code", text := "#![forbid(unsafe_code)] in every uorust crate makes any unsafe block a compile error.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "crates/uorust/src/main.rs:3 #![forbid(unsafe_code)]"}) (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.gate), reference := "crates/uorust/src/lib.rs:12 #![forbid(unsafe_code)]"}) (nil Production.ThreatModel::Evidence)))})
 }
 
 definition{
   name: modeledControlConfinedOutput,
   parameters: [],
   result: Production.ThreatModel::ModeledControl,
-  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlConfinedOutput", name := "Confined output", text := "The emitter writes only relative paths it generated itself, each checked to stay below the output directory.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "crates/uorust/src/lib.rs write"}) (nil Production.ThreatModel::Evidence))})
+  body: (record Production.ThreatModel::ModeledControl {control := "Security::controlConfinedOutput", name := "Confined output", text := "The emitter writes only relative paths it generated itself, each checked to stay below the output directory.", evidence := (cons (record Production.ThreatModel::Evidence {kind := (ctor Production.ThreatModel::EvidenceKind.review), reference := "crates/uorust/src/lib.rs:163 pub fn write(out: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), UorustError> {"}) (nil Production.ThreatModel::Evidence))})
 }
 
 definition{
@@ -755,6 +755,13 @@ definition{
   parameters: [],
   result: Production.ThreatModel::ThreatMapping,
   body: (record Production.ThreatModel::ThreatMapping {threat := "Security::threatTamperedPages", controls := (cons "Security::controlArtifactClosure" (nil String))})
+}
+
+definition{
+  name: sourcesOfControls,
+  parameters: [],
+  result: (List Architecture::Source),
+  body: (cons (record Architecture::Source {record := "Security::modeledControlNoBuildExecution", path := "crates/uorust/src/ingest.rs", firstLine := 578, lastLine := 578, kappa := "47224bcd5a4544baba3f3fb8221e86a8a1e5db5fb825c17c2aaab6a7286edbe3"}) (cons (record Architecture::Source {record := "Security::modeledControlNoBuildExecution", path := "model/ids.toml", firstLine := 53, lastLine := 53, kappa := "1c8113fdacb2b2ffc506ce327e49490b16e477b18191898b0933a8af0828b467"}) (cons (record Architecture::Source {record := "Security::modeledControlBoundedIngest", path := "model/ids.toml", firstLine := 83, lastLine := 83, kappa := "6f685a89e1a12e4d8f2800fa31df1adb8cc5c908d7bbf613e5abcbee258269a7"}) (cons (record Architecture::Source {record := "Security::modeledControlRouterConformance", path := "model/ids.toml", firstLine := 77, lastLine := 77, kappa := "bf2efbd58853ca2d8fee835c8387a66d1bb808466f63653f987c609dbb085421"}) (cons (record Architecture::Source {record := "Security::modeledControlTypedRefusal", path := "model/ids.toml", firstLine := 65, lastLine := 65, kappa := "5206d14ea60610b613787466024ceb31fe6940986c13d048cab8512308544a00"}) (cons (record Architecture::Source {record := "Security::modeledControlDeterministicOutput", path := "model/ids.toml", firstLine := 59, lastLine := 59, kappa := "ce3be3630d5760e4a82917cf2acd16fcb5068e52a2a4c05c3fc3e345e3d0b50f"}) (cons (record Architecture::Source {record := "Security::modeledControlForbidUnsafe", path := "crates/uorust/src/main.rs", firstLine := 3, lastLine := 3, kappa := "5c41bfc9512e771a8435578a056b04de00cc0c60b808edbf0c5849bc7a1cf3c6"}) (cons (record Architecture::Source {record := "Security::modeledControlForbidUnsafe", path := "crates/uorust/src/lib.rs", firstLine := 12, lastLine := 12, kappa := "caace281f1dfad0670d746f803f71dc04a007c025be354f9725ed41ff615c35f"}) (cons (record Architecture::Source {record := "Security::modeledControlConfinedOutput", path := "crates/uorust/src/lib.rs", firstLine := 163, lastLine := 163, kappa := "5c72af9c07c68d0d98e2e839742750a256cf21ebb3f285ac0f009ff968a790cf"}) (nil Architecture::Source))))))))))
 }
 
 definition{
