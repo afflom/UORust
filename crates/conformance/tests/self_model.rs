@@ -149,7 +149,32 @@ fn self_model_sm_01() {
         )),
         "the application's acceptance vectors are not the file's vectors, in order"
     );
+    // The request limit is the table's: the bytes of a request that names
+    // every kind once, one per line. The browser takes that many bytes and the
+    // guest one more, so the too-large vector reaches the guest.
+    let limit = routes
+        .iter()
+        .map(|route| field(route, "rust_fact").len() + 1)
+        .sum::<usize>()
+        - 1;
+    let declared = model
+        .split("name: requestLimit,")
+        .nth(1)
+        .and_then(|rest| rest.split('}').next())
+        .expect("Routes::requestLimit is declared");
+    assert!(
+        declared.trim_end().ends_with(&format!("body: {limit}")),
+        "Routes::requestLimit is not {limit}, the length of a request naming every kind once"
+    );
     let application = declaration(&model, "application");
+    assert!(
+        application.contains(&format!("requestMaximum := ({limit} : UInt32)"))
+            && application.contains(&format!(
+                "guestAllocationMaximum := ({} : UInt32)",
+                limit + 1
+            )),
+        "the application's byte bounds are not the request limit {limit} and one more"
+    );
     assert!(
         application.contains("acceptanceVectors := (acceptanceVectors)")
             && application.contains("entryRoot := \"Uorust.Routes.dispatch\""),

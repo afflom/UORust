@@ -10,11 +10,17 @@ src = open(f"{root}/model/routes.toml", "rb").read()
 data = tomllib.loads(src.decode())
 routes = data["route"]
 by_fact = {r["rust_fact"]: r for r in routes}
+# The request limit is derived from the table, not chosen: the bytes of a
+# request that names every kind once, one per line. A longer request repeats a
+# kind or names one the table does not. self_model_sm_01 holds the model's
+# Routes::requestLimit and the router's REQUEST_LIMIT to this sum.
+EVERY_KIND = "\n".join(r["rust_fact"] for r in routes).encode()
+LIMIT = len(EVERY_KIND)
 
 def answer(req: bytes) -> str:
     if len(req) == 0:
         return "error empty"
-    if len(req) > 512:
+    if len(req) > LIMIT:
         return "error too-large"
     try:
         text = req.decode("utf-8")
@@ -85,7 +91,8 @@ for r in routes:
 cases += [
     ("same route twice", b"test-fn\ntest-fn"),
     ("error empty", b""),
-    ("error too-large", b"a" * 513),
+    ("error too-large", b"a" * (LIMIT + 1)),
+    ("every kind once, at the limit", EVERY_KIND),
     ("error invalid-utf8", b"\xff"),
     ("error blank-fact", b"pub-fn\n"),
     ("error blank-fact first", b"\npub-fn"),
@@ -126,6 +133,14 @@ tpl = open(f"{root}/app/src/Routes.lex.tex").read()
 tpl = re.sub(r"(name: routes,\n  parameters: \[\],\n  result: \(List Route\),\n  body: ).*\n", lambda m: m.group(1) + route_lit + "\n", tpl)
 tpl = re.sub(r"(name: acceptanceVectors,\n  parameters: \[\],\n  result: \(List [^\n]*\),\n  body: ).*\n", lambda m: m.group(1) + vec_lit + "\n", tpl)
 tpl = re.sub(r"(name: routeOf,\n  parameters: \[tag : String\],\n  result: \(Option Route\),\n  body: ).*\n", lambda m: m.group(1) + route_of + "\n", tpl)
+tpl = re.sub(r"(name: requestLimit,\s*parameters: \[\],\s*result: Nat,\s*body: )\d+", lambda m: m.group(1) + str(LIMIT), tpl)
+# A request of at most LIMIT bytes has at most LIMIT + 1 lines.
+tpl = re.sub(r"\(prim split_exact text \"\\n\" \(\d+ : UInt32\)", lambda m: f'(prim split_exact text "\\n" ({LIMIT + 1} : UInt32)', tpl)
+# The application's byte bounds are the same limit: the browser takes a request
+# of at most LIMIT bytes, and the guest allocates one byte more, so the
+# too-large vector reaches the guest and its answer is modeled.
+tpl = re.sub(r"requestMaximum := \(\d+ : UInt32\)", f"requestMaximum := ({LIMIT} : UInt32)", tpl)
+tpl = re.sub(r"guestAllocationMaximum := \(\d+ : UInt32\)", f"guestAllocationMaximum := ({LIMIT + 1} : UInt32)", tpl)
 open(f"{root}/app/src/Routes.lex.tex", "w").write(tpl)
 
 def lstr2(t):
@@ -151,6 +166,7 @@ for fid, title in reversed(FACETS):
 g = open(f"{root}/app/src/Guide.lex.tex").read()
 g = re.sub(r"(name: examples,\n  parameters: \[\],\n  result: \(List [^\n]*\),\n  body: ).*\n", lambda m: m.group(1) + ex_lit + "\n", g)
 g = re.sub(r"(name: sections,\n  parameters: \[\],\n  result: \(List [^\n]*\),\n  body: ).*\n", lambda m: m.group(1) + sec_lit + "\n", g)
+g = re.sub(r'explanation := "The request is longer than \d+ bytes[^"]*"', f'explanation := "The request is longer than {LIMIT} bytes, the length of one that names every kind of the table once."', g)
 open(f"{root}/app/src/Guide.lex.tex", "w").write(g)
 
 def tq(s):
@@ -158,6 +174,8 @@ def tq(s):
 
 text = src.decode()
 text = text.split("\n# Acceptance vectors")[0].rstrip("\n") + "\n"
+text = re.sub(r"at most \d+\n# bytes", f"at most {LIMIT}\n# bytes", text)
+text = re.sub(r"more than \d+ bytes  ", f"more than {LIMIT} bytes  ", text)
 text += "\n# Acceptance vectors: generated from the rule above; the application replays\n"
 text += "# them in order. `request_hex` is the request's bytes, `response` its answer.\n"
 text += "# A [[workbench_vector]] is framed for the page's workbench (`ui-route` or `ui-raw`,\n"

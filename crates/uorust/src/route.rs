@@ -121,8 +121,19 @@ pub const ROUTES: &[Route] = &[
     route("UR-R28", "module", "Foundation.Arch::OpmThing", "design"),
 ];
 
-/// The longest request the router reads, in bytes.
-pub const REQUEST_LIMIT: usize = 512;
+/// The longest request the router reads, in bytes. It is derived from the
+/// table, not chosen: the length of the request that names every kind once,
+/// one per line. A longer request repeats a kind or names one the table does
+/// not. `self_model_sm_01` holds the model's `Routes::requestLimit` to it.
+pub const REQUEST_LIMIT: usize = {
+    let mut bytes = 0;
+    let mut at = 0;
+    while at < ROUTES.len() {
+        bytes += ROUTES[at].rust_fact.len() + 1;
+        at += 1;
+    }
+    bytes - 1
+};
 
 /// What the router decides for one fact's classification tags.
 #[derive(Clone, Debug, PartialEq, Eq)]
