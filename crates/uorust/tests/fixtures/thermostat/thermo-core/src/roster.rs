@@ -496,6 +496,11 @@ pub fn left_over(total: u32, rooms: u32) -> Option<u32> {
     total.checked_rem(rooms)
 }
 
+/// How many times a room's name says "-up".
+pub fn ups(name: &str) -> usize {
+    name.matches("-up").count()
+}
+
 /// The marked rooms' names without their mark, or `None` where a name is
 /// empty or a marked name lacks its closing `!`.
 pub fn marked_rooms(names: &[String]) -> Option<Vec<String>> {
@@ -677,6 +682,7 @@ mod tests {
         );
         assert_eq!(marked_rooms(&names(&["room-den"])), None);
         assert_eq!(marked_rooms(&names(&["hall", ""])), None);
+        assert_eq!(ups("hall-up-up"), 2);
         assert_eq!(per_room(7, 2), 3);
         assert_eq!(per_room(7, 0), 0);
         assert_eq!(left_over(7, 0), None);

@@ -731,7 +731,7 @@ reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "6151140fd0f676444b42f7e8240545e90f0c35e1d8f19ff6fab792519e990128"
+kappa = "99469fa29b43ab2ff056a9fb3a9488585a989bf6de45697a64f94a9f6579b730"
 function = "uorust::lift::method"
 reason = "form"
 detail = "expression form outside the lift: match pattern"
@@ -1346,7 +1346,7 @@ detail = "type outside the lift: &mut Vec<Step>"
 kappa = "144be536cd1b2e3e2af8c52d3ee25bd06ceeedf5752a471e096ebd94ecc76aa6"
 function = "xtask::audit::effective_lines"
 reason = "form"
-detail = "expression form outside the lift: method call .matches"
+detail = "expression form outside the lift: narrowing or sign-changing cast"
 
 [[residue]]
 kappa = "62aa38b0a165fc315905b35a949d8478ae50eb7150319d6c153bf44ee73d728c"
@@ -1371,12 +1371,6 @@ kappa = "c6c2b8d047434b8cfa7e493d986adf4aa08e68f912b5dd80b89213dd3396ba39"
 function = "xtask::bootstrap::native_coverage_is_complete"
 reason = "statements"
 detail = "the body has statements other than let"
-
-[[residue]]
-kappa = "7d7f2ad74b020d00449e24f24145306579512c64d7e6487261aca7ac2916ef58"
-function = "xtask::bootstrap::pipeline_lifecycle_is_complete"
-reason = "form"
-detail = "expression form outside the lift: method call .matches"
 
 [[residue]]
 kappa = "33f9423e9537477066c28b505b50eeeb4c16d0664cc3d6eeb5bbf600c1874d61"
@@ -2339,6 +2333,11 @@ definition = "Behavior::contentMatches"
 kappa = "c35a803fb333caca79a512c37a85551fd754049b9127f28dffaf5fb376a71f9b"
 function = "xtask::bootstrap::immutable_image"
 definition = "Behavior::immutableImage"
+
+[[lifted]]
+kappa = "7d7f2ad74b020d00449e24f24145306579512c64d7e6487261aca7ac2916ef58"
+function = "xtask::bootstrap::pipeline_lifecycle_is_complete"
+definition = "Behavior::pipelineLifecycleIsComplete"
 
 [[lifted]]
 kappa = "dc8140c06bd6e5c4e035c93bc44cc9dff2a088cd30d687f5ad90700605e1988f"

@@ -3115,6 +3115,27 @@ fn method(
             }
         }
     }
+    // `s.matches(p).count()`: the pieces `s.split(p)` cuts, less one.
+    if let rs::RustExpr::MethodCall(inner) = &*m.receiver {
+        if let ("count", true, "matches", [p]) = (
+            name.as_str(),
+            m.args.is_empty(),
+            inner.method.as_str(),
+            inner.args.as_slice(),
+        ) {
+            let ((s, st), after) = flat_of(&inner.receiver, env, ctx, acc, Some(&Ty::Str))?;
+            let ((p, pt), after) = flat_of(p, env, ctx, after, Some(&Ty::Str))?;
+            if st != Ty::Str || !matches!(pt, Ty::Str | Ty::Char) {
+                return Err(Residue::Form("a .matches pattern that is not text".into()));
+            }
+            let (pieces, after) = after.prelude("textSplit", &[&s, &p]);
+            return flat(
+                format!("(prim subtract (prim length {pieces} : Nat) 1 : Nat)"),
+                Ty::Nat(None),
+                after,
+            );
+        }
+    }
     // What the receiver must be for the result to be what is wanted: a
     // `parse` takes its target from the `Option` or `Result` around it.
     let receiver_want = match (name.as_str(), want) {

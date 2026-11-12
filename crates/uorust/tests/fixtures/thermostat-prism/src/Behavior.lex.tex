@@ -1733,6 +1733,14 @@ definition{
 }
 
 definition{
+  name: ups,
+  parameters: [name : String],
+  result: Nat,
+  body: (prim subtract (prim length (Prelude::textSplit name "-up") : Nat) 1 : Nat),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
   name: markedRoomsLoop1,
   parameters: [items3 : (List String), state1 : (List String)],
   result: (Result (List String) (Option (List String))),
@@ -2308,28 +2316,28 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom16,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom17,
   parameters: [],
   statement: ((perRoom 7 2) = 3),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom17,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom18,
   parameters: [],
   statement: ((perRoom 7 0) = 0),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom18,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom19,
   parameters: [],
   statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom19,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom20,
   parameters: [],
   statement: ((leftOver 7 3) = (ctor Option.some [Nat] 1)),
   proof: decide{}
