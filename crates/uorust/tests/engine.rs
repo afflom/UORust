@@ -708,6 +708,64 @@ fn the_self_projection_reproduces_the_hand_model_ue_14() {
             !get(&row, "reason").is_empty(),
             "{h} is outside without a reason"
         );
+        // The reason is typed, and what each kind claims is checked.
+        let body = &hand[&h];
+        match get(&row, "kind").as_str() {
+            "external-system" => assert!(
+                body.contains("ComponentKind.externalSystem"),
+                "{h} is outside as an external system but is not one"
+            ),
+            "private-stage" => {
+                let module = get(&row, "module");
+                let lib = std::fs::read_to_string(root().join("crates/uorust/src/lib.rs"))
+                    .expect("lib.rs");
+                assert!(
+                    lib.lines().any(|l| l == format!("mod {module};")),
+                    "{h} names {module}, which is not a private module of the library"
+                );
+            }
+            "outside-rust" => {
+                let path = root().join(get(&row, "path"));
+                assert!(path.exists(), "{h} names a path that does not exist");
+                let mut stack = vec![path];
+                while let Some(at) = stack.pop() {
+                    if at.is_dir() {
+                        if at.ends_with("target")
+                            || at.file_name().is_some_and(|n| {
+                                n.to_string_lossy().starts_with('.') && n != ".github"
+                            })
+                        {
+                            continue;
+                        }
+                        for entry in std::fs::read_dir(&at).expect("dir") {
+                            stack.push(entry.expect("entry").path());
+                        }
+                    } else {
+                        assert!(
+                            at.extension().is_none_or(|e| e != "rs"),
+                            "{h} is outside the Rust code, but {} is Rust",
+                            at.display()
+                        );
+                    }
+                }
+            }
+            "run-time" => {
+                let gate = get(&row, "gate");
+                let ids = std::fs::read_to_string(root().join("model/ids.toml")).expect("ids");
+                let just = std::fs::read_to_string(root().join("Justfile")).expect("Justfile");
+                assert!(
+                    ids.contains(&format!("id = \"{gate}\""))
+                        || just.lines().any(|l| l.starts_with(&format!("{gate}:"))),
+                    "{h} names a gate, {gate}, that is neither a register ID nor a recipe"
+                );
+            }
+            "reviewer-judgement" => assert!(
+                h.starts_with("modeledThreat") || h.starts_with("modeledControl"),
+                "{h} is a reviewer's judgement but not a modeled threat or control"
+            ),
+            "this-gate" => assert_eq!(h, "measureSelfModelDrift", "{h} is not this gate's measure"),
+            other => panic!("{h} is outside with an untyped kind {other}"),
+        }
         assert!(
             accounted.insert(h.clone()),
             "{h} is both paired and outside"

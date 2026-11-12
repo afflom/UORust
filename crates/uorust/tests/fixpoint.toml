@@ -82,174 +82,250 @@ hand = "measureUnsafeBlocks"
 derived = "measureUnsafeAndForeignSites"
 fact = "threshold := 0"
 
+# An outside row is typed by `kind`, and the test checks what the kind claims:
+#   external-system     the hand component's kind is externalSystem
+#   private-stage       `module` is a private module of the uorust library,
+#                       which the engine projects inside its crate's component
+#   outside-rust        `path` exists and holds no Rust source
+#   run-time            `gate` is the register ID or Justfile recipe that
+#                       measures it on every run of the gate
+#   reviewer-judgement  a modeled threat or control the reviewer argues; no
+#                       fact kind of the route table states one
+#   this-gate           the drift measure this file is the gate for
+
 [[outside]]
 hand = "componentIngest"
+kind = "private-stage"
+module = "ingest"
 reason = "a stage inside the uorust library; the engine projects at crate and public-module granularity"
 
 [[outside]]
 hand = "componentAdmission"
+kind = "private-stage"
+module = "admit"
 reason = "a stage inside the uorust library; the engine projects at crate and public-module granularity"
 
 [[outside]]
 hand = "componentEmitter"
+kind = "private-stage"
+module = "project"
 reason = "a stage inside the uorust library; the engine projects at crate and public-module granularity"
 
 [[outside]]
 hand = "componentRouteGuest"
+kind = "outside-rust"
+path = "app/src/Routes.lex.tex"
 reason = "the LexLean route guest in app/, not Rust code of this workspace"
 
 [[outside]]
 hand = "componentRouteCli"
+kind = "outside-rust"
+path = "app"
 reason = "the uorust-routes binary of the app, built from the LexLean model, not Rust code of this workspace"
 
 [[outside]]
 hand = "componentPagesSite"
+kind = "outside-rust"
+path = "site"
 reason = "the Pages workbench in site/, not Rust code"
 
 [[outside]]
 hand = "componentSubjectWorkspace"
+kind = "external-system"
 reason = "an external system: whatever workspace uorust is pointed at"
 
 [[outside]]
 hand = "componentCargo"
+kind = "external-system"
 reason = "an external tool the code does not invoke or link"
 
 [[outside]]
 hand = "componentCratesIo"
+kind = "external-system"
 reason = "an external registry; Cargo.lock names it only as a source string"
 
 [[outside]]
 hand = "componentRustc"
+kind = "external-system"
 reason = "an external tool the code does not invoke or link"
 
 [[outside]]
 hand = "componentPrismPm"
+kind = "external-system"
 reason = "an external tool run by the Justfile, not by the code"
 
 [[outside]]
 hand = "componentGitHubActions"
+kind = "external-system"
 reason = "CI, stated by .github/workflows, which the engine does not read"
 
 [[outside]]
 hand = "callPrismPmCheck"
+kind = "outside-rust"
+path = "Justfile"
 reason = "a prismpm command, not a uorust entry point"
 
 [[outside]]
 hand = "callPagesRoute"
+kind = "outside-rust"
+path = "site"
 reason = "an operation of the Pages workbench, not Rust code"
 
 [[outside]]
 hand = "modeledThreatBuildScriptExecution"
+kind = "reviewer-judgement"
 reason = "a property of what the code does not do (run build scripts), which no fact states"
 
 [[outside]]
 hand = "modeledThreatSourceExfiltration"
+kind = "reviewer-judgement"
 reason = "a property of what the code does not do (open a network connection), which no fact states"
 
 [[outside]]
 hand = "modeledThreatCraftedSourceExhaustion"
+kind = "reviewer-judgement"
 reason = "a design argument about bounded ingest, not a fact kind the engine reads"
 
 [[outside]]
 hand = "modeledThreatMisroutedFact"
+kind = "reviewer-judgement"
 reason = "a threat to the route table's meaning, judged by the reviewer, not stated by the code"
 
 [[outside]]
 hand = "modeledThreatDisputedProjection"
+kind = "reviewer-judgement"
 reason = "a threat to the projection's meaning, judged by the reviewer, not stated by the code"
 
 [[outside]]
 hand = "modeledThreatPathEscape"
+kind = "reviewer-judgement"
 reason = "a property of output path handling that no fact kind records"
 
 [[outside]]
 hand = "modeledThreatWorkflowTokenAbuse"
+kind = "outside-rust"
+path = ".github/workflows"
 reason = "CI, stated by .github/workflows, which the engine does not read"
 
 [[outside]]
 hand = "modeledThreatTamperedPages"
+kind = "outside-rust"
+path = "site"
 reason = "the Pages site, not Rust code"
 
 [[outside]]
 hand = "modeledThreatPagesHostSubstitution"
+kind = "outside-rust"
+path = "site"
 reason = "the Pages site, not Rust code"
 
 [[outside]]
 hand = "modeledControlNoBuildExecution"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts"
 
 [[outside]]
 hand = "modeledControlOffline"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts"
 
 [[outside]]
 hand = "modeledControlBoundedIngest"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts"
 
 [[outside]]
 hand = "modeledControlVerifiedRouteTable"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts; the route table itself is compared below"
 
 [[outside]]
 hand = "modeledControlRouterConformance"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts"
 
 [[outside]]
 hand = "modeledControlTypedRefusal"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts"
 
 [[outside]]
 hand = "modeledControlDeterministicOutput"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts"
 
 [[outside]]
 hand = "modeledControlConfinedOutput"
+kind = "reviewer-judgement"
 reason = "answers a threat outside the code's facts"
 
 [[outside]]
 hand = "modeledControlPinnedWorkflows"
+kind = "outside-rust"
+path = ".github/workflows"
 reason = "CI, stated by .github/workflows, which the engine does not read"
 
 [[outside]]
 hand = "modeledControlArtifactClosure"
+kind = "outside-rust"
+path = "app"
 reason = "the release archive, built by the app, not Rust code"
 
 [[outside]]
 hand = "measureRoutedFactKinds"
+kind = "outside-rust"
+path = "model/routes.toml"
 reason = "a property of the route table, compared below rather than as a measure"
 
 [[outside]]
 hand = "measureRouteVectors"
+kind = "outside-rust"
+path = "model/routes.toml"
 reason = "a property of model/routes.toml vectors, not of the code"
 
 [[outside]]
 hand = "measureSelfModelDrift"
+kind = "this-gate"
 reason = "the measure this file is the gate for"
 
 [[outside]]
 hand = "measureUnliftedFunctions"
+kind = "outside-rust"
+path = "frontier.toml"
 reason = "the unlifted rows of the lift register (UE-16): a distance reported as an open claim, not a fact the code states"
 
 [[outside]]
 hand = "measureRerunDifferingBytes"
+kind = "run-time"
+gate = "UE-02"
 reason = "a run-time property measured by UE-02, not a fact the code states"
 
 [[outside]]
-hand = "measureSelfProjectionSeconds"
+hand = "measureSelfProjectionMilliseconds"
+kind = "outside-rust"
+path = "model/comparators.toml"
 reason = "a run-time property, not a fact the code states"
 
 [[outside]]
 hand = "measureRouteRequestBytes"
+kind = "outside-rust"
+path = "app/src/Routes.lex.tex"
 reason = "the app's request bound, not a fact of this workspace's code"
 
 [[outside]]
 hand = "measureUnregisteredTests"
+kind = "outside-rust"
+path = "model/ids.toml"
 reason = "a property of model/ids.toml, which the engine does not read"
 
 [[outside]]
 hand = "measureClippyWarnings"
+kind = "run-time"
+gate = "lint"
 reason = "a run-time property of clippy, not a fact the code states"
 
 [[outside]]
 hand = "measureRouteCliNeededLibraries"
+kind = "outside-rust"
+path = "app"
 reason = "a property of the app's built binary, not of this workspace's code"
