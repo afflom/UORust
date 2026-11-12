@@ -130,7 +130,8 @@ fn stmt(s: &syn::Stmt) -> Stmt {
             }),
         }),
         syn::Stmt::Expr(e, semi) => Stmt::Expr(expr(e), semi.is_some()),
-        _ => Stmt::Other,
+        syn::Stmt::Macro(m) => Stmt::Macro(mac(&m.mac)),
+        syn::Stmt::Item(_) => Stmt::Other,
     }
 }
 

@@ -763,10 +763,11 @@ fn function(
     lib: bool,
 ) -> (FnFact, FnSyntax) {
     let doc = doc_of(attrs);
-    let mut body = BodyScan::default();
-    if let Some(block) = block {
-        body.visit_block(block);
-    }
+    let owned = block.map(crate::convert::block);
+    let body = match &owned {
+        Some(b) => b.scan(),
+        None => crate::ast::Scan::none(),
+    };
     let test = attrs.iter().any(|a| a.last == "test");
     let fact = FnFact {
         name: sig.ident.to_string(),
@@ -794,17 +795,8 @@ fn function(
     };
     let syntax = FnSyntax {
         signature: crate::convert::signature(sig),
-        block: block.map(crate::convert::block),
-        asserts: body
-            .asserts
-            .iter()
-            .map(|(kind, args)| {
-                (
-                    kind.clone(),
-                    args.iter().map(crate::convert::expr).collect(),
-                )
-            })
-            .collect(),
+        block: owned,
+        asserts: body.asserts,
     };
     (fact, syntax)
 }
@@ -993,17 +985,8 @@ fn items(
     }
 }
 
-/// Calls, literals, assertions and state transitions in one body.
-#[derive(Default)]
-struct BodyScan {
-    calls: Vec<String>,
-    literals: Vec<String>,
-    asserts: Vec<(String, Vec<syn::Expr>)>,
-    transitions: Vec<(String, String, String)>,
-}
-
 /// `(Enum, Variant)` of a path `.., Enum, Variant`, by its segments.
-fn enum_path(segments: &[String]) -> Option<(String, String)> {
+pub(crate) fn enum_path(segments: &[String]) -> Option<(String, String)> {
     match segments {
         [] => None,
         [owner, rest @ ..] => match rest {
@@ -1016,106 +999,6 @@ fn enum_path(segments: &[String]) -> Option<(String, String)> {
                 }
             }
         },
-    }
-}
-
-/// The segments of every path an arm body can evaluate to: through `if` and
-/// `else` branches when `branches`, and through a one-expression block,
-/// parentheses or `Some(..)`/`Ok(..)`.
-fn arm_paths(expr: &syn::Expr, branches: bool) -> Vec<Vec<String>> {
-    match expr {
-        syn::Expr::If(i) if branches => {
-            let mut out = Vec::new();
-            if let [syn::Stmt::Expr(e, None)] = i.then_branch.stmts.as_slice() {
-                out.extend(arm_paths(e, true));
-            }
-            if let Some((_, e)) = &i.else_branch {
-                out.extend(arm_paths(e, true));
-            }
-            out
-        }
-        syn::Expr::Block(b) if b.block.stmts.len() == 1 => match &b.block.stmts[0] {
-            syn::Stmt::Expr(e, None) => arm_paths(e, branches),
-            _ => Vec::new(),
-        },
-        syn::Expr::Path(p) => vec![p
-            .path
-            .segments
-            .iter()
-            .map(|s| s.ident.to_string())
-            .collect()],
-        syn::Expr::Call(c) if c.args.len() == 1 => match &*c.func {
-            syn::Expr::Path(p) if p.path.is_ident("Some") || p.path.is_ident("Ok") => {
-                arm_paths(&c.args[0], false)
-            }
-            _ => Vec::new(),
-        },
-        syn::Expr::Paren(p) => arm_paths(&p.expr, false),
-        _ => Vec::new(),
-    }
-}
-
-impl<'ast> Visit<'ast> for BodyScan {
-    fn visit_expr_call(&mut self, node: &'ast syn::ExprCall) {
-        if let syn::Expr::Path(p) = &*node.func {
-            self.calls.push(tidy(&p.path.to_token_stream().to_string()));
-        }
-        syn::visit::visit_expr_call(self, node);
-    }
-
-    fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
-        self.calls.push(format!(".{}", node.method));
-        syn::visit::visit_expr_method_call(self, node);
-    }
-
-    fn visit_lit_str(&mut self, node: &'ast syn::LitStr) {
-        self.literals.push(node.value());
-    }
-
-    fn visit_macro(&mut self, node: &'ast syn::Macro) {
-        let name = node
-            .path
-            .segments
-            .last()
-            .map(|s| s.ident.to_string())
-            .unwrap_or_default();
-        if let Ok(args) =
-            node.parse_body_with(Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated)
-        {
-            if matches!(name.as_str(), "assert" | "assert_eq" | "assert_ne") {
-                self.asserts
-                    .push((name.clone(), args.iter().cloned().collect()));
-            }
-            for arg in &args {
-                self.visit_expr(arg);
-            }
-        }
-    }
-
-    fn visit_expr_match(&mut self, node: &'ast syn::ExprMatch) {
-        for arm in &node.arms {
-            let from = match &arm.pat {
-                syn::Pat::Path(p) => {
-                    let segments: Vec<String> = p
-                        .path
-                        .segments
-                        .iter()
-                        .map(|s| s.ident.to_string())
-                        .collect();
-                    enum_path(&segments)
-                }
-                _ => None,
-            };
-            if let Some((e1, a)) = from {
-                let targets = arm_paths(&arm.body, true);
-                for (e2, b) in targets.iter().filter_map(|t| enum_path(t)) {
-                    if e1 == e2 {
-                        self.transitions.push((e1.clone(), a.clone(), b));
-                    }
-                }
-            }
-        }
-        syn::visit::visit_expr_match(self, node);
     }
 }
 

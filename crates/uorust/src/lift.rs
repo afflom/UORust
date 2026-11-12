@@ -5452,7 +5452,7 @@ fn scan_stmts(stmts: &[rs::Stmt]) -> (BTreeSet<String>, BTreeSet<String>) {
                 (u, d)
             }
             rs::Stmt::Expr(e, _) => scan_exprs(&[e]),
-            rs::Stmt::Other => (BTreeSet::new(), BTreeSet::new()),
+            rs::Stmt::Macro(_) | rs::Stmt::Other => (BTreeSet::new(), BTreeSet::new()),
         };
         updated.extend(u);
         declared.extend(d);
@@ -5865,7 +5865,7 @@ fn hoist_try(stmt: &rs::Stmt, n: usize) -> Option<(rs::Stmt, rs::Stmt)> {
             }
             (inner, rs::Stmt::Local(l))
         }
-        rs::Stmt::Other => return None,
+        rs::Stmt::Macro(_) | rs::Stmt::Other => return None,
     };
     let binding = rs::Stmt::Local(rs::Local {
         pat: rs::Pat::Ident(rs::PatIdent {
@@ -6282,7 +6282,7 @@ fn returns_local(stmts: &[rs::Stmt], ident: &str) -> bool {
             exprs.iter().any(|e| returns_in(e, ident))
         }),
         rs::Stmt::Expr(e, _) => returns_in(e, ident),
-        rs::Stmt::Other => false,
+        rs::Stmt::Macro(_) | rs::Stmt::Other => false,
     })
 }
 

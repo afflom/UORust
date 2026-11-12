@@ -498,7 +498,9 @@ pub(crate) enum Stmt {
     Local(Local),
     /// An expression, and whether a semicolon ends it.
     Expr(RustExpr, bool),
-    /// An item or a macro in statement position.
+    /// A macro in statement position, such as `assert!(..);`.
+    Macro(ExprMacro),
+    /// An item in statement position.
     Other,
 }
 
@@ -918,4 +920,256 @@ pub(crate) enum FnArg {
         plain: bool,
     },
     Typed(PatType),
+}
+
+/// What a body says, in source order: the paths it calls and the methods
+/// (as `.name`), its string literals, its assertions with their arguments,
+/// and the transitions `E::A => E::B` its matches take.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Scan {
+    pub(crate) calls: Vec<String>,
+    pub(crate) literals: Vec<String>,
+    pub(crate) asserts: Vec<(String, Vec<RustExpr>)>,
+    pub(crate) transitions: Vec<(String, String, String)>,
+}
+
+impl Scan {
+    /// Nothing said.
+    pub(crate) fn none() -> Scan {
+        Scan {
+            calls: Vec::new(),
+            literals: Vec::new(),
+            asserts: Vec::new(),
+            transitions: Vec::new(),
+        }
+    }
+
+    /// This scan followed by `next`.
+    fn then(self, next: Scan) -> Scan {
+        let mut calls = self.calls;
+        calls.extend(next.calls);
+        let mut literals = self.literals;
+        literals.extend(next.literals);
+        let mut asserts = self.asserts;
+        asserts.extend(next.asserts);
+        let mut transitions = self.transitions;
+        transitions.extend(next.transitions);
+        Scan {
+            calls,
+            literals,
+            asserts,
+            transitions,
+        }
+    }
+
+    /// The scans, one after another.
+    fn all(scans: Vec<Scan>) -> Scan {
+        scans.into_iter().fold(Scan::none(), |a, b| a.then(b))
+    }
+}
+
+impl Block {
+    /// What the block says.
+    pub(crate) fn scan(&self) -> Scan {
+        Scan::all(self.stmts.iter().map(|x| x.scan()).collect())
+    }
+}
+
+impl Stmt {
+    fn scan(&self) -> Scan {
+        match self {
+            Stmt::Local(l) => {
+                let init = match &l.init {
+                    Some(i) => {
+                        let diverge = match &i.diverge {
+                            Some(d) => d.scan(),
+                            None => Scan::none(),
+                        };
+                        i.expr.scan().then(diverge)
+                    }
+                    None => Scan::none(),
+                };
+                l.pat.scan().then(init)
+            }
+            Stmt::Expr(e, _) => e.scan(),
+            Stmt::Macro(m) => m.scan(),
+            Stmt::Other => Scan::none(),
+        }
+    }
+}
+
+impl ExprMacro {
+    /// An assertion's arguments, then what each argument says.
+    fn scan(&self) -> Scan {
+        let name = self
+            .path
+            .segments
+            .last()
+            .map(|s| s.ident.clone())
+            .unwrap_or_default();
+        let Some(args) = &self.args else {
+            return Scan::none();
+        };
+        let own = if matches!(name.as_str(), "assert" | "assert_eq" | "assert_ne") {
+            Scan {
+                asserts: vec![(name, args.clone())],
+                ..Scan::none()
+            }
+        } else {
+            Scan::none()
+        };
+        own.then(Scan::all(args.iter().map(|x| x.scan()).collect()))
+    }
+}
+
+impl Pat {
+    /// The string literals a pattern tests and what its guards say.
+    fn scan(&self) -> Scan {
+        match self {
+            Pat::Lit(Lit::Str(text)) => Scan {
+                literals: vec![text.clone()],
+                ..Scan::none()
+            },
+            Pat::Ident(i) => match &i.subpat {
+                Some(p) => p.scan(),
+                None => Scan::none(),
+            },
+            Pat::Reference(p) => p.scan(),
+            Pat::Type(t) => t.pat.scan(),
+            Pat::Tuple(ps) | Pat::Slice(ps) | Pat::Or(ps) => {
+                Scan::all(ps.iter().map(|x| x.scan()).collect())
+            }
+            Pat::TupleStruct(ts) => Scan::all(ts.elems.iter().map(|x| x.scan()).collect()),
+            Pat::Struct(ps) => Scan::all(ps.fields.iter().map(|f| f.pat.scan()).collect()),
+            Pat::Range(r) => {
+                let ends: Vec<Scan> = r
+                    .start
+                    .iter()
+                    .chain(r.end.iter())
+                    .map(|e| e.scan())
+                    .collect();
+                Scan::all(ends)
+            }
+            Pat::Guard(g) => g.pat.scan().then(g.guard.scan()),
+            Pat::Wild | Pat::Rest | Pat::Lit(_) | Pat::Path(_) | Pat::Other => Scan::none(),
+        }
+    }
+}
+
+/// The segments of every path an arm body can evaluate to: through `if` and
+/// `else` branches when `branches`, and through a one-expression block,
+/// parentheses or `Some(..)`/`Ok(..)`.
+fn arm_paths(e: &RustExpr, branches: bool) -> Vec<Vec<String>> {
+    let segments = |p: &Path| p.segments.iter().map(|s| s.ident.clone()).collect();
+    match e {
+        RustExpr::If(i) if branches => {
+            let then: Vec<Vec<String>> = match i.then_branch.stmts.as_slice() {
+                [Stmt::Expr(e, false)] => arm_paths(e, true),
+                _ => Vec::new(),
+            };
+            let other = match &i.else_branch {
+                Some(e) => arm_paths(e, true),
+                None => Vec::new(),
+            };
+            then.into_iter().chain(other).collect()
+        }
+        RustExpr::Block(b) => match b.block.stmts.as_slice() {
+            [Stmt::Expr(e, false)] => arm_paths(e, branches),
+            _ => Vec::new(),
+        },
+        RustExpr::Path(p) => vec![segments(p)],
+        RustExpr::Call(c) => match (&*c.func, c.args.as_slice()) {
+            (RustExpr::Path(p), [arg]) if p.is_ident("Some") || p.is_ident("Ok") => {
+                arm_paths(arg, false)
+            }
+            _ => Vec::new(),
+        },
+        RustExpr::Paren(p) => arm_paths(p, false),
+        _ => Vec::new(),
+    }
+}
+
+/// The transitions `E::A => E::B` a match's arms take: an arm on a unit
+/// variant whose body evaluates to a variant of the same enum.
+fn transitions(m: &ExprMatch) -> Vec<(String, String, String)> {
+    let mut out = Vec::new();
+    for arm in &m.arms {
+        let Pat::Path(p) = &arm.pat else {
+            continue;
+        };
+        let from: Vec<String> = p.segments.iter().map(|s| s.ident.clone()).collect();
+        let Some((e1, a)) = crate::ingest::enum_path(&from) else {
+            continue;
+        };
+        for target in arm_paths(&arm.body, true) {
+            if let Some((e2, b)) = crate::ingest::enum_path(&target) {
+                if e1 == e2 {
+                    out.push((e1.clone(), a.clone(), b));
+                }
+            }
+        }
+    }
+    out
+}
+
+impl RustExpr {
+    /// What the expression says, in source order.
+    pub(crate) fn scan(&self) -> Scan {
+        let exprs = |es: Vec<&RustExpr>| Scan::all(es.into_iter().map(|x| x.scan()).collect());
+        match self {
+            RustExpr::Call(c) => {
+                let own = match &*c.func {
+                    RustExpr::Path(p) => Scan {
+                        calls: vec![p.text.clone()],
+                        ..Scan::none()
+                    },
+                    _ => Scan::none(),
+                };
+                own.then(c.func.scan()).then(exprs(c.args.iter().collect()))
+            }
+            RustExpr::MethodCall(m) => {
+                let own = Scan {
+                    calls: vec![format!(".{}", m.method)],
+                    ..Scan::none()
+                };
+                own.then(m.receiver.scan())
+                    .then(exprs(m.args.iter().collect()))
+            }
+            RustExpr::Lit(Lit::Str(text)) => Scan {
+                literals: vec![text.clone()],
+                ..Scan::none()
+            },
+            RustExpr::Macro(m) => m.scan(),
+            RustExpr::If(i) => {
+                let other = match &i.else_branch {
+                    Some(e) => e.scan(),
+                    None => Scan::none(),
+                };
+                i.cond.scan().then(i.then_branch.scan()).then(other)
+            }
+            RustExpr::Match(m) => {
+                let own = Scan {
+                    transitions: transitions(m),
+                    ..Scan::none()
+                };
+                let arms: Vec<Scan> = m
+                    .arms
+                    .iter()
+                    .map(|a| a.pat.scan().then(a.body.scan()))
+                    .collect();
+                own.then(m.expr.scan()).then(Scan::all(arms))
+            }
+            RustExpr::Let(l) => l.pat.scan().then(l.expr.scan()),
+            RustExpr::Closure(c) => {
+                Scan::all(c.inputs.iter().map(|x| x.scan()).collect()).then(c.body.scan())
+            }
+            RustExpr::ForLoop(f) => f.pat.scan().then(f.expr.scan()).then(f.body.scan()),
+            RustExpr::Other(o) => exprs(o.exprs.iter().collect())
+                .then(Scan::all(o.blocks.iter().map(|x| x.scan()).collect())),
+            other => {
+                let (es, blocks) = other.parts();
+                exprs(es).then(Scan::all(blocks.into_iter().map(|x| x.scan()).collect()))
+            }
+        }
+    }
 }

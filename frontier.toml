@@ -53,6 +53,24 @@ reason = "form"
 detail = "expression form outside the lift: a string with a percent sign, which LexLean source cannot write"
 
 [[residue]]
+kappa = "12465a2e238e7aa197de2318f20940746fdf608c838e5f354341a9a4674d6ccf"
+function = "uorust::ast::Block::scan"
+reason = "form"
+detail = "expression form outside the lift: method call .scan"
+
+[[residue]]
+kappa = "0765c464eb02965ffda903b361cfed733de6e23106f2dfa7f56087d754c5144d"
+function = "uorust::ast::ExprMacro::scan"
+reason = "form"
+detail = "expression form outside the lift: method call .scan"
+
+[[residue]]
+kappa = "bfea58a8de0445ea848a546067a4654fdb263b928db2825437d70c075bafff05"
+function = "uorust::ast::Pat::scan"
+reason = "form"
+detail = "expression form outside the lift: a method that calls itself"
+
+[[residue]]
 kappa = "4cb4e708ef5232897073a19e00f423dde7839571d49cfbfbe76ace18dbba736c"
 function = "uorust::ast::Path::get_ident"
 reason = "form"
@@ -83,6 +101,12 @@ reason = "form"
 detail = "expression form outside the lift: method call .iter"
 
 [[residue]]
+kappa = "468a5159bc30b26d58d5065159e56e0569d8396526ee61613a5ae97145425fdd"
+function = "uorust::ast::RustExpr::scan"
+reason = "form"
+detail = "expression form outside the lift: a method that calls itself"
+
+[[residue]]
 kappa = "a01c93c0efad1c4165d351586d8a6dfd63da478bf910f5169b0a74335687d383"
 function = "uorust::ast::RustType::expanded"
 reason = "form"
@@ -99,6 +123,24 @@ kappa = "39669667af8d5fb0635a994b67c05907db1cdbc294cdb0b15e4dc78377f988c3"
 function = "uorust::ast::RustType::substituted"
 reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
+
+[[residue]]
+kappa = "4ccf15308e30d47a016e036d9bd1cba97780013fb32dba5100c1bb3cbbc4e705"
+function = "uorust::ast::Stmt::scan"
+reason = "form"
+detail = "expression form outside the lift: method call .scan"
+
+[[residue]]
+kappa = "528bc6b7b9ef8ef81fbb7f4982b3bee9cd9e96a90353e633270cce0d7f1232ad"
+function = "uorust::ast::arm_paths"
+reason = "form"
+detail = "expression form outside the lift: method call .as_slice"
+
+[[residue]]
+kappa = "bb4b21a0736693f3dd480f27e9d60274bfb2f939cabf64847bdc41d18c9f2cb0"
+function = "uorust::ast::transitions"
+reason = "form"
+detail = "expression form outside the lift: let pattern"
 
 [[residue]]
 kappa = "a5d90fb210b5214d0ed661572881aa802a3b7654e4988c7a61c51acd75636162"
@@ -123,36 +165,6 @@ kappa = "3b9086553dee8e048b5291922521c2ced8dacb58d0af3d1f8018f33687b10b99"
 function = "uorust::facts::Syntax::function"
 reason = "form"
 detail = "expression form outside the lift: index of (List TupleStringFileSyntax)"
-
-[[residue]]
-kappa = "8d1837e2918115ebfe39746c2e5e52ed5fa92cb14f60466223a0dcbc7dff7eb8"
-function = "uorust::ingest::BodyScan::visit_expr_call"
-reason = "signature"
-detail = "signature outside the lift: implements the trait Visit"
-
-[[residue]]
-kappa = "c61550d0e8125807069f05d69cc0ff4a5dae8c40ce14c341706f4ab5b4601892"
-function = "uorust::ingest::BodyScan::visit_expr_match"
-reason = "signature"
-detail = "signature outside the lift: implements the trait Visit"
-
-[[residue]]
-kappa = "de6a7b312ffb0f5d3cb386b97b7ff1050f9d6fec3a9c43f2744295f9b06d8ef8"
-function = "uorust::ingest::BodyScan::visit_expr_method_call"
-reason = "signature"
-detail = "signature outside the lift: implements the trait Visit"
-
-[[residue]]
-kappa = "777c535ab32d10997a407e5980dfef818631f040c6c272f2ba75e99f5de7606e"
-function = "uorust::ingest::BodyScan::visit_lit_str"
-reason = "signature"
-detail = "signature outside the lift: implements the trait Visit"
-
-[[residue]]
-kappa = "ca1f9b1f70497176e9b242d9680cf3d2cbde9575051a95e145c6f67d74741a81"
-function = "uorust::ingest::BodyScan::visit_macro"
-reason = "signature"
-detail = "signature outside the lift: implements the trait Visit"
 
 [[residue]]
 kappa = "deadf03641f3a7db840745419fd86ecb948b3c6071e6c471df3d4b7e6fc60221"
@@ -599,7 +611,7 @@ reason = "form"
 detail = "expression form outside the lift: method call .as_slice"
 
 [[residue]]
-kappa = "c0da6f51f6c2da90554f730c85f8116b982781e4c7d4831181d175226c55e996"
+kappa = "8e46a41c8235ce6ec3a0a877e88a00584c03183a80a7d3bf48b43caa4a3075de"
 function = "uorust::lift::hoist_try"
 reason = "form"
 detail = "expression form outside the lift: ? below the function's own statements"
@@ -809,7 +821,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "e14d76b9e04c6846c3a75277036b1464018d98cddd82ef57ca51340c00a2f2a6"
+kappa = "37000e97ee9f362227433897467f5ca09a62822d0a1367383db946d26bd45ed5"
 function = "uorust::lift::returns_local"
 reason = "form"
 detail = "expression form outside the lift: method call .as_ref"
@@ -821,7 +833,7 @@ reason = "call"
 detail = "calls new, which is not lifted"
 
 [[residue]]
-kappa = "49efd8e836beee743ca575f122653d52b6269ed801c7c32f307ce5685a49f790"
+kappa = "4c141a3071ad156403bfcbc5c81af175e1bba14ee6729e8e8fabd363ded4195f"
 function = "uorust::lift::scan_stmts"
 reason = "call"
 detail = "calls new, which is not lifted"
@@ -1380,7 +1392,7 @@ function = "uorust::convert::signature"
 detail = "takes or returns syn::Signature, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "72547932e8bcf79971419c8d45bad364fdfdf71a1b36f9ed2f1d119336503b98"
+kappa = "ec14568420f807e260225d85b6ebcd27ff79ddec9e1318d119210bc81dc2e82a"
 function = "uorust::convert::stmt"
 detail = "takes or returns syn::Stmt, a type of the syn crate with no LexLean model"
 
@@ -1393,11 +1405,6 @@ detail = "takes or returns syn::Type, a type of the syn crate with no LexLean mo
 kappa = "4558b50253f7abfa641094078131a9ec150faefb871f487bc58f9acccc446922"
 function = "uorust::ingest::advisory"
 detail = "takes or returns semver::Version, a type of the semver crate with no LexLean model"
-
-[[foreign]]
-kappa = "04db3612e25e32bebb9854ac11371b0bdd633e6d53cedf7875ec363913b1cdb1"
-function = "uorust::ingest::arm_paths"
-detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
 [[foreign]]
 kappa = "4910a19f1b838fe0e3799fc00b31e2444a3f6f8ccb610148c54b728ff0d73ff3"
@@ -1415,7 +1422,7 @@ function = "uorust::ingest::effect_of"
 detail = "takes or returns syn::Block, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "04fca868d7d9a345e1dcd6d9483f66a4b905476232dc580bea300344096eb6f6"
+kappa = "dbe12485000e17e23befd98510e7dcb86da3abceb56242fcbcb870db341c08f8"
 function = "uorust::ingest::function"
 detail = "takes or returns syn::Signature, a type of the syn crate with no LexLean model"
 
@@ -1698,6 +1705,21 @@ definition = "Behavior::refusalSpan"
 kappa = "ea0e437e146c69388f4f06f2d0725b7e800ca4dad03f19774962cfb74ad7ce78"
 function = "uorust::ast::Path::ident"
 definition = "Behavior::pathIdent"
+
+[[lifted]]
+kappa = "5ac3288bea91e581db1dbebdf834343cde670e1f29b59285a0f6cb0be38e3cf7"
+function = "uorust::ast::Scan::all"
+definition = "Behavior::scanAll"
+
+[[lifted]]
+kappa = "df8b6f89a46f17a6275ac4522d5c6558831fe59f4107a53ad819db49633b9cff"
+function = "uorust::ast::Scan::none"
+definition = "Behavior::scanNone"
+
+[[lifted]]
+kappa = "aa37e46cfde8073a0ad39b836fa638fe3400b453f93bb82a2261c3ff88ba3cf4"
+function = "uorust::ast::Scan::then"
+definition = "Behavior::scanThen"
 
 [[lifted]]
 kappa = "eb213c22977e2c3ba707a44502b9d47ef21dced88a23067d8e971747397394f3"
