@@ -706,7 +706,15 @@ impl Types {
         sig: &syn::Signature,
         owner: Option<&str>,
     ) -> Lift<(Vec<Param>, Ty)> {
-        if !sig.generics.params.is_empty()
+        // A lifetime parameter says how long a borrow lives, which a value
+        // of LexLean does not have: it is erased. A type or const parameter
+        // is not.
+        let generic = sig
+            .generics
+            .params
+            .iter()
+            .any(|p| !matches!(p, syn::GenericParam::Lifetime(_)));
+        if generic
             || sig.asyncness.is_some()
             || matches!(sig.safety, syn::Safety::Unsafe(_))
             || sig.variadic.is_some()

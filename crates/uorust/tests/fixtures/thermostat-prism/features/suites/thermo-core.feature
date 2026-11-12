@@ -99,6 +99,7 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreScheduleHold is made
     And the interface call Interface::callThermoCoreSchedulePhaseLabel is made
     And the interface call Interface::callThermoCoreScheduleIsFinal is made
+    And the interface call Interface::callThermoCoreScheduleLabelOr is made
     Then the acceptance row Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel holds
 
   @FT-06 @build

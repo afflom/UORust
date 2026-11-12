@@ -62,3 +62,13 @@ pub enum Menu {
 pub fn is_final(menu: &Menu) -> bool {
     matches!(menu, Menu::Choose(_))
 }
+
+/// The label of a phase, or the fallback when it has none. The borrow's
+/// lifetime says nothing about the value.
+pub fn label_or<'a>(phase: &'a Phase, fallback: &'a str) -> &'a str {
+    if phase.label.is_empty() {
+        fallback
+    } else {
+        &phase.label
+    }
+}

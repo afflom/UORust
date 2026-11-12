@@ -914,6 +914,13 @@ definition{
 }
 
 definition{
+  name: labelOr,
+  parameters: [phase : Phase, fallback : String],
+  result: String,
+  body: (if (prim equal (field_Phase_label phase) "" : Bool) then fallback else (field_Phase_label phase))
+}
+
+definition{
   name: numberedPart2,
   parameters: [i : Nat],
   result: String,

@@ -566,6 +566,13 @@ definition{
 }
 
 definition{
+  name: callThermoCoreScheduleLabelOr,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::label_or: fn label_or<'a>(phase: &'a Phase, fallback: &'a str) -> &'a str"
+}
+
+definition{
   name: callThermoCoreSensorSensorRead,
   parameters: [],
   result: String,
@@ -618,7 +625,7 @@ definition{
   name: featureThermoCoreSchedule,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (nil String)))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (cons "Interface::callThermoCoreScheduleLabelOr" (nil String))))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (nil String))})
 }
 
 definition{

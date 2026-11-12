@@ -456,6 +456,8 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         ("size_of_Step", "mutual: SizeOfPhase"),
         ("occupiedTarget", "measure: (size_of_Step step)"),
         ("isFinal", "| Menu.Choose"),
+        // A lifetime parameter is erased.
+        ("labelOr", "parameters: [phase : Phase, fallback : String]"),
     ] {
         let d = decl(name);
         assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");

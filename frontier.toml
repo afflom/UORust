@@ -377,12 +377,6 @@ reason = "form"
 detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
-kappa = "e19f969e15c4f9c72fc98844be6fd7cb94abaeafe7ad861e1db11de7d932e1db"
-function = "uorust::lift::bind_pat"
-reason = "signature"
-detail = "signature outside the lift: generic, async, unsafe or variadic"
-
-[[residue]]
 kappa = "b675f537cf1e4f2cf0e848b08460990e9dbc677551dd738ef791a360a233c63b"
 function = "uorust::lift::body"
 reason = "type"
@@ -405,12 +399,6 @@ kappa = "86ea7e45ce317a1d749e0f4fa570ada84900559e2c0bcac98cf4c3bf73c95897"
 function = "uorust::lift::cyclic"
 reason = "call"
 detail = "calls new, which is not lifted"
-
-[[residue]]
-kappa = "b31eac25fbb4a6d7180a9160aaa5295b4151c17b258b487bff6b1f1ea7b37124"
-function = "uorust::lift::data_variant"
-reason = "signature"
-detail = "signature outside the lift: generic, async, unsafe or variadic"
 
 [[residue]]
 kappa = "0b3e2a7f0fc3d89898f2d7cd983f36fd49dc777cd6e070b168d592cfb8b16c39"
@@ -505,8 +493,8 @@ detail = "expression form outside the lift: index of String"
 [[residue]]
 kappa = "2ac2f99b962af4df3013645619589893c31805a66ec7e7f30b17cb389c453410"
 function = "uorust::lift::rebind"
-reason = "signature"
-detail = "signature outside the lift: generic, async, unsafe or variadic"
+reason = "type"
+detail = "type outside the lift: Ctx<'a>"
 
 [[residue]]
 kappa = "5a2b0588e777860a04c7a24a59011515cac79283c94ff254f524cb4c1c989f5f"
@@ -1015,7 +1003,7 @@ function = "uorust::lift::Types::new"
 detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "ccf3636d6f13840804b80535c26449d9a62e0a8bb1db0f45263adf917242753c"
+kappa = "2b6be240d1d66ed1cd2f8f914bc7b0a2d92571a67c4fca8bbcc8724a570ae070"
 function = "uorust::lift::Types::signature"
 detail = "takes or returns syn::Signature, a type of the syn crate with no LexLean model"
 
@@ -1048,6 +1036,11 @@ detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean mo
 kappa = "525597eac7a920d824550251f07a69d16396a910f3751ae74ae1155969838d00"
 function = "uorust::lift::binary"
 detail = "takes or returns syn::ExprBinary, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "e19f969e15c4f9c72fc98844be6fd7cb94abaeafe7ad861e1db11de7d932e1db"
+function = "uorust::lift::bind_pat"
+detail = "takes or returns syn::Pat, a type of the syn crate with no LexLean model"
 
 [[foreign]]
 kappa = "c380e1a15873998d959848013e5e6a8cf65e48fd27a60074d2b071309e7ef1e5"
@@ -1088,6 +1081,11 @@ detail = "takes or returns syn::Path, a type of the syn crate with no LexLean mo
 kappa = "5c125e197aa64d27977eb5940f30d584fdd59104d54681fad7ccbda87b46d5c3"
 function = "uorust::lift::data_shape"
 detail = "takes or returns syn::Pat, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "b31eac25fbb4a6d7180a9160aaa5295b4151c17b258b487bff6b1f1ea7b37124"
+function = "uorust::lift::data_variant"
+detail = "takes or returns syn::Path, a type of the syn crate with no LexLean model"
 
 [[foreign]]
 kappa = "67f187f19a0f32db0944ec3b96dfc27d6a54ac3f03a3dc5dc3c77fa63a4f7cda"
