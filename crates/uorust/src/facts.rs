@@ -197,8 +197,8 @@ pub(crate) struct FileSyntax {
     /// The constants of product code outside tests: name, type, and the
     /// value as a block, which lifts like a function of no parameters.
     pub(crate) consts: Vec<(String, crate::ast::RustType, crate::ast::Block)>,
-    /// The type aliases without generics: `type Name = Type;`.
-    pub(crate) aliases: Vec<(String, crate::ast::RustType)>,
+    /// The type aliases: `type Name<P, ..> = Type;`.
+    pub(crate) aliases: Vec<(String, crate::ast::Alias)>,
 }
 
 /// One function's syntax.

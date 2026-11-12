@@ -927,10 +927,17 @@ fn items(
                     );
                 }
             }
-            syn::Item::Type(t) if !in_test && t.generics.params.is_empty() => {
-                syntax
-                    .aliases
-                    .push((t.ident.to_string(), crate::convert::ty(&t.ty)));
+            syn::Item::Type(t)
+                if !in_test
+                    && t.generics
+                        .params
+                        .iter()
+                        .all(|p| matches!(p, syn::GenericParam::Type(_))) =>
+            {
+                syntax.aliases.push((
+                    t.ident.to_string(),
+                    crate::convert::alias(&t.generics, &t.ty),
+                ));
             }
             syn::Item::Const(c) if !in_test && product && c.generics.params.is_empty() => {
                 let value = &*c.expr;
@@ -942,12 +949,8 @@ fn items(
                 ));
             }
             syn::Item::Use(u) => {
-                let mut out = Vec::new();
-                use_paths(&u.tree, &mut Vec::new(), &mut out);
-                for path in out {
-                    if let Some(last) = path.last() {
-                        file.imports.insert(last.clone(), path.join("::"));
-                    }
+                for (name, path) in use_bindings(&u.tree, &[]) {
+                    file.imports.insert(name, path.join("::"));
                 }
             }
             syn::Item::Mod(m) => {
@@ -1128,6 +1131,31 @@ impl CapabilityScan<'_> {
             Some("env") => Some(Capability::Env),
             _ => None,
         }
+    }
+}
+
+/// The names a `use` tree binds, each with the path it names: an item's
+/// own name, or the name it is renamed to.
+fn use_bindings(tree: &syn::UseTree, prefix: &[String]) -> Vec<(String, Vec<String>)> {
+    let with = |ident: &syn::Ident| {
+        let mut path = prefix.to_vec();
+        path.push(ident.to_string());
+        path
+    };
+    match tree {
+        syn::UseTree::Path(p) => use_bindings(&p.tree, &with(&p.ident)),
+        syn::UseTree::Name(n) => vec![(n.ident.to_string(), with(&n.ident))],
+        syn::UseTree::Rename(r) => vec![(r.rename.to_string(), with(&r.ident))],
+        syn::UseTree::Glob(_) => prefix
+            .last()
+            .map(|last| (last.clone(), prefix.to_vec()))
+            .into_iter()
+            .collect(),
+        syn::UseTree::Group(g) => g
+            .items
+            .iter()
+            .flat_map(|item| use_bindings(item, prefix))
+            .collect(),
     }
 }
 

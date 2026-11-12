@@ -14,10 +14,9 @@
 //! at: the function becomes a residue row with a typed reason.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::ops::ControlFlow::{self, Break, Continue};
 
 /// A lift step: the value, or the residue that stops the lift.
-pub(crate) type Lift<T> = ControlFlow<Residue, T>;
+pub(crate) type Lift<T> = Result<T, Residue>;
 
 use crate::ast as rs;
 use crate::lex::{camel, Arm, Decl, Expr};
@@ -384,7 +383,7 @@ impl Types {
                     let mut tys = Vec::new();
                     for (field, t) in fields {
                         match probe.ty(t) {
-                            Continue(ty) if nested_ok(&ty, name) => tys.push((field.clone(), ty)),
+                            Ok(ty) if nested_ok(&ty, name) => tys.push((field.clone(), ty)),
                             _ => ok = false,
                         }
                     }
@@ -403,8 +402,8 @@ impl Types {
                 let mut ok = !raw.is_empty();
                 for (field, t) in raw {
                     match probe.ty(t) {
-                        Continue(ty) => fields.push((local_name(field), ty)),
-                        Break(_) => ok = false,
+                        Ok(ty) => fields.push((local_name(field), ty)),
+                        Err(_) => ok = false,
                     }
                 }
                 if ok {
@@ -519,8 +518,8 @@ impl Types {
                 let mut ok = !structs[name].is_empty();
                 for (field, t) in &structs[name] {
                     match probe.ty(t) {
-                        Continue(ty) => fields.push((local_name(field), ty)),
-                        Break(_) => ok = false,
+                        Ok(ty) => fields.push((local_name(field), ty)),
+                        Err(_) => ok = false,
                     }
                 }
                 if ok {
@@ -645,26 +644,24 @@ impl Types {
     }
 
     pub(crate) fn ty(&self, t: &rs::RustType) -> Lift<Ty> {
-        let bad = || Break(Residue::Type(t.text.clone()));
+        let bad = || Err(Residue::Type(t.text.clone()));
         match &t.kind {
             rs::TypeKind::Reference {
                 mutable: false,
                 elem,
             } => match &elem.kind {
-                rs::TypeKind::Path { qself: false, path } if path.is_ident("str") => {
-                    Continue(Ty::Str)
-                }
-                rs::TypeKind::Slice(s) => Continue(Ty::List(Box::new(self.ty(s)?))),
+                rs::TypeKind::Path { qself: false, path } if path.is_ident("str") => Ok(Ty::Str),
+                rs::TypeKind::Slice(s) => Ok(Ty::List(Box::new(self.ty(s)?))),
                 _ => self.ty(elem),
             },
             rs::TypeKind::Paren(p) => self.ty(p),
-            rs::TypeKind::Tuple(elems) if elems.is_empty() => Continue(Ty::Unit),
+            rs::TypeKind::Tuple(elems) if elems.is_empty() => Ok(Ty::Unit),
             rs::TypeKind::Tuple(elems) if elems.len() >= 2 => {
                 let mut ts = Vec::new();
                 for e in elems {
                     ts.push(self.ty(e)?);
                 }
-                Continue(self.tuple(ts))
+                Ok(self.tuple(ts))
             }
             rs::TypeKind::Path { qself: false, path } if path.segments.len() == 1 => {
                 let seg = &path.segments[0];
@@ -713,7 +710,7 @@ impl Types {
                     }
                     _ => return bad(),
                 };
-                Continue(ty)
+                Ok(ty)
             }
             _ => bad(),
         }
@@ -733,7 +730,7 @@ impl Types {
             .iter()
             .any(|p| !matches!(p, rs::GenericParam::Lifetime(_)));
         if generic || sig.asyncness || sig.unsafety || sig.variadic {
-            return Break(Residue::Signature(
+            return Err(Residue::Signature(
                 "generic, async, unsafe or variadic".to_string(),
             ));
         }
@@ -753,11 +750,11 @@ impl Types {
                             Ty::Named(o.to_string()),
                         ));
                     }
-                    _ => return Break(Residue::Signature("takes self".to_string())),
+                    _ => return Err(Residue::Signature("takes self".to_string())),
                 },
                 rs::FnArg::Typed(pat) => {
                     let rs::Pat::Ident(name) = &*pat.pat else {
-                        return Break(Residue::Signature("pattern parameter".to_string()));
+                        return Err(Residue::Signature("pattern parameter".to_string()));
                     };
                     let rust = name.ident.clone();
                     params.push((rust.clone(), local_name(&rust), self.ty_in(&pat.ty, owner)?));
@@ -768,7 +765,7 @@ impl Types {
             None => Ty::Unit,
             Some(t) => self.ty_in(t, owner)?,
         };
-        Continue((params, result))
+        Ok((params, result))
     }
 
     /// A type where `Self` names the method's owner.
@@ -782,7 +779,7 @@ impl Types {
         };
         match (&plain.kind, owner) {
             (rs::TypeKind::Path { qself: false, path }, Some(o)) if path.is_ident("Self") => {
-                Continue(Ty::Named(o.to_string()))
+                Ok(Ty::Named(o.to_string()))
             }
             _ => self.ty(t),
         }
@@ -1204,11 +1201,9 @@ fn max_of(bits: u32) -> &'static str {
 /// The single text of an expression that must stay on one line.
 fn flat_text(e: Expr) -> Lift<String> {
     match e {
-        Expr::Flat(s) => Continue(s),
-        Expr::If { .. } if !e.flat().contains('\n') && !e.flat().contains("(match") => {
-            Continue(e.flat())
-        }
-        _ => Break(Residue::Form("match or let inside an operand".to_string())),
+        Expr::Flat(s) => Ok(s),
+        Expr::If { .. } if !e.flat().contains('\n') && !e.flat().contains("(match") => Ok(e.flat()),
+        _ => Err(Residue::Form("match or let inside an operand".to_string())),
     }
 }
 
@@ -1230,14 +1225,14 @@ fn flat_of(
     let (inner, before) = acc.apart();
     let ((x, t), inner) = expr(e, env, &scope, inner, want)?;
     let (acc, own) = inner.rejoin(before);
-    if let Continue(text) = flat_text(x.clone()) {
+    if let Ok(text) = flat_text(x.clone()) {
         let acc = acc.called_all(own.calls).axioms_all(own.axioms);
         let mut descends = acc.descends;
         descends.extend(own.descends);
-        return Continue(((text, t), Acc { descends, ..acc }));
+        return Ok(((text, t), Acc { descends, ..acc }));
     }
     if !own.descends.is_empty() {
-        return Break(Residue::Form(
+        return Err(Residue::Form(
             "recursion inside a match or let in an operand".to_string(),
         ));
     }
@@ -1258,7 +1253,7 @@ fn flat_of(
         recursive: false,
     });
     let acc = acc.called(format!("#{name}"));
-    Continue(((format!("({})", parts.join(" ")), t), acc))
+    Ok(((format!("({})", parts.join(" ")), t), acc))
 }
 
 fn int_literal(e: &rs::RustExpr) -> Option<u128> {
@@ -1305,12 +1300,12 @@ fn exact_string(text: &str) -> Option<String> {
 const PERCENT: &str = "a string with a percent sign, which LexLean source cannot write";
 
 fn literal_of(lit: &rs::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, Ty)> {
-    let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
+    let flat = |s: String, t: Ty| Ok((Expr::Flat(s), t));
     match lit {
         rs::Lit::Bool(b) if !negative => flat(b.to_string(), Ty::Bool),
         rs::Lit::Int { value, suffix } => {
             let Some(v) = *value else {
-                return Break(Residue::Form("integer literal".to_string()));
+                return Err(Residue::Form("integer literal".to_string()));
             };
             let ty = match suffix.as_str() {
                 "u8" => Ty::Nat(Some(8)),
@@ -1328,7 +1323,7 @@ fn literal_of(lit: &rs::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, T
                     _ if negative => Ty::Int(32),
                     _ => Ty::Nat(Some(32)),
                 },
-                _ => return Break(Residue::Form("integer literal".to_string())),
+                _ => return Err(Residue::Form("integer literal".to_string())),
             };
             match ty {
                 Ty::Int(_) if v <= i64::MAX as u128 + u128::from(negative) => {
@@ -1336,16 +1331,16 @@ fn literal_of(lit: &rs::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, T
                     flat(format!("({sign}{v} : Int64)"), ty)
                 }
                 Ty::Nat(_) if !negative => flat(v.to_string(), ty),
-                _ => Break(Residue::Form("integer literal".to_string())),
+                _ => Err(Residue::Form("integer literal".to_string())),
             }
         }
         rs::Lit::Str(s) if !negative => match exact_string(s) {
             Some(text) => flat(text, Ty::Str),
-            None => Break(Residue::Form(PERCENT.to_string())),
+            None => Err(Residue::Form(PERCENT.to_string())),
         },
         rs::Lit::Char(c) if !negative => match exact_string(&c.to_string()) {
             Some(text) => flat(text, Ty::Char),
-            None => Break(Residue::Form(PERCENT.to_string())),
+            None => Err(Residue::Form(PERCENT.to_string())),
         },
         rs::Lit::Byte(b) if !negative => flat(b.to_string(), Ty::Nat(Some(8))),
         rs::Lit::ByteStr(b) if !negative => {
@@ -1355,7 +1350,7 @@ fn literal_of(lit: &rs::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, T
             }
             flat(list, Ty::List(Box::new(Ty::Nat(Some(8)))))
         }
-        _ => Break(Residue::Form("literal".to_string())),
+        _ => Err(Residue::Form("literal".to_string())),
     }
 }
 
@@ -1427,7 +1422,7 @@ fn expr(
 ) -> Lift<((Expr, Ty), Acc)> {
     let ((x, t), acc) = expr_inner(e, env, ctx, acc, want)?;
     let acc = acc.saw(&t);
-    Continue(((x, t), acc))
+    Ok(((x, t), acc))
 }
 
 fn expr_inner(
@@ -1437,9 +1432,9 @@ fn expr_inner(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<((Expr, Ty), Acc)> {
-    let flat = |s: String, t: Ty, acc: Acc| Continue(((Expr::Flat(s), t), acc));
+    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
     match e {
-        rs::RustExpr::Lit(lit) => literal_of(lit, want, false).map_continue(|v| (v, acc)),
+        rs::RustExpr::Lit(lit) => literal_of(lit, want, false).map(|v| (v, acc)),
         rs::RustExpr::Paren(p) => expr(p, env, ctx, acc, want),
         rs::RustExpr::Block(b) if !b.label => block(&b.block.stmts, env, ctx, acc, want),
         rs::RustExpr::Reference(r) if !r.mutable => expr(&r.expr, env, ctx, acc, want),
@@ -1454,7 +1449,7 @@ fn expr_inner(
                 let key = ident.to_string();
                 if let Some(sig) = env.fns.get(&key).filter(|s| s.params.is_empty()) {
                     if key == ctx.current {
-                        return Break(Residue::Form("a constant that names itself".to_string()));
+                        return Err(Residue::Form("a constant that names itself".to_string()));
                     }
                     let acc = acc.called(key);
                     return flat(format!("({})", sig.name), sig.result.clone(), acc);
@@ -1467,34 +1462,34 @@ fn expr_inner(
                         t.clone(),
                         acc,
                     ),
-                    _ => Break(Residue::Form("None of an unknown type".to_string())),
+                    _ => Err(Residue::Form("None of an unknown type".to_string())),
                 };
             }
             match ctor(p, &env.types) {
                 Some((owner, variant)) => {
                     flat(format!("(ctor {owner}.{variant})"), Ty::Named(owner), acc)
                 }
-                None => Break(Residue::Form(format!("free name {}", p.text))),
+                None => Err(Residue::Form(format!("free name {}", p.text))),
             }
         }
         rs::RustExpr::Unary(u) => match u.op {
             rs::UnOp::Not => {
                 let ((x, t), acc) = flat_of(&u.expr, env, ctx, acc, Some(&Ty::Bool))?;
                 if t != Ty::Bool {
-                    return Break(Residue::Form("bitwise not".to_string()));
+                    return Err(Residue::Form("bitwise not".to_string()));
                 }
                 flat(format!("(not {x})"), Ty::Bool, acc)
             }
             rs::UnOp::Neg => match &*u.expr {
-                rs::RustExpr::Lit(lit) => literal_of(lit, want, true).map_continue(|v| (v, acc)),
-                _ => Break(Residue::Arithmetic("-".to_string())),
+                rs::RustExpr::Lit(lit) => literal_of(lit, want, true).map(|v| (v, acc)),
+                _ => Err(Residue::Arithmetic("-".to_string())),
             },
             rs::UnOp::Deref => expr(&u.expr, env, ctx, acc, want),
         },
         rs::RustExpr::Binary(b) => binary(b, env, ctx, acc),
         rs::RustExpr::If(i) => {
             let Some(otherwise) = &i.else_branch else {
-                return Break(Residue::Form("if without else".to_string()));
+                return Err(Residue::Form("if without else".to_string()));
             };
             if let rs::RustExpr::Let(l) = &*i.cond {
                 let wild = rs::Pat::Wild;
@@ -1506,14 +1501,14 @@ fn expr_inner(
             }
             let ((c, ct), acc) = expr(&i.cond, env, ctx, acc, Some(&Ty::Bool))?;
             if ct != Ty::Bool {
-                return Break(Residue::Form("non-boolean condition".to_string()));
+                return Err(Residue::Form("non-boolean condition".to_string()));
             }
             let ((then, tt), acc) = block(&i.then_branch.stmts, env, ctx, acc, want)?;
             let ((other, ot), acc) = expr(otherwise, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
             if !tt.same(&ot) {
-                return Break(Residue::Form("branches of different types".to_string()));
+                return Err(Residue::Form("branches of different types".to_string()));
             }
-            Continue((
+            Ok((
                 (
                     Expr::If {
                         condition: Box::new(Expr::Flat(flat_text(c)?)),
@@ -1549,7 +1544,7 @@ fn expr_inner(
                         .get(s)
                         .and_then(|fs| fs.iter().find(|(n, _)| *n == name))
                     else {
-                        return Break(Residue::Form("field of an unknown struct".to_string()));
+                        return Err(Residue::Form("field of an unknown struct".to_string()));
                     };
                     if env.types.boxed(s) {
                         flat(
@@ -1564,10 +1559,10 @@ fn expr_inner(
                 (rs::Member::Unnamed(i), Ty::Tuple(ts) | Ty::Pair(ts)) => {
                     match ts.get(*i as usize) {
                         Some(ty) => flat(tuple_item(&bt, &base, *i as usize), ty.clone(), acc),
-                        None => Break(Residue::Form("tuple field".to_string())),
+                        None => Err(Residue::Form("tuple field".to_string())),
                     }
                 }
-                _ => Break(Residue::Form("field access".to_string())),
+                _ => Err(Residue::Form("field access".to_string())),
             }
         }
         // `E::V { a, b }`: a struct variant, its fields in declaration order.
@@ -1575,28 +1570,28 @@ fn expr_inner(
             if !s.rest && !s.qself && data_variant(&s.path, &env.types).is_some() =>
         {
             let Some((owner, variant, fields)) = data_variant(&s.path, &env.types) else {
-                return Break(Residue::Form("struct variant".to_string()));
+                return Err(Residue::Form("struct variant".to_string()));
             };
             let mut given = BTreeMap::new();
             for fv in &s.fields {
                 let rs::Member::Named(id) = &fv.member else {
-                    return Break(Residue::Form("struct variant field".to_string()));
+                    return Err(Residue::Form("struct variant field".to_string()));
                 };
                 given.insert(id.to_string(), &fv.expr);
             }
             if given.len() != fields.len() {
-                return Break(Residue::Form("struct variant literal".to_string()));
+                return Err(Residue::Form("struct variant literal".to_string()));
             }
             let mut parts = vec![format!("ctor {owner}.{variant}")];
             let mut acc = acc;
             for (name, ty) in fields {
                 let Some(value) = name.as_ref().and_then(|n| given.get(n)) else {
-                    return Break(Residue::Form("struct variant literal".to_string()));
+                    return Err(Residue::Form("struct variant literal".to_string()));
                 };
                 let ((v, vt), next) = flat_of(value, env, ctx, acc, Some(ty))?;
                 acc = next;
                 if !vt.same(ty) {
-                    return Break(Residue::Form("struct variant field of another type".into()));
+                    return Err(Residue::Form("struct variant field of another type".into()));
                 }
                 parts.push(v);
             }
@@ -1604,31 +1599,31 @@ fn expr_inner(
         }
         rs::RustExpr::Struct(s) if !s.rest && !s.qself => {
             let Some(name) = s.path.get_ident().map(|i| env.types.resolve(i)) else {
-                return Break(Residue::Form("struct path".to_string()));
+                return Err(Residue::Form("struct path".to_string()));
             };
             let Some(fields) = env.types.structs.get(&name) else {
-                return Break(Residue::Form(format!("struct {name}")));
+                return Err(Residue::Form(format!("struct {name}")));
             };
             let mut given = BTreeMap::new();
             for fv in &s.fields {
                 let rs::Member::Named(id) = &fv.member else {
-                    return Break(Residue::Form("struct field".to_string()));
+                    return Err(Residue::Form("struct field".to_string()));
                 };
                 given.insert(local_name(id), &fv.expr);
             }
             if given.len() != fields.len() {
-                return Break(Residue::Form("struct literal".to_string()));
+                return Err(Residue::Form("struct literal".to_string()));
             }
             let mut parts = Vec::new();
             let mut acc = acc;
             for (field, ty) in fields {
                 let Some(value) = given.get(field) else {
-                    return Break(Residue::Form("struct literal".to_string()));
+                    return Err(Residue::Form("struct literal".to_string()));
                 };
                 let ((v, vt), next) = flat_of(value, env, ctx, acc, Some(ty))?;
                 acc = next;
                 if !vt.same(ty) {
-                    return Break(Residue::Form("struct field of another type".to_string()));
+                    return Err(Residue::Form("struct field of another type".to_string()));
                 }
                 parts.push((field, v));
             }
@@ -1661,13 +1656,13 @@ fn expr_inner(
         rs::RustExpr::Cast(c) => {
             let ((v, vt), acc) = flat_of(&c.expr, env, ctx, acc, None)?;
             let target = match env.types.ty(&c.ty) {
-                Continue(t) => t,
-                Break(_) => return Break(Residue::Form("cast".to_string())),
+                Ok(t) => t,
+                Err(_) => return Err(Residue::Form("cast".to_string())),
             };
             match (&vt, &target) {
                 (Ty::Nat(Some(a)), Ty::Nat(Some(b))) if a <= b => flat(v, target, acc),
                 (Ty::Int(a), Ty::Int(b)) if a <= b => flat(v, target, acc),
-                _ => Break(Residue::Form("narrowing or sign-changing cast".to_string())),
+                _ => Err(Residue::Form("narrowing or sign-changing cast".to_string())),
             }
         }
         // `xs[i]`: the element, and where Rust's bounds check panics, the
@@ -1675,17 +1670,17 @@ fn expr_inner(
         rs::RustExpr::Index(ix) => {
             let ((base, bt), acc) = flat_of(&ix.expr, env, ctx, acc, None)?;
             let Ty::List(elem) = &bt else {
-                return Break(Residue::Form(format!("index of {}", bt.render())));
+                return Err(Residue::Form(format!("index of {}", bt.render())));
             };
             let ((i, it), acc) = flat_of(&ix.index, env, ctx, acc, Some(&Ty::Nat(None)))?;
             if !matches!(it, Ty::Nat(_)) {
-                return Break(Residue::Form("index by a range".to_string()));
+                return Err(Residue::Form("index by a range".to_string()));
             }
             let Some(d) = default_of(elem, &env.types) else {
-                return Break(Residue::Form("index of a type with no value".to_string()));
+                return Err(Residue::Form("index of a type with no value".to_string()));
             };
             let (v, acc) = ctx.fresh(env, acc, "item");
-            Continue((
+            Ok((
                 (
                     Expr::Match {
                         scrutinee: format!("(prim index {base} {i} : (Option {}))", elem.render()),
@@ -1707,12 +1702,12 @@ fn expr_inner(
         }
         rs::RustExpr::Continue(label) => loop_exit(env, ctx, acc, *label, false),
         rs::RustExpr::Break(b) if b.expr.is_none() => loop_exit(env, ctx, acc, b.label, true),
-        rs::RustExpr::Try(_) => Break(Residue::Form("? outside a let".to_string())),
+        rs::RustExpr::Try(_) => Err(Residue::Form("? outside a let".to_string())),
         rs::RustExpr::Macro(m) if m.path.is_ident("format") => format_macro(m, env, ctx, acc),
         // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
         rs::RustExpr::Macro(m) if m.path.is_ident("matches") => {
             let Some((scrutinee, pat)) = &m.matches else {
-                return Break(Residue::Form("matches! with a guard".to_string()));
+                return Err(Residue::Form("matches! with a guard".to_string()));
             };
             let yes = rs::RustExpr::Lit(rs::Lit::Bool(true));
             let no = rs::RustExpr::Lit(rs::Lit::Bool(false));
@@ -1722,12 +1717,12 @@ fn expr_inner(
         }
         rs::RustExpr::Macro(m) if m.path.is_ident("vec") => {
             let Some(items) = &m.args else {
-                return Break(Residue::Form("vec! of a repeated value".to_string()));
+                return Err(Residue::Form("vec! of a repeated value".to_string()));
             };
             list_of(items, env, ctx, acc, want)
         }
         rs::RustExpr::Array(items) => list_of(items, env, ctx, acc, want),
-        _ => Break(Residue::Form(e.kind())),
+        _ => Err(Residue::Form(e.kind())),
     }
 }
 
@@ -1750,7 +1745,7 @@ fn list_of(
         acc = next;
         match &elem {
             Some(t) if !t.same(&vt) => {
-                return Break(Residue::Form(
+                return Err(Residue::Form(
                     "a list of items of different types".to_string(),
                 ))
             }
@@ -1760,7 +1755,7 @@ fn list_of(
         parts.push(v);
     }
     let Some(elem) = elem else {
-        return Break(Residue::Form(
+        return Err(Residue::Form(
             "an empty list of an unknown type".to_string(),
         ));
     };
@@ -1768,7 +1763,7 @@ fn list_of(
     for part in parts.iter().rev() {
         list = format!("(cons {part} {list})");
     }
-    Continue(((Expr::Flat(list), Ty::List(Box::new(elem))), acc))
+    Ok(((Expr::Flat(list), Ty::List(Box::new(elem))), acc))
 }
 
 /// Whether a format hole names a value: an identifier, without a format
@@ -1782,7 +1777,7 @@ fn is_identifier(hole: &str) -> bool {
 
 /// `format!` whose holes are all strings: the pieces joined.
 fn format_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty), Acc)> {
-    let bad = |what: &str| Break(Residue::Form(format!("format! {what}")));
+    let bad = |what: &str| Err(Residue::Form(format!("format! {what}")));
     let Some(args) = &mac.args else {
         return bad("arguments");
     };
@@ -1902,7 +1897,7 @@ fn format_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((E
     for piece in pieces.iter().rev() {
         list = format!("(cons {piece} {list})");
     }
-    Continue((
+    Ok((
         (
             Expr::Flat(format!("(prim join {list} \"\" : String)")),
             Ty::Str,
@@ -1913,14 +1908,14 @@ fn format_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((E
 
 fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty), Acc)> {
     use rs::BinOp as B;
-    let flat = |s: String, t: Ty, acc: Acc| Continue(((Expr::Flat(s), t), acc));
+    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
     let op_text = || b.op.text().to_string();
     match b.op {
         B::And | B::Or => {
             let ((l, lt), acc) = flat_of(&b.left, env, ctx, acc, Some(&Ty::Bool))?;
             let ((r, rt), acc) = flat_of(&b.right, env, ctx, acc, Some(&Ty::Bool))?;
             if lt != Ty::Bool || rt != Ty::Bool {
-                return Break(Residue::Form("logic on non-booleans".to_string()));
+                return Err(Residue::Form("logic on non-booleans".to_string()));
             }
             let op = if matches!(b.op, B::And) { "&&" } else { "||" };
             flat(format!("({l} {op} {r})"), Ty::Bool, acc)
@@ -1986,7 +1981,7 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                         t => match equality(t, &x, &y) {
                             Some(e) => e,
                             None => {
-                                return Break(Residue::Form(format!(
+                                return Err(Residue::Form(format!(
                                     "comparison {} of {}",
                                     op_text(),
                                     lt.render()
@@ -2027,7 +2022,7 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                             },
                         ],
                     };
-                    return Continue((
+                    return Ok((
                         (
                             Expr::Match {
                                 scrutinee: l.clone(),
@@ -2048,7 +2043,7 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                     ));
                 }
                 _ => {
-                    return Break(Residue::Form(format!(
+                    return Err(Residue::Form(format!(
                         "comparison {} of {}",
                         op_text(),
                         lt.render()
@@ -2068,10 +2063,10 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                     };
                     flat(format!("(prim {prim} {l} {k} 0 : Nat)"), lt, acc)
                 }
-                _ => Break(Residue::Arithmetic(op_text())),
+                _ => Err(Residue::Arithmetic(op_text())),
             }
         }
-        _ => Break(Residue::Arithmetic(op_text())),
+        _ => Err(Residue::Arithmetic(op_text())),
     }
 }
 
@@ -2107,9 +2102,9 @@ fn call(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<((Expr, Ty), Acc)> {
-    let flat = |s: String, t: Ty, acc: Acc| Continue(((Expr::Flat(s), t), acc));
+    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
     let rs::RustExpr::Path(p) = &*c.func else {
-        return Break(Residue::Form("call of an expression".to_string()));
+        return Err(Residue::Form("call of an expression".to_string()));
     };
     if let (Some(w), [arg]) = (wrapper(p), c.args.iter().collect::<Vec<_>>().as_slice()) {
         return match (w, want) {
@@ -2133,7 +2128,7 @@ fn call(
                 };
                 let ((v, vt), acc) = flat_of(arg, env, ctx, acc, Some(inner))?;
                 if !vt.same(inner) {
-                    return Break(Residue::Form("result of another type".to_string()));
+                    return Err(Residue::Form("result of another type".to_string()));
                 }
                 flat(
                     format!(
@@ -2145,13 +2140,13 @@ fn call(
                     acc,
                 )
             }
-            _ => Break(Residue::Form("result of an unknown type".to_string())),
+            _ => Err(Residue::Form("result of an unknown type".to_string())),
         };
     }
     // `E::V(a, b)`: a variant of a data-carrying enum.
     if let Some((owner, variant, fields)) = data_variant(p, &env.types) {
         if fields.len() != c.args.len() {
-            return Break(Residue::Form(format!(
+            return Err(Residue::Form(format!(
                 "{owner}::{variant} of another arity"
             )));
         }
@@ -2161,7 +2156,7 @@ fn call(
             let ((v, vt), next) = flat_of(arg, env, ctx, acc, Some(ty))?;
             acc = next;
             if !vt.same(ty) {
-                return Break(Residue::Form(format!("{owner}::{variant} of another type")));
+                return Err(Residue::Form(format!("{owner}::{variant} of another type")));
             }
             parts.push(v);
         }
@@ -2180,7 +2175,7 @@ fn call(
         if method == "digest" && named.as_deref() == Some("sha2::Sha256") {
             let ((v, vt), acc) = flat_of(bytes, env, ctx, acc, Some(&byte_list))?;
             if vt != byte_list {
-                return Break(Residue::Form(
+                return Err(Residue::Form(
                     "a digest of something other than bytes".into(),
                 ));
             }
@@ -2210,7 +2205,7 @@ fn call(
             if vt == Ty::Str {
                 return flat(v, Ty::Str, acc);
             }
-            return Break(Residue::Form("String::from of another type".to_string()));
+            return Err(Residue::Form("String::from of another type".to_string()));
         }
         _ => {}
     }
@@ -2229,10 +2224,10 @@ fn call(
         }
     }
     let Some(sig) = env.fns.get(&name) else {
-        return Break(Residue::Call(name));
+        return Err(Residue::Call(name));
     };
     if sig.params.len() != c.args.len() {
-        return Break(Residue::Call(name));
+        return Err(Residue::Call(name));
     }
     let mut parts = vec![sig.name.clone()];
     let mut descends = None;
@@ -2241,7 +2236,7 @@ fn call(
         let ((v, vt), next) = flat_of(arg, env, ctx, acc, Some(ty))?;
         acc = next;
         if !vt.same(ty) {
-            return Break(Residue::Form(format!("argument of another type to {name}")));
+            return Err(Residue::Form(format!("argument of another type to {name}")));
         }
         if name == ctx.current && ctx.tails.get(&v) == ctx.params.get(i) && descends.is_none() {
             descends = Some(i);
@@ -2250,7 +2245,7 @@ fn call(
     }
     let acc = if name == ctx.current {
         let Some(i) = descends else {
-            return Break(Residue::Form(
+            return Err(Residue::Form(
                 "recursion that does not descend on a slice".to_string(),
             ));
         };
@@ -2388,13 +2383,13 @@ fn text_method(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<(Option<(Expr, Ty)>, Acc)> {
-    let flat = |s: String, t: Ty, acc: Acc| Continue((Some((Expr::Flat(s), t)), acc));
+    let flat = |s: String, t: Ty, acc: Acc| Ok((Some((Expr::Flat(s), t)), acc));
     // A pattern: a string or a character.
     let pattern = |a: &rs::RustExpr, acc: Acc| -> Lift<(String, Acc)> {
         let ((v, vt), acc) = flat_of(a, env, ctx, acc, Some(&Ty::Str))?;
         match vt {
-            Ty::Str | Ty::Char => Continue((v, acc)),
-            _ => Break(Residue::Form(format!("a .{name} pattern that is not text"))),
+            Ty::Str | Ty::Char => Ok((v, acc)),
+            _ => Err(Residue::Form(format!("a .{name} pattern that is not text"))),
         }
     };
     let opt = |t: Ty| Ty::Option(Box::new(t));
@@ -2425,7 +2420,7 @@ fn text_method(
         ("starts_with" | "ends_with", [f]) if !chars && matches!(f, rs::RustExpr::Closure(_)) => {
             let (lam, acc) = lambda(f, &[Ty::Char], env, ctx, acc, Some(&Ty::Bool))?;
             if lam.ty != Ty::Bool {
-                return Break(Residue::Form(format!(
+                return Err(Residue::Form(format!(
                     "a .{name} predicate of another type"
                 )));
             }
@@ -2437,7 +2432,7 @@ fn text_method(
             } else {
                 format!("(prim subtract (prim length {all} : Nat) 1 : Nat)")
             };
-            Continue((
+            Ok((
                 Some((
                     Expr::Match {
                         scrutinee: format!("(prim index {all} {at} : (Option String))"),
@@ -2527,13 +2522,13 @@ fn text_method(
                             pair.render()
                         )) }],
             };
-            Continue((Some((body, opt(pair))), acc))
+            Ok((Some((body, opt(pair))), acc))
         }
         ("replace", [from, to]) if !chars => {
             let (from, acc) = pattern(from, acc)?;
             let ((to, tt), acc) = flat_of(to, env, ctx, acc, Some(&Ty::Str))?;
             if !matches!(tt, Ty::Str | Ty::Char) {
-                return Break(Residue::Form("a replacement that is not text".into()));
+                return Err(Residue::Form("a replacement that is not text".into()));
             }
             {
                 let (s, acc) = acc.prelude("textReplace", &[r, &from, &to]);
@@ -2571,7 +2566,7 @@ fn text_method(
         ("repeat", [n]) if !chars => {
             let ((n, nt), acc) = flat_of(n, env, ctx, acc, Some(&Ty::Nat(None)))?;
             if !matches!(nt, Ty::Nat(_)) {
-                return Break(Residue::Form("a repeat count that is not a number".into()));
+                return Err(Residue::Form("a repeat count that is not a number".into()));
             }
             {
                 let (s, acc) = acc.prelude("textRepeat", &[&n, r]);
@@ -2589,7 +2584,7 @@ fn text_method(
         ("eq_ignore_ascii_case", [other]) => {
             let ((o, ot), acc) = flat_of(other, env, ctx, acc, Some(rt))?;
             if !ot.same(rt) {
-                return Break(Residue::Form("eq_ignore_ascii_case of another type".into()));
+                return Err(Residue::Form("eq_ignore_ascii_case of another type".into()));
             }
             let (a, acc) = acc.prelude("textAsciiLower", &[r]);
             let (b, acc) = acc.prelude("textAsciiLower", &[&o]);
@@ -2644,10 +2639,8 @@ fn text_method(
             };
             let bits = match target {
                 Some(Ty::Nat(Some(bits))) if bits <= 64 => bits,
-                Some(Ty::Nat(None)) => {
-                    return Break(Residue::Width(".parse into usize".to_string()))
-                }
-                _ => return Break(Residue::Form("parse into a type outside the lift".into())),
+                Some(Ty::Nat(None)) => return Err(Residue::Width(".parse into usize".to_string())),
+                _ => return Err(Residue::Form("parse into a type outside the lift".into())),
             };
             let (parsed, acc) = acc.prelude("textParseNat", &[r, max_of(bits)]);
             flat(
@@ -2656,7 +2649,7 @@ fn text_method(
                 acc,
             )
         }
-        _ => Continue((None, acc)),
+        _ => Ok((None, acc)),
     }
 }
 
@@ -2670,7 +2663,7 @@ fn method(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<((Expr, Ty), Acc)> {
-    let flat = |s: String, t: Ty, acc: Acc| Continue(((Expr::Flat(s), t), acc));
+    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
     let mut acc = acc;
     let name = m.method.to_string();
     // `bytes.iter().map(|b| format!("{b:02x}")).collect()` into a `String`:
@@ -2719,13 +2712,13 @@ fn method(
     let args: Vec<&rs::RustExpr> = m.args.iter().collect();
     let arg = |want: &Ty, acc: Acc| -> Lift<(String, Acc)> {
         let [a] = args.as_slice() else {
-            return Break(Residue::Form(format!("method call .{name}")));
+            return Err(Residue::Form(format!("method call .{name}")));
         };
         let ((v, vt), acc) = flat_of(a, env, ctx, acc, Some(want))?;
         if vt.same(want) {
-            Continue((v, acc))
+            Ok((v, acc))
         } else {
-            Break(Residue::Form(format!(
+            Err(Residue::Form(format!(
                 "argument of another type to .{name}"
             )))
         }
@@ -2739,19 +2732,19 @@ fn method(
             if key == ctx.current {
                 // Recursion on a sub-term of `self` descends; any other does not.
                 if ctx.tails.get(&r) != ctx.params.first() {
-                    return Break(Residue::Form("a method that calls itself".to_string()));
+                    return Err(Residue::Form("a method that calls itself".to_string()));
                 }
                 acc = acc.descended(0);
             }
             if sig.params.len() != args.len() + 1 {
-                return Break(Residue::Call(key));
+                return Err(Residue::Call(key));
             }
             let mut parts = vec![sig.name.clone(), r];
             for (a, ty) in args.iter().zip(&sig.params[1..]) {
                 let ((v, vt), next) = flat_of(a, env, ctx, acc, Some(ty))?;
                 acc = next;
                 if !vt.same(ty) {
-                    return Break(Residue::Form(format!(
+                    return Err(Residue::Form(format!(
                         "argument of another type to .{name}"
                     )));
                 }
@@ -2771,14 +2764,14 @@ fn method(
     if matches!(rt, Ty::Str | Ty::Char) {
         let (lifted, after) = text_method(m, &name, &r, &rt, &args, env, ctx, acc, want)?;
         if let Some(lifted) = lifted {
-            return Continue((lifted, after));
+            return Ok((lifted, after));
         }
         acc = after;
     }
     if let Ty::List(elem) = &rt {
         let (lifted, after) = combinator(m, &name, &r, elem, &args, env, ctx, acc)?;
         if let Some(lifted) = lifted {
-            return Continue((lifted, after));
+            return Ok((lifted, after));
         }
         acc = after;
     }
@@ -2790,7 +2783,7 @@ fn method(
     match (&rt, name.as_str()) {
         (Ty::Nat(w), "checked_add" | "checked_mul") => {
             let Some(bits) = w else {
-                return Break(Residue::Width(format!(".{name} on usize")));
+                return Err(Residue::Width(format!(".{name} on usize")));
             };
             let (a, acc) = arg(&rt, acc)?;
             let v = if name == "checked_add" {
@@ -2840,7 +2833,7 @@ fn method(
         }
         (Ty::Nat(w), "wrapping_add" | "wrapping_mul" | "wrapping_sub") => {
             let Some(bits) = w else {
-                return Break(Residue::Width(format!(".{name} on usize")));
+                return Err(Residue::Width(format!(".{name} on usize")));
             };
             let (a, acc) = arg(&rt, acc)?;
             let m = pow2(*bits);
@@ -2853,7 +2846,7 @@ fn method(
         }
         (Ty::Nat(w), "saturating_add" | "saturating_mul") => {
             let Some(bits) = w else {
-                return Break(Residue::Width(format!(".{name} on usize")));
+                return Err(Residue::Width(format!(".{name} on usize")));
             };
             let (a, acc) = arg(&rt, acc)?;
             let v = if name == "saturating_add" {
@@ -2900,7 +2893,7 @@ fn method(
         }
         (Ty::Int(bits), "checked_add" | "checked_sub" | "checked_mul" | "checked_div") => {
             if *bits != 64 {
-                return Break(Residue::Width(format!(".{name} on i{bits}")));
+                return Err(Residue::Width(format!(".{name} on i{bits}")));
             }
             let (a, acc) = arg(&rt, acc)?;
             let prim = match name.as_str() {
@@ -2917,7 +2910,7 @@ fn method(
         }
         (Ty::Int(bits), "checked_neg") if args.is_empty() => {
             if *bits != 64 {
-                return Break(Residue::Width(format!(".{name} on i{bits}")));
+                return Err(Residue::Width(format!(".{name} on i{bits}")));
             }
             flat(
                 format!("(prim checked_negate {r} : (Option Int64))"),
@@ -2969,7 +2962,7 @@ fn method(
             } else {
                 ("true", "false")
             };
-            Continue((
+            Ok((
                 (
                     Expr::Match {
                         scrutinee: r,
@@ -2992,7 +2985,7 @@ fn method(
         (Ty::Option(t), "unwrap_or") => {
             let (d, acc) = arg(t, acc)?;
             let (v, acc) = ctx.fresh(env, acc, "value");
-            Continue((
+            Ok((
                 (
                     Expr::Match {
                         scrutinee: r,
@@ -3020,7 +3013,7 @@ fn method(
             } else {
                 ("false", "true")
             };
-            Continue((
+            Ok((
                 (
                     Expr::Match {
                         scrutinee: r,
@@ -3043,7 +3036,7 @@ fn method(
         (Ty::Outcome(t, _), "ok") if args.is_empty() => {
             let (v, acc) = ctx.fresh(env, acc, "value");
             let (e, acc) = ctx.fresh(env, acc, "error");
-            Continue((
+            Ok((
                 (
                     Expr::Match {
                         scrutinee: r,
@@ -3066,7 +3059,7 @@ fn method(
         (Ty::Option(_) | Ty::Outcome(..), _) => {
             wrapped_method(&name, &r, &rt, &args, env, ctx, acc)
         }
-        _ => Break(Residue::Form(format!("method call .{name}"))),
+        _ => Err(Residue::Form(format!("method call .{name}"))),
     }
 }
 
@@ -3137,7 +3130,7 @@ fn wrapped_method(
     ctx: &Ctx,
     acc: Acc,
 ) -> Lift<((Expr, Ty), Acc)> {
-    let bad = || Break(Residue::Form(format!("method call .{name}")));
+    let bad = || Err(Residue::Form(format!("method call .{name}")));
     let some = |t: &Ty, v: &str| format!("(ctor Option.some [{}] {v})", t.render());
     let none = |t: &Ty| format!("(ctor Option.none [{}])", t.render());
     let opt = |t: &Ty| Ty::Option(Box::new(t.clone()));
@@ -3193,7 +3186,7 @@ fn wrapped_method(
             let (lam, acc) = lambda(f, params, env, ctx, acc, want)?;
             let acc = acc.called_all(lam.calls.clone());
             let acc = acc.axioms_all(lam.axioms.clone());
-            Continue((lam, acc))
+            Ok((lam, acc))
         };
     let (fresh_e, acc) = ctx.fresh(env, acc, "error");
     match (name, args) {
@@ -3202,14 +3195,14 @@ fn wrapped_method(
             let v = lam.binders[0].clone();
             let body = lam.wrap(lam.core.clone());
             match &failure {
-                None => Continue((
+                None => Ok((
                     (
                         two(&v, wrap_some(&lam.ty, body), "", Expr::Flat(none(&lam.ty))),
                         opt(&lam.ty),
                     ),
                     acc,
                 )),
-                Some(e) => Continue((
+                Some(e) => Ok((
                     (
                         two(
                             &v,
@@ -3230,11 +3223,11 @@ fn wrapped_method(
             let (lam, acc) = closure(f, std::slice::from_ref(&value), acc, None)?;
             let ((dv, dt), acc) = flat_of(d, env, ctx, acc, Some(&lam.ty))?;
             if !dt.same(&lam.ty) {
-                return Break(Residue::Form("map_or of another type".into()));
+                return Err(Residue::Form("map_or of another type".into()));
             }
             let v = lam.binders[0].clone();
             let body = lam.wrap(lam.core.clone());
-            Continue((
+            Ok((
                 (two(&v, body, &fresh_e, Expr::Flat(dv)), lam.ty.clone()),
                 acc,
             ))
@@ -3246,7 +3239,7 @@ fn wrapped_method(
             let x = lam.binders[0].clone();
             let body = lam.wrap(lam.core.clone());
             let types = result_of(&value, &lam.ty);
-            Continue((
+            Ok((
                 (
                     two(
                         &v,
@@ -3268,9 +3261,9 @@ fn wrapped_method(
                 (Some(e), Ty::Outcome(u, e2)) if e.same(e2) => {
                     format!("(ctor Result.error {} {fresh_e})", result_of(u, e))
                 }
-                _ => return Break(Residue::Form("and_then of another type".into())),
+                _ => return Err(Residue::Form("and_then of another type".into())),
             };
-            Continue((
+            Ok((
                 (two(&v, body, &fresh_e, Expr::Flat(fail)), lam.ty.clone()),
                 acc,
             ))
@@ -3287,7 +3280,7 @@ fn wrapped_method(
                 some(&value, &v),
                 none(&value)
             ));
-            Continue((
+            Ok((
                 (two(&v, test, "", Expr::Flat(none(&value))), rt.clone()),
                 acc,
             ))
@@ -3311,15 +3304,15 @@ fn wrapped_method(
             let otherwise = Expr::Flat((name == "is_none_or").to_string());
             if on_err {
                 let (v, acc) = ctx.fresh(env, acc, "value");
-                return Continue(((two(&v, otherwise, &b, test), Ty::Bool), acc));
+                return Ok(((two(&v, otherwise, &b, test), Ty::Bool), acc));
             }
-            Continue(((two(&b, test, &fresh_e, otherwise), Ty::Bool), acc))
+            Ok(((two(&b, test, &fresh_e, otherwise), Ty::Bool), acc))
         }
         ("ok_or", [e]) if failure.is_none() => {
             let ((ev, et), acc) = flat_of(e, env, ctx, acc, None)?;
             let (v, acc) = ctx.fresh(env, acc, "value");
             let types = result_of(&value, &et);
-            Continue((
+            Ok((
                 (
                     two(
                         &v,
@@ -3335,7 +3328,7 @@ fn wrapped_method(
         ("err", []) => {
             let Some(e) = &failure else { return bad() };
             let (v, acc) = ctx.fresh(env, acc, "value");
-            Continue((
+            Ok((
                 (
                     two(
                         &v,
@@ -3351,10 +3344,10 @@ fn wrapped_method(
         ("unwrap_or", [d]) => {
             let ((dv, dt), acc) = flat_of(d, env, ctx, acc, Some(&value))?;
             if !dt.same(&value) {
-                return Break(Residue::Form("unwrap_or of another type".into()));
+                return Err(Residue::Form("unwrap_or of another type".into()));
             }
             let (v, acc) = ctx.fresh(env, acc, "value");
-            Continue((
+            Ok((
                 (
                     two(&v, Expr::Flat(v.clone()), &fresh_e, Expr::Flat(dv)),
                     value,
@@ -3366,7 +3359,7 @@ fn wrapped_method(
             let params: Vec<Ty> = failure.iter().cloned().collect();
             let (lam, acc) = closure(f, &params, acc, Some(&value))?;
             if !lam.ty.same(&value) {
-                return Break(Residue::Form("unwrap_or_else of another type".into()));
+                return Err(Residue::Form("unwrap_or_else of another type".into()));
             }
             let e = lam
                 .binders
@@ -3375,18 +3368,18 @@ fn wrapped_method(
                 .unwrap_or_else(|| fresh_e.clone());
             let (v, acc) = ctx.fresh(env, acc, "value");
             let fallback = lam.wrap(lam.core.clone());
-            Continue(((two(&v, Expr::Flat(v.clone()), &e, fallback), value), acc))
+            Ok(((two(&v, Expr::Flat(v.clone()), &e, fallback), value), acc))
         }
         ("unwrap_or_default" | "unwrap" | "expect", _) => {
             let rust_default = name == "unwrap_or_default";
             if rust_default && matches!(value, Ty::Named(_)) {
-                return Break(Residue::Form("unwrap_or_default of a named type".into()));
+                return Err(Residue::Form("unwrap_or_default of a named type".into()));
             }
             let Some(d) = default_of(&value, &env.types) else {
-                return Break(Residue::Form(format!(".{name} of a type with no value")));
+                return Err(Residue::Form(format!(".{name} of a type with no value")));
             };
             let (v, acc) = ctx.fresh(env, acc, "value");
-            Continue((
+            Ok((
                 (
                     two(&v, Expr::Flat(v.clone()), &fresh_e, Expr::Flat(d)),
                     value,
@@ -3492,11 +3485,11 @@ fn bind_pat(
     match (p, ty) {
         (rs::Pat::Ident(i), _) if i.subpat.is_none() && !i.by_ref => {
             let (scope, name, acc) = ctx.bind(env, acc, &i.ident, ty.clone());
-            Continue((scope, name, acc, lets))
+            Ok((scope, name, acc, lets))
         }
         (rs::Pat::Wild, _) => {
             let (name, acc) = ctx.fresh(env, acc, "item");
-            Continue((ctx.clone(), name, acc, lets))
+            Ok((ctx.clone(), name, acc, lets))
         }
         (rs::Pat::Reference(r), _) => bind_pat(r, ty, env, ctx, acc, lets, nested),
         (rs::Pat::Type(pt), _) => bind_pat(&pt.pat, ty, env, ctx, acc, lets, nested),
@@ -3511,9 +3504,9 @@ fn bind_pat(
                 lets = more;
                 lets.push((name, t.render(), tuple_item(ty, &whole, i)));
             }
-            Continue((scope, whole, acc, lets))
+            Ok((scope, whole, acc, lets))
         }
-        _ => Break(Residue::Form("closure pattern".to_string())),
+        _ => Err(Residue::Form("closure pattern".to_string())),
     }
 }
 
@@ -3527,12 +3520,12 @@ fn lambda(
     want: Option<&Ty>,
 ) -> Lift<(Lambda, Acc)> {
     let rs::RustExpr::Closure(c) = e else {
-        return Break(Residue::Form(
+        return Err(Residue::Form(
             "an iterator adapter given a function, not a closure".to_string(),
         ));
     };
     if c.inputs.len() != params.len() || c.asyncness {
-        return Break(Residue::Form("closure".to_string()));
+        return Err(Residue::Form("closure".to_string()));
     }
     let (mut acc, before) = acc.apart();
     let mut scope = Ctx {
@@ -3554,9 +3547,9 @@ fn lambda(
     let ((core, ty), acc) = flat_of(&c.body, env, &scope, acc, want)?;
     let (acc, own) = acc.rejoin(before);
     if !own.descends.is_empty() {
-        return Break(Residue::Form("recursion inside a closure".to_string()));
+        return Err(Residue::Form("recursion inside a closure".to_string()));
     }
-    Continue((
+    Ok((
         Lambda {
             binders,
             lets,
@@ -3694,7 +3687,7 @@ fn lookup(
     };
     let ((v, vt), acc) = flat_of(needle, env, ctx, acc, Some(&key_ty))?;
     if !vt.same(&key_ty) {
-        return Break(Residue::Form(format!("{kind} of another type")));
+        return Err(Residue::Form(format!("{kind} of another type")));
     }
     let (head, acc) = ctx.fresh(env, acc, "item");
     let (probe, acc) = ctx.fresh(env, acc, "needle");
@@ -3704,7 +3697,7 @@ fn lookup(
         head.clone()
     };
     let Some(test) = equality(&key_ty, &subject, &probe) else {
-        return Break(Residue::Form(format!("{kind} over keys of this type")));
+        return Err(Residue::Form(format!("{kind} over keys of this type")));
     };
     let lam = Lambda {
         binders: vec![head.clone()],
@@ -3732,7 +3725,7 @@ fn lookup(
             rec(std::slice::from_ref(&probe_arg))
         ))
     };
-    Continue(walk(
+    Ok(walk(
         env,
         ctx,
         acc,
@@ -3760,9 +3753,9 @@ fn collection(
     ctx: &Ctx,
     acc: Acc,
 ) -> Lift<((Expr, Ty), Acc)> {
-    let flat = |s: String, t: Ty, acc: Acc| Continue(((Expr::Flat(s), t), acc));
+    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
     let unordered = || {
-        Break(Residue::Form(format!(
+        Err(Residue::Form(format!(
             ".{name} on a hash collection, whose order is unspecified"
         )))
     };
@@ -3806,7 +3799,7 @@ fn collection(
             };
             let cons = |rec: Recur<'_>, _: &str| Expr::Flat(format!("(cons {core} {})", rec(&[])));
             let kind = if name == "keys" { "Keys" } else { "Values" };
-            Continue(walk(
+            Ok(walk(
                 env,
                 ctx,
                 acc,
@@ -3821,7 +3814,7 @@ fn collection(
                 &cons,
             ))
         }
-        _ => Break(Residue::Form(format!("method call .{name}"))),
+        _ => Err(Residue::Form(format!("method call .{name}"))),
     }
 }
 
@@ -3841,7 +3834,7 @@ fn combinator(
     acc: Acc,
 ) -> Lift<(Option<(Expr, Ty)>, Acc)> {
     let list = Ty::List(Box::new(elem.clone()));
-    let flat = |s: String, t: Ty, acc: Acc| Continue((Some((Expr::Flat(s), t)), acc));
+    let flat = |s: String, t: Ty, acc: Acc| Ok((Some((Expr::Flat(s), t)), acc));
     match (name, args) {
         ("iter" | "into_iter", []) => flat(r.to_string(), list, acc),
         ("collect", []) => {
@@ -3851,7 +3844,7 @@ fn combinator(
             );
             if to_string {
                 if *elem != Ty::Str {
-                    return Break(Residue::Form("collect of non-strings into a String".into()));
+                    return Err(Residue::Form("collect of non-strings into a String".into()));
                 }
                 let acc = acc.axiom("propext");
                 return flat(format!("(prim join {r} \"\" : String)"), Ty::Str, acc);
@@ -3862,21 +3855,21 @@ fn combinator(
         ("join", [sep]) if *elem == Ty::Str => {
             let ((s, st), acc) = flat_of(sep, env, ctx, acc, Some(&Ty::Str))?;
             if st != Ty::Str {
-                return Break(Residue::Form(
+                return Err(Residue::Form(
                     "join with a separator of another type".into(),
                 ));
             }
             let acc = acc.axiom("propext");
             flat(format!("(prim join {r} {s} : String)"), Ty::Str, acc)
         }
-        ("contains", [needle]) => Continue(some(lookup(
+        ("contains", [needle]) => Ok(some(lookup(
             env, ctx, acc, "Contains", r, elem, None, needle,
         )?)),
         ("map" | "filter" | "any" | "all" | "find", [f]) => {
             let want = if name == "map" { None } else { Some(&Ty::Bool) };
             let (lam, acc) = lambda(f, std::slice::from_ref(elem), env, ctx, acc, want)?;
             if name != "map" && lam.ty != Ty::Bool {
-                return Break(Residue::Form(format!(
+                return Err(Residue::Form(format!(
                     "a .{name} predicate of another type"
                 )));
             }
@@ -3910,7 +3903,7 @@ fn combinator(
                     ),
                 })
             };
-            Continue(some(walk(
+            Ok(some(walk(
                 env,
                 ctx,
                 acc,
@@ -3929,13 +3922,13 @@ fn combinator(
             let ((iv, it), acc) = flat_of(init, env, ctx, acc, None)?;
             let (lam, acc) = lambda(f, &[it.clone(), elem.clone()], env, ctx, acc, Some(&it))?;
             if !lam.ty.same(&it) {
-                return Break(Residue::Form("a fold step of another type".into()));
+                return Err(Residue::Form("a fold step of another type".into()));
             }
             let folded = lam.binders[0].clone();
             let head = lam.binders[1].clone();
             let core = lam.core.clone();
             let cons = |rec: Recur<'_>, _: &str| Expr::Flat(rec(std::slice::from_ref(&core)));
-            Continue(some(walk(
+            Ok(some(walk(
                 env,
                 ctx,
                 acc,
@@ -3966,7 +3959,7 @@ fn combinator(
         ("nth", [n]) => {
             let ((n, nt), acc) = flat_of(n, env, ctx, acc, Some(&Ty::Nat(None)))?;
             if !matches!(nt, Ty::Nat(_)) {
-                return Break(Residue::Form("nth of another type".into()));
+                return Err(Residue::Form("nth of another type".into()));
             }
             flat(
                 format!("(prim index {r} {n} : (Option {}))", elem.render()),
@@ -3977,7 +3970,7 @@ fn combinator(
         ("chain", [other]) => {
             let ((o, ot), acc) = flat_of(other, env, ctx, acc, Some(&list))?;
             if !ot.same(&list) {
-                return Break(Residue::Form("chain of another type".into()));
+                return Err(Residue::Form("chain of another type".into()));
             }
             flat(
                 format!("(prim append {r} {o} : {})", list.render()),
@@ -4003,7 +3996,7 @@ fn combinator(
                         rec(&[])
                     ))
                 };
-                return Continue(some(walk(
+                return Ok(some(walk(
                     env,
                     ctx,
                     acc,
@@ -4029,7 +4022,7 @@ fn combinator(
                     rec(&[format!("({index} + 1)")])
                 ))
             };
-            Continue(some(walk(
+            Ok(some(walk(
                 env,
                 ctx,
                 acc,
@@ -4047,7 +4040,7 @@ fn combinator(
         ("skip" | "take", [n]) => {
             let ((n, nt), acc) = flat_of(n, env, ctx, acc, Some(&Ty::Nat(None)))?;
             if !matches!(nt, Ty::Nat(_)) {
-                return Break(Residue::Form(format!(".{name} of another type")));
+                return Err(Residue::Form(format!(".{name} of another type")));
             }
             let (head, acc) = ctx.fresh(env, acc, "item");
             let (count, acc) = ctx.fresh(env, acc, "count");
@@ -4071,7 +4064,7 @@ fn combinator(
                 })
             };
             let kind = if take { "Take" } else { "Skip" };
-            Continue(some(walk(
+            Ok(some(walk(
                 env,
                 ctx,
                 acc,
@@ -4096,7 +4089,7 @@ fn combinator(
                 Some(&Ty::Bool),
             )?;
             if lam.ty != Ty::Bool {
-                return Break(Residue::Form(format!(
+                return Err(Residue::Form(format!(
                     "a .{name} predicate of another type"
                 )));
             }
@@ -4111,7 +4104,7 @@ fn combinator(
                         rec(&[format!("({index} + 1)")])
                     ))
                 };
-                return Continue(some(walk(
+                return Ok(some(walk(
                     env,
                     ctx,
                     acc,
@@ -4136,7 +4129,7 @@ fn combinator(
                 })
             };
             let kind = if take { "TakeWhile" } else { "SkipWhile" };
-            Continue(some(walk(
+            Ok(some(walk(
                 env,
                 ctx,
                 acc,
@@ -4157,7 +4150,7 @@ fn combinator(
                 (Ty::Option(u), "filter_map" | "find_map") | (Ty::List(u), "flat_map") => {
                     (**u).clone()
                 }
-                _ => return Break(Residue::Form(format!("a .{name} step of another type"))),
+                _ => return Err(Residue::Form(format!("a .{name} step of another type"))),
             };
             let head = lam.binders[0].clone();
             let core = lam.core.clone();
@@ -4203,7 +4196,7 @@ fn combinator(
                     },
                 }
             };
-            Continue(some(walk(
+            Ok(some(walk(
                 env,
                 ctx,
                 acc,
@@ -4218,7 +4211,7 @@ fn combinator(
                 &cons,
             )))
         }
-        _ => Continue((None, acc)),
+        _ => Ok((None, acc)),
     }
 }
 
@@ -4438,7 +4431,7 @@ fn matching(
         };
         for case in cases {
             let Some(sh) = data_shape(case, &st, &env.types).or_else(|| shape(case)) else {
-                return Break(Residue::Form("match pattern".to_string()));
+                return Err(Residue::Form("match pattern".to_string()));
             };
             shapes.push((sh, *b));
         }
@@ -4452,14 +4445,14 @@ fn matching(
             })
         };
         let (Some(t), Some(f)) = (pick("true"), pick("false")) else {
-            return Break(Residue::Form("non-exhaustive match".to_string()));
+            return Err(Residue::Form("non-exhaustive match".to_string()));
         };
         let ((then, tt), acc) = body(t, env, ctx, acc, want)?;
         let ((other, ot), acc) = body(f, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
         if !tt.same(&ot) {
-            return Break(Residue::Form("arms of different types".to_string()));
+            return Err(Residue::Form("arms of different types".to_string()));
         }
-        return Continue((
+        return Ok((
             (
                 Expr::If {
                     condition: Box::new(Expr::Flat(s)),
@@ -4472,7 +4465,7 @@ fn matching(
         ));
     }
     let Some(ctors) = constructors(&st, &env.types) else {
-        return Break(Residue::Form(format!("match on {}", st.render())));
+        return Err(Residue::Form(format!("match on {}", st.render())));
     };
     let mut out = Vec::new();
     let mut result: Option<Ty> = want.cloned();
@@ -4486,7 +4479,7 @@ fn matching(
             Shape::Wild => Some((None, *b)),
         });
         let Some((binders, b)) = found else {
-            return Break(Residue::Form("non-exhaustive match".to_string()));
+            return Err(Residue::Form("non-exhaustive match".to_string()));
         };
         let mut scope = ctx.clone();
         let mut names = Vec::new();
@@ -4497,10 +4490,10 @@ fn matching(
                 Some(ident) if ident.starts_with("#tuple:") => {
                     let items: Vec<&str> = ident["#tuple:".len()..].split(',').collect();
                     let (Ty::Tuple(ts) | Ty::Pair(ts)) = ty else {
-                        return Break(Residue::Form("tuple pattern of another type".into()));
+                        return Err(Residue::Form("tuple pattern of another type".into()));
                     };
                     if ts.len() != items.len() {
-                        return Break(Residue::Form("tuple pattern of another type".into()));
+                        return Err(Residue::Form("tuple pattern of another type".into()));
                     }
                     let (whole, after) = ctx.fresh(env, acc, "pair");
                     acc = after;
@@ -4546,7 +4539,7 @@ fn matching(
         let e = wrap_lets(lets, e);
         match &result {
             Some(r) if !r.same(&t) => {
-                return Break(Residue::Form("arms of different types".to_string()));
+                return Err(Residue::Form("arms of different types".to_string()));
             }
             _ => result = Some(t),
         }
@@ -4557,9 +4550,9 @@ fn matching(
         out.push(Arm { pattern, body: e });
     }
     let Some(result) = result else {
-        return Break(Residue::Form("empty match".to_string()));
+        return Err(Residue::Form("empty match".to_string()));
     };
-    Continue((
+    Ok((
         (
             Expr::Match {
                 scrutinee: s,
@@ -4583,16 +4576,16 @@ fn literal_match(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<((Expr, Ty), Acc)> {
-    let bad = || Break(Residue::Form("match pattern".to_string()));
+    let bad = || Err(Residue::Form("match pattern".to_string()));
     let constant = |e: &rs::RustExpr| -> Option<String> {
         match e {
             rs::RustExpr::Lit(l) => match literal_of(l, Some(st), false) {
-                Continue((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
+                Ok((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
                 _ => None,
             },
             rs::RustExpr::Unary(u) if matches!(u.op, rs::UnOp::Neg) => match &*u.expr {
                 rs::RustExpr::Lit(l) => match literal_of(l, Some(st), true) {
-                    Continue((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
+                    Ok((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
                     _ => None,
                 },
                 _ => None,
@@ -4725,7 +4718,7 @@ fn literal_match(
         }
     }
     if tests.last().is_none_or(|(c, _, _)| c.is_some()) {
-        return Break(Residue::Form("non-exhaustive match".to_string()));
+        return Err(Residue::Form("non-exhaustive match".to_string()));
     }
     let mut result = want.cloned();
     let mut bodies = Vec::new();
@@ -4737,17 +4730,17 @@ fn literal_match(
         let ((e, t), after) = body(*b, env, &scope, acc, result.as_ref())?;
         acc = after;
         if result.as_ref().is_some_and(|r| !r.same(&t)) {
-            return Break(Residue::Form("arms of different types".to_string()));
+            return Err(Residue::Form("arms of different types".to_string()));
         }
         result = Some(t);
         bodies.push((cond.clone(), e));
     }
     let Some(t) = result else {
-        return Break(Residue::Form("empty match".to_string()));
+        return Err(Residue::Form("empty match".to_string()));
     };
     let mut bodies = bodies.into_iter().rev();
     let Some((_, mut out)) = bodies.next() else {
-        return Break(Residue::Form("empty match".to_string()));
+        return Err(Residue::Form("empty match".to_string()));
     };
     for (cond, e) in bodies {
         let Some(cond) = cond else { return bad() };
@@ -4757,7 +4750,7 @@ fn literal_match(
             otherwise: Box::new(out),
         };
     }
-    Continue(((out, t), acc))
+    Ok(((out, t), acc))
 }
 
 /// A branch followed by the statements after it, as one block expression.
@@ -4826,7 +4819,7 @@ fn updated(
     let inner = ctx.below();
     let joined = |piece: String, acc: Acc| {
         let acc = acc.axiom("propext");
-        Continue((
+        Ok((
             format!("(prim join (cons {current} (cons {piece} (nil String))) \"\" : String)"),
             acc,
         ))
@@ -4834,9 +4827,9 @@ fn updated(
     let value_of = |v: &rs::RustExpr, want: &Ty, acc: Acc| -> Lift<(String, Acc)> {
         let ((x, xt), acc) = flat_of(v, env, &inner, acc, Some(want))?;
         if xt.same(want) {
-            Continue((x, acc))
+            Ok((x, acc))
         } else {
-            Break(Residue::Form("an update of another type".to_string()))
+            Err(Residue::Form("an update of another type".to_string()))
         }
     };
     match (e, ty) {
@@ -4845,13 +4838,13 @@ fn updated(
             let (piece, acc) = value_of(&b.right, &Ty::Str, acc)?;
             joined(piece, acc)
         }
-        (rs::RustExpr::Binary(b), _) => Break(Residue::Arithmetic(b.op.text().to_string())),
+        (rs::RustExpr::Binary(b), _) => Err(Residue::Arithmetic(b.op.text().to_string())),
         (rs::RustExpr::MethodCall(m), Ty::Set(t, true))
             if m.method == "insert" && m.args.len() == 1 =>
         {
             let (v, acc) = value_of(&m.args[0], t, acc)?;
             let (helper, acc) = sorted_insert(ty, env, ctx, acc)?;
-            Continue((format!("({helper} {current} {v})"), acc))
+            Ok((format!("({helper} {current} {v})"), acc))
         }
         (rs::RustExpr::MethodCall(m), Ty::Map(k, v, true))
             if m.method == "insert" && m.args.len() == 2 =>
@@ -4860,7 +4853,7 @@ fn updated(
             let (value, acc) = value_of(&m.args[1], v, acc)?;
             let (helper, acc) = sorted_insert(ty, env, ctx, acc)?;
             let entry = ty.entry();
-            Continue((
+            Ok((
                 format!(
                     "({helper} {current} {})",
                     tuple_value(&entry, &[key, value])
@@ -4870,7 +4863,7 @@ fn updated(
         }
         (rs::RustExpr::MethodCall(m), Ty::List(t)) if m.method == "push" => {
             let (v, acc) = value_of(&m.args[0], t, acc)?;
-            Continue((
+            Ok((
                 format!(
                     "(prim append {current} (cons {v} (nil {})) : {})",
                     t.render(),
@@ -4887,7 +4880,7 @@ fn updated(
             };
             joined(piece, acc)
         }
-        _ => Break(Residue::Form("an update outside the lift".to_string())),
+        _ => Err(Residue::Form("an update outside the lift".to_string())),
     }
 }
 
@@ -4900,7 +4893,7 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
     let (key, entry) = match ty {
         Ty::Set(t, true) => ((**t).clone(), (**t).clone()),
         Ty::Map(k, _, true) => ((**k).clone(), ty.entry()),
-        _ => return Break(Residue::Form("insert into an unordered collection".into())),
+        _ => return Err(Residue::Form("insert into an unordered collection".into())),
     };
     let list = Ty::List(Box::new(entry.clone()));
     let (items, acc) = ctx.fresh(env, acc, "items");
@@ -4924,7 +4917,7 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
             )
         }
         other => {
-            return Break(Residue::Form(format!(
+            return Err(Residue::Form(format!(
                 "insert by a key of {}, whose order the lift does not model",
                 other.render()
             )))
@@ -4964,7 +4957,7 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
         recursive: true,
     });
     let acc = acc.called(format!("#{name}"));
-    Continue((name, acc))
+    Ok((name, acc))
 }
 
 /// The locals the statements update and the locals they declare, outside
@@ -5021,16 +5014,16 @@ fn scan_exprs(exprs: &[&rs::RustExpr]) -> (BTreeSet<String>, BTreeSet<String>) {
 fn loop_state(body: &[rs::Stmt], ctx: &Ctx) -> Lift<Vec<String>> {
     let (updated, declared) = scan_stmts(body);
     if updated.iter().any(|u| declared.contains(u)) {
-        return Break(Residue::Form("a loop that shadows its state".to_string()));
+        return Err(Residue::Form("a loop that shadows its state".to_string()));
     }
     let state: Vec<String> = updated
         .into_iter()
         .filter(|u| ctx.locals.contains_key(u))
         .collect();
     if state.is_empty() {
-        return Break(Residue::Form("a loop that updates no local".to_string()));
+        return Err(Residue::Form("a loop that updates no local".to_string()));
     }
-    Continue(state)
+    Ok(state)
 }
 
 /// The state of a loop as one value: the local, or the tuple of them.
@@ -5128,16 +5121,16 @@ const BREAK: &str = "#break ";
 /// the step leaves it.
 fn loop_exit(env: &Env, ctx: &Ctx, acc: Acc, label: bool, breaks: bool) -> Lift<((Expr, Ty), Acc)> {
     let Some(state) = &ctx.looping else {
-        return Break(Residue::Form(
+        return Err(Residue::Form(
             "continue or break outside a loop step".to_string(),
         ));
     };
     if label {
-        return Break(Residue::Form("labelled continue or break".to_string()));
+        return Err(Residue::Form("labelled continue or break".to_string()));
     }
     let ((v, t), acc) = flat_of(&state_expr(state), env, ctx, acc, None)?;
     let v = if breaks { format!("{BREAK}{v}") } else { v };
-    Continue(((Expr::Flat(v), t), acc))
+    Ok(((Expr::Flat(v), t), acc))
 }
 
 /// `for p in xs { body } rest`: a helper that walks `xs` with the locals the
@@ -5151,7 +5144,7 @@ fn for_loop(
     want: Option<&Ty>,
 ) -> Lift<((Expr, Ty), Acc)> {
     if f.label {
-        return Break(Residue::Form("labelled loop".to_string()));
+        return Err(Residue::Form("labelled loop".to_string()));
     }
     let ((list, lt), acc) = flat_of(&f.expr, env, &ctx.below(), acc, None)?;
     let elem = match &lt {
@@ -5159,7 +5152,7 @@ fn for_loop(
         Ty::Set(t, true) => (**t).clone(),
         Ty::Map(_, _, true) => lt.entry(),
         _ => {
-            return Break(Residue::Form(
+            return Err(Residue::Form(
                 "a loop over something other than a list".to_string(),
             ))
         }
@@ -5194,7 +5187,7 @@ fn for_loop(
     let ((step, st), acc) = block(&stmts, env, &scope, acc, Some(&state_ty))?;
     let (acc, own) = acc.rejoin(before);
     if !st.same(&state_ty) || !own.descends.is_empty() {
-        return Break(Residue::Form("a loop step of another type".to_string()));
+        return Err(Residue::Form("a loop step of another type".to_string()));
     }
     let name = ctx.helper_name(env, &acc, "Loop");
     let (items, acc) = ctx.fresh(env, acc, "items");
@@ -5245,7 +5238,7 @@ fn for_loop(
     let (whole, acc) = ctx.fresh(env, acc, "state");
     let (after, acc, lets) = rebind(env, ctx, acc, &state, &whole, Vec::new());
     let ((rest, rt), acc) = block(rest, env, &after, acc, want)?;
-    Continue((
+    Ok((
         (
             Expr::Let {
                 name: whole,
@@ -5445,12 +5438,12 @@ fn block(
     }
     match stmts {
         // A block with no value is `()`.
-        [] if want == Some(&Ty::Unit) => Continue(((Expr::Flat("()".into()), Ty::Unit), acc)),
+        [] if want == Some(&Ty::Unit) => Ok(((Expr::Flat("()".into()), Ty::Unit), acc)),
         [rs::Stmt::Expr(e, false)] => expr(e, env, &ctx.below(), acc, want),
         [rs::Stmt::Expr(rs::RustExpr::Return(r), _), ..] if ctx.top => match r {
             Some(v) => expr(v, env, &ctx.below(), acc, Some(&ctx.result)),
-            None if ctx.result == Ty::Unit => Continue(((Expr::Flat("()".into()), Ty::Unit), acc)),
-            None => Break(Residue::Type("()".to_string())),
+            None if ctx.result == Ty::Unit => Ok(((Expr::Flat("()".into()), Ty::Unit), acc)),
+            None => Err(Residue::Type("()".to_string())),
         },
         // `if c { return v; } rest`: an early exit from the function.
         [rs::Stmt::Expr(rs::RustExpr::If(i), _), rest @ ..]
@@ -5460,13 +5453,13 @@ fn block(
                 && returned(&i.then_branch).is_some() =>
         {
             let Some(v) = returned(&i.then_branch) else {
-                return Break(Residue::Statements);
+                return Err(Residue::Statements);
             };
             let inner = ctx.below();
             if matches!(&*i.cond, rs::RustExpr::Let(_)) {
                 let wild = rs::Pat::Wild;
                 let rs::RustExpr::Let(l) = &*i.cond else {
-                    return Break(Residue::Statements);
+                    return Err(Residue::Statements);
                 };
                 let tail = rs::Block {
                     stmts: rest.to_vec(),
@@ -5479,14 +5472,14 @@ fn block(
             }
             let ((c, ct), acc) = expr(&i.cond, env, &inner, acc, Some(&Ty::Bool))?;
             if ct != Ty::Bool {
-                return Break(Residue::Form("non-boolean condition".to_string()));
+                return Err(Residue::Form("non-boolean condition".to_string()));
             }
             let ((then, tt), acc) = expr(v, env, &inner, acc, Some(&ctx.result))?;
             let ((other, ot), acc) = block(rest, env, ctx, acc, want)?;
             if !tt.same(&ctx.result) || !ot.same(&tt) {
-                return Break(Residue::Form("branches of different types".to_string()));
+                return Err(Residue::Form("branches of different types".to_string()));
             }
-            Continue((
+            Ok((
                 (
                     Expr::If {
                         condition: Box::new(Expr::Flat(flat_text(c)?)),
@@ -5505,16 +5498,16 @@ fn block(
                 && local.init.as_ref().is_some_and(|i| i.diverge.is_some()) =>
         {
             let Some(init) = &local.init else {
-                return Break(Residue::Statements);
+                return Err(Residue::Statements);
             };
             let Some(otherwise) = &init.diverge else {
-                return Break(Residue::Statements);
+                return Err(Residue::Statements);
             };
             let rs::RustExpr::Block(eb) = &**otherwise else {
-                return Break(Residue::Form("let else".to_string()));
+                return Err(Residue::Form("let else".to_string()));
             };
             let Some(v) = returned(&eb.block) else {
-                return Break(Residue::Form("let else".to_string()));
+                return Err(Residue::Form("let else".to_string()));
             };
             let wild = rs::Pat::Wild;
             let tail = rs::Block {
@@ -5538,7 +5531,7 @@ fn block(
                 }) =>
         {
             let Some(init) = &local.init else {
-                return Break(Residue::Statements);
+                return Err(Residue::Statements);
             };
             let ((value, vt), acc) = flat_of(&init.expr, env, &ctx.below(), acc, None)?;
             let (scope, whole, acc, lets) =
@@ -5553,7 +5546,7 @@ fn block(
                     value: Box::new(Expr::Flat(value)),
                     body: Box::new(body),
                 });
-            Continue((
+            Ok((
                 (
                     Expr::Let {
                         name: whole,
@@ -5573,15 +5566,15 @@ fn block(
         // `x = e;`, `x += s;`, `x.push(e);`: the local's next value.
         [rs::Stmt::Expr(e, true), rest @ ..] if !rest.is_empty() && update_target(e).is_some() => {
             let Some(target) = update_target(e) else {
-                return Break(Residue::Statements);
+                return Err(Residue::Statements);
             };
             let Some((current, ty)) = ctx.locals.get(&target).cloned() else {
-                return Break(Residue::Form(format!("an update of {target}")));
+                return Err(Residue::Form(format!("an update of {target}")));
             };
             let (value, acc) = updated(e, &ty, &current, env, ctx, acc)?;
             let (scope, name, acc) = ctx.bind(env, acc, &target, ty.clone());
             let ((rest, rt), acc) = block(rest, env, &scope, acc, want)?;
-            Continue((
+            Ok((
                 (
                     Expr::Let {
                         name,
@@ -5622,7 +5615,7 @@ fn block(
                 && returned(&i.then_branch).is_none() =>
         {
             let rs::RustExpr::Let(l) = &*i.cond else {
-                return Break(Residue::Statements);
+                return Err(Residue::Statements);
             };
             let then = then_rest(
                 &rs::RustExpr::Block(rs::ExprBlock {
@@ -5646,7 +5639,7 @@ fn block(
         {
             let ((c, ct), acc) = expr(&i.cond, env, &ctx.below(), acc, Some(&Ty::Bool))?;
             if ct != Ty::Bool {
-                return Break(Residue::Form("non-boolean condition".to_string()));
+                return Err(Residue::Form("non-boolean condition".to_string()));
             }
             let mut then: Vec<rs::Stmt> = i.then_branch.stmts.clone();
             then.extend(rest.iter().cloned());
@@ -5655,16 +5648,16 @@ fn block(
                 Some(e) => match &**e {
                     rs::RustExpr::Block(b) => b.block.stmts.clone(),
                     rs::RustExpr::If(_) => vec![rs::Stmt::Expr((**e).clone(), false)],
-                    _ => return Break(Residue::Statements),
+                    _ => return Err(Residue::Statements),
                 },
             };
             other.extend(rest.iter().cloned());
             let ((a, at), acc) = block(&then, env, ctx, acc, want)?;
             let ((b, bt), acc) = block(&other, env, ctx, acc, Some(want.unwrap_or(&at)))?;
             if !at.same(&bt) {
-                return Break(Residue::Form("branches of different types".to_string()));
+                return Err(Residue::Form("branches of different types".to_string()));
             }
-            Continue((
+            Ok((
                 (
                     Expr::If {
                         condition: Box::new(Expr::Flat(flat_text(c)?)),
@@ -5683,19 +5676,19 @@ fn block(
                     rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => {
                         (i, Some(env.types.ty(&pt.ty)?))
                     }
-                    _ => return Break(Residue::Form("let pattern".to_string())),
+                    _ => return Err(Residue::Form("let pattern".to_string())),
                 },
-                _ => return Break(Residue::Form("let pattern".to_string())),
+                _ => return Err(Residue::Form("let pattern".to_string())),
             };
             let Some(init) = &local.init else {
-                return Break(Residue::Statements);
+                return Err(Residue::Statements);
             };
             if init.diverge.is_some() {
-                return Break(Residue::Form("let else".to_string()));
+                return Err(Residue::Form("let else".to_string()));
             }
             if let rs::RustExpr::Try(t) = &*init.expr {
                 if !ctx.top {
-                    return Break(Residue::Form(
+                    return Err(Residue::Form(
                         "? below the function's own statements".to_string(),
                     ));
                 }
@@ -5712,11 +5705,11 @@ fn block(
             };
             let ((value, vt), acc) = flat_of(&init.expr, env, &ctx.below(), acc, hint.as_ref())?;
             if declared.as_ref().is_some_and(|d| !d.same(&vt)) {
-                return Break(Residue::Form("let of another type".to_string()));
+                return Err(Residue::Form("let of another type".to_string()));
             }
             let (scope, name, acc) = ctx.bind(env, acc, &ident.ident.clone(), vt.clone());
             let ((rest, rt), acc) = block(rest, env, &scope, acc, want)?;
-            Continue((
+            Ok((
                 (
                     Expr::Let {
                         name,
@@ -5729,7 +5722,7 @@ fn block(
                 acc,
             ))
         }
-        _ => Break(Residue::Statements),
+        _ => Err(Residue::Statements),
     }
 }
 
@@ -5835,10 +5828,10 @@ fn question(
                 ),
             )
         }
-        _ => return Break(Residue::Form("? of another type".to_string())),
+        _ => return Err(Residue::Form("? of another type".to_string())),
     };
     if declared.as_ref().is_some_and(|d| !d.same(&inner)) {
-        return Break(Residue::Form("let of another type".to_string()));
+        return Err(Residue::Form("let of another type".to_string()));
     }
     let (scope, name, acc) = ctx.bind(env, acc, ident, inner.clone());
     let ((rest, rt), acc) = block(rest, env, &scope, acc, want)?;
@@ -5870,7 +5863,7 @@ fn question(
             },
         ]
     };
-    Continue(((Expr::Match { scrutinee: s, arms }, rt), acc))
+    Ok(((Expr::Match { scrutinee: s, arms }, rt), acc))
 }
 
 /// A candidate function: its LexLean name, signature and body.
@@ -5961,33 +5954,34 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
             };
             let lifted = block(&c.block.stmts, &env, &ctx, Acc::default(), Some(&c.result));
             let outcome = match lifted {
-                Continue(((body, ty), acc)) if ty.same(&c.result) => {
+                Ok(((body, ty), acc)) if ty.same(&c.result) => {
                     let descends = acc.descends.clone();
                     if descends.len() > 1 {
-                        Break(Residue::Form(
+                        Err(Residue::Form(
                             "recursion on more than one parameter".to_string(),
                         ))
                     } else {
-                        Continue((
+                        Ok((
                             body,
                             descends.into_iter().next().map(|i| names[i].clone()),
                             acc,
                         ))
                     }
                 }
-                Continue(_) => Break(Residue::Form("a body of another type".to_string())),
-                Break(r) => Break(r),
+                Ok(_) => Err(Residue::Form("a body of another type".to_string())),
+                Err(r) => Err(r),
             };
             let outcome = match outcome {
-                Continue((body, Some(arg), acc)) => well_founded(c, &body, &arg, types)
-                    .map_continue(|(recursive, termination, theorems)| {
+                Ok((body, Some(arg), acc)) => {
+                    well_founded(c, &body, &arg, types).map(|(recursive, termination, theorems)| {
                         (body, recursive, termination, theorems, acc)
-                    }),
-                Continue((body, None, acc)) => Continue((body, None, None, Vec::new(), acc)),
-                Break(r) => Break(r),
+                    })
+                }
+                Ok((body, None, acc)) => Ok((body, None, None, Vec::new(), acc)),
+                Err(r) => Err(r),
             };
             match outcome {
-                Continue((body, recursive, termination, theorems, acc)) => {
+                Ok((body, recursive, termination, theorems, acc)) => {
                     // A well-founded definition elaborates with its evidence.
                     let mut evidence_axioms = BTreeSet::new();
                     for t in theorems {
@@ -6046,7 +6040,7 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                         },
                     ));
                 }
-                Break(reason) => {
+                Err(reason) => {
                     failed.insert(c.rust.clone(), reason);
                     changed = true;
                 }
@@ -6159,7 +6153,7 @@ fn well_founded(
     arg: &str,
     types: &Types,
 ) -> Lift<(Option<String>, Option<(String, Vec<String>)>, Vec<Decl>)> {
-    let structural = || Continue((Some(arg.to_string()), None, Vec::new()));
+    let structural = || Ok((Some(arg.to_string()), None, Vec::new()));
     let Some(index) = c.params.iter().position(|(_, n, _)| n == arg) else {
         return structural();
     };
@@ -6171,7 +6165,7 @@ fn well_founded(
     }
     let family = types.family_of(n).cloned().unwrap_or_default();
     let refused = || {
-        Break(Residue::Form(format!(
+        Err(Residue::Form(format!(
             "recursion over the nested type {n} that LexLean cannot measure"
         )))
     };
@@ -6245,7 +6239,7 @@ fn well_founded(
             axioms: vec!["Quot.sound".to_string(), "propext".to_string()],
         });
     }
-    Continue((None, Some((format!("({size} {arg})"), evidence)), theorems))
+    Ok((None, Some((format!("({size} {arg})"), evidence)), theorems))
 }
 
 /// The functions on a call cycle through another function.
@@ -6273,12 +6267,12 @@ fn cyclic(graph: &BTreeMap<String, BTreeSet<String>>) -> BTreeSet<String> {
 fn literal(e: &rs::RustExpr, want: &Ty, types: &Types) -> Option<String> {
     match e {
         rs::RustExpr::Lit(lit) => match literal_of(lit, Some(want), false) {
-            Continue((Expr::Flat(s), t)) if t.same(want) => Some(s),
+            Ok((Expr::Flat(s), t)) if t.same(want) => Some(s),
             _ => None,
         },
         rs::RustExpr::Unary(u) if matches!(u.op, rs::UnOp::Neg) => match &*u.expr {
             rs::RustExpr::Lit(lit) => match literal_of(lit, Some(want), true) {
-                Continue((Expr::Flat(s), t)) if t.same(want) => Some(s),
+                Ok((Expr::Flat(s), t)) if t.same(want) => Some(s),
                 _ => None,
             },
             _ => None,
@@ -6371,10 +6365,7 @@ mod tests {
         let f: syn::ItemFn = syn::parse_str(src).expect("parses");
         let sig = crate::convert::signature(&f.sig);
         let block = crate::convert::block(&f.block);
-        let (params, result) = match types.signature(&sig, None) {
-            Continue(sig) => sig,
-            Break(r) => return Err(r),
-        };
+        let (params, result) = types.signature(&sig, None)?;
         let c = Candidate {
             rust: sig.ident.clone(),
             name: camel(&[&sig.ident]),

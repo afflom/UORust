@@ -111,6 +111,20 @@ definition{
 }
 
 definition{
+  name: processThermoCoreBandLowOf,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreBandNotANumber,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreConfigParseTarget,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -927,6 +941,34 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelled"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandLowOf,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandLowOf"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandLowOf,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLowOf"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandNotANumber,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandNotANumber"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandNotANumber,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandNotANumber"})
 }
 
 definition{
@@ -2138,6 +2180,34 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelled"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandLowOf,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandLowOf"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandLowOf,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLowOf"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandNotANumber,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandNotANumber"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandNotANumber,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandNotANumber"})
 }
 
 definition{

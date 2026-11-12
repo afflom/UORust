@@ -65,6 +65,12 @@ reason = "form"
 detail = "expression form outside the lift: method call .get_ident"
 
 [[residue]]
+kappa = "26ea527b07a9cf2b00341f823026d030eb46f881a135a816ea806bceb7658d3c"
+function = "uorust::ast::Path::localized"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
+
+[[residue]]
 kappa = "9bfb70331643a181147d9c572db2011591c8ec80f768a9f58a0782cbf0b0f4fc"
 function = "uorust::ast::RustExpr::kind"
 reason = "form"
@@ -77,8 +83,20 @@ reason = "form"
 detail = "expression form outside the lift: method call .iter"
 
 [[residue]]
-kappa = "a2e725c3d52017fdd3c320a4d3e74db21cb81a85465dde7cb331bb5682f15e3a"
+kappa = "a01c93c0efad1c4165d351586d8a6dfd63da478bf910f5169b0a74335687d383"
 function = "uorust::ast::RustType::expanded"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
+
+[[residue]]
+kappa = "affa909e299b3abb5e8edc8da20227a29824b19d9084bf53b973c5a9bba2e167"
+function = "uorust::ast::RustType::localized"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
+
+[[residue]]
+kappa = "39669667af8d5fb0635a994b67c05907db1cdbc294cdb0b15e4dc78377f988c3"
+function = "uorust::ast::RustType::substituted"
 reason = "form"
 detail = "expression form outside the lift: match pattern"
 
@@ -109,8 +127,8 @@ detail = "type outside the lift: std::io::Error"
 [[residue]]
 kappa = "3b9086553dee8e048b5291922521c2ced8dacb58d0af3d1f8018f33687b10b99"
 function = "uorust::facts::Syntax::function"
-reason = "type"
-detail = "type outside the lift: Syntax"
+reason = "form"
+detail = "expression form outside the lift: index of (List TupleStringFileSyntax)"
 
 [[residue]]
 kappa = "8d1837e2918115ebfe39746c2e5e52ed5fa92cb14f60466223a0dcbc7dff7eb8"
@@ -437,16 +455,16 @@ reason = "call"
 detail = "calls new, which is not lifted"
 
 [[residue]]
-kappa = "cb205dae1ea8f47ba21fde03c9d92148f38659ff70a2fb7fa4c2cfa1619cbb57"
+kappa = "7f8d0f54c034110947cf605162382ac976a156c350d1afd476e09a73e2bc08ba"
 function = "uorust::lift::Types::new"
-reason = "type"
-detail = "type outside the lift: rs::RustType"
+reason = "form"
+detail = "expression form outside the lift: method call .contains_key"
 
 [[residue]]
-kappa = "59cfd2939a25cedd3e98967b9706e884a0510580999393f3222645a9afc5b211"
+kappa = "581ec09069f55e9e18b08cf36c80a7585d72e5d433042070e85aac78eb5ef594"
 function = "uorust::lift::Types::signature"
-reason = "type"
-detail = "type outside the lift: rs::Signature"
+reason = "call"
+detail = "calls new, which is not lifted"
 
 [[residue]]
 kappa = "b8e14c61fcdfbabbcbd41ac2fc84fcd509c3075dd96388c6f4f2981e0f5c8ee1"
@@ -467,34 +485,34 @@ reason = "call"
 detail = "calls new, which is not lifted"
 
 [[residue]]
-kappa = "a67ebb5e8c01afde3ea88eeba2dcff9c30b1d13b2f62aefd4acac85f88018115"
+kappa = "94f61228192acf6a489c407544fa90ec7c7dc4aa77ff39ea2669415f9bb218da"
 function = "uorust::lift::Types::ty"
-reason = "type"
-detail = "type outside the lift: rs::RustType"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
-kappa = "1770054c306e583ed995b03904f421cb464e5cc20f97197230f139a8e1d9d162"
+kappa = "c21329aafe9bac0d32419ecc59cab0b614d418a0a11ef58c646b527ba1e0aa78"
 function = "uorust::lift::Types::ty_in"
-reason = "type"
-detail = "type outside the lift: rs::RustType"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "7672e922abd17bd47dfad744ef20c042c84fae23f94bbb6b4d6b32e1dfd2d625"
+kappa = "cac538b0c032e3bac608f708b63517a2ba1ecadfed345587c539577c80a8d557"
 function = "uorust::lift::Types::with_data"
-reason = "type"
-detail = "type outside the lift: rs::RustType"
+reason = "form"
+detail = "expression form outside the lift: index of (List TupleStringListTupleStringListTupleOptionStringRustType)"
 
 [[residue]]
 kappa = "af43b164be258293bea76f324277dd5a1b7d2d8a1c0e6f5690e96cd8466309a6"
 function = "uorust::lift::acceptance"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "24f2558e5d21c7dc26e3d2fa13851a2e75755b21c4d9b33c328c5d516cac823a"
 function = "uorust::lift::applied"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: method call .zip"
 
 [[residue]]
 kappa = "7b3c1d02716c7c71fb4a0d151dcb8105b36f0072605304f4153ee2b9e0034b9b"
@@ -503,28 +521,28 @@ reason = "form"
 detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
-kappa = "f4f945d0343e470e4db8f1aaebd86a423d775725bdad0631f20be7d77fe066fb"
+kappa = "541fbc39f27b3e17fdd746300b1f4506390b080e750fc5b6f4351c6e89104992"
 function = "uorust::lift::binary"
-reason = "type"
-detail = "type outside the lift: rs::ExprBinary"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
-kappa = "2f099238ceb76737ed7ad2ff3165691fe3bc83bddc62df19f93bc1822871a3d5"
+kappa = "0494e14c80f7066d09a97b0b63c4dce61f354b7590a3a2f5a2c2e92f8a757f01"
 function = "uorust::lift::bind_pat"
-reason = "type"
-detail = "type outside the lift: rs::Pat"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "f6882b4eeed1237b1890194008e430fa165e97492e829a26ff14cba408cf3f08"
 function = "uorust::lift::binder"
-reason = "type"
-detail = "type outside the lift: rs::Pat"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "90010040b5a351bb564c2474442fdf4dc343d9cc569d653ac8851f1c974b01b4"
+kappa = "08b4cefc729d54b7904899bc69ed112723e9e1b6df3f8a010fe02036e05dd2f0"
 function = "uorust::lift::block"
-reason = "type"
-detail = "type outside the lift: rs::Stmt"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "1808ed8ada2450dfe446e0eee534c56eb0fc0d37c5802d2124925f6752de5406"
@@ -533,10 +551,10 @@ reason = "type"
 detail = "type outside the lift: Body<'_>"
 
 [[residue]]
-kappa = "f0354d5f1e9b5be3c5f5a601ec57a8f6f7ca7c6285257e64b4202659a931b202"
+kappa = "58e7aae9759c9fe673c7b2c932b2b0698f593bbd4e6e115371a5599596d51409"
 function = "uorust::lift::call"
-reason = "type"
-detail = "type outside the lift: rs::ExprCall"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "8850480ea95de282bb448cd42ae16f3a4375448f8cf971a83f5e81dfedf88b7c"
@@ -547,20 +565,20 @@ detail = "expression form outside the lift: a loop that updates no local"
 [[residue]]
 kappa = "1acd1b7508e87ff23b24ccb57d7e5a398435a09fdb69ae99a1e2948d53277f3e"
 function = "uorust::lift::char_text"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "5afc65e41a8d9374606c948e54f5b09e67ea57c60ad51f5a22492f256b8e1fcc"
+kappa = "f5ff5a9163f29c925d33e12b0943e0cf5301ddf8a1ed6161db6df48c4de8ae28"
 function = "uorust::lift::collection"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
-kappa = "4e2a82718219b421fa570c4b9610ba3046b3730262b2588ac714c9d6fc74ed35"
+kappa = "856d610f4bebaf8f655cb902974074535a2a25932ebddc45175c4dbe139cdc10"
 function = "uorust::lift::combinator"
-reason = "type"
-detail = "type outside the lift: rs::ExprMethodCall"
+reason = "call"
+detail = "calls new, which is not lifted"
 
 [[residue]]
 kappa = "cffc788e64c41a64ec8ca228c26236621734d39190d6193aa94927686b35f612"
@@ -571,8 +589,8 @@ detail = "expression form outside the lift: match pattern"
 [[residue]]
 kappa = "5dad399fa122601107dc02d7d1afff4acbbb55adb684dadfc6ce78fc6a20c140"
 function = "uorust::lift::ctor"
-reason = "type"
-detail = "type outside the lift: rs::Path"
+reason = "arithmetic"
+detail = "integer operator - wraps or panics depending on the build profile"
 
 [[residue]]
 kappa = "86ea7e45ce317a1d749e0f4fa570ada84900559e2c0bcac98cf4c3bf73c95897"
@@ -583,14 +601,14 @@ detail = "expression form outside the lift: a loop that shadows its state"
 [[residue]]
 kappa = "3aa3d1518c5183c832b52785b73f334348653f6bef74961b40633444fa3e542d"
 function = "uorust::lift::data_shape"
-reason = "type"
-detail = "type outside the lift: rs::Pat"
+reason = "form"
+detail = "expression form outside the lift: expr::return"
 
 [[residue]]
 kappa = "7432c779cb0e30dea650bd249317392af35f8f7d1468f9054303cfbeeef6e0dc"
 function = "uorust::lift::data_variant"
-reason = "type"
-detail = "type outside the lift: rs::Path"
+reason = "arithmetic"
+detail = "integer operator - wraps or panics depending on the build profile"
 
 [[residue]]
 kappa = "ca850246961ebfd030c33fb9d34b852a2d488ed13947682c249d3206c3e38f86"
@@ -611,64 +629,64 @@ reason = "form"
 detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "a98fcb37e1ebc32fd37be5d08ba9a58018deb0deb3acf61951250f428de7d7ac"
+kappa = "da25b1ed1e5c0f8771890c6624454330a2a8d7fdc57446d7873c5d65273e5116"
 function = "uorust::lift::expr"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
-kappa = "511838632620c64975fe3c60d17f3944b3eced4b2d733e8a6658c94546947cd6"
+kappa = "6aa958d1d56d23157591ab349aa41b8d6db23d8a134de94312a46738066fafba"
 function = "uorust::lift::expr_inner"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
-kappa = "146de8e2443de4a9c0c5c3a6319e64f01cfe99217e34abd9d352d9ab58dbbdc4"
+kappa = "937472697aa09f4cb1e68330205e44ef0d5b0c4c3d08c30778bac945f11e6bc7"
 function = "uorust::lift::flat_of"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::struct"
 
 [[residue]]
-kappa = "20ddf1872125d5a012983992385a989d6eabbc3b5bd4ff722f588ff45f8aceda"
+kappa = "b2422fb1d47c5414c85c72d7d224b5612c9546d54ec7b270855fabf7d8bbd281"
 function = "uorust::lift::flat_text"
-reason = "type"
-detail = "type outside the lift: Lift<String>"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "8601feb23591d8f83b6bf021ab60b4fd314517992d934738b27faa73cc2365e0"
+kappa = "717422ada99682467159579163a6f73ae95051896aeab568a4a71e5532554a87"
 function = "uorust::lift::for_loop"
-reason = "type"
-detail = "type outside the lift: rs::ExprForLoop"
+reason = "form"
+detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
-kappa = "3e7c79a6e22ed6f94e501039263d55b34e165a3d4eddc549ca857e8b11fd7dbf"
+kappa = "88e492d4fb051262a1877f920d1211e3e3c7b58f4d7f14b3f2039492d7aabf1c"
 function = "uorust::lift::format_macro"
-reason = "type"
-detail = "type outside the lift: rs::ExprMacro"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "53b1ca514f3600f95a869edd040bda9dc90e1b166e0519c252a1d1f237796f59"
 function = "uorust::lift::hex_of"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: method call .as_slice"
 
 [[residue]]
 kappa = "c0da6f51f6c2da90554f730c85f8116b982781e4c7d4831181d175226c55e996"
 function = "uorust::lift::hoist_try"
-reason = "type"
-detail = "type outside the lift: rs::Stmt"
+reason = "form"
+detail = "expression form outside the lift: ? below the function's own statements"
 
 [[residue]]
 kappa = "94478ad7b2f30b6019b124c9f5c56eeafb78b8309e7e91bb3f3f14f88e0815de"
 function = "uorust::lift::int_literal"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "0bd257c18e1a137976f064f13724a3ecaf23ca3e1d4e8bcef8056a06f9cfc4c6"
 function = "uorust::lift::is_empty_vec"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: an iterator adapter given a function, not a closure"
 
 [[residue]]
 kappa = "481771a177e1784530ae64fee414f4ce5227ed00760293c956925831e8ae20b5"
@@ -679,44 +697,44 @@ detail = "expression form outside the lift: method call .is_alphabetic"
 [[residue]]
 kappa = "5d520b45edd66c45ffe4cafa9f18f0c082a0f16aae646bc8cc604406ed28153b"
 function = "uorust::lift::is_literal"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "11c37fcf08acbcf98e672d23dd38aba7b532be6e02c10e5a74b42950ca1e321d"
+kappa = "107f350c696a2c7b92273118bd7f59368f5f9fab13338acd5136320e2e4e025b"
 function = "uorust::lift::lambda"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::struct"
 
 [[residue]]
-kappa = "0733406e0f9013ea1033e138ece201276ec6d4a2e9de02f091f0e2449fc31ba8"
+kappa = "11e840edd91f18f2bf876ed9fd57f3928996dfa1ebd56e79f52dd7ce6bc65e95"
 function = "uorust::lift::lift_all"
 reason = "type"
 detail = "type outside the lift: Candidate<'_>"
 
 [[residue]]
-kappa = "a2e3614555db47f80ed2edda652d7bbca0dafbd0d32e2c42ce88bcd223ee8518"
+kappa = "e88a3e1d2a56fb960052ba0ef1234e6054ecc39c2e30b5cda1eff70dfdf2bca3"
 function = "uorust::lift::list_of"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "2f1a2768f1025224e1832a616363484cdefd2020043665f006c94acc46444791"
+kappa = "7b1ef8adc15d66a4c312f2f07f66896808d70d572896f08d1b7a7744ce4dac0c"
 function = "uorust::lift::literal"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "49791ee041d9b8291a30070d8ac8c854b6db6ac27ed7a45fecb5e2f16b0978b7"
+kappa = "ec113d67b00349156225822332d3e8e980bb8601bfe30b8d8137dc308c94e56c"
 function = "uorust::lift::literal_match"
 reason = "type"
-detail = "type outside the lift: rs::Pat"
+detail = "type outside the lift: Body<'_>"
 
 [[residue]]
-kappa = "3990f09bbb4d88130119102a0306b23c829de8869d4d232f4a6ce03241cb81f3"
+kappa = "cff1f47c8ec56c8a25d6df37ebc134c4d524cf64037e1ea32af2bbeffc72f160"
 function = "uorust::lift::literal_of"
-reason = "type"
-detail = "type outside the lift: rs::Lit"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "0e97be65c6b9ad4c218ce327e3f6f2030810589ce9fde63a76cb6eaae9748b9a"
@@ -725,22 +743,22 @@ reason = "call"
 detail = "calls camel, which is not lifted"
 
 [[residue]]
-kappa = "c2b803573bfd20ebe1b434c4daffec584895ef26f4a967d8dc00f7db324e4542"
+kappa = "664b11d44d7fd8c586f85819df12f56ad64adde0dded81f74ab3bae6ebff2a2a"
 function = "uorust::lift::lookup"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
-kappa = "e65a4f862e56e37b55eb5837f30361aac3650d986cb67e488dfbb56d6cbe174e"
+kappa = "7a45ae3515dfce9acfa5c595f856563367bc8da743a10fa83f8f95d88696f9c9"
 function = "uorust::lift::loop_exit"
-reason = "type"
-detail = "type outside the lift: Lift<((Expr, Ty), Acc)>"
+reason = "form"
+detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
-kappa = "c4c7123419c170bb343bc448197a78a8cb635e441ecc6d9a44ee3ad1fce646a4"
+kappa = "7cb67742b421f0888841ef056e7ecff891f816c94bf174543e99c3e1c83cd119"
 function = "uorust::lift::loop_state"
-reason = "type"
-detail = "type outside the lift: rs::Stmt"
+reason = "call"
+detail = "calls scan_stmts, which is not lifted"
 
 [[residue]]
 kappa = "33dbbfc928f091ba94a4564b566a4f7924fc0440b053843eb8049e8b8e6bc1bd"
@@ -749,16 +767,16 @@ reason = "type"
 detail = "type outside the lift: dyn Fn(String) -> String"
 
 [[residue]]
-kappa = "c3375645271bc4cc4b1beee469d1ecaa89deb939faa356701b3703415e3f3ccc"
+kappa = "1ed78d692cc66bc7e49fe5e27f5cbd95889e0236eaadbea5ede5a6815eab2347"
 function = "uorust::lift::matching"
 reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+detail = "type outside the lift: Body<'_>"
 
 [[residue]]
-kappa = "8f29646521eb9fdea85ca207d537b22633038410cdd224a7cd18144c403b716a"
+kappa = "03d3893e1e6c7f11a984297603abc7adfe7059b394719197abc6b99355bc6d29"
 function = "uorust::lift::method"
-reason = "type"
-detail = "type outside the lift: rs::ExprMethodCall"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "673cdbb5ad7f9344acbfbe2ef0a1450e9feaa5e71070d015d54f12e0ade9a6e4"
@@ -797,10 +815,10 @@ reason = "form"
 detail = "expression form outside the lift: let pattern"
 
 [[residue]]
-kappa = "aed7a8ea91d59957a7dd76ae7751c5233ef6f4da3dc4043aedae09fab9b3e5f7"
+kappa = "61dc9e6bf1c38ca8ea473d0515b3ca32575daa394edc12ad87c95fa117060360"
 function = "uorust::lift::question"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
 kappa = "fdb579f576c613cc9a534cd104248c89813241d849541bde44508648211ab087"
@@ -811,44 +829,44 @@ detail = "expression form outside the lift: match pattern"
 [[residue]]
 kappa = "b93cdfff403bd36ee6a9715e715beee1557580f87602d3f462484975946f254f"
 function = "uorust::lift::returned"
-reason = "type"
-detail = "type outside the lift: rs::Block"
+reason = "form"
+detail = "expression form outside the lift: method call .as_slice"
 
 [[residue]]
 kappa = "3fdf88c1893d2c1714aec3854643f063a2e5258102c6db58dae9cdbd47d86bd5"
 function = "uorust::lift::returned_type"
-reason = "type"
-detail = "type outside the lift: rs::Stmt"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "ab6abc7164edcda703aa7227517d028e4ddb937b66a0f01ea697cef765444c88"
 function = "uorust::lift::returns_in"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "e14d76b9e04c6846c3a75277036b1464018d98cddd82ef57ca51340c00a2f2a6"
 function = "uorust::lift::returns_local"
-reason = "type"
-detail = "type outside the lift: rs::Stmt"
+reason = "form"
+detail = "expression form outside the lift: method call .as_ref"
 
 [[residue]]
 kappa = "0ce9b666e082ee233a5e3198674576c5f8a1baf03702ee44e906b805d2a1b486"
 function = "uorust::lift::scan_exprs"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "call"
+detail = "calls new, which is not lifted"
 
 [[residue]]
 kappa = "49efd8e836beee743ca575f122653d52b6269ed801c7c32f307ce5685a49f790"
 function = "uorust::lift::scan_stmts"
-reason = "type"
-detail = "type outside the lift: rs::Stmt"
+reason = "call"
+detail = "calls new, which is not lifted"
 
 [[residue]]
 kappa = "fb9c6a21b08b372e98455475efe37f787e1a61a6b4838c8a5e859088686b5df7"
 function = "uorust::lift::shape"
-reason = "type"
-detail = "type outside the lift: rs::Pat"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "4feab33361b371e47eb831675c36c6c5dbdaa8a3229aad69b870157fb2525228"
@@ -857,16 +875,16 @@ reason = "signature"
 detail = "signature outside the lift: generic, async, unsafe or variadic"
 
 [[residue]]
-kappa = "eee8a829cd2c95740ea919c31344071a7bf957eea194a4b8101f2ed17aae5e24"
+kappa = "af99beae34027c44d96bdd3b510d7adaa08de1e0e6acf5c46942ec211e0cf11b"
 function = "uorust::lift::sorted_insert"
-reason = "type"
-detail = "type outside the lift: Lift<(String, Acc)>"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "4106c8989d44db6b9bb5a44d5b2e91c971291e5e2fa1be4552ca708a6835652f"
 function = "uorust::lift::state_expr"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "5a2b0588e777860a04c7a24a59011515cac79283c94ff254f524cb4c1c989f5f"
@@ -883,26 +901,26 @@ detail = "expression form outside the lift: let of another type"
 [[residue]]
 kappa = "d9f9b8410d812adddc5e299607b4f06c8b44bb3c5f644b284894755990469286"
 function = "uorust::lift::take_first"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
 kappa = "e6b71134830c74921546e1adc5a297d2a73cd75e20a530868be45ad287b15645"
 function = "uorust::lift::take_try"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
-kappa = "5884ea78dfd27e654fef2d39e19bfa9b92923fd6aca01cd35a454eaef4a43a06"
+kappa = "3a6f9eed62c4c14b712cb0f532428f442e6df8d0e779bc51b0ca67b5ed2f91b3"
 function = "uorust::lift::text_method"
-reason = "type"
-detail = "type outside the lift: rs::ExprMethodCall"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "5345d6296812f819d3a2da21ee14f8adb37745d42cf36861434d59879b2af6ad"
 function = "uorust::lift::then_rest"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "0bf991a1eea796ea190d1cfc9ff552271328ed4f949780744e5793b7233882cc"
@@ -931,14 +949,14 @@ detail = "expression form outside the lift: matches! with a guard"
 [[residue]]
 kappa = "f1b40865ab7b1cc655fbfdbd54ed413f8ff93f974855057a8b48a2607386e67c"
 function = "uorust::lift::update_target"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
-kappa = "ae0914ebf6436d1e26db2ffe7aef0f24e12f1d9785d8b09bfcb44ff3abfc1449"
+kappa = "5363cb02c1bf0fcdb6bc3628675cfc3a261fad324efea6b91dd89c58714aa888"
 function = "uorust::lift::updated"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "dcc78da450cc1510c40a46da68b669c08287a53063c9e07e632cf0f46a13aebf"
@@ -947,7 +965,7 @@ reason = "type"
 detail = "type outside the lift: Step<'_>"
 
 [[residue]]
-kappa = "3aa2759d5098c33d5c92e6f2aa28971f2321254425fd8210cee167c4eedf6e01"
+kappa = "8af96a5ef67db5d80193e705fc9f8a5b483e1f153ac36a98cd299f10b02fab25"
 function = "uorust::lift::well_founded"
 reason = "type"
 detail = "type outside the lift: Candidate<'_>"
@@ -971,16 +989,16 @@ reason = "call"
 detail = "calls wrap_ctor, which is not lifted"
 
 [[residue]]
-kappa = "9ce397bfbcbd825b4216a0982226a12ea60c131008b67ba951a01cfd40f664c2"
+kappa = "cf9134e5b36a44b07bd0c8f414c92549d0291ae3b63c7efec3d0729265b36b15"
 function = "uorust::lift::wrapped_method"
-reason = "type"
-detail = "type outside the lift: rs::RustExpr"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "7522152482f521a218708678a4f2f6c7afa28c0be41207fdbf53251782322f24"
 function = "uorust::lift::wrapper"
-reason = "type"
-detail = "type outside the lift: rs::Path"
+reason = "form"
+detail = "expression form outside the lift: method call .as_slice"
 
 [[residue]]
 kappa = "6a033770f2cf08cd4c2a71e07e15ddb10f7c43addfbc4c04ee19284bee906bff"
@@ -1037,10 +1055,10 @@ reason = "call"
 detail = "calls indexed, which is not lifted"
 
 [[residue]]
-kappa = "03b7289229988cd516902c4ea9f1c46223d1916f0b9305e6d8d3f705882203d0"
+kappa = "cc34565ddf78de4d8ef3d8b3a432900db646d25ac09b7ea07e9944300f4130ae"
 function = "uorust::project::behavior"
 reason = "type"
-detail = "type outside the lift: Syntax"
+detail = "type outside the lift: &mut Notes"
 
 [[residue]]
 kappa = "5ad03304913d5057c3475875691c14bcc8a9ee7804a7c7b89b0f8d0356157916"
@@ -1118,7 +1136,7 @@ detail = "expression form outside the lift: a loop that updates no local"
 kappa = "807755b44bf961c3d8764429cd395f6d19e827f9fea4011e34f976a469c197af"
 function = "uorust::project::project"
 reason = "type"
-detail = "type outside the lift: Syntax"
+detail = "type outside the lift: Options"
 
 [[residue]]
 kappa = "6c7b4fcf5f1deb18b67ad8e6735180133210905d71f680e9f36e62d22f521a1d"
@@ -1349,6 +1367,11 @@ reason = "form"
 detail = "expression form outside the lift: method call .test_name"
 
 [[foreign]]
+kappa = "974a6dc280059cb96102a95a2965014db93bfc3e320118b319d772fae261607f"
+function = "uorust::convert::alias"
+detail = "takes or returns syn::Generics, a type of the syn crate with no LexLean model"
+
+[[foreign]]
 kappa = "d999e74314caf950a026a0c60c0edef8c78d0e00b072e549981978bf7a6213cb"
 function = "uorust::convert::block"
 detail = "takes or returns syn::Block, a type of the syn crate with no LexLean model"
@@ -1439,7 +1462,7 @@ function = "uorust::ingest::ignores"
 detail = "takes or returns toml::Value, a type of the toml crate with no LexLean model"
 
 [[foreign]]
-kappa = "ae14ff4505cdcb884395b33eac33594d09852036630c45db145e4b9f5c424f0a"
+kappa = "72a3a03fb08d488a0011992a12653a23522a101814dd7014bcbdaf97f2209e81"
 function = "uorust::ingest::items"
 detail = "takes or returns syn::Item, a type of the syn crate with no LexLean model"
 
@@ -1447,6 +1470,11 @@ detail = "takes or returns syn::Item, a type of the syn crate with no LexLean mo
 kappa = "7c1bd2aefb8cfd9984b2b1af642648cf60ebf23fd7ca0ca3403e860127532704"
 function = "uorust::ingest::lints_of"
 detail = "takes or returns toml::Value, a type of the toml crate with no LexLean model"
+
+[[foreign]]
+kappa = "d3c85c5be5ccb91e829bfc990806f3f4e5f403730030523fbf05b6197dfa3e33"
+function = "uorust::ingest::use_bindings"
+detail = "takes or returns syn::UseTree, a type of the syn crate with no LexLean model"
 
 [[foreign]]
 kappa = "08fea8f26c90330566f20b3aec8bfdcc2743f611fa935d3511f9eba5dff03f99"
@@ -1707,6 +1735,11 @@ definition = "Behavior::refusalSpan"
 kappa = "ea0e437e146c69388f4f06f2d0725b7e800ca4dad03f19774962cfb74ad7ce78"
 function = "uorust::ast::Path::ident"
 definition = "Behavior::pathIdent"
+
+[[lifted]]
+kappa = "eb213c22977e2c3ba707a44502b9d47ef21dced88a23067d8e971747397394f3"
+function = "uorust::ast::crate_module"
+definition = "Behavior::crateModule"
 
 [[lifted]]
 kappa = "2c1e72557d6da394b8b26b7ddd372769d34fbefd83ff31cc1216c476b8209e77"

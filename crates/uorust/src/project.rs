@@ -2885,14 +2885,23 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     // name two crates share lifts qualified by each crate's name.
     let mut scoped: Vec<(Variants, Fields, Datas)> = Vec::new();
     // Each crate's type aliases, which its types and signatures are read through.
-    let type_aliases: Vec<BTreeMap<String, crate::ast::RustType>> = ws
+    let type_aliases: Vec<BTreeMap<String, crate::ast::Alias>> = ws
         .packages
         .iter()
         .map(|package| {
             package
                 .files
                 .iter()
-                .flat_map(|file| syntax.files[&file.rel].aliases.iter().cloned())
+                .flat_map(|file| {
+                    syntax.files[&file.rel].aliases.iter().map(|(n, a)| {
+                        let to = a.to.localized(&file.imports);
+                        let alias = crate::ast::Alias {
+                            params: a.params.clone(),
+                            to,
+                        };
+                        (n.clone(), alias)
+                    })
+                })
                 .collect()
         })
         .collect();
@@ -2939,7 +2948,9 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                                 (
                                     v.clone(),
                                     fs.iter()
-                                        .map(|(n, t)| (n.clone(), expanded(pkg, t)))
+                                        .map(|(n, t)| {
+                                            (n.clone(), expanded(pkg, &t.localized(&file.imports)))
+                                        })
                                         .collect(),
                                 )
                             })
@@ -2984,7 +2995,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     st.name.clone(),
                     fields
                         .iter()
-                        .map(|(n, t)| (n.clone(), expanded(pkg, t)))
+                        .map(|(n, t)| (n.clone(), expanded(pkg, &t.localized(&file.imports))))
                         .collect(),
                 );
             }
@@ -3142,11 +3153,11 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         let mut sig = fn_syntax.signature.clone();
         for input in &mut sig.inputs {
             if let crate::ast::FnArg::Typed(t) = input {
-                t.ty = expanded(r.pkg, &t.ty);
+                t.ty = expanded(r.pkg, &t.ty.localized(&ctx.file(r).imports));
             }
         }
         if let Some(t) = &mut sig.output {
-            *t = expanded(r.pkg, t);
+            *t = expanded(r.pkg, &t.localized(&ctx.file(r).imports));
         }
         let sig = &sig;
         let Some(block) = &fn_syntax.block else {
@@ -3161,7 +3172,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         };
         let (candidates, names) = &mut scoped[r.pkg];
         match types.signature(sig, method.as_deref()) {
-            std::ops::ControlFlow::Continue((params, result)) => {
+            Ok((params, result)) => {
                 if names.contains_key(&rust)
                     || candidates.iter().any(|c: &Candidate<'_>| c.name == name)
                 {
@@ -3183,7 +3194,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     imports: ctx.file(r).imports.clone(),
                 });
             }
-            std::ops::ControlFlow::Break(reason) => ctx.stopped(notes, &effectful, r, reason),
+            Err(reason) => ctx.stopped(notes, &effectful, r, reason),
         }
     }
     // Constants lift as definitions of no parameters.
@@ -3197,7 +3208,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 continue;
             }
             for (rust, ty, block) in &syntax.files[&file.rel].consts {
-                let std::ops::ControlFlow::Continue(result) = types.ty(ty) else {
+                let Ok(result) = types.ty(ty) else {
                     continue;
                 };
                 let name = lift::local_name(rust);

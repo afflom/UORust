@@ -124,7 +124,20 @@ fn effective_lines(text: &str) -> Vec<(usize, &str)> {
 /// (`UE-06`) and covered by a negative test in `crates/uorust/tests`, so the
 /// addition keeps R5 instead of loosening it; the tests below prove the gate
 /// still rejects every other error type.
-const SANCTIONED: [&str; 4] = ["NotAProduct", "ObservedBound", "KappaError", "UorustError"];
+///
+/// `Residue` is the lift's: a lift step's `Result<T, Residue>` reports only
+/// that no LexLean definition of the function exists in the fragment the
+/// engine reads, with the cause. It is not a failure of the projection: the
+/// residue is recorded, typed, in `frontier.toml` (`UE-16`), and each cause
+/// is a form or type the lift does not yet read, never a bound of the
+/// engine's own choosing.
+const SANCTIONED: [&str; 5] = [
+    "NotAProduct",
+    "ObservedBound",
+    "KappaError",
+    "UorustError",
+    "Residue",
+];
 
 /// R5: no arbitrary limitation. Every bound is a property of the caller's
 /// chosen instantiation, never of the code.
@@ -306,12 +319,19 @@ mod tests {
     }
 
     #[test]
+    fn the_lift_residue_is_sanctioned() {
+        let root = shipped_crate("pub type Lift<T> = Result<T, Residue>;\n");
+        assert!(audit_limits(&root).is_ok());
+    }
+
+    #[test]
     fn any_other_error_type_is_still_refused() {
         for other in [
             "std::io::Error",
             "String",
             "Box<dyn std::error::Error>",
             "Uorust",
+            "Resid",
         ] {
             let root = shipped_crate(&format!("pub fn f() -> Result<(), {other}> {{ Ok(()) }}\n"));
             let error = audit_limits(&root).expect_err(other).to_string();

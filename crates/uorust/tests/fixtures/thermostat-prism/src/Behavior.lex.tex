@@ -263,6 +263,22 @@ definition{
 }
 
 definition{
+  name: lowOf,
+  parameters: [band : (Result Band ConfigError)],
+  result: (Result Nat ConfigError),
+  body: (match band
+    | Result.ok band2 => (ctor Result.ok [Nat, ConfigError] (project band2 low))
+    | Result.error error1 => (ctor Result.error [Nat, ConfigError] error1))
+}
+
+definition{
+  name: notANumber,
+  parameters: [error : ConfigError],
+  result: Bool,
+  body: (match error | ConfigError.Unreadable => false | ConfigError.NotANumber => true)
+}
+
+definition{
   name: parseTarget,
   parameters: [text : String],
   result: (Result Nat ConfigError),
@@ -1049,6 +1065,20 @@ theorem{
   name: acceptThermoCoreBandsMeasureAndCount3,
   parameters: [],
   statement: ((above (cons 17 (cons 19 (cons 23 (nil Nat)))) 18) = 2),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreBandsMeasureAndCount9,
+  parameters: [],
+  statement: ((notANumber (ctor ConfigError.NotANumber)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreBandsMeasureAndCount10,
+  parameters: [],
+  statement: ((notANumber (ctor ConfigError.Unreadable)) = false),
   proof: decide{}
 }
 

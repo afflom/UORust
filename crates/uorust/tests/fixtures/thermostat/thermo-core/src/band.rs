@@ -1,5 +1,6 @@
 //! Temperature bands, counters and readings.
 
+use crate::config as cfg;
 use crate::config::ConfigError;
 
 /// A closed band of temperatures.
@@ -96,6 +97,20 @@ pub fn labelled(value: &str, unit: &str) -> String {
     format!("{value} {unit}")
 }
 
+/// A step of reading a band: the value, or why it could not be read.
+pub type Read<T> = Result<T, ConfigError>;
+
+/// The low end of a band read through the alias and the module path.
+pub fn low_of(band: Read<crate::band::Band>) -> Read<u32> {
+    let band = band?;
+    Ok(band.low)
+}
+
+/// Whether the error is that the text was not a number.
+pub fn not_a_number(error: cfg::ConfigError) -> bool {
+    matches!(error, cfg::ConfigError::NotANumber)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,6 +126,9 @@ mod tests {
         assert_eq!(target_or(None, 21), 21);
         assert_eq!(heat_for(Ok(band), 17).ok(), Some(true));
         assert!(checked(band).1);
+        assert_eq!(low_of(Ok(band)).ok(), Some(18));
+        assert!(not_a_number(ConfigError::NotANumber));
+        assert!(!not_a_number(ConfigError::Unreadable));
     }
 
     #[test]

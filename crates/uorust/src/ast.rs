@@ -91,12 +91,26 @@ impl RustType {
     /// alias stands for. An alias may name another; each expansion counts
     /// against `depth`, the aliases left to expand along one path, so a
     /// cycle of aliases ends.
-    pub(crate) fn expanded(&self, aliases: &BTreeMap<String, RustType>, depth: usize) -> RustType {
+    pub(crate) fn expanded(&self, aliases: &BTreeMap<String, Alias>, depth: usize) -> RustType {
         if let TypeKind::Path { qself: false, path } = &self.kind {
             if let [one] = path.segments.as_slice() {
-                if one.arguments == PathArguments::None && depth > 0 {
-                    if let Some(to) = aliases.get(&one.ident) {
-                        return to.expanded(aliases, depth - 1);
+                if depth > 0 {
+                    if let Some(alias) = aliases.get(&one.ident) {
+                        let args: Vec<RustType> = match &one.arguments {
+                            PathArguments::AngleBracketed(args) => args
+                                .iter()
+                                .filter_map(|a| match a {
+                                    GenericArgument::Type(t) => Some(t.clone()),
+                                    GenericArgument::Other(_) => None,
+                                })
+                                .collect(),
+                            _ => Vec::new(),
+                        };
+                        if args.len() == alias.params.len() {
+                            let bound: BTreeMap<String, RustType> =
+                                alias.params.iter().cloned().zip(args).collect();
+                            return alias.to.substituted(&bound).expanded(aliases, depth - 1);
+                        }
                     }
                 }
             }
@@ -147,6 +161,165 @@ impl RustType {
         }
         let text = written(&kind);
         RustType { text, kind }
+    }
+}
+
+/// A type alias `type Name<P, ..> = To;`: its type parameters, and what
+/// it stands for.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Alias {
+    pub(crate) params: Vec<String>,
+    pub(crate) to: RustType,
+}
+
+impl RustType {
+    /// The type with each type parameter `bound` names replaced by the
+    /// type it is bound to.
+    pub(crate) fn substituted(&self, bound: &BTreeMap<String, RustType>) -> RustType {
+        if let TypeKind::Path { qself: false, path } = &self.kind {
+            if let [one] = path.segments.as_slice() {
+                if one.arguments == PathArguments::None {
+                    if let Some(to) = bound.get(&one.ident) {
+                        return to.clone();
+                    }
+                }
+            }
+        }
+        let inner = |t: &RustType| Box::new(t.substituted(bound));
+        let kind = match &self.kind {
+            TypeKind::Reference { mutable, elem } => TypeKind::Reference {
+                mutable: *mutable,
+                elem: inner(elem),
+            },
+            TypeKind::Slice(t) => TypeKind::Slice(inner(t)),
+            TypeKind::Paren(t) => TypeKind::Paren(inner(t)),
+            TypeKind::Tuple(ts) => {
+                TypeKind::Tuple(ts.iter().map(|t| t.substituted(bound)).collect())
+            }
+            TypeKind::Path { qself, path } => TypeKind::Path {
+                qself: *qself,
+                path: Path {
+                    segments: path
+                        .segments
+                        .iter()
+                        .map(|s| PathSegment {
+                            ident: s.ident.clone(),
+                            arguments: match &s.arguments {
+                                PathArguments::AngleBracketed(args) => {
+                                    PathArguments::AngleBracketed(
+                                        args.iter()
+                                            .map(|a| match a {
+                                                GenericArgument::Type(t) => {
+                                                    GenericArgument::Type(t.substituted(bound))
+                                                }
+                                                other => other.clone(),
+                                            })
+                                            .collect(),
+                                    )
+                                }
+                                other => other.clone(),
+                            },
+                        })
+                        .collect(),
+                    text: path.text.clone(),
+                },
+            },
+            TypeKind::Other => TypeKind::Other,
+        };
+        if kind == self.kind {
+            return self.clone();
+        }
+        let text = written(&kind);
+        RustType { text, kind }
+    }
+}
+
+impl RustType {
+    /// The type with each path that names a type of this crate through
+    /// its modules written as the type's own name: `crate::m::T`,
+    /// `self::T`, `super::T`, or `m::T` where the file imports `m` from
+    /// this crate (`imports`: imported name -> the path it names). A crate
+    /// declares a type name once, so the name alone is the type.
+    pub(crate) fn localized(&self, imports: &BTreeMap<String, String>) -> RustType {
+        let inner = |t: &RustType| Box::new(t.localized(imports));
+        let kind = match &self.kind {
+            TypeKind::Reference { mutable, elem } => TypeKind::Reference {
+                mutable: *mutable,
+                elem: inner(elem),
+            },
+            TypeKind::Slice(t) => TypeKind::Slice(inner(t)),
+            TypeKind::Paren(t) => TypeKind::Paren(inner(t)),
+            TypeKind::Tuple(ts) => {
+                TypeKind::Tuple(ts.iter().map(|t| t.localized(imports)).collect())
+            }
+            TypeKind::Path { qself, path } => TypeKind::Path {
+                qself: *qself,
+                path: path.localized(imports, *qself),
+            },
+            TypeKind::Other => TypeKind::Other,
+        };
+        if kind == self.kind {
+            return self.clone();
+        }
+        let text = written(&kind);
+        RustType { text, kind }
+    }
+}
+
+/// Whether a path's first segment names a module of this crate: `crate`,
+/// `self`, `super`, or a name the file imports from this crate.
+fn crate_module(head: &str, imports: &BTreeMap<String, String>) -> bool {
+    head == "crate"
+        || head == "self"
+        || head == "super"
+        || imports
+            .get(head)
+            .is_some_and(|p| p == "crate" || p.starts_with("crate::"))
+}
+
+impl Path {
+    /// The path with its generic arguments localized, and written as its
+    /// last segment when the segments before it are modules of this crate.
+    fn localized(&self, imports: &BTreeMap<String, String>, qself: bool) -> Path {
+        let segments: Vec<PathSegment> = self
+            .segments
+            .iter()
+            .map(|s| PathSegment {
+                ident: s.ident.clone(),
+                arguments: match &s.arguments {
+                    PathArguments::AngleBracketed(args) => PathArguments::AngleBracketed(
+                        args.iter()
+                            .map(|a| match a {
+                                GenericArgument::Type(t) => {
+                                    GenericArgument::Type(t.localized(imports))
+                                }
+                                other => other.clone(),
+                            })
+                            .collect(),
+                    ),
+                    other => other.clone(),
+                },
+            })
+            .collect();
+        let modules = match segments.split_last() {
+            Some((_, prefix)) => {
+                !qself
+                    && prefix
+                        .first()
+                        .is_some_and(|h| crate_module(&h.ident, imports))
+                    && prefix.iter().all(|s| s.arguments == PathArguments::None)
+            }
+            None => false,
+        };
+        let kept: Vec<PathSegment> = if modules {
+            segments.last().into_iter().cloned().collect()
+        } else {
+            segments
+        };
+        Path {
+            segments: kept,
+            text: self.text.clone(),
+        }
     }
 }
 

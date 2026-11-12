@@ -8,12 +8,12 @@ use quote::ToTokens;
 use syn::punctuated::Punctuated;
 
 use crate::ast::{
-    BinOp, Block, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprCast, ExprClosure,
-    ExprField, ExprForLoop, ExprIf, ExprIndex, ExprLet, ExprMacro, ExprMatch, ExprMethodCall,
-    ExprOther, ExprReference, ExprStruct, ExprUnary, FieldPat, FieldValue, FnArg, GenericArgument,
-    GenericParam, Lit, Local, LocalInit, MatchArm, Member, Pat, PatGuard, PatIdent, PatRange,
-    PatStruct, PatTupleStruct, PatType, Path, PathArguments, PathSegment, RustExpr, RustType,
-    Signature, Stmt, TypeKind, UnOp,
+    Alias, BinOp, Block, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprCast,
+    ExprClosure, ExprField, ExprForLoop, ExprIf, ExprIndex, ExprLet, ExprMacro, ExprMatch,
+    ExprMethodCall, ExprOther, ExprReference, ExprStruct, ExprUnary, FieldPat, FieldValue, FnArg,
+    GenericArgument, GenericParam, Lit, Local, LocalInit, MatchArm, Member, Pat, PatGuard,
+    PatIdent, PatRange, PatStruct, PatTupleStruct, PatType, Path, PathArguments, PathSegment,
+    RustExpr, RustType, Signature, Stmt, TypeKind, UnOp,
 };
 
 fn text(tokens: &dyn ToTokens) -> String {
@@ -72,6 +72,21 @@ pub(crate) fn ty(t: &syn::Type) -> RustType {
     RustType {
         text: text(t),
         kind,
+    }
+}
+
+/// A type alias: its type parameters and the type it stands for.
+pub(crate) fn alias(generics: &syn::Generics, to: &syn::Type) -> Alias {
+    Alias {
+        params: generics
+            .params
+            .iter()
+            .filter_map(|p| match p {
+                syn::GenericParam::Type(t) => Some(t.ident.to_string()),
+                _ => None,
+            })
+            .collect(),
+        to: ty(to),
     }
 }
 
