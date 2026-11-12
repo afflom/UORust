@@ -1719,6 +1719,20 @@ definition{
 }
 
 definition{
+  name: perRoom,
+  parameters: [totalArg : Nat, rooms : Nat],
+  result: Nat,
+  body: (if (rooms =? 0) then 0 else (if ((prim quotient totalArg rooms 0 : Nat) <=? (prim remainder totalArg rooms 0 : Nat)) then (prim remainder totalArg rooms 0 : Nat) else (prim quotient totalArg rooms 0 : Nat)))
+}
+
+definition{
+  name: leftOver,
+  parameters: [totalArg : Nat, rooms : Nat],
+  result: (Option Nat),
+  body: (if (rooms =? 0) then (ctor Option.none [Nat]) else (ctor Option.some [Nat] (prim remainder totalArg rooms 0 : Nat)))
+}
+
+definition{
   name: markedRoomsLoop1,
   parameters: [items3 : (List String), state1 : (List String)],
   result: (Result (List String) (Option (List String))),
@@ -2290,6 +2304,34 @@ theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom10,
   parameters: [],
   statement: ((warm 20) = (ctor Option.some [Nat] 20)),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom16,
+  parameters: [],
+  statement: ((perRoom 7 2) = 3),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom17,
+  parameters: [],
+  statement: ((perRoom 7 0) = 0),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom18,
+  parameters: [],
+  statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom19,
+  parameters: [],
+  statement: ((leftOver 7 3) = (ctor Option.some [Nat] 1)),
   proof: decide{}
 }
 

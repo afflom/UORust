@@ -482,6 +482,20 @@ pub fn booked(bookings: &Bookings, room: &str) -> Bookings {
     out
 }
 
+/// The larger of a room's even share and what is left, and none for no
+/// rooms.
+pub fn per_room(total: u32, rooms: u32) -> u32 {
+    if rooms == 0 {
+        return 0;
+    }
+    (total / rooms).max(total % rooms)
+}
+
+/// What is left of a total after an even share, unless there are no rooms.
+pub fn left_over(total: u32, rooms: u32) -> Option<u32> {
+    total.checked_rem(rooms)
+}
+
 /// The marked rooms' names without their mark, or `None` where a name is
 /// empty or a marked name lacks its closing `!`.
 pub fn marked_rooms(names: &[String]) -> Option<Vec<String>> {
@@ -663,6 +677,10 @@ mod tests {
         );
         assert_eq!(marked_rooms(&names(&["room-den"])), None);
         assert_eq!(marked_rooms(&names(&["hall", ""])), None);
+        assert_eq!(per_room(7, 2), 3);
+        assert_eq!(per_room(7, 0), 0);
+        assert_eq!(left_over(7, 0), None);
+        assert_eq!(left_over(7, 3), Some(1));
         let none = Bookings {
             order: Vec::new(),
             by_name: BTreeSet::new(),

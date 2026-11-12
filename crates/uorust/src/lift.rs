@@ -2397,6 +2397,19 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                     };
                     flat(format!("(prim {prim} {l} {k} 0 : Nat)"), lt, acc)
                 }
+                // A divisor the conditions in scope bound away from zero.
+                (Ty::Nat(_), None) => {
+                    let ((r, rt), acc) = flat_of(&b.right, env, ctx, acc, Some(&lt))?;
+                    if !rt.same(&lt) || !ctx.bounds.get(&r).is_some_and(|m| *m > 0) {
+                        return Err(Residue::Arithmetic(op_text()));
+                    }
+                    let prim = if matches!(b.op, B::Div) {
+                        "quotient"
+                    } else {
+                        "remainder"
+                    };
+                    flat(format!("(prim {prim} {l} {r} 0 : Nat)"), lt, acc)
+                }
                 _ => Err(Residue::Arithmetic(op_text())),
             }
         }
@@ -3186,6 +3199,29 @@ fn method(
         }
     }
     match (&rt, name.as_str()) {
+        // `a.checked_div(b)`, `a.checked_rem(b)`: none for a zero divisor.
+        (Ty::Nat(_), "checked_div" | "checked_rem") if args.len() == 1 => {
+            let ((d, dt), acc) = flat_of(args[0], env, ctx, acc, Some(&rt))?;
+            if !dt.same(&rt) {
+                return Err(Residue::Form(format!(
+                    "argument of another type to .{name}"
+                )));
+            }
+            let prim = if name == "checked_div" {
+                "quotient"
+            } else {
+                "remainder"
+            };
+            flat(
+                format!(
+                    "(if ({d} =? 0) then {} else {})",
+                    none(&rt),
+                    some(&rt, &format!("(prim {prim} {r} {d} 0 : Nat)"))
+                ),
+                opt(&rt),
+                acc,
+            )
+        }
         (Ty::Nat(w), "checked_add" | "checked_mul") => {
             let Some(bits) = w else {
                 return Err(Residue::Width(format!(".{name} on usize")));
