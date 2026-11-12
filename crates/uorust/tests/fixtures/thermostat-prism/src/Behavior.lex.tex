@@ -2621,6 +2621,95 @@ definition{
   body: (ctor Step.Either occupied otherwise)
 }
 
+theorem{
+  name: decreases_holdsOff_0,
+  parameters: [step : Step, occupied : Step, otherwise : Step],
+  statement: ((step = (ctor Step.Either occupied otherwise)) -> ((size_of_Step occupied) < (size_of_Step step))),
+  proof: linear_arithmetic{definitions: [size_of_Step, size_of_list_Phase]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: decreases_holdsOff_1,
+  parameters: [step : Step, occupied : Step, otherwise : Step],
+  statement: ((step = (ctor Step.Either occupied otherwise)) -> ((size_of_Step otherwise) < (size_of_Step step))),
+  proof: linear_arithmetic{definitions: [size_of_Step, size_of_list_Phase]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: decreases_holdsOff_2,
+  parameters: [step : Step, phases : (List Phase)],
+  statement: ((step = (ctor Step.Sequence phases)) -> ((size_of_list_Phase phases) < (size_of_Step step))),
+  proof: linear_arithmetic{definitions: [size_of_Step, size_of_list_Phase]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: decreases_phaseOff_0,
+  parameters: [phase : Phase, label : String, step : Step],
+  statement: ((phase = (ctor Phase.mk label step)) -> ((size_of_Step step) < (size_of_Phase phase))),
+  proof: linear_arithmetic{definitions: [size_of_Phase, size_of_Step]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: decreases_phasesOff_0,
+  parameters: [phases : (List Phase), firstValue1 : Phase, rest : (List Phase)],
+  statement: ((phases = (ctor List.cons [Phase] firstValue1 rest)) -> ((size_of_Phase firstValue1) < (size_of_list_Phase phases))),
+  proof: linear_arithmetic{definitions: [size_of_Phase, size_of_list_Phase]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: decreases_phasesOff_1,
+  parameters: [phases : (List Phase), firstValue1 : Phase, rest : (List Phase)],
+  statement: ((phases = (ctor List.cons [Phase] firstValue1 rest)) -> ((size_of_list_Phase rest) < (size_of_list_Phase phases))),
+  proof: linear_arithmetic{definitions: [size_of_Phase, size_of_list_Phase]},
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: holdsOff,
+  parameters: [step : Step],
+  result: Bool,
+  body: (match step
+    | Step.Hold target => (target =? 0)
+    | Step.Either occupied otherwise => ((holdsOff occupied) || (holdsOff otherwise))
+    | Step.Sequence phases => (phasesOff phases)),
+  axioms: [Quot.sound, propext],
+  mutual: holdsOffMutual,
+  termination: {
+    evidence: [decreases_holdsOff_0, decreases_holdsOff_1, decreases_holdsOff_2],
+    measure: (size_of_Step step)
+  }
+}
+
+definition{
+  name: phasesOff,
+  parameters: [phases : (List Phase)],
+  result: Bool,
+  body: (match phases
+    | List.nil => false
+    | List.cons firstValue1 rest => ((phaseOff firstValue1) || (phasesOff rest))),
+  axioms: [Quot.sound, propext],
+  mutual: holdsOffMutual,
+  termination: {
+    evidence: [decreases_phasesOff_0, decreases_phasesOff_1],
+    measure: (size_of_list_Phase phases)
+  }
+}
+
+definition{
+  name: phaseOff,
+  parameters: [phase : Phase],
+  result: Bool,
+  body: (match phase | Phase.mk label step => (holdsOff step)),
+  axioms: [Quot.sound, propext],
+  mutual: holdsOffMutual,
+  termination: {evidence: [decreases_phaseOff_0], measure: (size_of_Phase phase)}
+}
+
 definition{
   name: atLeastLoop1,
   parameters: [items1 : (List Nat), state1 : (List Nat), floor : Nat],

@@ -172,6 +172,9 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreScheduleModeFor is made
     And the interface call Interface::callThermoCoreScheduleComfortable is made
     And the interface call Interface::callThermoCoreScheduleEither is made
+    And the interface call Interface::callThermoCoreScheduleHoldsOff is made
+    And the interface call Interface::callThermoCoreSchedulePhasesOff is made
+    And the interface call Interface::callThermoCoreSchedulePhaseOff is made
     Then the acceptance row Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel holds
     And the acceptance row Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder holds
     And the acceptance row Interface::acThermoCoreThermoCoreScheduleNestedPatternsChooseTheArm holds

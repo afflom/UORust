@@ -10011,9 +10011,29 @@ pub(crate) fn lift_all(
                 }
             }
         }
-        for rust in cyclic(&graph) {
-            failed.insert(rust, Residue::Form("mutual recursion".to_string()));
-            changed = true;
+        // A call cycle is a mutual group once its members lift on their
+        // own: before that, what stops a member is the member's own cause.
+        let mut mutual_of: BTreeMap<String, String> = BTreeMap::new();
+        if !changed {
+            for component in call_cycles(&graph) {
+                match mutual_group(&component, candidates, &mut decls, types) {
+                    Ok(label) => {
+                        for m in &component {
+                            if let Some(axioms) = own.get_mut(m) {
+                                axioms.extend(evidence_axioms());
+                            }
+                            mutual_of.insert(m.clone(), label.clone());
+                        }
+                        groups.push(component.into_iter().collect());
+                    }
+                    Err(reason) => {
+                        for m in component.iter().filter(|m| !m.starts_with('#')) {
+                            failed.insert(m.clone(), reason.clone());
+                            changed = true;
+                        }
+                    }
+                }
+            }
         }
         if !changed {
             let types = mentioned.into_values().flatten().collect();
@@ -10105,9 +10125,14 @@ pub(crate) fn lift_all(
                 let mut rest = Vec::new();
                 for (key, d) in pending {
                     let ready = graph.get(&key).is_none_or(|callees| {
-                        callees
-                            .iter()
-                            .all(|c| placed.contains(c) || c == &key || !graph.contains_key(c))
+                        callees.iter().all(|c| {
+                            placed.contains(c)
+                                || c == &key
+                                || !graph.contains_key(c)
+                                || mutual_of
+                                    .get(c)
+                                    .is_some_and(|l| mutual_of.get(&key) == Some(l))
+                        })
                     });
                     if ready {
                         placed.insert(key);
@@ -10162,6 +10187,68 @@ fn grouped(decls: Vec<Decl>) -> Vec<Decl> {
     out
 }
 
+/// The field types of a constructor of a family's member, as a match
+/// enclosing a recursive call binds them: `None` for no such constructor.
+fn binder_types(types: &Types, ctor: &str) -> Option<Vec<String>> {
+    let (owner, variant) = ctor.rsplit_once('.')?;
+    if let Some(vs) = types.datas.get(owner) {
+        let (_, fs) = vs.iter().find(|(v, _)| v == variant)?;
+        return Some(fs.iter().map(|(_, t)| t.render()).collect());
+    }
+    if types.boxed(owner) && variant == "mk" {
+        return Some(
+            types.structs[owner]
+                .iter()
+                .map(|(_, t)| t.render())
+                .collect(),
+        );
+    }
+    types
+        .enums
+        .get(owner)
+        .filter(|vs| vs.iter().any(|v| v == variant))
+        .map(|_| Vec::new())
+}
+
+/// The definitions a decrease theorem over `family` unfolds: the family's
+/// size functions and field accessors its statements name.
+fn evidence_definitions(
+    types: &Types,
+    family: &BTreeSet<String>,
+    statements: &[&str],
+) -> Vec<String> {
+    let mut definitions: Vec<String> = types
+        .size_domains(family)
+        .iter()
+        .filter_map(|d| types.size_name(d, family))
+        .collect();
+    for m in family {
+        if let Some(fields) = types.structs.get(m).filter(|_| types.boxed(m)) {
+            definitions.extend(fields.iter().map(|(f, _)| Types::accessor(m, f)));
+        }
+    }
+    let used: BTreeSet<&str> = statements
+        .iter()
+        .flat_map(|s| s.split(|ch: char| !ch.is_alphanumeric() && ch != '_'))
+        .collect();
+    definitions.retain(|d| used.contains(d.as_str()));
+    definitions.sort();
+    definitions
+}
+
+/// The proof of a decrease theorem: linear arithmetic after unfolding.
+fn evidence_proof(definitions: &[String]) -> String {
+    format!(
+        "linear_arithmetic{{definitions: [{}]}}",
+        definitions.join(", ")
+    )
+}
+
+/// What a decrease theorem's proof elaborates with: omega's axioms.
+fn evidence_axioms() -> Vec<String> {
+    vec!["Quot.sound".to_string(), "propext".to_string()]
+}
+
 /// The recursion of a candidate descending on `arg`: structural, or, over
 /// a nested or mutual family, well-founded on the family's size with one
 /// evidence theorem per recursive call.
@@ -10192,26 +10279,7 @@ fn well_founded(
         return refused();
     }
     let size = format!("size_of_{n}");
-    let binder_types = |ctor: &str| -> Option<Vec<String>> {
-        let (owner, variant) = ctor.rsplit_once('.')?;
-        if let Some(vs) = types.datas.get(owner) {
-            let (_, fs) = vs.iter().find(|(v, _)| v == variant)?;
-            return Some(fs.iter().map(|(_, t)| t.render()).collect());
-        }
-        if types.boxed(owner) && variant == "mk" {
-            return Some(
-                types.structs[owner]
-                    .iter()
-                    .map(|(_, t)| t.render())
-                    .collect(),
-            );
-        }
-        types
-            .enums
-            .get(owner)
-            .filter(|vs| vs.iter().any(|v| v == variant))
-            .map(|_| Vec::new())
-    };
+    let binder_types = |ctor: &str| binder_types(types, ctor);
     let params: Vec<(String, String)> = c
         .params
         .iter()
@@ -10222,26 +10290,8 @@ fn well_founded(
     else {
         return refused();
     };
-    let mut definitions: Vec<String> = types
-        .size_domains(&family)
-        .iter()
-        .filter_map(|d| types.size_name(d, &family))
-        .collect();
-    for m in &family {
-        if let Some(fields) = types.structs.get(m).filter(|_| types.boxed(m)) {
-            definitions.extend(fields.iter().map(|(f, _)| Types::accessor(m, f)));
-        }
-    }
-    let used: BTreeSet<String> = obligations
-        .iter()
-        .flat_map(|(_, s)| {
-            s.split(|ch: char| !ch.is_alphanumeric() && ch != '_')
-                .map(String::from)
-                .collect::<Vec<_>>()
-        })
-        .collect();
-    definitions.retain(|d| used.contains(d));
-    definitions.sort();
+    let statements: Vec<&str> = obligations.iter().map(|(_, s)| s.as_str()).collect();
+    let definitions = evidence_definitions(types, &family, &statements);
     let mut theorems = Vec::new();
     let mut evidence = Vec::new();
     for (i, (parameters, statement)) in obligations.into_iter().enumerate() {
@@ -10251,15 +10301,266 @@ fn well_founded(
             name,
             parameters,
             statement,
-            proof: format!(
-                "linear_arithmetic{{definitions: [{}]}}",
-                definitions.join(", ")
-            ),
-            // What omega's elaboration depends on.
-            axioms: vec!["Quot.sound".to_string(), "propext".to_string()],
+            proof: evidence_proof(&definitions),
+            axioms: evidence_axioms(),
         });
     }
     Ok((None, Some((format!("({size} {arg})"), evidence)), theorems))
+}
+
+/// The call cycles of the graph: each set of functions that call one
+/// another, round and round, whole.
+fn call_cycles(graph: &BTreeMap<String, BTreeSet<String>>) -> Vec<BTreeSet<String>> {
+    let reach = |start: &String| -> BTreeSet<String> {
+        let mut seen = BTreeSet::new();
+        let mut stack: Vec<&String> = graph[start].iter().collect();
+        while let Some(n) = stack.pop() {
+            if seen.insert(n.clone()) {
+                stack.extend(graph.get(n).into_iter().flatten());
+            }
+        }
+        seen
+    };
+    let on = cyclic(graph);
+    let reached: BTreeMap<&String, BTreeSet<String>> = on.iter().map(|n| (n, reach(n))).collect();
+    let mut out: Vec<BTreeSet<String>> = Vec::new();
+    for n in &on {
+        if out.iter().any(|c| c.contains(n)) {
+            continue;
+        }
+        out.push(
+            on.iter()
+                .filter(|m| reached[n].contains(*m) && reached[*m].contains(n))
+                .cloned()
+                .collect(),
+        );
+    }
+    out
+}
+
+/// A measured parameter's position, size function and family.
+type Measured = (usize, String, BTreeSet<String>);
+
+/// The parameter a member of a mutual group is measured on: the first of a
+/// nested family's member, or a list or an option of one, with its size
+/// function and family.
+fn measured(c: &Candidate<'_>, types: &Types) -> Option<Measured> {
+    c.params.iter().enumerate().find_map(|(i, (_, _, t))| {
+        let n = match t {
+            Ty::Named(n) => n,
+            Ty::List(inner) | Ty::Option(inner) => match &**inner {
+                Ty::Named(n) => n,
+                _ => return None,
+            },
+            _ => return None,
+        };
+        let family = types
+            .family_of(n)
+            .filter(|f| types.nested(n) && types.sizable(f))?;
+        let size = types.size_name(t, family)?;
+        Some((i, size, family.clone()))
+    })
+}
+
+/// Every text of a lifted expression, rewritten.
+fn map_text(e: Expr, f: &dyn Fn(String) -> String) -> Expr {
+    match e {
+        Expr::Flat(s) => Expr::Flat(f(s)),
+        Expr::If {
+            condition,
+            then,
+            otherwise,
+        } => Expr::If {
+            condition: Box::new(map_text(*condition, f)),
+            then: Box::new(map_text(*then, f)),
+            otherwise: Box::new(map_text(*otherwise, f)),
+        },
+        Expr::Match { scrutinee, arms } => Expr::Match {
+            scrutinee: f(scrutinee),
+            arms: arms
+                .into_iter()
+                .map(|a| Arm {
+                    pattern: a.pattern,
+                    body: map_text(a.body, f),
+                })
+                .collect(),
+        },
+        Expr::Let {
+            name,
+            ty,
+            value,
+            body,
+        } => Expr::Let {
+            name,
+            ty,
+            value: Box::new(map_text(*value, f)),
+            body: Box::new(map_text(*body, f)),
+        },
+    }
+}
+
+/// A body that reads fields of its measured parameter, a struct of a
+/// family, through accessors, as a match on the parameter whose binders
+/// are the fields: a call on a binder is on a part, whose decrease the
+/// match states.
+fn fields_bound(body: Expr, param: &str, ty: &Ty, types: &Types, params: &[String]) -> Expr {
+    let Ty::Named(name) = ty else {
+        return body;
+    };
+    let Some(fields) = types.structs.get(name).filter(|_| types.boxed(name)) else {
+        return body;
+    };
+    let reads = |e: &Expr| {
+        let text = e.flat();
+        fields
+            .iter()
+            .any(|(f, _)| text.contains(&format!("({} {param})", Types::accessor(name, f))))
+    };
+    if !reads(&body) {
+        return body;
+    }
+    let text = body.flat();
+    let words: BTreeSet<&str> = text
+        .split(|ch: char| !ch.is_alphanumeric() && ch != '_')
+        .chain(params.iter().map(String::as_str))
+        .collect();
+    let mut binders: Vec<String> = Vec::new();
+    for (f, _) in fields {
+        let base = local_name(f);
+        let taken: Vec<String> = words
+            .iter()
+            .map(|w| w.to_string())
+            .chain(binders.iter().cloned())
+            .filter(|w| w.starts_with(&base))
+            .collect();
+        let free = if taken.contains(&base) {
+            first_free(&base, &taken)
+        } else {
+            base
+        };
+        binders.push(free);
+    }
+    let reads: Vec<(String, String)> = fields
+        .iter()
+        .zip(&binders)
+        .map(|((f, _), b)| (format!("({} {param})", Types::accessor(name, f)), b.clone()))
+        .collect();
+    let replaced = map_text(body, &|s: String| {
+        reads.iter().fold(s, |s, (read, b)| s.replace(read, b))
+    });
+    Expr::Match {
+        scrutinee: param.to_string(),
+        arms: vec![Arm {
+            pattern: format!("{name}.mk {}", binders.join(" ")),
+            body: replaced,
+        }],
+    }
+}
+
+/// A call cycle of lifted functions as one LexLean mutual group, each
+/// member well-founded on the size of its measured argument, with a theorem
+/// that each call of a member decreases the measure. The group's label.
+fn mutual_group(
+    members: &BTreeSet<String>,
+    candidates: &[Candidate<'_>],
+    decls: &mut Vec<(String, Decl)>,
+    types: &Types,
+) -> Lift<String> {
+    let form = |why: &str| Err(Residue::Form(format!("mutual recursion {why}")));
+    if members.iter().any(|m| m.starts_with('#')) {
+        return form("through a helper");
+    }
+    let mut rows = Vec::new();
+    for m in members {
+        let Some(c) = candidates.iter().find(|c| &c.rust == m) else {
+            return form("of a function outside the lift");
+        };
+        let Some((at, size, family)) = measured(c, types) else {
+            return form("on no argument of a nested family");
+        };
+        let names: Vec<String> = c.params.iter().map(|(_, n, _)| n.clone()).collect();
+        let Some((_, Decl::Definition { body, mutual, .. })) =
+            decls.iter_mut().find(|(k, _)| k == m)
+        else {
+            return form("of a function outside the lift");
+        };
+        if mutual.is_some() {
+            return form("of a function with entwined helpers");
+        }
+        let (_, param, ty) = &c.params[at];
+        *body = fields_bound(body.clone(), param, ty, types, &names);
+        let params: Vec<(String, String)> = c
+            .params
+            .iter()
+            .map(|(_, n, t)| (n.clone(), t.render()))
+            .collect();
+        rows.push((c, params, at, size, family, body.flat()));
+    }
+    let group: Vec<crate::wf::GroupMember<'_>> = rows
+        .iter()
+        .map(|(c, params, at, size, _, body)| crate::wf::GroupMember {
+            name: &c.name,
+            params,
+            measured: *at,
+            size,
+            body,
+        })
+        .collect();
+    let (measures, obligations) =
+        crate::wf::group_obligations(&group, &|ctor| binder_types(types, ctor))?;
+    let family: BTreeSet<String> = rows.iter().flat_map(|r| r.4.iter().cloned()).collect();
+    let label = format!("{}Mutual", rows[0].0.name);
+    // The theorems a member's own recursion carried give way to the group's.
+    let names: Vec<String> = rows.iter().map(|r| r.0.name.clone()).collect();
+    decls.retain(|(key, _)| {
+        !names.iter().any(|n| {
+            key.strip_prefix(&format!("#decreases_{n}_"))
+                .is_some_and(|i| i.chars().all(|ch| ch.is_ascii_digit()))
+        })
+    });
+    // The theorems stand before every member, which cites them.
+    let mut at = decls
+        .iter()
+        .position(|(k, _)| members.contains(k))
+        .unwrap_or(decls.len());
+    for ((row, measure), owed) in rows.iter().zip(measures).zip(obligations) {
+        let statements: Vec<&str> = owed.iter().map(|(_, s)| s.as_str()).collect();
+        let definitions = evidence_definitions(types, &family, &statements);
+        let mut evidence = Vec::new();
+        for (i, (parameters, statement)) in owed.into_iter().enumerate() {
+            let name = format!("decreases_{}_{i}", row.0.name);
+            evidence.push(name.clone());
+            decls.insert(
+                at,
+                (
+                    format!("#{name}"),
+                    Decl::Theorem {
+                        name,
+                        parameters,
+                        statement,
+                        proof: evidence_proof(&definitions),
+                        axioms: evidence_axioms(),
+                    },
+                ),
+            );
+            at += 1;
+        }
+        if let Some((
+            _,
+            Decl::Definition {
+                recursive,
+                termination,
+                mutual,
+                ..
+            },
+        )) = decls.iter_mut().find(|(k, _)| k == &row.0.rust)
+        {
+            *recursive = None;
+            *termination = Some((measure, evidence));
+            *mutual = Some(label.clone());
+        }
+    }
+    Ok(label)
 }
 
 /// The functions on a call cycle through another function.

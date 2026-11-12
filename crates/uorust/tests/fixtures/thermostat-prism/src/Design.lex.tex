@@ -965,6 +965,27 @@ definition{
 }
 
 definition{
+  name: processThermoCoreScheduleHoldsOff,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -3244,6 +3265,69 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleEither"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleHoldsOff,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleHoldsOff"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleHoldsOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleHoldsOff"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreScheduleHoldsOffThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleHoldsOff", target := "Design::processThermoCoreSchedulePhasesOff"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSchedulePhasesOff"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSchedulePhasesOff"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreSchedulePhasesOffThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreSchedulePhasesOff", target := "Design::processThermoCoreSchedulePhaseOff"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSchedulePhaseOff"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSchedulePhaseOff"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreSchedulePhaseOffThermoCoreScheduleHoldsOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreSchedulePhaseOff", target := "Design::processThermoCoreScheduleHoldsOff"})
 }
 
 definition{
@@ -5547,6 +5631,83 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleEither"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleHoldsOff,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleHoldsOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleHoldsOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleHoldsOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreScheduleHoldsOffThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleHoldsOff", target := "Design::processThermoCoreSchedulePhasesOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleZoomThermoCoreScheduleHoldsOffThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreSchedule", process := "Design::processThermoCoreScheduleHoldsOff", subprocess := "Design::processThermoCoreSchedulePhasesOff", order := 0})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSchedulePhasesOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreSchedulePhasesOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSchedulePhasesOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreSchedulePhasesOffThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreSchedulePhasesOff", target := "Design::processThermoCoreSchedulePhaseOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleZoomThermoCoreSchedulePhasesOffThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreSchedule", process := "Design::processThermoCoreSchedulePhasesOff", subprocess := "Design::processThermoCoreSchedulePhaseOff", order := 0})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSchedulePhaseOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreSchedulePhaseOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSchedulePhaseOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreSchedulePhaseOffThermoCoreScheduleHoldsOff,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreSchedulePhaseOff", target := "Design::processThermoCoreScheduleHoldsOff"})
 }
 
 definition{

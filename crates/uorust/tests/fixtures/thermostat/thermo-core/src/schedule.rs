@@ -155,6 +155,30 @@ pub fn either(occupied: Step, otherwise: Step) -> Step {
     Step::Either(Box::new(occupied), Box::new(otherwise))
 }
 
+/// Whether a step turns the heating off anywhere, holding a target of
+/// zero, through every phase of its sequences: the step, its phases and
+/// each phase walk one another.
+pub fn holds_off(step: &Step) -> bool {
+    match step {
+        Step::Hold(target) => *target == 0,
+        Step::Either(occupied, otherwise) => holds_off(occupied) || holds_off(otherwise),
+        Step::Sequence(phases) => phases_off(phases),
+    }
+}
+
+/// Whether any of the phases turns the heating off.
+pub fn phases_off(phases: &[Phase]) -> bool {
+    match phases {
+        [] => false,
+        [first, rest @ ..] => phase_off(first) || phases_off(rest),
+    }
+}
+
+/// Whether a phase's step turns the heating off.
+pub fn phase_off(phase: &Phase) -> bool {
+    holds_off(&phase.step)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -171,5 +195,9 @@ mod tests {
         assert!(comfortable(crate::band::Band { low: 18, high: 22 }));
         assert!(!comfortable(crate::band::Band { low: 16, high: 22 }));
         assert!(!is_sequence(&either(Step::Hold(16), Step::Hold(21))));
+        let day = Step::Sequence(vec![hold("morning", 20), hold("evening", 18)]);
+        assert!(!holds_off(&either(Step::Hold(21), day.clone())));
+        let night = Step::Sequence(vec![hold("night", 0)]);
+        assert!(holds_off(&either(day, Step::Sequence(vec![hold("late", 17), Phase { label: "out".to_string(), step: night }]))));
     }
 }
