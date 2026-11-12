@@ -1810,6 +1810,38 @@ definition{
 }
 
 definition{
+  name: allBookedLoop1,
+  parameters: [items2 : (List (Option String)), state1 : Unit],
+  result: (Result Unit (Result Unit RosterError)),
+  body: (match items2
+    | List.nil => (ctor Result.ok [Unit, (Result Unit RosterError)] state1)
+    | List.cons booking rest3 => (match booking
+      | Option.none => (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice "nobody")))
+      | Option.some who => (if (prim equal who "" : Bool) then (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice who))) else (allBookedLoop1 rest3 ())))),
+  recursive_argument: items2
+}
+
+definition{
+  name: allBooked,
+  parameters: [bookings : (List (Option String))],
+  result: (Result Unit RosterError),
+  body: (match (allBookedLoop1 bookings ())
+    | Result.ok state4 => (ctor Result.ok [Unit, RosterError] ())
+    | Result.error value5 => value5)
+}
+
+definition{
+  name: rosterChecks,
+  parameters: [rooms : (List String), taken : (List String), bookings : (List (Option String))],
+  result: (Result Unit RosterError),
+  body: (match (noneTaken rooms taken)
+    | Result.ok tried1 => (match (allBooked bookings)
+      | Result.ok tried3 => (ctor Result.ok [Unit, RosterError] ())
+      | Result.error error4 => (ctor Result.error [Unit, RosterError] error4))
+    | Result.error error2 => (ctor Result.error [Unit, RosterError] error2))
+}
+
+definition{
   name: startsUnnamedPart1,
   parameters: [rooms : (List String)],
   result: Bool,
@@ -2417,35 +2449,35 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom22,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom24,
   parameters: [],
   statement: ((startsUnnamed (cons "den" (nil String))) = false),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom23,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom25,
   parameters: [],
   statement: ((perRoom 7 2) = 3),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom24,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom26,
   parameters: [],
   statement: ((perRoom 7 0) = 0),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom25,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom27,
   parameters: [],
   statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom26,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom28,
   parameters: [],
   statement: ((leftOver 7 3) = (ctor Option.some [Nat] 1)),
   proof: decide{}

@@ -539,6 +539,30 @@ pub fn none_taken(rooms: &[String], taken: &[String]) -> Result<(), RosterError>
     Ok(())
 }
 
+/// Nothing, or the first booking that names nobody.
+pub fn all_booked(bookings: &[Option<String>]) -> Result<(), RosterError> {
+    for booking in bookings {
+        let Some(who) = booking else {
+            return Err(RosterError::Twice("nobody".to_string()));
+        };
+        if who.is_empty() {
+            return Err(RosterError::Twice(who.clone()));
+        }
+    }
+    Ok(())
+}
+
+/// Both checks of a roster, in turn.
+pub fn roster_checks(
+    rooms: &[String],
+    taken: &[String],
+    bookings: &[Option<String>],
+) -> Result<(), RosterError> {
+    none_taken(rooms, taken)?;
+    all_booked(bookings)?;
+    Ok(())
+}
+
 /// Whether the roster names no room, or its first room is unnamed.
 pub fn starts_unnamed(rooms: &[String]) -> bool {
     if rooms.first().is_none() {
@@ -743,6 +767,11 @@ mod tests {
         );
         assert_eq!(none_taken(&["den".to_string()], &[]), Ok(()));
         assert!(starts_unnamed(&[]));
+        assert_eq!(
+            roster_checks(&[], &[], &[None]),
+            Err(RosterError::Twice("nobody".to_string()))
+        );
+        assert_eq!(all_booked(&[Some("ann".to_string())]), Ok(()));
         assert!(!starts_unnamed(&["den".to_string()]));
         assert_eq!(per_room(7, 2), 3);
         assert_eq!(per_room(7, 0), 0);

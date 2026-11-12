@@ -5,18 +5,6 @@
 spec = "uorust/register/1"
 
 [[residue]]
-kappa = "f2bf060ffde1eef49d395e224f0720e95c903f8c4f1ff27037eda3af479eca81"
-function = "repo_model::Model::check"
-reason = "statements"
-detail = "the body has statements other than let"
-
-[[residue]]
-kappa = "9a704eaa4389b9324c61bf904a2c2c0bcfb76fef0a02aada75181b819a286739"
-function = "repo_model::Model::check_authorities"
-reason = "form"
-detail = "expression form outside the lift: expr::return"
-
-[[residue]]
 kappa = "39abc52cdbe9a4d9638eebf95c9194920f53c3a0e69efc8d7bd02a10e987a44d"
 function = "repo_model::codegen::render_conformance"
 reason = "form"
@@ -413,7 +401,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "f1a7434f44b252536e8e1e30bf93c748f786e117f8c6326250f85ebcd6b03df2"
+kappa = "02bdc2be75b05b7edb56ff254fbadb5bd4f11c94fd3a1d4a7b1cc490aa669ca8"
 function = "uorust::lift::block"
 reason = "form"
 detail = "expression form outside the lift: struct Local"
@@ -451,8 +439,8 @@ detail = "expression form outside the lift: free name cons"
 [[residue]]
 kappa = "4bf9f7d0566f28fa0737e141836e8c064cef44c5d8c380b709ef557c6bba996f"
 function = "uorust::lift::combinator"
-reason = "form"
-detail = "expression form outside the lift: expr::return"
+reason = "call"
+detail = "calls some, which is not lifted"
 
 [[residue]]
 kappa = "7e9cdc1672862eb929fba699e2aa6788ed2acbd3e77547a1ef29ea22cb4a6cc9"
@@ -548,7 +536,7 @@ detail = "expression form outside the lift: method call .flat"
 kappa = "4de17b1aec05ebc0774b602250964b4cc5600fc83d468b7a6270dd37b98199ba"
 function = "uorust::lift::for_loop"
 reason = "form"
-detail = "expression form outside the lift: expr::return"
+detail = "expression form outside the lift: index of (List TupleStringPairStringTy)"
 
 [[residue]]
 kappa = "88e492d4fb051262a1877f920d1211e3e3c7b58f4d7f14b3f2039492d7aabf1c"
@@ -800,7 +788,7 @@ detail = "signature outside the lift: generic, async, unsafe or variadic"
 kappa = "98cd33bbcee02877441c658f058650972670e2a23f4af39d28f148879e0a751c"
 function = "uorust::lift::sorted_insert"
 reason = "form"
-detail = "expression form outside the lift: expr::return"
+detail = "expression form outside the lift: free name ALL_AXIOMS"
 
 [[residue]]
 kappa = "8cdedfd79216af743838c54102ef5d8a39b6bcfe397dadb4d639c09cbc181f03"
@@ -1271,12 +1259,6 @@ reason = "call"
 detail = "calls String, which is not lifted"
 
 [[residue]]
-kappa = "9d814fb0efc2849af878f17543c0938b637ae4ec10f4f1cd0bb820232f777904"
-function = "uorust::route::classify"
-reason = "form"
-detail = "expression form outside the lift: expr::return"
-
-[[residue]]
 kappa = "c1580136bb502df057f2969490ce53c39767789a61de787c9f2e20425391256d"
 function = "uorust::route::respond"
 reason = "call"
@@ -1712,6 +1694,16 @@ definition = "Behavior::honestyReportIsClean"
 kappa = "814866982c92ee41bac4de4a350ea9c6db4d882b26afa59bbde861cf121cdd3e"
 function = "repo_conformance::runner::SuiteReport::ids"
 definition = "Behavior::suiteReportIds"
+
+[[lifted]]
+kappa = "f2bf060ffde1eef49d395e224f0720e95c903f8c4f1ff27037eda3af479eca81"
+function = "repo_model::Model::check"
+definition = "Behavior::repoModelModelCheck"
+
+[[lifted]]
+kappa = "9a704eaa4389b9324c61bf904a2c2c0bcfb76fef0a02aada75181b819a286739"
+function = "repo_model::Model::check_authorities"
+definition = "Behavior::repoModelModelCheckAuthorities"
 
 [[lifted]]
 kappa = "d37ec42be224bca4168343264b85c21c8660f90c8bb97f780ee1c44bc847e7af"
@@ -2302,6 +2294,11 @@ definition = "Behavior::describe"
 kappa = "77eabfa864a0fb22a793b4b706b3c03708e3271ca85bf5e9699a75f9def74780"
 function = "uorust::register::kappa"
 definition = "Behavior::kappa"
+
+[[lifted]]
+kappa = "9d814fb0efc2849af878f17543c0938b637ae4ec10f4f1cd0bb820232f777904"
+function = "uorust::route::classify"
+definition = "Behavior::classify"
 
 [[lifted]]
 kappa = "5926395f51abe5608afd773a1da1555d7efdb5cd3a56e26ffaddd8ed58c72667"

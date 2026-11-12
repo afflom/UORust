@@ -6858,7 +6858,9 @@ fn block(
         [rs::Stmt::Expr(e @ (rs::RustExpr::Match(_) | rs::RustExpr::If(_)), false)] => {
             expr(e, env, ctx, acc, want)
         }
-        [rs::Stmt::Expr(e, false)] => expr(e, env, &ctx.below(), acc, want),
+        [rs::Stmt::Expr(e, false)] if !(ctx.top && matches!(e, rs::RustExpr::Return(_))) => {
+            expr(e, env, &ctx.below(), acc, want)
+        }
         // `let P = match s { .., _ => return v }; rest`: the match, with
         // the binding and the rest in each arm that does not leave.
         [rs::Stmt::Local(l), rest @ ..] if ctx.top && leaving_match(l).is_some() => {
@@ -7063,9 +7065,15 @@ fn block(
                 acc,
             ))
         }
-        // `()` as a statement does nothing.
+        // `()` as a statement does nothing, nor does a local's name: what
+        // `x?;` leaves once its `?` is bound.
         [rs::Stmt::Expr(rs::RustExpr::Tuple(t), _), rest @ ..]
             if t.is_empty() && !rest.is_empty() =>
+        {
+            block(rest, env, ctx, acc, want)
+        }
+        [rs::Stmt::Expr(rs::RustExpr::Path(p), true), rest @ ..]
+            if !rest.is_empty() && p.get_ident().is_some_and(|i| ctx.locals.contains_key(i)) =>
         {
             block(rest, env, ctx, acc, want)
         }
