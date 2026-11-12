@@ -425,8 +425,13 @@ pub(crate) fn expr(e: &syn::Expr) -> RustExpr {
         E::Await(a) => other("await", vec![&a.base], Vec::new()),
         E::Const(c) => other("const", Vec::new(), vec![&c.block]),
         E::Loop(l) => other("loop", Vec::new(), vec![&l.body]),
+        // `a..b` and `a..=b` keep their bounds in order; a range open at
+        // either end is `expr::range` of its one bound.
         E::Range(r) => other(
-            "range",
+            match (&r.start, &r.end, &r.limits) {
+                (Some(_), Some(_), syn::RangeLimits::Closed(_)) => "range_inclusive",
+                _ => "range",
+            },
             r.start.iter().chain(&r.end).map(|e| &**e).collect(),
             Vec::new(),
         ),

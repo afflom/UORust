@@ -338,7 +338,7 @@ detail = "expression form outside the lift: match pattern"
 kappa = "33ae51eafe7ef753437daaddc58dad9deebbddfdd549653ad643b7ae74a310a4"
 function = "uorust::lift::applying"
 reason = "form"
-detail = "expression form outside the lift: expr::range"
+detail = "expression form outside the lift: struct ExprClosure"
 
 [[residue]]
 kappa = "7b3c1d02716c7c71fb4a0d151dcb8105b36f0072605304f4153ee2b9e0034b9b"
@@ -467,7 +467,7 @@ reason = "form"
 detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
-kappa = "96aa0434fe5e2c27d369b3813bcd12c40f98737ed282f80d717841f5346d0809"
+kappa = "43052a8ae7ba16cf9208badd26c94c0fbcfc14bac0cfa4b2b333a91a52c5a945"
 function = "uorust::lift::expr_form"
 reason = "form"
 detail = "expression form outside the lift: let pattern"
@@ -554,7 +554,7 @@ detail = "expression form outside the lift: match pattern"
 kappa = "481771a177e1784530ae64fee414f4ce5227ed00760293c956925831e8ae20b5"
 function = "uorust::lift::is_identifier"
 reason = "form"
-detail = "expression form outside the lift: method call .is_alphabetic"
+detail = "expression form outside the lift: char::is_alphabetic tests the Unicode Alphabetic property, and no Unicode table is bound in LexLean or the SDK"
 
 [[residue]]
 kappa = "5d520b45edd66c45ffe4cafa9f18f0c082a0f16aae646bc8cc604406ed28153b"
@@ -647,7 +647,7 @@ reason = "form"
 detail = "expression form outside the lift: vec! of a repeated value"
 
 [[residue]]
-kappa = "c53610505b27e15b507f5df0744c244ccaad9826660597d9fb50c7fa82c5b9e3"
+kappa = "f1711f94531cad1935e8e937ae09b21cc03100e65d38437ee4f5f96bc0b7e25d"
 function = "uorust::lift::method"
 reason = "form"
 detail = "expression form outside the lift: match pattern"
@@ -656,7 +656,7 @@ detail = "expression form outside the lift: match pattern"
 kappa = "7a8e7baa31fd81cfc220e1750f97ac4df07332f75d3cc3a0158bde81eaa54460"
 function = "uorust::lift::pat_head"
 reason = "form"
-detail = "expression form outside the lift: free name char::is_uppercase"
+detail = "expression form outside the lift: char::is_uppercase tests the Unicode Uppercase property, and no Unicode table is bound in LexLean or the SDK"
 
 [[residue]]
 kappa = "20bd5e218d21872edf3a0dad90b54c06cc6837e1acc4ac2b13de991826170660"
@@ -920,7 +920,7 @@ detail = "calls laid, which is not lifted"
 kappa = "91e6e27e4221ce4d5a01771f932640b4646a909cac93e6a835651fba4f928016"
 function = "uorust::order::by_constructors"
 reason = "form"
-detail = "expression form outside the lift: expr::range"
+detail = "expression form outside the lift: method call .cmp"
 
 [[residue]]
 kappa = "fcd925e1e74a22ebcd131388bfca50d9cfe635a6a61afb876d4cea56976bdf08"
@@ -1011,12 +1011,6 @@ kappa = "f6132383270ad2061dbbf4b9dd3f4f151e505aee8fbaed54c70ff9b1e6a06b52"
 function = "uorust::order::tests"
 reason = "form"
 detail = "expression form outside the lift: free name ORDERINGS"
-
-[[residue]]
-kappa = "fb4b5731ff303fd10e0f9871358f7305c5c8d2044aa42a0da3760e00e64ff66d"
-function = "uorust::project::Model::all_fns"
-reason = "form"
-detail = "expression form outside the lift: expr::range"
 
 [[residue]]
 kappa = "83f147e2082c335bd6fc8f54576451e427a5a428a9dc5dbf59ce1c8392187042"
@@ -1113,12 +1107,6 @@ kappa = "b8d44340a2c5eab4b2df2d2dcd6892dad9ad615aef7f54d0c103c9ae5845bec3"
 function = "uorust::project::interface"
 reason = "call"
 detail = "calls new, which is not lifted"
-
-[[residue]]
-kappa = "8d1a7b82fb1b4850c3ab5bbbcc61c410acb98c4eafa032e0b3837ef82f26b5d8"
-function = "uorust::project::interface_fns"
-reason = "form"
-detail = "expression form outside the lift: method call .all_fns"
 
 [[residue]]
 kappa = "0c42923c090bc25e34c72fb2bce5ba5533e3797f30646a6762c7061521b28b93"
@@ -1310,7 +1298,7 @@ function = "uorust::convert::block"
 detail = "takes or returns syn::Block, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "055c65f2c3fce7391d5a14e0fa09f214f6f580ee7e7e4bf5644fca6f83d6e14e"
+kappa = "d01965c238747be45ec0ae34e73337bfc76ab4d3e59bfc93a7cd1eb0b79e3aa3"
 function = "uorust::convert::expr"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
@@ -2070,6 +2058,11 @@ function = "uorust::lift::pow2"
 definition = "Behavior::pow2"
 
 [[lifted]]
+kappa = "f33ab30ae423bef6a769290a8c65756c4ba850bea06b55ab7033a7c253b18719"
+function = "uorust::lift::range_bounds"
+definition = "Behavior::rangeBounds"
+
+[[lifted]]
 kappa = "b93cdfff403bd36ee6a9715e715beee1557580f87602d3f462484975946f254f"
 function = "uorust::lift::returned"
 definition = "Behavior::returned"
@@ -2110,6 +2103,11 @@ function = "uorust::lift::types_has_data"
 definition = "Behavior::typesHasData"
 
 [[lifted]]
+kappa = "24364556f195ed035f358d660ffd175981c47faf306abeb6b45c886a2d413c46"
+function = "uorust::lift::unicode_property"
+definition = "Behavior::unicodeProperty"
+
+[[lifted]]
 kappa = "4b467d250fed725a263d58d71626203b2099511d26b7ff372868b33db3b30553"
 function = "uorust::lift::untyped"
 definition = "Behavior::untyped"
@@ -2148,6 +2146,11 @@ definition = "Behavior::normal"
 kappa = "e2fbe8b9e1a607ec0e29f76ab39db7af228667b83e891db517c1ca6e63082c9a"
 function = "uorust::order::ordering_value"
 definition = "Behavior::orderingValue"
+
+[[lifted]]
+kappa = "fb4b5731ff303fd10e0f9871358f7305c5c8d2044aa42a0da3760e00e64ff66d"
+function = "uorust::project::Model::all_fns"
+definition = "Behavior::uorustModelAllFns"
 
 [[lifted]]
 kappa = "b89259491998469fe6111037c2752847ad8ce7d789e5c6e648d233c16c6eaa51"
@@ -2213,6 +2216,11 @@ definition = "Behavior::frontier"
 kappa = "b7e4b24a14d2c275154c81442b53315c7fa340af0221c91f351a55e5984051d6"
 function = "uorust::project::has_kind"
 definition = "Behavior::hasKind"
+
+[[lifted]]
+kappa = "8d1a7b82fb1b4850c3ab5bbbcc61c410acb98c4eafa032e0b3837ef82f26b5d8"
+function = "uorust::project::interface_fns"
+definition = "Behavior::interfaceFns"
 
 [[lifted]]
 kappa = "96c963e84f8ef093fdf098fc702b3125c1c4de9d879ffe06dbfa1d055239ad66"

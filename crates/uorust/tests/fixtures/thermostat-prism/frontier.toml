@@ -376,7 +376,7 @@ definition = "Behavior::divider"
 [[lifted]]
 kappa = "ab4c9669b562df89942d03cd27dad4446eaca34863fb3103711ad5161ec56873"
 function = "thermo_core::roster::doubled_room"
-span = "thermo-core/src/roster.rs:635"
+span = "thermo-core/src/roster.rs:650"
 definition = "Behavior::doubledRoom"
 
 [[lifted]]
@@ -403,6 +403,12 @@ kappa = "dd02a420f31fbc9b2b168a370eef00adb17bb240ad29c72499489a70ccb67958"
 function = "thermo_core::roster::first_word"
 span = "thermo-core/src/roster.rs:285"
 definition = "Behavior::firstWord"
+
+[[lifted]]
+kappa = "f23628fccee3cb65fb17c57cab5ba94541b0e210d9223406fceda787e2ebff5b"
+function = "thermo_core::roster::floors"
+span = "thermo-core/src/roster.rs:610"
+definition = "Behavior::floors"
 
 [[lifted]]
 kappa = "e70d1cefb2ff0bf3256a630ccb5a335ee6e29c87f3ad8a73710654845cd95dde"
@@ -455,7 +461,7 @@ definition = "Behavior::lineTarget"
 [[lifted]]
 kappa = "188f53acc21fb5d4168ba253ac8565704b304c87e1c7a9b7a782477ebcba922f"
 function = "thermo_core::roster::marked_rooms"
-span = "thermo-core/src/roster.rs:619"
+span = "thermo-core/src/roster.rs:634"
 definition = "Behavior::markedRooms"
 
 [[lifted]]
@@ -521,8 +527,14 @@ definition = "Behavior::pressing"
 [[lifted]]
 kappa = "4dbb45cf3cb4c97f32ac8827d299806d6f181cb1e56aa51f95cf7b3d8ef70b0c"
 function = "thermo_core::roster::queue"
-span = "thermo-core/src/roster.rs:644"
+span = "thermo-core/src/roster.rs:659"
 definition = "Behavior::queue"
+
+[[lifted]]
+kappa = "232584c6aaed27bc3633389bd06324664151a69e8c6127b165fd18eeadbd273c"
+function = "thermo_core::roster::reading_within"
+span = "thermo-core/src/roster.rs:620"
+definition = "Behavior::readingWithin"
 
 [[lifted]]
 kappa = "c3122f230beccabf23b19a4082382939b390badb9ee3e6d165329d09b2d7b774"
@@ -547,6 +559,12 @@ kappa = "397b69f8bf5a06fb3de7046cf997d095922d505c4d493b6daa77f352ec7064c1"
 function = "thermo_core::roster::roll"
 span = "thermo-core/src/roster.rs:82"
 definition = "Behavior::roll"
+
+[[lifted]]
+kappa = "920bc11b239c77b4d3eaf64c2857faeb40872d78e7762dd967a401a0db167709"
+function = "thermo_core::roster::room_labels"
+span = "thermo-core/src/roster.rs:615"
+definition = "Behavior::roomLabels"
 
 [[lifted]]
 kappa = "0ec87e4433c72b0fc5ca3ec55eae9706ef96d90728a41150ef0d116cc34f009f"
@@ -576,7 +594,7 @@ divergence = "to_lowercase lowers every letter the Unicode case table maps; the 
 [[lifted]]
 kappa = "4dffd1e264a839be4658d65b554ab62750bf4149b63d7db1be5bad0e18299f99"
 function = "thermo_core::roster::same_zone"
-span = "thermo-core/src/roster.rs:658"
+span = "thermo-core/src/roster.rs:673"
 definition = "Behavior::sameZone"
 
 [[lifted]]
@@ -612,7 +630,7 @@ definition = "Behavior::secondLast"
 [[lifted]]
 kappa = "27e5ca15be5aef72c7be4febc5121f6fb71bbb519c4b7dbdd8aae86dc72a789f"
 function = "thermo_core::roster::set_point"
-span = "thermo-core/src/roster.rs:663"
+span = "thermo-core/src/roster.rs:678"
 definition = "Behavior::setPoint"
 
 [[lifted]]
@@ -630,7 +648,7 @@ definition = "Behavior::slots"
 [[lifted]]
 kappa = "9bf42f3a9461665c2ecc69c7bc420674e05f0ec91f0dbb113977341adda5fe44"
 function = "thermo_core::roster::sorts_before"
-span = "thermo-core/src/roster.rs:653"
+span = "thermo-core/src/roster.rs:668"
 definition = "Behavior::sortsBefore"
 
 [[lifted]]
@@ -642,7 +660,7 @@ definition = "Behavior::spelled"
 [[lifted]]
 kappa = "ad832bef08e869adf153cb6bbd28fe314341c16cda507d4ab46e3cb02706b183"
 function = "thermo_core::roster::starts_unnamed"
-span = "thermo-core/src/roster.rs:610"
+span = "thermo-core/src/roster.rs:625"
 definition = "Behavior::startsUnnamed"
 
 [[lifted]]

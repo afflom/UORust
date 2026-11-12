@@ -1753,7 +1753,14 @@ fn expr_form(
                 Some((owner, variant)) => {
                     flat(format!("(ctor {owner}.{variant})"), Ty::Named(owner), acc)
                 }
-                None => Err(Residue::Form(format!("free name {}", p.text))),
+                None => match p.segments.as_slice() {
+                    [owner, f] if owner.ident == "char" && unicode_property(&f.ident).is_some() => {
+                        Err(Residue::Form(
+                            unicode_property(&f.ident).unwrap_or_default(),
+                        ))
+                    }
+                    _ => Err(Residue::Form(format!("free name {}", p.text))),
+                },
             }
         }
         rs::RustExpr::Unary(u) => match u.op {
@@ -1975,6 +1982,24 @@ fn expr_form(
             }
             let ty = env.types.tuple(tys);
             flat(tuple_value(&ty, &parts), ty, acc)
+        }
+        // `a..b`, `a..=b`: the naturals from `a`, as many as the range
+        // holds; none where it is empty.
+        rs::RustExpr::Other(o) if range_bounds(e).is_some() => {
+            let Some((lo, hi, closed)) = range_bounds(e) else {
+                return Err(Residue::Form(o.kind.clone()));
+            };
+            let ((l, lt), acc) = flat_of(lo, env, ctx, acc, Some(&Ty::Nat(None)))?;
+            let ((h, ht), acc) = flat_of(hi, env, ctx, acc, Some(&lt))?;
+            if !matches!(lt, Ty::Nat(_)) || !ht.same(&lt) {
+                return Err(Residue::Form(
+                    "a range of something other than naturals".into(),
+                ));
+            }
+            let end = if closed { format!("({h} + 1)") } else { h };
+            let count = format!("(prim subtract {end} {l} : Nat)");
+            let (list, acc) = acc.prelude("natRange", &[&l, &count]);
+            flat(list, Ty::List(Box::new(lt)), acc)
         }
         rs::RustExpr::Cast(c) => {
             let ((v, vt), acc) = flat_of(&c.expr, env, ctx, acc, None)?;
@@ -3264,6 +3289,30 @@ fn method(
         }
         _ => None,
     };
+    // `(a..b).contains(&x)`: `a <= x` and `x` below the end, or at it for
+    // `a..=b`.
+    if let (Some((lo, hi, closed)), "contains", [x]) =
+        (range_bounds(&m.receiver), name.as_str(), m.args.as_slice())
+    {
+        let ((l, lt), acc) = flat_of(lo, env, ctx, acc, Some(&Ty::Nat(None)))?;
+        let ((h, ht), acc) = flat_of(hi, env, ctx, acc, Some(&lt))?;
+        let x = match x {
+            rs::RustExpr::Reference(r) => &*r.expr,
+            other => other,
+        };
+        let ((v, vt), acc) = flat_of(x, env, ctx, acc, Some(&lt))?;
+        if !matches!(lt, Ty::Nat(_)) || !ht.same(&lt) || !vt.same(&lt) {
+            return Err(Residue::Form(
+                "a range of something other than naturals".into(),
+            ));
+        }
+        let below = if closed { "<=?" } else { "<?" };
+        return flat(
+            format!("(({l} <=? {v}) && ({v} {below} {h}))"),
+            Ty::Bool,
+            acc,
+        );
+    }
     let ((r, rt), mut acc) = flat_of(&m.receiver, env, ctx, acc, receiver_want.as_ref())?;
     let args: Vec<&rs::RustExpr> = m.args.iter().collect();
     let arg = |want: &Ty, acc: Acc| -> Lift<(String, Acc)> {
@@ -3695,8 +3744,46 @@ fn method(
         (Ty::Option(_) | Ty::Outcome(..), _) => {
             wrapped_method(&name, &r, &rt, &args, env, ctx, acc)
         }
+        (Ty::Char, _) if unicode_property(&name).is_some() => {
+            Err(Residue::Form(unicode_property(&name).unwrap_or_default()))
+        }
         _ => Err(Residue::Form(format!("method call .{name}"))),
     }
+}
+
+/// The bounds of `a..b` or `a..=b`, in parentheses or not, and whether the
+/// range holds its end.
+fn range_bounds(e: &rs::RustExpr) -> Option<(&rs::RustExpr, &rs::RustExpr, bool)> {
+    let bare = match e {
+        rs::RustExpr::Paren(inner) => &**inner,
+        other => other,
+    };
+    match bare {
+        rs::RustExpr::Other(o) => match (o.kind.as_str(), o.exprs.as_slice()) {
+            ("expr::range", [lo, hi]) => Some((lo, hi, false)),
+            ("expr::range_inclusive", [lo, hi]) => Some((lo, hi, true)),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// The gap a Unicode property of a `char` names: the property tests the
+/// Unicode Character Database, and no table of it is bound in LexLean or
+/// the SDK. The ASCII forms (`is_ascii_alphabetic`, ..) lift.
+fn unicode_property(name: &str) -> Option<String> {
+    let property = match name {
+        "is_alphabetic" => "Alphabetic",
+        "is_alphanumeric" => "Alphabetic or Numeric",
+        "is_numeric" => "Numeric",
+        "is_uppercase" => "Uppercase",
+        "is_lowercase" => "Lowercase",
+        _ => return None,
+    };
+    Some(format!(
+        "char::{name} tests the Unicode {property} property, and no Unicode table is bound \
+         in LexLean or the SDK"
+    ))
 }
 
 /// A value of a type, where the lift needs one that nothing observes: what

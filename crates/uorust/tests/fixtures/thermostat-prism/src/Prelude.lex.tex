@@ -765,6 +765,17 @@ definition{
 }
 
 definition{
+  name: natRange,
+  parameters: [start : Nat, count : Nat],
+  result: (List Nat),
+  body: (match count
+    | Nat.zero => (nil Nat)
+    | Nat.succ rest => (cons start (natRange (start + 1) rest))),
+  axioms: [],
+  recursive_argument: count
+}
+
+definition{
   name: pathParts,
   parameters: [parts : (List String)],
   result: (List String),

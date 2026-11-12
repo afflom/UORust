@@ -606,6 +606,21 @@ pub fn pressing(priority: Priority) -> bool {
     matches!(priority, P::Urgent)
 }
 
+/// The floor numbers from `low` up to, not including, `high`.
+pub fn floors(low: usize, high: usize) -> Vec<usize> {
+    (low..high).collect()
+}
+
+/// The labels of the first `n` rooms, numbered from one.
+pub fn room_labels(n: usize) -> Vec<String> {
+    (1..=n).map(|i| format!("room-{i}")).collect()
+}
+
+/// Whether a reading is between two bounds, both included.
+pub fn reading_within(reading: u32, low: u32, high: u32) -> bool {
+    (low..=high).contains(&reading)
+}
+
 /// Whether the roster names no room, or its first room is unnamed.
 pub fn starts_unnamed(rooms: &[String]) -> bool {
     if rooms.first().is_none() {
@@ -810,6 +825,11 @@ mod tests {
         );
         assert_eq!(none_taken(&["den".to_string()], &[]), Ok(()));
         assert!(starts_unnamed(&[]));
+        assert_eq!(floors(2, 5), vec![2, 3, 4]);
+        assert_eq!(floors(5, 2), Vec::<usize>::new());
+        assert_eq!(room_labels(2), vec!["room-1".to_string(), "room-2".to_string()]);
+        assert!(reading_within(20, 18, 20));
+        assert!(!reading_within(21, 18, 20));
         assert!(in_comfort_band(20));
         assert!(!in_comfort_band(30));
         assert!(pressing(Priority::Urgent));
