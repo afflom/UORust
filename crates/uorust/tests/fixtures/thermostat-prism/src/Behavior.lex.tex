@@ -688,7 +688,7 @@ definition{
   result: Nat,
   body: (match readings
     | List.nil => 0
-    | List.cons firstValue rest => (if (target <? firstValue) then (if (((above rest target) + 1) <? 4294967296) then ((above rest target) + 1) else 4294967295) else (above rest target))),
+    | List.cons firstValue1 rest => (if (target <? firstValue1) then (if (((above rest target) + 1) <? 4294967296) then ((above rest target) + 1) else 4294967295) else (above rest target))),
   recursive_argument: readings
 }
 
@@ -762,9 +762,9 @@ definition{
 
 definition{
   name: joined,
-  parameters: [firstValue : (List Nat), secondValue : (List Nat)],
+  parameters: [firstValueArg : (List Nat), secondValue : (List Nat)],
   result: (List Nat),
-  body: (let out : (List Nat) := firstValue; (let out1 : (List Nat) := (prim append out secondValue : (List Nat)); out1))
+  body: (let out : (List Nat) := firstValueArg; (let out1 : (List Nat) := (prim append out secondValue : (List Nat)); out1))
 }
 
 definition{name: labelOf, parameters: [view : Labelled], result: String, body: (project view label)}
@@ -1659,7 +1659,7 @@ definition{
   result: Nat,
   body: (match readings
     | List.nil => 0
-    | List.cons firstValue rest => (if ((firstValue + (saturatedTotal rest)) <? 4294967296) then (firstValue + (saturatedTotal rest)) else 4294967295)),
+    | List.cons firstValue1 rest => (if ((firstValue1 + (saturatedTotal rest)) <? 4294967296) then (firstValue1 + (saturatedTotal rest)) else 4294967295)),
   recursive_argument: readings
 }
 
@@ -2084,6 +2084,16 @@ definition{
   body: (setPointGet1 table (record TuplePriorityNat {item0 := priority, item1 := hour}))
 }
 
+definition{
+  name: openingAny1,
+  parameters: [items1 : (List String), name : String],
+  result: Bool,
+  body: (match items1
+    | List.nil => false
+    | List.cons room rest2 => (if (prim equal room name : Bool) then true else (openingAny1 rest2 name))),
+  recursive_argument: items1
+}
+
 theorem{
   name: decreases_occupiedTarget_0,
   parameters: [step : Step, occupied : Step, rest : Step],
@@ -2308,6 +2318,15 @@ definition{
   body: (let out : (List Nat) := (nil Nat); (let state5 : (List Nat) := (atLeastLoop1 readings out floor); state5))
 }
 
+definition{
+  name: openingConst,
+  parameters: [],
+  result: (List String),
+  body: (cons "hall" (cons "den" (nil String)))
+}
+
+definition{name: firstConst, parameters: [], result: String, body: "hall"}
+
 definition{name: heldUnit, parameters: [], result: String, body: "C"}
 
 definition{
@@ -2336,6 +2355,15 @@ definition{
   result: (List String),
   body: (let out : (List String) := (nil String); (let state11 : (List String) := (numberedLoop3 (numberedEnumerate1 rooms 0) out); state11)),
   axioms: [propext]
+}
+
+definition{name: firstValue, parameters: [], result: String, body: (firstConst)}
+
+definition{
+  name: opening,
+  parameters: [name : String],
+  result: Bool,
+  body: (openingAny1 (openingConst) name)
 }
 
 definition{
@@ -2663,6 +2691,27 @@ theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom41,
   parameters: [],
   statement: ((leftOver 7 3) = (ctor Option.some [Nat] 1)),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom43,
+  parameters: [],
+  statement: ((firstValue) = "hall"),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom44,
+  parameters: [],
+  statement: ((opening "den") = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom45,
+  parameters: [],
+  statement: ((opening "attic") = false),
   proof: decide{}
 }
 

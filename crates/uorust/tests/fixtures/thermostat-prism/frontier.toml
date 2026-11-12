@@ -393,6 +393,12 @@ definition = "Behavior::filedName"
 divergence = "to_lowercase lowers every letter the Unicode case table maps; the lift lowers the ASCII letters only, since no Unicode case table is bound in LexLean or the SDK, so the two differ on text holding a non-ASCII letter that has a lowercase form"
 
 [[lifted]]
+kappa = "47861cd1d3a40bc0cfd663d22b36eb2f16c3a860f89fb61a559eb67166a02160"
+function = "thermo_core::roster::first"
+span = "thermo-core/src/roster.rs:703"
+definition = "Behavior::firstValue"
+
+[[lifted]]
 kappa = "15925333000ebc0d891045be0311f64107cc76625b42e69b7dfe26b951945df5"
 function = "thermo_core::roster::first_cold"
 span = "thermo-core/src/roster.rs:62"
@@ -499,6 +505,12 @@ kappa = "63573a575bf41d1824b1441668d0b7c44f9a58097e770ed2a80d4f45ecbc04e5"
 function = "thermo_core::roster::numbered"
 span = "thermo-core/src/roster.rs:262"
 definition = "Behavior::numbered"
+
+[[lifted]]
+kappa = "1a7db239185450c22bf3c6f2bb02d12d0c774b11b84c588319d31e34bd8ca5d6"
+function = "thermo_core::roster::opening"
+span = "thermo-core/src/roster.rs:708"
+definition = "Behavior::opening"
 
 [[lifted]]
 kappa = "1e344a28ce3ad63259af6cc73231f1d8e5915861ea79dfc28d704dba4f496b55"

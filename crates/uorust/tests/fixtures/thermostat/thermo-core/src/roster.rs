@@ -693,6 +693,22 @@ pub fn set_point(
     table.get(&(priority, hour)).copied()
 }
 
+/// The rooms every roster opens.
+const OPENING: [&str; 2] = ["hall", "den"];
+
+/// The room a roster opens first.
+const FIRST: &str = "hall";
+
+/// The room a roster opens first, by name.
+pub fn first() -> String {
+    FIRST.to_string()
+}
+
+/// Whether a roster opens the room.
+pub fn opening(name: &str) -> bool {
+    OPENING.iter().any(|room| *room == name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -863,6 +879,9 @@ mod tests {
             by_name: BTreeSet::new(),
         };
         assert_eq!(booked(&none, "den").order, vec!["den".to_string()]);
+        assert_eq!(first(), "hall");
+        assert!(opening("den"));
+        assert!(!opening("attic"));
         assert!(all_named(&Zone::Group(vec![Zone::Room(
             "hall".to_string()
         )])));

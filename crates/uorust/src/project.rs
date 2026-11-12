@@ -3302,8 +3302,15 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 let Ok(result) = types.ty(ty) else {
                     continue;
                 };
-                let name = lift::local_name(rust);
                 let (candidates, names) = &mut scoped[pkg];
+                // A constant spelled like a function, `REVERSE` beside
+                // `reverse`, takes its kind as a suffix.
+                let plain = lift::local_name(rust);
+                let name = if candidates.iter().any(|c: &Candidate<'_>| c.name == plain) {
+                    lift::local_name(&format!("{rust}_CONST"))
+                } else {
+                    plain
+                };
                 if names.contains_key(rust)
                     || candidates
                         .iter()

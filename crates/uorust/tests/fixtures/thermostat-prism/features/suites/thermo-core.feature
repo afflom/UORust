@@ -136,6 +136,8 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterSortsBefore is made
     And the interface call Interface::callThermoCoreRosterSameZone is made
     And the interface call Interface::callThermoCoreRosterSetPoint is made
+    And the interface call Interface::callThermoCoreRosterFirst is made
+    And the interface call Interface::callThermoCoreRosterOpening is made
     Then the acceptance row Interface::acThermoCoreThermoCoreRosterRequestsSortByPriorityThenRoom holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms holds

@@ -60,6 +60,7 @@ pub(crate) fn ty(t: &syn::Type) -> RustType {
             elem: Box::new(ty(&r.elem)),
         },
         syn::Type::Slice(s) => TypeKind::Slice(Box::new(ty(&s.elem))),
+        syn::Type::Array(a) => TypeKind::Array(Box::new(ty(&a.elem)), text(&a.len)),
         syn::Type::Paren(p) => TypeKind::Paren(Box::new(ty(&p.elem))),
         syn::Type::Group(g) => TypeKind::Paren(Box::new(ty(&g.elem))),
         syn::Type::Tuple(tp) => TypeKind::Tuple(tp.elems.iter().map(ty).collect()),

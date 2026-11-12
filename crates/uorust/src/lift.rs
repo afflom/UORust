@@ -684,6 +684,9 @@ impl Types {
                 _ => self.ty(elem),
             },
             rs::TypeKind::Paren(p) => self.ty(p),
+            // An array is the list of its items: its length is the
+            // literal's, which the value fixes.
+            rs::TypeKind::Array(t, _) => Ok(Ty::List(Box::new(self.ty(t)?))),
             rs::TypeKind::Tuple(elems) if elems.is_empty() => Ok(Ty::Unit),
             rs::TypeKind::Tuple(elems) if elems.len() >= 2 => {
                 let mut ts = Vec::new();

@@ -59,19 +59,19 @@ reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
 
 [[residue]]
-kappa = "a01c93c0efad1c4165d351586d8a6dfd63da478bf910f5169b0a74335687d383"
+kappa = "1547cbd2de1a257a6e9ab68dfc6530f004ccd0fd7ce711e8b1c510750c4ea57b"
 function = "uorust::ast::RustType::expanded"
 reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
 
 [[residue]]
-kappa = "affa909e299b3abb5e8edc8da20227a29824b19d9084bf53b973c5a9bba2e167"
+kappa = "ac512396ef86408770bd6a1213ff84f99332917796462b87f716015537df59af"
 function = "uorust::ast::RustType::localized"
 reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
 
 [[residue]]
-kappa = "39669667af8d5fb0635a994b67c05907db1cdbc294cdb0b15e4dc78377f988c3"
+kappa = "810b41654c1e028416c281ec4033ef0a344664fd875f818f31fea2efc1cc1cd6"
 function = "uorust::ast::RustType::substituted"
 reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
@@ -215,12 +215,6 @@ reason = "call"
 detail = "calls string, which is not lifted"
 
 [[residue]]
-kappa = "47282ab2904bdc549feac5b4ef4fb5bd50ef3a8b4b26715ea7f7c139f5a4c257"
-function = "uorust::lift::Acc::all_axioms"
-reason = "form"
-detail = "expression form outside the lift: free name ALL_AXIOMS"
-
-[[residue]]
 kappa = "5d9749d0787eb672a9cd44f78bc64ce91fc929f4ee5f9686577c299bc75a79b0"
 function = "uorust::lift::Acc::ordered"
 reason = "call"
@@ -293,7 +287,7 @@ reason = "form"
 detail = "expression form outside the lift: method call .member_fields"
 
 [[residue]]
-kappa = "282aeb9e9eb43f3b000fa2aeb06d5e2ebdca690e4af7fe63b6385623e196b7f4"
+kappa = "9c9074cf6b1478c76bd97b7bc9e9a4be07898757c26d587fe519d201c2a54633"
 function = "uorust::lift::Types::ty"
 reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
@@ -752,7 +746,7 @@ detail = "signature outside the lift: generic, async, unsafe or variadic"
 kappa = "98cd33bbcee02877441c658f058650972670e2a23f4af39d28f148879e0a751c"
 function = "uorust::lift::sorted_insert"
 reason = "form"
-detail = "expression form outside the lift: free name ALL_AXIOMS"
+detail = "expression form outside the lift: method call .fresh"
 
 [[residue]]
 kappa = "8cdedfd79216af743838c54102ef5d8a39b6bcfe397dadb4d639c09cbc181f03"
@@ -938,7 +932,7 @@ detail = "calls has_ordering, which is not lifted"
 kappa = "ead612ebd9220e2bcb52234659a65fa9f6b5bc642773baf00a557d088c360f6d"
 function = "uorust::order::derived_in"
 reason = "form"
-detail = "expression form outside the lift: free name DERIVED"
+detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
 kappa = "20795cf1251c8cd5e010b7733a00cb0f397626f89588e5a8398a2be9541e0b4e"
@@ -967,8 +961,8 @@ detail = "usize + wraps or panics where its value leaves the pointer width: past
 [[residue]]
 kappa = "fb73c6557fe68b7d7b12efc793b8eff74f8aa45928b907eb2a2fe93132cd0efe"
 function = "uorust::order::laws"
-reason = "form"
-detail = "expression form outside the lift: free name REVERSE"
+reason = "call"
+detail = "calls by_cases, which is not lifted"
 
 [[residue]]
 kappa = "f0885b7af1550f6debc2b8dde46058f6f2a6005473c6ed34f8d147577e0e0b49"
@@ -1004,7 +998,7 @@ detail = "calls from, which is not lifted"
 kappa = "f6132383270ad2061dbbf4b9dd3f4f151e505aee8fbaed54c70ff9b1e6a06b52"
 function = "uorust::order::tests"
 reason = "form"
-detail = "expression form outside the lift: free name ORDERINGS"
+detail = "expression form outside the lift: method call .to_string"
 
 [[residue]]
 kappa = "83f147e2082c335bd6fc8f54576451e427a5a428a9dc5dbf59ce1c8392187042"
@@ -1043,7 +1037,7 @@ reason = "call"
 detail = "calls indexed, which is not lifted"
 
 [[residue]]
-kappa = "9bed4622fdaf67479b469588fde9522d303cffe8efa50590f0c2e083a62edbb0"
+kappa = "3c0f333839d3b76a31b64458f6c5ef04c82a391fb2f9dd99833d5bb8325d1077"
 function = "uorust::project::behavior"
 reason = "type"
 detail = "type outside the lift: &mut Notes"
@@ -1342,7 +1336,7 @@ function = "uorust::convert::stmt"
 detail = "takes or returns syn::Stmt, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "6f89171989d6f2b5ff1b2a506f02d4063ef188040b0e7c00e1a4b494a6510d1d"
+kappa = "19270675d9ee60e7fe4c7492c00ecaf8f02071c590f0403c14782477f5f51160"
 function = "uorust::convert::ty"
 detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
 
@@ -1752,7 +1746,7 @@ function = "uorust::ast::crate_module"
 definition = "Behavior::crateModule"
 
 [[lifted]]
-kappa = "6180dac0dd9dea144683c20112674c89899f9ad1e9bc4621b558ae4f040c9f4e"
+kappa = "4012ce6a69d413dae5e4e76250e032a99c3f11349c3e76953c68cdd5efc7aa09"
 function = "uorust::ast::written"
 definition = "Behavior::written"
 
@@ -1840,6 +1834,11 @@ definition = "Behavior::members"
 kappa = "eed3bbb135ec803687ee54bb6f66a15301bf12c4ce907a632af0d0fd8381d8d8"
 function = "uorust::lex::params"
 definition = "Behavior::params"
+
+[[lifted]]
+kappa = "47282ab2904bdc549feac5b4ef4fb5bd50ef3a8b4b26715ea7f7c139f5a4c257"
+function = "uorust::lift::Acc::all_axioms"
+definition = "Behavior::accAllAxioms"
 
 [[lifted]]
 kappa = "741a3deaa502b11218727a1ec4a6b1a4e6a28d5556860e53c9be3bc53ab869c7"
