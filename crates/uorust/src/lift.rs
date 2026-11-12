@@ -982,6 +982,8 @@ struct Ctx {
     looping: Option<Vec<String>>,
     /// Binders still in scope whose Rust local a later binding renamed.
     hidden: Vec<String>,
+    /// The `use` imports of the function's file: name -> the path it names.
+    imports: BTreeMap<String, String>,
 }
 
 /// What lifting a body gathers as it goes. Each step takes it and gives
@@ -1827,6 +1829,13 @@ fn format_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((E
                     }
                     hole.push(h);
                 }
+                // `{b:02x}`: a byte as two lowercase hex digits, the only
+                // format spec the lift reads.
+                let (hole, hex) = match hole.split_once(':') {
+                    Some((name, "02x")) => (name.to_string(), true),
+                    Some(_) => return bad("hole"),
+                    None => (hole, false),
+                };
                 if !text.is_empty() {
                     let Some(piece) = exact_string(&text) else {
                         return bad("text");
@@ -1853,6 +1862,12 @@ fn format_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((E
                 };
                 acc = after;
                 match value.1 {
+                    Ty::Nat(Some(8)) if hex => {
+                        let (piece, after) = acc.prelude("hexByte", &[&value.0]);
+                        acc = after;
+                        pieces.push(piece);
+                    }
+                    _ if hex => return bad("hex of another type"),
                     Ty::Str | Ty::Char => pieces.push(value.0),
                     Ty::Bool => {
                         pieces.push(format!("(if {} then \"true\" else \"false\")", value.0))
@@ -2154,6 +2169,25 @@ fn call(
     }
     let segments: Vec<String> = p.segments.iter().map(|s| s.ident.to_string()).collect();
     let call_args: Vec<&rs::RustExpr> = c.args.iter().collect();
+    // `Sha256::digest(bytes)`: the SHA-256 of a byte list, which the prelude
+    // computes.
+    if let ([.., owner, method], [bytes]) = (segments.as_slice(), call_args.as_slice()) {
+        let byte_list = Ty::List(Box::new(Ty::Nat(Some(8))));
+        let named = match segments.len() {
+            2 => ctx.imports.get(owner).cloned(),
+            _ => Some(segments[..segments.len() - 1].join("::")),
+        };
+        if method == "digest" && named.as_deref() == Some("sha2::Sha256") {
+            let ((v, vt), acc) = flat_of(bytes, env, ctx, acc, Some(&byte_list))?;
+            if vt != byte_list {
+                return Break(Residue::Form(
+                    "a digest of something other than bytes".into(),
+                ));
+            }
+            let (s, acc) = acc.prelude("sha256", &[&v]);
+            return flat(s, byte_list, acc);
+        }
+    }
     match (segments.as_slice(), call_args.as_slice(), want) {
         ([s, n], [], _) if s == "String" && n == "new" => return flat("\"\"".into(), Ty::Str, acc),
         ([s, n], [], Some(t @ Ty::List(inner))) if s == "Vec" && n == "new" => {
@@ -2230,8 +2264,61 @@ fn call(
 /// The module of the byte-level text prelude every projection carries.
 pub(crate) const PRELUDE: &str = "Prelude";
 
-/// The prelude's source: the definitions string methods lift to.
+/// The prelude's source: the definitions string methods lift to. Its SHA-256
+/// is ported from UOR-Foundation/compression, `src/Uorc/Integrity/Sha256.lex.tex`,
+/// under the Apache License 2.0: the round functions, constants and word
+/// loading are that module's, renamed; the padding, block walk and digest
+/// read a whole message at once.
 pub(crate) const PRELUDE_SOURCE: &str = include_str!("../assets/project/src/Prelude.lex.tex");
+
+/// The prelude definitions the kernel cannot compute by unfolding: those
+/// that reach a primitive Lean implements opaquely, directly or through
+/// another prelude definition.
+fn prelude_opaque() -> BTreeSet<String> {
+    let decls: Vec<(&str, &str)> = PRELUDE_SOURCE
+        .split("\ndefinition{\n  name: ")
+        .skip(1)
+        .filter_map(|decl| {
+            let (name, rest) = decl.split_once(",\n")?;
+            Some((name, rest.split("\n}\n").next().unwrap_or(rest)))
+        })
+        .collect();
+    let mut opaque: BTreeSet<String> = decls
+        .iter()
+        .filter(|(_, body)| KERNEL_OPAQUE.iter().any(|p| body.contains(p)))
+        .map(|(name, _)| (*name).to_string())
+        .collect();
+    loop {
+        let more: Vec<String> = decls
+            .iter()
+            .filter(|(name, body)| {
+                !opaque.contains(*name)
+                    && body
+                        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+                        .any(|token| opaque.contains(token))
+            })
+            .map(|(name, _)| (*name).to_string())
+            .collect();
+        if more.is_empty() {
+            return opaque;
+        }
+        opaque.extend(more);
+    }
+}
+
+/// The prelude definitions a lifted body calls.
+fn prelude_calls(text: &str) -> Vec<String> {
+    let marker = format!("{PRELUDE}::");
+    text.split(marker.as_str())
+        .skip(1)
+        .map(|rest| {
+            rest.split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+                .next()
+                .unwrap_or("")
+                .to_string()
+        })
+        .collect()
+}
 
 /// The Lean axioms a prelude definition elaborates with, as its source
 /// declares them.
@@ -2253,6 +2340,38 @@ fn prelude_axioms(name: &str) -> Vec<String> {
                 .collect()
         })
         .unwrap_or_default()
+}
+
+/// The byte list `bytes` of `bytes.iter().map(|b| format!("{b:02x}"))`.
+fn hex_of(e: &rs::RustExpr) -> Option<&rs::RustExpr> {
+    let rs::RustExpr::MethodCall(map) = e else {
+        return None;
+    };
+    let [rs::RustExpr::Closure(f)] = map.args.as_slice() else {
+        return None;
+    };
+    let rs::RustExpr::MethodCall(iter) = &*map.receiver else {
+        return None;
+    };
+    if map.method != "map" || iter.method != "iter" || !iter.args.is_empty() {
+        return None;
+    }
+    let [rs::Pat::Ident(b)] = f.inputs.as_slice() else {
+        return None;
+    };
+    let rs::RustExpr::Macro(mac) = &*f.body else {
+        return None;
+    };
+    let hole = format!("{{{}:02x}}", b.ident);
+    let named = match mac.args.as_deref() {
+        Some([rs::RustExpr::Lit(rs::Lit::Str(t))]) => *t == hole,
+        Some([rs::RustExpr::Lit(rs::Lit::Str(t)), rs::RustExpr::Path(p)]) => {
+            t == "{:02x}" && p.is_ident(&b.ident)
+        }
+        _ => false,
+    };
+    (mac.path.is_ident("format") && named && b.subpat.is_none() && !b.by_ref)
+        .then_some(&*iter.receiver)
 }
 
 /// The methods of `str` and `char` over the prelude: `None` when the method
@@ -2554,6 +2673,24 @@ fn method(
     let flat = |s: String, t: Ty, acc: Acc| Continue(((Expr::Flat(s), t), acc));
     let mut acc = acc;
     let name = m.method.to_string();
+    // `bytes.iter().map(|b| format!("{b:02x}")).collect()` into a `String`:
+    // the bytes as lowercase hex.
+    let into_string = want == Some(&Ty::Str)
+        || matches!(
+            m.turbofish.as_deref(),
+            Some([rs::GenericArgument::Type(t)]) if t.text == "String"
+        );
+    if name == "collect" && m.args.is_empty() && into_string {
+        if let Some(bytes) = hex_of(&m.receiver) {
+            let byte_list = Ty::List(Box::new(Ty::Nat(Some(8))));
+            let ((v, vt), after) = flat_of(bytes, env, ctx, acc, Some(&byte_list))?;
+            acc = after;
+            if vt == byte_list {
+                let (s, acc) = acc.prelude("hexBytes", &[&v]);
+                return flat(s, Ty::Str, acc);
+            }
+        }
+    }
     // `s.chars().count()`: the number of characters, which is LexLean's
     // string length.
     if let rs::RustExpr::MethodCall(inner) = &*m.receiver {
@@ -5743,6 +5880,8 @@ pub(crate) struct Candidate<'a> {
     pub(crate) params: Vec<Param>,
     pub(crate) result: Ty,
     pub(crate) block: &'a rs::Block,
+    /// The `use` imports of its file: name -> the path it names.
+    pub(crate) imports: BTreeMap<String, String>,
 }
 
 /// What a lift produced.
@@ -5818,6 +5957,7 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                 top: true,
                 looping: None,
                 hidden: Vec::new(),
+                imports: c.imports.clone(),
             };
             let lifted = block(&c.block.stmts, &env, &ctx, Acc::default(), Some(&c.result));
             let outcome = match lifted {
@@ -5938,6 +6078,7 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                 }
             }
             axioms.retain(|key, _| !key.starts_with('#'));
+            let opaque_prelude = prelude_opaque();
             let mut opaque: BTreeSet<String> = decls
                 .iter()
                 .filter(|(_, d)| match d {
@@ -5948,7 +6089,9 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
                     } => true,
                     Decl::Definition { body, .. } => {
                         let text = body.flat();
-                        text.contains(&format!("{PRELUDE}::"))
+                        prelude_calls(&text)
+                            .iter()
+                            .any(|name| opaque_prelude.contains(name))
                             || KERNEL_OPAQUE.iter().any(|p| text.contains(p))
                     }
                     _ => false,
@@ -6146,6 +6289,17 @@ fn literal(e: &rs::RustExpr, want: &Ty, types: &Types) -> Option<String> {
         }
         rs::RustExpr::Paren(p) => literal(p, want, types),
         rs::RustExpr::Reference(r) => literal(&r.expr, want, types),
+        // `[a, b]`: a list of literals.
+        rs::RustExpr::Array(items) => {
+            let Ty::List(elem) = want else {
+                return None;
+            };
+            let mut list = format!("(nil {})", elem.render());
+            for item in items.iter().rev() {
+                list = format!("(cons {} {list})", literal(item, elem, types)?);
+            }
+            Some(list)
+        }
         _ => None,
     }
 }
@@ -6199,7 +6353,7 @@ pub(crate) fn acceptance(
         }
         ("assert_eq", [left, right, ..]) => {
             let (call, result, name) = applied(left, lifted, types)?;
-            if !matches!(result, Ty::Bool | Ty::Nat(_)) {
+            if !matches!(result, Ty::Bool | Ty::Nat(_) | Ty::Str) {
                 return None;
             }
             let value = literal(right, &result, types)?;
@@ -6227,6 +6381,7 @@ mod tests {
             params,
             result,
             block: &block,
+            imports: BTreeMap::from([("Sha256".to_string(), "sha2::Sha256".to_string())]),
         };
         let out = lift_all(&[c], types);
         match out.failed.into_values().next() {

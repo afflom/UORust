@@ -585,5 +585,393 @@ definition{
   body: (textTrimEndMatches (textTrimStartMatches text pattern) pattern),
   axioms: [Classical.choice, Quot.sound, propext]
 }
+
+definition{
+  name: shaSub,
+  parameters: [x : UInt32, y : UInt32],
+  result: UInt32,
+  body: (match (prim checked_subtract x y : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaAdd,
+  parameters: [x : UInt32, y : UInt32],
+  result: UInt32,
+  body: (match (prim checked_add x y : (Option UInt32))
+    | Option.none => (shaSub (shaSub x (prim bit_not y : UInt32)) (1 : UInt32))
+    | Option.some unwrapped => unwrapped),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaBigSigma0,
+  parameters: [x : UInt32],
+  result: UInt32,
+  body: (prim bit_xor (prim bit_xor (prim bit_or (match (prim shift_right x (2 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (30 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) (prim bit_or (match (prim shift_right x (13 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (19 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) : UInt32) (prim bit_or (match (prim shift_right x (22 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (10 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) : UInt32),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaBigSigma1,
+  parameters: [x : UInt32],
+  result: UInt32,
+  body: (prim bit_xor (prim bit_xor (prim bit_or (match (prim shift_right x (6 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (26 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) (prim bit_or (match (prim shift_right x (11 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (21 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) : UInt32) (prim bit_or (match (prim shift_right x (25 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (7 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) : UInt32),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaSmallSigma0,
+  parameters: [x : UInt32],
+  result: UInt32,
+  body: (prim bit_xor (prim bit_xor (prim bit_or (match (prim shift_right x (7 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (25 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) (prim bit_or (match (prim shift_right x (18 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (14 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) : UInt32) (match (prim shift_right x (3 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaSmallSigma1,
+  parameters: [x : UInt32],
+  result: UInt32,
+  body: (prim bit_xor (prim bit_xor (prim bit_or (match (prim shift_right x (17 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (15 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) (prim bit_or (match (prim shift_right x (19 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left x (13 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) : UInt32) (match (prim shift_right x (10 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaChoose,
+  parameters: [x : UInt32, y : UInt32, z : UInt32],
+  result: UInt32,
+  body: (prim bit_xor (prim bit_and x y : UInt32) (prim bit_and (prim bit_not x : UInt32) z : UInt32) : UInt32),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaMajority,
+  parameters: [x : UInt32, y : UInt32, z : UInt32],
+  result: UInt32,
+  body: (prim bit_xor (prim bit_xor (prim bit_and x y : UInt32) (prim bit_and x z : UInt32) : UInt32) (prim bit_and y z : UInt32) : UInt32),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaConstants,
+  parameters: [],
+  result: (List UInt32),
+  body: (cons (1116352408 : UInt32) (cons (1899447441 : UInt32) (cons (3049323471 : UInt32) (cons (3921009573 : UInt32) (cons (961987163 : UInt32) (cons (1508970993 : UInt32) (cons (2453635748 : UInt32) (cons (2870763221 : UInt32) (cons (3624381080 : UInt32) (cons (310598401 : UInt32) (cons (607225278 : UInt32) (cons (1426881987 : UInt32) (cons (1925078388 : UInt32) (cons (2162078206 : UInt32) (cons (2614888103 : UInt32) (cons (3248222580 : UInt32) (cons (3835390401 : UInt32) (cons (4022224774 : UInt32) (cons (264347078 : UInt32) (cons (604807628 : UInt32) (cons (770255983 : UInt32) (cons (1249150122 : UInt32) (cons (1555081692 : UInt32) (cons (1996064986 : UInt32) (cons (2554220882 : UInt32) (cons (2821834349 : UInt32) (cons (2952996808 : UInt32) (cons (3210313671 : UInt32) (cons (3336571891 : UInt32) (cons (3584528711 : UInt32) (cons (113926993 : UInt32) (cons (338241895 : UInt32) (cons (666307205 : UInt32) (cons (773529912 : UInt32) (cons (1294757372 : UInt32) (cons (1396182291 : UInt32) (cons (1695183700 : UInt32) (cons (1986661051 : UInt32) (cons (2177026350 : UInt32) (cons (2456956037 : UInt32) (cons (2730485921 : UInt32) (cons (2820302411 : UInt32) (cons (3259730800 : UInt32) (cons (3345764771 : UInt32) (cons (3516065817 : UInt32) (cons (3600352804 : UInt32) (cons (4094571909 : UInt32) (cons (275423344 : UInt32) (cons (430227734 : UInt32) (cons (506948616 : UInt32) (cons (659060556 : UInt32) (cons (883997877 : UInt32) (cons (958139571 : UInt32) (cons (1322822218 : UInt32) (cons (1537002063 : UInt32) (cons (1747873779 : UInt32) (cons (1955562222 : UInt32) (cons (2024104815 : UInt32) (cons (2227730452 : UInt32) (cons (2361852424 : UInt32) (cons (2428436474 : UInt32) (cons (2756734187 : UInt32) (cons (3204031479 : UInt32) (cons (3329325298 : UInt32) (nil UInt32))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: shaWiden,
+  parameters: [byte : UInt8],
+  result: UInt32,
+  body: (match (prim checked_convert byte : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaLoadWord,
+  parameters: [block : Bytes, offset : Nat],
+  result: UInt32,
+  body: (prim bit_or (prim bit_or (match (prim shift_left (shaWiden (match (prim index block offset : (Option UInt8))
+      | Option.none => (0 : UInt8)
+      | Option.some unwrapped => unwrapped)) (24 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (match (prim shift_left (shaWiden (match (prim index block (offset + 1) : (Option UInt8))
+      | Option.none => (0 : UInt8)
+      | Option.some unwrapped => unwrapped)) (16 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) : UInt32) (prim bit_or (match (prim shift_left (shaWiden (match (prim index block (offset + 2) : (Option UInt8))
+      | Option.none => (0 : UInt8)
+      | Option.some unwrapped => unwrapped)) (8 : UInt32) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (shaWiden (match (prim index block (offset + 3) : (Option UInt8))
+    | Option.none => (0 : UInt8)
+    | Option.some unwrapped => unwrapped)) : UInt32) : UInt32),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaReplaceWord,
+  parameters: [words : (List UInt32), index : Nat, word : UInt32],
+  result: (List UInt32),
+  body: (match words
+    | List.nil => (nil UInt32)
+    | List.cons head tail => (cons (if (index =? 0) then word else head) (if (index =? 0) then tail else (shaReplaceWord tail (prim subtract index 1 : Nat) word)))),
+  axioms: [],
+  recursive_argument: words
+}
+
+structure{
+  name: ShaWords,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: a, type: UInt32},
+    {name: b, type: UInt32},
+    {name: c, type: UInt32},
+    {name: d, type: UInt32},
+    {name: e, type: UInt32},
+    {name: f, type: UInt32},
+    {name: g, type: UInt32},
+    {name: h, type: UInt32}
+  ]
+}
+
+structure{
+  name: ShaWork,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: registers, type: ShaWords},
+    {name: schedule, type: (List UInt32)},
+    {name: round, type: Nat}
+  ]
+}
+
+definition{
+  name: shaInitial,
+  parameters: [],
+  result: ShaWords,
+  body: (record ShaWords {a := (1779033703 : UInt32), b := (3144134277 : UInt32), c := (1013904242 : UInt32), d := (2773480762 : UInt32), e := (1359893119 : UInt32), f := (2600822924 : UInt32), g := (528734635 : UInt32), h := (1541459225 : UInt32)}),
+  axioms: []
+}
+
+definition{
+  name: shaScheduleWord,
+  parameters: [work : ShaWork],
+  result: UInt32,
+  body: (if ((project work round) <? 16) then (match (prim index (project work schedule) (project work round) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) else (shaAdd (shaAdd (shaAdd (match (prim index (project work schedule) (prim remainder (project work round) 16 0 : Nat) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped) (shaSmallSigma0 (match (prim index (project work schedule) (prim remainder ((project work round) + 1) 16 0 : Nat) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped))) (match (prim index (project work schedule) (prim remainder ((project work round) + 9) 16 0 : Nat) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped)) (shaSmallSigma1 (match (prim index (project work schedule) (prim remainder ((project work round) + 14) 16 0 : Nat) : (Option UInt32))
+    | Option.none => (0 : UInt32)
+    | Option.some unwrapped => unwrapped)))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaT1,
+  parameters: [r : ShaWords, word : UInt32, constant : UInt32],
+  result: UInt32,
+  body: (shaAdd (shaAdd (shaAdd (shaAdd (project r h) (shaBigSigma1 (project r e))) (shaChoose (project r e) (project r f) (project r g))) constant) word),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaT2,
+  parameters: [r : ShaWords],
+  result: UInt32,
+  body: (shaAdd (shaBigSigma0 (project r a)) (shaMajority (project r a) (project r b) (project r c))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaRegisters,
+  parameters: [r : ShaWords, word : UInt32, constant : UInt32],
+  result: ShaWords,
+  body: (record ShaWords {a := (shaAdd (shaT1 r word constant) (shaT2 r)), b := (project r a), c := (project r b), d := (project r c), e := (shaAdd (project r d) (shaT1 r word constant)), f := (project r e), g := (project r f), h := (project r g)}),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaRound,
+  parameters: [work : ShaWork, constant : UInt32],
+  result: ShaWork,
+  body: (record ShaWork {registers := (shaRegisters (project work registers) (shaScheduleWord work) constant), schedule := (shaReplaceWord (project work schedule) (prim remainder (project work round) 16 0 : Nat) (shaScheduleWord work)), round := ((project work round) + 1)}),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: shaRounds,
+  parameters: [constants : (List UInt32), work : ShaWork],
+  result: ShaWork,
+  body: (match constants
+    | List.nil => work
+    | List.cons constant rest => (shaRounds rest (shaRound work constant))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: constants
+}
+
+definition{
+  name: shaCompress,
+  parameters: [chain : ShaWords, block : Bytes, offset : Nat],
+  result: ShaWords,
+  body: (let done : ShaWords := (project (shaRounds (shaConstants) (record ShaWork {registers := chain, schedule := (cons (shaLoadWord block (offset + 0)) (cons (shaLoadWord block (offset + 4)) (cons (shaLoadWord block (offset + 8)) (cons (shaLoadWord block (offset + 12)) (cons (shaLoadWord block (offset + 16)) (cons (shaLoadWord block (offset + 20)) (cons (shaLoadWord block (offset + 24)) (cons (shaLoadWord block (offset + 28)) (cons (shaLoadWord block (offset + 32)) (cons (shaLoadWord block (offset + 36)) (cons (shaLoadWord block (offset + 40)) (cons (shaLoadWord block (offset + 44)) (cons (shaLoadWord block (offset + 48)) (cons (shaLoadWord block (offset + 52)) (cons (shaLoadWord block (offset + 56)) (cons (shaLoadWord block (offset + 60)) (nil UInt32))))))))))))))))), round := 0})) registers); (record ShaWords {a := (shaAdd (project chain a) (project done a)), b := (shaAdd (project chain b) (project done b)), c := (shaAdd (project chain c) (project done c)), d := (shaAdd (project chain d) (project done d)), e := (shaAdd (project chain e) (project done e)), f := (shaAdd (project chain f) (project done f)), g := (shaAdd (project chain g) (project done g)), h := (shaAdd (project chain h) (project done h))})),
+  axioms: [Quot.sound, propext]
+}
+
+definition{name: shaBlockBytes, parameters: [], result: Nat, body: 64, axioms: []}
+
+definition{name: shaLengthBytes, parameters: [], result: Nat, body: 8, axioms: []}
+
+definition{
+  name: shaBlocks,
+  parameters: [fuel : Nat, chain : ShaWords, padded : Bytes, offset : Nat],
+  result: ShaWords,
+  body: (match fuel
+    | Nat.zero => chain
+    | Nat.succ rest => (shaBlocks rest (shaCompress chain padded offset) padded (offset + (shaBlockBytes)))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: fuel
+}
+
+definition{
+  name: shaByte,
+  parameters: [value : Nat],
+  result: Bytes,
+  body: (match (prim slice 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff value 1 : (Option Bytes))
+    | Option.none => 0x
+    | Option.some byte => byte),
+  axioms: []
+}
+
+definition{
+  name: shaBigEndian,
+  parameters: [count : Nat, value : Nat],
+  result: Bytes,
+  body: (match count
+    | Nat.zero => 0x
+    | Nat.succ rest => (prim append (shaBigEndian rest (prim quotient value 256 0 : Nat)) (shaByte (prim remainder value 256 0 : Nat)) : Bytes)),
+  axioms: [],
+  recursive_argument: count
+}
+
+definition{
+  name: shaZeros,
+  parameters: [count : Nat],
+  result: Bytes,
+  body: (match count
+    | Nat.zero => 0x
+    | Nat.succ rest => (prim append 0x00 (shaZeros rest) : Bytes)),
+  axioms: [],
+  recursive_argument: count
+}
+
+definition{
+  name: shaPadded,
+  parameters: [input : Bytes],
+  result: Bytes,
+  body: (let length : Nat := (prim length input : Nat); (let room : Nat := (prim subtract (shaBlockBytes) (shaLengthBytes) : Nat); (let used : Nat := (prim remainder (length + 1) (shaBlockBytes) 0 : Nat); (prim append (prim append (prim append input 0x80 : Bytes) (shaZeros (if (used <=? room) then (prim subtract room used : Nat) else (prim subtract ((shaBlockBytes) + room) used : Nat))) : Bytes) (shaBigEndian (shaLengthBytes) (prim multiply length 8 : Nat)) : Bytes)))),
+  axioms: []
+}
+
+definition{
+  name: shaBytesOf,
+  parameters: [items : (List Nat)],
+  result: Bytes,
+  body: (match items
+    | List.nil => 0x
+    | List.cons head tail => (prim append (shaByte head) (shaBytesOf tail) : Bytes)),
+  axioms: [],
+  recursive_argument: items
+}
+
+definition{
+  name: shaDigest,
+  parameters: [chain : ShaWords],
+  result: Bytes,
+  body: (prim append (prim append (prim append (prim append (prim append (prim append (prim append (prim append 0x (shaBigEndian 4 (prim to_nat (project chain a) : Nat)) : Bytes) (shaBigEndian 4 (prim to_nat (project chain b) : Nat)) : Bytes) (shaBigEndian 4 (prim to_nat (project chain c) : Nat)) : Bytes) (shaBigEndian 4 (prim to_nat (project chain d) : Nat)) : Bytes) (shaBigEndian 4 (prim to_nat (project chain e) : Nat)) : Bytes) (shaBigEndian 4 (prim to_nat (project chain f) : Nat)) : Bytes) (shaBigEndian 4 (prim to_nat (project chain g) : Nat)) : Bytes) (shaBigEndian 4 (prim to_nat (project chain h) : Nat)) : Bytes),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: sha256,
+  parameters: [items : (List Nat)],
+  result: (List Nat),
+  body: (let padded : Bytes := (shaPadded (shaBytesOf items)); (let digest : Bytes := (shaDigest (shaBlocks (prim quotient (prim length padded : Nat) (shaBlockBytes) 0 : Nat) (shaInitial) padded 0)); (textBytesFrom (prim length digest : Nat) digest 0))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: hexDigit,
+  parameters: [value : Nat],
+  result: Bytes,
+  body: (match (prim slice 0x30313233343536373839616263646566 value 1 : (Option Bytes))
+    | Option.none => 0x
+    | Option.some digit => digit),
+  axioms: []
+}
+
+definition{
+  name: hexDigits,
+  parameters: [items : (List Nat)],
+  result: Bytes,
+  body: (match items
+    | List.nil => 0x
+    | List.cons head tail => (prim append (prim append (hexDigit (prim quotient head 16 0 : Nat)) (hexDigit (prim remainder head 16 0 : Nat)) : Bytes) (hexDigits tail) : Bytes)),
+  axioms: [],
+  recursive_argument: items
+}
+
+definition{
+  name: hexBytes,
+  parameters: [items : (List Nat)],
+  result: String,
+  body: (match (prim utf8_decode (hexDigits items) : (Option String))
+    | Option.none => ""
+    | Option.some text => text),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: hexByte,
+  parameters: [value : Nat],
+  result: String,
+  body: (hexBytes (cons value (nil Nat))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
 \end{semanticmodule}
 \end{lexlean}

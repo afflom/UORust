@@ -485,7 +485,7 @@ reason = "type"
 detail = "type outside the lift: rs::RustType"
 
 [[residue]]
-kappa = "4922651e893c5680ce8cbb81e88aad99d76131bacaf02c4840d319de3e651f0b"
+kappa = "af43b164be258293bea76f324277dd5a1b7d2d8a1c0e6f5690e96cd8466309a6"
 function = "uorust::lift::acceptance"
 reason = "type"
 detail = "type outside the lift: rs::RustExpr"
@@ -533,7 +533,7 @@ reason = "type"
 detail = "type outside the lift: Body<'_>"
 
 [[residue]]
-kappa = "6b884711b83754088e610f84eeea57e0ddfbf08d2e1585c56007a01e2cc0a90b"
+kappa = "f0354d5f1e9b5be3c5f5a601ec57a8f6f7ca7c6285257e64b4202659a931b202"
 function = "uorust::lift::call"
 reason = "type"
 detail = "type outside the lift: rs::ExprCall"
@@ -641,10 +641,16 @@ reason = "type"
 detail = "type outside the lift: rs::ExprForLoop"
 
 [[residue]]
-kappa = "047d58bbdb687341a13bc989d87b5979b97aa9903a488357053261fab568fcd3"
+kappa = "3e7c79a6e22ed6f94e501039263d55b34e165a3d4eddc549ca857e8b11fd7dbf"
 function = "uorust::lift::format_macro"
 reason = "type"
 detail = "type outside the lift: rs::ExprMacro"
+
+[[residue]]
+kappa = "53b1ca514f3600f95a869edd040bda9dc90e1b166e0519c252a1d1f237796f59"
+function = "uorust::lift::hex_of"
+reason = "type"
+detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
 kappa = "c0da6f51f6c2da90554f730c85f8116b982781e4c7d4831181d175226c55e996"
@@ -683,7 +689,7 @@ reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "abc046c343f25b46229ea21ccd53e1f32cc695f8f57c81c2ef7974b43be2b61a"
+kappa = "0733406e0f9013ea1033e138ece201276ec6d4a2e9de02f091f0e2449fc31ba8"
 function = "uorust::lift::lift_all"
 reason = "type"
 detail = "type outside the lift: Candidate<'_>"
@@ -695,7 +701,7 @@ reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "8ad02993462ee455fa933b3ba8748c83e3e659e643949cfb894259129283d30d"
+kappa = "2f1a2768f1025224e1832a616363484cdefd2020043665f006c94acc46444791"
 function = "uorust::lift::literal"
 reason = "type"
 detail = "type outside the lift: rs::RustExpr"
@@ -749,7 +755,7 @@ reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "3720da95974f3819b1c92fd4e3537dd96269796a7d51d236bc67da0fddc7cf3b"
+kappa = "8f29646521eb9fdea85ca207d537b22633038410cdd224a7cd18144c403b716a"
 function = "uorust::lift::method"
 reason = "type"
 detail = "type outside the lift: rs::ExprMethodCall"
@@ -777,6 +783,18 @@ kappa = "d932cb2cb833ef0271f6d547b69562a6f9f920f4667c4269fc1f18ba117a4498"
 function = "uorust::lift::prelude_axioms"
 reason = "form"
 detail = "expression form outside the lift: index of String"
+
+[[residue]]
+kappa = "e3ff165ad187adb8700e086ec495c6cba4ab310834cd354e4bc39123c5a3b9a0"
+function = "uorust::lift::prelude_calls"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
+
+[[residue]]
+kappa = "071dbb5110c5b97ed3dd148a01538438fb5904d49ff3992b6b8b15217dedb55b"
+function = "uorust::lift::prelude_opaque"
+reason = "form"
+detail = "expression form outside the lift: let pattern"
 
 [[residue]]
 kappa = "aed7a8ea91d59957a7dd76ae7751c5233ef6f4da3dc4043aedae09fab9b3e5f7"
@@ -1019,7 +1037,7 @@ reason = "call"
 detail = "calls indexed, which is not lifted"
 
 [[residue]]
-kappa = "50c042442400cf204f780b2042947cd46fa6d90f1af753b122b9db2ed8839cdb"
+kappa = "03b7289229988cd516902c4ea9f1c46223d1916f0b9305e6d8d3f705882203d0"
 function = "uorust::project::behavior"
 reason = "type"
 detail = "type outside the lift: Syntax"
@@ -1139,12 +1157,6 @@ reason = "type"
 detail = "type outside the lift: Options"
 
 [[residue]]
-kappa = "3504913edde62ad3ee74fe284bac75dec827a1069c2df7459cfd299a30786cc5"
-function = "uorust::project::sha"
-reason = "call"
-detail = "calls digest, which is not lifted"
-
-[[residue]]
 kappa = "3e265ac554ef85c59ebd70e2fbc20b72e5dc27dc245a52b3971787e46b779c59"
 function = "uorust::project::spdx"
 reason = "type"
@@ -1197,12 +1209,6 @@ kappa = "e67e7b64defb62e05a3155c3843dc97a4185e8840dc26890be6e0b9f35a2b5b2"
 function = "uorust::register::admit"
 reason = "form"
 detail = "expression form outside the lift: ? below the function's own statements"
-
-[[residue]]
-kappa = "77eabfa864a0fb22a793b4b706b3c03708e3271ca85bf5e9699a75f9def74780"
-function = "uorust::register::kappa"
-reason = "call"
-detail = "calls digest, which is not lifted"
 
 [[residue]]
 kappa = "ba728721e691d03e6fe9564039921e2d9a87d67ee9ac29ee454cbd67ce25f955"
@@ -1277,12 +1283,6 @@ reason = "statements"
 detail = "the body has statements other than let"
 
 [[residue]]
-kappa = "0963d69858d0ea5272be5cafd5f519e2a68e22ab8fefcbc6f967fbe862ee61ed"
-function = "xtask::bootstrap::content_matches"
-reason = "call"
-detail = "calls sha256, which is not lifted"
-
-[[residue]]
 kappa = "b4e451ca423263800e95e846ce479c0bc775ca052cce108142c3672a830b5909"
 function = "xtask::bootstrap::dependency_updates_are_confined"
 reason = "call"
@@ -1311,12 +1311,6 @@ kappa = "33f9423e9537477066c28b505b50eeeb4c16d0664cc3d6eeb5bbf600c1874d61"
 function = "xtask::bootstrap::policy_boundary_is_canonical"
 reason = "statements"
 detail = "the body has statements other than let"
-
-[[residue]]
-kappa = "49d8095f8c935d6aaa81abdc14804b89608375168ec8493d5199b9eb3bb8f814"
-function = "xtask::bootstrap::sha256"
-reason = "call"
-detail = "calls digest, which is not lifted"
 
 [[residue]]
 kappa = "01d8e4f31fd96bd31df861c2e2e8db7c38a133d5d836e261458235a6bca1b377"
@@ -1925,6 +1919,11 @@ function = "uorust::project::record"
 definition = "Behavior::recordValue"
 
 [[lifted]]
+kappa = "3504913edde62ad3ee74fe284bac75dec827a1069c2df7459cfd299a30786cc5"
+function = "uorust::project::sha"
+definition = "Behavior::sha"
+
+[[lifted]]
 kappa = "7388ce7c90cf4812702fc0f481c7d25c69a706aabe938717aeb318747e9c6218"
 function = "uorust::project::state_enums"
 definition = "Behavior::stateEnums"
@@ -1950,6 +1949,11 @@ function = "uorust::register::describe"
 definition = "Behavior::describe"
 
 [[lifted]]
+kappa = "77eabfa864a0fb22a793b4b706b3c03708e3271ca85bf5e9699a75f9def74780"
+function = "uorust::register::kappa"
+definition = "Behavior::kappa"
+
+[[lifted]]
 kappa = "4ebee9730c94713092ddd57f9f97e87a4e976822fcd2fd8fb9811184ce58707e"
 function = "uorust::route::route"
 definition = "Behavior::route"
@@ -1970,6 +1974,11 @@ function = "xtask::bootstrap::action_reference_is_pinned"
 definition = "Behavior::actionReferenceIsPinned"
 
 [[lifted]]
+kappa = "0963d69858d0ea5272be5cafd5f519e2a68e22ab8fefcbc6f967fbe862ee61ed"
+function = "xtask::bootstrap::content_matches"
+definition = "Behavior::contentMatches"
+
+[[lifted]]
 kappa = "c35a803fb333caca79a512c37a85551fd754049b9127f28dffaf5fb376a71f9b"
 function = "xtask::bootstrap::immutable_image"
 definition = "Behavior::immutableImage"
@@ -1978,6 +1987,11 @@ definition = "Behavior::immutableImage"
 kappa = "dc8140c06bd6e5c4e035c93bc44cc9dff2a088cd30d687f5ad90700605e1988f"
 function = "xtask::bootstrap::sdk_image"
 definition = "Behavior::sdkImage"
+
+[[lifted]]
+kappa = "49d8095f8c935d6aaa81abdc14804b89608375168ec8493d5199b9eb3bb8f814"
+function = "xtask::bootstrap::sha256"
+definition = "Behavior::sha256"
 
 [[lifted]]
 kappa = "fd99727f4de2de3b499af9f7d029fce8d3af1a0978fd22f9038553c907fc2949"

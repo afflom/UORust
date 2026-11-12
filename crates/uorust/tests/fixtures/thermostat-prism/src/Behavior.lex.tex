@@ -1046,6 +1046,13 @@ definition{
 }
 
 theorem{
+  name: acceptThermoCoreBandsMeasureAndCount3,
+  parameters: [],
+  statement: ((above (cons 17 (cons 19 (cons 23 (nil Nat)))) 18) = 2),
+  proof: decide{}
+}
+
+theorem{
   name: acceptThermoCoreCountersAndSignedReadings0,
   parameters: [],
   statement: ((tick 255) = 0),
@@ -1079,6 +1086,13 @@ theorem{
   name: acceptThermoCoreCountersAndSignedReadings5,
   parameters: [],
   statement: ((isCelsius "F") = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreCountersAndSignedReadings6,
+  parameters: [],
+  statement: ((fanLabel 2) = "low"),
   proof: decide{}
 }
 
@@ -1118,11 +1132,32 @@ theorem{
 }
 
 theorem{
+  name: acceptThermoCoreTheRosterFoldsAndClamps0,
+  parameters: [],
+  statement: ((allWithin (cons 18 (cons 20 (nil Nat))) 16 22) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreTheRosterFoldsAndClamps1,
+  parameters: [],
+  statement: ((highest (cons 3 (cons 9 (cons 4 (nil Nat))))) = 9),
+  proof: decide{}
+}
+
+theorem{
   name: acceptThermoCoreTheRosterFoldsAndClamps5,
   parameters: [],
   statement: ((labelWidth "hall") = 4),
   proof: decide{},
   axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: acceptThermoCoreTheRosterFoldsAndClamps8,
+  parameters: [],
+  statement: ((blank) = ""),
+  proof: decide{}
 }
 \end{semanticmodule}
 \end{lexlean}

@@ -3180,6 +3180,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     params,
                     result,
                     block,
+                    imports: ctx.file(r).imports.clone(),
                 });
             }
             std::ops::ControlFlow::Break(reason) => ctx.stopped(notes, &effectful, r, reason),
@@ -3214,6 +3215,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     params: Vec::new(),
                     result,
                     block,
+                    imports: file.imports.clone(),
                 });
             }
         }
@@ -3897,4 +3899,109 @@ fn spdx(ws: &Workspace, options: &Options) -> String {
     let mut text = serde_json::to_string_pretty(&doc).unwrap_or_default();
     text.push('\n');
     text
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sha;
+
+    /// NIST CAVP SHA-256 short byte-oriented known answers, the response
+    /// file UOR-Foundation/compression locks at `standards/nist-sha256`.
+    const SHORT: &str = include_str!("../tests/fixtures/nist-sha256/SHA256ShortMsg.rsp");
+
+    fn vectors() -> Vec<(Vec<u8>, String)> {
+        let mut out = Vec::new();
+        let mut len = 0;
+        let mut msg = Vec::new();
+        for line in SHORT.lines() {
+            if let Some(v) = line.strip_prefix("Len = ") {
+                len = v.parse::<usize>().expect("a bit length") / 8;
+            } else if let Some(v) = line.strip_prefix("Msg = ") {
+                msg = (0..v.len() / 2)
+                    .map(|i| u8::from_str_radix(&v[2 * i..2 * i + 2], 16).expect("hex"))
+                    .take(len)
+                    .collect();
+            } else if let Some(v) = line.strip_prefix("MD = ") {
+                out.push((std::mem::take(&mut msg), v.to_string()));
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn sha_meets_every_nist_short_vector() {
+        let vectors = vectors();
+        assert_eq!(vectors.len(), 65);
+        for (msg, md) in vectors {
+            assert_eq!(sha(&msg), md);
+        }
+    }
+
+    /// The vectors at the bounds of SHA-256 padding, which the lift proves of
+    /// the prelude's digest: empty, one to three bytes, the longest message
+    /// whose length fits its last block, the shortest that does not, a
+    /// block less a byte and a whole block. The literals agree with the
+    /// response file because both agree with `sha`.
+    #[test]
+    fn sha_meets_the_nist_vectors_at_the_padding_bounds() {
+        assert_eq!(
+            sha(&[]),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+        assert_eq!(
+            sha(&[0xd3]),
+            "28969cdfa74a12c82f3bad960b0b000aca2ac329deea5c2328ebc6f2ba9802c1"
+        );
+        assert_eq!(
+            sha(&[0x11, 0xaf]),
+            "5ca7133fa735326081558ac312c620eeca9970d1e70a4b95533d956f072d1f98"
+        );
+        assert_eq!(
+            sha(&[0xb4, 0x19, 0x0e]),
+            "dff2e73091f6c05e528896c4c831b9448653dc2ff043528f6769437bc7b975c2"
+        );
+        assert_eq!(
+            sha(&[
+                0x3e, 0xbf, 0xb0, 0x6d, 0xb8, 0xc3, 0x8d, 0x5b, 0xa0, 0x37, 0xf1, 0x36, 0x3e, 0x11,
+                0x85, 0x50, 0xaa, 0xd9, 0x46, 0x06, 0xe2, 0x68, 0x35, 0xa0, 0x1a, 0xf0, 0x50, 0x78,
+                0x53, 0x3c, 0xc2, 0x5f, 0x2f, 0x39, 0x57, 0x3c, 0x04, 0xb6, 0x32, 0xf6, 0x2f, 0x68,
+                0xc2, 0x94, 0xab, 0x31, 0xf2, 0xa3, 0xe2, 0xa1, 0xa0, 0xd8, 0xc2, 0xbe, 0x51
+            ]),
+            "6595a2ef537a69ba8583dfbf7f5bec0ab1f93ce4c8ee1916eff44a93af5749c4"
+        );
+        assert_eq!(
+            sha(&[
+                0x2d, 0x52, 0x44, 0x7d, 0x12, 0x44, 0xd2, 0xeb, 0xc2, 0x86, 0x50, 0xe7, 0xb0, 0x56,
+                0x54, 0xba, 0xd3, 0x5b, 0x3a, 0x68, 0xee, 0xdc, 0x7f, 0x85, 0x15, 0x30, 0x6b, 0x49,
+                0x6d, 0x75, 0xf3, 0xe7, 0x33, 0x85, 0xdd, 0x1b, 0x00, 0x26, 0x25, 0x02, 0x4b, 0x81,
+                0xa0, 0x2f, 0x2f, 0xd6, 0xdf, 0xfb, 0x6e, 0x6d, 0x56, 0x1c, 0xb7, 0xd0, 0xbd, 0x7a
+            ]),
+            "cfb88d6faf2de3a69d36195acec2e255e2af2b7d933997f348e09f6ce5758360"
+        );
+        assert_eq!(
+            sha(&[
+                0xe2, 0xf7, 0x6e, 0x97, 0x60, 0x6a, 0x87, 0x2e, 0x31, 0x74, 0x39, 0xf1, 0xa0, 0x3f,
+                0xcd, 0x92, 0xe6, 0x32, 0xe5, 0xbd, 0x4e, 0x7c, 0xbc, 0x4e, 0x97, 0xf1, 0xaf, 0xc1,
+                0x9a, 0x16, 0xfd, 0xe9, 0x2d, 0x77, 0xcb, 0xe5, 0x46, 0x41, 0x6b, 0x51, 0x64, 0x0c,
+                0xdd, 0xb9, 0x2a, 0xf9, 0x96, 0x53, 0x4d, 0xfd, 0x81, 0xed, 0xb1, 0x7c, 0x44, 0x24,
+                0xcf, 0x1a, 0xc4, 0xd7, 0x5a, 0xce, 0xeb
+            ]),
+            "18041bd4665083001fba8c5411d2d748e8abbfdcdfd9218cb02b68a78e7d4c23"
+        );
+        assert_eq!(
+            sha(&[
+                0x5a, 0x86, 0xb7, 0x37, 0xea, 0xea, 0x8e, 0xe9, 0x76, 0xa0, 0xa2, 0x4d, 0xa6, 0x3e,
+                0x7e, 0xd7, 0xee, 0xfa, 0xd1, 0x8a, 0x10, 0x1c, 0x12, 0x11, 0xe2, 0xb3, 0x65, 0x0c,
+                0x51, 0x87, 0xc2, 0xa8, 0xa6, 0x50, 0x54, 0x72, 0x08, 0x25, 0x1f, 0x6d, 0x42, 0x37,
+                0xe6, 0x61, 0xc7, 0xbf, 0x4c, 0x77, 0xf3, 0x35, 0x39, 0x03, 0x94, 0xc3, 0x7f, 0xa1,
+                0xa9, 0xf9, 0xbe, 0x83, 0x6a, 0xc2, 0x85, 0x09
+            ]),
+            "42e61e174fbb3897d6dd6cef3dd2802fe67b331953b06114a65c772859dfc1aa"
+        );
+        for (msg, md) in vectors() {
+            if [0, 1, 2, 3, 55, 56, 63, 64].contains(&msg.len()) {
+                assert_eq!(sha(&msg), md);
+            }
+        }
+    }
 }
