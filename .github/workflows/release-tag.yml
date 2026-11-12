@@ -7,6 +7,10 @@
 name: release-tag
 
 on:
+  workflow_run:
+    workflows: [bootstrap]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
