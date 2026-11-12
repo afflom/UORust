@@ -143,6 +143,33 @@ pub fn label_of(view: Labelled<'_>) -> String {
     view.label.to_string()
 }
 
+/// The reading held inside the band, whether a limit moved it, and
+/// whether the band is too narrow to hold anything but its low end.
+pub fn clamped(band: Band, reading: u32) -> (u32, bool, bool) {
+    let mut value = reading;
+    let mut moved = false;
+    let mut narrow = false;
+    if value < band.low {
+        value = band.low;
+        moved = true;
+    }
+    if value > band.high {
+        value = band.high;
+        moved = true;
+    }
+    if let Some(w) = width(band) {
+        if w < 2 {
+            narrow = true;
+        }
+    }
+    if narrow {
+        value = band.low;
+    } else if moved {
+        narrow = false;
+    }
+    (value, moved, narrow)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -158,6 +185,8 @@ mod tests {
         assert_eq!(target_or(None, 21), 21);
         assert_eq!(heat_for(Ok(band), 17).ok(), Some(true));
         assert!(checked(band).1);
+        assert_eq!(clamped(band, 25), (22, true, false));
+        assert_eq!(clamped(Band { low: 18, high: 19 }, 25), (18, true, true));
         let view = Labelled {
             label: "night",
             band: Band { low: 16, high: 18 },

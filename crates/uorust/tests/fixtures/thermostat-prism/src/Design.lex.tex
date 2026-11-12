@@ -153,6 +153,13 @@ definition{
 }
 
 definition{
+  name: processThermoCoreBandClamped,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreConfigParseTarget,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -1487,6 +1494,27 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelOf"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandClamped,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandClamped"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandClamped,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandClamped"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreBandClampedThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreBandClamped", target := "Design::processThermoCoreBandWidth"})
 }
 
 definition{
@@ -3706,6 +3734,34 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelOf"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandClamped,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandClamped"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandClamped,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandClamped"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInvokesThermoCoreBandClampedThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreBandClamped", target := "Design::processThermoCoreBandWidth"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandZoomThermoCoreBandClampedThermoCoreBandWidth,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreBand", process := "Design::processThermoCoreBandClamped", subprocess := "Design::processThermoCoreBandWidth", order := 0})
 }
 
 definition{

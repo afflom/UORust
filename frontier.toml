@@ -317,6 +317,12 @@ reason = "call"
 detail = "calls literal, which is not lifted"
 
 [[residue]]
+kappa = "7b3b283c26c83dc113a58ec131b2b96cd9d29b2b2bdfc1c8e4da308be0f00896"
+function = "uorust::lift::after_state"
+reason = "call"
+detail = "calls rebind, which is not lifted"
+
+[[residue]]
 kappa = "24f2558e5d21c7dc26e3d2fa13851a2e75755b21c4d9b33c328c5d516cac823a"
 function = "uorust::lift::applied"
 reason = "call"
@@ -393,6 +399,12 @@ kappa = "1808ed8ada2450dfe446e0eee534c56eb0fc0d37c5802d2124925f6752de5406"
 function = "uorust::lift::body"
 reason = "call"
 detail = "calls expr, which is not lifted"
+
+[[residue]]
+kappa = "4f362130a37ac12b288002fd5f0d66de7d823d082326f8744c351d17fa80a2c3"
+function = "uorust::lift::branch_state"
+reason = "call"
+detail = "calls leaves_step, which is not lifted"
 
 [[residue]]
 kappa = "cebd51949107c5acacdc4012233e02fd6b88a7aa1bfd7a5f8c82ab3385b2ceed"
@@ -707,13 +719,13 @@ reason = "form"
 detail = "expression form outside the lift: ? below the function's own statements"
 
 [[residue]]
-kappa = "e36fa6b3c60848e37ce8175e5a49f5bb1e5f6e5f3758c604a080cac094978096"
+kappa = "8ec040b54197647fa0bd0081b2e4484f28fe8e82790a3a71a94b6de8847ad186"
 function = "uorust::lift::if_let_rest"
 reason = "call"
 detail = "calls matching, which is not lifted"
 
 [[residue]]
-kappa = "4f9aec756fe9fd451ecccf3266b2122ff4d7e6d5378b34d0f9d92eecc280faca"
+kappa = "52f3cf63d74e016bc277c7c55433b3ede5b79ce8d5ca4bd356714e0b0a76d869"
 function = "uorust::lift::if_rest"
 reason = "form"
 detail = "expression form outside the lift: expr::return"
@@ -1191,6 +1203,12 @@ kappa = "8cdedfd79216af743838c54102ef5d8a39b6bcfe397dadb4d639c09cbc181f03"
 function = "uorust::lift::split_first"
 reason = "form"
 detail = "expression form outside the lift: None of an unknown type"
+
+[[residue]]
+kappa = "8a03aba637ca4ef8c7b9278da02c248d7be101a3ae39aa14529b244e39278b88"
+function = "uorust::lift::state_type"
+reason = "form"
+detail = "expression form outside the lift: index of (List TupleStringPairStringTy)"
 
 [[residue]]
 kappa = "546acca7fbd5ea603bcf4db5dc63159e7b27535e1a2bf4ef04258a6b970ad245"
@@ -2774,6 +2792,11 @@ definition = "Behavior::returned"
 kappa = "201fd6f5370c2260d9e2118bce76a7aa5b20e6b2b22d18169537e4f77d93013e"
 function = "uorust::lift::same_constructor"
 definition = "Behavior::sameConstructor"
+
+[[lifted]]
+kappa = "0e4208d906a5b4e24a5aee4c59d061d2c73d92972e64d3ba5ed1c036dc11949a"
+function = "uorust::lift::settled"
+definition = "Behavior::settled"
 
 [[lifted]]
 kappa = "8a06236aca30e5c62bf58c0e3e026bc7c96baee8064e17aa23d111af5357a65f"

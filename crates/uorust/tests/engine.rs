@@ -379,6 +379,10 @@ fn the_widened_lift_covers_the_fixture_ue_11() {
         ),
         ("checkedValue", "(record TupleBandBool {item0 := band"),
         ("isCelsius", "(prim equal unit \"C\" : Bool)"),
+        (
+            "clamped",
+            "(let state1 : TupleBoolNat := (if (value <? (project band low))",
+        ),
         ("above", "recursive_argument: readings"),
         ("firstReading", "(prim index readings 0 : (Option Nat))"),
         ("targetOr", "| Option.some"),

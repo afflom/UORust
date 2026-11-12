@@ -9066,6 +9066,23 @@ fn if_let_rest(
     let rs::RustExpr::Let(l) = &*i.cond else {
         return Err(Residue::Statements);
     };
+    if let Some(state) = branch_state(i, ctx) {
+        let tail = [rs::Stmt::Expr(state_expr(&state), false)];
+        let then = then_rest(
+            &rs::RustExpr::Block(rs::ExprBlock {
+                label: false,
+                block: i.then_branch.clone(),
+            }),
+            &tail,
+        );
+        let unit = rs::RustExpr::Tuple(Vec::new());
+        let other = then_rest(i.else_branch.as_deref().unwrap_or(&unit), &tail);
+        let wild = rs::Pat::Wild;
+        let arms = vec![(&l.pat, Body::Expr(&then)), (&wild, Body::Expr(&other))];
+        let state_ty = state_type(&state, ctx);
+        let (value, acc) = matching(&l.expr, &arms, env, &ctx.below(), acc, Some(&state_ty))?;
+        return after_state(value, &state, rest, env, ctx, acc, want);
+    }
     let then = then_rest(
         &rs::RustExpr::Block(rs::ExprBlock {
             label: false,
@@ -9094,6 +9111,33 @@ fn if_rest(
     if ct != Ty::Bool {
         return Err(Residue::Form("non-boolean condition".to_string()));
     }
+    if let Some(state) = branch_state(i, ctx) {
+        let state_ty = state_type(&state, ctx);
+        let tail = [rs::Stmt::Expr(state_expr(&state), false)];
+        let then = settled(&i.then_branch.stmts, &tail);
+        let other = match &i.else_branch {
+            None => tail.to_vec(),
+            Some(e) => match &**e {
+                rs::RustExpr::Block(b) => settled(&b.block.stmts, &tail),
+                rs::RustExpr::If(_) => settled(&[rs::Stmt::Expr((**e).clone(), false)], &tail),
+                _ => return Err(Residue::Statements),
+            },
+        };
+        let inner = ctx.below();
+        let yes = inner.assuming(&i.cond, true, env, &acc);
+        let no = inner.assuming(&i.cond, false, env, &acc);
+        let ((a, at), acc) = block(&then, env, &yes, acc, Some(&state_ty))?;
+        let ((b, bt), acc) = block(&other, env, &no, acc, Some(&state_ty))?;
+        if !at.same(&state_ty) || !bt.same(&state_ty) {
+            return Err(Residue::Form("branches of different types".to_string()));
+        }
+        let value = Expr::If {
+            condition: Box::new(Expr::Flat(c)),
+            then: Box::new(a),
+            otherwise: Box::new(b),
+        };
+        return after_state((value, state_ty), &state, rest, env, ctx, acc, want);
+    }
     let mut then: Vec<rs::Stmt> = i.then_branch.stmts.clone();
     then.extend(rest.iter().cloned());
     let mut other: Vec<rs::Stmt> = match &i.else_branch {
@@ -9118,6 +9162,82 @@ fn if_rest(
                 otherwise: Box::new(b),
             },
             at,
+        ),
+        acc,
+    ))
+}
+
+/// The locals the branches of an `if` that is a statement update, when
+/// the branches only update them: no branch leaves the statement, and
+/// none shadows a local it updates. The `if` is then the value of those
+/// locals after it, and the statements after it lift once, in its scope.
+fn branch_state(i: &rs::ExprIf, ctx: &Ctx) -> Option<Vec<String>> {
+    let mut stmts = i.then_branch.stmts.clone();
+    if let Some(e) = &i.else_branch {
+        stmts.push(rs::Stmt::Expr((**e).clone(), true));
+    }
+    if leaves_step(&stmts) {
+        return None;
+    }
+    let (updated, declared) = scan_stmts(&stmts);
+    if updated.iter().any(|u| declared.contains(u)) {
+        return None;
+    }
+    let state: Vec<String> = updated
+        .into_iter()
+        .filter(|u| ctx.locals.contains_key(u))
+        .collect();
+    (!state.is_empty()).then_some(state)
+}
+
+/// The type of the locals `state` names, as one value.
+fn state_type(state: &[String], ctx: &Ctx) -> Ty {
+    let tys: Vec<Ty> = state.iter().map(|v| ctx.locals[v].1.clone()).collect();
+    match tys.as_slice() {
+        [] => Ty::Unit,
+        [one] => one.clone(),
+        many => Ty::Tuple(many.to_vec()),
+    }
+}
+
+/// A branch's statements, each a statement, then `tail`.
+fn settled(stmts: &[rs::Stmt], tail: &[rs::Stmt]) -> Vec<rs::Stmt> {
+    let mut out: Vec<rs::Stmt> = stmts
+        .iter()
+        .map(|s| match s {
+            rs::Stmt::Expr(e, _) => rs::Stmt::Expr(e.clone(), true),
+            other => other.clone(),
+        })
+        .collect();
+    out.extend(tail.iter().cloned());
+    out
+}
+
+/// The statements after a branching statement, in the scope of the state
+/// it leaves: the state bound once, its locals rebound to its items.
+fn after_state(
+    value: (Expr, Ty),
+    state: &[String],
+    rest: &[rs::Stmt],
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    let (value, state_ty) = value;
+    let acc = acc.saw(&state_ty);
+    let (whole, acc) = ctx.fresh(env, acc, "state");
+    let (after, acc, lets) = rebind(env, ctx, acc, state, &whole, Vec::new());
+    let ((rest, rt), acc) = block(rest, env, &after, acc, want)?;
+    Ok((
+        (
+            Expr::Let {
+                name: whole,
+                ty: state_ty.render(),
+                value: Box::new(value),
+                body: Box::new(wrap_lets(lets, rest)),
+            },
+            rt,
         ),
         acc,
     ))
@@ -10366,6 +10486,44 @@ mod tests {
 
     fn plain() -> Types {
         Types::default()
+    }
+
+    /// A function of `n` statement `if`s in a row, each updating the locals
+    /// the next reads, and its statement count.
+    fn ifs_in_a_row(n: usize) -> (String, usize) {
+        let mut body = String::from("let mut a = x; let mut b = false; ");
+        for k in 0..n {
+            body.push_str(&format!(
+                "if a < {k} {{ a = {k}; b = !b; }} else {{ b = a == {k}; }} "
+            ));
+        }
+        body.push_str("(a, b)");
+        (
+            format!("fn steps(x: u32) -> (u32, bool) {{ {body} }}"),
+            n + 3,
+        )
+    }
+
+    #[test]
+    fn statement_ifs_lift_the_statements_after_them_once() {
+        // The whole function with one `if` bounds what each statement of a
+        // longer one costs, where copying the statements after each `if`
+        // into both its branches doubles the output per `if`.
+        let (one, one_stmts) = ifs_in_a_row(1);
+        let one_len = lift(&one, &plain()).expect("lifts").len();
+        // Up to as many `if`s as one statement costs bytes: past the point
+        // where doubling per `if` would outgrow any linear bound.
+        let mut n = 1;
+        while n <= one_len / one_stmts {
+            let (src, stmts) = ifs_in_a_row(n);
+            let out = lift(&src, &plain()).expect("lifts");
+            assert!(
+                out.len() <= one_len * stmts,
+                "{n} ifs: {} bytes for {stmts} statements",
+                out.len()
+            );
+            n *= 2;
+        }
     }
 
     #[test]

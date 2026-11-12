@@ -277,6 +277,13 @@ definition{
 }
 
 structure{
+  name: TupleBoolNat,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: Bool}, {name: item1, type: Nat}]
+}
+
+structure{
   name: TupleNatRoom,
   type_parameters: [],
   parameters: [],
@@ -288,6 +295,13 @@ structure{
   type_parameters: [],
   parameters: [],
   fields: [{name: item0, type: Nat}, {name: item1, type: (List String)}]
+}
+
+structure{
+  name: TupleNatBoolBool,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: Nat}, {name: item1, type: Bool}, {name: item2, type: Bool}]
 }
 
 structure{
@@ -845,6 +859,15 @@ definition{
 definition{name: labelOf, parameters: [view : Labelled], result: String, body: (project view label)}
 
 definition{
+  name: clamped,
+  parameters: [band : Band, reading : Nat],
+  result: TupleNatBoolBool,
+  body: (let value : Nat := reading; (let moved : Bool := false; (let narrow : Bool := false; (let state1 : TupleBoolNat := (if (value <? (project band low)) then (let value1 : Nat := (project band low); (let moved1 : Bool := true; (record TupleBoolNat {item0 := moved1, item1 := value1}))) else (record TupleBoolNat {item0 := moved, item1 := value})); (let moved2 : Bool := (project state1 item0); (let value2 : Nat := (project state1 item1); (let state2 : TupleBoolNat := (if ((project band high) <? value2) then (let value3 : Nat := (project band high); (let moved3 : Bool := true; (record TupleBoolNat {item0 := moved3, item1 := value3}))) else (record TupleBoolNat {item0 := moved2, item1 := value2})); (let moved4 : Bool := (project state2 item0); (let value4 : Nat := (project state2 item1); (let state4 : Bool := (match (width band)
+    | Option.none => narrow
+    | Option.some w => (let state3 : Bool := (if (w <? 2) then (let narrow1 : Bool := true; narrow1) else narrow); state3)); (let state6 : TupleBoolNat := (if state4 then (let value5 : Nat := (project band low); (record TupleBoolNat {item0 := state4, item1 := value5})) else (let state5 : Bool := (if moved4 then (let narrow2 : Bool := false; narrow2) else state4); (record TupleBoolNat {item0 := state5, item1 := value4}))); (let narrow3 : Bool := (project state6 item0); (let value6 : Nat := (project state6 item1); (record TupleNatBoolBool {item0 := value6, item1 := moved4, item2 := narrow3}))))))))))))))
+}
+
+definition{
   name: parseTarget,
   parameters: [text : String],
   result: (Result Nat ConfigError),
@@ -1170,7 +1193,7 @@ definition{
   result: (List String),
   body: (match items1
     | List.nil => state1
-    | List.cons room rest1 => (if ((project room reading) <? floor) then (let out1 : (List String) := (prim append state1 (cons (project room name) (nil String)) : (List String)); (coldNamesLoop1 rest1 out1 floor)) else (coldNamesLoop1 rest1 state1 floor))),
+    | List.cons room rest1 => (let state2 : (List String) := (if ((project room reading) <? floor) then (let out1 : (List String) := (prim append state1 (cons (project room name) (nil String)) : (List String)); out1) else state1); (coldNamesLoop1 rest1 state2 floor))),
   recursive_argument: items1
 }
 
@@ -1178,7 +1201,7 @@ definition{
   name: coldNames,
   parameters: [rooms : (List Room), floor : Nat],
   result: (List String),
-  body: (let out : (List String) := (nil String); (let state2 : (List String) := (coldNamesLoop1 rooms out floor); state2))
+  body: (let out : (List String) := (nil String); (let state3 : (List String) := (coldNamesLoop1 rooms out floor); state3))
 }
 
 definition{
@@ -1187,7 +1210,7 @@ definition{
   result: TupleStringNat,
   body: (match items1
     | List.nil => state1
-    | List.cons room rest1 => (let line1 : String := (project state1 item0); (let seen1 : Nat := (project state1 item1); (if (prim equal (project room name) "" : Bool) then (let line2 : String := (prim join (cons line1 (cons "?" (nil String))) "" : String); (let line3 : String := (prim join (cons line2 (cons ";" (nil String))) "" : String); (let seen2 : Nat := (if ((seen1 + 1) <? 4294967296) then (seen1 + 1) else 4294967295); (reportLoop1 rest1 (record TupleStringNat {item0 := line3, item1 := seen2}))))) else (let line4 : String := (prim join (cons line1 (cons (project room name) (nil String))) "" : String); (let line5 : String := (prim join (cons line4 (cons ";" (nil String))) "" : String); (let seen3 : Nat := (if ((seen1 + 1) <? 4294967296) then (seen1 + 1) else 4294967295); (reportLoop1 rest1 (record TupleStringNat {item0 := line5, item1 := seen3}))))))))),
+    | List.cons room rest1 => (let line1 : String := (project state1 item0); (let seen1 : Nat := (project state1 item1); (let state2 : String := (if (prim equal (project room name) "" : Bool) then (let line2 : String := (prim join (cons line1 (cons "?" (nil String))) "" : String); line2) else (let line3 : String := (prim join (cons line1 (cons (project room name) (nil String))) "" : String); line3)); (let line4 : String := (prim join (cons state2 (cons ";" (nil String))) "" : String); (let seen2 : Nat := (if ((seen1 + 1) <? 4294967296) then (seen1 + 1) else 4294967295); (reportLoop1 rest1 (record TupleStringNat {item0 := line4, item1 := seen2})))))))),
   axioms: [propext],
   recursive_argument: items1
 }
@@ -1196,7 +1219,7 @@ definition{
   name: report,
   parameters: [rooms : (List Room)],
   result: TupleStringNat,
-  body: (let line : String := ""; (let seen : Nat := 0; (let state2 : TupleStringNat := (reportLoop1 rooms (record TupleStringNat {item0 := line, item1 := seen})); (let line6 : String := (project state2 item0); (let seen4 : Nat := (project state2 item1); (record TupleStringNat {item0 := line6, item1 := seen4})))))),
+  body: (let line : String := ""; (let seen : Nat := 0; (let state3 : TupleStringNat := (reportLoop1 rooms (record TupleStringNat {item0 := line, item1 := seen})); (let line5 : String := (project state3 item0); (let seen3 : Nat := (project state3 item1); (record TupleStringNat {item0 := line5, item1 := seen3})))))),
   axioms: [propext]
 }
 
@@ -1365,7 +1388,7 @@ definition{
   result: Nat,
   body: (match items1
     | List.nil => state1
-    | List.cons byte rest1 => (if ((48 <=? byte) && (byte <=? 57)) then (let count1 : Nat := (if ((state1 + 1) <? 4294967296) then (state1 + 1) else 4294967295); (digitCountLoop1 rest1 count1)) else (digitCountLoop1 rest1 state1))),
+    | List.cons byte rest1 => (let state2 : Nat := (if ((48 <=? byte) && (byte <=? 57)) then (let count1 : Nat := (if ((state1 + 1) <? 4294967296) then (state1 + 1) else 4294967295); count1) else state1); (digitCountLoop1 rest1 state2))),
   recursive_argument: items1
 }
 
@@ -1373,7 +1396,7 @@ definition{
   name: digitCount,
   parameters: [reading : String],
   result: Nat,
-  body: (let count : Nat := 0; (let state2 : Nat := (digitCountLoop1 (Prelude::textBytes reading) count); state2)),
+  body: (let count : Nat := 0; (let state3 : Nat := (digitCountLoop1 (Prelude::textBytes reading) count); state3)),
   axioms: [Quot.sound, propext]
 }
 
@@ -2267,7 +2290,7 @@ definition{
   name: firstRoomsStep1,
   parameters: [at1 : Nat, state1 : (List String), count : Nat, rooms : (List String)],
   result: (List String),
-  body: (if (at1 <? (prim length rooms : Nat)) then (let out1 : (List String) := (prim append state1 (cons (firstRoomsPart1 at1 rooms) (nil String)) : (List String)); (let atValue1 : Nat := (at1 + 1); out1)) else (let atValue2 : Nat := (at1 + 1); state1))
+  body: (let state2 : (List String) := (if (at1 <? (prim length rooms : Nat)) then (let out1 : (List String) := (prim append state1 (cons (firstRoomsPart1 at1 rooms) (nil String)) : (List String)); out1) else state1); (let atValue1 : Nat := (at1 + 1); state2))
 }
 
 theorem{
@@ -2291,7 +2314,7 @@ definition{
   name: firstRooms,
   parameters: [rooms : (List String), count : Nat],
   result: (List String),
-  body: (let out : (List String) := (nil String); (let atValue : Nat := 0; (let state2 : TupleNatListString := (firstRoomsLoop1 atValue out count rooms); (let atValue3 : Nat := (project state2 item0); (let out2 : (List String) := (project state2 item1); out2))))),
+  body: (let out : (List String) := (nil String); (let atValue : Nat := 0; (let state3 : TupleNatListString := (firstRoomsLoop1 atValue out count rooms); (let atValue2 : Nat := (project state3 item0); (let out2 : (List String) := (project state3 item1); out2))))),
   axioms: [Quot.sound, propext]
 }
 
@@ -2695,21 +2718,21 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreBandsMeasureAndCount9,
+  name: acceptThermoCoreBandsMeasureAndCount11,
   parameters: [],
   statement: ((labelOf (record Labelled {label := "night", band := (record Band {low := 16, high := 18})})) = "night"),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreBandsMeasureAndCount11,
+  name: acceptThermoCoreBandsMeasureAndCount13,
   parameters: [],
   statement: ((notANumber (ctor ConfigError.NotANumber)) = true),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreBandsMeasureAndCount12,
+  name: acceptThermoCoreBandsMeasureAndCount14,
   parameters: [],
   statement: ((notANumber (ctor ConfigError.Unreadable)) = false),
   proof: decide{}
