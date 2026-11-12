@@ -3031,10 +3031,40 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 .filter(|n| crates_of[*n] > 1)
                 .map(|n| (n.clone(), lex(n)))
                 .collect();
-            let enums = enums.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
+            let mut enums: Variants = enums.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
+            // `std::cmp::Ordering`, which derived orders result in, unless
+            // the crate declares a type of its name.
+            let mut aliases = aliases;
+            let rust = crate::order::RUST_ORDERING;
+            if !crates_of.contains_key(rust) && !crates_of.contains_key(crate::order::ORDERING) {
+                enums.insert(
+                    crate::order::ORDERING.to_string(),
+                    crate::order::ORDERINGS
+                        .iter()
+                        .map(|v| v.to_string())
+                        .collect(),
+                );
+                aliases.insert(rust.to_string(), crate::order::ORDERING.to_string());
+            }
             let structs = structs.into_iter().map(|(n, fs)| (lex(&n), fs)).collect();
             let datas = datas.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
-            Types::with_data(enums, &datas, &structs, aliases)
+            // The traits each lifted type derives, which say where its
+            // order and equality are the structural ones.
+            let derives: BTreeMap<String, BTreeSet<String>> = package
+                .files
+                .iter()
+                .flat_map(|file| {
+                    let enums = file.enums.iter().map(|e| (&e.name, &e.derives));
+                    let structs = file.structs.iter().map(|st| (&st.name, &st.derives));
+                    enums.chain(structs).collect::<Vec<_>>()
+                })
+                .filter(|(n, _)| crates_of.contains_key(*n))
+                .map(|(n, ds)| (lex(n), ds.iter().cloned().collect()))
+                .collect();
+            Types {
+                derives,
+                ..Types::with_data(enums, &datas, &structs, aliases)
+            }
         })
         .collect();
     // Every crate's lifted types, for the declarations they emit.
@@ -3043,6 +3073,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         types.enums.extend(scope.enums.clone());
         types.structs.extend(scope.structs.clone());
         types.datas.extend(scope.datas.clone());
+        types.derives.extend(scope.derives.clone());
         for family in &scope.families {
             if !types.families.contains(family) {
                 types.families.push(family.clone());
@@ -3274,6 +3305,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     }
     let mut lifted = Vec::new();
     let mut mentioned: BTreeSet<Ty> = BTreeSet::new();
+    let mut ordered: BTreeSet<Ty> = BTreeSet::new();
     // Per crate: the lifted functions' signatures and their axioms.
     let mut results: Vec<(Sigs, Axioms)> = Vec::new();
     for ((candidates, names), types) in scoped.iter().zip(&scopes) {
@@ -3284,6 +3316,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             }
         }
         mentioned.extend(out.types);
+        ordered.extend(out.ordered);
         for c in candidates {
             // A constant has no function row of its own.
             if let (true, Some(&r)) = (
@@ -3330,6 +3363,12 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     let mut emitted: BTreeSet<Ty> = BTreeSet::new();
     for ty in &mentioned {
         type_decls(ty, &types, &compared, &mut emitted, &mut decls);
+    }
+    // The derived orders the definitions compare by, after the types.
+    if !ordered.is_empty() {
+        decls.extend(crate::order::tests());
+        decls.push(crate::order::reverse());
+        decls.extend(crate::order::decls(&ordered, &types));
     }
     decls.extend(lifted);
     // Closed assertions of tests over lifted functions are theorems.

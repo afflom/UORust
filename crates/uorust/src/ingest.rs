@@ -937,6 +937,7 @@ fn items(
                             file: rel.to_string(),
                             line: st.ident.span().start().line,
                         },
+                        derives: derives(&attrs(&st.attrs)),
                     });
                     syntax.structs.push(
                         named

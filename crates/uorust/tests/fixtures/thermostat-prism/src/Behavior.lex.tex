@@ -20,6 +20,13 @@ structure{
 }
 
 inductive{
+  name: CmpOrdering,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Less, fields: []}, {name: Equal, fields: []}, {name: Greater, fields: []}]
+}
+
+inductive{
   name: ConfigError,
   type_parameters: [],
   parameters: [],
@@ -113,11 +120,52 @@ definition{
   recursive_argument: value
 }
 
+inductive{
+  name: Priority,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Low, fields: []}, {name: Normal, fields: []}, {name: Urgent, fields: []}]
+}
+
+structure{
+  name: Request,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: priority, type: Priority}, {name: room, type: String}]
+}
+
 structure{
   name: Room,
   type_parameters: [],
   parameters: [],
   fields: [{name: name, type: String}, {name: reading, type: Nat}]
+}
+
+inductive{
+  name: Zone,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Room, fields: [String]}, {name: Group, fields: [(List Zone)]}]
+}
+
+definition{
+  name: size_of_Zone,
+  parameters: [value : Zone],
+  result: Nat,
+  body: (match value | Zone.Room x0 => 1 | Zone.Group x0 => (1 + (size_of_list_Zone x0))),
+  mutual: SizeOfZone,
+  recursive_argument: value
+}
+
+definition{
+  name: size_of_list_Zone,
+  parameters: [value : (List Zone)],
+  result: Nat,
+  body: (match value
+    | List.nil => 0
+    | List.cons x0 x1 => ((1 + (size_of_Zone x0)) + (size_of_list_Zone x1))),
+  mutual: SizeOfZone,
+  recursive_argument: value
 }
 
 structure{
@@ -160,6 +208,372 @@ structure{
   type_parameters: [],
   parameters: [],
   fields: [{name: item0, type: Band}, {name: item1, type: Bool}]
+}
+
+structure{
+  name: TuplePriorityNat,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: Priority}, {name: item1, type: Nat}]
+}
+
+structure{
+  name: TupleTuplePriorityNatNat,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: TuplePriorityNat}, {name: item1, type: Nat}]
+}
+
+definition{
+  name: ordering_is_Less,
+  parameters: [value : CmpOrdering],
+  result: Bool,
+  body: (match value
+    | CmpOrdering.Less => true
+    | CmpOrdering.Equal => false
+    | CmpOrdering.Greater => false)
+}
+
+definition{
+  name: ordering_is_Equal,
+  parameters: [value : CmpOrdering],
+  result: Bool,
+  body: (match value
+    | CmpOrdering.Less => false
+    | CmpOrdering.Equal => true
+    | CmpOrdering.Greater => false)
+}
+
+definition{
+  name: ordering_is_Greater,
+  parameters: [value : CmpOrdering],
+  result: Bool,
+  body: (match value
+    | CmpOrdering.Less => false
+    | CmpOrdering.Equal => false
+    | CmpOrdering.Greater => true)
+}
+
+definition{
+  name: reverse_Ordering,
+  parameters: [value : CmpOrdering],
+  result: CmpOrdering,
+  body: (match value
+    | CmpOrdering.Less => (ctor CmpOrdering.Greater)
+    | CmpOrdering.Equal => (ctor CmpOrdering.Equal)
+    | CmpOrdering.Greater => (ctor CmpOrdering.Less))
+}
+
+definition{
+  name: compare_Priority,
+  parameters: [left : Priority, right : Priority],
+  result: CmpOrdering,
+  body: (match left
+    | Priority.Low => (match right
+      | Priority.Low => (ctor CmpOrdering.Equal)
+      | Priority.Normal => (ctor CmpOrdering.Less)
+      | Priority.Urgent => (ctor CmpOrdering.Less))
+    | Priority.Normal => (match right
+      | Priority.Low => (ctor CmpOrdering.Greater)
+      | Priority.Normal => (ctor CmpOrdering.Equal)
+      | Priority.Urgent => (ctor CmpOrdering.Less))
+    | Priority.Urgent => (match right
+      | Priority.Low => (ctor CmpOrdering.Greater)
+      | Priority.Normal => (ctor CmpOrdering.Greater)
+      | Priority.Urgent => (ctor CmpOrdering.Equal)))
+}
+
+theorem{
+  name: compare_Priority_reflexive,
+  parameters: [a : Priority],
+  statement: ((compare_Priority a a) = (ctor CmpOrdering.Equal)),
+  proof: cases{
+    branches: [
+      {proof: reflexivity{}, binders: [], constructor: Low},
+      {proof: reflexivity{}, binders: [], constructor: Normal},
+      {proof: reflexivity{}, binders: [], constructor: Urgent}
+    ],
+    scrutinee: a
+  }
+}
+
+theorem{
+  name: compare_Priority_antisymmetric,
+  parameters: [a : Priority, b : Priority],
+  statement: ((compare_Priority a b) = (reverse_Ordering (compare_Priority b a))),
+  proof: cases{
+    branches: [
+      {
+        proof: cases{
+          branches: [
+            {proof: reflexivity{}, binders: [], constructor: Low},
+            {proof: reflexivity{}, binders: [], constructor: Normal},
+            {proof: reflexivity{}, binders: [], constructor: Urgent}
+          ],
+          scrutinee: b
+        },
+        binders: [],
+        constructor: Low
+      },
+      {
+        proof: cases{
+          branches: [
+            {proof: reflexivity{}, binders: [], constructor: Low},
+            {proof: reflexivity{}, binders: [], constructor: Normal},
+            {proof: reflexivity{}, binders: [], constructor: Urgent}
+          ],
+          scrutinee: b
+        },
+        binders: [],
+        constructor: Normal
+      },
+      {
+        proof: cases{
+          branches: [
+            {proof: reflexivity{}, binders: [], constructor: Low},
+            {proof: reflexivity{}, binders: [], constructor: Normal},
+            {proof: reflexivity{}, binders: [], constructor: Urgent}
+          ],
+          scrutinee: b
+        },
+        binders: [],
+        constructor: Urgent
+      }
+    ],
+    scrutinee: a
+  }
+}
+
+theorem{
+  name: compare_Priority_transitive,
+  parameters: [a : Priority, b : Priority, c : Priority],
+  statement: (((not ((ordering_is_Less (compare_Priority a b)) && (ordering_is_Less (compare_Priority b c)))) || (ordering_is_Less (compare_Priority a c))) = true),
+  proof: cases{
+    branches: [
+      {
+        proof: cases{
+          branches: [
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Low
+            },
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Normal
+            },
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Urgent
+            }
+          ],
+          scrutinee: b
+        },
+        binders: [],
+        constructor: Low
+      },
+      {
+        proof: cases{
+          branches: [
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Low
+            },
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Normal
+            },
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Urgent
+            }
+          ],
+          scrutinee: b
+        },
+        binders: [],
+        constructor: Normal
+      },
+      {
+        proof: cases{
+          branches: [
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Low
+            },
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Normal
+            },
+            {
+              proof: cases{
+                branches: [
+                  {proof: reflexivity{}, binders: [], constructor: Low},
+                  {proof: reflexivity{}, binders: [], constructor: Normal},
+                  {proof: reflexivity{}, binders: [], constructor: Urgent}
+                ],
+                scrutinee: c
+              },
+              binders: [],
+              constructor: Urgent
+            }
+          ],
+          scrutinee: b
+        },
+        binders: [],
+        constructor: Urgent
+      }
+    ],
+    scrutinee: a
+  }
+}
+
+definition{
+  name: compare_String,
+  parameters: [left : String, right : String],
+  result: CmpOrdering,
+  body: (if (prim less_than left right : Bool) then (ctor CmpOrdering.Less) else (if (prim equal left right : Bool) then (ctor CmpOrdering.Equal) else (ctor CmpOrdering.Greater))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: compare_Request,
+  parameters: [left : Request, right : Request],
+  result: CmpOrdering,
+  body: (match (compare_Priority (project left priority) (project right priority))
+    | CmpOrdering.Less => (ctor CmpOrdering.Less)
+    | CmpOrdering.Equal => (match (compare_String (project left room) (project right room))
+      | CmpOrdering.Less => (ctor CmpOrdering.Less)
+      | CmpOrdering.Equal => (ctor CmpOrdering.Equal)
+      | CmpOrdering.Greater => (ctor CmpOrdering.Greater))
+    | CmpOrdering.Greater => (ctor CmpOrdering.Greater)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: compare_Zone,
+  parameters: [left : Zone, right : Zone],
+  result: CmpOrdering,
+  body: (match left
+    | Zone.Room x0 => (match right
+      | Zone.Room y0 => (match (compare_String x0 y0)
+        | CmpOrdering.Less => (ctor CmpOrdering.Less)
+        | CmpOrdering.Equal => (ctor CmpOrdering.Equal)
+        | CmpOrdering.Greater => (ctor CmpOrdering.Greater))
+      | Zone.Group y0 => (ctor CmpOrdering.Less))
+    | Zone.Group x0 => (match right
+      | Zone.Room y0 => (ctor CmpOrdering.Greater)
+      | Zone.Group y0 => (match (compare_ListZone x0 y0)
+        | CmpOrdering.Less => (ctor CmpOrdering.Less)
+        | CmpOrdering.Equal => (ctor CmpOrdering.Equal)
+        | CmpOrdering.Greater => (ctor CmpOrdering.Greater)))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  mutual: CompareOfZone,
+  recursive_argument: left
+}
+
+definition{
+  name: compare_ListZone,
+  parameters: [left : (List Zone), right : (List Zone)],
+  result: CmpOrdering,
+  body: (match left
+    | List.nil => (match right
+      | List.nil => (ctor CmpOrdering.Equal)
+      | List.cons y0 y1 => (ctor CmpOrdering.Less))
+    | List.cons x0 x1 => (match right
+      | List.nil => (ctor CmpOrdering.Greater)
+      | List.cons y0 y1 => (match (compare_Zone x0 y0)
+        | CmpOrdering.Less => (ctor CmpOrdering.Less)
+        | CmpOrdering.Equal => (match (compare_ListZone x1 y1)
+          | CmpOrdering.Less => (ctor CmpOrdering.Less)
+          | CmpOrdering.Equal => (ctor CmpOrdering.Equal)
+          | CmpOrdering.Greater => (ctor CmpOrdering.Greater))
+        | CmpOrdering.Greater => (ctor CmpOrdering.Greater)))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  mutual: CompareOfZone,
+  recursive_argument: left
+}
+
+definition{
+  name: compare_Nat,
+  parameters: [left : Nat, right : Nat],
+  result: CmpOrdering,
+  body: (if (left <? right) then (ctor CmpOrdering.Less) else (if (left =? right) then (ctor CmpOrdering.Equal) else (ctor CmpOrdering.Greater)))
+}
+
+definition{
+  name: compare_TuplePriorityNat,
+  parameters: [left : TuplePriorityNat, right : TuplePriorityNat],
+  result: CmpOrdering,
+  body: (match (compare_Priority (project left item0) (project right item0))
+    | CmpOrdering.Less => (ctor CmpOrdering.Less)
+    | CmpOrdering.Equal => (match (compare_Nat (project left item1) (project right item1))
+      | CmpOrdering.Less => (ctor CmpOrdering.Less)
+      | CmpOrdering.Equal => (ctor CmpOrdering.Equal)
+      | CmpOrdering.Greater => (ctor CmpOrdering.Greater))
+    | CmpOrdering.Greater => (ctor CmpOrdering.Greater))
 }
 
 definition{
@@ -915,6 +1329,69 @@ definition{
   body: ((prim length rooms : Nat) + 1)
 }
 
+definition{
+  name: queueInsert1,
+  parameters: [items2 : (List Request), item3 : Request],
+  result: (List Request),
+  body: (match items2
+    | List.nil => (cons item3 (nil Request))
+    | List.cons head4 rest5 => (if (ordering_is_Equal (compare_Request item3 head4)) then (cons head4 rest5) else (if (ordering_is_Less (compare_Request item3 head4)) then (cons item3 (cons head4 rest5)) else (cons head4 (queueInsert1 rest5 item3))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items2
+}
+
+definition{
+  name: queueLoop2,
+  parameters: [items7 : (List Request), state1 : (List Request)],
+  result: (List Request),
+  body: (match items7
+    | List.nil => state1
+    | List.cons r rest8 => (let out6 : (List Request) := (queueInsert1 state1 r); (queueLoop2 rest8 out6))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items7
+}
+
+definition{
+  name: queue,
+  parameters: [requests : (List Request)],
+  result: (List Request),
+  body: (let out : (List Request) := (nil Request); (let state9 : (List Request) := (queueLoop2 requests out); state9)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: sortsBefore,
+  parameters: [a : Request, b : Request],
+  result: Bool,
+  body: (ordering_is_Less (compare_Request a b)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: sameZone,
+  parameters: [a : Zone, b : Zone],
+  result: Bool,
+  body: (ordering_is_Equal (compare_Zone a b)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: setPointGet1,
+  parameters: [items3 : (List TupleTuplePriorityNatNat), needle2 : TuplePriorityNat],
+  result: (Option Nat),
+  body: (match items3
+    | List.nil => (ctor Option.none [Nat])
+    | List.cons item1 rest4 => (if (ordering_is_Equal (compare_TuplePriorityNat (project item1 item0) needle2)) then (ctor Option.some [Nat] (project item1 item1)) else (setPointGet1 rest4 needle2))),
+  recursive_argument: items3
+}
+
+definition{
+  name: setPoint,
+  parameters: [table : (List TupleTuplePriorityNatNat), priority : Priority, hour : Nat],
+  result: (Option Nat),
+  body: (setPointGet1 table (record TuplePriorityNat {item0 := priority, item1 := hour}))
+}
+
 theorem{
   name: decreases_occupiedTarget_0,
   parameters: [step : Step, occupied : Step, rest : Step],
@@ -1339,6 +1816,22 @@ theorem{
   parameters: [],
   statement: ((blank) = ""),
   proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom0,
+  parameters: [],
+  statement: ((sortsBefore (record Request {priority := (ctor Priority.Low), room := "hall"}) (record Request {priority := (ctor Priority.Urgent), room := "hall"})) = true),
+  proof: decide{},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom1,
+  parameters: [],
+  statement: ((sameZone (ctor Zone.Room "hall") (ctor Zone.Room "hall")) = true),
+  proof: decide{},
+  axioms: [Classical.choice, Quot.sound, propext]
 }
 
 theorem{

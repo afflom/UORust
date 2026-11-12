@@ -58,35 +58,42 @@ definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsItsRooms,
   parameters: [],
   result: String,
-  body: "the_roster_reads_its_rooms at thermo-core/src/roster.rs:305 passes."
+  body: "the_roster_reads_its_rooms at thermo-core/src/roster.rs:371 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps,
   parameters: [],
   result: String,
-  body: "the_roster_folds_and_clamps at thermo-core/src/roster.rs:319 passes."
+  body: "the_roster_folds_and_clamps at thermo-core/src/roster.rs:385 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms,
   parameters: [],
   result: String,
-  body: "the_roster_loops_over_its_rooms at thermo-core/src/roster.rs:332 passes."
+  body: "the_roster_loops_over_its_rooms at thermo-core/src/roster.rs:401 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsItsMaps,
   parameters: [],
   result: String,
-  body: "the_roster_reads_its_maps at thermo-core/src/roster.rs:340 passes."
+  body: "the_roster_reads_its_maps at thermo-core/src/roster.rs:409 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsText,
   parameters: [],
   result: String,
-  body: "the_roster_reads_text at thermo-core/src/roster.rs:352 passes."
+  body: "the_roster_reads_text at thermo-core/src/roster.rs:421 passes."
+}
+
+definition{
+  name: acThermoCoreThermoCoreRosterRequestsSortByPriorityThenRoom,
+  parameters: [],
+  result: String,
+  body: "requests_sort_by_priority_then_room at thermo-core/src/roster.rs:444 passes."
 }
 
 definition{
@@ -594,6 +601,34 @@ definition{
 }
 
 definition{
+  name: callThermoCoreRosterQueue,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::queue: fn queue(requests: &[Request]) -> BTreeSet<Request>"
+}
+
+definition{
+  name: callThermoCoreRosterSortsBefore,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::sorts_before: fn sorts_before(a: &Request, b: &Request) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterSameZone,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::same_zone: fn same_zone(a: &Zone, b: &Zone) -> bool"
+}
+
+definition{
+  name: callThermoCoreRosterSetPoint,
+  parameters: [],
+  result: String,
+  body: "thermo_core::roster::set_point: fn set_point(table: &BTreeMap<(Priority, u32), u32>, priority: Priority, hour: u32,) -> Option<u32>"
+}
+
+definition{
   name: callThermoCoreScheduleOccupiedTarget,
   parameters: [],
   result: String,
@@ -758,7 +793,7 @@ definition{
   name: featureThermoCoreRoster,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::roster: Rooms, their readings and the schedule that names them.", calls := (cons "Interface::callThermoCoreRosterRoomIsCold" (cons "Interface::callThermoCoreRosterRoomReread" (cons "Interface::callThermoCoreRosterRoomLabel" (cons "Interface::callThermoCoreRosterNames" (cons "Interface::callThermoCoreRosterCold" (cons "Interface::callThermoCoreRosterAnyCold" (cons "Interface::callThermoCoreRosterAllWithin" (cons "Interface::callThermoCoreRosterFirstCold" (cons "Interface::callThermoCoreRosterHighest" (cons "Interface::callThermoCoreRosterColdCount" (cons "Interface::callThermoCoreRosterScheduled" (cons "Interface::callThermoCoreRosterRoll" (cons "Interface::callThermoCoreRosterPairs" (cons "Interface::callThermoCoreRosterTargetOf" (cons "Interface::callThermoCoreRosterRoomsOf" (cons "Interface::callThermoCoreRosterHasTarget" (cons "Interface::callThermoCoreRosterClosed" (cons "Interface::callThermoCoreRosterLabelWidth" (cons "Interface::callThermoCoreRosterClamp" (cons "Interface::callThermoCoreRosterBlank" (cons "Interface::callThermoCoreRosterColdNames" (cons "Interface::callThermoCoreRosterReport" (cons "Interface::callThermoCoreRosterReadingsOf" (cons "Interface::callThermoCoreRosterLineRoom" (cons "Interface::callThermoCoreRosterLineTarget" (cons "Interface::callThermoCoreRosterScheduleRooms" (cons "Interface::callThermoCoreRosterRoomsUntilStop" (cons "Interface::callThermoCoreRosterTag" (cons "Interface::callThermoCoreRosterIsZone" (cons "Interface::callThermoCoreRosterDivider" (cons "Interface::callThermoCoreRosterSignKind" (cons "Interface::callThermoCoreRosterDigitCount" (cons "Interface::callThermoCoreRosterNumbered" (cons "Interface::callThermoCoreRosterPositions" (cons "Interface::callThermoCoreRosterFirstIs" (cons "Interface::callThermoCoreRosterFirstWord" (cons "Interface::callThermoCoreRosterSpelled" (cons "Interface::callThermoCoreRosterSlots" (nil String))))))))))))))))))))))))))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsText" (nil String))))))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::roster: Rooms, their readings and the schedule that names them.", calls := (cons "Interface::callThermoCoreRosterRoomIsCold" (cons "Interface::callThermoCoreRosterRoomReread" (cons "Interface::callThermoCoreRosterRoomLabel" (cons "Interface::callThermoCoreRosterNames" (cons "Interface::callThermoCoreRosterCold" (cons "Interface::callThermoCoreRosterAnyCold" (cons "Interface::callThermoCoreRosterAllWithin" (cons "Interface::callThermoCoreRosterFirstCold" (cons "Interface::callThermoCoreRosterHighest" (cons "Interface::callThermoCoreRosterColdCount" (cons "Interface::callThermoCoreRosterScheduled" (cons "Interface::callThermoCoreRosterRoll" (cons "Interface::callThermoCoreRosterPairs" (cons "Interface::callThermoCoreRosterTargetOf" (cons "Interface::callThermoCoreRosterRoomsOf" (cons "Interface::callThermoCoreRosterHasTarget" (cons "Interface::callThermoCoreRosterClosed" (cons "Interface::callThermoCoreRosterLabelWidth" (cons "Interface::callThermoCoreRosterClamp" (cons "Interface::callThermoCoreRosterBlank" (cons "Interface::callThermoCoreRosterColdNames" (cons "Interface::callThermoCoreRosterReport" (cons "Interface::callThermoCoreRosterReadingsOf" (cons "Interface::callThermoCoreRosterLineRoom" (cons "Interface::callThermoCoreRosterLineTarget" (cons "Interface::callThermoCoreRosterScheduleRooms" (cons "Interface::callThermoCoreRosterRoomsUntilStop" (cons "Interface::callThermoCoreRosterTag" (cons "Interface::callThermoCoreRosterIsZone" (cons "Interface::callThermoCoreRosterDivider" (cons "Interface::callThermoCoreRosterSignKind" (cons "Interface::callThermoCoreRosterDigitCount" (cons "Interface::callThermoCoreRosterNumbered" (cons "Interface::callThermoCoreRosterPositions" (cons "Interface::callThermoCoreRosterFirstIs" (cons "Interface::callThermoCoreRosterFirstWord" (cons "Interface::callThermoCoreRosterSpelled" (cons "Interface::callThermoCoreRosterSlots" (cons "Interface::callThermoCoreRosterQueue" (cons "Interface::callThermoCoreRosterSortsBefore" (cons "Interface::callThermoCoreRosterSameZone" (cons "Interface::callThermoCoreRosterSetPoint" (nil String))))))))))))))))))))))))))))))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreRosterRequestsSortByPriorityThenRoom" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms" (cons "Interface::acThermoCoreThermoCoreRosterTheRosterReadsText" (nil String)))))))})
 }
 
 definition{

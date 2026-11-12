@@ -41,7 +41,11 @@ pub fn names(rooms: &[Room]) -> Vec<String> {
 
 /// The rooms that read below the floor.
 pub fn cold(rooms: &[Room], floor: u32) -> Vec<Room> {
-    rooms.iter().filter(|room| room.is_cold(floor)).cloned().collect()
+    rooms
+        .iter()
+        .filter(|room| room.is_cold(floor))
+        .cloned()
+        .collect()
 }
 
 /// True when some room reads below the floor.
@@ -265,7 +269,11 @@ pub fn numbered(rooms: &[Room]) -> Vec<String> {
 
 /// The position words of the first rooms.
 pub fn positions() -> Vec<String> {
-    vec!["first".to_string(), "second".to_string(), "later".to_string()]
+    vec![
+        "first".to_string(),
+        "second".to_string(),
+        "later".to_string(),
+    ]
 }
 
 /// The first room's name, when it is the room asked for.
@@ -288,6 +296,64 @@ pub fn spelled(label: &str) -> String {
 /// most `isize::MAX`, so the sum fits `usize` on every target.
 pub fn slots(rooms: &[Room]) -> usize {
     rooms.len() + 1
+}
+
+/// How soon a request is served, least urgent first.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Priority {
+    /// Served last.
+    Low,
+    /// Served in turn.
+    Normal,
+    /// Served first.
+    Urgent,
+}
+
+/// A request for heat: its priority, then the room it is for, which is
+/// the order requests sort in.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Request {
+    /// How soon it is served.
+    pub priority: Priority,
+    /// The room it is for.
+    pub room: String,
+}
+
+/// A heating zone: one room, or a group of zones.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Zone {
+    /// One room.
+    Room(String),
+    /// Zones heated together.
+    Group(Vec<Zone>),
+}
+
+/// The distinct requests, in the order they sort in.
+pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
+    let mut out = BTreeSet::new();
+    for r in requests {
+        out.insert(r.clone());
+    }
+    out
+}
+
+/// Whether request `a` sorts before request `b`.
+pub fn sorts_before(a: &Request, b: &Request) -> bool {
+    a < b
+}
+
+/// Whether two zones are the same zone.
+pub fn same_zone(a: &Zone, b: &Zone) -> bool {
+    a == b
+}
+
+/// The set point of a room at an hour, from a table keyed by both.
+pub fn set_point(
+    table: &BTreeMap<(Priority, u32), u32>,
+    priority: Priority,
+    hour: u32,
+) -> Option<u32> {
+    table.get(&(priority, hour)).copied()
 }
 
 #[cfg(test)]
@@ -324,7 +390,10 @@ mod tests {
         assert_eq!(clamp((20, 10), 5), 5);
         assert_eq!(label_width("hall"), 4);
         assert!(scheduled(&["hall".to_string()], "hall"));
-        assert_eq!(pairs(&[("hall".to_string(), -2)]), vec!["hall=-2".to_string()]);
+        assert_eq!(
+            pairs(&[("hall".to_string(), -2)]),
+            vec!["hall=-2".to_string()]
+        );
         assert_eq!(blank(), "");
     }
 
@@ -356,7 +425,10 @@ mod tests {
             schedule_rooms("hall\n# off\n\n den \r\n"),
             vec!["hall".to_string(), "den".to_string()]
         );
-        assert_eq!(rooms_until_stop("a, b, stop, c"), vec!["a".to_string(), "b".to_string()]);
+        assert_eq!(
+            rooms_until_stop("a, b, stop, c"),
+            vec!["a".to_string(), "b".to_string()]
+        );
         assert_eq!(tag("room:Hall!"), "hall");
         assert!(is_zone("east-zone"));
         assert_eq!(divider(3), "---");
@@ -366,5 +438,24 @@ mod tests {
         assert_eq!(first_word("  den  hall"), Some("den".to_string()));
         assert_eq!(spelled("ab"), "a.b");
         assert_eq!(numbered(&[room("hall", 1)]), vec!["first:hall".to_string()]);
+    }
+
+    #[test]
+    fn requests_sort_by_priority_then_room() {
+        assert!(sorts_before(
+            &Request {
+                priority: Priority::Low,
+                room: "hall".to_string()
+            },
+            &Request {
+                priority: Priority::Urgent,
+                room: "hall".to_string()
+            }
+        ));
+        assert!(same_zone(
+            &Zone::Room("hall".to_string()),
+            &Zone::Room("hall".to_string())
+        ));
+        assert_eq!(set_point(&BTreeMap::new(), Priority::Low, 7), None);
     }
 }

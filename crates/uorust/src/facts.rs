@@ -170,6 +170,8 @@ pub(crate) struct EnumFact {
 pub(crate) struct StructFact {
     pub(crate) name: String,
     pub(crate) span: Span,
+    /// The traits a `#[derive(...)]` names.
+    pub(crate) derives: Vec<String>,
 }
 
 /// The syntax the lift reads, kept apart from the facts: per source file,

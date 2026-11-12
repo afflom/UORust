@@ -20,6 +20,7 @@ pub(crate) type Lift<T> = Result<T, Residue>;
 
 use crate::ast as rs;
 use crate::lex::{camel, Arm, Decl, Expr};
+use crate::order::ORDERING;
 
 /// Why a function stays in the frontier.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -150,7 +151,7 @@ impl Ty {
         }
     }
 
-    fn tag(&self) -> String {
+    pub(crate) fn tag(&self) -> String {
         match self {
             Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
@@ -269,6 +270,9 @@ pub(crate) struct Types {
     /// The recursive families: the enums and structs that name themselves
     /// or each other, each one inductive group.
     pub(crate) families: Vec<BTreeSet<String>>,
+    /// The traits each type derives (`Ord`, `PartialEq`, ...), by LexLean
+    /// name: a derived order or equality is the structural one.
+    pub(crate) derives: BTreeMap<String, BTreeSet<String>>,
 }
 
 /// The strongly connected components of a graph, each one set.
@@ -524,6 +528,7 @@ impl Types {
                 aliases: aliases.clone(),
                 datas: BTreeMap::new(),
                 families: Vec::new(),
+                derives: BTreeMap::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -546,6 +551,7 @@ impl Types {
                     aliases,
                     datas: BTreeMap::new(),
                     families: Vec::new(),
+                    derives: BTreeMap::new(),
                 };
             }
             names = lifted.into_keys().collect();
@@ -1029,6 +1035,8 @@ struct Acc {
     axioms: BTreeSet<String>,
     /// The list helpers the body's iterator chains lift to.
     helpers: Vec<Helper>,
+    /// The types whose derived order the body compares by.
+    ordered: BTreeSet<Ty>,
 }
 
 impl Acc {
@@ -1071,6 +1079,15 @@ impl Acc {
         let mut seen = self.seen;
         ty.mentions(&mut seen);
         Acc { seen, ..self }
+    }
+
+    /// The state comparing values of `ty` by its derived order: the
+    /// comparison's axioms, and `Ordering`, which it results in.
+    fn ordered(self, ty: &Ty, types: &Types) -> Acc {
+        let mut ordered = self.ordered;
+        ordered.insert(crate::order::normal(ty));
+        let acc = Acc { ordered, ..self }.saw(&Ty::Named(ORDERING.into()));
+        acc.axioms_all(crate::order::axioms(ty, types))
     }
 
     /// The state with a recursive call descending on parameter `at`.
@@ -2141,20 +2158,12 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                 (Ty::Option(inner), B::Eq | B::Ne) => {
                     let (x, acc) = ctx.fresh(env, acc, "left");
                     let (y, acc) = ctx.fresh(env, acc, "right");
-                    let same = match &**inner {
-                        Ty::Bool | Ty::Named(_) if is_enum_or_bool(inner, env) => {
-                            same_constructor(inner, &x, &y)
-                        }
-                        t => match equality(t, &x, &y) {
-                            Some(e) => e,
-                            None => {
-                                return Err(Residue::Form(format!(
-                                    "comparison {} of {}",
-                                    op_text(),
-                                    lt.render()
-                                )))
-                            }
-                        },
+                    let Some((same, acc)) = same_value(inner, &x, &y, env, acc) else {
+                        return Err(Residue::Form(format!(
+                            "comparison {} of {}",
+                            op_text(),
+                            lt.render()
+                        )));
                     };
                     let eq = matches!(b.op, B::Eq);
                     let (yes, no) = if eq {
@@ -2209,13 +2218,19 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                         acc,
                     ));
                 }
-                _ => {
-                    return Err(Residue::Form(format!(
-                        "comparison {} of {}",
-                        op_text(),
-                        lt.render()
-                    )))
-                }
+                // Any other type compares by its derived order.
+                _ => match crate::order::operator(&op_text(), &lt, &l, &r) {
+                    Some(test) if crate::order::derived(&lt, &env.types) => {
+                        (test, acc.ordered(&lt, &env.types))
+                    }
+                    _ => {
+                        return Err(Residue::Form(format!(
+                            "comparison {} of {}",
+                            op_text(),
+                            lt.render()
+                        )))
+                    }
+                },
             };
             flat(text, Ty::Bool, acc)
         }
@@ -3903,6 +3918,19 @@ fn equality(ty: &Ty, a: &str, b: &str) -> Option<String> {
     }
 }
 
+/// Equality of two values of `ty`: a primitive's, a unit-variant enum's
+/// constructors, or else its derived order's `Equal`.
+fn same_value(ty: &Ty, a: &str, b: &str, env: &Env, acc: Acc) -> Option<(String, Acc)> {
+    if let Some(e) = equality(ty, a, b) {
+        return Some((e, acc));
+    }
+    if is_enum_or_bool(ty, env) {
+        return Some((same_constructor(ty, a, b), acc));
+    }
+    let test = crate::order::operator("==", ty, a, b)?;
+    crate::order::derived(ty, &env.types).then(|| (test, acc.ordered(ty, &env.types)))
+}
+
 /// A search of a list for a needle: `contains` on a list or set (`entry`
 /// `None`), or a map's `contains_key` and `get` over its entries (`entry`
 /// the value type, `get` when `kind` is `Get`).
@@ -3932,7 +3960,8 @@ fn lookup(
     } else {
         head.clone()
     };
-    let Some(test) = equality(&key_ty, &subject, &probe) else {
+    let ordered = equality(&key_ty, &subject, &probe).is_none() && !is_enum_or_bool(&key_ty, env);
+    let Some((test, acc)) = same_value(&key_ty, &subject, &probe, env, acc) else {
         return Err(Residue::Form(format!("{kind} over keys of this type")));
     };
     let lam = Lambda {
@@ -3941,7 +3970,11 @@ fn lookup(
         core: test.clone(),
         ty: Ty::Bool,
         calls: BTreeSet::new(),
-        axioms: BTreeSet::new(),
+        axioms: if ordered {
+            crate::order::axioms(&key_ty, &env.types)
+        } else {
+            BTreeSet::new()
+        },
     };
     let (result, nil, hit) = match value {
         Some(vt) if kind == "Get" => (
@@ -5340,7 +5373,7 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
     };
     let (k, h) = (key_of(&item), key_of(&head));
     let mut axioms = BTreeSet::new();
-    let (same, less) = match key {
+    let (same, less) = match &key {
         Ty::Nat(_) => (format!("({k} =? {h})"), format!("({k} <? {h})")),
         Ty::Str | Ty::Char => {
             axioms.insert("propext".to_string());
@@ -5350,12 +5383,26 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
                 format!("(prim less_than {k} {h} : Bool)"),
             )
         }
+        other if crate::order::derived(other, &env.types) => {
+            axioms.extend(crate::order::axioms(other, &env.types));
+            (
+                crate::order::operator("==", other, &k, &h).unwrap_or_default(),
+                crate::order::operator("<", other, &k, &h).unwrap_or_default(),
+            )
+        }
         other => {
             return Err(Residue::Form(format!(
                 "insert by a key of {}, whose order the lift does not model",
                 other.render()
             )))
         }
+    };
+    let acc = if crate::order::derived(&key, &env.types)
+        && !matches!(key, Ty::Nat(_) | Ty::Str | Ty::Char)
+    {
+        acc.ordered(&key, &env.types)
+    } else {
+        acc
     };
     let name = ctx.helper_name(env, &acc, "Insert");
     let acc = acc.saw(&entry);
@@ -6412,6 +6459,8 @@ pub(crate) struct Lifted {
     /// encoding, joining, decimal text), so `decide` cannot close a closed
     /// instance of them.
     pub(crate) opaque: BTreeSet<String>,
+    /// The types whose derived order the lifted definitions compare by.
+    pub(crate) ordered: BTreeSet<Ty>,
 }
 
 /// The primitives whose Lean definitions the kernel does not unfold.
@@ -6455,6 +6504,7 @@ pub(crate) fn lift_all(
         let mut decls = Vec::new();
         let mut graph: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let mut mentioned: BTreeMap<String, BTreeSet<Ty>> = BTreeMap::new();
+        let mut compares: BTreeMap<String, BTreeSet<Ty>> = BTreeMap::new();
         let mut own: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let mut changed = false;
         for c in candidates {
@@ -6524,6 +6574,7 @@ pub(crate) fn lift_all(
                     }
                     c.result.mentions(&mut seen);
                     mentioned.insert(c.rust.clone(), seen);
+                    compares.insert(c.rust.clone(), acc.ordered);
                     let mut axioms = acc.axioms;
                     axioms.extend(evidence_axioms);
                     own.insert(c.rust.clone(), axioms);
@@ -6665,6 +6716,7 @@ pub(crate) fn lift_all(
                 types,
                 axioms,
                 opaque,
+                ordered: compares.into_values().flatten().collect(),
             };
         }
     }

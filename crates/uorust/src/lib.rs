@@ -20,6 +20,7 @@ mod facts;
 mod ingest;
 mod lex;
 mod lift;
+mod order;
 mod project;
 pub mod register;
 mod route;

@@ -92,7 +92,12 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterFirstWord is made
     And the interface call Interface::callThermoCoreRosterSpelled is made
     And the interface call Interface::callThermoCoreRosterSlots is made
-    Then the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
+    And the interface call Interface::callThermoCoreRosterQueue is made
+    And the interface call Interface::callThermoCoreRosterSortsBefore is made
+    And the interface call Interface::callThermoCoreRosterSameZone is made
+    And the interface call Interface::callThermoCoreRosterSetPoint is made
+    Then the acceptance row Interface::acThermoCoreThermoCoreRosterRequestsSortByPriorityThenRoom holds
+    And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsRooms holds
