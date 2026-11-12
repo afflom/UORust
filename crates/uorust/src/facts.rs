@@ -161,6 +161,9 @@ pub(crate) struct EnumFact {
     pub(crate) name: String,
     pub(crate) span: Span,
     pub(crate) derives: Vec<String>,
+    /// Whether a variant sets its discriminant (`A = 5`): the values MIR
+    /// switches on are then not the variants' positions.
+    pub(crate) explicit: bool,
     /// Variant name, whether it is a unit variant, its doc, whether `#[default]`.
     pub(crate) variants: Vec<Variant>,
 }

@@ -21,7 +21,12 @@ pub struct Options {
     /// A RustSec advisory database checkout to check the locked packages
     /// against; without one, the frontier records that none was consulted.
     pub advisories: Option<std::path::PathBuf>,
+    /// The MIR path of the lift, when it runs: see [`crate::mir`].
+    pub mir: Option<crate::mir::MirOptions>,
 }
+
+/// The largest source file the projection's LexLean project admits.
+const MAX_FILE_BYTES: usize = 4_194_304;
 
 const ARCH: &str = "Architecture";
 const IFACE: &str = "Interface";
@@ -225,6 +230,7 @@ pub(crate) fn project(
     ws: &Workspace,
     syntax: &Syntax,
     options: &Options,
+    dumps: Option<&crate::mir::Dumps>,
 ) -> BTreeMap<String, Vec<u8>> {
     let mut notes = Notes::default();
     for package in &ws.packages {
@@ -291,7 +297,8 @@ pub(crate) fn project(
     let security = security(&ctx, options);
     let (quality, refused) = quality(&ctx, iface.feature_count);
     notes.refusals.extend(refused);
-    let behavior = behavior(&ctx, syntax, &mut notes);
+    let mir = dumps.zip(options.mir.as_ref());
+    let (behavior, candidates) = behavior(&ctx, syntax, &mut notes, mir);
     let supply = supply(&ctx);
     modules.push(arch);
     modules.push(iface.module);
@@ -339,7 +346,7 @@ pub(crate) fn project(
          [[lexicon_source]]\npackage = \"prism.qual\"\nkind = \"path\"\npath = \"language/prism.qual\"\n\n\
          [[lexicon_source]]\npackage = \"prism.sec\"\nkind = \"path\"\npath = \"language/prism.sec\"\n\n\
          [[lexicon_source]]\npackage = \"uorust.titles\"\nkind = \"path\"\npath = \"language/uorust.titles\"\n\n\
-         [limits]\nmax_file_bytes = 4194304\nmax_total_source_bytes = 67108864\n\
+         [limits]\nmax_file_bytes = {MAX_FILE_BYTES}\nmax_total_source_bytes = 67108864\n\
          max_primitive_atoms = 2000000\nmax_token_lattice_edges = 4000000\nmax_parse_states = 4000000\n\
          max_ir_nodes = 2000000\nmax_scope_depth = 1024\nmax_import_depth = 128\nmax_diagnostics = 256\n\
          max_child_output_bytes = 16777216\nchild_timeout_ms = 300000\n",
@@ -388,6 +395,10 @@ pub(crate) fn project(
         files.insert(path, bytes);
     }
     files.insert("supply/spdx.json".into(), spdx(ws, options).into_bytes());
+    // The prover's trial run lists the translations it admitted on trial.
+    if let Some(listing) = candidates {
+        files.insert(crate::mir::CANDIDATES.into(), listing.into_bytes());
+    }
     // The κ of every function of product code: the question its row answers.
     let kappas: BTreeMap<String, String> = ctx
         .all_fns()
@@ -1368,11 +1379,24 @@ fn interface(ctx: &Model) -> (Interface, Vec<Refusal>) {
                         .filter(|(r, _)| reaches_literal(ctx, *r, |l| *l == command))
                         .map(|(_, row)| row.clone())
                         .collect();
-                    features.push(Feature {
-                        id: qualified(
+                    // A subcommand named as a library module of the same
+                    // crate is told apart from that module's feature.
+                    let mut id = qualified(
+                        IFACE,
+                        &format!("feature{}{}", pascal(&[bin]), pascal(&[&variant.name])),
+                    );
+                    if features.iter().any(|f| f.id == id) {
+                        id = qualified(
                             IFACE,
-                            &format!("feature{}{}", pascal(&[bin]), pascal(&[&variant.name])),
-                        ),
+                            &format!(
+                                "feature{}Command{}",
+                                pascal(&[bin]),
+                                pascal(&[&variant.name])
+                            ),
+                        );
+                    }
+                    features.push(Feature {
+                        id,
                         statement: text,
                         calls: vec![qualified(IFACE, &call)],
                         acceptance,
@@ -2887,7 +2911,12 @@ fn quality(ctx: &Model, features: usize) -> (Module, Vec<Refusal>) {
     (module, refusals)
 }
 
-fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
+fn behavior(
+    ctx: &Model,
+    syntax: &Syntax,
+    notes: &mut Notes,
+    mir: Option<(&crate::mir::Dumps, &crate::mir::MirOptions)>,
+) -> (Module, Option<String>) {
     let ws = &ctx.ws;
     let mut decls = Vec::new();
     // Unit-variant enums and structs with named fields of product code, by
@@ -3395,6 +3424,8 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     let mut ordered: BTreeSet<Ty> = BTreeSet::new();
     // Per crate: the lifted functions' signatures and their axioms.
     let mut results: Vec<(Sigs, Axioms)> = Vec::new();
+    // Every lifted function by its crate path, for the MIR path's calls.
+    let mut callees: BTreeMap<String, crate::mir::lower::Callee> = BTreeMap::new();
     let every_name: BTreeSet<String> = scoped
         .iter()
         .flat_map(|(candidates, _)| candidates.iter().map(|c| c.name.clone()))
@@ -3441,12 +3472,42 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 )
             })
             .collect();
+        for c in candidates {
+            if let (true, Some(&r)) = (
+                out.decls.iter().any(|d| d.name() == c.name),
+                names.get(&c.rust),
+            ) {
+                callees.insert(
+                    ctx.path(r),
+                    crate::mir::lower::Callee {
+                        name: c.name.clone(),
+                        params: c.params.iter().map(|(_, _, t)| t.clone()).collect(),
+                        result: c.result.clone(),
+                    },
+                );
+            }
+        }
         lifted.extend(out.decls);
         results.push((sigs, out.axioms));
     }
+    // The MIR path, for every function the surface lift left as residue.
+    let mut listing = None;
+    let mut translated = Vec::new();
+    if let Some((dumps, options)) = mir {
+        let mut taken = every_name.clone();
+        taken.extend(lifted.iter().map(|d| d.name().to_string()));
+        taken.extend(types.enums.keys().cloned());
+        taken.extend(types.structs.keys().cloned());
+        taken.extend(types.datas.keys().cloned());
+        let out = mir_lift(ctx, notes, dumps, options, &scopes, &callees, &taken);
+        mentioned.extend(out.types);
+        translated = out.decls;
+        listing = out.listing;
+    }
     // The enums, structs and tuples the lifted definitions name, each after
     // the types its fields name.
-    let rendered: Vec<String> = lifted.iter().map(crate::lex::render_decl).collect();
+    let mut rendered: Vec<String> = lifted.iter().map(crate::lex::render_decl).collect();
+    rendered.extend(translated.iter().map(crate::lex::render_decl));
     let compared: BTreeSet<String> = types
         .enums
         .keys()
@@ -3467,6 +3528,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         decls.extend(crate::order::decls(&ordered, &types));
     }
     decls.extend(lifted);
+    decls.extend(translated);
     // Closed assertions of tests over lifted functions are theorems.
     let mut theorems = BTreeSet::new();
     for &r in &all {
@@ -3495,13 +3557,378 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             }
         }
     }
-    Module {
-        name: BEHAVIOR.into(),
-        glossaries: vec![BOOL, NAT, TITLES],
-        imports: vec![lift::PRELUDE.into()],
-        title: "Lifted Rust behavior",
-        decls,
+    (
+        Module {
+            name: BEHAVIOR.into(),
+            glossaries: vec![BOOL, NAT, TITLES],
+            imports: vec![lift::PRELUDE.into()],
+            title: "Lifted Rust behavior",
+            decls,
+        },
+        listing,
+    )
+}
+
+/// What the MIR path adds to the behavior module.
+struct MirOut {
+    decls: Vec<Decl>,
+    types: BTreeSet<Ty>,
+    /// The trial run's listing of the translations it admitted on trial.
+    listing: Option<String>,
+}
+
+/// One function's translation.
+struct Translation {
+    r: FnRef,
+    path: String,
+    kappa: String,
+    name: String,
+    lowered: crate::mir::lower::Lowered,
+    digest: String,
+}
+
+/// The MIR path: every function the surface lift left as residue, whose
+/// body the dump holds, translated from MIR. A translation is admitted when
+/// the verdict register records it proved (or, on the prover's trial run,
+/// when it has no verdict yet) and every translation it calls is admitted;
+/// every other function's residue row names the MIR kind or the obligation
+/// that stopped it.
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+fn mir_lift(
+    ctx: &Model,
+    notes: &mut Notes,
+    dumps: &crate::mir::Dumps,
+    options: &crate::mir::MirOptions,
+    scopes: &[Types],
+    lifted: &BTreeMap<String, crate::mir::lower::Callee>,
+    taken: &BTreeSet<String>,
+) -> MirOut {
+    use crate::mir::lower;
+    use crate::mir::verdict::Decision;
+    let widths = lift::pointer_widths(&ctx.ws.targets);
+    // Enums whose variants set their discriminants, by LexLean name.
+    let mut explicit: BTreeSet<String> = BTreeSet::new();
+    for (pkg, package) in ctx.ws.packages.iter().enumerate() {
+        for file in &package.files {
+            for e in file.enums.iter().filter(|e| e.explicit) {
+                explicit.insert(scopes[pkg].resolve(&e.name));
+            }
+        }
     }
+    let product: BTreeMap<String, FnRef> = ctx
+        .all_fns()
+        .into_iter()
+        .filter(|&r| ctx.product(r))
+        .map(|r| (ctx.path(r), r))
+        .collect();
+    // The residue functions whose bodies the dump holds, with their names
+    // and signatures.
+    let mut todo: Vec<(FnRef, String, &crate::mir::IrBody)> = Vec::new();
+    let mut callees = lifted.clone();
+    let mut names: BTreeSet<String> = taken.clone();
+    let residue: Vec<String> = notes.residue.keys().cloned().collect();
+    for path in residue {
+        let Some(&r) = product.get(&path) else {
+            continue;
+        };
+        let krate = ctx.crate_ident(r);
+        let local = path
+            .strip_prefix(&format!("{krate}::"))
+            .unwrap_or(&path)
+            .to_string();
+        let Some(body) = dumps.crates.get(&krate).and_then(|c| c.get(&local)) else {
+            continue;
+        };
+        let f = ctx.func(r);
+        let base = match &f.owner {
+            Some(o) => lift::local_name(&format!("{o}_{}", f.name)),
+            None => lift::local_name(&f.name),
+        };
+        let name = if names.contains(&base) {
+            lift::local_name(&format!("{}_{base}", ctx.package(r).name))
+        } else {
+            base
+        };
+        if !names.insert(name.clone()) {
+            let span = f.span.clone();
+            notes.residue.insert(path, (span, Residue::Collision(name)));
+            continue;
+        }
+        let types = &scopes[r.pkg];
+        let sig: Result<(Vec<Ty>, Ty), Residue> = (|| {
+            let mut params = Vec::new();
+            for l in 1..=body.arity {
+                params.push(lower::ty(&body.locals[l], types)?);
+            }
+            Ok((params, lower::ty(&body.locals[0], types)?))
+        })();
+        match sig {
+            Ok((params, result)) => {
+                callees.insert(
+                    path.clone(),
+                    lower::Callee {
+                        name: name.clone(),
+                        params,
+                        result,
+                    },
+                );
+                todo.push((r, name, body));
+            }
+            Err(reason) => {
+                let span = f.span.clone();
+                notes.residue.insert(path, (span, mir_residue(reason)));
+            }
+        }
+    }
+    // The functions the MIR path translates, by LexLean name.
+    let translations: BTreeMap<String, String> = todo
+        .iter()
+        .map(|(r, name, _)| (name.clone(), ctx.path(*r)))
+        .collect();
+    // Translate each.
+    let mut done: BTreeMap<String, Translation> = BTreeMap::new();
+    for (r, name, body) in todo {
+        let path = ctx.path(r);
+        let cx = lower::Cx {
+            types: &scopes[r.pkg],
+            widths: &widths,
+            callees: &callees,
+            krate: ctx.crate_ident(r),
+            taken: &names,
+            explicit: &explicit,
+            limit: MAX_FILE_BYTES,
+        };
+        match lower::lower(&cx, body, &name) {
+            Ok(lowered) => {
+                let text: String = lowered
+                    .aux
+                    .values()
+                    .chain(&lowered.decls)
+                    .map(crate::lex::render_decl)
+                    .collect();
+                let digest = sha(text.as_bytes());
+                let kappa = crate::register::kappa(&path, &ctx.func(r).tokens);
+                done.insert(
+                    name.clone(),
+                    Translation {
+                        r,
+                        path,
+                        kappa,
+                        name,
+                        lowered,
+                        digest,
+                    },
+                );
+            }
+            Err(reason) => {
+                let span = ctx.func(r).span.clone();
+                notes.residue.insert(path, (span, mir_residue(reason)));
+            }
+        }
+    }
+    // Admission: a verdict of the digest, or the trial; then every
+    // translation a translation calls must be admitted too.
+    let mut admitted: BTreeMap<String, bool> = BTreeMap::new();
+    let mut causes: BTreeMap<String, String> = BTreeMap::new();
+    let mut on_trial: BTreeSet<String> = BTreeSet::new();
+    for t in done.values() {
+        let verdict = options
+            .verdicts
+            .rows
+            .get(&t.kappa)
+            .filter(|v| v.digest == t.digest);
+        let ok = match verdict.map(|v| &v.status) {
+            Some(Decision::Proved) => true,
+            Some(Decision::Refused(cause)) => {
+                causes.insert(t.name.clone(), format!("Verdict: {cause}"));
+                false
+            }
+            None if options.trial.admits(&t.kappa) => {
+                on_trial.insert(t.name.clone());
+                true
+            }
+            None => {
+                causes.insert(
+                    t.name.clone(),
+                    "Verdict: a translation the verifier has not decided yet".to_string(),
+                );
+                false
+            }
+        };
+        admitted.insert(t.name.clone(), ok);
+    }
+    loop {
+        let mut changed = false;
+        for t in done.values() {
+            if !admitted[&t.name] {
+                continue;
+            }
+            let stopped = t
+                .lowered
+                .calls
+                .iter()
+                .find(|c| translations.contains_key(*c) && admitted.get(*c) != Some(&true));
+            if let Some(c) = stopped {
+                let callee = translations[c].clone();
+                causes.insert(
+                    t.name.clone(),
+                    format!("TerminatorKind::Call: {callee}, whose translation is not admitted"),
+                );
+                admitted.insert(t.name.clone(), false);
+                on_trial.remove(&t.name);
+                changed = true;
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    // The admitted translations, each after the translations it calls, with
+    // the axioms the verifier observed.
+    let mut order: Vec<String> = Vec::new();
+    let mut placed: BTreeSet<String> = BTreeSet::new();
+    let names_in: Vec<String> = done.keys().cloned().collect();
+    for n in &names_in {
+        place_after_callees(n, &done, &admitted, &mut placed, &mut order);
+    }
+    let mut out = MirOut {
+        decls: Vec::new(),
+        types: BTreeSet::new(),
+        listing: None,
+    };
+    let mut aux: BTreeMap<String, Decl> = BTreeMap::new();
+    let mut body_decls = Vec::new();
+    let mut listing = String::from("spec = \"uorust/mir-candidates/1\"\n");
+    for n in &order {
+        let t = &done[n];
+        let learned = options
+            .verdicts
+            .rows
+            .get(&t.kappa)
+            .filter(|v| v.digest == t.digest)
+            .map(|v| v.axioms.clone())
+            .or_else(|| options.learned.get(&t.kappa).cloned())
+            .unwrap_or_default();
+        for (k, d) in &t.lowered.aux {
+            aux.entry(k.clone())
+                .or_insert_with(|| with_axioms(d.clone(), &learned));
+        }
+        for d in &t.lowered.decls {
+            body_decls.push(with_axioms(d.clone(), &learned));
+        }
+        out.types.extend(t.lowered.types.iter().cloned());
+        notes.residue.remove(&t.path);
+        notes.lifted.insert(
+            t.path.clone(),
+            (
+                ctx.func(t.r).span.clone(),
+                qualified(BEHAVIOR, &t.name),
+                Vec::new(),
+            ),
+        );
+    }
+    for t in done.values() {
+        let decls: Vec<String> = t
+            .lowered
+            .aux
+            .keys()
+            .cloned()
+            .chain(t.lowered.decls.iter().map(|d| d.name().to_string()))
+            .map(|d| toml_string(&d))
+            .collect();
+        listing.push_str(&format!(
+            "\n[[candidate]]\nkappa = {}\nfunction = {}\ndigest = {}\ntrial = {}\ndecls = [{}]\n",
+            toml_string(&t.kappa),
+            toml_string(&t.path),
+            toml_string(&t.digest),
+            on_trial.contains(&t.name),
+            decls.join(", ")
+        ));
+        if let Some(cause) = causes.get(&t.name) {
+            let span = ctx.func(t.r).span.clone();
+            notes
+                .residue
+                .insert(t.path.clone(), (span, Residue::Mir(cause.clone())));
+        }
+    }
+    out.decls.extend(aux.into_values());
+    out.decls.extend(body_decls);
+    if options.trial != crate::mir::Trial::Off {
+        out.listing = Some(listing);
+    }
+    out
+}
+
+/// A translation's residue: a type the lift does not name is a MIR type
+/// residue too.
+fn mir_residue(reason: Residue) -> Residue {
+    match reason {
+        Residue::Mir(_) => reason,
+        Residue::Type(t) => Residue::Mir(format!("Ty: {t}")),
+        other => Residue::Mir(format!("Body: {}", other.detail())),
+    }
+}
+
+/// `decl` with the axioms the verifier observed for it, where it reported
+/// them.
+fn with_axioms(decl: Decl, learned: &BTreeMap<String, Vec<String>>) -> Decl {
+    let Some(observed) = learned.get(decl.name()) else {
+        return decl;
+    };
+    match decl {
+        Decl::Definition {
+            name,
+            parameters,
+            result,
+            body,
+            recursive,
+            termination,
+            mutual,
+            ..
+        } => Decl::Definition {
+            name,
+            parameters,
+            result,
+            body,
+            axioms: observed.clone(),
+            recursive,
+            termination,
+            mutual,
+        },
+        Decl::Theorem {
+            name,
+            parameters,
+            statement,
+            proof,
+            ..
+        } => Decl::Theorem {
+            name,
+            parameters,
+            statement,
+            proof,
+            axioms: observed.clone(),
+        },
+        other => other,
+    }
+}
+
+/// Place translation `n` after every admitted translation it calls.
+fn place_after_callees(
+    n: &str,
+    done: &BTreeMap<String, Translation>,
+    admitted: &BTreeMap<String, bool>,
+    placed: &mut BTreeSet<String>,
+    order: &mut Vec<String>,
+) {
+    if !admitted.get(n).copied().unwrap_or(false) || !placed.insert(n.to_string()) {
+        return;
+    }
+    for c in &done[n].lowered.calls {
+        if done.contains_key(c) {
+            place_after_callees(c, done, admitted, placed, order);
+        }
+    }
+    order.push(n.to_string());
 }
 
 /// The definition deciding equality of a unit-variant enum's values: a

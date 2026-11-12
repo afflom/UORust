@@ -102,3 +102,9 @@ Feature: engine
     Given this workspace, the thermostat fixture and their committed lift registers
     When the suite exercises UE-16
     Then every function of product code counted from the source has exactly one typed row keyed by its κ, a divergence appears on lifted rows only and the register keeps it, no κ a committed register records as lifted is decided otherwise, this workspace's register is current, and a planted function whose callee stops lifting is refused by the register, by uorust write and by uorust check
+
+  @UE-17 @build
+  Scenario: The lift translates MIR mechanically
+    Given the mir-path fixture, its committed verdict register and the vendored MIR definition of the pinned toolchain
+    When the suite exercises UE-17
+    Then every MIR kind has a coverage row, the trial projection lists a loop helper with its measure and decrease theorems and a theorem per obligation, the mutable borrow is a residue row naming its MIR cause, the proved translation lifts, the refused one is residue naming the verifier's diagnostic, and a verdict of another digest admits nothing

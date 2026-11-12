@@ -467,9 +467,11 @@ def absent(control, needle):
     """Review evidence that no line of uorust's code (doc comments aside) names `needle`."""
     import os
     base = "crates/uorust/src"
-    for f in sorted(os.listdir(f"{SRC}/{base}")):
-        for i, l in enumerate(lines_of(f"{base}/{f}")):
-            assert needle not in l or l.strip().startswith("//"), f"{base}/{f}:{i + 1} names {needle}"
+    for d, _, fs in sorted(os.walk(f"{SRC}/{base}")):
+        for f in sorted(fs):
+            rel = os.path.relpath(f"{d}/{f}", SRC)
+            for i, l in enumerate(lines_of(rel)):
+                assert needle not in l or l.strip().startswith("//"), f"{rel}:{i + 1} names {needle}"
     return ("review", f"no line of {base} names {needle} outside a doc comment (checked by scripts/self-model/facets.py)")
 assets = [
     ("assetSubjectSource", "componentSubjectWorkspace", "Subject source code", "The manifests, lock file and Rust sources uorust reads. They may be private and must not leave the machine."),
@@ -496,8 +498,8 @@ threats = [
 ]
 controls = [
     # name, threat(for riskIndex), title, text, evidence [(kind, ref)]
-    ("controlNoBuildExecution", "threatBuildScriptExecution", "No build of the subject", "uorust reads the workspace through cargo metadata and syn only; it never compiles the subject or runs its build scripts or macros.", [review("controlNoBuildExecution", "crates/uorust/src/ingest.rs", "syn::parse_file(&text)"), gate("controlNoBuildExecution", "UE-01")]),
-    ("controlOffline", "threatSourceExfiltration", "No network", "uorust links no network client, and cargo metadata runs with --offline against the subject's lock file.", [("gate", "cargo deny check over Cargo.lock"), absent("controlOffline", "std::net")]),
+    ("controlNoBuildExecution", "threatBuildScriptExecution", "No build of the subject but its MIR dump", "uorust project, check and prove read the workspace through cargo metadata and syn only and never compile the subject; uorust mir alone compiles it with cargo, running its build scripts and macros as any build of it does, to dump the MIR the lift translates, and it is run only on a workspace the reviewer would build.", [review("controlNoBuildExecution", "crates/uorust/src/ingest.rs", "syn::parse_file(&text)"), review("controlNoBuildExecution", "crates/uorust/src/mir/mod.rs", '.env("RUSTC_BOOTSTRAP", "1")'), gate("controlNoBuildExecution", "UE-01")]),
+    ("controlOffline", "threatSourceExfiltration", "No network", "uorust links no network client, and every cargo command it runs (cargo metadata, and the MIR dump's cargo clean and cargo rustc) runs with --offline against the subject's lock file.", [("gate", "cargo deny check over Cargo.lock"), absent("controlOffline", "std::net")]),
     ("controlBoundedIngest", "threatCraftedSourceExhaustion", "Bounded ingest", "Every read is bounded in size and every walk in depth; a bound that is hit ends the run with a typed error.", [gate("controlBoundedIngest", "UE-06")]),
     ("controlVerifiedRouteTable", "threatMisroutedFact", "Verified route table", "The route table is a LexLean function proved total and ambiguity-refusing by decide, and checked by the Lean kernel.", [("proof", "Routes::routeTableIsTotal"), ("proof", "Routes::routeTableRefusesAmbiguity"), ("gate", "prismpm --project app verify")]),
     ("controlRouterConformance", "threatMisroutedFact", "Router conformance", "The Rust router replays every vector of model/routes.toml, the same vectors the verified guest replays.", [gate("controlRouterConformance", "UE-05")]),

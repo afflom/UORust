@@ -1,0 +1,21 @@
+# The verdict register of the MIR path, written by `uorust prove`: for each
+# translated function (by the κ of its question and the SHA-256 of its
+# translation), whether `lexlean verify` proved every theorem of the
+# translation, and the axioms each declaration elaborated with. A
+# projection admits a translation only on a proved row of its digest.
+
+spec = "uorust/verdicts/1"
+
+[[verdict]]
+kappa = "0520ec10db16e929cd8004aa5c36ee538d88b254d9e98a13f776a9fee2fc83e8"
+function = "walk::capped_sum"
+digest = "b712a2c3ada35c8d1e3dd268504520b2c248427a478db1675e773d1f738d97aa"
+status = "proved"
+axioms = { holds_walkCappedSum_0 = ["propext"], walkCappedSum = ["Quot.sound", "propext"] }
+
+[[verdict]]
+kappa = "92f29729e59db6f0ba761fd066a311b0e1e7a7ee3974ce2a343a7651623672b0"
+function = "walk::count"
+digest = "7377cd8167315984b15df8f4781ac84a243f909393a4ccbd4afbbf59fd8d3f8d"
+status = "refused"
+cause = "LLV7002: Lean rejected `Walk.Behavior` (error): omega could not prove the goal:"

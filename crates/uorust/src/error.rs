@@ -38,6 +38,9 @@ pub enum UorustError {
     /// A function the incumbent lift register records as lifted (a proved
     /// claim, by κ) is decided unlifted by this projection.
     Regressed(Vec<String>),
+    /// A tool the engine runs could not be run or failed: `cargo rustc`
+    /// dumping MIR, or `lexlean verify` deciding the MIR path's theorems.
+    Tool(String),
 }
 
 impl fmt::Display for UorustError {
@@ -74,6 +77,7 @@ impl fmt::Display for UorustError {
                 "a lifted function is no longer lifted, and a lifted κ is never re-decided: {}",
                 rows.join("; ")
             ),
+            Self::Tool(reason) => write!(f, "{reason}"),
         }
     }
 }

@@ -917,6 +917,7 @@ fn items(
                         line: e.ident.span().start().line,
                     },
                     derives: derives(&attrs(&e.attrs)),
+                    explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
                     variants: e
                         .variants
                         .iter()

@@ -1,0 +1,18 @@
+# Where syntax.rs comes from: rustc's own definition of MIR at the exact
+# toolchain rust-toolchain.toml pins, fetched by scripts/mir/fetch-syntax.sh.
+# crates/uorust/src/mir/spec.rs is generated from it (the enums of MIR's
+# statement, rvalue, operand, place projection, terminator and operator
+# kinds), and the translator matches every one of those enums exhaustively,
+# so a toolchain whose MIR has a kind the translator does not name fails to
+# compile until the kind is lowered or made a typed residue.
+#
+# syntax.rs is part of the Rust project (https://github.com/rust-lang/rust),
+# licensed MIT OR Apache-2.0, with its comment lines removed (only the
+# declarations are read); upstream_sha256 is the file as rustc ships it,
+# sha256 the file here.
+toolchain = "1.97.1"
+repository = "https://github.com/rust-lang/rust"
+commit = "bd3cd8fdf9945e13d317642df03363bfa1b4c30e"
+path = "compiler/rustc_middle/src/mir/syntax.rs"
+upstream_sha256 = "46f31a7152754d78ab16327a1942b2e27058746bdd945df012d8646bf0cfcbb0"
+sha256 = "055bfc5e061f716a64beea97b701bef2dbd9e7e4b9d4104daca9d3c9eb4fc5f4"

@@ -166,6 +166,59 @@ impl Register {
             .count()
     }
 
+    /// The honesty report: how many functions lifted, and every row that
+    /// did not by its cause (a residue row of the MIR path by the MIR kind
+    /// or obligation that stopped it), as comment lines.
+    pub fn honesty(&self) -> String {
+        let mut by: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+        let (mut foreign, mut effect) = (0usize, 0usize);
+        let mut mir = false;
+        for row in self.rows.values() {
+            match &row.status {
+                Status::Lifted(_) => {}
+                Status::Foreign(_) => foreign += 1,
+                Status::Effect(_) => effect += 1,
+                Status::Residue(reason, detail) => {
+                    let (cause, rest) = match detail.strip_prefix("mir::") {
+                        Some(d) => {
+                            mir = true;
+                            match d.split_once(": ") {
+                                Some((kind, rest)) => (format!("mir::{kind}"), rest.to_string()),
+                                None => (format!("mir::{d}"), String::new()),
+                            }
+                        }
+                        None => (reason.clone(), detail.clone()),
+                    };
+                    *by.entry(cause).or_default().entry(rest).or_default() += 1;
+                }
+            }
+        }
+        let residue: usize = by.values().flat_map(BTreeMap::values).sum();
+        let mut out = format!(
+            "# Honesty report: {} of {} functions of product code are lifted; {residue}\n\
+             # are residue, {foreign} foreign and {effect} effect rows.\n",
+            self.lifted(),
+            self.rows.len()
+        );
+        if residue > 0 {
+            out.push_str("# Residue by cause:\n");
+        }
+        for (cause, details) in &by {
+            let n: usize = details.values().sum();
+            out.push_str(&format!("#   {cause}: {n}\n"));
+            if cause.starts_with("mir::") {
+                for (detail, k) in details.iter().filter(|(d, _)| !d.is_empty()) {
+                    out.push_str(&format!("#     {k} {detail}\n"));
+                }
+            }
+        }
+        if mir {
+            out.push_str(&crate::mir::coverage::report());
+        }
+        out.push('\n');
+        out
+    }
+
     /// The register file: one row per function, by table and then function,
     /// without spans, so that only a function's own source moves its row.
     pub fn to_text(&self) -> String {
@@ -175,6 +228,7 @@ impl Register {
              # proved claim; a later projection that decides it unlifted is refused.\n\n\
              spec = \"{SCHEMA}\"\n"
         );
+        out.insert_str(out.find("spec = ").unwrap_or(0), &self.honesty());
         let mut rows: Vec<(&String, &Row)> = self.rows.iter().collect();
         rows.sort_by(|a, b| a.1.function.cmp(&b.1.function));
         for table in ["residue", "foreign", "effect", "lifted"] {

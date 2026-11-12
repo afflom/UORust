@@ -1,5 +1,5 @@
 //! The engine against its fixture, against this workspace, and against planted
-//! defects (`UE-01` .. `UE-15`).
+//! defects (`UE-01` .. `UE-17`).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -29,11 +29,56 @@ fn options(name: &str) -> Options {
         name: name.to_string(),
         last_modified: STAMP.to_string(),
         advisories: None,
+        mir: None,
     }
 }
 
+/// A projection; this workspace's runs the MIR path on its committed verdict
+/// register, as `just register` and `just uorust` do.
 fn project(root: &Path, name: &str) -> BTreeMap<String, Vec<u8>> {
-    uorust::project_workspace(root, &options(name)).expect("projects")
+    let mut options = options(name);
+    if root == self::root() {
+        options.mir = Some(mir_options(
+            dumped(root, name),
+            verdicts(&root.join("lift-verdicts.toml")),
+            uorust::mir::Trial::Off,
+        ));
+    }
+    uorust::project_workspace(root, &options).expect("projects")
+}
+
+/// The MIR of the workspace at `root`, dumped once per test run.
+fn dumped(root: &Path, name: &str) -> PathBuf {
+    static DUMPS: std::sync::Mutex<BTreeMap<String, PathBuf>> =
+        std::sync::Mutex::new(BTreeMap::new());
+    let mut dumps = DUMPS
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    dumps
+        .entry(name.to_string())
+        .or_insert_with(|| {
+            let out = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(format!("mir-{name}"));
+            uorust::mir::dump(root, &out).expect("the MIR dumps");
+            out
+        })
+        .clone()
+}
+
+fn verdicts(path: &Path) -> uorust::mir::verdict::Verdicts {
+    uorust::mir::verdict::Verdicts::read(path).expect("the verdict register parses")
+}
+
+fn mir_options(
+    dumps: PathBuf,
+    verdicts: uorust::mir::verdict::Verdicts,
+    trial: uorust::mir::Trial,
+) -> uorust::mir::MirOptions {
+    uorust::mir::MirOptions {
+        dumps,
+        verdicts,
+        trial,
+        learned: BTreeMap::new(),
+    }
 }
 
 /// The frontier without its lifted rows, which come last: what did not lift.
@@ -236,6 +281,7 @@ fn every_failure_is_a_typed_variant_ue_06() {
         name: "x".into(),
         last_modified: "yesterday".into(),
         advisories: None,
+        mir: None,
     };
     assert!(matches!(
         uorust::project_workspace(&fixture(), &bad_stamp),
@@ -604,7 +650,13 @@ fn every_feature_of_this_workspace_is_accepted_ue_13() {
         "{frontier}"
     );
     let interface = text(&files, "src/Interface.lex.tex");
-    for feature in ["featureRepoModelCodegen", "featureXtaskMain"] {
+    // `uorust mir` and the module `uorust::mir` are two features, told apart.
+    for feature in [
+        "featureRepoModelCodegen",
+        "featureXtaskMain",
+        "featureUorustMir",
+        "featureUorustCommandMir",
+    ] {
         assert!(
             interface.contains(&format!("name: {feature},")),
             "{feature}"
@@ -1120,4 +1172,176 @@ fn a_lifted_kappa_that_turns_unlifted_is_refused_ue_16() {
     for dir in [before, after, out] {
         let _ = std::fs::remove_dir_all(dir);
     }
+}
+
+fn mir_fixture() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/mir-path")
+}
+
+/// The fixture projected through the MIR path on `verdicts`.
+fn walk(
+    verdicts: uorust::mir::verdict::Verdicts,
+    trial: uorust::mir::Trial,
+) -> BTreeMap<String, Vec<u8>> {
+    let root = mir_fixture();
+    let mut options = options("walk");
+    options.mir = Some(mir_options(dumped(&root, "walk"), verdicts, trial));
+    uorust::project_workspace(&root, &options).expect("projects")
+}
+
+/// The detail of the residue row of `function` in a projection's frontier.
+fn residue_detail(files: &BTreeMap<String, Vec<u8>>, function: &str) -> Option<String> {
+    let frontier: toml::Value = toml::from_str(&text(files, "frontier.toml")).expect("frontier");
+    frontier
+        .get("residue")
+        .and_then(|v| v.as_array())
+        .into_iter()
+        .flatten()
+        .find(|r| r.get("function").and_then(|v| v.as_str()) == Some(function))
+        .and_then(|r| r.get("detail").and_then(|v| v.as_str()))
+        .map(str::to_string)
+}
+
+fn lifted_functions(files: &BTreeMap<String, Vec<u8>>) -> Vec<String> {
+    let frontier: toml::Value = toml::from_str(&text(files, "frontier.toml")).expect("frontier");
+    frontier
+        .get("lifted")
+        .and_then(|v| v.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|r| r.get("function").and_then(|v| v.as_str()))
+        .map(str::to_string)
+        .collect()
+}
+
+#[test]
+fn every_mir_kind_of_the_pinned_toolchain_has_a_coverage_row_ue_17() {
+    let toolchain = std::fs::read_to_string(root().join("rust-toolchain.toml")).expect("toolchain");
+    let source =
+        std::fs::read_to_string(root().join("crates/uorust/mir/SOURCE.toml")).expect("source");
+    let channel = |text: &str, key: &str| {
+        text.lines()
+            .find_map(|l| l.strip_prefix(&format!("{key} = \"")))
+            .and_then(|v| v.strip_suffix('"'))
+            .unwrap_or_default()
+            .to_string()
+    };
+    assert_eq!(
+        channel(&source, "toolchain"),
+        channel(&toolchain, "channel")
+    );
+    let report = uorust::mir::coverage::report();
+    assert!(report.contains(&format!("at toolchain {}", channel(&toolchain, "channel"))));
+    for kind in [
+        "StatementKind::Assign: lowered",
+        "TerminatorKind::SwitchInt: lowered",
+        "TerminatorKind::Assert: lowered",
+        "Rvalue::BinaryOp: lowered",
+        "BinOp::AddWithOverflow: lowered",
+        "Rvalue::RawPtr: residue",
+        "TerminatorKind::InlineAsm: residue",
+    ] {
+        assert!(report.contains(kind), "no coverage row {kind}");
+    }
+}
+
+#[test]
+fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
+    use uorust::mir::verdict::Decision;
+    use uorust::mir::Trial;
+    // The dump: one file per body of the library.
+    let fresh = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("mir-walk-fresh");
+    uorust::mir::dump(&mir_fixture(), &fresh).expect("the MIR dumps");
+    assert!(std::fs::read_dir(fresh.join("lib-walk"))
+        .expect("the library's dumps")
+        .filter_map(|e| e.ok()?.file_name().into_string().ok())
+        .any(|n| n.starts_with("walk.count.")));
+    // The trial run: every translation is admitted, with its loop helper,
+    // the helper's measure and decrease theorems, and a theorem per
+    // obligation; the prover reads the listing of candidates.
+    let trial = walk(Default::default(), Trial::All);
+    let behavior = text(&trial, "src/Behavior.lex.tex");
+    for decl in [
+        "name: walkCappedSumLoop1,",
+        "name: decreases_walkCappedSumLoop1_0,",
+        "name: holds_walkCappedSum_0,",
+        "name: walkCappedSum,",
+        "name: walkCount,",
+        "termination: {",
+    ] {
+        assert!(behavior.contains(decl), "the trial projection lacks {decl}");
+    }
+    let listing = text(&trial, uorust::mir::CANDIDATES);
+    for function in ["walk::capped_sum", "walk::count"] {
+        assert!(
+            listing.contains(&format!("function = \"{function}\"\ndigest = ")),
+            "{function} is not a candidate"
+        );
+    }
+    // A kind or type the translator does not lower is a residue row that
+    // names it.
+    assert_eq!(
+        residue_detail(&trial, "walk::bump").as_deref(),
+        Some("mir::Ty: &mut u32")
+    );
+
+    // The committed verdicts: the proved translation lifts, the refused one
+    // is residue naming the verifier's diagnostic.
+    let committed = verdicts(&mir_fixture().join("lift-verdicts.toml"));
+    let decided = walk(committed.clone(), Trial::Off);
+    assert!(lifted_functions(&decided).contains(&"walk::capped_sum".to_string()));
+    assert!(text(&decided, "src/Behavior.lex.tex").contains("name: walkCappedSumLoop1,"));
+    assert!(!decided.contains_key(uorust::mir::CANDIDATES));
+    let count = residue_detail(&decided, "walk::count").expect("count is residue");
+    assert!(count.starts_with("mir::Verdict: LLV"), "{count}");
+    // The MIR path only adds: whatever lifts without it lifts with it.
+    let surface = project(&mir_fixture(), "walk");
+    for f in lifted_functions(&surface) {
+        assert!(
+            lifted_functions(&decided).contains(&f),
+            "{f} stopped lifting"
+        );
+    }
+
+    // A verdict of another digest admits nothing: a changed translation is a
+    // new question.
+    let mut stale = committed;
+    for v in stale.rows.values_mut() {
+        if v.status == Decision::Proved {
+            v.digest = "0".repeat(64);
+        }
+    }
+    let planted = walk(stale, Trial::Off);
+    assert!(!lifted_functions(&planted).contains(&"walk::capped_sum".to_string()));
+    assert_eq!(
+        residue_detail(&planted, "walk::capped_sum").as_deref(),
+        Some("mir::Verdict: a translation the verifier has not decided yet")
+    );
+    assert!(!text(&planted, "src/Behavior.lex.tex").contains("name: walkCappedSum,"));
+}
+
+/// `prove` on a register that decides every translation runs no verifier and
+/// writes the same register back.
+#[test]
+fn the_prover_keeps_a_decided_register_ue_17() {
+    let root = mir_fixture();
+    let committed = std::fs::read_to_string(root.join("lift-verdicts.toml")).expect("verdicts");
+    let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("mir-walk-prove");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("scratch");
+    let verdicts = dir.join("lift-verdicts.toml");
+    std::fs::write(&verdicts, &committed).expect("verdicts");
+    let summary = uorust::mir::prove(
+        &root,
+        &options("walk"),
+        &dumped(&root, "walk"),
+        &verdicts,
+        &dir.join("scratch"),
+    )
+    .expect("proves");
+    assert_eq!((summary.proved, summary.refused, summary.runs), (0, 0, 0));
+    assert_eq!(
+        std::fs::read_to_string(&verdicts).expect("verdicts"),
+        committed
+    );
 }

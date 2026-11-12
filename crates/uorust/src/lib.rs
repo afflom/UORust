@@ -20,6 +20,7 @@ mod facts;
 mod ingest;
 mod lex;
 mod lift;
+pub mod mir;
 mod order;
 mod project;
 pub mod register;
@@ -45,7 +46,11 @@ pub fn project_workspace(
         return Err(UorustError::BadTimestamp(options.last_modified.clone()));
     }
     let (workspace, syntax) = ingest::workspace(root, options.advisories.as_deref())?;
-    let mut files = project::project(&workspace, &syntax, options);
+    let dumps = match &options.mir {
+        Some(m) => Some(mir::load(root, &m.dumps)?),
+        None => None,
+    };
+    let mut files = project::project(&workspace, &syntax, options, dumps.as_ref());
     let manifest: String = files
         .iter()
         .map(|(path, bytes)| format!("{}  {path}\n", project::sha(bytes)))

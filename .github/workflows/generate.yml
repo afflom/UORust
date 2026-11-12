@@ -5,7 +5,10 @@
 # a push that forgot one is followed by the commit that runs it. Each hour it
 # also re-pins the brand to uor.foundation's newest main (brand/foundation.lock),
 # so the brand, design and context-of-use facets regenerate from it; a site
-# change that breaks a WCAG contrast fails the writer and is not pinned.
+# change that breaks a WCAG contrast fails the writer and is not pinned. Every
+# run re-decides the MIR path's translations (`uorust prove`) and publishes the
+# lift's honesty report: how many functions lifted, and the residue by the MIR
+# kind or obligation that stopped it.
 name: generate
 
 on:
@@ -28,7 +31,7 @@ jobs:
   generate:
     name: run every writer and push what changed
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 90
     permissions:
       contents: write
       actions: write
@@ -50,11 +53,22 @@ jobs:
       - name: Run every writer through the locked SDK
         shell: bash
         run: scripts/ci/sdk.sh 'just generate'
+      - name: Publish the lift's honesty report
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Lift honesty report'
+            echo
+            echo '```'
+            sed -n '/^# Honesty report/,/^$/p' frontier.toml | sed 's/^# \{0,1\}//'
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
       - name: Push the regenerated files and dispatch the gate and the page
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           scripts/ci/push.sh "Regenerate the generated files" \
-            "CONFORMANCE.md README.md app model brand frontier.toml crates/uorust/tests/fixtures/thermostat-prism" \
+            "CONFORMANCE.md README.md app model brand frontier.toml lift-verdicts.toml crates/uorust/tests/fixtures/thermostat-prism" \
             bootstrap.yml pages.yml

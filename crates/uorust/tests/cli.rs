@@ -1,4 +1,5 @@
-//! The `uorust` binary end to end: `project`, `check` and `routes`.
+//! The `uorust` binary end to end: `project`, `check`, `routes`, `mir` and
+//! `prove`.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -125,4 +126,68 @@ fn the_cli_projects_a_fresh_package_without_an_empty_module_ue_01() {
         );
     }
     let _ = std::fs::remove_dir_all(base);
+}
+
+/// `mir` dumps the fixture's MIR, and `prove` on its committed verdict
+/// register, which decides every translation, runs no verifier and leaves the
+/// register as it was.
+#[test]
+fn the_cli_dumps_mir_and_proves_on_the_verdicts_ue_17() {
+    let tmp = std::env::temp_dir().join(format!("uorust-cli-mir-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(&tmp).expect("scratch");
+    let dumps = tmp.join("mir");
+    let dumps_arg = dumps.to_string_lossy().to_string();
+    let dumped = uorust(&[
+        "mir",
+        "tests/fixtures/mir-path",
+        "--out",
+        dumps_arg.as_str(),
+    ]);
+    assert!(
+        dumped.status.success(),
+        "{}",
+        String::from_utf8_lossy(&dumped.stderr)
+    );
+    let bodies: Vec<String> = std::fs::read_dir(dumps.join("lib-walk"))
+        .expect("the library's dumps")
+        .filter_map(|e| e.ok()?.file_name().into_string().ok())
+        .collect();
+    assert!(
+        bodies.iter().any(|b| b.starts_with("walk.capped_sum.")),
+        "{bodies:?}"
+    );
+    let committed =
+        std::fs::read_to_string(manifest_dir().join("tests/fixtures/mir-path/lift-verdicts.toml"))
+            .expect("the committed verdicts");
+    let verdicts = tmp.join("lift-verdicts.toml");
+    std::fs::write(&verdicts, &committed).expect("verdicts");
+    let (out, scratch) = (tmp.join("out"), tmp.join("prove"));
+    let proved = uorust(&[
+        "prove",
+        "tests/fixtures/mir-path",
+        "--name",
+        "walk",
+        "--last-modified",
+        "2026-11-11T00:00:00Z",
+        "--out",
+        &out.to_string_lossy(),
+        "--scratch",
+        &scratch.to_string_lossy(),
+        "--mir",
+        dumps_arg.as_str(),
+        "--verdicts",
+        &verdicts.to_string_lossy(),
+    ]);
+    assert!(
+        proved.status.success(),
+        "{}",
+        String::from_utf8_lossy(&proved.stderr)
+    );
+    assert!(String::from_utf8_lossy(&proved.stdout).contains("in 0 verifier runs"));
+    assert_eq!(
+        std::fs::read_to_string(&verdicts).expect("verdicts"),
+        committed
+    );
+    let _ = std::fs::remove_dir_all(tmp);
 }

@@ -65,18 +65,33 @@ uorust:
     cargo run -q --locked -p uorust -- check crates/uorust/tests/fixtures/thermostat --out crates/uorust/tests/fixtures/thermostat-prism --name thermostat --last-modified 2026-11-11T00:00:00Z
     cd crates/uorust/tests/fixtures/thermostat-prism && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
     rm -rf target/uorust-self
-    cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z
-    cargo run -q --locked -p uorust -- check . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml
+    cargo run -q --locked -p uorust -- mir . --out target/mir
+    cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z {{mir}}
+    cargo run -q --locked -p uorust -- check . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml {{mir}}
     cd target/uorust-self && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
     rm -rf target/uorust-advised
     cargo run -q --locked -p uorust -- project crates/uorust/tests/fixtures/advised --out target/uorust-advised --name advised --last-modified 2026-11-11T00:00:00Z --advisories crates/uorust/tests/fixtures/advised/advisory-db
     cd target/uorust-advised && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
 
+# The MIR path's inputs for this workspace: the dumps `uorust mir` writes and
+# the verdict register `uorust prove` writes (UE-17).
+mir := "--mir target/mir --verdicts lift-verdicts.toml"
+
 # Rewrite this workspace's lift register, frontier.toml (UE-16): refused when a
 # function it records as lifted is decided otherwise by the current source.
+# The MIR path runs too: every translation the verdicts record proved lifts.
 register:
     rm -rf target/uorust-self
-    cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml
+    cargo run -q --locked -p uorust -- mir . --out target/mir
+    cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml {{mir}}
+
+# Decide every translation of the MIR path with `lexlean verify` and rewrite
+# the verdict register, lift-verdicts.toml (UE-17): the translations whose
+# obligations discharge are proved, the others refused with the verifier's
+# diagnostic as their cause.
+prove:
+    cargo run -q --locked -p uorust -- mir . --out target/mir
+    cargo run -q --locked -p uorust -- prove . --out target/uorust-prove --scratch target/mir-prove --name uorust --last-modified 2026-11-11T00:00:00Z {{mir}}
 
 # Only the meta-gate, while iterating on a scenario. `test` already runs it.
 bdd:
@@ -113,10 +128,11 @@ fixtures:
     cargo run -q --locked -p uorust -- project crates/uorust/tests/fixtures/thermostat --out crates/uorust/tests/fixtures/thermostat-prism --name thermostat --last-modified 2026-11-11T00:00:00Z
 
 # Every writer, in the order their outputs feed each other: the self model and
-# the fixture projection from the sources, the lift register from the
-# workspace, then CONFORMANCE.md from the register. `generate.yml` runs this on
-# every push to main and commits what changed, so no generated file is stale.
-generate: self-model-write fixtures register model-write
+# the fixture projection from the sources, the MIR path's verdicts and the
+# lift register from the workspace, then CONFORMANCE.md from the register.
+# `generate.yml` runs this on every push to main and hourly, and commits what
+# changed, so no generated file is stale.
+generate: self-model-write fixtures prove register model-write
 
 # The content standard (scripts/content/standard.json) on an assembled site.
 content site="site":

@@ -45,6 +45,9 @@ pub(crate) enum Residue {
     Call(String),
     /// Another function of the crate lifts to the same LexLean name.
     Collision(String),
+    /// A kind of MIR the translator does not lower (`Rvalue::Ref: Mut`), or
+    /// an obligation of its translation the verifier did not discharge.
+    Mir(String),
 }
 
 impl Residue {
@@ -58,6 +61,7 @@ impl Residue {
             Self::Form(_) => "form",
             Self::Call(_) => "call",
             Self::Collision(_) => "collision",
+            Self::Mir(_) => "mir",
         }
     }
 
@@ -85,6 +89,7 @@ impl Residue {
             Self::Form(f) => format!("expression form outside the lift: {f}"),
             Self::Call(c) => format!("calls {c}, which is not lifted"),
             Self::Collision(n) => format!("another function of the crate is also named {n}"),
+            Self::Mir(cause) => format!("mir::{cause}"),
         }
     }
 }
@@ -257,7 +262,7 @@ fn named_in(types: &BTreeSet<Ty>) -> BTreeSet<String> {
 
 /// A struct value from its fields in declaration order: a record, or the
 /// constructor `mk` of a struct of a recursive family.
-fn struct_value(name: &str, fields: &[(&String, String)], types: &Types) -> String {
+pub(crate) fn struct_value(name: &str, fields: &[(&String, String)], types: &Types) -> String {
     if types.boxed(name) {
         let args: String = fields.iter().map(|(_, v)| format!(" {v}")).collect();
         format!("(ctor {name}.mk{args})")
@@ -1632,7 +1637,7 @@ fn is_literal(e: &rs::RustExpr) -> bool {
 
 /// A LexLean string literal holding exactly `text`, control characters
 /// escaped; `None` when LexLean source cannot write it.
-fn exact_string(text: &str) -> Option<String> {
+pub(crate) fn exact_string(text: &str) -> Option<String> {
     let mut out = String::from("\"");
     for c in text.chars() {
         match c {
