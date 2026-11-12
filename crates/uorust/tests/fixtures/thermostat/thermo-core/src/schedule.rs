@@ -93,3 +93,13 @@ pub fn held_targets(phases: &[Phase]) -> BTreeMap<String, u32> {
     }
     out
 }
+
+/// The unit targets are held in.
+pub const HELD_UNIT: &str = "C";
+
+/// A phase as text: its label, its target and whether it is a sequence.
+pub fn describe(phase: &Phase) -> String {
+    let target = occupied_target(&phase.step).unwrap_or(0);
+    let sequence = is_sequence(&phase.step);
+    format!("{}: {target}{HELD_UNIT} (sequence: {sequence})", phase.label)
+}

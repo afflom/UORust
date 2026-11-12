@@ -47,18 +47,6 @@ reason = "type"
 detail = "type outside the lift: PathBuf"
 
 [[residue]]
-kappa = "856b1023dbea04242bf75f9fbfa0ddcdf5a58473d85cff9c347119f549982b42"
-function = "uorust::admit::Refusal::detail"
-reason = "form"
-detail = "expression form outside the lift: format! hole of another type"
-
-[[residue]]
-kappa = "a34eb93d1b00414c62c669abc5a407fb7de0ed36a8a5279006b2d35b3af0567d"
-function = "uorust::admit::Refusal::span"
-reason = "form"
-detail = "expression form outside the lift: method call .render"
-
-[[residue]]
 kappa = "b2e2d1a4c9a85bd949d98da148f6515baa35ff049eba55ed985bfd07a070ad18"
 function = "uorust::error::UorustError::fmt"
 reason = "signature"
@@ -69,12 +57,6 @@ kappa = "7a1506a99adccc7f44b4dd96f2a4d7a163d35e13b8ff301740e742e62e580664"
 function = "uorust::error::io"
 reason = "type"
 detail = "type outside the lift: Path"
-
-[[residue]]
-kappa = "0ccd1d879d039f99c5d46e172cff70a624acd59aae2157325669fc2bb9825798"
-function = "uorust::facts::Span::render"
-reason = "form"
-detail = "expression form outside the lift: format! hole of another type"
 
 [[residue]]
 kappa = "3b9086553dee8e048b5291922521c2ced8dacb58d0af3d1f8018f33687b10b99"
@@ -326,7 +308,7 @@ detail = "type outside the lift: &mut BTreeSet<Ty>"
 kappa = "770f26c61df553545e1da883944726deca68a7ac24b35f809856101851132540"
 function = "uorust::lift::Ty::render"
 reason = "form"
-detail = "expression form outside the lift: format! hole"
+detail = "expression form outside the lift: a method that calls itself"
 
 [[residue]]
 kappa = "7762a395a1911b2e3f3fc632c8ef5768390a6bad5ab7f1964c4e33dfe13f7468"
@@ -404,7 +386,7 @@ detail = "expression form outside the lift: a loop that shadows its state"
 kappa = "0b3e2a7f0fc3d89898f2d7cd983f36fd49dc777cd6e070b168d592cfb8b16c39"
 function = "uorust::lift::default_in"
 reason = "form"
-detail = "expression form outside the lift: format! hole"
+detail = "expression form outside the lift: ? below the function's own statements"
 
 [[residue]]
 kappa = "de32640f6c74bdb60cf07268365ab0028b0bd28c04d019e2de3fc45f39b2114a"
@@ -530,7 +512,7 @@ detail = "expression form outside the lift: an iterator adapter given a function
 kappa = "6d597a25a6a1c39ba49293b3a48996aa1d811e342be8e319de27ff9811dc69b0"
 function = "uorust::lift::tuple_value"
 reason = "form"
-detail = "expression form outside the lift: format! hole of another type"
+detail = "expression form outside the lift: method call .render"
 
 [[residue]]
 kappa = "de2ca02eeaa740e42da48aa79a532dd978a33811a219054f4428d3c5c75563e0"
@@ -787,8 +769,8 @@ detail = "type outside the lift: Path"
 [[residue]]
 kappa = "743018deb9668e04589d042e75ad131aa8d18a7c6169ee072e3d17893f9cf520"
 function = "uorust::register::Register::to_text"
-reason = "form"
-detail = "expression form outside the lift: format! hole"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
 kappa = "1beac70383f59b717ff6ae1f1c18166f22c16b75ccf443def74b24044f4e494b"
@@ -1114,7 +1096,7 @@ function = "uorust::lift::for_loop"
 detail = "takes or returns syn::ExprForLoop, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "9eabb50d9ed9d03c528d56b7e978b5edba1d38274711fc7d64af781a0f463311"
+kappa = "6a836a2d96dbb7305d8d2233757112259f3f658241aab647a9ae0b313de46871"
 function = "uorust::lift::format_macro"
 detail = "takes or returns syn::Macro, a type of the syn crate with no LexLean model"
 
@@ -1479,14 +1461,29 @@ function = "uorust::admit::Refusal::code"
 definition = "Behavior::refusalCode"
 
 [[lifted]]
+kappa = "856b1023dbea04242bf75f9fbfa0ddcdf5a58473d85cff9c347119f549982b42"
+function = "uorust::admit::Refusal::detail"
+definition = "Behavior::refusalDetail"
+
+[[lifted]]
 kappa = "749ad1ac4929b46d50fa6bb417782d05bf61d318ee5afabe8e3f08147140c95c"
 function = "uorust::admit::Refusal::route"
 definition = "Behavior::refusalRoute"
 
 [[lifted]]
+kappa = "a34eb93d1b00414c62c669abc5a407fb7de0ed36a8a5279006b2d35b3af0567d"
+function = "uorust::admit::Refusal::span"
+definition = "Behavior::refusalSpan"
+
+[[lifted]]
 kappa = "2c1e72557d6da394b8b26b7ddd372769d34fbefd83ff31cc1216c476b8209e77"
 function = "uorust::facts::Capability::key"
 definition = "Behavior::uorustCapabilityKey"
+
+[[lifted]]
+kappa = "0ccd1d879d039f99c5d46e172cff70a624acd59aae2157325669fc2bb9825798"
+function = "uorust::facts::Span::render"
+definition = "Behavior::spanRender"
 
 [[lifted]]
 kappa = "ff7630e7b7d70dfe25c0b74b41a6ee850317b7da34f31f68bff42ab9236276a9"

@@ -991,6 +991,18 @@ definition{
 }
 
 definition{
+  name: describePart1,
+  parameters: [phase : Phase],
+  result: Nat,
+  body: (match (occupiedTarget (field_Phase_step phase))
+    | Option.none => 0
+    | Option.some value1 => value1),
+  axioms: [Quot.sound, propext]
+}
+
+definition{name: heldUnit, parameters: [], result: String, body: "C"}
+
+definition{
   name: numberedPart2,
   parameters: [i : Nat],
   result: String,
@@ -1016,6 +1028,14 @@ definition{
   result: (List String),
   body: (let out : (List String) := (nil String); (let state11 : (List String) := (numberedLoop3 (numberedEnumerate1 rooms 0) out); state11)),
   axioms: [propext]
+}
+
+definition{
+  name: describe,
+  parameters: [phase : Phase],
+  result: String,
+  body: (let target : Nat := (describePart1 phase); (let sequence : Bool := (isSequence (field_Phase_step phase)); (prim join (cons (field_Phase_label phase) (cons ": " (cons (Prelude::natDecimal target) (cons (heldUnit) (cons " (sequence: " (cons (if sequence then "true" else "false") (cons ")" (nil String)))))))) "" : String))),
+  axioms: [Quot.sound, propext]
 }
 
 theorem{

@@ -465,6 +465,10 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
             "then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool)",
         ),
         ("heldTargetsInsert2", "then (cons item4 rest6) else"),
+        // format! holes of naturals, booleans and constants.
+        ("describe", "(Prelude::natDecimal target)"),
+        ("describe", "(if sequence then \"true\" else \"false\")"),
+        ("describe", "(cons (heldUnit) "),
     ] {
         let d = decl(name);
         assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");

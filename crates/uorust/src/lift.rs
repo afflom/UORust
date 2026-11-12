@@ -1710,11 +1710,22 @@ fn format_macro(mac: &syn::Macro, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                     flat_of(e, ctx, Some(&Ty::Str))?
                 } else if let Some((name, ty)) = ctx.locals.get(&hole) {
                     (name.clone(), ty.clone())
+                } else if let Ok(path) = syn::parse_str::<syn::ExprPath>(&hole) {
+                    // A constant named in the hole.
+                    flat_of(&syn::Expr::Path(path), ctx, Some(&Ty::Str))?
                 } else {
                     return bad("hole");
                 };
                 match value.1 {
-                    Ty::Str => pieces.push(value.0),
+                    Ty::Str | Ty::Char => pieces.push(value.0),
+                    Ty::Bool => {
+                        pieces.push(format!("(if {} then \"true\" else \"false\")", value.0))
+                    }
+                    Ty::Nat(_) => {
+                        // A natural has as many digits as steps of division
+                        // by ten, never more than itself and one: the fuel.
+                        pieces.push(prelude(ctx, "natDecimal", &[&value.0]));
+                    }
                     Ty::Int(_) => {
                         ctx.axioms.borrow_mut().extend(ALL_AXIOMS.map(String::from));
                         pieces.push(format!("(prim format_decimal {} : String)", value.0));

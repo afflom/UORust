@@ -482,6 +482,13 @@ definition{
 }
 
 definition{
+  name: processThermoCoreScheduleDescribe,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -1707,6 +1714,34 @@ definition{
 }
 
 definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleDescribe,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleDescribe"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleDescribe,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleDescribe"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreScheduleDescribeThermoCoreScheduleOccupiedTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleDescribe", target := "Design::processThermoCoreScheduleOccupiedTarget"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreScheduleDescribeThermoCoreScheduleIsSequence,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleDescribe", target := "Design::processThermoCoreScheduleIsSequence"})
+}
+
+definition{
   name: opmLibThermoCoreThingThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::OpmThing,
@@ -2880,6 +2915,41 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmZoom,
   body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreSchedule", process := "Design::processThermoCoreScheduleHeldTargets", subprocess := "Design::processThermoCoreScheduleOccupiedTarget", order := 0})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleDescribe,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleDescribe"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleDescribe,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleDescribe"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreScheduleDescribeThermoCoreScheduleOccupiedTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleDescribe", target := "Design::processThermoCoreScheduleOccupiedTarget"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreScheduleDescribeThermoCoreScheduleIsSequence,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleDescribe", target := "Design::processThermoCoreScheduleIsSequence"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleZoomThermoCoreScheduleDescribeThermoCoreScheduleIsSequence,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreSchedule", process := "Design::processThermoCoreScheduleDescribe", subprocess := "Design::processThermoCoreScheduleIsSequence", order := 0})
 }
 
 definition{

@@ -102,6 +102,7 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreScheduleLabelOr is made
     And the interface call Interface::callThermoCoreScheduleLabels is made
     And the interface call Interface::callThermoCoreScheduleHeldTargets is made
+    And the interface call Interface::callThermoCoreScheduleDescribe is made
     Then the acceptance row Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel holds
     And the acceptance row Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder holds
 

@@ -594,6 +594,13 @@ definition{
 }
 
 definition{
+  name: callThermoCoreScheduleDescribe,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::describe: fn describe(phase: &Phase) -> String"
+}
+
+definition{
   name: callThermoCoreSensorSensorRead,
   parameters: [],
   result: String,
@@ -646,7 +653,7 @@ definition{
   name: featureThermoCoreSchedule,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (cons "Interface::callThermoCoreScheduleLabelOr" (cons "Interface::callThermoCoreScheduleLabels" (cons "Interface::callThermoCoreScheduleHeldTargets" (nil String))))))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (cons "Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (cons "Interface::callThermoCoreScheduleLabelOr" (cons "Interface::callThermoCoreScheduleLabels" (cons "Interface::callThermoCoreScheduleHeldTargets" (cons "Interface::callThermoCoreScheduleDescribe" (nil String)))))))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (cons "Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder" (nil String)))})
 }
 
 definition{
