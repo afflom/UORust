@@ -144,7 +144,7 @@ identity = table(["Element", "Text"], [(esc(words(k, "")), esc(t)) for k, t in e
 
 body = f"""<header class="dc-header"><div class="dc-topbar"><a class="dc-brand" href="./"><span class="fd-head">{esc(name)}</span><span class="fd-mono">by {esc(element['name'])}</span></a>
 <nav class="dc-social" aria-label="Community"><a href="{esc(LINKS['source'])}" aria-label="{esc(name)} on GitHub">{icon_git}</a></nav>
-<a class="dc-cta" href="../">Try it in your browser</a></div>
+<a class="dc-cta" href="../" aria-label="Try it in your browser"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><span>Try it in your browser</span></a></div>
 <nav class="dc-tabs" aria-label="On this page"><a href="#who">Who it is for</a><a href="#run">Run it</a><a href="#parts">How it works</a><a href="#safe">Security</a><a href="#quality">Quality</a><a href="#brand">Brand</a></nav><span class="fd-header-line"></span></header>
 <main id="main" class="dc-home">
 <p class="eyebrow fd-mono">// {esc(element['tagline'])}</p>
