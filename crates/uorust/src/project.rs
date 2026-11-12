@@ -2885,7 +2885,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     // name two crates share lifts qualified by each crate's name.
     let mut scoped: Vec<(Variants, Fields, Datas)> = Vec::new();
     // Each crate's type aliases, which its types and signatures are read through.
-    let type_aliases: Vec<BTreeMap<String, syn::Type>> = ws
+    let type_aliases: Vec<BTreeMap<String, crate::ast::RustType>> = ws
         .packages
         .iter()
         .map(|package| {
@@ -2896,15 +2896,16 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 .collect()
         })
         .collect();
-    let expanded = |pkg: usize, ty: &syn::Type| {
-        let mut ty = ty.clone();
-        crate::ingest::expand_aliases(&mut ty, &type_aliases[pkg]);
-        ty
+    // A chain of aliases that does not repeat one is at most as long as
+    // the crate has aliases.
+    let expanded = |pkg: usize, ty: &crate::ast::RustType| {
+        ty.expanded(&type_aliases[pkg], type_aliases[pkg].len())
     };
     for (pkg, package) in ws.packages.iter().enumerate() {
         let mut enums: BTreeMap<String, Vec<String>> = BTreeMap::new();
         let mut datas: Datas = BTreeMap::new();
-        let mut raw_structs: BTreeMap<String, Vec<(String, syn::Type)>> = BTreeMap::new();
+        let mut raw_structs: BTreeMap<String, Vec<(String, crate::ast::RustType)>> =
+            BTreeMap::new();
         let mut clashing: BTreeSet<String> = BTreeSet::new();
         for file in &package.files {
             if !matches!(
@@ -3140,12 +3141,12 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         let fn_syntax = syntax.function(&ctx.file(r).rel, r.idx);
         let mut sig = fn_syntax.signature.clone();
         for input in &mut sig.inputs {
-            if let syn::FnArg::Typed(t) = input {
-                *t.ty = expanded(r.pkg, &t.ty);
+            if let crate::ast::FnArg::Typed(t) = input {
+                t.ty = expanded(r.pkg, &t.ty);
             }
         }
-        if let syn::ReturnType::Type(_, t) = &mut sig.output {
-            **t = expanded(r.pkg, t);
+        if let Some(t) = &mut sig.output {
+            *t = expanded(r.pkg, t);
         }
         let sig = &sig;
         let Some(block) = &fn_syntax.block else {
@@ -3394,7 +3395,7 @@ fn enum_equality(name: &str, variants: &[String]) -> Decl {
 /// Unit-variant enums by name, with their variants.
 type Variants = BTreeMap<String, Vec<String>>;
 /// Structs by name, with their named fields.
-type Fields = BTreeMap<String, Vec<(String, syn::Type)>>;
+type Fields = BTreeMap<String, Vec<(String, crate::ast::RustType)>>;
 /// Data-carrying enum name -> its variants' fields.
 type Datas = BTreeMap<String, lift::RawVariants>;
 /// A crate's lifted functions, by Rust name.

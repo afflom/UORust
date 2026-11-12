@@ -13,6 +13,8 @@
 
 mod admit;
 mod assets;
+mod ast;
+mod convert;
 mod error;
 mod facts;
 mod ingest;

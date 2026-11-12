@@ -772,9 +772,18 @@ fn function(
         implements: None,
     };
     let syntax = FnSyntax {
-        signature: sig.clone(),
-        block: block.cloned(),
-        asserts: body.asserts,
+        signature: crate::convert::signature(sig),
+        block: block.map(crate::convert::block),
+        asserts: body
+            .asserts
+            .iter()
+            .map(|(kind, args)| {
+                (
+                    kind.clone(),
+                    args.iter().map(crate::convert::expr).collect(),
+                )
+            })
+            .collect(),
     };
     (fact, syntax)
 }
@@ -866,7 +875,12 @@ fn items(
                             let fields = v
                                 .fields
                                 .iter()
-                                .map(|f| (f.ident.as_ref().map(ToString::to_string), f.ty.clone()))
+                                .map(|f| {
+                                    (
+                                        f.ident.as_ref().map(ToString::to_string),
+                                        crate::convert::ty(&f.ty),
+                                    )
+                                })
                                 .collect();
                             (v.ident.to_string(), fields)
                         })
@@ -906,20 +920,25 @@ fn items(
                         named
                             .named
                             .iter()
-                            .filter_map(|f| Some((f.ident.as_ref()?.to_string(), f.ty.clone())))
+                            .filter_map(|f| {
+                                Some((f.ident.as_ref()?.to_string(), crate::convert::ty(&f.ty)))
+                            })
                             .collect(),
                     );
                 }
             }
             syn::Item::Type(t) if !in_test && t.generics.params.is_empty() => {
-                syntax.aliases.push((t.ident.to_string(), (*t.ty).clone()));
+                syntax
+                    .aliases
+                    .push((t.ident.to_string(), crate::convert::ty(&t.ty)));
             }
             syn::Item::Const(c) if !in_test && product && c.generics.params.is_empty() => {
                 let value = &*c.expr;
+                let value: syn::Block = syn::parse_quote!({ #value });
                 syntax.consts.push((
                     c.ident.to_string(),
-                    (*c.ty).clone(),
-                    syn::parse_quote!({ #value }),
+                    crate::convert::ty(&c.ty),
+                    crate::convert::block(&value),
                 ));
             }
             syn::Item::Use(u) => {
@@ -1241,35 +1260,4 @@ fn effect_of(block: &syn::Block) -> Option<(Capability, String)> {
     let mut scan = Scan(None);
     scan.visit_block(block);
     scan.0
-}
-
-/// `ty` with every type alias of `aliases` it names replaced by what the
-/// alias stands for, to a bounded depth (an alias may name another).
-pub(crate) fn expand_aliases(ty: &mut syn::Type, aliases: &BTreeMap<String, syn::Type>) {
-    struct Expand<'a> {
-        aliases: &'a BTreeMap<String, syn::Type>,
-        depth: usize,
-    }
-    impl syn::visit_mut::VisitMut for Expand<'_> {
-        fn visit_type_mut(&mut self, ty: &mut syn::Type) {
-            if let syn::Type::Path(p) = ty {
-                if p.qself.is_none()
-                    && p.path.segments.len() == 1
-                    && p.path.segments[0].arguments.is_none()
-                {
-                    if let Some(to) = self.aliases.get(&p.path.segments[0].ident.to_string()) {
-                        if self.depth < 8 {
-                            *ty = to.clone();
-                            self.depth += 1;
-                            self.visit_type_mut(ty);
-                            self.depth -= 1;
-                            return;
-                        }
-                    }
-                }
-            }
-            syn::visit_mut::visit_type_mut(self, ty);
-        }
-    }
-    syn::visit_mut::VisitMut::visit_type_mut(&mut Expand { aliases, depth: 0 }, ty);
 }

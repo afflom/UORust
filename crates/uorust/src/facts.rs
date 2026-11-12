@@ -190,24 +190,24 @@ pub(crate) struct FileSyntax {
     /// One per [`SourceFile::fns`].
     pub(crate) fns: Vec<FnSyntax>,
     /// The named fields of each of [`SourceFile::structs`].
-    pub(crate) structs: Vec<Vec<(String, syn::Type)>>,
+    pub(crate) structs: Vec<Vec<(String, crate::ast::RustType)>>,
     /// The payload of each variant of each of [`SourceFile::enums`]: its
     /// fields, named or positional, in order. Empty for a generic enum.
     pub(crate) enums: Vec<crate::lift::RawVariants>,
     /// The constants of product code outside tests: name, type, and the
     /// value as a block, which lifts like a function of no parameters.
-    pub(crate) consts: Vec<(String, syn::Type, syn::Block)>,
+    pub(crate) consts: Vec<(String, crate::ast::RustType, crate::ast::Block)>,
     /// The type aliases without generics: `type Name = Type;`.
-    pub(crate) aliases: Vec<(String, syn::Type)>,
+    pub(crate) aliases: Vec<(String, crate::ast::RustType)>,
 }
 
 /// One function's syntax.
 #[derive(Clone, Debug)]
 pub(crate) struct FnSyntax {
-    pub(crate) signature: syn::Signature,
-    pub(crate) block: Option<syn::Block>,
+    pub(crate) signature: crate::ast::Signature,
+    pub(crate) block: Option<crate::ast::Block>,
     /// `assert!`/`assert_eq!` arguments.
-    pub(crate) asserts: Vec<(String, Vec<syn::Expr>)>,
+    pub(crate) asserts: Vec<(String, Vec<crate::ast::RustExpr>)>,
 }
 
 #[derive(Clone, Debug)]

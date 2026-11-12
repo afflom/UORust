@@ -20,6 +20,7 @@ use std::ops::ControlFlow::{self, Break, Continue};
 /// A lift step: the value, or the residue that stops the lift.
 pub(crate) type Lift<T> = ControlFlow<Residue, T>;
 
+use crate::ast as rs;
 use crate::lex::{camel, Arm, Decl, Expr};
 
 /// Why a function stays in the frontier.
@@ -310,7 +311,7 @@ fn positive(ty: &Ty, family: &BTreeSet<String>) -> bool {
 pub(crate) type DataField = (Option<String>, Ty);
 
 /// The fields of each variant of a data-carrying enum, as Rust writes them.
-pub(crate) type RawVariants = Vec<(String, Vec<(Option<String>, syn::Type)>)>;
+pub(crate) type RawVariants = Vec<(String, Vec<(Option<String>, rs::RustType)>)>;
 
 /// Whether `ty` names `me` only where Lean accepts a nested occurrence:
 /// directly, or inside `Option`, `List` or `Result`.
@@ -335,7 +336,7 @@ impl Types {
     pub(crate) fn with_data(
         enums: BTreeMap<String, Vec<String>>,
         datas: &BTreeMap<String, RawVariants>,
-        structs: &BTreeMap<String, Vec<(String, syn::Type)>>,
+        structs: &BTreeMap<String, Vec<(String, rs::RustType)>>,
         aliases: BTreeMap<String, String>,
     ) -> Self {
         let base = Self::new(enums, structs, aliases);
@@ -354,7 +355,18 @@ impl Types {
             })
             .cloned()
             .collect();
-        let mut struct_names: BTreeSet<String> = structs.keys().cloned().collect();
+        // The structs `new` may name: not an enum, and not a name generated
+        // Lean writes bare or that the projection generates.
+        let mut struct_names: BTreeSet<String> = structs
+            .keys()
+            .filter(|n| {
+                !base.enums.contains_key(*n)
+                    && !BARE_TYPES.contains(&n.as_str())
+                    && !n.starts_with("LexLean")
+                    && !n.starts_with("Tuple")
+            })
+            .cloned()
+            .collect();
         loop {
             let probe = Self {
                 datas: names.iter().map(|n| (n.clone(), Vec::new())).collect(),
@@ -473,7 +485,7 @@ impl Types {
     /// keyed by: a crate's own names, apart from another crate's.
     pub(crate) fn new(
         enums: BTreeMap<String, Vec<String>>,
-        structs: &BTreeMap<String, Vec<(String, syn::Type)>>,
+        structs: &BTreeMap<String, Vec<(String, rs::RustType)>>,
         aliases: BTreeMap<String, String>,
     ) -> Self {
         let enums: BTreeMap<String, Vec<String>> = enums
@@ -633,40 +645,43 @@ impl Types {
             .unwrap_or_else(|| rust.to_string())
     }
 
-    pub(crate) fn ty(&self, t: &syn::Type) -> Lift<Ty> {
-        let text = crate::ingest::tidy(&quote::ToTokens::to_token_stream(t).to_string());
-        let bad = || Break(Residue::Type(text.clone()));
-        match t {
-            syn::Type::Reference(r) if r.mutability.is_none() => match &*r.elem {
-                syn::Type::Path(p) if p.path.is_ident("str") => Continue(Ty::Str),
-                syn::Type::Slice(s) => Continue(Ty::List(Box::new(self.ty(&s.elem)?))),
-                inner => self.ty(inner),
+    pub(crate) fn ty(&self, t: &rs::RustType) -> Lift<Ty> {
+        let bad = || Break(Residue::Type(t.text.clone()));
+        match &t.kind {
+            rs::TypeKind::Reference {
+                mutable: false,
+                elem,
+            } => match &elem.kind {
+                rs::TypeKind::Path { qself: false, path } if path.is_ident("str") => {
+                    Continue(Ty::Str)
+                }
+                rs::TypeKind::Slice(s) => Continue(Ty::List(Box::new(self.ty(s)?))),
+                _ => self.ty(elem),
             },
-            syn::Type::Paren(p) => self.ty(&p.elem),
-            syn::Type::Tuple(tp) if tp.elems.is_empty() => Continue(Ty::Unit),
-            syn::Type::Group(g) => self.ty(&g.elem),
-            syn::Type::Tuple(tp) if tp.elems.len() >= 2 => {
+            rs::TypeKind::Paren(p) => self.ty(p),
+            rs::TypeKind::Tuple(elems) if elems.is_empty() => Continue(Ty::Unit),
+            rs::TypeKind::Tuple(elems) if elems.len() >= 2 => {
                 let mut ts = Vec::new();
-                for e in &tp.elems {
+                for e in elems {
                     ts.push(self.ty(e)?);
                 }
                 Continue(self.tuple(ts))
             }
-            syn::Type::Path(p) if p.qself.is_none() && p.path.segments.len() == 1 => {
-                let seg = &p.path.segments[0];
-                let name = seg.ident.to_string();
+            rs::TypeKind::Path { qself: false, path } if path.segments.len() == 1 => {
+                let seg = &path.segments[0];
+                let name = seg.ident.clone();
                 let mut args = Vec::new();
                 match &seg.arguments {
-                    syn::PathArguments::None => {}
-                    syn::PathArguments::AngleBracketed(a) => {
-                        for arg in &a.args {
-                            let syn::GenericArgument::Type(t) = arg else {
+                    rs::PathArguments::None => {}
+                    rs::PathArguments::AngleBracketed(a) => {
+                        for arg in a {
+                            let rs::GenericArgument::Type(t) = arg else {
                                 return bad();
                             };
                             args.push(self.ty(t)?);
                         }
                     }
-                    syn::PathArguments::Parenthesized(_) => return bad(),
+                    rs::PathArguments::Parenthesized => return bad(),
                 }
                 let ty = match (name.as_str(), args.as_slice()) {
                     ("bool", []) => Ty::Bool,
@@ -708,7 +723,7 @@ impl Types {
     /// The LexLean signature of a candidate, or why it is not one.
     pub(crate) fn signature(
         &self,
-        sig: &syn::Signature,
+        sig: &rs::Signature,
         owner: Option<&str>,
     ) -> Lift<(Vec<Param>, Ty)> {
         // A lifetime parameter says how long a borrow lives, which a value
@@ -716,14 +731,9 @@ impl Types {
         // is not.
         let generic = sig
             .generics
-            .params
             .iter()
-            .any(|p| !matches!(p, syn::GenericParam::Lifetime(_)));
-        if generic
-            || sig.asyncness.is_some()
-            || matches!(sig.safety, syn::Safety::Unsafe(_))
-            || sig.variadic.is_some()
-        {
+            .any(|p| !matches!(p, rs::GenericParam::Lifetime(_)));
+        if generic || sig.asyncness || sig.unsafety || sig.variadic {
             return Break(Residue::Signature(
                 "generic, async, unsafe or variadic".to_string(),
             ));
@@ -731,52 +741,48 @@ impl Types {
         let mut params = Vec::new();
         for input in &sig.inputs {
             match input {
-                syn::FnArg::Receiver(r) => {
-                    let plain = r.mutability.is_none()
-                        && matches!(
-                            r.kind,
-                            syn::ReceiverKind::Value | syn::ReceiverKind::Reference(_, _, None)
-                        );
-                    match owner {
-                        Some(o)
-                            if plain
-                                && (self.enums.contains_key(o)
-                                    || self.structs.contains_key(o)
-                                    || self.datas.contains_key(o)) =>
-                        {
-                            params.push((
-                                "self".to_string(),
-                                local_name("self"),
-                                Ty::Named(o.to_string()),
-                            ));
-                        }
-                        _ => return Break(Residue::Signature("takes self".to_string())),
+                rs::FnArg::Receiver { plain } => match owner {
+                    Some(o)
+                        if *plain
+                            && (self.enums.contains_key(o)
+                                || self.structs.contains_key(o)
+                                || self.datas.contains_key(o)) =>
+                    {
+                        params.push((
+                            "self".to_string(),
+                            local_name("self"),
+                            Ty::Named(o.to_string()),
+                        ));
                     }
-                }
-                syn::FnArg::Typed(pat) => {
-                    let syn::Pat::Ident(name) = &*pat.pat else {
+                    _ => return Break(Residue::Signature("takes self".to_string())),
+                },
+                rs::FnArg::Typed(pat) => {
+                    let rs::Pat::Ident(name) = &*pat.pat else {
                         return Break(Residue::Signature("pattern parameter".to_string()));
                     };
-                    let rust = name.ident.to_string();
+                    let rust = name.ident.clone();
                     params.push((rust.clone(), local_name(&rust), self.ty_in(&pat.ty, owner)?));
                 }
             }
         }
         let result = match &sig.output {
-            syn::ReturnType::Default => Ty::Unit,
-            syn::ReturnType::Type(_, t) => self.ty_in(t, owner)?,
+            None => Ty::Unit,
+            Some(t) => self.ty_in(t, owner)?,
         };
         Continue((params, result))
     }
 
     /// A type where `Self` names the method's owner.
-    fn ty_in(&self, t: &syn::Type, owner: Option<&str>) -> Lift<Ty> {
-        let plain = match t {
-            syn::Type::Reference(r) if r.mutability.is_none() => &*r.elem,
-            other => other,
+    fn ty_in(&self, t: &rs::RustType, owner: Option<&str>) -> Lift<Ty> {
+        let plain = match &t.kind {
+            rs::TypeKind::Reference {
+                mutable: false,
+                elem,
+            } => elem,
+            _ => t,
         };
-        match (plain, owner) {
-            (syn::Type::Path(p), Some(o)) if p.qself.is_none() && p.path.is_ident("Self") => {
+        match (&plain.kind, owner) {
+            (rs::TypeKind::Path { qself: false, path }, Some(o)) if path.is_ident("Self") => {
                 Continue(Ty::Named(o.to_string()))
             }
             _ => self.ty(t),
@@ -1071,14 +1077,6 @@ fn max_of(bits: u32) -> &'static str {
     }
 }
 
-fn kind_of(e: &syn::Expr) -> String {
-    let text = format!("{e:?}");
-    text.split(['(', ' ', '{'])
-        .next()
-        .unwrap_or("expression")
-        .to_lowercase()
-}
-
 /// The single text of an expression that must stay on one line.
 fn flat_text(e: Expr) -> Lift<String> {
     match e {
@@ -1092,7 +1090,7 @@ fn flat_text(e: Expr) -> Lift<String> {
 
 /// An operand on one line. A `match` or `let` there becomes a definition of
 /// its own, a helper that takes the locals it names, called in its place.
-fn flat_of(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(String, Ty)> {
+fn flat_of(e: &rs::RustExpr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(String, Ty)> {
     let calls = RefCell::new(BTreeSet::new());
     let axioms = RefCell::new(BTreeSet::new());
     let descends = RefCell::new(BTreeSet::new());
@@ -1143,28 +1141,25 @@ fn flat_of(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(String, Ty)
     Continue((format!("({})", parts.join(" ")), t))
 }
 
-fn int_literal(e: &syn::Expr) -> Option<u128> {
+fn int_literal(e: &rs::RustExpr) -> Option<u128> {
     match e {
-        syn::Expr::Lit(syn::ExprLit {
-            lit: syn::Lit::Int(i),
-            ..
-        }) => i.base10_parse::<u128>().ok(),
-        syn::Expr::Paren(p) => int_literal(&p.expr),
+        rs::RustExpr::Lit(rs::Lit::Int { value, .. }) => *value,
+        rs::RustExpr::Paren(p) => int_literal(p),
         _ => None,
     }
 }
 
-fn is_literal(e: &syn::Expr) -> bool {
+fn is_literal(e: &rs::RustExpr) -> bool {
     match e {
-        syn::Expr::Lit(_) => true,
-        syn::Expr::Unary(u) => matches!(u.op, syn::UnOp::Neg(_)) && is_literal(&u.expr),
-        syn::Expr::Paren(p) => is_literal(&p.expr),
+        rs::RustExpr::Lit(_) => true,
+        rs::RustExpr::Unary(u) => u.op == rs::UnOp::Neg && is_literal(&u.expr),
+        rs::RustExpr::Paren(p) => is_literal(p),
         _ => false,
     }
 }
 
 /// A LexLean string literal holding exactly `text`, control characters
-/// escaped.
+/// escaped; `None` when LexLean source cannot write it.
 fn exact_string(text: &str) -> Option<String> {
     let mut out = String::from("\"");
     for c in text.chars() {
@@ -1174,6 +1169,10 @@ fn exact_string(text: &str) -> Option<String> {
             '\n' => out.push_str("\\n"),
             '\t' => out.push_str("\\t"),
             '\r' => out.push_str("\\r"),
+            // A raw percent sign would open a TeX comment, which LexLean
+            // source forbids, and its canonical form writes every string
+            // with its characters raw: no spelling of it checks.
+            '%' => return None,
             c if c.is_control() => out.push_str(&format!("\\u{:04x}", u32::from(c))),
             c => out.push(c),
         }
@@ -1182,15 +1181,18 @@ fn exact_string(text: &str) -> Option<String> {
     Some(out)
 }
 
-fn literal_of(lit: &syn::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, Ty)> {
+/// Why a string literal does not lift.
+const PERCENT: &str = "a string with a percent sign, which LexLean source cannot write";
+
+fn literal_of(lit: &rs::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, Ty)> {
     let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
     match lit {
-        syn::Lit::Bool(b) if !negative => flat(b.value.to_string(), Ty::Bool),
-        syn::Lit::Int(i) => {
-            let Ok(v) = i.base10_parse::<u128>() else {
+        rs::Lit::Bool(b) if !negative => flat(b.to_string(), Ty::Bool),
+        rs::Lit::Int { value, suffix } => {
+            let Some(v) = *value else {
                 return Break(Residue::Form("integer literal".to_string()));
             };
-            let ty = match i.suffix() {
+            let ty = match suffix.as_str() {
                 "u8" => Ty::Nat(Some(8)),
                 "u16" => Ty::Nat(Some(16)),
                 "u32" => Ty::Nat(Some(32)),
@@ -1217,18 +1219,18 @@ fn literal_of(lit: &syn::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, 
                 _ => Break(Residue::Form("integer literal".to_string())),
             }
         }
-        syn::Lit::Str(s) if !negative => match exact_string(&s.value()) {
+        rs::Lit::Str(s) if !negative => match exact_string(s) {
             Some(text) => flat(text, Ty::Str),
-            None => Break(Residue::Form("string with control characters".to_string())),
+            None => Break(Residue::Form(PERCENT.to_string())),
         },
-        syn::Lit::Char(c) if !negative => match exact_string(&c.value().to_string()) {
+        rs::Lit::Char(c) if !negative => match exact_string(&c.to_string()) {
             Some(text) => flat(text, Ty::Char),
-            None => Break(Residue::Form("string with control characters".to_string())),
+            None => Break(Residue::Form(PERCENT.to_string())),
         },
-        syn::Lit::Byte(b) if !negative => flat(b.value().to_string(), Ty::Nat(Some(8))),
-        syn::Lit::ByteStr(b) if !negative => {
+        rs::Lit::Byte(b) if !negative => flat(b.to_string(), Ty::Nat(Some(8))),
+        rs::Lit::ByteStr(b) if !negative => {
             let mut list = "(nil Nat)".to_string();
-            for byte in b.value().iter().rev() {
+            for byte in b.iter().rev() {
                 list = format!("(cons {byte} {list})");
             }
             flat(list, Ty::List(Box::new(Ty::Nat(Some(8)))))
@@ -1237,7 +1239,7 @@ fn literal_of(lit: &syn::Lit, want: Option<&Ty>, negative: bool) -> Lift<(Expr, 
     }
 }
 
-fn ctor(path: &syn::Path, types: &Types) -> Option<(String, String)> {
+fn ctor(path: &rs::Path, types: &Types) -> Option<(String, String)> {
     let n = path.segments.len();
     if n < 2 {
         return None;
@@ -1262,7 +1264,7 @@ fn types_has_data(t: &Ty, types: &Types) -> bool {
 
 /// A variant of a data-carrying enum a path names, and its fields.
 fn data_variant<'t>(
-    path: &syn::Path,
+    path: &rs::Path,
     types: &'t Types,
 ) -> Option<(String, String, &'t [DataField])> {
     let n = path.segments.len();
@@ -1280,7 +1282,7 @@ fn data_variant<'t>(
 }
 
 /// `None`, `Some`, `Ok` or `Err`, written bare or through `Option::`/`Result::`.
-fn wrapper(path: &syn::Path) -> Option<&'static str> {
+fn wrapper(path: &rs::Path) -> Option<&'static str> {
     let segs: Vec<String> = path.segments.iter().map(|s| s.ident.to_string()).collect();
     let (last, owner) = match segs.as_slice() {
         [last] => (last.as_str(), None),
@@ -1296,28 +1298,27 @@ fn wrapper(path: &syn::Path) -> Option<&'static str> {
     }
 }
 
-fn expr(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+fn expr(e: &rs::RustExpr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     let (x, t) = expr_inner(e, ctx, want)?;
     t.mentions(&mut ctx.seen.borrow_mut());
     Continue((x, t))
 }
 
-fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+fn expr_inner(e: &rs::RustExpr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
     match e {
-        syn::Expr::Lit(lit) => literal_of(&lit.lit, want, false),
-        syn::Expr::Paren(p) => expr(&p.expr, ctx, want),
-        syn::Expr::Group(g) => expr(&g.expr, ctx, want),
-        syn::Expr::Block(b) if b.label.is_none() => block(&b.block.stmts, ctx, want),
-        syn::Expr::Reference(r) if r.mutability.is_none() => expr(&r.expr, ctx, want),
-        syn::Expr::Path(p) => {
-            if let Some(ident) = p.path.get_ident() {
+        rs::RustExpr::Lit(lit) => literal_of(lit, want, false),
+        rs::RustExpr::Paren(p) => expr(p, ctx, want),
+        rs::RustExpr::Block(b) if !b.label => block(&b.block.stmts, ctx, want),
+        rs::RustExpr::Reference(r) if !r.mutable => expr(&r.expr, ctx, want),
+        rs::RustExpr::Path(p) => {
+            if let Some(ident) = p.get_ident() {
                 if let Some((name, ty)) = ctx.locals.get(&ident.to_string()) {
                     return flat(name.clone(), ty.clone());
                 }
             }
             // A constant: a definition of no parameters.
-            if let Some(ident) = p.path.get_ident() {
+            if let Some(ident) = p.get_ident() {
                 let key = ident.to_string();
                 if let Some(sig) = ctx.fns.get(&key).filter(|s| s.params.is_empty()) {
                     if key == ctx.current {
@@ -1327,7 +1328,7 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                     return flat(format!("({})", sig.name), sig.result.clone());
                 }
             }
-            if wrapper(&p.path) == Some("None") {
+            if wrapper(p) == Some("None") {
                 return match want {
                     Some(t @ Ty::Option(inner)) => flat(
                         format!("(ctor Option.none [{}])", inner.render()),
@@ -1336,43 +1337,36 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                     _ => Break(Residue::Form("None of an unknown type".to_string())),
                 };
             }
-            match ctor(&p.path, ctx.types) {
+            match ctor(p, ctx.types) {
                 Some((owner, variant)) => {
                     flat(format!("(ctor {owner}.{variant})"), Ty::Named(owner))
                 }
-                None => Break(Residue::Form(format!(
-                    "free name {}",
-                    crate::ingest::tidy(&quote::ToTokens::to_token_stream(&p.path).to_string())
-                ))),
+                None => Break(Residue::Form(format!("free name {}", p.text))),
             }
         }
-        syn::Expr::Unary(u) => match u.op {
-            syn::UnOp::Not(_) => {
+        rs::RustExpr::Unary(u) => match u.op {
+            rs::UnOp::Not => {
                 let (x, t) = flat_of(&u.expr, ctx, Some(&Ty::Bool))?;
                 if t != Ty::Bool {
                     return Break(Residue::Form("bitwise not".to_string()));
                 }
                 flat(format!("(not {x})"), Ty::Bool)
             }
-            syn::UnOp::Neg(_) => match &*u.expr {
-                syn::Expr::Lit(lit) => literal_of(&lit.lit, want, true),
+            rs::UnOp::Neg => match &*u.expr {
+                rs::RustExpr::Lit(lit) => literal_of(lit, want, true),
                 _ => Break(Residue::Arithmetic("-".to_string())),
             },
-            syn::UnOp::Deref(_) => expr(&u.expr, ctx, want),
-            _ => Break(Residue::Form("unary operator".to_string())),
+            rs::UnOp::Deref => expr(&u.expr, ctx, want),
         },
-        syn::Expr::Binary(b) => binary(b, ctx),
-        syn::Expr::If(i) => {
-            let Some((_, otherwise)) = &i.else_branch else {
+        rs::RustExpr::Binary(b) => binary(b, ctx),
+        rs::RustExpr::If(i) => {
+            let Some(otherwise) = &i.else_branch else {
                 return Break(Residue::Form("if without else".to_string()));
             };
-            if let syn::Expr::Let(l) = &*i.cond {
-                let wild = syn::Pat::Wild(syn::PatWild {
-                    attrs: Vec::new(),
-                    underscore_token: syn::token::Underscore::default(),
-                });
+            if let rs::RustExpr::Let(l) = &*i.cond {
+                let wild = rs::Pat::Wild;
                 let arms = vec![
-                    (&*l.pat, Body::Block(&i.then_branch)),
+                    (&l.pat, Body::Block(&i.then_branch)),
                     (&wild, Body::Expr(otherwise)),
                 ];
                 return matching(&l.expr, &arms, ctx, want);
@@ -1395,24 +1389,24 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                 tt,
             ))
         }
-        syn::Expr::Match(m) => {
-            let arms: Vec<(&syn::Pat, Body<'_>)> = m
+        rs::RustExpr::Match(m) => {
+            let arms: Vec<(&rs::Pat, Body<'_>)> = m
                 .arms
                 .iter()
                 .map(|a| match &a.pat {
-                    syn::Pat::Guard(g) => (&*g.pat, Body::Guarded(&g.guard, &a.body)),
+                    rs::Pat::Guard(g) => (&*g.pat, Body::Guarded(&g.guard, &a.body)),
                     p => (p, Body::Expr(&a.body)),
                 })
                 .collect();
             matching(&m.expr, &arms, ctx, want)
         }
-        syn::Expr::Call(c) => call(c, ctx, want),
-        syn::Expr::MethodCall(m) => method(m, ctx, want),
-        syn::Expr::Field(f) => {
+        rs::RustExpr::Call(c) => call(c, ctx, want),
+        rs::RustExpr::MethodCall(m) => method(m, ctx, want),
+        rs::RustExpr::Field(f) => {
             let (base, bt) = flat_of(&f.base, ctx, None)?;
             match (&f.member, &bt) {
-                (syn::Member::Named(field), Ty::Named(s)) => {
-                    let name = local_name(&field.to_string());
+                (rs::Member::Named(field), Ty::Named(s)) => {
+                    let name = local_name(field);
                     let Some((_, ty)) = ctx
                         .types
                         .structs
@@ -1430,9 +1424,9 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                         flat(format!("(project {base} {name})"), ty.clone())
                     }
                 }
-                (syn::Member::Unnamed(i), Ty::Tuple(ts) | Ty::Pair(ts)) => {
-                    match ts.get(i.index as usize) {
-                        Some(ty) => flat(tuple_item(&bt, &base, i.index as usize), ty.clone()),
+                (rs::Member::Unnamed(i), Ty::Tuple(ts) | Ty::Pair(ts)) => {
+                    match ts.get(*i as usize) {
+                        Some(ty) => flat(tuple_item(&bt, &base, *i as usize), ty.clone()),
                         None => Break(Residue::Form("tuple field".to_string())),
                     }
                 }
@@ -1440,17 +1434,15 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             }
         }
         // `E::V { a, b }`: a struct variant, its fields in declaration order.
-        syn::Expr::Struct(s)
-            if s.rest.is_none()
-                && s.qself.is_none()
-                && data_variant(&s.path, ctx.types).is_some() =>
+        rs::RustExpr::Struct(s)
+            if !s.rest && !s.qself && data_variant(&s.path, ctx.types).is_some() =>
         {
             let Some((owner, variant, fields)) = data_variant(&s.path, ctx.types) else {
                 return Break(Residue::Form("struct variant".to_string()));
             };
             let mut given = BTreeMap::new();
             for fv in &s.fields {
-                let syn::Member::Named(id) = &fv.member else {
+                let rs::Member::Named(id) = &fv.member else {
                     return Break(Residue::Form("struct variant field".to_string()));
                 };
                 given.insert(id.to_string(), &fv.expr);
@@ -1471,12 +1463,8 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             }
             flat(format!("({})", parts.join(" ")), Ty::Named(owner))
         }
-        syn::Expr::Struct(s) if s.rest.is_none() && s.qself.is_none() => {
-            let Some(name) = s
-                .path
-                .get_ident()
-                .map(|i| ctx.types.resolve(&i.to_string()))
-            else {
+        rs::RustExpr::Struct(s) if !s.rest && !s.qself => {
+            let Some(name) = s.path.get_ident().map(|i| ctx.types.resolve(i)) else {
                 return Break(Residue::Form("struct path".to_string()));
             };
             let Some(fields) = ctx.types.structs.get(&name) else {
@@ -1484,10 +1472,10 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             };
             let mut given = BTreeMap::new();
             for fv in &s.fields {
-                let syn::Member::Named(id) = &fv.member else {
+                let rs::Member::Named(id) = &fv.member else {
                     return Break(Residue::Form("struct field".to_string()));
                 };
-                given.insert(local_name(&id.to_string()), &fv.expr);
+                given.insert(local_name(id), &fv.expr);
             }
             if given.len() != fields.len() {
                 return Break(Residue::Form("struct literal".to_string()));
@@ -1505,17 +1493,17 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             }
             flat(struct_value(&name, &parts, ctx.types), Ty::Named(name))
         }
-        syn::Expr::Tuple(t) if t.elems.is_empty() => flat("()".into(), Ty::Unit),
-        syn::Expr::Tuple(t) if t.elems.len() >= 2 => {
+        rs::RustExpr::Tuple(t) if t.is_empty() => flat("()".into(), Ty::Unit),
+        rs::RustExpr::Tuple(t) if t.len() >= 2 => {
             let wants: Vec<Option<&Ty>> = match want {
-                Some(Ty::Tuple(ts) | Ty::Pair(ts)) if ts.len() == t.elems.len() => {
+                Some(Ty::Tuple(ts) | Ty::Pair(ts)) if ts.len() == t.len() => {
                     ts.iter().map(Some).collect()
                 }
-                _ => vec![None; t.elems.len()],
+                _ => vec![None; t.len()],
             };
             let mut parts = Vec::new();
             let mut tys = Vec::new();
-            for (e, w) in t.elems.iter().zip(wants) {
+            for (e, w) in t.iter().zip(wants) {
                 let (v, vt) = flat_of(e, ctx, w)?;
                 parts.push(v);
                 tys.push(vt);
@@ -1523,7 +1511,7 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             let ty = ctx.types.tuple(tys);
             flat(tuple_value(&ty, &parts), ty)
         }
-        syn::Expr::Cast(c) => {
+        rs::RustExpr::Cast(c) => {
             let (v, vt) = flat_of(&c.expr, ctx, None)?;
             let target = match ctx.types.ty(&c.ty) {
                 Continue(t) => t,
@@ -1537,7 +1525,7 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
         }
         // `xs[i]`: the element, and where Rust's bounds check panics, the
         // type's default, as Lean's `xs[i]!` is.
-        syn::Expr::Index(ix) => {
+        rs::RustExpr::Index(ix) => {
             let (base, bt) = flat_of(&ix.expr, ctx, None)?;
             let Ty::List(elem) = &bt else {
                 return Break(Residue::Form(format!("index of {}", bt.render())));
@@ -1567,53 +1555,34 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
                 (**elem).clone(),
             ))
         }
-        syn::Expr::Continue(c) => loop_exit(ctx, c.label.is_some(), false),
-        syn::Expr::Break(b) if b.expr.is_none() => loop_exit(ctx, b.label.is_some(), true),
-        syn::Expr::Try(_) => Break(Residue::Form("? outside a let".to_string())),
-        syn::Expr::Macro(m) if m.mac.path.is_ident("format") => format_macro(&m.mac, ctx),
+        rs::RustExpr::Continue(label) => loop_exit(ctx, *label, false),
+        rs::RustExpr::Break(b) if b.expr.is_none() => loop_exit(ctx, b.label, true),
+        rs::RustExpr::Try(_) => Break(Residue::Form("? outside a let".to_string())),
+        rs::RustExpr::Macro(m) if m.path.is_ident("format") => format_macro(m, ctx),
         // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
-        syn::Expr::Macro(m) if m.mac.path.is_ident("matches") => {
-            let Ok((scrutinee, pat)) =
-                m.mac.parse_body_with(|input: syn::parse::ParseStream<'_>| {
-                    let e: syn::Expr = input.parse()?;
-                    input.parse::<syn::Token![,]>()?;
-                    let p = syn::Pat::parse_multi_with_leading_vert(input)?;
-                    let _ = input.parse::<Option<syn::Token![,]>>()?;
-                    Ok((e, p))
-                })
-            else {
+        rs::RustExpr::Macro(m) if m.path.is_ident("matches") => {
+            let Some((scrutinee, pat)) = &m.matches else {
                 return Break(Residue::Form("matches! with a guard".to_string()));
             };
-            let yes: syn::Expr = syn::parse_quote!(true);
-            let no: syn::Expr = syn::parse_quote!(false);
-            let wild = syn::Pat::Wild(syn::PatWild {
-                attrs: Vec::new(),
-                underscore_token: syn::token::Underscore::default(),
-            });
-            let arms = vec![(&pat, Body::Expr(&yes)), (&wild, Body::Expr(&no))];
-            matching(&scrutinee, &arms, ctx, Some(&Ty::Bool))
+            let yes = rs::RustExpr::Lit(rs::Lit::Bool(true));
+            let no = rs::RustExpr::Lit(rs::Lit::Bool(false));
+            let wild = rs::Pat::Wild;
+            let arms = vec![(&**pat, Body::Expr(&yes)), (&wild, Body::Expr(&no))];
+            matching(scrutinee, &arms, ctx, Some(&Ty::Bool))
         }
-        syn::Expr::Macro(m) if m.mac.path.is_ident("vec") => {
-            use syn::punctuated::Punctuated;
-            let Ok(items) = m
-                .mac
-                .parse_body_with(Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated)
-            else {
+        rs::RustExpr::Macro(m) if m.path.is_ident("vec") => {
+            let Some(items) = &m.args else {
                 return Break(Residue::Form("vec! of a repeated value".to_string()));
             };
-            let items: Vec<syn::Expr> = items.into_iter().collect();
-            list_of(&items, ctx, want)
+            list_of(items, ctx, want)
         }
-        syn::Expr::Array(a) => {
-            let items: Vec<syn::Expr> = a.elems.iter().cloned().collect();
-            list_of(&items, ctx, want)
-        }
-        _ => Break(Residue::Form(kind_of(e))),
+        rs::RustExpr::Array(items) => list_of(items, ctx, want),
+        _ => Break(Residue::Form(e.kind())),
     }
 }
 
 /// An array or `vec!` of items, as the list of them.
-fn list_of(items: &[syn::Expr], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+fn list_of(items: &[rs::RustExpr], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     let mut elem = match want {
         Some(Ty::List(t) | Ty::Set(t, _)) => Some((**t).clone()),
         _ => None,
@@ -1644,39 +1613,41 @@ fn list_of(items: &[syn::Expr], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr,
     Continue((Expr::Flat(list), Ty::List(Box::new(elem))))
 }
 
+/// Whether a format hole names a value: an identifier, without a format
+/// specification.
+fn is_identifier(hole: &str) -> bool {
+    let mut chars = hole.chars();
+    chars.next().is_some_and(|c| c.is_alphabetic() || c == '_')
+        && chars.all(|c| c.is_alphanumeric() || c == '_')
+        && hole != "_"
+}
+
 /// `format!` whose holes are all strings: the pieces joined.
-fn format_macro(mac: &syn::Macro, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
-    use syn::punctuated::Punctuated;
+fn format_macro(mac: &rs::ExprMacro, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
     let bad = |what: &str| Break(Residue::Form(format!("format! {what}")));
-    let Ok(args) = mac.parse_body_with(Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated)
-    else {
+    let Some(args) = &mac.args else {
         return bad("arguments");
     };
-    let mut args = args.into_iter();
-    let Some(syn::Expr::Lit(syn::ExprLit {
-        lit: syn::Lit::Str(template),
-        ..
-    })) = args.next()
-    else {
+    let mut args = args.iter();
+    let Some(rs::RustExpr::Lit(rs::Lit::Str(template))) = args.next() else {
         return bad("template");
     };
     let mut positional = Vec::new();
     let mut named = BTreeMap::new();
     for arg in args {
         match arg {
-            syn::Expr::Assign(a) => {
-                let syn::Expr::Path(p) = &*a.left else {
+            rs::RustExpr::Assign(a) => {
+                let rs::RustExpr::Path(p) = &*a.left else {
                     return bad("argument");
                 };
-                let Some(id) = p.path.get_ident() else {
+                let Some(id) = p.get_ident() else {
                     return bad("argument");
                 };
-                named.insert(id.to_string(), *a.right);
+                named.insert(id.to_string(), &*a.right);
             }
             other => positional.push(other),
         }
     }
-    let template = template.value();
     let mut pieces: Vec<String> = Vec::new();
     let mut text = String::new();
     let mut next = 0;
@@ -1716,9 +1687,13 @@ fn format_macro(mac: &syn::Macro, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                     flat_of(e, ctx, Some(&Ty::Str))?
                 } else if let Some((name, ty)) = ctx.locals.get(&hole) {
                     (name.clone(), ty.clone())
-                } else if let Ok(path) = syn::parse_str::<syn::ExprPath>(&hole) {
+                } else if is_identifier(&hole) {
                     // A constant named in the hole.
-                    flat_of(&syn::Expr::Path(path), ctx, Some(&Ty::Str))?
+                    flat_of(
+                        &rs::RustExpr::Path(rs::Path::ident(&hole)),
+                        ctx,
+                        Some(&Ty::Str),
+                    )?
                 } else {
                     return bad("hole");
                 };
@@ -1761,25 +1736,21 @@ fn format_macro(mac: &syn::Macro, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
     ))
 }
 
-fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
-    use syn::BinOp as B;
+fn binary(b: &rs::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
+    use rs::BinOp as B;
     let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
-    let op_text = || crate::ingest::tidy(&quote::ToTokens::to_token_stream(&b.op).to_string());
+    let op_text = || b.op.text().to_string();
     match b.op {
-        B::And(_) | B::Or(_) => {
+        B::And | B::Or => {
             let (l, lt) = flat_of(&b.left, ctx, Some(&Ty::Bool))?;
             let (r, rt) = flat_of(&b.right, ctx, Some(&Ty::Bool))?;
             if lt != Ty::Bool || rt != Ty::Bool {
                 return Break(Residue::Form("logic on non-booleans".to_string()));
             }
-            let op = if matches!(b.op, B::And(_)) {
-                "&&"
-            } else {
-                "||"
-            };
+            let op = if matches!(b.op, B::And) { "&&" } else { "||" };
             flat(format!("({l} {op} {r})"), Ty::Bool)
         }
-        B::Eq(_) | B::Ne(_) | B::Lt(_) | B::Le(_) | B::Gt(_) | B::Ge(_) => {
+        B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge => {
             let ((l, lt), (r, _)) = if is_literal(&b.left) {
                 let right = flat_of(&b.right, ctx, None)?;
                 (flat_of(&b.left, ctx, Some(&right.1))?, right)
@@ -1789,27 +1760,27 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                 (left, right)
             };
             let text = match (&lt, b.op) {
-                (Ty::Nat(_), B::Eq(_)) => format!("({l} =? {r})"),
-                (Ty::Nat(_), B::Ne(_)) => format!("(not ({l} =? {r}))"),
-                (Ty::Nat(_), B::Lt(_)) => format!("({l} <? {r})"),
-                (Ty::Nat(_), B::Le(_)) => format!("({l} <=? {r})"),
-                (Ty::Nat(_), B::Gt(_)) => format!("({r} <? {l})"),
-                (Ty::Nat(_), B::Ge(_)) => format!("({r} <=? {l})"),
-                (Ty::Bool | Ty::Named(_), B::Eq(_)) if is_enum_or_bool(&lt, ctx) => {
+                (Ty::Nat(_), B::Eq) => format!("({l} =? {r})"),
+                (Ty::Nat(_), B::Ne) => format!("(not ({l} =? {r}))"),
+                (Ty::Nat(_), B::Lt) => format!("({l} <? {r})"),
+                (Ty::Nat(_), B::Le) => format!("({l} <=? {r})"),
+                (Ty::Nat(_), B::Gt) => format!("({r} <? {l})"),
+                (Ty::Nat(_), B::Ge) => format!("({r} <=? {l})"),
+                (Ty::Bool | Ty::Named(_), B::Eq) if is_enum_or_bool(&lt, ctx) => {
                     same_constructor(&lt, &l, &r)
                 }
-                (Ty::Bool | Ty::Named(_), B::Ne(_)) if is_enum_or_bool(&lt, ctx) => {
+                (Ty::Bool | Ty::Named(_), B::Ne) if is_enum_or_bool(&lt, ctx) => {
                     format!("(not {})", same_constructor(&lt, &l, &r))
                 }
-                (Ty::Int(_) | Ty::Str | Ty::Char, B::Eq(_)) => {
+                (Ty::Int(_) | Ty::Str | Ty::Char, B::Eq) => {
                     format!("(prim equal {l} {r} : Bool)")
                 }
-                (Ty::Int(_) | Ty::Str | Ty::Char, B::Ne(_)) => {
+                (Ty::Int(_) | Ty::Str | Ty::Char, B::Ne) => {
                     format!("(not (prim equal {l} {r} : Bool))")
                 }
                 // Strings order by their scalar values, as Rust's `str` and
                 // `char` do.
-                (Ty::Int(_) | Ty::Str | Ty::Char, B::Lt(_) | B::Gt(_) | B::Le(_) | B::Ge(_)) => {
+                (Ty::Int(_) | Ty::Str | Ty::Char, B::Lt | B::Gt | B::Le | B::Ge) => {
                     // Int64's order is decided through propositional
                     // extensionality; a string's through its scalars.
                     ctx.axioms.borrow_mut().insert("propext".to_string());
@@ -1817,17 +1788,17 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                         ctx.axioms.borrow_mut().extend(ALL_AXIOMS.map(String::from));
                     }
                     let (x, y) = match b.op {
-                        B::Lt(_) | B::Ge(_) => (&l, &r),
+                        B::Lt | B::Ge => (&l, &r),
                         _ => (&r, &l),
                     };
                     let less = format!("(prim less_than {x} {y} : Bool)");
-                    if matches!(b.op, B::Lt(_) | B::Gt(_)) {
+                    if matches!(b.op, B::Lt | B::Gt) {
                         less
                     } else {
                         format!("(not {less})")
                     }
                 }
-                (Ty::Option(inner), B::Eq(_) | B::Ne(_)) => {
+                (Ty::Option(inner), B::Eq | B::Ne) => {
                     let (x, y) = (ctx.fresh("left"), ctx.fresh("right"));
                     let same = match &**inner {
                         Ty::Bool | Ty::Named(_) if is_enum_or_bool(inner, ctx) => {
@@ -1844,7 +1815,7 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
                             }
                         },
                     };
-                    let eq = matches!(b.op, B::Eq(_));
+                    let eq = matches!(b.op, B::Eq);
                     let (yes, no) = if eq {
                         ("true", "false")
                     } else {
@@ -1904,11 +1875,11 @@ fn binary(b: &syn::ExprBinary, ctx: &Ctx<'_>) -> Lift<(Expr, Ty)> {
             };
             flat(text, Ty::Bool)
         }
-        B::Div(_) | B::Rem(_) => {
+        B::Div | B::Rem => {
             let (l, lt) = flat_of(&b.left, ctx, None)?;
             match (&lt, int_literal(&b.right)) {
                 (Ty::Nat(_), Some(k)) if k > 0 => {
-                    let prim = if matches!(b.op, B::Div(_)) {
+                    let prim = if matches!(b.op, B::Div) {
                         "quotient"
                     } else {
                         "remainder"
@@ -1947,15 +1918,12 @@ fn is_enum_or_bool(t: &Ty, ctx: &Ctx<'_>) -> bool {
     }
 }
 
-fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+fn call(c: &rs::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
-    let syn::Expr::Path(p) = &*c.func else {
+    let rs::RustExpr::Path(p) = &*c.func else {
         return Break(Residue::Form("call of an expression".to_string()));
     };
-    if let (Some(w), [arg]) = (
-        wrapper(&p.path),
-        c.args.iter().collect::<Vec<_>>().as_slice(),
-    ) {
+    if let (Some(w), [arg]) = (wrapper(p), c.args.iter().collect::<Vec<_>>().as_slice()) {
         return match (w, want) {
             ("Some", _) => {
                 let inner = match want {
@@ -1991,7 +1959,7 @@ fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)>
         };
     }
     // `E::V(a, b)`: a variant of a data-carrying enum.
-    if let Some((owner, variant, fields)) = data_variant(&p.path, ctx.types) {
+    if let Some((owner, variant, fields)) = data_variant(p, ctx.types) {
         if fields.len() != c.args.len() {
             return Break(Residue::Form(format!(
                 "{owner}::{variant} of another arity"
@@ -2007,13 +1975,8 @@ fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)>
         }
         return flat(format!("({})", parts.join(" ")), Ty::Named(owner));
     }
-    let segments: Vec<String> = p
-        .path
-        .segments
-        .iter()
-        .map(|s| s.ident.to_string())
-        .collect();
-    let call_args: Vec<&syn::Expr> = c.args.iter().collect();
+    let segments: Vec<String> = p.segments.iter().map(|s| s.ident.to_string()).collect();
+    let call_args: Vec<&rs::RustExpr> = c.args.iter().collect();
     match (segments.as_slice(), call_args.as_slice(), want) {
         ([s, n], [], _) if s == "String" && n == "new" => return flat("\"\"".into(), Ty::Str),
         ([s, n], [], Some(t @ Ty::List(inner))) if s == "Vec" && n == "new" => {
@@ -2123,17 +2086,17 @@ fn prelude(ctx: &Ctx<'_>, name: &str, args: &[&str]) -> String {
 /// is none of them.
 #[allow(clippy::too_many_lines)]
 fn text_method(
-    m: &syn::ExprMethodCall,
+    m: &rs::ExprMethodCall,
     name: &str,
     r: &str,
     rt: &Ty,
-    args: &[&syn::Expr],
+    args: &[&rs::RustExpr],
     ctx: &Ctx<'_>,
     want: Option<&Ty>,
 ) -> Lift<Option<(Expr, Ty)>> {
     let flat = |s: String, t: Ty| Continue(Some((Expr::Flat(s), t)));
     // A pattern: a string or a character.
-    let pattern = |a: &syn::Expr| -> Lift<String> {
+    let pattern = |a: &rs::RustExpr| -> Lift<String> {
         let (v, vt) = flat_of(a, ctx, Some(&Ty::Str))?;
         match vt {
             Ty::Str | Ty::Char => Continue(v),
@@ -2153,7 +2116,7 @@ fn text_method(
         ("trim_start", []) => flat(prelude(ctx, "textTrimStart", &[r]), Ty::Str),
         ("trim_end", []) => flat(prelude(ctx, "textTrimEnd", &[r]), Ty::Str),
         // A predicate on the first or last character.
-        ("starts_with" | "ends_with", [f]) if !chars && matches!(f, syn::Expr::Closure(_)) => {
+        ("starts_with" | "ends_with", [f]) if !chars && matches!(f, rs::RustExpr::Closure(_)) => {
             let lam = lambda(f, &[Ty::Char], ctx, Some(&Ty::Bool))?;
             if lam.ty != Ty::Bool {
                 return Break(Residue::Form(format!(
@@ -2317,8 +2280,8 @@ fn text_method(
         }
         ("parse", []) if !chars => {
             let target = match &m.turbofish {
-                Some(t) => match t.args.iter().collect::<Vec<_>>().as_slice() {
-                    [syn::GenericArgument::Type(t)] => Some(ctx.types.ty(t)?),
+                Some(t) => match t.as_slice() {
+                    [rs::GenericArgument::Type(t)] => Some(ctx.types.ty(t)?),
                     _ => None,
                 },
                 None => match want {
@@ -2345,12 +2308,12 @@ fn text_method(
 /// The axioms of the runtime's string length and decimal formatting.
 const ALL_AXIOMS: [&str; 3] = ["Classical.choice", "Quot.sound", "propext"];
 
-fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+fn method(m: &rs::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
     let name = m.method.to_string();
     // `s.chars().count()`: the number of characters, which is LexLean's
     // string length.
-    if let syn::Expr::MethodCall(inner) = &*m.receiver {
+    if let rs::RustExpr::MethodCall(inner) = &*m.receiver {
         if name == "count" && m.args.is_empty() && inner.method == "chars" && inner.args.is_empty()
         {
             let (s, st) = flat_of(&inner.receiver, ctx, Some(&Ty::Str))?;
@@ -2372,7 +2335,7 @@ fn method(m: &syn::ExprMethodCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Ex
         _ => None,
     };
     let (r, rt) = flat_of(&m.receiver, ctx, receiver_want.as_ref())?;
-    let args: Vec<&syn::Expr> = m.args.iter().collect();
+    let args: Vec<&rs::RustExpr> = m.args.iter().collect();
     let arg = |want: &Ty| -> Lift<String> {
         let [a] = args.as_slice() else {
             return Break(Residue::Form(format!("method call .{name}")));
@@ -2746,7 +2709,7 @@ fn wrapped_method(
     name: &str,
     r: &str,
     rt: &Ty,
-    args: &[&syn::Expr],
+    args: &[&rs::RustExpr],
     ctx: &Ctx<'_>,
 ) -> Lift<(Expr, Ty)> {
     let bad = || Break(Residue::Form(format!("method call .{name}")));
@@ -2800,7 +2763,7 @@ fn wrapped_method(
             ]
         },
     };
-    let closure = |f: &syn::Expr, params: &[Ty], want: Option<&Ty>| -> Lift<Lambda> {
+    let closure = |f: &rs::RustExpr, params: &[Ty], want: Option<&Ty>| -> Lift<Lambda> {
         let lam = lambda(f, params, ctx, want)?;
         ctx.calls.borrow_mut().extend(lam.calls.iter().cloned());
         ctx.axioms.borrow_mut().extend(lam.axioms.iter().cloned());
@@ -3059,25 +3022,23 @@ impl Lambda {
 /// Bind a closure parameter's pattern: a name, `_`, `&p`, `p: T`, or a tuple
 /// of those over a tuple element.
 fn bind_pat<'a>(
-    p: &syn::Pat,
+    p: &rs::Pat,
     ty: &Ty,
     ctx: &Ctx<'a>,
     lets: &mut Vec<(String, String, String)>,
     nested: bool,
 ) -> Lift<(Ctx<'a>, String)> {
     match (p, ty) {
-        (syn::Pat::Ident(i), _) if i.subpat.is_none() && i.by_ref.is_none() => {
+        (rs::Pat::Ident(i), _) if i.subpat.is_none() && !i.by_ref => {
             Continue(ctx.bind(&i.ident.to_string(), ty.clone()))
         }
-        (syn::Pat::Wild(_), _) => Continue((ctx.clone(), ctx.fresh("item"))),
-        (syn::Pat::Reference(r), _) => bind_pat(&r.pat, ty, ctx, lets, nested),
-        (syn::Pat::Type(pt), _) => bind_pat(&pt.pat, ty, ctx, lets, nested),
-        (syn::Pat::Tuple(tp), Ty::Tuple(ts) | Ty::Pair(ts))
-            if !nested && tp.elems.len() == ts.len() =>
-        {
+        (rs::Pat::Wild, _) => Continue((ctx.clone(), ctx.fresh("item"))),
+        (rs::Pat::Reference(r), _) => bind_pat(r, ty, ctx, lets, nested),
+        (rs::Pat::Type(pt), _) => bind_pat(&pt.pat, ty, ctx, lets, nested),
+        (rs::Pat::Tuple(tp), Ty::Tuple(ts) | Ty::Pair(ts)) if !nested && tp.len() == ts.len() => {
             let whole = ctx.fresh("pair");
             let mut scope = ctx.clone();
-            for (i, (e, t)) in tp.elems.iter().zip(ts).enumerate() {
+            for (i, (e, t)) in tp.iter().zip(ts).enumerate() {
                 let (next, name) = bind_pat(e, t, &scope, lets, true)?;
                 scope = next;
                 lets.push((name, t.render(), tuple_item(ty, &whole, i)));
@@ -3089,13 +3050,13 @@ fn bind_pat<'a>(
 }
 
 /// A closure argument over parameters of these types.
-fn lambda(e: &syn::Expr, params: &[Ty], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<Lambda> {
-    let syn::Expr::Closure(c) = e else {
+fn lambda(e: &rs::RustExpr, params: &[Ty], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<Lambda> {
+    let rs::RustExpr::Closure(c) = e else {
         return Break(Residue::Form(
             "an iterator adapter given a function, not a closure".to_string(),
         ));
     };
-    if c.inputs.len() != params.len() || c.asyncness.is_some() {
+    if c.inputs.len() != params.len() || c.asyncness {
         return Break(Residue::Form("closure".to_string()));
     }
     let calls = RefCell::new(BTreeSet::new());
@@ -3249,7 +3210,7 @@ fn lookup(
     r: &str,
     elem: &Ty,
     value: Option<&Ty>,
-    needle: &syn::Expr,
+    needle: &rs::RustExpr,
 ) -> Lift<(Expr, Ty)> {
     let key_ty = match (elem, value) {
         (Ty::Tuple(kv), Some(_)) => kv[0].clone(),
@@ -3316,7 +3277,7 @@ fn collection(
     name: &str,
     r: &str,
     rt: &Ty,
-    args: &[&syn::Expr],
+    args: &[&rs::RustExpr],
     ctx: &Ctx<'_>,
 ) -> Lift<(Expr, Ty)> {
     let flat = |s: String, t: Ty| Continue((Expr::Flat(s), t));
@@ -3385,11 +3346,11 @@ fn collection(
 /// `count`, `contains`, `collect` and `join`. `None` when the method is none
 /// of them.
 fn combinator(
-    m: &syn::ExprMethodCall,
+    m: &rs::ExprMethodCall,
     name: &str,
     r: &str,
     elem: &Ty,
-    args: &[&syn::Expr],
+    args: &[&rs::RustExpr],
     ctx: &Ctx<'_>,
 ) -> Lift<Option<(Expr, Ty)>> {
     let list = Ty::List(Box::new(elem.clone()));
@@ -3397,10 +3358,10 @@ fn combinator(
     match (name, args) {
         ("iter" | "into_iter", []) => flat(r.to_string(), list),
         ("collect", []) => {
-            let to_string = m
-                .turbofish
-                .as_ref()
-                .is_some_and(|t| quote::ToTokens::to_token_stream(&t.args).to_string() == "String");
+            let to_string = matches!(
+                m.turbofish.as_deref(),
+                Some([rs::GenericArgument::Type(t)]) if t.text == "String"
+            );
             if to_string {
                 if *elem != Ty::Str {
                     return Break(Residue::Form("collect of non-strings into a String".into()));
@@ -3745,10 +3706,10 @@ fn combinator(
 /// A match arm's body: an expression, or the block of an `if let`.
 #[derive(Clone, Copy)]
 enum Body<'a> {
-    Expr(&'a syn::Expr),
-    Block(&'a syn::Block),
+    Expr(&'a rs::RustExpr),
+    Block(&'a rs::Block),
     /// An arm with a guard: the guard, then the arm's expression.
-    Guarded(&'a syn::Expr, &'a syn::Expr),
+    Guarded(&'a rs::RustExpr, &'a rs::RustExpr),
 }
 
 fn body(b: Body<'_>, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
@@ -3759,17 +3720,15 @@ fn body(b: Body<'_>, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
 }
 
 /// The binder of a sub-pattern: a name, or `_`.
-fn binder(p: &syn::Pat) -> Option<Option<String>> {
+fn binder(p: &rs::Pat) -> Option<Option<String>> {
     match p {
-        syn::Pat::Ident(i) if i.subpat.is_none() && i.by_ref.is_none() => {
-            Some(Some(i.ident.to_string()))
-        }
-        syn::Pat::Wild(_) => Some(None),
-        syn::Pat::Reference(r) => binder(&r.pat),
+        rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => Some(Some(i.ident.to_string())),
+        rs::Pat::Wild => Some(None),
+        rs::Pat::Reference(r) => binder(r),
         // A tuple of names, which the arm binds by projection.
-        syn::Pat::Tuple(t) if t.elems.len() >= 2 => {
+        rs::Pat::Tuple(t) if t.len() >= 2 => {
             let mut items = Vec::new();
-            for e in &t.elems {
+            for e in t {
                 items.push(binder(e)?.unwrap_or_else(|| "_".to_string()));
             }
             if items.iter().any(|i| i.starts_with('#')) {
@@ -3788,44 +3747,36 @@ enum Shape {
     Ctor(String, Vec<Option<String>>),
 }
 
-fn shape(p: &syn::Pat) -> Option<Shape> {
+fn shape(p: &rs::Pat) -> Option<Shape> {
     match p {
-        syn::Pat::Wild(_) => Some(Shape::Wild),
-        syn::Pat::Ident(i) if i.ident == "None" && i.subpat.is_none() => {
+        rs::Pat::Wild => Some(Shape::Wild),
+        rs::Pat::Ident(i) if i.ident == "None" && i.subpat.is_none() => {
             Some(Shape::Ctor("None".into(), Vec::new()))
         }
-        syn::Pat::Path(pp) => {
-            let segs: Vec<String> = pp
-                .path
-                .segments
-                .iter()
-                .map(|s| s.ident.to_string())
-                .collect();
-            if wrapper(&pp.path) == Some("None") {
+        rs::Pat::Path(pp) => {
+            let segs: Vec<String> = pp.segments.iter().map(|s| s.ident.to_string()).collect();
+            if wrapper(pp) == Some("None") {
                 return Some(Shape::Ctor("None".into(), Vec::new()));
             }
             Some(Shape::Ctor(segs.join("::"), Vec::new()))
         }
-        syn::Pat::TupleStruct(ts) => {
+        rs::Pat::TupleStruct(ts) => {
             let w = wrapper(&ts.path)?;
             let [inner] = ts.elems.iter().collect::<Vec<_>>()[..] else {
                 return None;
             };
             Some(Shape::Ctor(w.into(), vec![binder(inner)?]))
         }
-        syn::Pat::Lit(l) => match &l.lit {
-            syn::Lit::Bool(b) => Some(Shape::Ctor(b.value.to_string(), Vec::new())),
-            _ => None,
-        },
-        syn::Pat::Slice(s) => {
-            let elems: Vec<&syn::Pat> = s.elems.iter().collect();
+        rs::Pat::Lit(rs::Lit::Bool(b)) => Some(Shape::Ctor(b.to_string(), Vec::new())),
+        rs::Pat::Slice(s) => {
+            let elems: Vec<&rs::Pat> = s.iter().collect();
             match elems.as_slice() {
                 [] => Some(Shape::Ctor("[]".into(), Vec::new())),
                 [head, tail] => {
                     let tail = match tail {
-                        syn::Pat::Rest(_) => None,
-                        syn::Pat::Ident(i) => match &i.subpat {
-                            Some((_, sub)) if matches!(**sub, syn::Pat::Rest(_)) => {
+                        rs::Pat::Rest => None,
+                        rs::Pat::Ident(i) => match &i.subpat {
+                            Some(sub) if matches!(**sub, rs::Pat::Rest) => {
                                 Some(i.ident.to_string())
                             }
                             _ => return None,
@@ -3843,20 +3794,20 @@ fn shape(p: &syn::Pat) -> Option<Shape> {
 
 /// A pattern of a data-carrying enum's variant: `E::V(a, _)`, `E::V(..)`,
 /// `E::V { a, b: c, .. }`, as its binders in field order.
-fn data_shape(p: &syn::Pat, st: &Ty, types: &Types) -> Option<Shape> {
+fn data_shape(p: &rs::Pat, st: &Ty, types: &Types) -> Option<Shape> {
     let Ty::Named(n) = st else { return None };
     let variants = types.datas.get(n)?;
     let path = match p {
-        syn::Pat::TupleStruct(ts) => &ts.path,
-        syn::Pat::Struct(ps) => &ps.path,
+        rs::Pat::TupleStruct(ts) => &ts.path,
+        rs::Pat::Struct(ps) => &ps.path,
         _ => return None,
     };
     let variant = path.segments.last()?.ident.to_string();
     let (_, fields) = variants.iter().find(|(v, _)| *v == variant)?;
     let binders = match p {
-        syn::Pat::TupleStruct(ts) => {
-            let elems: Vec<&syn::Pat> = ts.elems.iter().collect();
-            let rest = elems.iter().position(|e| matches!(e, syn::Pat::Rest(_)));
+        rs::Pat::TupleStruct(ts) => {
+            let elems: Vec<&rs::Pat> = ts.elems.iter().collect();
+            let rest = elems.iter().position(|e| matches!(e, rs::Pat::Rest));
             let mut out = Vec::new();
             match rest {
                 None if elems.len() == fields.len() => {
@@ -3878,15 +3829,15 @@ fn data_shape(p: &syn::Pat, st: &Ty, types: &Types) -> Option<Shape> {
             }
             out
         }
-        syn::Pat::Struct(ps) => {
+        rs::Pat::Struct(ps) => {
             let mut given = BTreeMap::new();
             for f in &ps.fields {
-                let syn::Member::Named(id) = &f.member else {
+                let rs::Member::Named(id) = &f.member else {
                     return None;
                 };
                 given.insert(id.to_string(), binder(&f.pat)?);
             }
-            if ps.rest.is_none() && given.len() != fields.len() {
+            if !ps.rest && given.len() != fields.len() {
                 return None;
             }
             let mut out = Vec::new();
@@ -3947,8 +3898,8 @@ fn constructors(t: &Ty, types: &Types) -> Option<Vec<(String, String, Vec<Ty>)>>
 }
 
 fn matching(
-    scrutinee: &syn::Expr,
-    arms: &[(&syn::Pat, Body<'_>)],
+    scrutinee: &rs::RustExpr,
+    arms: &[(&rs::Pat, Body<'_>)],
     ctx: &Ctx<'_>,
     want: Option<&Ty>,
 ) -> Lift<(Expr, Ty)> {
@@ -3960,8 +3911,8 @@ fn matching(
     }
     let mut shapes = Vec::new();
     for (pat, b) in arms {
-        let cases: Vec<&syn::Pat> = match pat {
-            syn::Pat::Or(o) => o.cases.iter().collect(),
+        let cases: Vec<&rs::Pat> = match pat {
+            rs::Pat::Or(o) => o.iter().collect(),
             p => vec![*p],
         };
         for case in cases {
@@ -4090,19 +4041,19 @@ fn matching(
 fn literal_match(
     s: &str,
     st: &Ty,
-    arms: &[(&syn::Pat, Body<'_>)],
+    arms: &[(&rs::Pat, Body<'_>)],
     ctx: &Ctx<'_>,
     want: Option<&Ty>,
 ) -> Lift<(Expr, Ty)> {
     let bad = || Break(Residue::Form("match pattern".to_string()));
-    let constant = |e: &syn::Expr| -> Option<String> {
+    let constant = |e: &rs::RustExpr| -> Option<String> {
         match e {
-            syn::Expr::Lit(l) => match literal_of(&l.lit, Some(st), false) {
+            rs::RustExpr::Lit(l) => match literal_of(l, Some(st), false) {
                 Continue((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
                 _ => None,
             },
-            syn::Expr::Unary(u) if matches!(u.op, syn::UnOp::Neg(_)) => match &*u.expr {
-                syn::Expr::Lit(l) => match literal_of(&l.lit, Some(st), true) {
+            rs::RustExpr::Unary(u) if matches!(u.op, rs::UnOp::Neg) => match &*u.expr {
+                rs::RustExpr::Lit(l) => match literal_of(l, Some(st), true) {
                     Continue((Expr::Flat(k), kt)) if kt.same(st) => Some(k),
                     _ => None,
                 },
@@ -4135,8 +4086,8 @@ fn literal_match(
     // scrutinee to, and its body.
     let mut tests: Vec<(Option<String>, Option<String>, Body<'_>)> = Vec::new();
     for (pat, b) in arms {
-        let cases: Vec<&syn::Pat> = match pat {
-            syn::Pat::Or(o) => o.cases.iter().collect(),
+        let cases: Vec<&rs::Pat> = match pat {
+            rs::Pat::Or(o) => o.iter().collect(),
             p => vec![p],
         };
         let mut conds = Vec::new();
@@ -4144,8 +4095,8 @@ fn literal_match(
         let mut bound = None;
         for case in cases {
             match case {
-                syn::Pat::Wild(_) => all = true,
-                syn::Pat::Ident(i) if i.subpat.is_none() && i.by_ref.is_none() => {
+                rs::Pat::Wild => all = true,
+                rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => {
                     let id = i.ident.to_string();
                     if id == "None" || id.starts_with(char::is_uppercase) {
                         return bad();
@@ -4153,15 +4104,15 @@ fn literal_match(
                     all = true;
                     bound = Some(id);
                 }
-                syn::Pat::Lit(l) => {
-                    let lit = syn::Expr::Lit(l.clone());
+                rs::Pat::Lit(l) => {
+                    let lit = rs::RustExpr::Lit(l.clone());
                     let Some(k) = constant(&lit) else {
                         return bad();
                     };
                     let Some(c) = equal(&k) else { return bad() };
                     conds.push(c);
                 }
-                syn::Pat::Range(rg) => {
+                rs::Pat::Range(rg) => {
                     let lo = match &rg.start {
                         Some(e) => match constant(e) {
                             Some(k) => Some(k),
@@ -4184,7 +4135,7 @@ fn literal_match(
                         parts.push(c);
                     }
                     if let Some(hi) = hi {
-                        let c = if matches!(rg.limits, syn::RangeLimits::Closed(_)) {
+                        let c = if rg.closed {
                             at_most(s, &hi)
                         } else {
                             at_most(&hi, s).map(|c| format!("(not {c})"))
@@ -4266,30 +4217,23 @@ fn literal_match(
 }
 
 /// A branch followed by the statements after it, as one block expression.
-fn then_rest(body: &syn::Expr, rest: &[syn::Stmt]) -> syn::Expr {
+fn then_rest(body: &rs::RustExpr, rest: &[rs::Stmt]) -> rs::RustExpr {
     let mut stmts = match body {
-        syn::Expr::Block(b) if b.label.is_none() => b.block.stmts.clone(),
-        syn::Expr::Tuple(t) if t.elems.is_empty() => Vec::new(),
-        other => vec![syn::Stmt::Expr(
-            other.clone(),
-            Some(syn::token::Semi::default()),
-        )],
+        rs::RustExpr::Block(b) if !b.label => b.block.stmts.clone(),
+        rs::RustExpr::Tuple(t) if t.is_empty() => Vec::new(),
+        other => vec![rs::Stmt::Expr(other.clone(), true)],
     };
     stmts.extend(rest.iter().cloned());
-    syn::Expr::Block(syn::ExprBlock {
-        attrs: Vec::new(),
-        label: None,
-        block: syn::Block {
-            brace_token: syn::token::Brace::default(),
-            stmts,
-        },
+    rs::RustExpr::Block(rs::ExprBlock {
+        label: false,
+        block: rs::Block { stmts },
     })
 }
 
 /// The `return v` a block is made of, alone: `{ return v; }`.
-fn returned(b: &syn::Block) -> Option<&syn::Expr> {
+fn returned(b: &rs::Block) -> Option<&rs::RustExpr> {
     match b.stmts.as_slice() {
-        [syn::Stmt::Expr(syn::Expr::Return(r), _)] => r.expr.as_deref(),
+        [rs::Stmt::Expr(rs::RustExpr::Return(r), _)] => r.as_deref(),
         _ => None,
     }
 }
@@ -4306,22 +4250,22 @@ impl Ctx<'_> {
 
 /// The local a statement updates in place, and how: `x = e`, `x += e` on a
 /// string, `x.push(e)` on a list or string, `x.push_str(e)`.
-fn update_target(e: &syn::Expr) -> Option<String> {
-    let ident = |e: &syn::Expr| match e {
-        syn::Expr::Path(p) => p.path.get_ident().map(ToString::to_string),
+fn update_target(e: &rs::RustExpr) -> Option<String> {
+    let ident = |e: &rs::RustExpr| match e {
+        rs::RustExpr::Path(p) => p.get_ident().cloned(),
         _ => None,
     };
     match e {
-        syn::Expr::Assign(a) => ident(&a.left),
-        syn::Expr::Binary(b) if matches!(b.op, syn::BinOp::AddAssign(_)) => ident(&b.left),
-        syn::Expr::MethodCall(m)
+        rs::RustExpr::Assign(a) => ident(&a.left),
+        rs::RustExpr::Binary(b) if b.op == rs::BinOp::AddAssign => ident(&b.left),
+        rs::RustExpr::MethodCall(m)
             if (m.method == "push" || m.method == "push_str") && m.args.len() == 1 =>
         {
             ident(&m.receiver)
         }
         // The value of `insert` (whether it was new, or the replaced value)
         // is dropped where it is a statement of a loop.
-        syn::Expr::MethodCall(m) if m.method == "insert" && (1..=2).contains(&m.args.len()) => {
+        rs::RustExpr::MethodCall(m) if m.method == "insert" && (1..=2).contains(&m.args.len()) => {
             ident(&m.receiver)
         }
         _ => None,
@@ -4329,24 +4273,21 @@ fn update_target(e: &syn::Expr) -> Option<String> {
 }
 
 /// A character literal as the one-character string it pushes.
-fn char_text(e: &syn::Expr) -> Option<String> {
+fn char_text(e: &rs::RustExpr) -> Option<String> {
     match e {
-        syn::Expr::Lit(syn::ExprLit {
-            lit: syn::Lit::Char(c),
-            ..
-        }) => exact_string(&c.value().to_string()),
+        rs::RustExpr::Lit(rs::Lit::Char(c)) => exact_string(&c.to_string()),
         _ => None,
     }
 }
 
 /// The new value of the local an update statement changes.
-fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String> {
+fn updated(e: &rs::RustExpr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String> {
     let inner = ctx.below();
     let joined = |piece: String| {
         ctx.axioms.borrow_mut().insert("propext".to_string());
         format!("(prim join (cons {current} (cons {piece} (nil String))) \"\" : String)")
     };
-    let value_of = |v: &syn::Expr, want: &Ty| -> Lift<String> {
+    let value_of = |v: &rs::RustExpr, want: &Ty| -> Lift<String> {
         let (x, xt) = flat_of(v, &inner, Some(want))?;
         if xt.same(want) {
             Continue(x)
@@ -4355,19 +4296,17 @@ fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String>
         }
     };
     match (e, ty) {
-        (syn::Expr::Assign(a), _) => value_of(&a.right, ty),
-        (syn::Expr::Binary(b), Ty::Str) => Continue(joined(value_of(&b.right, &Ty::Str)?)),
-        (syn::Expr::Binary(b), _) => Break(Residue::Arithmetic(
-            quote::ToTokens::to_token_stream(&b.op).to_string(),
-        )),
-        (syn::Expr::MethodCall(m), Ty::Set(t, true))
+        (rs::RustExpr::Assign(a), _) => value_of(&a.right, ty),
+        (rs::RustExpr::Binary(b), Ty::Str) => Continue(joined(value_of(&b.right, &Ty::Str)?)),
+        (rs::RustExpr::Binary(b), _) => Break(Residue::Arithmetic(b.op.text().to_string())),
+        (rs::RustExpr::MethodCall(m), Ty::Set(t, true))
             if m.method == "insert" && m.args.len() == 1 =>
         {
             let v = value_of(&m.args[0], t)?;
             let helper = sorted_insert(ty, ctx)?;
             Continue(format!("({helper} {current} {v})"))
         }
-        (syn::Expr::MethodCall(m), Ty::Map(k, v, true))
+        (rs::RustExpr::MethodCall(m), Ty::Map(k, v, true))
             if m.method == "insert" && m.args.len() == 2 =>
         {
             let key = value_of(&m.args[0], k)?;
@@ -4379,7 +4318,7 @@ fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String>
                 tuple_value(&entry, &[key, value])
             ))
         }
-        (syn::Expr::MethodCall(m), Ty::List(t)) if m.method == "push" => {
+        (rs::RustExpr::MethodCall(m), Ty::List(t)) if m.method == "push" => {
             let v = value_of(&m.args[0], t)?;
             Continue(format!(
                 "(prim append {current} (cons {v} (nil {})) : {})",
@@ -4387,7 +4326,7 @@ fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String>
                 ty.render()
             ))
         }
-        (syn::Expr::MethodCall(m), Ty::Str) => {
+        (rs::RustExpr::MethodCall(m), Ty::Str) => {
             let piece = match char_text(&m.args[0]) {
                 Some(text) if m.method == "push" => text,
                 _ if m.method == "push_str" => value_of(&m.args[0], &Ty::Str)?,
@@ -4475,39 +4414,63 @@ fn sorted_insert(ty: &Ty, ctx: &Ctx<'_>) -> Lift<String> {
     Continue(name)
 }
 
+/// The locals the statements update and the locals they declare, outside
+/// closures.
+fn scan_stmts(stmts: &[rs::Stmt]) -> (BTreeSet<String>, BTreeSet<String>) {
+    let mut updated = BTreeSet::new();
+    let mut declared = BTreeSet::new();
+    for stmt in stmts {
+        let (u, d) = match stmt {
+            rs::Stmt::Local(l) => {
+                let mut exprs: Vec<&rs::RustExpr> = Vec::new();
+                if let Some(init) = &l.init {
+                    exprs.push(&init.expr);
+                    exprs.extend(init.diverge.as_deref());
+                }
+                let (u, mut d) = scan_exprs(&exprs);
+                if let rs::Pat::Ident(i) = &l.pat {
+                    d.insert(i.ident.clone());
+                }
+                (u, d)
+            }
+            rs::Stmt::Expr(e, _) => scan_exprs(&[e]),
+            rs::Stmt::Other => (BTreeSet::new(), BTreeSet::new()),
+        };
+        updated.extend(u);
+        declared.extend(d);
+    }
+    (updated, declared)
+}
+
+/// [`scan_stmts`] over expressions.
+fn scan_exprs(exprs: &[&rs::RustExpr]) -> (BTreeSet<String>, BTreeSet<String>) {
+    let mut updated = BTreeSet::new();
+    let mut declared = BTreeSet::new();
+    for e in exprs {
+        if matches!(e, rs::RustExpr::Closure(_)) {
+            continue;
+        }
+        updated.extend(update_target(e));
+        let (inner, blocks) = e.parts();
+        let (u, d) = scan_exprs(&inner);
+        updated.extend(u);
+        declared.extend(d);
+        for b in blocks {
+            let (u, d) = scan_stmts(&b.stmts);
+            updated.extend(u);
+            declared.extend(d);
+        }
+    }
+    (updated, declared)
+}
+
 /// The locals a loop body updates that are bound before the loop.
-fn loop_state(body: &[syn::Stmt], ctx: &Ctx<'_>) -> Lift<Vec<String>> {
-    struct Scan {
-        updated: BTreeSet<String>,
-        declared: BTreeSet<String>,
-    }
-    impl<'ast> syn::visit::Visit<'ast> for Scan {
-        fn visit_expr(&mut self, e: &'ast syn::Expr) {
-            if let Some(t) = update_target(e) {
-                self.updated.insert(t);
-            }
-            syn::visit::visit_expr(self, e);
-        }
-        fn visit_local(&mut self, l: &'ast syn::Local) {
-            if let syn::Pat::Ident(i) = &l.pat {
-                self.declared.insert(i.ident.to_string());
-            }
-            syn::visit::visit_local(self, l);
-        }
-        fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
-    }
-    let mut scan = Scan {
-        updated: BTreeSet::new(),
-        declared: BTreeSet::new(),
-    };
-    for s in body {
-        syn::visit::Visit::visit_stmt(&mut scan, s);
-    }
-    if scan.updated.iter().any(|u| scan.declared.contains(u)) {
+fn loop_state(body: &[rs::Stmt], ctx: &Ctx<'_>) -> Lift<Vec<String>> {
+    let (updated, declared) = scan_stmts(body);
+    if updated.iter().any(|u| declared.contains(u)) {
         return Break(Residue::Form("a loop that shadows its state".to_string()));
     }
-    let state: Vec<String> = scan
-        .updated
+    let state: Vec<String> = updated
         .into_iter()
         .filter(|u| ctx.locals.contains_key(u))
         .collect();
@@ -4518,16 +4481,11 @@ fn loop_state(body: &[syn::Stmt], ctx: &Ctx<'_>) -> Lift<Vec<String>> {
 }
 
 /// The state of a loop as one value: the local, or the tuple of them.
-fn state_expr(state: &[String]) -> syn::Expr {
-    let path = |name: &str| -> syn::Expr {
-        syn::parse_str(name).unwrap_or_else(|_| syn::parse_quote!(state))
-    };
+fn state_expr(state: &[String]) -> rs::RustExpr {
+    let path = |name: &String| rs::RustExpr::Path(rs::Path::ident(name));
     match state {
         [one] => path(one),
-        many => {
-            let elems: Vec<syn::Expr> = many.iter().map(|n| path(n)).collect();
-            syn::parse_quote!((#(#elems),*))
-        }
+        many => rs::RustExpr::Tuple(many.iter().map(path).collect()),
     }
 }
 
@@ -4627,12 +4585,12 @@ fn loop_exit(ctx: &Ctx<'_>, label: bool, breaks: bool) -> Lift<(Expr, Ty)> {
 /// `for p in xs { body } rest`: a helper that walks `xs` with the locals the
 /// body updates as its accumulator, then `rest` with their final values.
 fn for_loop(
-    f: &syn::ExprForLoop,
-    rest: &[syn::Stmt],
+    f: &rs::ExprForLoop,
+    rest: &[rs::Stmt],
     ctx: &Ctx<'_>,
     want: Option<&Ty>,
 ) -> Lift<(Expr, Ty)> {
-    if f.label.is_some() {
+    if f.label {
         return Break(Residue::Form("labelled loop".to_string()));
     }
     let (list, lt) = flat_of(&f.expr, &ctx.below(), None)?;
@@ -4680,7 +4638,7 @@ fn for_loop(
     let (next, head) = bind_pat(&f.pat, &elem, &scope, &mut pat_lets, false)?;
     scope = next;
     let mut stmts = f.body.stmts.clone();
-    stmts.push(syn::Stmt::Expr(state_expr(&state), None));
+    stmts.push(rs::Stmt::Expr(state_expr(&state), false));
     let (step, st) = block(&stmts, &scope, Some(&state_ty))?;
     if !st.same(&state_ty) || !descends.borrow().is_empty() {
         return Break(Residue::Form("a loop step of another type".to_string()));
@@ -4760,81 +4718,170 @@ fn for_loop(
     ))
 }
 
-/// The first `?` an expression evaluates unconditionally, replaced by the
-/// local `var`: its operand. A `?` under a closure, a branch or the right
-/// side of `&&`/`||` may not run, so it stays.
-fn take_try(e: &mut syn::Expr, var: &syn::Ident) -> Option<syn::Expr> {
-    use syn::Expr as E;
+/// The first `?` an expression evaluates unconditionally, and the
+/// expression with the local `var` in its place: its operand, and the rest.
+/// A `?` under a closure, a branch or the right side of `&&`/`||` may not
+/// run, so it stays.
+fn take_try(e: &rs::RustExpr, var: &str) -> Option<(rs::RustExpr, rs::RustExpr)> {
+    use rs::RustExpr as E;
+    let boxed = |x: rs::RustExpr| Box::new(x);
     match e {
-        E::Try(t) => {
-            if let Some(inner) = take_try(&mut t.expr, var) {
-                return Some(inner);
-            }
-            let inner = (*t.expr).clone();
-            *e = syn::parse_quote!(#var);
-            Some(inner)
-        }
+        E::Try(t) => Some(match take_try(t, var) {
+            Some((found, inner)) => (found, E::Try(boxed(inner))),
+            None => ((**t).clone(), E::Path(rs::Path::ident(var))),
+        }),
         E::MethodCall(m) => {
-            if let Some(found) = take_try(&mut m.receiver, var) {
-                return Some(found);
+            if let Some((found, receiver)) = take_try(&m.receiver, var) {
+                let mut m = m.clone();
+                m.receiver = boxed(receiver);
+                return Some((found, E::MethodCall(m)));
             }
-            m.args.iter_mut().find_map(|a| take_try(a, var))
+            let (found, args) = take_first(&m.args, var)?;
+            let mut m = m.clone();
+            m.args = args;
+            Some((found, E::MethodCall(m)))
         }
-        E::Call(c) => c.args.iter_mut().find_map(|a| take_try(a, var)),
-        E::Field(f) => take_try(&mut f.base, var),
-        E::Paren(p) => take_try(&mut p.expr, var),
-        E::Group(g) => take_try(&mut g.expr, var),
-        E::Reference(r) => take_try(&mut r.expr, var),
-        E::Unary(u) => take_try(&mut u.expr, var),
-        E::Cast(c) => take_try(&mut c.expr, var),
-        E::Index(i) => take_try(&mut i.expr, var).or_else(|| take_try(&mut i.index, var)),
-        E::Binary(b) => {
-            if let Some(found) = take_try(&mut b.left, var) {
-                return Some(found);
+        E::Call(c) => {
+            let (found, args) = take_first(&c.args, var)?;
+            let mut c = c.clone();
+            c.args = args;
+            Some((found, E::Call(c)))
+        }
+        E::Field(f) => {
+            let (found, base) = take_try(&f.base, var)?;
+            let mut f = f.clone();
+            f.base = boxed(base);
+            Some((found, E::Field(f)))
+        }
+        E::Paren(p) => {
+            let (found, inner) = take_try(p, var)?;
+            Some((found, E::Paren(boxed(inner))))
+        }
+        E::Reference(r) => {
+            let (found, inner) = take_try(&r.expr, var)?;
+            let mut r = r.clone();
+            r.expr = boxed(inner);
+            Some((found, E::Reference(r)))
+        }
+        E::Unary(u) => {
+            let (found, inner) = take_try(&u.expr, var)?;
+            let mut u = u.clone();
+            u.expr = boxed(inner);
+            Some((found, E::Unary(u)))
+        }
+        E::Cast(c) => {
+            let (found, inner) = take_try(&c.expr, var)?;
+            let mut c = c.clone();
+            c.expr = boxed(inner);
+            Some((found, E::Cast(c)))
+        }
+        E::Index(i) => {
+            let mut i = i.clone();
+            if let Some((found, inner)) = take_try(&i.expr, var) {
+                i.expr = boxed(inner);
+                return Some((found, E::Index(i)));
             }
-            if matches!(b.op, syn::BinOp::And(_) | syn::BinOp::Or(_)) {
+            let (found, index) = take_try(&i.index, var)?;
+            i.index = boxed(index);
+            Some((found, E::Index(i)))
+        }
+        E::Binary(b) => {
+            let mut b = b.clone();
+            if let Some((found, left)) = take_try(&b.left, var) {
+                b.left = boxed(left);
+                return Some((found, E::Binary(b)));
+            }
+            if matches!(b.op, rs::BinOp::And | rs::BinOp::Or) {
                 return None;
             }
-            take_try(&mut b.right, var)
+            let (found, right) = take_try(&b.right, var)?;
+            b.right = boxed(right);
+            Some((found, E::Binary(b)))
         }
-        E::Tuple(t) => t.elems.iter_mut().find_map(|a| take_try(a, var)),
-        E::Struct(st) => st
-            .fields
-            .iter_mut()
-            .find_map(|f| take_try(&mut f.expr, var)),
-        E::If(i) => take_try(&mut i.cond, var),
-        E::Match(m) => take_try(&mut m.expr, var),
+        E::Tuple(items) => {
+            let (found, items) = take_first(items, var)?;
+            Some((found, E::Tuple(items)))
+        }
+        E::Struct(st) => {
+            let values: Vec<rs::RustExpr> = st.fields.iter().map(|f| f.expr.clone()).collect();
+            let (found, values) = take_first(&values, var)?;
+            let mut st = st.clone();
+            for (field, value) in st.fields.iter_mut().zip(values) {
+                field.expr = value;
+            }
+            Some((found, E::Struct(st)))
+        }
+        E::If(i) => {
+            let (found, cond) = take_try(&i.cond, var)?;
+            let mut i = i.clone();
+            i.cond = boxed(cond);
+            Some((found, E::If(i)))
+        }
+        E::Match(m) => {
+            let (found, scrutinee) = take_try(&m.expr, var)?;
+            let mut m = m.clone();
+            m.expr = boxed(scrutinee);
+            Some((found, E::Match(m)))
+        }
         _ => None,
     }
 }
 
+/// [`take_try`] on the first of these expressions that has one.
+fn take_first(items: &[rs::RustExpr], var: &str) -> Option<(rs::RustExpr, Vec<rs::RustExpr>)> {
+    let (at, (found, replaced)) = items
+        .iter()
+        .enumerate()
+        .find_map(|(i, e)| take_try(e, var).map(|hit| (i, hit)))?;
+    let mut items = items.to_vec();
+    items[at] = replaced;
+    Some((found, items))
+}
+
 /// A statement with a `?` inside it, as `let v = e?;` before the statement
 /// with `v` in its place.
-fn hoist_try(stmt: &syn::Stmt, n: usize) -> Option<(syn::Stmt, syn::Stmt)> {
-    let var = syn::Ident::new(&format!("tried{n}"), proc_macro2::Span::call_site());
-    let mut stmt = stmt.clone();
-    let inner = match &mut stmt {
-        syn::Stmt::Expr(e, _) => take_try(e, &var)?,
-        syn::Stmt::Local(l) => {
-            let init = l.init.as_mut()?;
-            if matches!(&*init.expr, syn::Expr::Try(_)) && matches!(l.pat, syn::Pat::Ident(_)) {
+fn hoist_try(stmt: &rs::Stmt, n: usize) -> Option<(rs::Stmt, rs::Stmt)> {
+    let var = format!("tried{n}");
+    let (inner, stmt) = match stmt {
+        rs::Stmt::Expr(e, semi) => {
+            let (inner, e) = take_try(e, &var)?;
+            (inner, rs::Stmt::Expr(e, *semi))
+        }
+        rs::Stmt::Local(l) => {
+            let init = l.init.as_ref()?;
+            if matches!(&*init.expr, rs::RustExpr::Try(_)) && matches!(l.pat, rs::Pat::Ident(_)) {
                 return None;
             }
-            take_try(&mut init.expr, &var)?
+            let (inner, e) = take_try(&init.expr, &var)?;
+            let mut l = l.clone();
+            if let Some(init) = &mut l.init {
+                *init.expr = e;
+            }
+            (inner, rs::Stmt::Local(l))
         }
-        _ => return None,
+        rs::Stmt::Other => return None,
     };
-    let binding: syn::Stmt = syn::parse_quote!(let #var = #inner?;);
+    let binding = rs::Stmt::Local(rs::Local {
+        pat: rs::Pat::Ident(rs::PatIdent {
+            ident: var,
+            by_ref: false,
+            subpat: None,
+        }),
+        init: Some(rs::LocalInit {
+            expr: Box::new(rs::RustExpr::Try(Box::new(inner))),
+            diverge: None,
+        }),
+    });
     Some((binding, stmt))
 }
 
-fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
+fn block(stmts: &[rs::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)> {
     match stmts.first() {
-        Some(syn::Stmt::Expr(syn::Expr::Continue(c), _)) => {
-            return loop_exit(ctx, c.label.is_some(), false);
+        Some(rs::Stmt::Expr(rs::RustExpr::Continue(label), _)) => {
+            return loop_exit(ctx, *label, false);
         }
-        Some(syn::Stmt::Expr(syn::Expr::Break(b), _)) if b.expr.is_none() => {
-            return loop_exit(ctx, b.label.is_some(), true);
+        Some(rs::Stmt::Expr(rs::RustExpr::Break(b), _)) if b.expr.is_none() => {
+            return loop_exit(ctx, b.label, true);
         }
         _ => {}
     }
@@ -4852,14 +4899,14 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
     match stmts {
         // A block with no value is `()`.
         [] if want == Some(&Ty::Unit) => Continue((Expr::Flat("()".into()), Ty::Unit)),
-        [syn::Stmt::Expr(e, None)] => expr(e, &ctx.below(), want),
-        [syn::Stmt::Expr(syn::Expr::Return(r), _), ..] if ctx.top => match &r.expr {
+        [rs::Stmt::Expr(e, false)] => expr(e, &ctx.below(), want),
+        [rs::Stmt::Expr(rs::RustExpr::Return(r), _), ..] if ctx.top => match r {
             Some(v) => expr(v, &ctx.below(), Some(ctx.result)),
             None if *ctx.result == Ty::Unit => Continue((Expr::Flat("()".into()), Ty::Unit)),
             None => Break(Residue::Type("()".to_string())),
         },
         // `if c { return v; } rest`: an early exit from the function.
-        [syn::Stmt::Expr(syn::Expr::If(i), _), rest @ ..]
+        [rs::Stmt::Expr(rs::RustExpr::If(i), _), rest @ ..]
             if ctx.top
                 && !rest.is_empty()
                 && i.else_branch.is_none()
@@ -4869,23 +4916,18 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
                 return Break(Residue::Statements);
             };
             let inner = ctx.below();
-            if matches!(&*i.cond, syn::Expr::Let(_)) {
-                let wild = syn::Pat::Wild(syn::PatWild {
-                    attrs: Vec::new(),
-                    underscore_token: syn::token::Underscore::default(),
-                });
-                let syn::Expr::Let(l) = &*i.cond else {
+            if matches!(&*i.cond, rs::RustExpr::Let(_)) {
+                let wild = rs::Pat::Wild;
+                let rs::RustExpr::Let(l) = &*i.cond else {
                     return Break(Residue::Statements);
                 };
-                let tail = syn::Block {
-                    brace_token: syn::token::Brace::default(),
+                let tail = rs::Block {
                     stmts: rest.to_vec(),
                 };
-                let early = syn::Block {
-                    brace_token: syn::token::Brace::default(),
-                    stmts: vec![syn::Stmt::Expr((*v).clone(), None)],
+                let early = rs::Block {
+                    stmts: vec![rs::Stmt::Expr((*v).clone(), false)],
                 };
-                let arms = vec![(&*l.pat, Body::Block(&early)), (&wild, Body::Block(&tail))];
+                let arms = vec![(&l.pat, Body::Block(&early)), (&wild, Body::Block(&tail))];
                 return matching(&l.expr, &arms, ctx, want);
             }
             let (c, ct) = expr(&i.cond, &inner, Some(&Ty::Bool))?;
@@ -4907,7 +4949,7 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
             ))
         }
         // `let P = e else { return v; }; rest`: a match with an early exit.
-        [syn::Stmt::Local(local), rest @ ..]
+        [rs::Stmt::Local(local), rest @ ..]
             if ctx.top
                 && !rest.is_empty()
                 && local.init.as_ref().is_some_and(|i| i.diverge.is_some()) =>
@@ -4915,26 +4957,21 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
             let Some(init) = &local.init else {
                 return Break(Residue::Statements);
             };
-            let Some((_, otherwise)) = &init.diverge else {
+            let Some(otherwise) = &init.diverge else {
                 return Break(Residue::Statements);
             };
-            let syn::Expr::Block(eb) = &**otherwise else {
+            let rs::RustExpr::Block(eb) = &**otherwise else {
                 return Break(Residue::Form("let else".to_string()));
             };
             let Some(v) = returned(&eb.block) else {
                 return Break(Residue::Form("let else".to_string()));
             };
-            let wild = syn::Pat::Wild(syn::PatWild {
-                attrs: Vec::new(),
-                underscore_token: syn::token::Underscore::default(),
-            });
-            let tail = syn::Block {
-                brace_token: syn::token::Brace::default(),
+            let wild = rs::Pat::Wild;
+            let tail = rs::Block {
                 stmts: rest.to_vec(),
             };
-            let early = syn::Block {
-                brace_token: syn::token::Brace::default(),
-                stmts: vec![syn::Stmt::Expr((*v).clone(), None)],
+            let early = rs::Block {
+                stmts: vec![rs::Stmt::Expr((*v).clone(), false)],
             };
             let arms = vec![
                 (&local.pat, Body::Block(&tail)),
@@ -4943,11 +4980,11 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
             matching(&init.expr, &arms, ctx, want)
         }
         // `let (a, b) = e; rest`: the tuple, then its items.
-        [syn::Stmt::Local(local), rest @ ..]
+        [rs::Stmt::Local(local), rest @ ..]
             if !rest.is_empty()
-                && matches!(local.pat, syn::Pat::Tuple(_))
+                && matches!(local.pat, rs::Pat::Tuple(_))
                 && local.init.as_ref().is_some_and(|i| {
-                    i.diverge.is_none() && !matches!(*i.expr, syn::Expr::Try(_))
+                    i.diverge.is_none() && !matches!(*i.expr, rs::RustExpr::Try(_))
                 }) =>
         {
             let Some(init) = &local.init else {
@@ -4977,13 +5014,11 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
             ))
         }
         // `for p in xs { .. }`: a walk with the updated locals as its state.
-        [syn::Stmt::Expr(syn::Expr::ForLoop(f), _), rest @ ..] if !rest.is_empty() => {
+        [rs::Stmt::Expr(rs::RustExpr::ForLoop(f), _), rest @ ..] if !rest.is_empty() => {
             for_loop(f, rest, ctx, want)
         }
         // `x = e;`, `x += s;`, `x.push(e);`: the local's next value.
-        [syn::Stmt::Expr(e, Some(_)), rest @ ..]
-            if !rest.is_empty() && update_target(e).is_some() =>
-        {
+        [rs::Stmt::Expr(e, true), rest @ ..] if !rest.is_empty() && update_target(e).is_some() => {
             let Some(target) = update_target(e) else {
                 return Break(Residue::Statements);
             };
@@ -5004,69 +5039,66 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
             ))
         }
         // `()` as a statement does nothing.
-        [syn::Stmt::Expr(syn::Expr::Tuple(t), _), rest @ ..]
-            if t.elems.is_empty() && !rest.is_empty() =>
+        [rs::Stmt::Expr(rs::RustExpr::Tuple(t), _), rest @ ..]
+            if t.is_empty() && !rest.is_empty() =>
         {
             block(rest, ctx, want)
         }
         // `match e { p => .. } rest`: the rest after each arm.
-        [syn::Stmt::Expr(syn::Expr::Match(m), _), rest @ ..] if !rest.is_empty() => {
-            let bodies: Vec<syn::Expr> = m.arms.iter().map(|a| then_rest(&a.body, rest)).collect();
-            let arms: Vec<(&syn::Pat, Body<'_>)> = m
+        [rs::Stmt::Expr(rs::RustExpr::Match(m), _), rest @ ..] if !rest.is_empty() => {
+            let bodies: Vec<rs::RustExpr> =
+                m.arms.iter().map(|a| then_rest(&a.body, rest)).collect();
+            let arms: Vec<(&rs::Pat, Body<'_>)> = m
                 .arms
                 .iter()
                 .zip(&bodies)
                 .map(|(a, b)| match &a.pat {
-                    syn::Pat::Guard(g) => (&*g.pat, Body::Guarded(&g.guard, b)),
+                    rs::Pat::Guard(g) => (&*g.pat, Body::Guarded(&g.guard, b)),
                     p => (p, Body::Expr(b)),
                 })
                 .collect();
             matching(&m.expr, &arms, ctx, want)
         }
         // `if let p = e { .. } [else { .. }] rest`: the rest after each branch.
-        [syn::Stmt::Expr(syn::Expr::If(i), _), rest @ ..]
+        [rs::Stmt::Expr(rs::RustExpr::If(i), _), rest @ ..]
             if !rest.is_empty()
-                && matches!(&*i.cond, syn::Expr::Let(_))
+                && matches!(&*i.cond, rs::RustExpr::Let(_))
                 && returned(&i.then_branch).is_none() =>
         {
-            let syn::Expr::Let(l) = &*i.cond else {
+            let rs::RustExpr::Let(l) = &*i.cond else {
                 return Break(Residue::Statements);
             };
             let then = then_rest(
-                &syn::Expr::Block(syn::ExprBlock {
-                    attrs: Vec::new(),
-                    label: None,
+                &rs::RustExpr::Block(rs::ExprBlock {
+                    label: false,
                     block: i.then_branch.clone(),
                 }),
                 rest,
             );
-            let unit: syn::Expr = syn::parse_quote!(());
-            let other = then_rest(i.else_branch.as_ref().map_or(&unit, |(_, e)| &**e), rest);
-            let wild = syn::Pat::Wild(syn::PatWild {
-                attrs: Vec::new(),
-                underscore_token: syn::token::Underscore::default(),
-            });
-            let arms = vec![(&*l.pat, Body::Expr(&then)), (&wild, Body::Expr(&other))];
+            let unit = rs::RustExpr::Tuple(Vec::new());
+            let other = then_rest(i.else_branch.as_deref().unwrap_or(&unit), rest);
+            let wild = rs::Pat::Wild;
+            let arms = vec![(&l.pat, Body::Expr(&then)), (&wild, Body::Expr(&other))];
             matching(&l.expr, &arms, ctx, want)
         }
         // `if c { .. } [else { .. }] rest` with statements in its branches: the
         // rest after each branch.
-        [syn::Stmt::Expr(syn::Expr::If(i), _), rest @ ..]
+        [rs::Stmt::Expr(rs::RustExpr::If(i), _), rest @ ..]
             if !rest.is_empty()
-                && !matches!(&*i.cond, syn::Expr::Let(_))
+                && !matches!(&*i.cond, rs::RustExpr::Let(_))
                 && returned(&i.then_branch).is_none() =>
         {
             let (c, ct) = expr(&i.cond, &ctx.below(), Some(&Ty::Bool))?;
             if ct != Ty::Bool {
                 return Break(Residue::Form("non-boolean condition".to_string()));
             }
-            let mut then: Vec<syn::Stmt> = i.then_branch.stmts.clone();
+            let mut then: Vec<rs::Stmt> = i.then_branch.stmts.clone();
             then.extend(rest.iter().cloned());
-            let mut other: Vec<syn::Stmt> = match &i.else_branch {
+            let mut other: Vec<rs::Stmt> = match &i.else_branch {
                 None => Vec::new(),
-                Some((_, e)) => match &**e {
-                    syn::Expr::Block(b) => b.block.stmts.clone(),
-                    syn::Expr::If(_) => vec![syn::Stmt::Expr((**e).clone(), None)],
+                Some(e) => match &**e {
+                    rs::RustExpr::Block(b) => b.block.stmts.clone(),
+                    rs::RustExpr::If(_) => vec![rs::Stmt::Expr((**e).clone(), false)],
                     _ => return Break(Residue::Statements),
                 },
             };
@@ -5085,11 +5117,11 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
                 at,
             ))
         }
-        [syn::Stmt::Local(local), rest @ ..] if !rest.is_empty() => {
+        [rs::Stmt::Local(local), rest @ ..] if !rest.is_empty() => {
             let (ident, declared) = match &local.pat {
-                syn::Pat::Ident(i) if i.subpat.is_none() && i.by_ref.is_none() => (i, None),
-                syn::Pat::Type(pt) => match &*pt.pat {
-                    syn::Pat::Ident(i) if i.subpat.is_none() && i.by_ref.is_none() => {
+                rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => (i, None),
+                rs::Pat::Type(pt) => match &*pt.pat {
+                    rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => {
                         (i, Some(ctx.types.ty(&pt.ty)?))
                     }
                     _ => return Break(Residue::Form("let pattern".to_string())),
@@ -5102,20 +5134,20 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
             if init.diverge.is_some() {
                 return Break(Residue::Form("let else".to_string()));
             }
-            if let syn::Expr::Try(t) = &*init.expr {
+            if let rs::RustExpr::Try(t) = &*init.expr {
                 if !ctx.top {
                     return Break(Residue::Form(
                         "? below the function's own statements".to_string(),
                     ));
                 }
-                return question(&t.expr, &ident.ident.to_string(), declared, rest, ctx, want);
+                return question(t, &ident.ident, declared, rest, ctx, want);
             }
             // An empty vector the block goes on to return takes the type the
             // block returns.
             let hint = match &declared {
                 Some(d) => Some(d.clone()),
                 None if is_empty_vec(&init.expr) => {
-                    returned_type(&ident.ident.to_string(), rest, ctx, want)
+                    returned_type(&ident.ident.clone(), rest, ctx, want)
                 }
                 None => None,
             };
@@ -5123,7 +5155,7 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
             if declared.as_ref().is_some_and(|d| !d.same(&vt)) {
                 return Break(Residue::Form("let of another type".to_string()));
             }
-            let (scope, name) = ctx.bind(&ident.ident.to_string(), vt.clone());
+            let (scope, name) = ctx.bind(&ident.ident.clone(), vt.clone());
             let (rest, rt) = block(rest, &scope, want)?;
             Continue((
                 Expr::Let {
@@ -5141,19 +5173,14 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
 
 /// `Vec::new()` or `Vec::with_capacity(n)`: a vector whose element type the
 /// expression does not say.
-fn is_empty_vec(e: &syn::Expr) -> bool {
-    let syn::Expr::Call(c) = e else {
+fn is_empty_vec(e: &rs::RustExpr) -> bool {
+    let rs::RustExpr::Call(c) = e else {
         return false;
     };
-    let syn::Expr::Path(p) = &*c.func else {
+    let rs::RustExpr::Path(p) = &*c.func else {
         return false;
     };
-    let names: Vec<String> = p
-        .path
-        .segments
-        .iter()
-        .map(|s| s.ident.to_string())
-        .collect();
+    let names: Vec<String> = p.segments.iter().map(|s| s.ident.to_string()).collect();
     matches!(
         (
             names
@@ -5170,45 +5197,52 @@ fn is_empty_vec(e: &syn::Expr) -> bool {
 /// The type a local takes from where the block returns it: the block's own
 /// type when its last statement is the local, or the function's result when
 /// a `return` of the local appears.
-fn returned_type(ident: &str, rest: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Option<Ty> {
-    let is_local = |e: &syn::Expr| matches!(e, syn::Expr::Path(p) if p.path.is_ident(ident));
-    if let Some(syn::Stmt::Expr(e, None)) = rest.last() {
+fn returned_type(ident: &str, rest: &[rs::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Option<Ty> {
+    let is_local = |e: &rs::RustExpr| matches!(e, rs::RustExpr::Path(p) if p.is_ident(ident));
+    if let Some(rs::Stmt::Expr(e, false)) = rest.last() {
         if is_local(e) {
             return want.cloned();
         }
     }
-    struct Returns<'i> {
-        ident: &'i str,
-        found: bool,
+    returns_local(rest, ident).then(|| ctx.result.clone())
+}
+
+/// Whether a `return` of the local `ident` appears in the statements,
+/// outside closures.
+fn returns_local(stmts: &[rs::Stmt], ident: &str) -> bool {
+    stmts.iter().any(|stmt| match stmt {
+        rs::Stmt::Local(l) => l.init.as_ref().is_some_and(|init| {
+            let mut exprs = vec![&*init.expr];
+            exprs.extend(init.diverge.as_deref());
+            exprs.iter().any(|e| returns_in(e, ident))
+        }),
+        rs::Stmt::Expr(e, _) => returns_in(e, ident),
+        rs::Stmt::Other => false,
+    })
+}
+
+/// [`returns_local`] in an expression.
+fn returns_in(e: &rs::RustExpr, ident: &str) -> bool {
+    if matches!(e, rs::RustExpr::Closure(_)) {
+        return false;
     }
-    impl<'ast> syn::visit::Visit<'ast> for Returns<'_> {
-        fn visit_expr_return(&mut self, r: &'ast syn::ExprReturn) {
-            if let Some(e) = &r.expr {
-                if matches!(&**e, syn::Expr::Path(p) if p.path.is_ident(self.ident)) {
-                    self.found = true;
-                }
-            }
-            syn::visit::visit_expr_return(self, r);
+    if let rs::RustExpr::Return(Some(v)) = e {
+        if matches!(&**v, rs::RustExpr::Path(p) if p.is_ident(ident)) {
+            return true;
         }
-        fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
     }
-    let mut returns = Returns {
-        ident,
-        found: false,
-    };
-    for stmt in rest {
-        syn::visit::Visit::visit_stmt(&mut returns, stmt);
-    }
-    returns.found.then(|| ctx.result.clone())
+    let (exprs, blocks) = e.parts();
+    exprs.iter().any(|x| returns_in(x, ident))
+        || blocks.iter().any(|b| returns_local(&b.stmts, ident))
 }
 
 /// `let x = e?; rest`: a match that returns the failure and continues with
 /// the value.
 fn question(
-    e: &syn::Expr,
+    e: &rs::RustExpr,
     ident: &str,
     declared: Option<Ty>,
-    rest: &[syn::Stmt],
+    rest: &[rs::Stmt],
     ctx: &Ctx<'_>,
     want: Option<&Ty>,
 ) -> Lift<(Expr, Ty)> {
@@ -5279,7 +5313,7 @@ pub(crate) struct Candidate<'a> {
     pub(crate) name: String,
     pub(crate) params: Vec<Param>,
     pub(crate) result: Ty,
-    pub(crate) block: &'a syn::Block,
+    pub(crate) block: &'a rs::Block,
 }
 
 /// What a lift produced.
@@ -5670,25 +5704,25 @@ fn cyclic(graph: &BTreeMap<String, BTreeSet<String>>) -> BTreeSet<String> {
 }
 
 /// A literal argument of an acceptance assertion, of the parameter's type.
-fn literal(e: &syn::Expr, want: &Ty, types: &Types) -> Option<String> {
+fn literal(e: &rs::RustExpr, want: &Ty, types: &Types) -> Option<String> {
     match e {
-        syn::Expr::Lit(lit) => match literal_of(&lit.lit, Some(want), false) {
+        rs::RustExpr::Lit(lit) => match literal_of(lit, Some(want), false) {
             Continue((Expr::Flat(s), t)) if t.same(want) => Some(s),
             _ => None,
         },
-        syn::Expr::Unary(u) if matches!(u.op, syn::UnOp::Neg(_)) => match &*u.expr {
-            syn::Expr::Lit(lit) => match literal_of(&lit.lit, Some(want), true) {
+        rs::RustExpr::Unary(u) if matches!(u.op, rs::UnOp::Neg) => match &*u.expr {
+            rs::RustExpr::Lit(lit) => match literal_of(lit, Some(want), true) {
                 Continue((Expr::Flat(s), t)) if t.same(want) => Some(s),
                 _ => None,
             },
             _ => None,
         },
-        syn::Expr::Path(p) => {
-            let (owner, variant) = ctor(&p.path, types)?;
+        rs::RustExpr::Path(p) => {
+            let (owner, variant) = ctor(p, types)?;
             (Ty::Named(owner.clone()) == *want).then(|| format!("(ctor {owner}.{variant})"))
         }
-        syn::Expr::Paren(p) => literal(&p.expr, want, types),
-        syn::Expr::Reference(r) => literal(&r.expr, want, types),
+        rs::RustExpr::Paren(p) => literal(p, want, types),
+        rs::RustExpr::Reference(r) => literal(&r.expr, want, types),
         _ => None,
     }
 }
@@ -5696,17 +5730,17 @@ fn literal(e: &syn::Expr, want: &Ty, types: &Types) -> Option<String> {
 /// `f(lit, ..)` against a lifted function: the applied term, the result
 /// type and the function's Rust name.
 fn applied(
-    e: &syn::Expr,
+    e: &rs::RustExpr,
     lifted: &BTreeMap<String, Sig>,
     types: &Types,
 ) -> Option<(String, Ty, String)> {
-    let syn::Expr::Call(c) = e else {
+    let rs::RustExpr::Call(c) = e else {
         return None;
     };
-    let syn::Expr::Path(p) = &*c.func else {
+    let rs::RustExpr::Path(p) = &*c.func else {
         return None;
     };
-    let name = p.path.segments.last()?.ident.to_string();
+    let name = p.segments.last()?.ident.to_string();
     let sig = lifted.get(&name)?;
     if sig.params.len() != c.args.len() {
         return None;
@@ -5723,15 +5757,15 @@ fn applied(
 /// `assert!(!f(..))`, `assert_eq!(f(..), 3)`.
 pub(crate) fn acceptance(
     kind: &str,
-    args: &[syn::Expr],
+    args: &[rs::RustExpr],
     lifted: &BTreeMap<String, Sig>,
     types: &Types,
 ) -> Option<(String, String)> {
     match (kind, args) {
         ("assert", [single, ..]) => {
             let (inner, value) = match single {
-                syn::Expr::Unary(syn::ExprUnary {
-                    op: syn::UnOp::Not(_),
+                rs::RustExpr::Unary(rs::ExprUnary {
+                    op: rs::UnOp::Not,
                     expr,
                     ..
                 }) => (&**expr, "false"),
@@ -5758,16 +5792,18 @@ mod tests {
 
     fn lift(src: &str, types: &Types) -> Result<String, Residue> {
         let f: syn::ItemFn = syn::parse_str(src).expect("parses");
-        let (params, result) = match types.signature(&f.sig, None) {
+        let sig = crate::convert::signature(&f.sig);
+        let block = crate::convert::block(&f.block);
+        let (params, result) = match types.signature(&sig, None) {
             Continue(sig) => sig,
             Break(r) => return Err(r),
         };
         let c = Candidate {
-            rust: f.sig.ident.to_string(),
-            name: camel(&[&f.sig.ident.to_string()]),
+            rust: sig.ident.clone(),
+            name: camel(&[&sig.ident]),
             params,
             result,
-            block: &f.block,
+            block: &block,
         };
         let out = lift_all(&[c], types);
         match out.failed.into_values().next() {
@@ -5783,6 +5819,12 @@ mod tests {
 
     fn plain() -> Types {
         Types::default()
+    }
+
+    #[test]
+    fn a_percent_sign_is_residue() {
+        let out = lift(r#"fn rem() -> String { "%=".to_string() }"#, &plain());
+        assert_eq!(out, Err(Residue::Form(PERCENT.to_string())));
     }
 
     #[test]
@@ -5903,7 +5945,7 @@ mod tests {
     #[test]
     fn structs_and_tuples_lift() {
         let mut raw = BTreeMap::new();
-        let ty: syn::Type = syn::parse_str("u32").expect("type");
+        let ty = crate::convert::ty(&syn::parse_str("u32").expect("type"));
         raw.insert(
             "Band".to_string(),
             vec![("low".to_string(), ty.clone()), ("high".to_string(), ty)],
