@@ -88,6 +88,27 @@ def npm(package, repo, fix):
     return {"name": f"{package}@{version}", "commit": commit}
 
 
+def branch(repository, repo, fix):
+    """The upstream default branch's head, once it carries `fix`."""
+    head = run("git", "-C", str(repo), "rev-parse", "refs/remotes/upstream/HEAD").strip()
+    if not contains(repo, fix, head):
+        return None
+    return {"name": f"{repository}@{head[:12]}", "commit": head}
+
+
+def frame_pin(patch, release):
+    """Pin the frame to the upstream commit that ships the fix, drop the patch
+    row, and push both (scripts/ci/push.sh dispatches the gate and the page)."""
+    run("node", "bootstrap/frame-sync.mjs", "--pin", release["commit"])
+    text = (ROOT / "upstream.toml").read_text()
+    rows = text.split("\n[[patch]]\n")
+    row = 'id = "%s"' % patch["id"]
+    kept = [r for r in rows[1:] if r.split("\n", 1)[0] != row]
+    (ROOT / "upstream.toml").write_text("\n[[patch]]\n".join([rows[0], *kept]))
+    run("scripts/ci/push.sh", f"Re-pin the frame to {patch['repository']}@{release['commit'][:12]}",
+        "frame.lock bootstrap site lighthouserc.json upstream.toml", "bootstrap.yml", "pages.yml")
+
+
 def pull(repository, number):
     return json.loads(run("gh", "api", f"repos/{repository}/pulls/{number}"))
 
@@ -137,6 +158,8 @@ def main():
             release = ghcr(patch["release"]["image"], repo, fix)
         elif kind == "npm":
             release = npm(patch["release"]["package"], repo, fix)
+        elif kind == "branch":
+            release = branch(repository, repo, fix)
         else:
             raise SystemExit(f"{patch['id']}: unknown release kind {kind}")
         if not release:
@@ -144,6 +167,9 @@ def main():
             continue
         print(f"{patch['id']}: {release['name']} carries {fix[:12]} (built from {release['commit'][:12]})")
         if not act:
+            continue
+        if patch["repin"] == "frame":
+            frame_pin(patch, release)
             continue
         body = (f"{release['name']} ships {repository}@{fix} "
                 f"({repository}#{patch['pull']}).\n\n{patch['what']}\n\n"

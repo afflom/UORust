@@ -1,7 +1,8 @@
 # Watches the upstream fixes upstream.toml records. Each hour it asks whether
 # a release ships one; when it does, it opens an issue naming that release and
 # dispatches the re-pin where the re-pin is mechanical (template-update.yml for
-# the SDK). An upstream pull request closed without merging gets an issue too.
+# the SDK; for the template, a frame re-pin pushed to main). An upstream pull
+# request closed without merging gets an issue too.
 # Nobody has to remember to check: the patch is replaced by its release the
 # hour the release exists.
 name: upstream
@@ -24,7 +25,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
-      contents: read
+      contents: write
       issues: write
       actions: write
     steps:

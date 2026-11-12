@@ -10,9 +10,12 @@
 #   release   how a release is found:
 #               ghcr  an image repository tagged sha-<commit> per build
 #               npm   a package whose versions record gitHead
+#               branch  the upstream default branch, once it contains the fix
 #   repin     what re-pins: "template-update" dispatches template-update.yml
 #             with the release's SDK image and its PrismPM action commit at
-#             the template revision template.lock pins; "issue" only reports.
+#             the template revision template.lock pins; "frame" pins the frame
+#             (bootstrap/frame-sync.mjs --pin) to the upstream commit, drops
+#             this row and pushes; "issue" only reports.
 
 [[patch]]
 id = "prismpm-sdk-view-closure"
@@ -32,3 +35,12 @@ repository = "UOR-Foundation/PrismPM"
 pull = 640
 release = { kind = "npm", package = "prism-code" }
 repin = "issue"
+
+[[patch]]
+id = "template-frame-live-controls"
+what = "frame.lock pins the frame to UOR-Foundation/template PR #62's branch: the page's input and example buttons work while the holo verifies (c7cb216), on top of the patched SDK pin."
+pinned = "frame.lock, site/app.mjs and the other frame files"
+repository = "UOR-Foundation/template"
+pull = 62
+release = { kind = "branch" }
+repin = "frame"
