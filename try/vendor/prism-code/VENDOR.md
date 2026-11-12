@@ -17,3 +17,13 @@ published `prism-code@0.2.0` npm package. Nothing here is rebuilt.
 The page imports `src/browser.mjs` directly, so there is no bundler and no
 external request at runtime. `src/node.mjs` and `src/docker.mjs` are unused in
 the browser and are kept only so the vendored tree matches the published `src/`.
+
+## Local patch
+
+`src/core.mjs` differs from the published file in one place: `compileGuest`
+also accepts a target/2 guest's immutable `__stack_low` and `__stack_high`
+global exports (PrismPM `SPEC.md`, application V2), both or neither. The fix
+is proposed upstream as
+[UOR-Foundation/PrismPM#640](https://github.com/UOR-Foundation/PrismPM/pull/640).
+When a prism-code release carries it, re-vendor that release and drop this
+section.

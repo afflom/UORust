@@ -25,6 +25,8 @@ export async function compileGuest(wasmBytes) {
   const exportNames = exports.map((e) => e.name).sort();
   // A target/2 guest (SPEC.md, application V2) also exports its immutable
   // __stack_low and __stack_high linker globals, both or neither.
+  // Local patch over prism-code 0.2.0; upstream fix: UOR-Foundation/PrismPM#640.
+  // Repin to the first prism-code release that carries it and drop this patch.
   const stack = exports.filter((e) => e.name === '__stack_low' || e.name === '__stack_high');
   const v2 = stack.length === 2 && stack.every((e) => e.kind === 'global');
   const expected = [...REQUIRED_EXPORTS, ...(v2 ? ['__stack_high', '__stack_low'] : [])].sort();
