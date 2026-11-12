@@ -106,6 +106,109 @@ pub(crate) fn spec_source(syntax: &str, toolchain: &str) -> String {
     out
 }
 
+/// `std.mir` from a directory of std's dumps: the bodies of the items
+/// `lift` names (by [`super::stdlib::key`]), each headed by the path of its
+/// crate with every `<impl at file:span>` named by the type the source at
+/// that span implements, so the vendored text holds no path of the machine
+/// that dumped it.
+pub(crate) fn std_mir(dumps: &std::path::Path, lift: &[String]) -> String {
+    use super::stdlib::key;
+    let wanted: std::collections::BTreeSet<String> = lift.iter().map(|l| key(l)).collect();
+    let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(dumps)
+        .into_iter()
+        .flatten()
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.ends_with(".ElaborateBoxDerefs.before.mir"))
+        })
+        .collect();
+    files.sort();
+    let mut bodies: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    for file in files {
+        let name = file
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default();
+        let krate = name.split('.').next().unwrap_or_default().to_string();
+        let Ok(text) = std::fs::read_to_string(&file) else {
+            continue;
+        };
+        let mut out = String::new();
+        let mut path = String::new();
+        for line in text.lines() {
+            if line.starts_with("// MIR for") || (out.is_empty() && line.is_empty()) {
+                continue;
+            }
+            let line = named_impls(line);
+            if let Some(head) = line.strip_prefix("fn ") {
+                path = format!("{krate}::{}", head.split('(').next().unwrap_or(head));
+                out.push_str(&format!("fn {krate}::{head}\n"));
+            } else {
+                out.push_str(&line);
+                out.push('\n');
+            }
+        }
+        if wanted.contains(&key(&path)) {
+            bodies.insert(key(&path), out);
+        }
+    }
+    bodies.into_values().collect::<Vec<_>>().join("\n")
+}
+
+/// `line` with each `<impl at file:span>` named by the type it implements.
+fn named_impls(line: &str) -> String {
+    let mut out = String::new();
+    let mut rest = line;
+    while let Some(at) = rest.find("<impl at ") {
+        out.push_str(&rest[..at]);
+        let after = &rest[at + "<impl at ".len()..];
+        let Some(end) = after.find('>') else {
+            out.push_str(&rest[at..]);
+            return out;
+        };
+        match super::impl_type(std::path::Path::new("/"), &after[..end]) {
+            Some(t) => out.push_str(&format!("<impl {t}>")),
+            None => out.push_str("<impl ?>"),
+        }
+        rest = &after[end + 1..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// `std_vectors.rs`: one test that runs std on every vector of the table.
+pub(crate) fn std_vectors(models: &[super::stdlib::StdModel]) -> String {
+    let mut out = String::from(
+        "//! Generated from `crates/uorust/mir/std.toml` by the test\n\
+         //! `std_is_vendored_from_the_pinned_toolchain`. Do not edit: each assertion\n\
+         //! runs std itself on a vector of a model the MIR path uses.\n\n\
+         #[test]\n\
+         fn std_agrees_with_every_vector_of_its_models() {\n",
+    );
+    for m in models {
+        for v in &m.vectors {
+            let Some((expected, args)) = v.split_last() else {
+                continue;
+            };
+            let mut call = m.rust.replace("{{", "\u{1}").replace("}}", "\u{2}");
+            for (i, a) in args.iter().enumerate() {
+                call = call.replace(&format!("{{{i}}}"), a);
+            }
+            let call = call.replace('\u{1}', "{").replace('\u{2}', "}");
+            out.push_str(&match expected.as_str() {
+                "true" => format!("    assert!({call}, {:?});\n", m.path),
+                "false" => format!("    assert!(!{call}, {:?});\n", m.path),
+                _ => format!("    assert_eq!({call}, {expected}, {:?});\n", m.path),
+            });
+        }
+    }
+    out.push_str("}\n");
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -149,6 +252,47 @@ mod tests {
             std::fs::read_to_string(&path).unwrap(),
             spec,
             "spec.rs is stale: run scripts/mir/fetch-syntax.sh"
+        );
+    }
+
+    #[test]
+    fn std_is_vendored_from_the_pinned_toolchain() {
+        let dir = root().join("crates/uorust/mir");
+        let table = std::fs::read_to_string(dir.join("std.toml")).unwrap();
+        let toolchain = std::fs::read_to_string(root().join("rust-toolchain.toml")).unwrap();
+        assert_eq!(field(&table, "toolchain"), field(&toolchain, "channel"));
+        let t = super::super::stdlib::table();
+        if let Some(dumps) = std::env::var_os("UORUST_STD_DUMPS") {
+            let mir = std_mir(std::path::Path::new(&dumps), &t.lift);
+            std::fs::write(dir.join("std.mir"), &mir).unwrap();
+            let sha = sha256(mir.as_bytes());
+            let mut rewritten = String::new();
+            for line in table.lines() {
+                if line.starts_with("std_mir_sha256 = ") {
+                    rewritten.push_str(&format!("std_mir_sha256 = \"{sha}\""));
+                } else {
+                    rewritten.push_str(line);
+                }
+                rewritten.push('\n');
+            }
+            std::fs::write(dir.join("std.toml"), rewritten).unwrap();
+            return;
+        }
+        let mir = std::fs::read_to_string(dir.join("std.mir")).unwrap();
+        assert_eq!(
+            field(&table, "std_mir_sha256"),
+            sha256(mir.as_bytes()),
+            "std.mir is not the one fetch-std.sh vendored"
+        );
+        let vectors = std_vectors(&t.models);
+        let path = root().join("crates/uorust/src/mir/std_vectors.rs");
+        if std::env::var_os("UORUST_WRITE_SPEC").is_some() {
+            std::fs::write(&path, &vectors).unwrap();
+        }
+        assert_eq!(
+            std::fs::read_to_string(&path).unwrap(),
+            vectors,
+            "std_vectors.rs is stale: run with UORUST_WRITE_SPEC=1"
         );
     }
 

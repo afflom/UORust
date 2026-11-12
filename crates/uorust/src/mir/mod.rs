@@ -27,6 +27,11 @@ pub(crate) mod spec;
 mod generate;
 mod ir;
 mod prove;
+// Generated: its layout is the generator's, which the std test compares.
+#[cfg(test)]
+#[rustfmt::skip]
+mod std_vectors;
+pub(crate) mod stdlib;
 pub mod verdict;
 
 pub use prove::{prove, Summary};
@@ -217,6 +222,9 @@ pub fn dump(root: &Path, out: &Path) -> Result<(), UorustError> {
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Dumps {
     pub(crate) crates: BTreeMap<String, BTreeMap<String, IrBody>>,
+    /// The constants' bodies (promoted constants and constant items), by
+    /// crate and the path MIR prints for them where they are used.
+    pub(crate) consts: BTreeMap<String, BTreeMap<String, IrBody>>,
 }
 
 /// Read the dumps under `dir`, resolving each `<impl at file:l:c: l:c>` to
@@ -260,6 +268,14 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
         for file in files {
             let text = std::fs::read_to_string(&file).map_err(|e| io(&file, e))?;
             for mut body in parse::bodies(&text) {
+                if body.arity == 0 && (body.path.contains("promoted[") || !body.path.contains('{'))
+                {
+                    dumps
+                        .consts
+                        .entry(krate.clone())
+                        .or_default()
+                        .insert(body.path.clone(), body.clone());
+                }
                 let Some(path) = resolve_impls(root, &body.path) else {
                     continue;
                 };
@@ -300,7 +316,7 @@ fn resolve_impls(root: &Path, path: &str) -> Option<String> {
 }
 
 /// The type an impl at `file:l1:c1: l2:c2` implements, read from its source.
-fn impl_type(root: &Path, span: &str) -> Option<String> {
+pub(super) fn impl_type(root: &Path, span: &str) -> Option<String> {
     let (file, range) = span.split_once(':')?;
     let (from, to) = range.split_once(": ")?;
     let (l1, c1) = from.split_once(':')?;

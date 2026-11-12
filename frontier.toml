@@ -2,93 +2,98 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 225 of 706 functions of product code are lifted; 399
-# are residue, 34 foreign and 48 effect rows.
+# Honesty report: 226 of 731 functions of product code are lifted; 421
+# are residue, 34 foreign and 50 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 7
-#   collision: 7
-#   form: 14
-#   mir::CastKind::PointerCoercion: 1
+#   collision: 8
+#   form: 17
+#   mir::CastKind::PointerCoercion: 4
+#     3 from (List String) to (List String)
 #     1 from (List Ty) to (List Ty)
-#   mir::Operand::Constant: 31
+#   mir::Operand::Constant: 13
 #     1 a string LexLean source cannot write
 #     1 lift::Ctx::returning::promoted[0]
-#     1 lift::comb_join::promoted[1]
-#     1 lift::comb_map::promoted[4]
-#     1 lift::comb_nth::promoted[0]
-#     1 lift::comb_skip::promoted[1]
-#     1 lift::default_in::promoted[0]
-#     1 lift::early_return::promoted[0]
-#     1 lift::hex_collect::promoted[2]
-#     1 lift::if_rest::promoted[1]
-#     1 lift::if_value::promoted[1]
-#     1 lift::logic::promoted[3]
-#     1 lift::loop_exit::promoted[0]
-#     1 lift::method_int_min::promoted[0]
-#     1 lift::method_list_get::promoted[0]
-#     1 lift::method_nat_checked_div::promoted[0]
-#     1 lift::method_nat_checked_div_args::promoted[0]
-#     1 lift::method_nat_min::promoted[0]
-#     1 lift::nat_difference::promoted[0]
-#     1 lift::path_value::promoted[1]
-#     1 lift::prelude_calls::promoted[0]
-#     1 lift::range_value::promoted[0]
-#     1 lift::sliced::promoted[1]
-#     1 lift::text_join::promoted[2]
-#     1 lift::unary_value::promoted[1]
-#     1 mir::lower::max_of::promoted[0]
+#     1 lift::default_in::promoted[0]: mir::Operand::Constant: the constant item lift::PRELUDE
+#     1 lift::loop_exit::promoted[0]: mir::Operand::Constant: the constant item lift::BREAK
+#     1 lift::prelude_calls::promoted[0]: mir::Operand::Constant: the constant item lift::PRELUDE
+#     1 mir::lower::max_of::promoted[0]: mir::Operand::Constant: the constant item core::num::<impl u128>::MAX
 #     1 mir::verdict::Verdicts::to_text::promoted[0]
-#     1 order::tests::promoted[0]
-#     1 the constant item lift::PRELUDE_SOURCE
+#     1 route::REQUEST_LIMIT: mir::Operand::Constant: route::ROUTES: mir::CastKind::PointerCoercion: from (List Route) to (List Route)
+#     2 the constant item lift::PRELUDE_SOURCE
+#     1 the constant item mir::spec::MirStatementKind::ALL
+#     1 the constant item order::ORDERING
 #     1 the constant item order::PROOF_COLUMN
-#     1 the constant item route::REQUEST_LIMIT
 #   mir::ProjectionElem::ConstantIndex: 4
-#   mir::ProjectionElem::Downcast: 7
-#     7 a variant's field read outside a match on it
-#   mir::Rvalue::Aggregate: 15
+#   mir::ProjectionElem::Downcast: 8
+#     8 a variant's field read outside a match on it
+#   mir::Rvalue::Aggregate: 18
 #     2 Expr, which is not a struct
 #     3 of Nat
-#     10 of String
-#   mir::Rvalue::RawPtr: 3
-#   mir::Rvalue::Ref: 4
-#     4 BorrowKind::Mut
-#   mir::Rvalue::Use: 7
-#   mir::TerminatorKind::Call: 29
-#     1 <char as std::string::ToString>::to_string
-#     1 <lift::Ty as std::cmp::PartialEq>::ne
+#     13 of String
+#   mir::Rvalue::Discriminant: 2
+#     2 a discriminant read as a value
+#   mir::Rvalue::RawPtr: 4
+#   mir::Rvalue::Ref: 2
+#     2 BorrowKind::Mut of a part of a value
+#   mir::Rvalue::Use: 9
+#   mir::StatementKind::Assign: 1
+#     1 a write through ProjectionElem::Field
+#   mir::TerminatorKind::Call: 50
+#     1 <lift::Ty as std::cmp::PartialEq>::eq
+#     1 <std::collections::BTreeMap as std::convert::From>::from
+#     2 <std::collections::BTreeMap as std::ops::Index>::index
+#     1 <std::collections::BTreeSet as std::convert::From>::from
+#     1 <std::collections::BTreeSet as std::iter::Extend>::extend
+#     3 <std::option::Option as std::cmp::PartialEq>::eq
 #     1 <std::vec::Vec as std::ops::Index>::index
 #     2 a call of the function itself, whose measure is not derived
+#     9 cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq
 #     1 core::slice::<impl [&str]>::split_first
 #     1 core::slice::<impl [(lift::Ty, std::string::String, std::string::String)]>::split_first
 #     1 core::slice::<impl [ast::Stmt]>::split_first
 #     1 core::slice::<impl [lift::Clause]>::split_first
-#     1 core::str::<impl str>::contains
-#     1 core::str::<impl str>::find
+#     1 core::slice::<impl [lift::Ty]>::contains
 #     1 core::str::<impl str>::rsplit_once
-#     1 core::str::<impl str>::starts_with
-#     2 core::str::<impl str>::strip_prefix
-#     3 core::str::<impl str>::trim
-#     2 core::str::<impl str>::trim_start_matches
 #     1 lift::Split::reach
 #     1 lift::pat_head
 #     1 lift::refused
+#     3 mir::stdlib::table
 #     1 order::call
-#     1 std::option::Option::cloned
-#     1 std::option::Option::unwrap_or
-#     2 std::slice::from_ref
-#     1 std::str::<impl str>::repeat
-#   mir::TerminatorKind::Goto: 12
-#     12 a loop nested in a loop, whose helpers would call each other
-#   mir::Ty: 201
+#     1 project::indexed
+#     1 std::collections::BTreeSet::insert
+#     1 std::option::Option::unwrap_or_default
+#     1 uorust::ast::BinOp::text, whose translation is not admitted
+#     1 uorust::ast::ExprMacro::scan, whose translation is not admitted
+#     1 uorust::lex::Expr::flat, whose translation is not admitted
+#     1 uorust::lift::block, whose translation is not admitted
+#     1 uorust::lift::chars_count, whose translation is not admitted
+#     1 uorust::lift::default_in, whose translation is not admitted
+#     1 uorust::lift::exact_string, whose translation is not admitted
+#     1 uorust::lift::expr, whose translation is not admitted
+#     1 uorust::lift::expr_inner, whose translation is not admitted
+#     2 uorust::lift::flat_of, whose translation is not admitted
+#     1 uorust::lift::wrapped_method, whose translation is not admitted
+#     1 uorust::order::derived_in, whose translation is not admitted
+#   mir::TerminatorKind::Goto: 24
+#     24 a loop nested in a loop, whose helpers would call each other
+#   mir::Ty: 199
 #     2 &mut project::Notes
+#     1 &mut std::collections::BTreeMap<std::string::String, lift::Ty>
+#     1 &mut std::collections::BTreeMap<std::string::String, std::string::String>
+#     2 &mut std::collections::BTreeSet<lift::Ty>
+#     1 &mut std::collections::BTreeSet<std::string::String>
+#     1 &mut std::vec::Vec<(std::string::String, lex::Decl)>
+#     1 &mut std::vec::Vec<lex::Decl>
+#     1 &mut std::vec::Vec<std::string::String>
 #     3 T
-#     9 core::fmt::rt::Argument<'_>
+#     16 core::fmt::rt::Argument<'_>
 #     2 dyn for<'a> std::ops::Fn(&'a str) -> std::option::Option<std::vec::Vec<std::string::String>>
 #     1 dyn quote::ToTokens
 #     1 dyn std::error::Error
 #     1 i32
-#     4 i64
+#     5 i64
 #     1 impl Into<String>
 #     1 mir::ir::IrAggregate
 #     3 mir::ir::IrBody
@@ -97,66 +102,54 @@
 #     3 mir::ir::IrPlace
 #     1 mir::ir::IrRvalue
 #     1 mir::ir::IrTerminator
+#     1 mir::lower::Cx<'_>
 #     3 project::Options
 #     1 serde_json::Value
-#     1 std::collections::BTreeMap<&str, &str>
-#     1 std::collections::BTreeMap<(usize, usize), std::string::String>
-#     1 std::collections::BTreeMap<(usize, usize, usize), &str>
-#     1 std::collections::BTreeMap<project::FnRef, std::string::String>
-#     1 std::collections::BTreeMap<std::string::String, &ast::RustExpr>
-#     4 std::collections::BTreeMap<std::string::String, (std::string::String, lift::Ty)>
-#     1 std::collections::BTreeMap<std::string::String, (std::string::String, std::string::String)>
-#     1 std::collections::BTreeMap<std::string::String, ast::Alias>
-#     1 std::collections::BTreeMap<std::string::String, ast::RustType>
-#     1 std::collections::BTreeMap<std::string::String, facts::FileSyntax>
-#     2 std::collections::BTreeMap<std::string::String, lift::Sig>
-#     2 std::collections::BTreeMap<std::string::String, lift::Ty>
-#     1 std::collections::BTreeMap<std::string::String, project::Translation>
-#     1 std::collections::BTreeMap<std::string::String, register::Row>
-#     3 std::collections::BTreeMap<std::string::String, std::string::String>
-#     1 std::collections::BTreeMap<std::string::String, std::vec::Vec<(std::string::String, lift::Ty)>>
-#     1 std::collections::BTreeMap<std::string::String, std::vec::Vec<(std::string::String, std::vec::Vec<(std::option::Option<std::string::String>, lift::Ty)>)>>
-#     3 std::collections::BTreeMap<std::string::String, std::vec::Vec<std::string::String>>
-#     3 std::collections::BTreeMap<std::string::String, u128>
-#     1 std::collections::BTreeMap<std::string::String, usize>
-#     1 std::collections::BTreeSet<lift::Ty>
-#     1 std::collections::BTreeSet<project::FnRef>
-#     27 std::collections::BTreeSet<std::string::String>
-#     12 std::convert::Infallible
+#     1 std::collections::btree_map::Iter<'_, std::string::String, register::Row>
+#     1 std::collections::btree_map::Values<'_, std::string::String, (std::string::String, lift::Ty)>
+#     7 std::collections::btree_set::Iter<'_, std::string::String>
+#     17 std::convert::Infallible
 #     1 std::mem::MaybeUninit<[&ast::RustExpr; 1]>
 #     1 std::mem::MaybeUninit<[(&ast::Pat, lift::Body<'_>); 1]>
-#     1 std::mem::MaybeUninit<[(&ast::Pat, lift::Body<'_>); 2]>
+#     2 std::mem::MaybeUninit<[(&ast::Pat, lift::Body<'_>); 2]>
 #     1 std::mem::MaybeUninit<[ast::Stmt; 1]>
 #     1 std::mem::MaybeUninit<[lex::Arm; 2]>
 #     1 std::mem::MaybeUninit<[lex::Decl; 1]>
 #     1 std::mem::MaybeUninit<[lex::Decl; 3]>
+#     1 std::mem::MaybeUninit<[lift::Ty; 1]>
 #     1 std::mem::MaybeUninit<[lift::Ty; 2]>
-#     1 std::mem::MaybeUninit<[std::string::String; 1]>
+#     2 std::mem::MaybeUninit<[std::string::String; 1]>
 #     1 std::mem::MaybeUninit<[std::string::String; 2]>
 #     1 std::ops::Range<usize>
+#     1 std::ops::RangeFull
 #     1 std::ops::RangeTo<usize>
+#     1 std::option::IntoIter<&std::vec::Vec<(std::string::String, std::vec::Vec<(std::option::Option<std::string::String>, lift::Ty)>)>>
 #     1 std::path::Path
 #     1 std::path::PathBuf
 #     3 std::slice::Iter<'_, &ast::RustExpr>
+#     1 std::slice::Iter<'_, &str>
 #     1 std::slice::Iter<'_, (&ast::Pat, lift::Ty, std::string::String)>
 #     1 std::slice::Iter<'_, (&std::string::String, std::string::String)>
 #     1 std::slice::Iter<'_, (&str, mir::coverage::Coverage)>
 #     1 std::slice::Iter<'_, (lift::Clause<'_>, lift::Head<'_>)>
 #     1 std::slice::Iter<'_, (std::string::String, std::string::String)>
-#     1 std::slice::Iter<'_, (std::string::String, std::string::String, lift::Ty)>
-#     1 std::slice::Iter<'_, ast::FieldValue>
+#     2 std::slice::Iter<'_, (std::string::String, std::string::String, lift::Ty)>
+#     2 std::slice::Iter<'_, ast::FieldValue>
 #     1 std::slice::Iter<'_, ast::GenericParam>
 #     3 std::slice::Iter<'_, ast::MatchArm>
-#     3 std::slice::Iter<'_, ast::PathSegment>
+#     4 std::slice::Iter<'_, ast::PathSegment>
 #     4 std::slice::Iter<'_, ast::RustExpr>
-#     3 std::slice::Iter<'_, ast::Stmt>
+#     6 std::slice::Iter<'_, ast::Stmt>
 #     1 std::slice::Iter<'_, facts::Advisory>
 #     1 std::slice::Iter<'_, facts::Dep>
+#     2 std::slice::Iter<'_, lift::Ty>
 #     1 std::slice::Iter<'_, project::Component>
 #     5 std::slice::Iter<'_, std::string::String>
 #     1 std::slice::Iter<'_, wf::Node>
+#     1 std::str::CharIndices<'_>
 #     7 std::str::Chars<'_>
 #     2 std::str::Lines<'_>
+#     1 std::str::MatchIndices<'_, &str>
 #     1 std::str::Split<'_, &str>
 #     1 std::str::Split<'_, char>
 #     1 std::str::SplitWhitespace<'_>
@@ -166,15 +159,24 @@
 #     1 {closure@crates/uorust/src/ast.rs:1068:18: 1068:21}
 #     1 {closure@crates/uorust/src/ast.rs:1123:20: 1123:30}
 #     1 {closure@crates/uorust/src/ast.rs:1178:21: 1178:41}
+#     1 {closure@crates/uorust/src/ast.rs:118:21: 118:35}
+#     1 {closure@crates/uorust/src/ast.rs:192:21: 192:35}
+#     1 {closure@crates/uorust/src/ast.rs:252:21: 252:35}
 #     1 {closure@crates/uorust/src/lift.rs:10226:17: 10226:27}
 #     1 {closure@crates/uorust/src/lift.rs:10322:22: 10322:24}
+#     1 {closure@crates/uorust/src/lift.rs:10374:17: 10374:53}
+#     1 {closure@crates/uorust/src/lift.rs:1607:18: 1607:36}
 #     1 {closure@crates/uorust/src/lift.rs:1665:16: 1665:34}
 #     1 {closure@crates/uorust/src/lift.rs:1815:46: 1815:49}
 #     1 {closure@crates/uorust/src/lift.rs:1900:68: 1900:71}
 #     1 {closure@crates/uorust/src/lift.rs:2153:52: 2153:57}
+#     1 {closure@crates/uorust/src/lift.rs:2280:44: 2280:52}
 #     1 {closure@crates/uorust/src/lift.rs:2410:26: 2410:44}
 #     1 {closure@crates/uorust/src/lift.rs:2567:16: 2567:44}
+#     1 {closure@crates/uorust/src/lift.rs:2763:65: 2763:68}
+#     1 {closure@crates/uorust/src/lift.rs:2785:65: 2785:68}
 #     1 {closure@crates/uorust/src/lift.rs:2897:51: 2897:54}
+#     1 {closure@crates/uorust/src/lift.rs:321:17: 321:33}
 #     1 {closure@crates/uorust/src/lift.rs:3316:16: 3316:44}
 #     1 {closure@crates/uorust/src/lift.rs:4668:15: 4668:17}
 #     1 {closure@crates/uorust/src/lift.rs:4957:22: 4957:28}
@@ -188,13 +190,13 @@
 #     1 {closure@crates/uorust/src/lift.rs:737:19: 737:21}
 #     1 {closure@crates/uorust/src/lift.rs:9313:22: 9313:24}
 #     1 {closure@crates/uorust/src/lift.rs:9700:37: 9700:39}
+#     1 {closure@crates/uorust/src/mir/lower.rs:2031:15: 2031:17}
 #     1 {closure@crates/uorust/src/order.rs:283:19: 283:58}
-#     1 {closure@crates/uorust/src/project.rs:3937:16: 3937:31}
-#   mir::Verdict: 10
-#     10 a translation the verifier has not decided yet
+#     1 {closure@crates/uorust/src/order.rs:92:43: 92:46}
+#     1 {closure@crates/uorust/src/project.rs:3971:16: 3971:31}
 #   statements: 1
-#   type: 45
-# MIR kinds at toolchain 1.97.1: 79 of 118 lowered; every other kind is a
+#   type: 49
+# MIR kinds at toolchain 1.97.1: 80 of 118 lowered; every other kind is a
 # residue row that names it.
 #   StatementKind::Assign: lowered: the local holds the rvalue's value; a write through a projection is residue
 #   StatementKind::FakeRead: lowered: no effect on values
@@ -217,7 +219,7 @@
 #   TerminatorKind::Return: lowered: the value of the return place
 #   TerminatorKind::Unreachable: lowered: a theorem that the path is unreachable
 #   TerminatorKind::Drop: lowered: control goes on: a value has no destructor in the model
-#   TerminatorKind::Call: lowered: a lifted function, or a standard operation the types model; a call that does not return is a theorem that the path is unreachable
+#   TerminatorKind::Call: lowered: a lifted function; a std operation as std's own MIR at the call's types, or its model where std bottoms out below values (mir/std.toml); a call that does not return is a theorem that the path is unreachable
 #   TerminatorKind::TailCall: residue: an explicit tail call
 #   TerminatorKind::Assert: lowered: a theorem that the condition holds on the path
 #   TerminatorKind::Yield: residue: a coroutine
@@ -227,7 +229,7 @@
 #   TerminatorKind::InlineAsm: residue: inline assembly
 #   Rvalue::Use: lowered: the operand's value
 #   Rvalue::Repeat: residue: an array of repeated values
-#   Rvalue::Ref: lowered: a shared borrow is the value it borrows; a mutable one is residue
+#   Rvalue::Ref: lowered: a shared borrow is the value it borrows; a mutable borrow of a local is passed to a call whose backward function gives the local its new value
 #   Rvalue::ThreadLocalRef: residue: a thread-local
 #   Rvalue::RawPtr: residue: a mutable or raw borrow, which a value model does not hold
 #   Rvalue::Cast: lowered: a widening integer cast keeps the value; any other is residue
@@ -240,7 +242,7 @@
 #   Rvalue::Reborrow: residue: a mutable or raw borrow, which a value model does not hold
 #   Operand::Copy: lowered: the place's value
 #   Operand::Move: lowered: the place's value
-#   Operand::Constant: lowered: a literal; a constant item is residue
+#   Operand::Constant: lowered: a literal, or the constant's own body (a promoted constant or a constant item) lowered like any body
 #   Operand::RuntimeChecks: lowered: overflow checks are on; the other checks are residue
 #   RuntimeChecks::UbChecks: residue: a check whose value is a build setting
 #   RuntimeChecks::ContractChecks: residue: a check whose value is a build setting
@@ -255,7 +257,7 @@
 #   ProjectionElem::UnwrapUnsafeBinder: residue: a cast of a place's type
 #   BorrowKind::Shared: lowered: the value borrowed
 #   BorrowKind::Fake: lowered: the value borrowed
-#   BorrowKind::Mut: residue: a mutable or raw borrow, which a value model does not hold
+#   BorrowKind::Mut: lowered: a local passed to a call with a backward function, which returns the local's new value
 #   CastKind::PointerExposeProvenance: residue: a pointer or representation cast
 #   CastKind::PointerWithExposedProvenance: residue: a pointer or representation cast
 #   CastKind::PointerCoercion: residue: a pointer or representation cast
@@ -357,7 +359,7 @@ detail = "mir::TerminatorKind::Call: a call of the function itself, whose measur
 kappa = "26ea527b07a9cf2b00341f823026d030eb46f881a135a816ea806bceb7658d3c"
 function = "uorust::ast::Path::localized"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::string::String>"
+detail = "mir::Ty: std::slice::Iter<'_, ast::PathSegment>"
 
 [[residue]]
 kappa = "68d44d08653e160480550a910e68dd510af4ae0b3f213118d5e77eba061a018a"
@@ -375,25 +377,25 @@ detail = "mir::Ty: {closure@crates/uorust/src/ast.rs:1178:21: 1178:41}"
 kappa = "bb5961723a86706ddade6c6c9c335d2dd0766358dc64711e695acf8b001550a5"
 function = "uorust::ast::RustType::expanded"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, ast::Alias>"
+detail = "mir::Ty: {closure@crates/uorust/src/ast.rs:118:21: 118:35}"
 
 [[residue]]
 kappa = "c70ab032deb3192994067a4b7fab99fe4d845f4dd8537c7c2d32855c38311283"
 function = "uorust::ast::RustType::localized"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::string::String>"
+detail = "mir::Ty: {closure@crates/uorust/src/ast.rs:252:21: 252:35}"
 
 [[residue]]
 kappa = "70fd5c281bc398306bec6deeb176e3d33aa1f8e1bb21fdf28fa7824f0e87eeae"
 function = "uorust::ast::RustType::substituted"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, ast::RustType>"
+detail = "mir::Ty: {closure@crates/uorust/src/ast.rs:192:21: 192:35}"
 
 [[residue]]
 kappa = "4ccf15308e30d47a016e036d9bd1cba97780013fb32dba5100c1bb3cbbc4e705"
 function = "uorust::ast::Stmt::scan"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::ast::ExprMacro::scan, whose translation is not admitted"
 
 [[residue]]
 kappa = "528bc6b7b9ef8ef81fbb7f4982b3bee9cd9e96a90353e633270cce0d7f1232ad"
@@ -423,7 +425,7 @@ detail = "mir::Ty: std::path::Path"
 kappa = "3b9086553dee8e048b5291922521c2ced8dacb58d0af3d1f8018f33687b10b99"
 function = "uorust::facts::Syntax::function"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, facts::FileSyntax>"
+detail = "mir::TerminatorKind::Call: <std::collections::BTreeMap as std::ops::Index>::index"
 
 [[residue]]
 kappa = "deadf03641f3a7db840745419fd86ecb948b3c6071e6c471df3d4b7e6fc60221"
@@ -441,7 +443,7 @@ detail = "type outside the lift: CapabilityScan<'_>"
 kappa = "15ed9cac0e1acc57e26a566468d0e6be8bb850103d2e3a89ec147a98da3215da"
 function = "uorust::ingest::assign"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::strip_prefix"
+detail = "mir::Ty: std::convert::Infallible"
 
 [[residue]]
 kappa = "c2396382a133b91b69b67ef46ee5b241da680779fd76a8f704773b7a2a2abad5"
@@ -501,7 +503,7 @@ detail = "mir::Ty: std::str::SplitWhitespace<'_>"
 kappa = "34bbf0394ca3a98ecad4c1d99ec0dd1cdd6494074e686d8b6b2c38b788e959e5"
 function = "uorust::lex::list"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: std::str::<impl str>::repeat"
+detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "3aaaeec1501ceb86e41d80e884c48098c2a47c160b650ccc009793927789eaf5"
@@ -531,7 +533,7 @@ detail = "mir::Ty: std::slice::Iter<'_, std::string::String>"
 kappa = "5d9749d0787eb672a9cd44f78bc64ce91fc929f4ee5f9686577c299bc75a79b0"
 function = "uorust::lift::Acc::ordered"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<lift::Ty>"
+detail = "mir::TerminatorKind::Call: std::collections::BTreeSet::insert"
 
 [[residue]]
 kappa = "6f8e879070a77d3c4bfb610ac06b652527e8b974d9c8c31c39be48feec9aeed1"
@@ -543,13 +545,13 @@ detail = "mir::Ty: std::vec::IntoIter<std::string::String>"
 kappa = "9a1b097799ad239da1558f00bad808e05a04899ae7b8c454f1917b0a72b73c9f"
 function = "uorust::lift::Ctx::assuming"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, u128>"
+detail = "mir::Rvalue::Ref: BorrowKind::Mut of a part of a value"
 
 [[residue]]
 kappa = "b5aa705c01c382a641e6a9cdd2776aead09d74808ba0aaaf626161ec41c2ad0b"
 function = "uorust::lift::Ctx::bind"
 reason = "mir"
-detail = "mir::Rvalue::Ref: BorrowKind::Mut"
+detail = "mir::Rvalue::Ref: BorrowKind::Mut of a part of a value"
 
 [[residue]]
 kappa = "b9e7c2c015723080631873cab6f0c5490f8506d9be4b8d9476c9b29733d4387b"
@@ -573,19 +575,19 @@ detail = "type outside the lift: Split<'_, 'a>"
 kappa = "486adf97c015b8e1f6e5514d94f0b39e4eba353318a014cefa021252f9f053f7"
 function = "uorust::lift::Types::member_fields"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::vec::Vec<(std::string::String, std::vec::Vec<(std::option::Option<std::string::String>, lift::Ty)>)>>"
+detail = "mir::Ty: std::option::IntoIter<&std::vec::Vec<(std::string::String, std::vec::Vec<(std::option::Option<std::string::String>, lift::Ty)>)>>"
 
 [[residue]]
 kappa = "23532c99d6e9c72fe5d6952350105443c53192010ba94055595398e385898b6f"
 function = "uorust::lift::Types::nested"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::collections::btree_set::Iter<'_, std::string::String>"
 
 [[residue]]
 kappa = "013fc8f57bdcb62cacde51b29664407d57a7573e2bdd3c103c62bcf88f786a14"
 function = "uorust::lift::Types::new"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::vec::Vec<std::string::String>>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "581ec09069f55e9e18b08cf36c80a7585d72e5d433042070e85aac78eb5ef594"
@@ -597,13 +599,13 @@ detail = "mir::Ty: std::slice::Iter<'_, ast::GenericParam>"
 kappa = "c08f8c35687e2f59c7334e09ee13307e7ed0f8840a80c13d171418a15e10bf6e"
 function = "uorust::lift::Types::sizable"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::collections::btree_set::Iter<'_, std::string::String>"
 
 [[residue]]
 kappa = "4d28add5706344e411bf06aa4543ad39e80056879c7d999bd479fa9424eb366d"
 function = "uorust::lift::Types::size_domains"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::collections::btree_set::Iter<'_, std::string::String>"
 
 [[residue]]
 kappa = "51108f47bd6ee22c910af8f6f631815c8fa21b435832fa5e2e192f63bee23dd9"
@@ -621,13 +623,13 @@ detail = "mir::ProjectionElem::Downcast: a variant's field read outside a match 
 kappa = "d51b80c563548e0c14507e98825d445137edebbaeda495fc87fa64d35f3c5c3b"
 function = "uorust::lift::Types::with_data"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::vec::Vec<std::string::String>>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "47846b5a4f1e90d112cc28813e94c4ae9ab9f58ca5dc3629b575469688f6040a"
 function = "uorust::lift::acceptance"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, lift::Sig>"
+detail = "mir::Rvalue::RawPtr"
 
 [[residue]]
 kappa = "7b3b283c26c83dc113a58ec131b2b96cd9d29b2b2bdfc1c8e4da308be0f00896"
@@ -639,13 +641,13 @@ detail = "mir::Rvalue::Aggregate: Expr, which is not a struct"
 kappa = "24f2558e5d21c7dc26e3d2fa13851a2e75755b21c4d9b33c328c5d516cac823a"
 function = "uorust::lift::applied"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, lift::Sig>"
+detail = "mir::Rvalue::Use"
 
 [[residue]]
 kappa = "6f4a1649398adb6be8ff3920d28da6677c4f780284598db0bcae2e9f1421b1f1"
 function = "uorust::lift::applied_closure"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, (std::string::String, lift::Ty)>"
+detail = "mir::StatementKind::Assign: a write through ProjectionElem::Field"
 
 [[residue]]
 kappa = "45d5692bb2d924d7227ca6ea1e3bad1ea5fc1cebb76c3affe68d7de87290fdbc"
@@ -675,13 +677,13 @@ detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:4962:17: 4962:33}"
 kappa = "ced5e7e146756084b978b32d329a312fb45ba300813d45238ddfbfe7ac9dced0"
 function = "uorust::lift::below"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::expr, whose translation is not admitted"
 
 [[residue]]
 kappa = "ff5caaeda713fd8b2ac93c3f1e5bf5905012a37fdbe79b1e8a14a28f1c02a28c"
 function = "uorust::lift::binary"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::ast::BinOp::text, whose translation is not admitted"
 
 [[residue]]
 kappa = "7899d8426f50a4b12c11bfc0b184577c4aff6479099b38e263242046da9a172f"
@@ -711,19 +713,19 @@ detail = "mir::TerminatorKind::Call: core::slice::<impl [ast::Stmt]>::split_firs
 kappa = "77151c5824b96cb29014629fef5f37c79a21273766fb282cdc2b385fd5da35f4"
 function = "uorust::lift::block_rewritten"
 reason = "mir"
-detail = "mir::Rvalue::Ref: BorrowKind::Mut"
+detail = "mir::Ty: std::slice::Iter<'_, ast::Stmt>"
 
 [[residue]]
 kappa = "1808ed8ada2450dfe446e0eee534c56eb0fc0d37c5802d2124925f6752de5406"
 function = "uorust::lift::body"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::block, whose translation is not admitted"
 
 [[residue]]
 kappa = "4f362130a37ac12b288002fd5f0d66de7d823d082326f8744c351d17fa80a2c3"
 function = "uorust::lift::branch_state"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::collections::btree_set::Iter<'_, std::string::String>"
 
 [[residue]]
 kappa = "cebd51949107c5acacdc4012233e02fd6b88a7aa1bfd7a5f8c82ab3385b2ceed"
@@ -735,19 +737,19 @@ detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:2897:51: 2897:54}"
 kappa = "3b3d06b306f3ca50f6bfe27a5768d163b6d5679512e5968e81e6bd5f607f41fd"
 function = "uorust::lift::call_cycles"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:10374:17: 10374:53}"
 
 [[residue]]
 kappa = "b98355ba639cabccf44461c70443094ba6e7c71823d4789638a3e88153706ae9"
 function = "uorust::lift::cast_value"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::string::String>"
+detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:2280:44: 2280:52}"
 
 [[residue]]
 kappa = "1acd1b7508e87ff23b24ccb57d7e5a398435a09fdb69ae99a1e2948d53277f3e"
 function = "uorust::lift::char_text"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: <char as std::string::ToString>::to_string"
+detail = "mir::TerminatorKind::Call: uorust::lift::exact_string, whose translation is not admitted"
 
 [[residue]]
 kappa = "287f4029fd6076ac429cb48a64fd7a44ece1a5dbb667c170433bd47271d8475c"
@@ -777,7 +779,7 @@ detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 kappa = "192e6741a4c4d9f557015128bec9dd25c8766b0e5c30311085866f57db4071c3"
 function = "uorust::lift::comb_filter_map"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: std::slice::from_ref"
+detail = "mir::Rvalue::Aggregate: of String"
 
 [[residue]]
 kappa = "e37bca24e1c6183f3f759a8bd6c07982739d240d685d298e5487fbf49d1a98ba"
@@ -789,19 +791,19 @@ detail = "mir::CastKind::PointerCoercion: from (List Ty) to (List Ty)"
 kappa = "0622ce384cb44b0cfb624e7e2e95588553422f19d868af386a793d5250606302"
 function = "uorust::lift::comb_join"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::comb_join::promoted[1]"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "8d8a9441a3bd6b89413bebb3521368b8f938022c71632df06b19e92f26e99e8d"
 function = "uorust::lift::comb_map"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::comb_map::promoted[4]"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "7e1d7835b303245f7ce845e42ece75eed18081e189adcfc2a3e43040c113647c"
 function = "uorust::lift::comb_nth"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::comb_nth::promoted[0]"
+detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "d353502921f73d697b44f5baa432de058c20ce0180497118f9516d153286bbb6"
@@ -813,13 +815,13 @@ detail = "mir::Ty: std::mem::MaybeUninit<[std::string::String; 1]>"
 kappa = "17cabfef105e8a880aa7ccf80ad54e405fcca643f8181690f825a4235987bf37"
 function = "uorust::lift::comb_skip"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::comb_skip::promoted[1]"
+detail = "mir::Ty: std::mem::MaybeUninit<[std::string::String; 1]>"
 
 [[residue]]
 kappa = "af6ac054a5a9c2f573a6ccd2ead90328383698ea92ffd1a8f15bcd5d03ac1377"
 function = "uorust::lift::comb_while"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: std::slice::from_ref"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "f6cc6f80eea7edc203ddc3c9dde00d73c51e91d9441595ded508fe4fe407294c"
@@ -897,25 +899,25 @@ detail = "mir::Rvalue::Use"
 kappa = "86ea7e45ce317a1d749e0f4fa570ada84900559e2c0bcac98cf4c3bf73c95897"
 function = "uorust::lift::cyclic"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "33a4de1aa84bee9de5a704343c3aebd08d8faa1bf2572731c260d3dd510bf048"
 function = "uorust::lift::default_in"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::default_in::promoted[0]"
+detail = "mir::Operand::Constant: lift::default_in::promoted[0]: mir::Operand::Constant: the constant item lift::PRELUDE"
 
 [[residue]]
 kappa = "de32640f6c74bdb60cf07268365ab0028b0bd28c04d019e2de3fc45f39b2114a"
 function = "uorust::lift::default_of"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::default_in, whose translation is not admitted"
 
 [[residue]]
 kappa = "9e8508713c08474fd350961d0a121c24eecbf839974941d5f1a89f71ce178831"
 function = "uorust::lift::disjoint"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, (std::string::String, lift::Ty)>"
+detail = "mir::Ty: std::collections::btree_map::Values<'_, std::string::String, (std::string::String, lift::Ty)>"
 
 [[residue]]
 kappa = "772b89ff0f563c227ee9b9139097b39463782d9e0c595aeea0d3ca8739567d3c"
@@ -927,7 +929,7 @@ detail = "mir::Ty: std::mem::MaybeUninit<[ast::Stmt; 1]>"
 kappa = "6a3e1e8f880ba71800a02c46d6e0cdd76063aac475c3ad8638bf1a10c74a5c9c"
 function = "uorust::lift::early_return"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::early_return::promoted[0]"
+detail = "mir::TerminatorKind::Call: <lift::Ty as std::cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "e2f758204bb41a60688370a2bc9c09225084a08ad87e26bf8bd17c58825c3781"
@@ -939,7 +941,7 @@ detail = "mir::Rvalue::Aggregate: of Nat"
 kappa = "d637e29ce184a8f01e76a8c95c4a3f3afbe87db509772b94e9631ca44687029b"
 function = "uorust::lift::evidence_definitions"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::slice::Iter<'_, lift::Ty>"
 
 [[residue]]
 kappa = "4a2bd233f7536206283dfc7be0a4d3589954167c2ac4a9c025a34dd254b8fdae"
@@ -951,7 +953,7 @@ detail = "mir::Ty: std::str::Chars<'_>"
 kappa = "da25b1ed1e5c0f8771890c6624454330a2a8d7fdc57446d7873c5d65273e5116"
 function = "uorust::lift::expr"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::expr_inner, whose translation is not admitted"
 
 [[residue]]
 kappa = "3774447786c8f7879bcfd7f100efd3cb5e720270cd598220b1bf53cca3c2d552"
@@ -969,7 +971,7 @@ detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:1815:46: 1815:49}"
 kappa = "bab7340f566b9ad0942922e3ab37e5a94cb2629e54e026ec62ea717f29a6570a"
 function = "uorust::lift::extends_by_option"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::flat_of, whose translation is not admitted"
 
 [[residue]]
 kappa = "30971ebdbbb82bb38db9750d597ae60bd3624fe379e373de38610913005ebe19"
@@ -993,19 +995,19 @@ detail = "mir::Rvalue::Aggregate: Expr, which is not a struct"
 kappa = "1d349a0ec093dd8f44be9a4bcb7d2db64fc6c513787a78f50463b972c9b898fc"
 function = "uorust::lift::flat_of"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, (std::string::String, lift::Ty)>"
+detail = "mir::TerminatorKind::Call: <std::collections::BTreeSet as std::iter::Extend>::extend"
 
 [[residue]]
 kappa = "b2422fb1d47c5414c85c72d7d224b5612c9546d54ec7b270855fabf7d8bbd281"
 function = "uorust::lift::flat_text"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::contains"
+detail = "mir::TerminatorKind::Call: uorust::lex::Expr::flat, whose translation is not admitted"
 
 [[residue]]
 kappa = "567d99d392be24c627e66de9424b1aa6648135d64cd7794d1457d45653c2052f"
 function = "uorust::lift::fn_call"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: std::option::Option::cloned"
+detail = "mir::TerminatorKind::Call: std::option::Option::unwrap_or_default"
 
 [[residue]]
 kappa = "0495df2c1509c7e157f530b0b41b6fe05ed3eeccfbad8f08c639c2756fdcc627"
@@ -1047,7 +1049,7 @@ detail = "mir::TerminatorKind::Call: <std::vec::Vec as std::ops::Index>::index"
 kappa = "fc5f5d1cb9d53fc8685b2ca2f9126a878a0e08bb05663443e9bdb1f6e58fbc15"
 function = "uorust::lift::hex_collect"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::hex_collect::promoted[2]"
+detail = "mir::TerminatorKind::Call: <std::option::Option as std::cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "8e46a41c8235ce6ec3a0a877e88a00584c03183a80a7d3bf48b43caa4a3075de"
@@ -1059,19 +1061,19 @@ detail = "mir::Rvalue::Aggregate: of Nat"
 kappa = "8ec040b54197647fa0bd0081b2e4484f28fe8e82790a3a71a94b6de8847ad186"
 function = "uorust::lift::if_let_rest"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: std::option::Option::unwrap_or"
+detail = "mir::Ty: std::mem::MaybeUninit<[(&ast::Pat, lift::Body<'_>); 2]>"
 
 [[residue]]
 kappa = "52f3cf63d74e016bc277c7c55433b3ede5b79ce8d5ca4bd356714e0b0a76d869"
 function = "uorust::lift::if_rest"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::if_rest::promoted[1]"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "d52e8fdfd61acebd96aa61eb50d5c40ca9873db1ee2b4c952c1a96fb88bcaafa"
 function = "uorust::lift::if_value"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::if_value::promoted[1]"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "2b7ec7f2c34454afe9e08528e4b6a23e1469ae2ea730d2338d4978d976c4a049"
@@ -1095,7 +1097,7 @@ detail = "mir::TerminatorKind::Call: a call of the function itself, whose measur
 kappa = "dba81dfd2321686d2a88601fc86722303e0b8c33848952fbf09cbe865e41007a"
 function = "uorust::lift::item_columns"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::vec::Vec<(std::string::String, lift::Ty)>>"
+detail = "mir::TerminatorKind::Call: <std::collections::BTreeMap as std::ops::Index>::index"
 
 [[residue]]
 kappa = "b66cfd25ff8f523bdd7bebe41590650199e0bfa7919ca5c70806ef679b77a520"
@@ -1149,7 +1151,7 @@ detail = "mir::Ty: std::vec::IntoIter<(std::string::String, std::string::String,
 kappa = "25d688237667bf01f8450e1e28ef41df06540679e77e0aa10ba81212c58da3ab"
 function = "uorust::lift::lift_all"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "e88a3e1d2a56fb960052ba0ef1234e6054ecc39c2e30b5cda1eff70dfdf2bca3"
@@ -1179,13 +1181,13 @@ detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:6532:20: 6532:56}"
 kappa = "0e97be65c6b9ad4c218ce327e3f6f2030810589ce9fde63a76cb6eaae9748b9a"
 function = "uorust::lift::local_name"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::trim_start_matches"
+detail = "mir::CastKind::PointerCoercion: from (List String) to (List String)"
 
 [[residue]]
 kappa = "666053277963e8a7c75ad3de19318a6e5c61182e1ddfe82341d896f6b97f44a8"
 function = "uorust::lift::logic"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::logic::promoted[3]"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "43dba0c48970133c1e182044bc1c8d7f2b652b565ef5f10b58940b6a1145d11f"
@@ -1197,13 +1199,13 @@ detail = "mir::Rvalue::Aggregate: of String"
 kappa = "7a45ae3515dfce9acfa5c595f856563367bc8da743a10fa83f8f95d88696f9c9"
 function = "uorust::lift::loop_exit"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::loop_exit::promoted[0]"
+detail = "mir::Operand::Constant: lift::loop_exit::promoted[0]: mir::Operand::Constant: the constant item lift::BREAK"
 
 [[residue]]
 kappa = "207fa12cf22ccb902f806eb5cc6af397317b6e482589b426168ade5254698595"
 function = "uorust::lift::loop_state"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::collections::btree_set::Iter<'_, std::string::String>"
 
 [[residue]]
 kappa = "33dbbfc928f091ba94a4564b566a4f7924fc0440b053843eb8049e8b8e6bc1bd"
@@ -1257,7 +1259,7 @@ detail = "mir::Ty: std::mem::MaybeUninit<[&ast::RustExpr; 1]>"
 kappa = "762779814d4d1220147c9c48480400f82eb53670ee08e98107c5a9d9f201e4bf"
 function = "uorust::lift::measured"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::slice::Iter<'_, (std::string::String, std::string::String, lift::Ty)>"
 
 [[residue]]
 kappa = "3400d96a7faf16b1a5da621aaf29f3679955650db382f2c4807c3703b1ae197e"
@@ -1287,13 +1289,13 @@ detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 kappa = "e2586005cf3499a04f6b9613c23804cfe467ffdd7f7cb3f793c934dd11fe5a9a"
 function = "uorust::lift::method_int_min"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::method_int_min::promoted[0]"
+detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "60ce3ce97b92ea021457e00a1f5a8d2e3826fe42b8ba425fe9f229dcce9f8c88"
 function = "uorust::lift::method_list_get"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::method_list_get::promoted[0]"
+detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "a46e115a54e0c0ec76d70d764f0cee96c29dc83b6daa6b3f8b36f939c78b8921"
@@ -1311,13 +1313,13 @@ detail = "mir::Rvalue::Aggregate: of String"
 kappa = "93d4813b3902b6b7a3fb87331e172fc4e92268ca75d8510cd9445faf11070b88"
 function = "uorust::lift::method_nat_checked_div"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::method_nat_checked_div::promoted[0]"
+detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "342efafd75b68bc40b15040302c203c956945ac139048d7342ff358a384ddfff"
 function = "uorust::lift::method_nat_checked_div_args"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::method_nat_checked_div_args::promoted[0]"
+detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "45ae4cfd6eb221a598928169e0e914b80ea23d632aff421654c0ab923471e15e"
@@ -1335,7 +1337,7 @@ detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 kappa = "19beeff34846bb2f690512174eb7c993eede18397d872faaa38be0f5f80ec0cd"
 function = "uorust::lift::method_nat_min"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::method_nat_min::promoted[0]"
+detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "f1520e5e683c0a9f99ad1d1f14c8741e66cf4794bf34471578220b565f6a431e"
@@ -1365,7 +1367,7 @@ detail = "mir::Ty: std::slice::Iter<'_, ast::RustExpr>"
 kappa = "cc7ea4c0dd800fe69e548a10f8f0b13e7f9a7630663b9b07aa2d8eb981b68e5e"
 function = "uorust::lift::method_option_any"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::wrapped_method, whose translation is not admitted"
 
 [[residue]]
 kappa = "dbb85e5aa3a5fa2e67483146ea8103c0884d28d03a0d3abfeb755b1e4eccac75"
@@ -1383,25 +1385,25 @@ detail = "mir::Rvalue::Aggregate: of String"
 kappa = "d40985044dfb8480c060931e024f056b37569b9498b160393669fd2c03091836"
 function = "uorust::lift::mutual_group"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: &mut std::vec::Vec<(std::string::String, lex::Decl)>"
 
 [[residue]]
 kappa = "4f12682d19bb1b5a2efda22cdc96ecbe55fe2a35d9249295570ba87fbf0da4ee"
 function = "uorust::lift::nat_difference"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::nat_difference::promoted[0]"
+detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:2763:65: 2763:68}"
 
 [[residue]]
 kappa = "51de58078030e67375301ab95ea9753887a251098f33d816c080d5bb0a676111"
 function = "uorust::lift::nat_division"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, u128>"
+detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:2785:65: 2785:68}"
 
 [[residue]]
 kappa = "16ecf9615a718acb5c72708615d9d6e9e97de410d13bb933fb1f0b0931756a94"
 function = "uorust::lift::nat_sum"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: <lift::Ty as std::cmp::PartialEq>::ne"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "ef0000e67a8151c6c11d48753b1ab5f402cf04d4b63b7dbaba878c3c4ceae72b"
@@ -1425,7 +1427,7 @@ detail = "mir::Ty: std::slice::Iter<'_, ast::PathSegment>"
 kappa = "db476914ae75cb05a24246dc66ebac30126ccecae6b447be07406ea80ea7e87c"
 function = "uorust::lift::path_value"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::path_value::promoted[1]"
+detail = "mir::TerminatorKind::Call: <std::option::Option as std::cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "d932cb2cb833ef0271f6d547b69562a6f9f920f4667c4269fc1f18ba117a4498"
@@ -1437,13 +1439,13 @@ detail = "mir::Operand::Constant: the constant item lift::PRELUDE_SOURCE"
 kappa = "e3ff165ad187adb8700e086ec495c6cba4ab310834cd354e4bc39123c5a3b9a0"
 function = "uorust::lift::prelude_calls"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::prelude_calls::promoted[0]"
+detail = "mir::Operand::Constant: lift::prelude_calls::promoted[0]: mir::Operand::Constant: the constant item lift::PRELUDE"
 
 [[residue]]
 kappa = "071dbb5110c5b97ed3dd148a01538438fb5904d49ff3992b6b8b15217dedb55b"
 function = "uorust::lift::prelude_opaque"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Operand::Constant: the constant item lift::PRELUDE_SOURCE"
 
 [[residue]]
 kappa = "4444fecbe7fe4cf80c20708658982524670fad2d72b7a94472a6367f194f422f"
@@ -1461,7 +1463,7 @@ detail = "mir::Rvalue::Use"
 kappa = "4befdd3a6687beaee07023cbeb60e4648e0c01069bd689f45c41a75ddf7c3455"
 function = "uorust::lift::range_value"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::range_value::promoted[0]"
+detail = "mir::Rvalue::Aggregate: of String"
 
 [[residue]]
 kappa = "fdb579f576c613cc9a534cd104248c89813241d849541bde44508648211ab087"
@@ -1473,7 +1475,7 @@ detail = "mir::ProjectionElem::ConstantIndex"
 kappa = "3e3a511e5c73e9b929611aff273faf22d722f1fb2ffe5bee6da843b9df044a6e"
 function = "uorust::lift::receiver_shape"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::chars_count, whose translation is not admitted"
 
 [[residue]]
 kappa = "6de4c8ec05979ad95602c832c8f8adc48ad49cb8907800d2fa126bafb9ac19db"
@@ -1521,19 +1523,19 @@ detail = "mir::Ty: std::convert::Infallible"
 kappa = "0ce9b666e082ee233a5e3198674576c5f8a1baf03702ee44e906b805d2a1b486"
 function = "uorust::lift::scan_exprs"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "4c141a3071ad156403bfcbc5c81af175e1bba14ee6729e8e8fabd363ded4195f"
 function = "uorust::lift::scan_stmts"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::slice::Iter<'_, ast::Stmt>"
 
 [[residue]]
 kappa = "e102b668435b66027ab7a7bd714763046dc25c96d9401d7bea6fea56fbbdbe91"
 function = "uorust::lift::sliced"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::sliced::promoted[1]"
+detail = "mir::TerminatorKind::Call: <std::option::Option as std::cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "4feab33361b371e47eb831675c36c6c5dbdaa8a3229aad69b870157fb2525228"
@@ -1575,7 +1577,7 @@ detail = "mir::Rvalue::RawPtr"
 kappa = "5a2b0588e777860a04c7a24a59011515cac79283c94ff254f524cb4c1c989f5f"
 function = "uorust::lift::strong_components"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:321:17: 321:33}"
 
 [[residue]]
 kappa = "92794968d3b2d1c0aca715a4299e5e9826f8b7dc181e5933f108dbf8ed84863f"
@@ -1611,7 +1613,7 @@ detail = "mir::Rvalue::Use"
 kappa = "0e5f900bb91410241eceaba17d145b3ebb7a3830521498eeecee0e790655da46"
 function = "uorust::lift::text_join"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::text_join::promoted[2]"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "96fbd72ac109785322d252557c5aaa867e5087461e1ff055764f20a57716abfb"
@@ -1623,7 +1625,7 @@ detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:3316:16: 3316:44}"
 kappa = "5834f1e76ab2a5e6aceb504e668b03609c43fd2adf8cc0ab0fe8c0c34c25c548"
 function = "uorust::lift::text_operand"
 reason = "mir"
-detail = "mir::Verdict: a translation the verifier has not decided yet"
+detail = "mir::TerminatorKind::Call: uorust::lift::flat_of, whose translation is not admitted"
 
 [[residue]]
 kappa = "1d2d0f42dc91ad0dd26cb101cdf25dfba17d4688654248639d8db7d76ad302d5"
@@ -1701,19 +1703,19 @@ detail = "expression form outside the lift: vec! of a repeated value"
 kappa = "8d6d134195970c71e0378608c9ce173165d291d9210183c769813f63483da5f6"
 function = "uorust::lift::typed_binders"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, lift::Ty>"
+detail = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[residue]]
 kappa = "393e3b9200a3c1e05c26793505d0e208fc5c0334f151d5688ef3e008caf46b94"
 function = "uorust::lift::unary_value"
 reason = "mir"
-detail = "mir::Operand::Constant: lift::unary_value::promoted[1]"
+detail = "mir::TerminatorKind::Call: cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq"
 
 [[residue]]
 kappa = "819ff83f599e37114ae6b3c50b75a6ec69d3f23c34cdd36d7f4a6f10bd325042"
 function = "uorust::lift::update_stmt"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, (std::string::String, lift::Ty)>"
+detail = "mir::Rvalue::Aggregate: of String"
 
 [[residue]]
 kappa = "4d338bfedff454455b710bd894a6e1b4f5472564cbe7c498cdecb98206e18b0e"
@@ -1731,7 +1733,7 @@ detail = "expression form outside the lift: recursion that does not descend on a
 kappa = "a9dc33b4953879f6fb4fb7c0add7f215433d8897f4eee6597f8b10a2a7398f31"
 function = "uorust::lift::use_in_stmts"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, lift::Ty>"
+detail = "mir::Ty: std::slice::Iter<'_, ast::Stmt>"
 
 [[residue]]
 kappa = "ebe0e63a8809ecb2ee36f4a5d18ebced2e1f5c1748676561f6a3c764c78e9b3d"
@@ -1749,7 +1751,7 @@ detail = "mir::Ty: std::slice::Iter<'_, &ast::RustExpr>"
 kappa = "969785a0ecc4799bfe24c51d40e85241311723d85de70ad12fd90f045403e836"
 function = "uorust::lift::usize_sum"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, u128>"
+detail = "mir::Ty: {closure@crates/uorust/src/lift.rs:1607:18: 1607:36}"
 
 [[residue]]
 kappa = "56d202b64510c75d4d335fa56e89d884f48e522e51ce2bd871b4ed7c3c9b4d2b"
@@ -1761,7 +1763,7 @@ detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 kappa = "ec9b8558a6715d9ec7b0270ad9236d5a5737683aaeff61401713e74f1feab7b4"
 function = "uorust::lift::variant_value"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, &ast::RustExpr>"
+detail = "mir::Ty: std::slice::Iter<'_, ast::FieldValue>"
 
 [[residue]]
 kappa = "23c497d1f68d1144d1592dfdcdb7ee255626e4790ed97b74fc15e730babb3134"
@@ -1779,7 +1781,7 @@ detail = "expression form outside the lift: method call .get_mut"
 kappa = "83e94d255b644ab9f8a57db03e0244adc5066ee7d4ee57e8dce86a5e71911fef"
 function = "uorust::lift::with_domains"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::TerminatorKind::Call: core::slice::<impl [lift::Ty]>::contains"
 
 [[residue]]
 kappa = "e209eef64d0f4b52a1b5a818238c2679c3cb5c3cc1815948dff37b2ef008579d"
@@ -1833,13 +1835,19 @@ detail = "mir::Ty: std::slice::Iter<'_, (&str, mir::coverage::Coverage)>"
 kappa = "5cb6d1fbe98cdfe15ed2813917b9db2ed2c5cd207fdcd231a5fcc080d0ccbd23"
 function = "uorust::mir::coverage::table"
 reason = "mir"
-detail = "mir::Rvalue::Ref: BorrowKind::Mut"
+detail = "mir::Operand::Constant: the constant item mir::spec::MirStatementKind::ALL"
 
 [[residue]]
 kappa = "3c080e69b39ce7097bd6079fdead5caebf0884a0c404954ab6c8a11d7255fbb3"
 function = "uorust::mir::generate::spec_source"
 reason = "call"
 detail = "calls variants, which is not lifted"
+
+[[residue]]
+kappa = "e6fdd2cf3743ead1dbc5ef9f4978dcb9b6fa694eb6fa3355e3e855e4e6513de2"
+function = "uorust::mir::generate::std_vectors"
+reason = "form"
+detail = "expression form outside the lift: method call .split_last"
 
 [[residue]]
 kappa = "16246303d0bc4c41dcd410ad2cc4332ce5f5e84af8858376e95e044144e7c4e0"
@@ -1852,6 +1860,12 @@ kappa = "b60876f1707a5886a5bd02ad1433a8d33903f8872dc0d23b816c20a6cf222d8b"
 function = "uorust::mir::ir::IrTerminator::successors"
 reason = "mir"
 detail = "mir::Ty: mir::ir::IrTerminator"
+
+[[residue]]
+kappa = "2899e7a7ba0631280f083fec812399f44c7bdb56af5e1309e56fee03406f4ed8"
+function = "uorust::mir::lower::Cx<'a>::within"
+reason = "type"
+detail = "type outside the lift: Cx<'a>"
 
 [[residue]]
 kappa = "c1e4099a0e2306ebcb2ce3264ff6d34e9bddb3fb0e18bf4cd5b5bf95aa532d34"
@@ -1872,19 +1886,25 @@ reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "c1730d3d8d26f965bd47a96157b115b4a90ca624bd3c844c6ea38a58b41d9ed5"
+kappa = "7f9c31535b21cc8ead282a2011401dac3a0fc7b7eeec41a1d9d82efa7b463d84"
 function = "uorust::mir::lower::Fun<'_, '_>::block"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "db828e74afa63faa9b5ccc4e906854327fc0c7a7a4d262008bb433ea24b997e0"
+kappa = "401b8eddafa3ff7ba587981709c2ef1e4c536cb435d90cb1b560fa074f5cc98d"
 function = "uorust::mir::lower::Fun<'_, '_>::call"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "0ea3b3783b2b9b9519c7d9bfcb737e0551e2ffcf628ffb33a539d052bba0b307"
+kappa = "0df4d928cb32ad57721e49ec8421f11790af8dd9af5474f3661a6bcca9b48fd8"
+function = "uorust::mir::lower::Fun<'_, '_>::const_body"
+reason = "type"
+detail = "type outside the lift: Fun<'_, '_>"
+
+[[residue]]
+kappa = "556605db9e91defce27b0ab94f527ef9fbe15f58970604831a5fd2b2a57e850d"
 function = "uorust::mir::lower::Fun<'_, '_>::constant"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
@@ -1932,7 +1952,7 @@ reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "f100d58599263412f3f91b8c2d679c535475e0ce98b6d68a2f9fd8a46936a250"
+kappa = "7c7c41f47a2a33d2182d724b7f6e0f230056ff14850e24dbd891672b944a74f4"
 function = "uorust::mir::lower::Fun<'_, '_>::header_condition"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
@@ -2010,13 +2030,13 @@ reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "02f648433ee54b547fa99e7c8b142ff94cfed2db6084dba335138cc1419a9b6d"
+kappa = "ce4ebee17e5b5e68f7a1fcf41b96b649006123d39395a789c158b84eb356724a"
 function = "uorust::mir::lower::Fun<'_, '_>::read"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "a33ef62a9b966c9f884bc151d7b0b62543af5b7336ccc7a9173f6e6ca8af7be2"
+kappa = "9aed10fa8947fc7b4be50bb09d3d6a30770fb699653a2eaa7cdbc384080becb8"
 function = "uorust::mir::lower::Fun<'_, '_>::rvalue"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
@@ -2024,6 +2044,12 @@ detail = "type outside the lift: Fun<'_, '_>"
 [[residue]]
 kappa = "3db2a53162655a52b18af8708d8319340cd59037eec175f4c14ed8563a5c9707"
 function = "uorust::mir::lower::Fun<'_, '_>::statement"
+reason = "type"
+detail = "type outside the lift: Fun<'_, '_>"
+
+[[residue]]
+kappa = "5b4cf0f92f09f22926eb95a3781c5f7ba0bdcaa296d05d9be79554f1f71aaa39"
+function = "uorust::mir::lower::Fun<'_, '_>::std_instance"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
@@ -2067,13 +2093,13 @@ detail = "mir::Ty: std::str::Chars<'_>"
 kappa = "626792557ccf94982e62c7c7a953e00a2f36fb2fc08953c829aabdce14f9dfd9"
 function = "uorust::mir::lower::lower"
 reason = "mir"
-detail = "mir::Ty: mir::ir::IrBody"
+detail = "mir::Ty: mir::lower::Cx<'_>"
 
 [[residue]]
 kappa = "9a82d78e21149550eacf4482926dca0507cb525c8ad73a84a6e4b0fa95a4f27b"
 function = "uorust::mir::lower::max_of"
 reason = "mir"
-detail = "mir::Operand::Constant: mir::lower::max_of::promoted[0]"
+detail = "mir::Operand::Constant: mir::lower::max_of::promoted[0]: mir::Operand::Constant: the constant item core::num::<impl u128>::MAX"
 
 [[residue]]
 kappa = "20b7bb266cba7731854f76663779468fe54df6f733f9c9124096e337610eb07f"
@@ -2109,13 +2135,13 @@ detail = "another function of the crate is also named uorustStdCall"
 kappa = "fd0d3d54e15fe09be6032d37e7b612ed9449c2611fd542a05452d257c7e3e017"
 function = "uorust::mir::lower::term_mentions"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::starts_with"
+detail = "mir::Ty: std::str::MatchIndices<'_, &str>"
 
 [[residue]]
-kappa = "f6faf178df57f5d73e0f582a5e9158a8365f28139c200eed795be1df022a07d7"
+kappa = "1a6ff850dfc81fcb70e457078af291889c50dea1cbadb1c38760e0246bca776f"
 function = "uorust::mir::lower::ty"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::trim"
+detail = "mir::Ty: {closure@crates/uorust/src/mir/lower.rs:2031:15: 2031:17}"
 
 [[residue]]
 kappa = "ae6b2618c2531c6d55922cacba578836d94584390f4ff06193aaf6556d370b3f"
@@ -2124,20 +2150,20 @@ reason = "mir"
 detail = "mir::Ty: mir::ir::IrAggregate"
 
 [[residue]]
-kappa = "50d0ea7988e104c9ca62e34f5cd09d4c7312e16050bfaf7ac3de4ad76a0c46d9"
-function = "uorust::mir::parse::assert_kind"
-reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::trim_start_matches"
-
-[[residue]]
 kappa = "0d73c1152193d7a61c1fe0567d52953537139e5c2a635992531453b5d8fee8f2"
 function = "uorust::mir::parse::block_of"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::trim"
+detail = "mir::Ty: std::convert::Infallible"
 
 [[residue]]
-kappa = "81b2684111be1fc4ca8262a727007a03aa7e5afeec27c80738110e681a138fbb"
+kappa = "c4ff6fc60c2f5e5d021cd043209a1a22c0e6ec278d66c447441acc973787f302"
 function = "uorust::mir::parse::bodies"
+reason = "mir"
+detail = "mir::Ty: mir::ir::IrBody"
+
+[[residue]]
+kappa = "72a291b9fb54b6edebd7e8648e84ba5d1488d341631473cda72ea36ef1ef53bb"
+function = "uorust::mir::parse::const_header"
 reason = "mir"
 detail = "mir::Ty: mir::ir::IrBody"
 
@@ -2151,7 +2177,7 @@ detail = "mir::Ty: mir::ir::IrConstant"
 kappa = "69d8ac5059b1ffc5500e0a10f42d0f018db255770b58c165a6585d314ebaf166"
 function = "uorust::mir::parse::edge"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::trim"
+detail = "mir::Ty: std::convert::Infallible"
 
 [[residue]]
 kappa = "e9e18d44cc508075119f4e29a05be40a03c9a5079f5ff88dfaf56a676b2d0810"
@@ -2169,7 +2195,7 @@ detail = "mir::Ty: mir::ir::IrBody"
 kappa = "f2a8a8fc99ebd326024f5db6f243d0e33e4f5883e3f3a08ae6677e53d9ff5dae"
 function = "uorust::mir::parse::local_of"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::strip_prefix"
+detail = "mir::Ty: std::convert::Infallible"
 
 [[residue]]
 kappa = "9209501100484976566673600acf21e020b5730289a42c74428316e084907885"
@@ -2262,6 +2288,114 @@ reason = "form"
 detail = "expression form outside the lift: ? outside a let"
 
 [[residue]]
+kappa = "1b9a6436e455215d54b55d88bab9a8284e42706eba1cec7ae600d685ddd2e7cd"
+function = "uorust::mir::stdlib::apply"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: mir::stdlib::table"
+
+[[residue]]
+kappa = "7dd43372555e1a31167ae59c24068e5f54a797c94e283f5335d02aec0fa27429"
+function = "uorust::mir::stdlib::bind"
+reason = "mir"
+detail = "mir::Ty: &mut std::collections::BTreeMap<std::string::String, lift::Ty>"
+
+[[residue]]
+kappa = "fe506ca834eb565380d06835c86880044edec5fb17c62f003119277337680765"
+function = "uorust::mir::stdlib::build"
+reason = "mir"
+detail = "mir::Ty: std::convert::Infallible"
+
+[[residue]]
+kappa = "bac0c060f0e5bccf04278d62c2690ff7472a11c3a9cc81071b55356ca435f000"
+function = "uorust::mir::stdlib::innermost"
+reason = "mir"
+detail = "mir::Ty: std::str::CharIndices<'_>"
+
+[[residue]]
+kappa = "61e1726f255f012743c344b98fba6a4a6bba64aa9da563df1577b26f07c941db"
+function = "uorust::mir::stdlib::instance"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: mir::stdlib::table"
+
+[[residue]]
+kappa = "4d7bf3b255bf42ad241d814ec2912427a8c37f0a72c526b8598534d19f189a61"
+function = "uorust::mir::stdlib::instantiate"
+reason = "mir"
+detail = "mir::Ty: &mut std::vec::Vec<lex::Decl>"
+
+[[residue]]
+kappa = "2366fe231e970c28da108e8473fe6e89a45ac91c3ce4f18acf4ed134540059b2"
+function = "uorust::mir::stdlib::key"
+reason = "mir"
+detail = "mir::Ty: std::ops::RangeFull"
+
+[[residue]]
+kappa = "38c3d3cc827df8319baf441746359e2b53a880b1f6b281c43f52ca5ba867d415"
+function = "uorust::mir::stdlib::model_type"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: mir::stdlib::table"
+
+[[residue]]
+kappa = "ce6eedb2378824c774670fd3059657169a97cc6700240ae5bce5bf2a130df84d"
+function = "uorust::mir::stdlib::parse_pat"
+reason = "form"
+detail = "expression form outside the lift: index of String"
+
+[[residue]]
+kappa = "9f1151ffe8b1cc7a187f99b845d98e12be1181a7db954fe7abdec855dcc775b2"
+function = "uorust::mir::stdlib::parse_table"
+reason = "form"
+detail = "expression form outside the lift: parse into a type outside the lift"
+
+[[residue]]
+kappa = "2ebc9f3025b5391382eedf8fad474c2689e5a1108d44b23e5088126042e81152"
+function = "uorust::mir::stdlib::plain"
+reason = "mir"
+detail = "mir::Rvalue::Discriminant: a discriminant read as a value"
+
+[[residue]]
+kappa = "edd1176c5dadb66f90550941dfde55c3e9b88e632a327f869b804d222bf651ef"
+function = "uorust::mir::stdlib::render"
+reason = "type"
+detail = "type outside the lift: &mut Vec<Decl>"
+
+[[residue]]
+kappa = "11f919cd95c4d8941802a01bd40445512c83fdba08e26fc8665ac6533f1448bd"
+function = "uorust::mir::stdlib::split_bodies"
+reason = "mir"
+detail = "mir::Rvalue::Use"
+
+[[residue]]
+kappa = "f3e69939967c28b65d1e1fddffbcfb1568385346c2a58b5ddb32947a13d4fbc7"
+function = "uorust::mir::stdlib::substitute"
+reason = "mir"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
+
+[[residue]]
+kappa = "e4ebb6c86e985828102e971597cdb064b0e97d9ff00ee4c2a00d9640e51d5e94"
+function = "uorust::mir::stdlib::table"
+reason = "collision"
+detail = "another function of the crate is also named uorustTable"
+
+[[residue]]
+kappa = "934a03c55c5c9c69b97e8a6360aeadf46f2ca29340679cfac8ffd4eb9227c10f"
+function = "uorust::mir::stdlib::unify"
+reason = "mir"
+detail = "mir::Ty: &mut std::collections::BTreeMap<std::string::String, std::string::String>"
+
+[[residue]]
+kappa = "8e5c44fa6b10e322dabfd42be47c7ec5dff4e46251f62a7f2de7042080bb5be7"
+function = "uorust::mir::stdlib::vars"
+reason = "mir"
+detail = "mir::Ty: &mut std::vec::Vec<std::string::String>"
+
+[[residue]]
+kappa = "32555f72fff5aeb7a1eac6d366f803dfc4352085d7999e13974b6cc7dfed6b19"
+function = "uorust::mir::stdlib::words"
+reason = "mir"
+detail = "mir::Ty: i64"
+
+[[residue]]
 kappa = "c739e27951bf399bee66ac0ae4cf581d9737f27d5dfb719d168c7a37bd1c0189"
 function = "uorust::mir::verdict::Verdicts::parse"
 reason = "form"
@@ -2283,7 +2417,7 @@ detail = "mir::Ty: std::str::Chars<'_>"
 kappa = "4f57fc9d9598449881e55bb9d8ad92a7ce94ca15a251947cc621829d7cc959cb"
 function = "uorust::order::axioms"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::CastKind::PointerCoercion: from (List String) to (List String)"
 
 [[residue]]
 kappa = "6840ab1264915ac1a6bb105cf4a1041d9bfa88fa0f7d7653930abdad41cce5e1"
@@ -2319,31 +2453,31 @@ detail = "calls new, which is not lifted"
 kappa = "30dcc5b1094ad8ceeff861e03babc5d57b59744ac90b22230073e9f37a10712f"
 function = "uorust::order::derived"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::TerminatorKind::Call: uorust::order::derived_in, whose translation is not admitted"
 
 [[residue]]
 kappa = "40474588cd71eac3e8c3433dca1dceab16ce85a3e38396a2fd3e0fe0b58089c1"
 function = "uorust::order::derived_in"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: {closure@crates/uorust/src/order.rs:92:43: 92:46}"
 
 [[residue]]
 kappa = "20795cf1251c8cd5e010b7733a00cb0f397626f89588e5a8398a2be9541e0b4e"
 function = "uorust::order::emit"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::mem::MaybeUninit<[lift::Ty; 1]>"
 
 [[residue]]
 kappa = "258318beae86f1fd5585d7bbf180f4f3e61f6691f1949773635f5bad15af4703"
 function = "uorust::order::group"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::collections::btree_set::Iter<'_, std::string::String>"
 
 [[residue]]
 kappa = "a9e59ca72ae1a0545e8554a299526864ce2e1168b1b183339f84a0a9484668a9"
 function = "uorust::order::has_ordering"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, std::vec::Vec<std::string::String>>"
+detail = "mir::Operand::Constant: the constant item order::ORDERING"
 
 [[residue]]
 kappa = "5f4c5a51348e44c08524c7d98fe71dd64f52b2620275626a1f299783afd334a7"
@@ -2379,19 +2513,19 @@ detail = "expression form outside the lift: method call .member_fields"
 kappa = "1a46930b5e4b99ca4464931a18fd9c5db9a396725acb3d8eddc4e4beb955ede1"
 function = "uorust::order::reads_text"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::slice::Iter<'_, lift::Ty>"
 
 [[residue]]
 kappa = "43cfd8591ffa42b122a92e0ac675ace135b4a65b7a85e48b44dedc0a5a229369"
 function = "uorust::order::reverse"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<&str, &str>"
+detail = "mir::TerminatorKind::Call: <std::collections::BTreeMap as std::convert::From>::from"
 
 [[residue]]
 kappa = "f6132383270ad2061dbbf4b9dd3f4f151e505aee8fbaed54c70ff9b1e6a06b52"
 function = "uorust::order::tests"
 reason = "mir"
-detail = "mir::Operand::Constant: order::tests::promoted[0]"
+detail = "mir::CastKind::PointerCoercion: from (List String) to (List String)"
 
 [[residue]]
 kappa = "83f147e2082c335bd6fc8f54576451e427a5a428a9dc5dbf59ce1c8392187042"
@@ -2427,7 +2561,7 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "52f13a9d0e38b313ff9492860b42e68cbde5899dedbdc91119bc5a6fdba4b35a"
 function = "uorust::project::audience_index"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, usize>"
+detail = "mir::TerminatorKind::Call: project::indexed"
 
 [[residue]]
 kappa = "07fadd64c3c31ec29308a5df1a9e8c5ebd4e61d4e2781d1add16d3fc1a29aa61"
@@ -2445,7 +2579,7 @@ detail = "mir::Ty: std::str::Split<'_, &str>"
 kappa = "0aad2e8a91a4a0ab47424a2d95f3d80d7d1254fc39f84ee2a9e3fbdf707535e0"
 function = "uorust::project::components"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<(usize, usize), std::string::String>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "dc83e47166ed01adaf8c94d3b53473d0efc1af3e175d6054156eed0f2cd50f46"
@@ -2457,19 +2591,19 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "e9a2a6f1dbcd60cd977d8b1857610e4038a7173cec8a06ca6650f9b293b15b80"
 function = "uorust::project::edges"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, (std::string::String, std::string::String)>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "2c628a06b68d38f2cc67263d4eb8babcaf8388b571c65cf984eccd55855ff34d"
 function = "uorust::project::enum_equality"
 reason = "mir"
-detail = "mir::Ty: {closure@crates/uorust/src/project.rs:3937:16: 3937:31}"
+detail = "mir::Ty: {closure@crates/uorust/src/project.rs:3971:16: 3971:31}"
 
 [[residue]]
 kappa = "d272468a904e7b95591c925ff419d39042b30084487ec73c7cbafa99be145448"
 function = "uorust::project::family_decls"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: &mut std::collections::BTreeSet<lift::Ty>"
 
 [[residue]]
 kappa = "dfc0d7cab9d26456c3716f11b6f77193223b923bb050d34e875d8a1b9e8c9a22"
@@ -2490,7 +2624,7 @@ reason = "mir"
 detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
-kappa = "a19b946b80fb212564b7b7840b5304b2fb945a070ffc80f2df48da3daeae9dc2"
+kappa = "73fa797b85618cc0528f399a732b1283b10e56bbbe2f5c63ec7653e410901137"
 function = "uorust::project::mir_lift"
 reason = "type"
 detail = "type outside the lift: &mut Notes"
@@ -2499,13 +2633,13 @@ detail = "type outside the lift: &mut Notes"
 kappa = "0c42923c090bc25e34c72fb2bce5ba5533e3797f30646a6762c7061521b28b93"
 function = "uorust::project::module_opm"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<project::FnRef, std::string::String>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "ea5726202728d33ef7f67fe3c65abc1b0a3eee20d4a26c05645ef18fdee3c991"
 function = "uorust::project::place_after_callees"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, project::Translation>"
+detail = "mir::Ty: &mut std::collections::BTreeSet<std::string::String>"
 
 [[residue]]
 kappa = "c337a8637d5219d1980a860a10831596f0c69ee7ce26b67c10ce75b94390d140"
@@ -2535,13 +2669,13 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "efd73d00ad11a5f83f81c47a43527403d1db3c4a4a5101d12a5cc7f197f8bb18"
 function = "uorust::project::resolve"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<project::FnRef>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "0e9db21176af3f9b5524be0592dac905d0eb85adc87133596b1a3ff7f2d91f5b"
 function = "uorust::project::route_enums"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<(usize, usize, usize), &str>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "688b14384f0280fabfed166713329bdfc0a51b3e598cebb31c295eed5f4ffc1f"
@@ -2571,7 +2705,7 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "698a4faa139fd0ffb8bd93a8751c6cceeadfda514348e590738c43d41d55dc8c"
 function = "uorust::project::type_decls"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: &mut std::collections::BTreeSet<lift::Ty>"
 
 [[residue]]
 kappa = "e3a1d8e3fcade9374d63aa5e928e3a39970658b71b183376319514efea51a868"
@@ -2595,7 +2729,7 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "15db96b5f602a253e0e7cb051d8fecd585c49a1f1c8e7729b2ee853d4df9b817"
 function = "uorust::register::admit"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeMap<std::string::String, register::Row>"
+detail = "mir::Ty: std::collections::btree_map::Iter<'_, std::string::String, register::Row>"
 
 [[residue]]
 kappa = "ba728721e691d03e6fe9564039921e2d9a87d67ee9ac29ee454cbd67ce25f955"
@@ -2607,7 +2741,7 @@ detail = "mir::Ty: toml::Value"
 kappa = "c1580136bb502df057f2969490ce53c39767789a61de787c9f2e20425391256d"
 function = "uorust::route::respond"
 reason = "mir"
-detail = "mir::Operand::Constant: the constant item route::REQUEST_LIMIT"
+detail = "mir::Operand::Constant: route::REQUEST_LIMIT: mir::Operand::Constant: route::ROUTES: mir::CastKind::PointerCoercion: from (List Route) to (List Route)"
 
 [[residue]]
 kappa = "cb7b2b66014dc5e1c5417e5037e80210767c9eef062c5f3623c70652a990f1a6"
@@ -2631,7 +2765,7 @@ detail = "mir::Ty: std::slice::Iter<'_, wf::Node>"
 kappa = "784e85c78414194796d50778f05e2bb4fb8096a98018807da1d500d031c6296f"
 function = "uorust::wf::mentions_any"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::Ty: std::collections::btree_set::Iter<'_, std::string::String>"
 
 [[residue]]
 kappa = "ad63b6c9e88f61283b6289a82a589966a0130e51bf2340f2c2b8ec9cab7e2323"
@@ -2655,13 +2789,13 @@ detail = "mir::Ty: dyn for<'a> std::ops::Fn(&'a str) -> std::option::Option<std:
 kappa = "3c1fd313fb5fef6fd0480b5cf281dc32fc515b8cbfd0f09a6f11e6936a0c8e63"
 function = "uorust::wf::passed"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::TerminatorKind::Call: <std::collections::BTreeSet as std::convert::From>::from"
 
 [[residue]]
 kappa = "8212bca811dd14c8fcdfae10940b8ecc1460ed1bb7f213b8e20b4459d940c6aa"
 function = "uorust::wf::ranks"
 reason = "mir"
-detail = "mir::Ty: std::collections::BTreeSet<std::string::String>"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
 kappa = "263ed84437499515fe7d996dc2180cb8d1e4b73973a0e80d301cedb05dd82abd"
@@ -2679,7 +2813,7 @@ detail = "mir::Ty: i32"
 kappa = "62aa38b0a165fc315905b35a949d8478ae50eb7150319d6c153bf44ee73d728c"
 function = "xtask::audit::outside_code_spans"
 reason = "mir"
-detail = "mir::TerminatorKind::Call: core::str::<impl str>::find"
+detail = "mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[residue]]
 kappa = "b4e451ca423263800e95e846ce479c0bc775ca052cce108142c3672a830b5909"
@@ -2697,7 +2831,7 @@ detail = "type outside the lift: _"
 kappa = "33f9423e9537477066c28b505b50eeeb4c16d0664cc3d6eeb5bbf600c1874d61"
 function = "xtask::bootstrap::policy_boundary_is_canonical"
 reason = "mir"
-detail = "mir::Rvalue::Ref: BorrowKind::Mut"
+detail = "mir::Ty: std::slice::Iter<'_, &str>"
 
 [[residue]]
 kappa = "01d8e4f31fd96bd31df861c2e2e8db7c38a133d5d836e261458235a6bca1b377"
@@ -2982,12 +3116,22 @@ function = "uorust::mir::dump"
 effect = "Process effect: Command::new"
 
 [[effect]]
+kappa = "dce56872553ee0142611c998ba4c7b84454dfb1d5b13346e452e565efedd9080"
+function = "uorust::mir::generate::named_impls"
+effect = "calls uorust::mir::impl_type, which performs a Fs effect: std::fs::read_to_string"
+
+[[effect]]
+kappa = "a400542f0b25509b04ebf4f111afd0753293e1d2e0a92e3ec29ad66f4190c15b"
+function = "uorust::mir::generate::std_mir"
+effect = "Fs effect: std::fs::read_dir"
+
+[[effect]]
 kappa = "72f560b6c2a2f351778a45c6f49688a70fefa662a0bb7b3bbc76494b8d8cace8"
 function = "uorust::mir::impl_type"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "f2f58a9f4ae25869ea9b3838b39ae97bc87b84ac08559996c333dd7bb8aec015"
+kappa = "a458b6e1ccc1e58037d9fe4319e80351ec520e67f2d73c06236eb093b3e17159"
 function = "uorust::mir::load"
 effect = "Fs effect: Path::is_dir"
 
@@ -3807,7 +3951,7 @@ function = "uorust::mir::coverage::binop"
 definition = "Behavior::binop"
 
 [[lifted]]
-kappa = "754489b24f3a566fe30580f962eec7be17886060941dfddce7a96c24c9111277"
+kappa = "f07ccd7894ba06cca3813e07da231ef0503fab2f2886b4f9fe78c591dcbe7da4"
 function = "uorust::mir::coverage::borrow"
 definition = "Behavior::borrow"
 
@@ -3822,7 +3966,7 @@ function = "uorust::mir::coverage::intrinsic"
 definition = "Behavior::intrinsic"
 
 [[lifted]]
-kappa = "c980571f734767b17295b97c4ecc76f325316c0fa9c22d179fced1fc227bccd1"
+kappa = "b252bc848510741450762aa0d9f027b8c4fbe21479e24b7e1ae1c4740c1bc81d"
 function = "uorust::mir::coverage::operand"
 definition = "Behavior::operand"
 
@@ -3837,7 +3981,7 @@ function = "uorust::mir::coverage::runtime_checks"
 definition = "Behavior::runtimeChecks"
 
 [[lifted]]
-kappa = "e6451fd34b28f5d51aa6fb849aef37ef6decd6ff277edb3312bdd79a4b7ec30a"
+kappa = "8267e311d134d4c084487d65f7b5e2b49c21b02c70c43cf0f87b9960e848f4bd"
 function = "uorust::mir::coverage::rvalue"
 definition = "Behavior::rvalue"
 
@@ -3847,7 +3991,7 @@ function = "uorust::mir::coverage::statement"
 definition = "Behavior::statement"
 
 [[lifted]]
-kappa = "6a595c0d5677b52d81825279a29a26f6f66fe2a320c24b8b47459baf69275c8d"
+kappa = "5020595a61dd296fd28b735e1126faf071bf2b9c2c212e64e416765dbd9b44bf"
 function = "uorust::mir::coverage::terminator"
 definition = "Behavior::terminator"
 
@@ -3880,6 +4024,11 @@ definition = "Behavior::implication"
 kappa = "c220a113ae402aca6e483173af150f71c51c01c803b14444c11628d65fcecc80"
 function = "uorust::mir::lower::kind"
 definition = "Behavior::kind"
+
+[[lifted]]
+kappa = "50d0ea7988e104c9ca62e34f5cd09d4c7312e16050bfaf7ac3de4ad76a0c46d9"
+function = "uorust::mir::parse::assert_kind"
+definition = "Behavior::assertKind"
 
 [[lifted]]
 kappa = "d5a6d8d07096de807f6801489ae7d4f7222943ca545c0100c60d399ee966078b"

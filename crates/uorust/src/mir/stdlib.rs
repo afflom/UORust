@@ -1,0 +1,741 @@
+//! The standard library on the MIR path, from one table keyed by std path
+//! (`crates/uorust/mir/std.toml`).
+//!
+//! A std operation is translated by the same machinery as the workspace's
+//! own code where its MIR reaches values: std's own bodies at the pinned
+//! toolchain (`crates/uorust/mir/std.mir`, vendored by
+//! `scripts/mir/fetch-std.sh`) are instantiated at a call's types and
+//! lowered like any body. Where std bottoms out in intrinsics or unsafe
+//! raw-pointer code, the table gives the operation's model on the lift's
+//! types once, for every call site, with the vectors on which a test runs
+//! std itself and the projection proves the model.
+
+use std::collections::BTreeMap;
+use std::sync::OnceLock;
+
+use crate::lex::{Decl, Expr};
+use crate::lift::{self, Ty};
+
+/// The table.
+const TABLE: &str = include_str!("../../mir/std.toml");
+/// std's own MIR for the items the table lifts, at the pinned toolchain.
+const BODIES: &str = include_str!("../../mir/std.mir");
+
+/// A type pattern over the lift's types.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum StdPattern {
+    Bool,
+    Str,
+    Char,
+    Usize,
+    Nat,
+    /// A string or a character.
+    Text,
+    Unit,
+    Var(String),
+    List(Box<StdPattern>),
+    Option(Box<StdPattern>),
+    Set(Box<StdPattern>),
+    Map(Box<StdPattern>, Box<StdPattern>),
+}
+
+/// Bindings of a pattern's variables.
+pub(crate) type PatternBinds = BTreeMap<String, Ty>;
+
+/// A modelled operation.
+#[derive(Clone, Debug)]
+pub(crate) struct StdModel {
+    pub(crate) path: String,
+    args: Vec<StdPattern>,
+    result: StdPattern,
+    term: String,
+    update: BTreeMap<usize, String>,
+    /// The Rust expression std evaluates on a vector, `{0}`.. its arguments.
+    #[cfg(test)]
+    pub(crate) rust: String,
+    /// Each vector's arguments and std's result, as Rust literals.
+    #[cfg(test)]
+    pub(crate) vectors: Vec<Vec<String>>,
+}
+
+/// An auxiliary definition a model names, before instantiation.
+#[derive(Clone, Debug)]
+struct StdAux {
+    params: Vec<String>,
+    result: String,
+    recursive: Option<String>,
+    body: String,
+}
+
+/// The parsed table.
+pub(crate) struct StdTable {
+    pub(crate) lift: Vec<String>,
+    types: Vec<(String, StdPattern)>,
+    pub(crate) models: Vec<StdModel>,
+    aux: BTreeMap<String, StdAux>,
+    /// std's bodies by [`key`].
+    bodies: BTreeMap<String, String>,
+}
+
+fn parse_pat(text: &str) -> Option<StdPattern> {
+    let t = text.trim();
+    if let Some(v) = t.strip_prefix('$') {
+        return Some(StdPattern::Var(v.to_string()));
+    }
+    let (head, inner) = match t.find('<') {
+        Some(at) => (&t[..at], Some(t[at + 1..].strip_suffix('>')?)),
+        None => (t, None),
+    };
+    let args: Vec<StdPattern> = match inner {
+        Some(i) => super::parse::split_top(i, ',')
+            .into_iter()
+            .map(parse_pat)
+            .collect::<Option<_>>()?,
+        None => Vec::new(),
+    };
+    let one = |args: &[StdPattern]| match args {
+        [a] => Some(Box::new(a.clone())),
+        _ => None,
+    };
+    Some(match (head, args.as_slice()) {
+        ("bool", []) => StdPattern::Bool,
+        ("str", []) => StdPattern::Str,
+        ("char", []) => StdPattern::Char,
+        ("usize", []) => StdPattern::Usize,
+        ("nat", []) => StdPattern::Nat,
+        ("text", []) => StdPattern::Text,
+        ("unit", []) => StdPattern::Unit,
+        ("list", _) => StdPattern::List(one(&args)?),
+        ("option", _) => StdPattern::Option(one(&args)?),
+        ("set", _) => StdPattern::Set(one(&args)?),
+        ("map", [k, v]) => StdPattern::Map(Box::new(k.clone()), Box::new(v.clone())),
+        _ => return None,
+    })
+}
+
+/// The table, parsed once. A malformed table is a build defect the tests
+/// report; here it is an empty table.
+pub(crate) fn table() -> &'static StdTable {
+    static T: OnceLock<StdTable> = OnceLock::new();
+    T.get_or_init(|| {
+        parse_table(TABLE, BODIES).unwrap_or_else(|| StdTable {
+            lift: Vec::new(),
+            types: Vec::new(),
+            models: Vec::new(),
+            aux: BTreeMap::new(),
+            bodies: BTreeMap::new(),
+        })
+    })
+}
+
+/// The table, or `None` where a row lacks a field or a pattern does not
+/// read.
+fn parse_table(text: &str, bodies: &str) -> Option<StdTable> {
+    let doc: toml::Value = text.parse().ok()?;
+    let strs = |v: Option<&toml::Value>| -> Vec<String> {
+        v.and_then(toml::Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(toml::Value::as_str)
+            .map(str::to_string)
+            .collect()
+    };
+    let field = |row: &toml::Value, n: &str| -> Option<String> {
+        row.get(n).and_then(toml::Value::as_str).map(str::to_string)
+    };
+    let pat = |s: &str| parse_pat(s);
+    let mut types = Vec::new();
+    for row in doc
+        .get("type")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        types.push((field(row, "path")?, pat(&field(row, "model")?)?));
+    }
+    let mut models = Vec::new();
+    for row in doc
+        .get("model")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        let mut update = BTreeMap::new();
+        if let Some(u) = row.get("update").and_then(toml::Value::as_table) {
+            for (k, v) in u {
+                let i: usize = k.parse().ok()?;
+                update.insert(i, v.as_str().unwrap_or_default().to_string());
+            }
+        }
+        models.push(StdModel {
+            path: field(row, "path")?,
+            args: strs(row.get("args"))
+                .iter()
+                .map(|a| pat(a))
+                .collect::<Option<_>>()?,
+            result: pat(&field(row, "result")?)?,
+            term: field(row, "term")?,
+            update,
+            #[cfg(test)]
+            rust: field(row, "rust")?,
+            #[cfg(test)]
+            vectors: row
+                .get("vectors")
+                .and_then(toml::Value::as_array)
+                .into_iter()
+                .flatten()
+                .map(|v| strs(Some(v)))
+                .collect(),
+        });
+    }
+    let mut aux = BTreeMap::new();
+    for (name, row) in doc
+        .get("aux")
+        .and_then(toml::Value::as_table)
+        .into_iter()
+        .flatten()
+    {
+        aux.insert(
+            name.clone(),
+            StdAux {
+                params: strs(row.get("params")),
+                result: field(row, "result")?,
+                recursive: row
+                    .get("recursive")
+                    .and_then(toml::Value::as_str)
+                    .map(str::to_string),
+                body: field(row, "body")?,
+            },
+        );
+    }
+    Some(StdTable {
+        lift: strs(doc.get("lift")),
+        types,
+        models,
+        aux,
+        bodies: split_bodies(bodies),
+    })
+}
+
+/// std.mir's bodies, each from its `fn` line to its closing brace, by
+/// [`key`] of the path it defines.
+fn split_bodies(text: &str) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    let mut current: Option<(String, String)> = None;
+    for line in text.lines() {
+        if let Some(head) = line.strip_prefix("fn ") {
+            let path = head.split('(').next().unwrap_or(head);
+            current = Some((key(path), String::new()));
+        }
+        if let Some((_, body)) = current.as_mut() {
+            body.push_str(line);
+            body.push('\n');
+            if line == "}" {
+                if let Some((k, b)) = current.take() {
+                    out.insert(k, b);
+                }
+            }
+        }
+    }
+    out
+}
+
+/// A std path without its crate and with each `<impl X>` named by `X`:
+/// `core::str::<impl str>::trim` and `std::str::<impl str>::trim` are both
+/// `str::str::trim`. The facade crate and the crate defining an item print
+/// one item under both.
+pub(crate) fn key(path: &str) -> String {
+    let segs = super::parse::split_path(path);
+    let rest = match segs.first() {
+        Some(&("core" | "alloc" | "std")) => &segs[1..],
+        _ => &segs[..],
+    };
+    rest.iter()
+        .map(
+            |s| match s.strip_prefix("<impl ").and_then(|r| r.strip_suffix('>')) {
+                // The impl on slices of any item type.
+                Some(t) if t.starts_with('[') => "[]",
+                Some(t) => t.split('<').next().unwrap_or(t),
+                None => s,
+            },
+        )
+        .collect::<Vec<_>>()
+        .join("::")
+}
+
+/// Bind `p` against `t`.
+fn bind(p: &StdPattern, t: &Ty, binds: &mut PatternBinds) -> bool {
+    match (p, t) {
+        (StdPattern::Bool, Ty::Bool)
+        | (StdPattern::Str | StdPattern::Text, Ty::Str)
+        | (StdPattern::Char | StdPattern::Text, Ty::Char)
+        | (StdPattern::Usize, Ty::Nat(None))
+        | (StdPattern::Nat, Ty::Nat(_))
+        | (StdPattern::Unit, Ty::Unit) => true,
+        (StdPattern::Var(v), t) => match binds.get(v) {
+            Some(b) => b.render() == t.render(),
+            None => {
+                binds.insert(v.clone(), t.clone());
+                true
+            }
+        },
+        (StdPattern::List(p), Ty::List(t))
+        | (StdPattern::Option(p), Ty::Option(t))
+        | (StdPattern::Set(p), Ty::Set(t, true)) => bind(p, t, binds),
+        (StdPattern::Map(pk, pv), Ty::Map(k, v, true)) => bind(pk, k, binds) && bind(pv, v, binds),
+        _ => false,
+    }
+}
+
+/// The type a pattern names under `binds`.
+fn build(p: &StdPattern, binds: &PatternBinds) -> Option<Ty> {
+    Some(match p {
+        StdPattern::Bool => Ty::Bool,
+        StdPattern::Str => Ty::Str,
+        StdPattern::Char => Ty::Char,
+        StdPattern::Usize => Ty::Nat(None),
+        StdPattern::Unit => Ty::Unit,
+        StdPattern::Nat | StdPattern::Text => return None,
+        StdPattern::Var(v) => binds.get(v)?.clone(),
+        StdPattern::List(p) => Ty::List(Box::new(build(p, binds)?)),
+        StdPattern::Option(p) => Ty::Option(Box::new(build(p, binds)?)),
+        StdPattern::Set(p) => Ty::Set(Box::new(build(p, binds)?), true),
+        StdPattern::Map(k, v) => {
+            Ty::Map(Box::new(build(k, binds)?), Box::new(build(v, binds)?), true)
+        }
+    })
+}
+
+/// The variables of a pattern, in order.
+fn vars(p: &StdPattern, out: &mut Vec<String>) {
+    match p {
+        StdPattern::Var(v) if !out.contains(v) => out.push(v.clone()),
+        StdPattern::List(p) | StdPattern::Option(p) | StdPattern::Set(p) => vars(p, out),
+        StdPattern::Map(k, v) => {
+            vars(k, out);
+            vars(v, out);
+        }
+        _ => {}
+    }
+}
+
+/// The lift's type for a std type the table models, by the path MIR prints
+/// and its type arguments.
+pub(crate) fn model_type(path: &str, args: &[Ty]) -> Option<Ty> {
+    let (_, pat) = table().types.iter().find(|(p, _)| key(p) == key(path))?;
+    let mut names = Vec::new();
+    vars(pat, &mut names);
+    if names.len() != args.len() {
+        return None;
+    }
+    let binds: PatternBinds = names.into_iter().zip(args.iter().cloned()).collect();
+    build(pat, &binds)
+}
+
+/// An applied model: its value, the new values of its `&mut` arguments, the
+/// auxiliary definitions it names and the types it mentions.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Applied {
+    pub(crate) term: String,
+    pub(crate) updates: BTreeMap<usize, String>,
+    pub(crate) aux: Vec<Decl>,
+    pub(crate) mentions: Vec<Ty>,
+}
+
+/// The model of the std operation `callee` (generic arguments erased) at
+/// these argument and result types.
+pub(crate) fn apply(callee: &str, args: &[(String, Ty)], dt: &Ty) -> Option<Applied> {
+    let k = key(callee);
+    let model = table().models.iter().find(|m| key(&m.path) == k)?;
+    if model.args.len() != args.len() {
+        return None;
+    }
+    let mut binds = PatternBinds::new();
+    for (p, (_, t)) in model.args.iter().zip(args) {
+        if !bind(p, t, &mut binds) {
+            return None;
+        }
+    }
+    if !bind(&model.result, dt, &mut binds) {
+        return None;
+    }
+    let terms: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
+    let mut out = Applied {
+        mentions: binds.values().cloned().collect(),
+        ..Applied::default()
+    };
+    out.term = render(&model.term, &terms, &binds, None, &mut out.aux)?;
+    for (i, u) in &model.update {
+        let v = render(u, &terms, &binds, None, &mut out.aux)?;
+        out.updates.insert(*i, v);
+    }
+    if let (Some(k), Some(v)) = (binds.get("k"), binds.get("v")) {
+        out.mentions.push(Ty::Tuple(vec![k.clone(), v.clone()]));
+    }
+    Some(out)
+}
+
+/// The text inside the innermost `{...}` that holds no other, with its span.
+fn innermost(text: &str) -> Option<(usize, usize)> {
+    let mut open = None;
+    for (i, c) in text.char_indices() {
+        match c {
+            '{' => open = Some(i),
+            '}' => return open.map(|o| (o, i)),
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Split at spaces outside parentheses.
+fn words(text: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut depth = 0i64;
+    let mut current = String::new();
+    for c in text.chars() {
+        match c {
+            '(' => depth += 1,
+            ')' => depth -= 1,
+            _ => {}
+        }
+        if c == ' ' && depth == 0 {
+            if !current.is_empty() {
+                out.push(std::mem::take(&mut current));
+            }
+        } else {
+            current.push(c);
+        }
+    }
+    if !current.is_empty() {
+        out.push(current);
+    }
+    out
+}
+
+/// Render a template: `None` where a placeholder has no meaning at these
+/// types (an order the lift does not model, an unbound variable).
+fn render(
+    template: &str,
+    args: &[String],
+    binds: &PatternBinds,
+    own: Option<&str>,
+    aux: &mut Vec<Decl>,
+) -> Option<String> {
+    let mut text = template.to_string();
+    while let Some((open, close)) = innermost(&text) {
+        let inner = text[open + 1..close].to_string();
+        let w = words(&inner);
+        let ty = |v: &str| binds.get(v.strip_prefix('$')?);
+        let entry = || {
+            Some(Ty::Tuple(vec![
+                binds.get("k")?.clone(),
+                binds.get("v")?.clone(),
+            ]))
+        };
+        let value = match w.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
+            [n] if n.chars().all(|c| c.is_ascii_digit()) => {
+                args.get(n.parse::<usize>().ok()?)?.clone()
+            }
+            ["ty", v] => ty(v)?.render(),
+            ["prelude", f] => format!("{}::{f}", lift::PRELUDE),
+            ["self"] => own?.to_string(),
+            ["entry"] => entry()?.render(),
+            ["key", x] => lift::tuple_item(&entry()?, x, 0),
+            ["value", x] => lift::tuple_item(&entry()?, x, 1),
+            ["pair", a, b] => lift::tuple_value(&entry()?, &[(*a).to_string(), (*b).to_string()]),
+            ["eq", v, a, b] => match ty(v)? {
+                Ty::Str | Ty::Char | Ty::Bool => format!("(prim equal {a} {b} : Bool)"),
+                Ty::Nat(_) => format!("({a} =? {b})"),
+                _ => return None,
+            },
+            ["lt", v, a, b] => match ty(v)? {
+                Ty::Str | Ty::Char => format!("(prim less_than {a} {b} : Bool)"),
+                Ty::Nat(_) => format!("({a} <? {b})"),
+                _ => return None,
+            },
+            ["aux", n] => instantiate(n, binds, aux)?,
+            _ => return None,
+        };
+        text.replace_range(open..=close, &value);
+    }
+    Some(text)
+}
+
+/// The auxiliary definition `n` at `binds`, added to `aux`: its name.
+fn instantiate(n: &str, binds: &PatternBinds, aux: &mut Vec<Decl>) -> Option<String> {
+    let a = table().aux.get(n)?;
+    let all = format!("{} {} {}", a.params.join(" "), a.result, a.body);
+    let tags: String = binds
+        .iter()
+        .filter(|(v, _)| {
+            all.contains(&format!("${v}"))
+                || (matches!(v.as_str(), "k" | "v") && all.contains("{entry}"))
+        })
+        .map(|(_, t)| t.tag())
+        .collect();
+    let name = format!("{}{tags}", crate::lex::camel(&["std", n]));
+    if aux.iter().any(|d| d.name() == name) {
+        return Some(name);
+    }
+    let mut params = Vec::new();
+    for p in &a.params {
+        let (pn, pt) = p.split_once(" : ")?;
+        params.push((pn.to_string(), render(pt, &[], binds, Some(&name), aux)?));
+    }
+    let result = render(&a.result, &[], binds, Some(&name), aux)?;
+    let body = render(&a.body, &[], binds, Some(&name), aux)?;
+    aux.push(Decl::Definition {
+        name: name.clone(),
+        parameters: params,
+        result,
+        body: Expr::Flat(body),
+        axioms: Vec::new(),
+        recursive: a.recursive.clone(),
+        termination: None,
+        mutual: None,
+    });
+    Some(name)
+}
+
+/// An instance of a std body: the item's [`key`], its MIR text at the
+/// call's types, and each generic parameter with the type it binds.
+pub(crate) struct Instance {
+    pub(crate) path: String,
+    pub(crate) text: String,
+    pub(crate) bound: Vec<(String, String)>,
+}
+
+/// std's own body of `callee` as MIR text, with its generic parameters
+/// instantiated at the types MIR prints for the call's arguments and
+/// destination; `None` when the table does not lift it or a parameter does
+/// not bind. A qualified call `<X as Trait>::m` with no body of its own is
+/// the trait's provided method with `Self` as `X`.
+pub(crate) fn instance(callee: &str, arg_texts: &[Option<String>], dest: &str) -> Option<Instance> {
+    let t = table();
+    let mut generics: BTreeMap<String, String> = BTreeMap::new();
+    let k = key(&super::lower::erase(callee));
+    let (k, text) = match t.bodies.get(&k) {
+        Some(b) => (k, b),
+        None => {
+            let inner = callee.strip_prefix('<')?;
+            let (self_ty, rest) = inner.split_once(" as ")?;
+            let (trait_path, method) = rest.split_once(">::")?;
+            let k = format!("{}::{method}", key(&super::lower::erase(trait_path)));
+            generics.insert("Self".into(), self_ty.to_string());
+            (k.clone(), t.bodies.get(&k)?)
+        }
+    };
+    if !t.lift.iter().any(|l| key(l) == k) {
+        return None;
+    }
+    let head = text.lines().next()?.strip_prefix("fn ")?;
+    let open = head.find('(')?;
+    let close = head.rfind(") -> ")?;
+    let params = super::parse::split_top(&head[open + 1..close], ',');
+    let ret = head[close + ") -> ".len()..].trim_end_matches(" {").trim();
+    if params.len() != arg_texts.len() {
+        return None;
+    }
+    for (p, a) in params.iter().zip(arg_texts) {
+        let (_, pt) = p.split_once(": ")?;
+        if let Some(a) = a {
+            unify(pt, a, &mut generics)?;
+        }
+    }
+    unify(ret, dest, &mut generics)?;
+    let mut out = String::new();
+    for line in text.lines() {
+        out.push_str(&substitute(line, &generics));
+        out.push('\n');
+    }
+    Some(Instance {
+        path: k,
+        text: out,
+        bound: generics.into_iter().collect(),
+    })
+}
+
+const PRIMITIVES: &[&str] = &[
+    "bool", "char", "str", "u8", "u16", "u32", "u64", "u128", "usize", "i8", "i16", "i32", "i64",
+    "i128", "isize", "f32", "f64", "!",
+];
+
+/// A type's text without its lifetimes: `&'a T` is `&T`.
+fn plain(text: &str) -> String {
+    let mut out = String::new();
+    let mut rest = text.trim();
+    while let Some(at) = rest.find('\'') {
+        out.push_str(&rest[..at]);
+        let after = &rest[at + 1..];
+        let end = after
+            .find(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+            .unwrap_or(after.len());
+        rest = after[end..].trim_start_matches([' ', ',']);
+        if out.ends_with('<') && rest.starts_with('>') {
+            out.pop();
+            rest = &rest[1..];
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Unify a std parameter's type text with a call site's: a bare name that
+/// is no primitive is a generic parameter and binds the call site's text.
+fn unify(pattern: &str, actual: &str, generics: &mut BTreeMap<String, String>) -> Option<()> {
+    let (p, a) = (plain(pattern), plain(actual));
+    let bare = !p.is_empty()
+        && p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        && p.starts_with(|c: char| c.is_ascii_uppercase())
+        && !PRIMITIVES.contains(&p.as_str());
+    if bare {
+        return match generics.get(&p) {
+            Some(b) if plain(b) != a => None,
+            Some(_) => Some(()),
+            None => {
+                generics.insert(p, a);
+                Some(())
+            }
+        };
+    }
+    if let (Some(p), Some(a)) = (p.strip_prefix('&'), a.strip_prefix('&')) {
+        let p = p.strip_prefix("mut ").unwrap_or(p);
+        let a = a.strip_prefix("mut ").unwrap_or(a);
+        return unify(p, a, generics);
+    }
+    let split = |t: &str| -> (String, Vec<String>) {
+        let segs = super::parse::split_path(t);
+        let last = segs.last().copied().unwrap_or(t);
+        match last.find('<') {
+            Some(at) => (
+                last[..at].trim_end_matches("::").to_string(),
+                super::parse::split_top(last[at + 1..].strip_suffix('>').unwrap_or(""), ',')
+                    .into_iter()
+                    .map(str::to_string)
+                    .collect(),
+            ),
+            None => (last.to_string(), Vec::new()),
+        }
+    };
+    let ((pn, pa), (an, aa)) = (split(&p), split(&a));
+    if pn != an || pa.len() != aa.len() {
+        return None;
+    }
+    for (x, y) in pa.iter().zip(&aa) {
+        unify(x, y, generics)?;
+    }
+    Some(())
+}
+
+/// Replace each generic parameter, as a whole word that is not a path's
+/// segment, by its binding.
+fn substitute(line: &str, generics: &BTreeMap<String, String>) -> String {
+    let mut out = String::new();
+    let chars: Vec<char> = line.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        if c.is_ascii_alphabetic() || c == '_' {
+            let start = i;
+            while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '_') {
+                i += 1;
+            }
+            let word: String = chars[start..i].iter().collect();
+            let after_path = start >= 2 && chars[start - 1] == ':' && chars[start - 2] == ':';
+            let before_path = chars.get(i) == Some(&':') && chars.get(i + 1) == Some(&':');
+            let local = start >= 1 && chars[start - 1] == '_';
+            match generics.get(&word) {
+                Some(b) if !after_path && !before_path && !local => out.push_str(b),
+                _ => out.push_str(&word),
+            }
+        } else {
+            out.push(c);
+            i += 1;
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_table_parses_and_names_only_vendored_bodies() {
+        let t = parse_table(TABLE, BODIES).expect("std.toml parses");
+        assert!(!t.models.is_empty());
+        for l in &t.lift {
+            assert!(
+                t.bodies.contains_key(&key(l)),
+                "{l} is lifted but std.mir has no body of it: run scripts/mir/fetch-std.sh"
+            );
+        }
+        for m in &t.models {
+            assert!(!m.vectors.is_empty(), "{} has no vectors", m.path);
+            for v in &m.vectors {
+                assert_eq!(v.len(), m.args.len() + 1, "{}: a vector's arity", m.path);
+            }
+        }
+    }
+
+    #[test]
+    fn std_paths_key_without_their_crate() {
+        assert_eq!(key("core::str::<impl str>::trim"), "str::str::trim");
+        assert_eq!(key("std::str::<impl str>::trim"), "str::str::trim");
+        assert_eq!(
+            key("std::option::Option::unwrap_or"),
+            "option::Option::unwrap_or"
+        );
+        assert_eq!(
+            key("core::slice::<impl [lift::Ty]>::contains"),
+            "slice::[]::contains"
+        );
+    }
+
+    #[test]
+    fn models_apply_at_their_types() {
+        let a = apply(
+            "core::str::<impl str>::trim",
+            &[("s".into(), Ty::Str)],
+            &Ty::Str,
+        )
+        .expect("trim");
+        assert_eq!(a.term, "(Prelude::textTrim s)");
+        assert!(apply(
+            "core::str::<impl str>::trim",
+            &[("s".into(), Ty::Bool)],
+            &Ty::Str
+        )
+        .is_none());
+        let set = Ty::Set(Box::new(Ty::Str), true);
+        let ins = apply(
+            "std::collections::BTreeSet::insert",
+            &[("s".into(), set), ("x".into(), Ty::Str)],
+            &Ty::Bool,
+        )
+        .expect("insert");
+        assert_eq!(ins.updates[&0], "(stdInsertString s x)");
+        assert!(ins.aux.iter().any(|d| d.name() == "stdMemberString"));
+        assert_eq!(
+            model_type("std::collections::BTreeSet", &[Ty::Str]),
+            Some(Ty::Set(Box::new(Ty::Str), true))
+        );
+    }
+
+    #[test]
+    fn generic_parameters_bind_to_the_call_sites_types() {
+        let mut g = BTreeMap::new();
+        assert!(unify("Option<T>", "std::option::Option<u32>", &mut g).is_some());
+        assert_eq!(g["T"], "u32");
+        assert!(unify("&'a T", "&u32", &mut g).is_some());
+        assert!(unify("T", "u8", &mut g).is_none());
+        assert_eq!(
+            substitute(
+                "fn f(_1: Option<T>) -> T { <T as clone::Clone>::clone }",
+                &g
+            ),
+            "fn f(_1: Option<u32>) -> u32 { <u32 as clone::Clone>::clone }"
+        );
+    }
+}

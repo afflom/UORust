@@ -1,0 +1,406 @@
+# The standard library as the MIR path sees it, keyed by std path.
+#
+# A call into std resolves, in this order, to:
+# 1. a model below (`[[model]]`), for an operation whose std body bottoms out
+#    in intrinsics or unsafe raw-pointer code (each says where, in `floor`),
+#    so its MIR cannot lift to values; the model is the operation on the
+#    lift's types, written once here for every call site;
+# 2. std's own MIR (`lift`), vendored in std.mir at the pinned toolchain by
+#    scripts/mir/fetch-std.sh, translated by the same lowering as the
+#    workspace's own bodies and instantiated at the call's types; each
+#    instance is one definition named by its path and types, so it is
+#    translated, and decided by the verifier, once for all its callers;
+# 3. residue naming the callee.
+#
+# A model's `args` and `result` are type patterns over the lift's types:
+# bool, str, char, usize, nat (any unsigned width), text (str or char),
+# unit, list<P>, option<P>, set<P>, map<P, P>, and $name, which binds any
+# type and must bind the same type at each use. `term` is the value, `update`
+# the new value of a `&mut` argument (by position) as a backward function
+# returns it. Placeholders: {0}.. the arguments, {ty $t} a bound type,
+# {prelude f} the prelude's f, {aux n} the instance of an auxiliary
+# definition below at the bound types, {eq $t a b} and {lt $t a b} the
+# equality and order of a bound type (strings by their bytes, which is std's
+# order for them; naturals as numbers), {key x} and {value x} an entry of
+# the bound map, {self} an auxiliary definition's own name.
+#
+# Every model carries `vectors`: arguments and the result std gives, as Rust
+# literals; the generated test std_vectors.rs runs std itself on them, so a
+# model that disagrees with std on one of them fails the suite. (The Lean
+# kernel does not reduce the prelude's UTF-8 decoding, so `decide` cannot
+# prove the same vectors of the text models in the projection.)
+
+toolchain = "1.97.1"
+# rust-src of that toolchain, as its channel manifest pins it, and the
+# vendored std.mir that fetch-std.sh dumped from it.
+rust_src_xz_sha256 = "e9a1e616d04c6845895c827a178b9227f7c7199f3f4a80af81ab3aff7b80156b"
+std_mir_sha256 = "2a11a6c82945ac736dd92619ea2682bdd8eb064bbe3670eac71110229731d528"
+
+# The std items whose own MIR the path lifts (step 2), by the path rustc
+# prints for their definition.
+lift = [
+  "core::option::Option::unwrap_or",
+  "core::option::Option::is_some",
+  "core::option::Option::is_none",
+  "core::result::Result::is_ok",
+  "core::result::Result::is_err",
+  "core::result::Result::ok",
+  "core::cmp::PartialEq::ne",
+]
+
+# Types whose representation bottoms out in raw pointers, as the lift's
+# value types.
+[[type]]
+path = "std::collections::BTreeMap"
+model = "map<$k, $v>"
+floor = "B-tree nodes behind NonNull raw pointers (alloc::collections::btree::node)"
+
+[[type]]
+path = "std::collections::BTreeSet"
+model = "set<$t>"
+floor = "a BTreeMap<T, SetValZST>, whose nodes are behind NonNull raw pointers"
+
+# str: the byte-level searches use get_unchecked and from_utf8_unchecked.
+[[model]]
+path = "core::str::<impl str>::trim"
+args = ["str"]
+result = "str"
+term = "({prelude textTrim} {0})"
+floor = "trim_matches walks the bytes with get_unchecked"
+rust = "str::trim({0})"
+vectors = [['"  a b  "', '"a b"'], ['""', '""']]
+
+[[model]]
+path = "core::str::<impl str>::trim_start"
+args = ["str"]
+result = "str"
+term = "({prelude textTrimStart} {0})"
+floor = "trim_start_matches walks the bytes with get_unchecked"
+rust = "str::trim_start({0})"
+vectors = [['"  a "', '"a "']]
+
+[[model]]
+path = "core::str::<impl str>::trim_end"
+args = ["str"]
+result = "str"
+term = "({prelude textTrimEnd} {0})"
+floor = "trim_end_matches walks the bytes with get_unchecked"
+rust = "str::trim_end({0})"
+vectors = [['"  a "', '"  a"']]
+
+[[model]]
+path = "core::str::<impl str>::len"
+args = ["str"]
+result = "usize"
+term = "({prelude textLength} {0})"
+floor = "a str's length is its pointer metadata, read by an intrinsic"
+rust = "str::len({0})"
+vectors = [['"héllo"', "6"]]
+
+[[model]]
+path = "core::str::<impl str>::starts_with"
+args = ["str", "text"]
+result = "bool"
+term = "({prelude textStartsWith} {0} {1})"
+floor = "the Pattern searchers compare bytes through get_unchecked"
+rust = "str::starts_with({0}, {1})"
+vectors = [['"prism"', '"pri"', "true"], ['"prism"', '"ism"', "false"]]
+
+[[model]]
+path = "core::str::<impl str>::ends_with"
+args = ["str", "text"]
+result = "bool"
+term = "({prelude textEndsWith} {0} {1})"
+floor = "the Pattern searchers compare bytes through get_unchecked"
+rust = "str::ends_with({0}, {1})"
+vectors = [['"prism"', '"ism"', "true"], ['"prism"', '"pri"', "false"]]
+
+[[model]]
+path = "core::str::<impl str>::contains"
+args = ["str", "text"]
+result = "bool"
+term = "({prelude textContains} {0} {1})"
+floor = "the two-way searcher indexes bytes with get_unchecked"
+rust = "str::contains({0}, {1})"
+vectors = [['"a::b"', '"::"', "true"], ['"ab"', '"ba"', "false"]]
+
+[[model]]
+path = "core::str::<impl str>::find"
+args = ["str", "text"]
+result = "option<usize>"
+term = "({prelude textFirst} {0} {1})"
+floor = "the two-way searcher indexes bytes with get_unchecked"
+rust = "str::find({0}, {1})"
+vectors = [['"a::b::c"', '"::"', "Some(1)"], ['"ab"', '"x"', "None"]]
+
+[[model]]
+path = "core::str::<impl str>::rfind"
+args = ["str", "text"]
+result = "option<usize>"
+term = "({prelude textLast} {0} {1})"
+floor = "the two-way searcher indexes bytes with get_unchecked"
+rust = "str::rfind({0}, {1})"
+vectors = [['"a::b::c"', '"::"', "Some(4)"]]
+
+[[model]]
+path = "core::str::<impl str>::strip_prefix"
+args = ["str", "text"]
+result = "option<str>"
+term = "({prelude textStripPrefix} {0} {1})"
+floor = "the remainder is cut with get_unchecked"
+rust = "str::strip_prefix({0}, {1})"
+vectors = [['"--name"', '"--"', 'Some("name")'], ['"name"', '"--"', "None"]]
+
+[[model]]
+path = "core::str::<impl str>::strip_suffix"
+args = ["str", "text"]
+result = "option<str>"
+term = "({prelude textStripSuffix} {0} {1})"
+floor = "the remainder is cut with get_unchecked"
+rust = "str::strip_suffix({0}, {1})"
+vectors = [['"a.rs"', '".rs"', 'Some("a")'], ['"a"', '".rs"', "None"]]
+
+[[model]]
+path = "core::str::<impl str>::trim_start_matches"
+args = ["str", "text"]
+result = "str"
+term = "({prelude textTrimStartMatches} {0} {1})"
+floor = "trim_start_matches walks the bytes with get_unchecked"
+rust = "str::trim_start_matches({0}, {1})"
+vectors = [['"__x_"', '"_"', '"x_"']]
+
+[[model]]
+path = "core::str::<impl str>::trim_end_matches"
+args = ["str", "text"]
+result = "str"
+term = "({prelude textTrimEndMatches} {0} {1})"
+floor = "trim_end_matches walks the bytes with get_unchecked"
+rust = "str::trim_end_matches({0}, {1})"
+vectors = [['"_x__"', '"_"', '"_x"']]
+
+[[model]]
+path = "std::str::<impl str>::repeat"
+args = ["str", "usize"]
+result = "str"
+term = "({prelude textRepeat} {1} {0})"
+floor = "the copy doubles a buffer with ptr::copy_nonoverlapping"
+rust = "str::repeat({0}, {1})"
+vectors = [['"ab"', "3", '"ababab"'], ['"x"', "0", '""']]
+
+[[model]]
+path = "<char as std::string::ToString>::to_string"
+args = ["char"]
+result = "str"
+term = "{0}"
+floor = "the char is encoded into a buffer with encode_utf8_raw"
+rust = "char::to_string(&{0})"
+vectors = [["'é'", '"é"']]
+
+[[model]]
+path = "std::slice::from_ref"
+args = ["$t"]
+result = "list<$t>"
+term = "(cons {0} (nil {ty $t}))"
+floor = "a raw-pointer cast of the reference"
+rust = "std::slice::from_ref(&{0}).to_vec()"
+vectors = [["7u32", "vec![7u32]"]]
+
+[[model]]
+path = "std::option::Option::cloned"
+args = ["option<$t>"]
+result = "option<$t>"
+term = "{0}"
+floor = "map with a function item, which a value model does not hold"
+rust = "{0}.as_ref().cloned()"
+vectors = [['Some(String::from("a"))', 'Some(String::from("a"))'], ["None::<String>", "None"]]
+
+[[model]]
+path = "std::option::Option::copied"
+args = ["option<$t>"]
+result = "option<$t>"
+term = "{0}"
+floor = "a match whose arm reads through the reference"
+rust = "{0}.as_ref().copied()"
+vectors = [["Some(3u8)", "Some(3u8)"]]
+
+# Collections: the B-tree and the vector's buffer are raw pointers; a
+# mutating operation is a backward function that returns the new value.
+[[model]]
+path = "std::vec::Vec::push"
+args = ["list<$t>", "$t"]
+result = "unit"
+term = "()"
+update = { 0 = "(prim append {0} (cons {1} (nil {ty $t})) : (List {ty $t}))" }
+floor = "the item is written into the buffer with ptr::write"
+rust = "{{ let mut v = {0}; v.push({1}); v }}"
+vectors = [["vec![1u8]", "2u8", "vec![1u8, 2]"]]
+
+[[model]]
+path = "std::string::String::push_str"
+args = ["str", "str"]
+result = "unit"
+term = "()"
+update = { 0 = '(prim join (cons {0} (cons {1} (nil String))) "" : String)' }
+floor = "the bytes are copied with ptr::copy_nonoverlapping"
+rust = "{{ let mut s = String::from({0}); s.push_str({1}); s }}"
+vectors = [['"ab"', '"cd"', '"abcd"']]
+
+[[model]]
+path = "std::string::String::push"
+args = ["str", "char"]
+result = "unit"
+term = "()"
+update = { 0 = '(prim join (cons {0} (cons {1} (nil String))) "" : String)' }
+floor = "the char is encoded into the buffer with encode_utf8_raw"
+rust = "{{ let mut s = String::from({0}); s.push({1}); s }}"
+vectors = [['"ab"', "'é'", '"abé"']]
+
+[[model]]
+path = "std::collections::BTreeSet::contains"
+args = ["set<$t>", "$t"]
+result = "bool"
+term = "({aux member} {0} {1})"
+floor = "the search walks NonNull node pointers"
+rust = "std::collections::BTreeSet::from({0}).contains(&{1})"
+vectors = [['["a", "b"]', '"b"', "true"], ['["a"]', '"c"', "false"]]
+
+[[model]]
+path = "std::collections::BTreeSet::insert"
+args = ["set<$t>", "$t"]
+result = "bool"
+term = "(not ({aux member} {0} {1}))"
+update = { 0 = "({aux insert} {0} {1})" }
+floor = "the insertion splits NonNull nodes"
+rust = "{{ let mut s = std::collections::BTreeSet::from({0}); let new = s.insert({1}); (new, s.into_iter().collect::<Vec<_>>()) }}"
+vectors = [['["a", "c"]', '"b"', '(true, vec!["a", "b", "c"])'], ['["a"]', '"a"', '(false, vec!["a"])']]
+
+[[model]]
+path = "std::collections::BTreeSet::len"
+args = ["set<$t>"]
+result = "usize"
+term = "(prim length {0} : Nat)"
+floor = "the length is a field of the root behind a raw pointer"
+rust = "std::collections::BTreeSet::from({0}).len()"
+vectors = [['["a", "b"]', "2"]]
+
+[[model]]
+path = "std::collections::BTreeSet::is_empty"
+args = ["set<$t>"]
+result = "bool"
+term = "((prim length {0} : Nat) =? 0)"
+floor = "the length is a field of the root behind a raw pointer"
+rust = "std::collections::BTreeSet::from({0}).is_empty()"
+vectors = [['[] as [&str; 0]', "true"]]
+
+[[model]]
+path = "std::collections::BTreeMap::get"
+args = ["map<$k, $v>", "$k"]
+result = "option<$v>"
+term = "({aux get} {0} {1})"
+floor = "the search walks NonNull node pointers"
+rust = "std::collections::BTreeMap::from({0}).get(&{1}).copied()"
+vectors = [['[("a", 1u8)]', '"a"', "Some(1u8)"], ['[("a", 1u8)]', '"b"', "None"]]
+
+[[model]]
+path = "std::collections::BTreeMap::contains_key"
+args = ["map<$k, $v>", "$k"]
+result = "bool"
+term = "({aux has} {0} {1})"
+floor = "the search walks NonNull node pointers"
+rust = "std::collections::BTreeMap::from({0}).contains_key(&{1})"
+vectors = [['[("a", 1u8)]', '"a"', "true"]]
+
+[[model]]
+path = "std::collections::BTreeMap::insert"
+args = ["map<$k, $v>", "$k", "$v"]
+result = "option<$v>"
+term = "({aux get} {0} {1})"
+update = { 0 = "({aux put} {0} {1} {2})" }
+floor = "the insertion splits NonNull nodes"
+rust = "{{ let mut m = std::collections::BTreeMap::from({0}); let old = m.insert({1}, {2}); (old, m.into_iter().collect::<Vec<_>>()) }}"
+vectors = [['[("a", 1u8), ("c", 3)]', '"b"', "2u8", '(None, vec![("a", 1u8), ("b", 2), ("c", 3)])'], ['[("a", 1u8)]', '"a"', "5u8", '(Some(1u8), vec![("a", 5u8)])']]
+
+[[model]]
+path = "std::collections::BTreeMap::len"
+args = ["map<$k, $v>"]
+result = "usize"
+term = "(prim length {0} : Nat)"
+floor = "the length is a field of the root behind a raw pointer"
+rust = "std::collections::BTreeMap::from({0}).len()"
+vectors = [['[("a", 1u8)]', "1"]]
+
+[[model]]
+path = "std::collections::BTreeMap::is_empty"
+args = ["map<$k, $v>"]
+result = "bool"
+term = "((prim length {0} : Nat) =? 0)"
+floor = "the length is a field of the root behind a raw pointer"
+rust = "std::collections::BTreeMap::from({0}).is_empty()"
+vectors = [['[("a", 1u8)]', "false"]]
+
+[[model]]
+path = "std::collections::BTreeSet::new"
+args = []
+result = "set<$t>"
+term = "(nil {ty $t})"
+floor = "an empty root, a null node pointer"
+rust = "std::collections::BTreeSet::<u8>::new().len()"
+vectors = [["0"]]
+
+[[model]]
+path = "std::collections::BTreeMap::new"
+args = []
+result = "map<$k, $v>"
+term = "(nil {entry})"
+floor = "an empty root, a null node pointer"
+rust = "std::collections::BTreeMap::<u8, u8>::new().len()"
+vectors = [["0"]]
+
+[[model]]
+path = "core::slice::<impl [T]>::contains"
+args = ["list<$t>", "$t"]
+result = "bool"
+term = "({aux member} {0} {1})"
+floor = "SliceContains compares through raw slices"
+rust = "{0}.contains(&{1})"
+vectors = [['["a", "b"]', '"b"', "true"], ['["a"]', '"c"', "false"]]
+
+[[model]]
+path = "std::slice::<impl [T]>::join"
+args = ["list<str>", "str"]
+result = "str"
+term = "(prim join {0} {1} : String)"
+floor = "the joined bytes are copied with ptr::copy_nonoverlapping"
+rust = "{0}.join({1})"
+vectors = [['["a", "b"]', '"-"', '"a-b"']]
+
+# The auxiliary definitions the models name, instantiated per bound types.
+[aux.member]
+params = ["items : (List {ty $t})", "needle : {ty $t}"]
+result = "Bool"
+recursive = "items"
+body = "(match items | List.nil => false | List.cons item rest => (if {eq $t item needle} then true else ({self} rest needle)))"
+
+[aux.insert]
+params = ["items : (List {ty $t})", "new : {ty $t}"]
+result = "(List {ty $t})"
+recursive = "items"
+body = "(match items | List.nil => (cons new (nil {ty $t})) | List.cons item rest => (if {eq $t new item} then (cons item rest) else (if {lt $t new item} then (cons new (cons item rest)) else (cons item ({self} rest new)))))"
+
+[aux.get]
+params = ["entries : (List {entry})", "wanted : {ty $k}"]
+result = "(Option {ty $v})"
+recursive = "entries"
+body = "(match entries | List.nil => (ctor Option.none [{ty $v}]) | List.cons entry rest => (if {eq $k {key entry} wanted} then (ctor Option.some [{ty $v}] {value entry}) else ({self} rest wanted)))"
+
+[aux.has]
+params = ["entries : (List {entry})", "wanted : {ty $k}"]
+result = "Bool"
+recursive = "entries"
+body = "(match entries | List.nil => false | List.cons entry rest => (if {eq $k {key entry} wanted} then true else ({self} rest wanted)))"
+
+[aux.put]
+params = ["entries : (List {entry})", "key : {ty $k}", "value : {ty $v}"]
+result = "(List {entry})"
+recursive = "entries"
+body = "(match entries | List.nil => (cons {pair key value} (nil {entry})) | List.cons entry rest => (if {eq $k key {key entry}} then (cons {pair key value} rest) else (if {lt $k key {key entry}} then (cons {pair key value} (cons entry rest)) else (cons entry ({self} rest key value)))))"

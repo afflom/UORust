@@ -14,8 +14,29 @@ status = "proved"
 axioms = { holds_walkCappedSum_0 = ["propext"], walkCappedSum = ["Quot.sound", "propext"] }
 
 [[verdict]]
+kappa = "594db3015dad06f3b27fdd5213540c6a8f8d55ce86d6fd985e76139f7ef4b6ef"
+function = "walk::first_blank"
+digest = "02f13efe3cad7005c524259abbea06e417287e308df28ab8eaf03b20a7684bed"
+status = "proved"
+axioms = { decreases_walkFirstBlankLoop1_0 = ["Classical.choice", "Quot.sound", "propext"], holds_walkFirstBlank_0 = ["propext"], holds_walkFirstBlank_1 = ["Classical.choice", "Quot.sound", "propext"], walkFirstBlank = ["Classical.choice", "Quot.sound", "propext"], walkFirstBlankLoop1 = ["Classical.choice", "Quot.sound", "propext"] }
+
+[[verdict]]
+kappa = "8ae97d071c314712f0ba17c7bf819fffc13f176a947d64f0e0240081af0d8bfd"
+function = "walk::above"
+digest = "fd3b4484b07b5f56f3294a14907638bd096e708cb012044dfc15eb557734c5a6"
+status = "proved"
+axioms = { holds_walkAbove_0 = ["propext"], walkAbove = ["Quot.sound", "propext"] }
+
+[[verdict]]
 kappa = "92f29729e59db6f0ba761fd066a311b0e1e7a7ee3974ce2a343a7651623672b0"
 function = "walk::count"
 digest = "7377cd8167315984b15df8f4781ac84a243f909393a4ccbd4afbbf59fd8d3f8d"
 status = "refused"
 cause = "LLV7002: Lean rejected `Walk.Behavior` (error): omega could not prove the goal:"
+
+[[verdict]]
+kappa = "fcac649f47a26500433f3a829d444108d50bb4e7069ac410688cd157c78b644e"
+function = "walk::distinct"
+digest = "a73789170d7ea868165893e3913f663f2e92ab1d99f41fe287e3966e51cd851d"
+status = "proved"
+axioms = { stdInsertString = ["Classical.choice", "Quot.sound", "propext"], walkDistinct = ["Classical.choice", "Quot.sound", "propext"] }

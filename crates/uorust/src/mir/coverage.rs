@@ -64,7 +64,7 @@ fn terminator(k: MirTerminatorKind) -> Coverage {
         T::Return => Coverage::Lowered("the value of the return place"),
         T::Unreachable => Coverage::Lowered("a theorem that the path is unreachable"),
         T::Drop => Coverage::Lowered("control goes on: a value has no destructor in the model"),
-        T::Call => Coverage::Lowered("a lifted function, or a standard operation the types model; a call that does not return is a theorem that the path is unreachable"),
+        T::Call => Coverage::Lowered("a lifted function; a std operation as std's own MIR at the call's types, or its model where std bottoms out below values (mir/std.toml); a call that does not return is a theorem that the path is unreachable"),
         T::Assert => Coverage::Lowered("a theorem that the condition holds on the path"),
         T::UnwindResume | T::UnwindTerminate => {
             Coverage::Lowered("never reached: unwinding paths are excluded by the theorems of the panics")
@@ -80,7 +80,7 @@ fn rvalue(k: MirRvalue) -> Coverage {
     match k {
         R::Use | R::CopyForDeref => Coverage::Lowered("the operand's value"),
         R::Ref => {
-            Coverage::Lowered("a shared borrow is the value it borrows; a mutable one is residue")
+            Coverage::Lowered("a shared borrow is the value it borrows; a mutable borrow of a local is passed to a call whose backward function gives the local its new value")
         }
         R::Cast => {
             Coverage::Lowered("a widening integer cast keeps the value; any other is residue")
@@ -98,7 +98,7 @@ fn rvalue(k: MirRvalue) -> Coverage {
 fn operand(k: MirOperand) -> Coverage {
     match k {
         MirOperand::Copy | MirOperand::Move => Coverage::Lowered("the place's value"),
-        MirOperand::Constant => Coverage::Lowered("a literal; a constant item is residue"),
+        MirOperand::Constant => Coverage::Lowered("a literal, or the constant's own body (a promoted constant or a constant item) lowered like any body"),
         MirOperand::RuntimeChecks => {
             Coverage::Lowered("overflow checks are on; the other checks are residue")
         }
@@ -131,7 +131,7 @@ fn projection(k: MirProjectionElem) -> Coverage {
 fn borrow(k: MirBorrowKind) -> Coverage {
     match k {
         MirBorrowKind::Shared | MirBorrowKind::Fake => Coverage::Lowered("the value borrowed"),
-        MirBorrowKind::Mut => Coverage::Residue(BORROWS),
+        MirBorrowKind::Mut => Coverage::Lowered("a local passed to a call with a backward function, which returns the local's new value"),
     }
 }
 

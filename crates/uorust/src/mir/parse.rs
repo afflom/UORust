@@ -17,10 +17,16 @@ pub(crate) fn bodies(text: &str) -> Vec<IrBody> {
     let mut out = Vec::new();
     let mut lines = text.lines().peekable();
     while let Some(line) = lines.next() {
-        let Some(head) = line.strip_prefix("fn ") else {
+        let mut body = if let Some(head) = line.strip_prefix("fn ") {
+            header(head)
+        } else if let Some(head) = line.strip_prefix("const ") {
+            match const_header(head) {
+                Some(b) => b,
+                None => continue,
+            }
+        } else {
             continue;
         };
-        let mut body = header(head);
         let mut current: Option<(IrBlockId, Vec<IrStatement>)> = None;
         let mut blocks: Vec<(IrBlockId, IrBlock)> = Vec::new();
         for line in lines.by_ref() {
@@ -78,6 +84,32 @@ pub(crate) fn bodies(text: &str) -> Vec<IrBody> {
 }
 
 /// The header after `fn `: the path, the parameters and their types.
+/// `path: Type = {`, the head of a constant's body (a promoted constant or
+/// a constant item): no parameters, its value the return place.
+fn const_header(head: &str) -> Option<IrBody> {
+    let head = head.strip_suffix(" = {")?;
+    let mut depth = 0i64;
+    let mut prev = ' ';
+    for (i, c) in head.char_indices() {
+        match c {
+            '<' => depth += 1,
+            '>' if prev != '-' => depth -= 1,
+            ':' if depth == 0 && head[i + 1..].starts_with(' ') => {
+                let mut body = IrBody {
+                    path: head[..i].to_string(),
+                    ..IrBody::default()
+                };
+                body.locals.push(head[i + 2..].trim().to_string());
+                body.names.push(None);
+                return Some(body);
+            }
+            _ => {}
+        }
+        prev = c;
+    }
+    None
+}
+
 fn header(head: &str) -> IrBody {
     let open = head.find('(').unwrap_or(head.len());
     // `<impl at file:1:2: 3:4>::name(` holds no `(` before the parameters.

@@ -31,6 +31,7 @@ use super::ir::{
 };
 use super::parse::{split_path, split_top};
 use super::spec;
+use super::stdlib;
 use crate::lex::{Arm, Decl, Expr};
 use crate::lift::{self, Lift, Residue, Ty, Types};
 
@@ -57,6 +58,32 @@ pub(crate) struct Cx<'a> {
     pub(crate) explicit: &'a BTreeSet<String>,
     /// The size a definition's text may reach: the projection's file limit.
     pub(crate) limit: usize,
+    /// The crate's constant bodies (promoted constants and constant
+    /// items), by the path MIR prints for them.
+    pub(crate) consts: &'a BTreeMap<String, IrBody>,
+    /// The std instances being translated, outermost first: one that would
+    /// translate itself again is residue.
+    pub(crate) active: &'a [String],
+}
+
+impl<'a> Cx<'a> {
+    /// The same context, with `active` the instances being translated.
+    fn within<'b>(&'b self, active: &'b [String]) -> Cx<'b>
+    where
+        'a: 'b,
+    {
+        Cx {
+            types: self.types,
+            widths: self.widths,
+            callees: self.callees,
+            krate: self.krate.clone(),
+            taken: self.taken,
+            explicit: self.explicit,
+            limit: self.limit,
+            consts: self.consts,
+            active,
+        }
+    }
 }
 
 /// A translated function: its declarations, in dependency order, the
@@ -80,6 +107,9 @@ enum Val {
     Checked(String, String, Ty),
     /// The discriminant of the value at a place.
     Disc(IrPlace),
+    /// A mutable borrow of a whole local: a call that takes it returns the
+    /// local's new value as well (its backward function, as in Aeneas).
+    Mut(IrLocal),
 }
 
 /// A condition a branch establishes.
@@ -592,11 +622,22 @@ impl Fun<'_, '_> {
                     target: Some(n),
                 } if destination.projection.is_empty() && !self.loops.contains_key(n) => {
                     let mut vals = Vec::new();
+                    let mut texts = Vec::new();
                     for a in args {
                         vals.push(self.operand(a, &st)?);
+                        texts.push(match a {
+                            IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => {
+                                self.body.locals.get(p.local).cloned()
+                            }
+                            _ => None,
+                        });
                     }
                     let dt = self.local_ty(destination.local)?;
-                    let v = self.call(callee, vals, &dt, &mut st)?;
+                    let dest = self.body.locals[destination.local].clone();
+                    let (v, updates) = self.call(callee, vals, &texts, &dest, &dt, &mut st)?;
+                    if !updates.is_empty() {
+                        return Ok(None);
+                    }
                     st.env.insert(destination.local, Val::V(v, dt));
                     b = *n;
                 }
@@ -773,11 +814,48 @@ impl Fun<'_, '_> {
                     ));
                 }
                 let mut vals = Vec::new();
-                for a in args {
-                    vals.push(self.operand(a, &st)?);
+                let mut texts = Vec::new();
+                let mut borrowed: BTreeMap<usize, IrLocal> = BTreeMap::new();
+                for (i, a) in args.iter().enumerate() {
+                    let whole = match a {
+                        IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => {
+                            Some(p.local)
+                        }
+                        _ => None,
+                    };
+                    texts.push(whole.and_then(|l| self.body.locals.get(l).cloned()));
+                    match whole.and_then(|l| st.env.get(&l)) {
+                        Some(Val::Mut(l)) => {
+                            let l = *l;
+                            borrowed.insert(i, l);
+                            let through = IrPlace {
+                                local: l,
+                                projection: Vec::new(),
+                            };
+                            vals.push(self.read(&through, &st)?);
+                        }
+                        _ => vals.push(self.operand(a, &st)?),
+                    }
                 }
                 let dt = self.local_ty(destination.local)?;
-                let v = self.call(callee, vals, &dt, &mut st)?;
+                let dest_text = self.body.locals[destination.local].clone();
+                let (v, updates) =
+                    self.call(callee, vals.clone(), &texts, &dest_text, &dt, &mut st)?;
+                // Each mutably borrowed local takes the value the call's
+                // backward function gives it.
+                for (i, l) in borrowed {
+                    let Some(new) = updates.get(&i) else {
+                        return Err(kind(
+                            spec::MirRvalue::Ref.path(),
+                            &format!(
+                                "BorrowKind::Mut passed to {}, which has no backward function",
+                                erase(callee)
+                            ),
+                        ));
+                    };
+                    self.grow(new)?;
+                    st.env.insert(l, Val::V(new.clone(), vals[i].1.clone()));
+                }
                 if let Some(b) = fixed(&dt) {
                     self.ranged.insert(v.clone(), b);
                 }
@@ -969,9 +1047,59 @@ impl Fun<'_, '_> {
             IrConstant::Char(ch) => lift::exact_string(&ch.to_string())
                 .map(|s| (s, Ty::Char))
                 .ok_or_else(|| kind(k, "a char LexLean source cannot write")),
-            IrConstant::Path(p) => Err(kind(k, &format!("the constant item {p}"))),
-            IrConstant::Other(text) => Err(kind(k, text)),
+            IrConstant::Path(p) | IrConstant::Other(p) => match self.cx.consts.get(p) {
+                Some(body) => self.const_body(p, body),
+                None => match c {
+                    IrConstant::Path(p) => Err(kind(k, &format!("the constant item {p}"))),
+                    _ => Err(kind(k, p)),
+                },
+            },
         }
+    }
+
+    /// A constant's own body (a promoted constant or a constant item),
+    /// lowered like any body: its value inline where it is one term, else
+    /// a definition of its own.
+    fn const_body(&mut self, path: &str, body: &IrBody) -> Lift<(String, Ty)> {
+        let k = spec::MirOperand::Constant.path();
+        let segs: Vec<String> = super::parse::split_path(path)
+            .iter()
+            .map(|s| s.replace(['[', ']'], " "))
+            .collect();
+        let parts: Vec<&str> = std::iter::once("const")
+            .chain(std::iter::once(self.name.as_str()))
+            .chain(segs.iter().map(String::as_str))
+            .collect();
+        let name = crate::lex::camel(&parts);
+        if self.cx.active.contains(&name) {
+            return Err(kind(k, &format!("{path}, which refers to itself")));
+        }
+        let mut active = self.cx.active.to_vec();
+        active.push(name.clone());
+        let cx = self.cx.within(&active);
+        let lowered =
+            lower(&cx, body, &name).map_err(|r| kind(k, &format!("{path}: {}", r.detail())))?;
+        let t = ty(&body.locals[0], self.cx.types)?;
+        self.types.extend(lowered.types.iter().cloned());
+        self.calls.extend(lowered.calls.iter().cloned());
+        if let (
+            [Decl::Definition {
+                body: Expr::Flat(v),
+                ..
+            }],
+            true,
+        ) = (lowered.decls.as_slice(), lowered.aux.is_empty())
+        {
+            return Ok((v.clone(), t));
+        }
+        for d in lowered.decls {
+            self.aux.insert(d.name().to_string(), d);
+        }
+        for (n, d) in lowered.aux {
+            self.aux.entry(n).or_insert(d);
+        }
+        self.calls.insert(name.clone());
+        Ok((name, t))
     }
 
     /// The value at a place.
@@ -1005,6 +1133,22 @@ impl Fun<'_, '_> {
                     "a discriminant read as a value",
                 ))
             }
+            // Through a mutable borrow: the borrowed local's current value.
+            Val::Mut(l) => match p.projection.split_first() {
+                Some((IrProjection::Deref, rest)) => {
+                    let through = IrPlace {
+                        local: l,
+                        projection: rest.to_vec(),
+                    };
+                    return self.read(&through, st);
+                }
+                _ => {
+                    return Err(kind(
+                        spec::MirRvalue::Ref.path(),
+                        "a mutable borrow used other than by a call or a read through it",
+                    ))
+                }
+            },
         };
         while let Some(step) = steps.next() {
             match step {
@@ -1163,7 +1307,18 @@ impl Fun<'_, '_> {
                 let (v, t) = self.read(p, st)?;
                 Ok(Val::V(v, t))
             }
-            IrRvalue::Ref(k, _) => Err(kind(R::Ref.path(), k.path())),
+            IrRvalue::Ref(spec::MirBorrowKind::Mut, p) => match p.projection.as_slice() {
+                [] => Ok(Val::Mut(p.local)),
+                // A reborrow through a mutable borrow is that borrow.
+                [IrProjection::Deref] => match st.env.get(&p.local) {
+                    Some(Val::Mut(l)) => Ok(Val::Mut(*l)),
+                    _ => Err(kind(
+                        R::Ref.path(),
+                        "BorrowKind::Mut of a place behind a reference",
+                    )),
+                },
+                _ => Err(kind(R::Ref.path(), "BorrowKind::Mut of a part of a value")),
+            },
             IrRvalue::Discriminant(p) => Ok(Val::Disc(p.clone())),
             IrRvalue::Unary(op, o) => {
                 let (v, t) = self.operand(o, st)?;
@@ -1420,16 +1575,25 @@ impl Fun<'_, '_> {
         &mut self,
         callee: &str,
         args: Vec<(String, Ty)>,
+        texts: &[Option<String>],
+        dest: &str,
         dt: &Ty,
         st: &mut State,
-    ) -> Lift<String> {
+    ) -> Lift<(String, BTreeMap<usize, String>)> {
         let k = spec::MirTerminatorKind::Call.path();
         let key = format!("{}::{callee}", self.cx.krate);
+        // A trait method of one of the crate's types is its impl's method.
+        let own = callee
+            .strip_prefix('<')
+            .and_then(|r| r.split_once(" as "))
+            .and_then(|(t, rest)| Some((t, rest.rsplit_once(">::")?.1)))
+            .map(|(t, m)| format!("{}::{}::{m}", self.cx.krate, erase(t)));
         if let Some(c) = self
             .cx
             .callees
             .get(&key)
             .or_else(|| self.cx.callees.get(callee))
+            .or_else(|| own.as_ref().and_then(|o| self.cx.callees.get(o)))
         {
             if c.name == self.name {
                 return Err(kind(
@@ -1451,12 +1615,108 @@ impl Fun<'_, '_> {
             }
             self.calls.insert(c.name.clone());
             if args.is_empty() {
-                return Ok(c.name.clone());
+                return Ok((c.name.clone(), BTreeMap::new()));
             }
             let a: Vec<String> = args.into_iter().map(|(v, _)| v).collect();
-            return Ok(format!("({} {})", c.name, a.join(" ")));
+            return Ok((format!("({} {})", c.name, a.join(" ")), BTreeMap::new()));
         }
-        std_call(callee, &args, dt, self, st).ok_or_else(|| kind(k, &erase(callee)))
+        if let Some(v) = std_call(callee, &args, dt, self, st) {
+            return Ok((v, BTreeMap::new()));
+        }
+        // A std operation whose body bottoms out below values: its model.
+        if let Some(applied) = stdlib::apply(&erase(callee), &args, dt) {
+            for t in &applied.mentions {
+                self.mention(t);
+            }
+            for d in applied.aux {
+                self.calls.insert(d.name().to_string());
+                self.aux.entry(d.name().to_string()).or_insert(d);
+            }
+            return Ok((applied.term, applied.updates));
+        }
+        // Otherwise std's own MIR, at the call's types.
+        match self.std_instance(callee, &args, texts, dest, dt)? {
+            Some(term) => Ok((term, BTreeMap::new())),
+            None => Err(kind(k, &erase(callee))),
+        }
+    }
+
+    /// std's own body of `callee`, instantiated at the call's types and
+    /// lowered as one definition its callers share: `None` when the table
+    /// does not lift the callee.
+    fn std_instance(
+        &mut self,
+        callee: &str,
+        args: &[(String, Ty)],
+        texts: &[Option<String>],
+        dest: &str,
+        dt: &Ty,
+    ) -> Lift<Option<String>> {
+        let k = spec::MirTerminatorKind::Call.path();
+        let Some(stdlib::Instance { path, text, bound }) = stdlib::instance(callee, texts, dest)
+        else {
+            return Ok(None);
+        };
+        // Named by the types as MIR prints them, so instances at `u8` and
+        // `u64`, whose overflow obligations differ, are two definitions.
+        let mut tags = String::new();
+        for (_, b) in &bound {
+            ty(b, self.cx.types)?;
+            tags.push_str(&crate::lex::pascal(&[b.as_str()]));
+        }
+        let segs: Vec<&str> = std::iter::once("std").chain(path.split("::")).collect();
+        let name = format!("{}{tags}", crate::lex::camel(&segs));
+        if self.cx.active.contains(&name) {
+            return Err(kind(
+                k,
+                &format!("{path}, which std defines through itself"),
+            ));
+        }
+        let body = super::parse::bodies(&text)
+            .into_iter()
+            .next()
+            .ok_or_else(|| kind(k, &format!("{path}, whose vendored body does not read")))?;
+        if !self.aux.contains_key(&name) {
+            let mut active = self.cx.active.to_vec();
+            active.push(name.clone());
+            let cx = self.cx.within(&active);
+            let lowered = lower(&cx, &body, &name)
+                .map_err(|r| kind(k, &format!("{path}: std's MIR stops at {}", r.detail())))?;
+            for d in lowered.decls {
+                self.aux.insert(d.name().to_string(), d);
+            }
+            for (n, d) in lowered.aux {
+                self.aux.entry(n).or_insert(d);
+            }
+            self.calls.extend(lowered.calls);
+            self.types.extend(lowered.types);
+        }
+        let Some(Decl::Definition {
+            parameters, result, ..
+        }) = self.aux.get(&name)
+        else {
+            return Err(kind(
+                k,
+                &format!("{path}, whose translation has no definition"),
+            ));
+        };
+        let at = |t: &Ty| t.render();
+        if parameters.len() != args.len()
+            || parameters
+                .iter()
+                .zip(args)
+                .any(|((_, p), (_, a))| *p != at(a))
+            || *result != at(dt)
+        {
+            return Err(kind(k, &format!("{path}, at other types than the call's")));
+        }
+        self.calls.insert(name.clone());
+        let a: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
+        Ok(Some(if a.is_empty() {
+            name
+        } else {
+            format!("({name} {})", a.join(" "))
+        }))
     }
 }
 
@@ -1857,7 +2117,14 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         ("Result", [a, e]) => Ty::Outcome(Box::new(a.clone()), Box::new(e.clone())),
         ("Vec", [a]) => Ty::List(Box::new(a.clone())),
         ("Box", [a]) => a.clone(),
-        (n, []) if !std => {
+        // A std type whose representation bottoms out in raw pointers: the
+        // table's model of it.
+        _ if std => {
+            let head: Vec<&str> = segs[..segs.len() - 1].to_vec();
+            let path = format!("{}::{name}", head.join("::"));
+            return stdlib::model_type(&path, &args).ok_or_else(|| Residue::Type(t.to_string()));
+        }
+        (n, []) => {
             let r = types.resolve(n);
             if types.enums.contains_key(&r)
                 || types.structs.contains_key(&r)

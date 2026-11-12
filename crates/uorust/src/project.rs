@@ -3686,6 +3686,7 @@ fn mir_lift(
         .map(|(r, name, _)| (name.clone(), ctx.path(*r)))
         .collect();
     // Translate each.
+    let no_consts = BTreeMap::new();
     let mut done: BTreeMap<String, Translation> = BTreeMap::new();
     for (r, name, body) in todo {
         let path = ctx.path(r);
@@ -3697,6 +3698,8 @@ fn mir_lift(
             taken: &names,
             explicit: &explicit,
             limit: MAX_FILE_BYTES,
+            consts: dumps.consts.get(&ctx.crate_ident(r)).unwrap_or(&no_consts),
+            active: &[],
         };
         match lower::lower(&cx, body, &name) {
             Ok(lowered) => {
@@ -3731,7 +3734,38 @@ fn mir_lift(
     let mut admitted: BTreeMap<String, bool> = BTreeMap::new();
     let mut causes: BTreeMap<String, String> = BTreeMap::new();
     let mut on_trial: BTreeSet<String> = BTreeSet::new();
+    // A translation that calls one the path could not translate, directly
+    // or through others, is never admitted, whatever its verdict: that
+    // callee is its cause, and it is not put on trial.
+    let mut blocked: BTreeMap<String, String> = BTreeMap::new();
+    loop {
+        let mut changed = false;
+        for t in done.values() {
+            if blocked.contains_key(&t.name) {
+                continue;
+            }
+            let stopped = t.lowered.calls.iter().find(|c| {
+                translations.contains_key(*c)
+                    && (!done.contains_key(*c) || blocked.contains_key(*c))
+            });
+            if let Some(c) = stopped {
+                blocked.insert(t.name.clone(), translations[c].clone());
+                changed = true;
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
     for t in done.values() {
+        if let Some(callee) = blocked.get(&t.name) {
+            causes.insert(
+                t.name.clone(),
+                format!("TerminatorKind::Call: {callee}, whose translation is not admitted"),
+            );
+            admitted.insert(t.name.clone(), false);
+            continue;
+        }
         let verdict = options
             .verdicts
             .rows

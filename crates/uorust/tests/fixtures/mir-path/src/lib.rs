@@ -33,3 +33,60 @@ pub fn count(xs: &[u8], needle: u8) -> usize {
 pub fn bump(n: &mut u32) {
     *n = n.wrapping_add(1);
 }
+
+/// The largest value present, absent ones counting as zero: std's own
+/// `Option::unwrap_or`, lifted from its MIR at `u32`, inside a loop.
+pub fn largest(xs: &[Option<u32>]) -> u32 {
+    let mut best = 0u32;
+    let mut i = 0usize;
+    while i < xs.len() {
+        let x = xs[i].unwrap_or(0);
+        if x > best {
+            best = x;
+        }
+        i += 1;
+    }
+    let floor: &'static u32 = &0;
+    if best < *floor {
+        return *floor;
+    }
+    best
+}
+
+/// The first line with nothing but whitespace: `str::trim`, whose std body
+/// walks bytes with `get_unchecked`, by its model.
+pub fn first_blank(lines: &[&str]) -> Option<usize> {
+    let mut i = 0usize;
+    while i < lines.len() {
+        if lines[i].trim().is_empty() {
+            return Some(i);
+        }
+        i += 1;
+    }
+    None
+}
+
+/// How many distinct names there are: a `BTreeSet` changed through mutable
+/// borrows, each `insert` a backward function that returns the new set.
+pub fn distinct(a: &str, b: &str) -> usize {
+    let mut seen = std::collections::BTreeSet::new();
+    seen.insert(a.to_string());
+    seen.insert(b.to_string());
+    seen.len()
+}
+
+/// The first item at or above a floor, seven where none is given: std's own
+/// `Option::unwrap_or`, lifted from its MIR at `u32`, and a default the
+/// compiler promotes to a constant of its own.
+pub fn above(xs: &[u32], floor: Option<u32>) -> Option<usize> {
+    let seven: &'static u32 = &7;
+    let floor = floor.unwrap_or(*seven);
+    let mut i = 0usize;
+    while i < xs.len() {
+        if xs[i] >= floor {
+            return Some(i);
+        }
+        i += 1;
+    }
+    None
+}

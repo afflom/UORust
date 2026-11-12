@@ -5,3 +5,10 @@
 # projection admits a translation only on a proved row of its digest.
 
 spec = "uorust/verdicts/1"
+
+[[verdict]]
+kappa = "50d0ea7988e104c9ca62e34f5cd09d4c7312e16050bfaf7ac3de4ad76a0c46d9"
+function = "uorust::mir::parse::assert_kind"
+digest = "d6e48758b42ce344af1e2aafd5cfa46e42d818901d0c32813cd5ced7d4505269"
+status = "proved"
+axioms = { assertKind = ["Classical.choice", "Quot.sound", "propext"] }

@@ -1268,6 +1268,15 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
         "name: walkCappedSum,",
         "name: walkCount,",
         "termination: {",
+        // std's own `Option::unwrap_or`, lifted from its vendored MIR at
+        // `u32`, and a promoted constant lowered from its own body.
+        "name: stdOptionOptionUnwrapOrU32,",
+        "name: walkAbove,",
+        // `BTreeSet::insert` by its model, a backward function of the
+        // mutable borrow; `str::trim` by its model over the prelude.
+        "name: stdInsertString,",
+        "(stdInsertString (stdInsertString (nil String) a) b)",
+        "(Prelude::textTrim ",
     ] {
         assert!(behavior.contains(decl), "the trial projection lacks {decl}");
     }
@@ -1289,7 +1298,17 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
     // is residue naming the verifier's diagnostic.
     let committed = verdicts(&mir_fixture().join("lift-verdicts.toml"));
     let decided = walk(committed.clone(), Trial::Off);
-    assert!(lifted_functions(&decided).contains(&"walk::capped_sum".to_string()));
+    for f in [
+        "walk::capped_sum",
+        "walk::distinct",
+        "walk::first_blank",
+        "walk::above",
+    ] {
+        assert!(
+            lifted_functions(&decided).contains(&f.to_string()),
+            "{f} does not lift"
+        );
+    }
     assert!(text(&decided, "src/Behavior.lex.tex").contains("name: walkCappedSumLoop1,"));
     assert!(!decided.contains_key(uorust::mir::CANDIDATES));
     let count = residue_detail(&decided, "walk::count").expect("count is residue");
