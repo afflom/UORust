@@ -110,6 +110,33 @@ enum Val {
     /// A mutable borrow of a whole local: a call that takes it returns the
     /// local's new value as well (its backward function, as in Aeneas).
     Mut(IrLocal),
+    /// An `Option` of an item type that is `Some(value)` exactly where
+    /// `guard` holds: a switch on its discriminant is an `if` on the guard,
+    /// so a loop that runs while an iterator yields exits on an order of
+    /// naturals, as a `while` loop does.
+    Guarded {
+        guard: String,
+        value: String,
+        item: Ty,
+    },
+}
+
+/// What a call gives: its value, the new value of each mutably borrowed
+/// argument (by position), and the guard of a guarded `Option`.
+struct Called {
+    term: String,
+    updates: BTreeMap<usize, String>,
+    guard: Option<String>,
+}
+
+impl Called {
+    fn value(term: String) -> Self {
+        Self {
+            term,
+            updates: BTreeMap::new(),
+            guard: None,
+        }
+    }
 }
 
 /// A condition a branch establishes.
@@ -614,42 +641,38 @@ impl Fun<'_, '_> {
                     }
                     b = *n;
                 }
-                // A pure call on the way, `xs.len()`: its value.
+                // A call on the way, `xs.len()` or `it.next()`: its value,
+                // and the new values of the locals it borrows mutably.
                 IrTerminator::Call {
                     destination,
                     callee,
                     args,
                     target: Some(n),
                 } if destination.projection.is_empty() && !self.loops.contains_key(n) => {
-                    let mut vals = Vec::new();
-                    let mut texts = Vec::new();
-                    for a in args {
-                        vals.push(self.operand(a, &st)?);
-                        texts.push(match a {
-                            IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => {
-                                self.body.locals.get(p.local).cloned()
-                            }
-                            _ => None,
-                        });
-                    }
-                    let dt = self.local_ty(destination.local)?;
-                    let dest = self.body.locals[destination.local].clone();
-                    let (v, updates) = self.call(callee, vals, &texts, &dest, &dt, &mut st)?;
-                    if !updates.is_empty() {
-                        return Ok(None);
-                    }
-                    st.env.insert(destination.local, Val::V(v, dt));
+                    self.call_into(destination, callee, args, &mut st)?;
                     b = *n;
                 }
                 IrTerminator::Switch(op, arms, otherwise) => {
-                    let (c, t) = self.operand(op, &st)?;
-                    if t != Ty::Bool {
-                        return Ok(None);
-                    }
-                    let (on_false, on_true) = match arms.as_slice() {
-                        [(0, f)] => (*f, *otherwise),
-                        [(1, t)] => (*otherwise, *t),
-                        _ => return Ok(None),
+                    let target = |v: i128| {
+                        arms.iter()
+                            .find(|(a, _)| *a == v)
+                            .map_or(*otherwise, |(_, b)| *b)
+                    };
+                    // A switch on a guarded option's discriminant exits on
+                    // its guard: `None` is 0 and `Some` is 1.
+                    let (c, on_true, on_false) = match self.guarded_disc(op, &st) {
+                        Some((guard, _, _)) => (guard, target(1), target(0)),
+                        None => {
+                            let (c, t) = self.operand(op, &st)?;
+                            if t != Ty::Bool {
+                                return Ok(None);
+                            }
+                            match arms.as_slice() {
+                                [(0, f)] => (c, *otherwise, *f),
+                                [(1, t)] => (c, *t, *otherwise),
+                                _ => return Ok(None),
+                            }
+                        }
                     };
                     return Ok(
                         match (region.contains(&on_true), region.contains(&on_false)) {
@@ -807,62 +830,112 @@ impl Fun<'_, '_> {
                     // path to it must be unreachable.
                     return self.unreachable(&st, callee);
                 };
-                if !destination.projection.is_empty() {
-                    return Err(kind(
-                        spec::MirTerminatorKind::Call.path(),
-                        "a result written into a projection",
-                    ));
-                }
-                let mut vals = Vec::new();
-                let mut texts = Vec::new();
-                let mut borrowed: BTreeMap<usize, IrLocal> = BTreeMap::new();
-                for (i, a) in args.iter().enumerate() {
-                    let whole = match a {
-                        IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => {
-                            Some(p.local)
-                        }
-                        _ => None,
-                    };
-                    texts.push(whole.and_then(|l| self.body.locals.get(l).cloned()));
-                    match whole.and_then(|l| st.env.get(&l)) {
-                        Some(Val::Mut(l)) => {
-                            let l = *l;
-                            borrowed.insert(i, l);
-                            let through = IrPlace {
-                                local: l,
-                                projection: Vec::new(),
-                            };
-                            vals.push(self.read(&through, &st)?);
-                        }
-                        _ => vals.push(self.operand(a, &st)?),
-                    }
-                }
-                let dt = self.local_ty(destination.local)?;
-                let dest_text = self.body.locals[destination.local].clone();
-                let (v, updates) =
-                    self.call(callee, vals.clone(), &texts, &dest_text, &dt, &mut st)?;
-                // Each mutably borrowed local takes the value the call's
-                // backward function gives it.
-                for (i, l) in borrowed {
-                    let Some(new) = updates.get(&i) else {
-                        return Err(kind(
-                            spec::MirRvalue::Ref.path(),
-                            &format!(
-                                "BorrowKind::Mut passed to {}, which has no backward function",
-                                erase(callee)
-                            ),
-                        ));
-                    };
-                    self.grow(new)?;
-                    st.env.insert(l, Val::V(new.clone(), vals[i].1.clone()));
-                }
-                if let Some(b) = fixed(&dt) {
-                    self.ranged.insert(v.clone(), b);
-                }
-                st.env.insert(destination.local, Val::V(v, dt));
+                self.call_into(destination, callee, args, &mut st)?;
                 self.goto(*target, st)
             }
             IrTerminator::Other(k, _) => Err(kind(k.path(), "")),
+        }
+    }
+
+    /// A call that returns: its value into `destination`, and each mutably
+    /// borrowed local's new value from the callee's backward function.
+    fn call_into(
+        &mut self,
+        destination: &IrPlace,
+        callee: &str,
+        args: &[IrOperand],
+        st: &mut State,
+    ) -> Lift<()> {
+        if !destination.projection.is_empty() {
+            return Err(kind(
+                spec::MirTerminatorKind::Call.path(),
+                "a result written into a projection",
+            ));
+        }
+        let mut vals = Vec::new();
+        let mut texts = Vec::new();
+        let mut borrowed: BTreeMap<usize, IrLocal> = BTreeMap::new();
+        for (i, a) in args.iter().enumerate() {
+            let whole = match a {
+                IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => Some(p.local),
+                _ => None,
+            };
+            texts.push(whole.and_then(|l| self.body.locals.get(l).cloned()));
+            match whole.and_then(|l| st.env.get(&l)) {
+                Some(Val::Mut(l)) => {
+                    let l = *l;
+                    borrowed.insert(i, l);
+                    let through = IrPlace {
+                        local: l,
+                        projection: Vec::new(),
+                    };
+                    vals.push(self.read(&through, st)?);
+                }
+                _ => vals.push(self.operand(a, st)?),
+            }
+        }
+        let dt = self.local_ty(destination.local)?;
+        let dest_text = self.body.locals[destination.local].clone();
+        let called = self.call(callee, vals.clone(), &texts, &dest_text, &dt, st)?;
+        // Each mutably borrowed local takes the value the call's backward
+        // function gives it.
+        for (i, l) in borrowed {
+            let Some(new) = called.updates.get(&i) else {
+                return Err(kind(
+                    spec::MirRvalue::Ref.path(),
+                    &format!(
+                        "BorrowKind::Mut passed to {}, which has no backward function",
+                        erase(callee)
+                    ),
+                ));
+            };
+            self.grow(new)?;
+            st.env.insert(l, Val::V(new.clone(), vals[i].1.clone()));
+        }
+        let v = called.term;
+        let value = match (called.guard, &dt) {
+            (Some(guard), Ty::Option(item)) => Val::Guarded {
+                guard,
+                value: v,
+                item: (**item).clone(),
+            },
+            (Some(_), _) => {
+                return Err(kind(
+                    spec::MirTerminatorKind::Call.path(),
+                    &format!(
+                        "{}, a guarded model whose result is no Option",
+                        erase(callee)
+                    ),
+                ))
+            }
+            (None, _) => {
+                if let Some(b) = fixed(&dt) {
+                    self.ranged.insert(v.clone(), b);
+                }
+                Val::V(v, dt)
+            }
+        };
+        st.env.insert(destination.local, value);
+        Ok(())
+    }
+
+    /// The guard, held value and item type of the guarded option whose
+    /// discriminant `op` reads.
+    fn guarded_disc(&self, op: &IrOperand, st: &State) -> Option<(String, String, Ty)> {
+        let (IrOperand::Copy(p) | IrOperand::Move(p)) = op else {
+            return None;
+        };
+        let Some(Val::Disc(place)) = st.env.get(&p.local) else {
+            return None;
+        };
+        if !(p.projection.is_empty() && place.projection.is_empty()) {
+            return None;
+        }
+        match st.env.get(&place.local) {
+            Some(Val::Guarded { guard, value, item }) => {
+                Some((guard.clone(), value.clone(), item.clone()))
+            }
+            _ => None,
         }
     }
 
@@ -885,6 +958,9 @@ impl Fun<'_, '_> {
         otherwise: IrBlockId,
         st: State,
     ) -> Lift<Expr> {
+        if let Some((guard, value, _)) = self.guarded_disc(op, &st) {
+            return self.guarded_switch(op, &guard, &value, arms, otherwise, st);
+        }
         let disc = match op {
             IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => {
                 match st.env.get(&p.local) {
@@ -951,6 +1027,43 @@ impl Fun<'_, '_> {
         }
     }
 
+    /// A switch on a guarded option's discriminant: an `if` on the guard,
+    /// whose `Some` arm reads the held value as the variant's field.
+    fn guarded_switch(
+        &mut self,
+        op: &IrOperand,
+        guard: &str,
+        value: &str,
+        arms: &[(i128, IrBlockId)],
+        otherwise: IrBlockId,
+        st: State,
+    ) -> Lift<Expr> {
+        let target = |v: i128| {
+            arms.iter()
+                .find(|(a, _)| *a == v)
+                .map_or(otherwise, |(_, b)| *b)
+        };
+        let (IrOperand::Copy(p) | IrOperand::Move(p)) = op else {
+            return Err(kind(spec::MirRvalue::Discriminant.path(), "of a constant"));
+        };
+        let Some(Val::Disc(place)) = st.env.get(&p.local).cloned() else {
+            return Err(kind(spec::MirRvalue::Discriminant.path(), "of no place"));
+        };
+        let mut yes = st.clone();
+        yes.path.push(MirStep::If(guard.to_string(), true));
+        yes.bound
+            .insert((place_key(&place), "Some".into()), vec![value.to_string()]);
+        let mut no = st;
+        no.path.push(MirStep::If(guard.to_string(), false));
+        let then = self.goto(target(1), yes)?;
+        let otherwise = self.goto(target(0), no)?;
+        Ok(Expr::If {
+            condition: Box::new(Expr::Flat(guard.to_string())),
+            then: Box::new(then),
+            otherwise: Box::new(otherwise),
+        })
+    }
+
     /// A switch on a discriminant: a `match` with one arm per constructor,
     /// in declaration order, which is the discriminant's value.
     fn match_on(
@@ -961,6 +1074,24 @@ impl Fun<'_, '_> {
         st: State,
     ) -> Lift<Expr> {
         let (scrutinee, t) = self.read(place, &st)?;
+        // An enum with one inhabited variant is that variant's field: the
+        // switch takes that arm, whose field is the value itself.
+        let printed = (place.projection.is_empty())
+            .then(|| self.body.locals.get(place.local))
+            .flatten()
+            .and_then(|text| inhabited_variant(text));
+        if let Some(only) = printed {
+            let target = arms
+                .iter()
+                .find(|(a, _)| *a == only.discriminant)
+                .map_or(otherwise, |(_, b)| *b);
+            let mut arm = st;
+            arm.bound.insert(
+                (place_key(place), only.variant.to_string()),
+                vec![scrutinee],
+            );
+            return self.goto(target, arm);
+        }
         let ctors = constructors(&t, self.cx.types, self.cx.explicit)?;
         let key = place_key(place);
         let mut out = Vec::new();
@@ -1117,6 +1248,48 @@ impl Fun<'_, '_> {
         };
         let (mut v, mut t) = match base {
             Val::V(v, t) => (v, t),
+            // Read whole, a guarded option is the `if` it stands for.
+            Val::Guarded { guard, value, item } if p.projection.is_empty() => {
+                let i = item.render();
+                return Ok((
+                    format!(
+                        "(if {guard} then (ctor Option.some [{i}] {value}) else (ctor Option.none [{i}]))"
+                    ),
+                    Ty::Option(Box::new(item)),
+                ));
+            }
+            Val::Guarded { item, .. } => match p.projection.first() {
+                Some(IrProjection::Downcast(variant)) => {
+                    let key = (place_key(&prefix), variant.clone());
+                    let Some(names) = st.bound.get(&key).cloned() else {
+                        return Err(kind(
+                            spec::MirProjectionElem::Downcast.path(),
+                            "a variant's field read outside a match on it",
+                        ));
+                    };
+                    match p.projection.get(1..) {
+                        Some([IrProjection::Field(0, _), rest @ ..]) if names.len() == 1 => {
+                            let _ = rest;
+                            steps.next();
+                            steps.next();
+                            prefix.projection.extend(p.projection[..2].iter().cloned());
+                            (names[0].clone(), item)
+                        }
+                        _ => {
+                            return Err(kind(
+                                spec::MirProjectionElem::Downcast.path(),
+                                "a variant read whole",
+                            ))
+                        }
+                    }
+                }
+                _ => {
+                    return Err(kind(
+                        spec::MirProjectionElem::Field.path(),
+                        "a field of an Option",
+                    ))
+                }
+            },
             Val::Checked(value, overflow, t) => match p.projection.as_slice() {
                 [IrProjection::Field(0, _)] => return Ok((value, t)),
                 [IrProjection::Field(1, _)] => return Ok((overflow, Ty::Bool)),
@@ -1167,7 +1340,15 @@ impl Fun<'_, '_> {
                         v => v.to_string(),
                     };
                     let key = (place_key(&prefix), variant.clone());
-                    let Some(names) = st.bound.get(&key).cloned() else {
+                    // The one inhabited variant of an enum is its value,
+                    // matched or not.
+                    let only = (prefix.projection.is_empty())
+                        .then(|| self.body.locals.get(prefix.local))
+                        .flatten()
+                        .and_then(|text| inhabited_variant(text))
+                        .filter(|o| o.variant == variant && o.field.is_some())
+                        .map(|_| vec![v.clone()]);
+                    let Some(names) = st.bound.get(&key).cloned().or(only) else {
                         return Err(kind(
                             spec::MirProjectionElem::Downcast.path(),
                             "a variant's field read outside a match on it",
@@ -1579,7 +1760,7 @@ impl Fun<'_, '_> {
         dest: &str,
         dt: &Ty,
         st: &mut State,
-    ) -> Lift<(String, BTreeMap<usize, String>)> {
+    ) -> Lift<Called> {
         let k = spec::MirTerminatorKind::Call.path();
         let key = format!("{}::{callee}", self.cx.krate);
         // A trait method of one of the crate's types is its impl's method.
@@ -1615,16 +1796,18 @@ impl Fun<'_, '_> {
             }
             self.calls.insert(c.name.clone());
             if args.is_empty() {
-                return Ok((c.name.clone(), BTreeMap::new()));
+                return Ok(Called::value(c.name.clone()));
             }
             let a: Vec<String> = args.into_iter().map(|(v, _)| v).collect();
-            return Ok((format!("({} {})", c.name, a.join(" ")), BTreeMap::new()));
+            return Ok(Called::value(format!("({} {})", c.name, a.join(" "))));
         }
         if let Some(v) = std_call(callee, &args, dt, self, st) {
-            return Ok((v, BTreeMap::new()));
+            return Ok(Called::value(v));
         }
         // A std operation whose body bottoms out below values: its model.
-        if let Some(applied) = stdlib::apply(&erase(callee), &args, dt) {
+        let types = self.cx.types;
+        let defaults = |t: &Ty| lift::default_of(t, types);
+        if let Some(applied) = stdlib::apply(&erase(callee), &args, dt, &defaults) {
             for t in &applied.mentions {
                 self.mention(t);
             }
@@ -1632,11 +1815,15 @@ impl Fun<'_, '_> {
                 self.calls.insert(d.name().to_string());
                 self.aux.entry(d.name().to_string()).or_insert(d);
             }
-            return Ok((applied.term, applied.updates));
+            return Ok(Called {
+                term: applied.term,
+                updates: applied.updates,
+                guard: applied.guard,
+            });
         }
         // Otherwise std's own MIR, at the call's types.
         match self.std_instance(callee, &args, texts, dest, dt)? {
-            Some(term) => Ok((term, BTreeMap::new())),
+            Some(term) => Ok(Called::value(term)),
             None => Err(kind(k, &erase(callee))),
         }
     }
@@ -1755,8 +1942,33 @@ fn std_call(
                 ok.render(),
                 err.render()
             )),
+            // `Option<Infallible>`, the residual of `?` on an option, holds
+            // only `None`.
+            Ty::Option(inner) if *te == Ty::Unit => {
+                Some(format!("(ctor Option.none [{}])", inner.render()))
+            }
             _ => None,
         },
+        // `?` on an `Option`: `Continue` with the value, or `Break` with the
+        // residual `None`, which is the unit.
+        ("branch", [(v, Ty::Option(inner))]) if path.contains("Try>") => match dt {
+            Ty::Outcome(ok, err) if same(ok, inner) && **err == Ty::Unit => {
+                let held = f.fresh(Some("held"), usize::MAX);
+                let args = format!("[{}, Unit]", ok.render());
+                Some(format!(
+                    "(match {v} | Option.none => (ctor Result.error {args} ()) | Option.some {held} => (ctor Result.ok {args} {held}))"
+                ))
+            }
+            _ => None,
+        },
+        // A lossless conversion between naturals: `u32::from(b)` of a `u8`.
+        ("from" | "into", [(v, t @ Ty::Nat(_))])
+            if matches!(dt, Ty::Nat(_)) && f.max_bits(t) <= f.min_bits(dt) =>
+        {
+            Some(v.clone())
+        }
+        // An iterator is its own `IntoIterator`.
+        ("into_iter", [(v, t)]) if same(t, dt) && path.contains("IntoIterator>") => Some(v.clone()),
         ("new", []) if path == "std::string::String::new" => Some("\"\"".into()),
         ("new", []) if path.starts_with("std::vec::Vec") => match dt {
             Ty::List(e) => Some(format!("(nil {})", e.render())),
@@ -2025,6 +2237,57 @@ fn rvalue_reads(rv: &IrRvalue) -> Vec<IrLocal> {
     }
 }
 
+/// Whether a type as MIR prints it has no values.
+fn uninhabited(text: &str) -> bool {
+    matches!(
+        text.trim(),
+        "!" | "std::convert::Infallible" | "core::convert::Infallible"
+    )
+}
+
+/// The one inhabited variant of an enum of std whose other variants hold an
+/// uninhabited field.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Inhabited {
+    /// Its discriminant and name.
+    discriminant: i128,
+    variant: &'static str,
+    /// The type of its field, if it has one.
+    field: Option<String>,
+}
+
+/// The inhabited variant of `text`, when exactly one of its variants is.
+fn inhabited_variant(text: &str) -> Option<Inhabited> {
+    let segs = split_path(text.trim());
+    if !matches!(segs.first(), Some(&("std" | "core"))) {
+        return None;
+    }
+    let last = segs.last()?;
+    let at = last.find('<')?;
+    let name = &last[..at];
+    let args: Vec<&str> = split_top(last[at + 1..].strip_suffix('>')?, ',')
+        .into_iter()
+        .filter(|a| !a.is_empty() && !a.starts_with('\''))
+        .collect();
+    let one = |discriminant, variant, field: &str| {
+        Some(Inhabited {
+            discriminant,
+            variant,
+            field: Some(field.to_string()),
+        })
+    };
+    match (name, args.as_slice()) {
+        ("Option", [x]) if uninhabited(x) => Some(Inhabited {
+            discriminant: 0,
+            variant: "None",
+            field: None,
+        }),
+        ("Result", [x, e]) if uninhabited(x) && !uninhabited(e) => one(1, "Err", e),
+        ("Result", [v, x]) if uninhabited(x) && !uninhabited(v) => one(0, "Ok", v),
+        _ => None,
+    }
+}
+
 /// A type as MIR prints it, as the lift names it.
 pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     let t = text.trim();
@@ -2085,10 +2348,18 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         .into_iter()
         .filter(|a| !a.is_empty() && !a.starts_with('\''))
         .collect();
-    // `?`'s types: a `Result` whose value is `Infallible` is its error, and
-    // `ControlFlow<B, C>` is `Result<C, B>`, `Continue` first as `Ok` is.
+    // A variant whose field is uninhabited never holds a value, so an enum
+    // of std is the type of its one inhabited variant: `Result<T, E>` is `T`
+    // where `E` is uninhabited and `E` where `T` is, and `Option<T>` holds
+    // only `None` where `T` is, the unit. `ControlFlow<B, C>` is
+    // `Result<C, B>`, `Continue` first as `Ok` is.
+    if let Some(erased) = inhabited_variant(t) {
+        return match erased.field {
+            Some(f) => ty(&f, types),
+            None => Ok(Ty::Unit),
+        };
+    }
     match (name, raw.as_slice()) {
-        ("Result", ["std::convert::Infallible", e]) => return ty(e, types),
         ("ControlFlow", [b, c]) if matches!(segs.first(), Some(&("std" | "core"))) => {
             return Ok(Ty::Outcome(
                 Box::new(ty(c, types)?),

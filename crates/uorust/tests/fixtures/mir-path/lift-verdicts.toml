@@ -14,6 +14,13 @@ status = "proved"
 axioms = { holds_walkCappedSum_0 = ["propext"], walkCappedSum = ["Quot.sound", "propext"] }
 
 [[verdict]]
+kappa = "0e3c29d2bb73885f4e902b86f20f74ee646f7d1d9f65ebd53ce13af09dc8cb73"
+function = "walk::second_known"
+digest = "bacaecefe0ec425b051fa670c4697015974b28bae847ee5bd4282daf7a0269f1"
+status = "proved"
+axioms = { secondKnown = ["Quot.sound", "propext"] }
+
+[[verdict]]
 kappa = "594db3015dad06f3b27fdd5213540c6a8f8d55ce86d6fd985e76139f7ef4b6ef"
 function = "walk::first_blank"
 digest = "02f13efe3cad7005c524259abbea06e417287e308df28ab8eaf03b20a7684bed"
@@ -33,6 +40,20 @@ function = "walk::count"
 digest = "7377cd8167315984b15df8f4781ac84a243f909393a4ccbd4afbbf59fd8d3f8d"
 status = "refused"
 cause = "LLV7002: Lean rejected `Walk.Behavior` (error): omega could not prove the goal:"
+
+[[verdict]]
+kappa = "bf5318cb32224baecdb3585eb7804388dee5e3f754b73a02e8f01808b72e52d5"
+function = "walk::first_rise"
+digest = "e1f3dcd5140f8e9bb01d647ba88ebf32b12e91347d1c2948db753e2e86368472"
+status = "proved"
+axioms = { walkFirstRise = ["Quot.sound", "propext"] }
+
+[[verdict]]
+kappa = "d6d4c3ec732cd359ab313d2963c46547e12bb699424b2bc2af204fbd3f942c78"
+function = "walk::sum_until"
+digest = "157c67bdfa3d0a7bd3b830e32d9f9d5bf5d224e9c3895a17930d5db5a46ac129"
+status = "proved"
+axioms = { walkSumUntil = ["Quot.sound", "propext"] }
 
 [[verdict]]
 kappa = "fcac649f47a26500433f3a829d444108d50bb4e7069ac410688cd157c78b644e"

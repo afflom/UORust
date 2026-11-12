@@ -37,6 +37,11 @@ enum StdPattern {
     Option(Box<StdPattern>),
     Set(Box<StdPattern>),
     Map(Box<StdPattern>, Box<StdPattern>),
+    /// A tuple of these, `tuple<P, Q, ..>`; `cursor<P>` is a list of `P`
+    /// and the two positions an iterator over it has reached from its
+    /// front and its back, `tuple<list<P>, usize, usize>`: a slice
+    /// iterator's `ptr` and `end` as indices into the slice.
+    Tuple(Vec<StdPattern>),
 }
 
 /// Bindings of a pattern's variables.
@@ -50,6 +55,9 @@ pub(crate) struct StdModel {
     result: StdPattern,
     term: String,
     update: BTreeMap<usize, String>,
+    /// For an operation whose result is an `Option`: the condition under
+    /// which it is `Some`, and then `term` is the value it holds.
+    guard: Option<String>,
     /// The Rust expression std evaluates on a vector, `{0}`.. its arguments.
     #[cfg(test)]
     pub(crate) rust: String,
@@ -109,6 +117,12 @@ fn parse_pat(text: &str) -> Option<StdPattern> {
         ("option", _) => StdPattern::Option(one(&args)?),
         ("set", _) => StdPattern::Set(one(&args)?),
         ("map", [k, v]) => StdPattern::Map(Box::new(k.clone()), Box::new(v.clone())),
+        ("tuple", [_, _, ..]) => StdPattern::Tuple(args),
+        ("cursor", [p]) => StdPattern::Tuple(vec![
+            StdPattern::List(Box::new(p.clone())),
+            StdPattern::Usize,
+            StdPattern::Usize,
+        ]),
         _ => return None,
     })
 }
@@ -176,6 +190,7 @@ fn parse_table(text: &str, bodies: &str) -> Option<StdTable> {
             result: pat(&field(row, "result")?)?,
             term: field(row, "term")?,
             update,
+            guard: field(row, "guard"),
             #[cfg(test)]
             rust: field(row, "rust")?,
             #[cfg(test)]
@@ -251,14 +266,25 @@ pub(crate) fn key(path: &str) -> String {
         _ => &segs[..],
     };
     rest.iter()
-        .map(
-            |s| match s.strip_prefix("<impl ").and_then(|r| r.strip_suffix('>')) {
+        .map(|s| {
+            if let Some(t) = s.strip_prefix("<impl ").and_then(|r| r.strip_suffix('>')) {
                 // The impl on slices of any item type.
-                Some(t) if t.starts_with('[') => "[]",
-                Some(t) => t.split('<').next().unwrap_or(t),
-                None => s,
-            },
-        )
+                return if t.starts_with('[') {
+                    "[]".to_string()
+                } else {
+                    t.split('<').next().unwrap_or(t).to_string()
+                };
+            }
+            // `<&[X] as Trait>`: the trait's impl on (references to)
+            // slices of any item type.
+            match s.strip_prefix('<').and_then(|r| r.split_once(" as ")) {
+                Some((on, tr)) if on.trim_start_matches('&').starts_with('[') => {
+                    let refs = on.len() - on.trim_start_matches('&').len();
+                    format!("<{}[] as {tr}", "&".repeat(refs))
+                }
+                _ => (*s).to_string(),
+            }
+        })
         .collect::<Vec<_>>()
         .join("::")
 }
@@ -283,6 +309,9 @@ fn bind(p: &StdPattern, t: &Ty, binds: &mut PatternBinds) -> bool {
         | (StdPattern::Option(p), Ty::Option(t))
         | (StdPattern::Set(p), Ty::Set(t, true)) => bind(p, t, binds),
         (StdPattern::Map(pk, pv), Ty::Map(k, v, true)) => bind(pk, k, binds) && bind(pv, v, binds),
+        (StdPattern::Tuple(ps), Ty::Tuple(ts)) if ps.len() == ts.len() => {
+            ps.iter().zip(ts).all(|(p, t)| bind(p, t, binds))
+        }
         _ => false,
     }
 }
@@ -303,6 +332,9 @@ fn build(p: &StdPattern, binds: &PatternBinds) -> Option<Ty> {
         StdPattern::Map(k, v) => {
             Ty::Map(Box::new(build(k, binds)?), Box::new(build(v, binds)?), true)
         }
+        StdPattern::Tuple(ps) => {
+            Ty::Tuple(ps.iter().map(|p| build(p, binds)).collect::<Option<_>>()?)
+        }
     })
 }
 
@@ -314,6 +346,11 @@ fn vars(p: &StdPattern, out: &mut Vec<String>) {
         StdPattern::Map(k, v) => {
             vars(k, out);
             vars(v, out);
+        }
+        StdPattern::Tuple(ps) => {
+            for p in ps {
+                vars(p, out);
+            }
         }
         _ => {}
     }
@@ -340,11 +377,23 @@ pub(crate) struct Applied {
     pub(crate) updates: BTreeMap<usize, String>,
     pub(crate) aux: Vec<Decl>,
     pub(crate) mentions: Vec<Ty>,
+    /// Where the result is an `Option` the model guards: the condition
+    /// under which it is `Some`, `term` then being the value it holds.
+    pub(crate) guard: Option<String>,
 }
+
+/// A value of each type, where the lift has one: what a model writes for an
+/// item it reads where its guard has excluded the case.
+pub(crate) type Defaults<'a> = &'a dyn Fn(&Ty) -> Option<String>;
 
 /// The model of the std operation `callee` (generic arguments erased) at
 /// these argument and result types.
-pub(crate) fn apply(callee: &str, args: &[(String, Ty)], dt: &Ty) -> Option<Applied> {
+pub(crate) fn apply(
+    callee: &str,
+    args: &[(String, Ty)],
+    dt: &Ty,
+    defaults: Defaults<'_>,
+) -> Option<Applied> {
     let k = key(callee);
     let model = table().models.iter().find(|m| key(&m.path) == k)?;
     if model.args.len() != args.len() {
@@ -364,10 +413,30 @@ pub(crate) fn apply(callee: &str, args: &[(String, Ty)], dt: &Ty) -> Option<Appl
         mentions: binds.values().cloned().collect(),
         ..Applied::default()
     };
-    out.term = render(&model.term, &terms, &binds, None, &mut out.aux)?;
+    let r = Renderer {
+        args: &terms,
+        binds: &binds,
+        defaults,
+    };
+    out.guard = match &model.guard {
+        Some(g) => Some(r.render(g, None, None, &mut out.aux)?),
+        None => None,
+    };
+    out.term = r.render(&model.term, None, out.guard.as_deref(), &mut out.aux)?;
     for (i, u) in &model.update {
-        let v = render(u, &terms, &binds, None, &mut out.aux)?;
+        let v = r.render(u, None, out.guard.as_deref(), &mut out.aux)?;
         out.updates.insert(*i, v);
+    }
+    for t in binds.values() {
+        out.mentions.extend(t.mentions());
+    }
+    if let Ty::Tuple(_) = dt {
+        out.mentions.push(dt.clone());
+    }
+    for (_, t) in args {
+        if let Ty::Tuple(_) = t {
+            out.mentions.push(t.clone());
+        }
     }
     if let (Some(k), Some(v)) = (binds.get("k"), binds.get("v")) {
         out.mentions.push(Ty::Tuple(vec![k.clone(), v.clone()]));
@@ -413,89 +482,124 @@ fn words(text: &str) -> Vec<String> {
     out
 }
 
-/// Render a template: `None` where a placeholder has no meaning at these
-/// types (an order the lift does not model, an unbound variable).
-fn render(
-    template: &str,
-    args: &[String],
-    binds: &PatternBinds,
-    own: Option<&str>,
-    aux: &mut Vec<Decl>,
-) -> Option<String> {
-    let mut text = template.to_string();
-    while let Some((open, close)) = innermost(&text) {
-        let inner = text[open + 1..close].to_string();
-        let w = words(&inner);
-        let ty = |v: &str| binds.get(v.strip_prefix('$')?);
-        let entry = || {
-            Some(Ty::Tuple(vec![
-                binds.get("k")?.clone(),
-                binds.get("v")?.clone(),
-            ]))
-        };
-        let value = match w.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
-            [n] if n.chars().all(|c| c.is_ascii_digit()) => {
-                args.get(n.parse::<usize>().ok()?)?.clone()
-            }
-            ["ty", v] => ty(v)?.render(),
-            ["prelude", f] => format!("{}::{f}", lift::PRELUDE),
-            ["self"] => own?.to_string(),
-            ["entry"] => entry()?.render(),
-            ["key", x] => lift::tuple_item(&entry()?, x, 0),
-            ["value", x] => lift::tuple_item(&entry()?, x, 1),
-            ["pair", a, b] => lift::tuple_value(&entry()?, &[(*a).to_string(), (*b).to_string()]),
-            ["eq", v, a, b] => match ty(v)? {
-                Ty::Str | Ty::Char | Ty::Bool => format!("(prim equal {a} {b} : Bool)"),
-                Ty::Nat(_) => format!("({a} =? {b})"),
-                _ => return None,
-            },
-            ["lt", v, a, b] => match ty(v)? {
-                Ty::Str | Ty::Char => format!("(prim less_than {a} {b} : Bool)"),
-                Ty::Nat(_) => format!("({a} <? {b})"),
-                _ => return None,
-            },
-            ["aux", n] => instantiate(n, binds, aux)?,
-            _ => return None,
-        };
-        text.replace_range(open..=close, &value);
-    }
-    Some(text)
+/// What a template renders against: the call's argument terms, the bound
+/// type variables, and a value of each type.
+struct Renderer<'a> {
+    args: &'a [String],
+    binds: &'a PatternBinds,
+    defaults: Defaults<'a>,
 }
 
-/// The auxiliary definition `n` at `binds`, added to `aux`: its name.
-fn instantiate(n: &str, binds: &PatternBinds, aux: &mut Vec<Decl>) -> Option<String> {
-    let a = table().aux.get(n)?;
-    let all = format!("{} {} {}", a.params.join(" "), a.result, a.body);
-    let tags: String = binds
-        .iter()
-        .filter(|(v, _)| {
-            all.contains(&format!("${v}"))
-                || (matches!(v.as_str(), "k" | "v") && all.contains("{entry}"))
-        })
-        .map(|(_, t)| t.tag())
-        .collect();
-    let name = format!("{}{tags}", crate::lex::camel(&["std", n]));
-    if aux.iter().any(|d| d.name() == name) {
-        return Some(name);
+impl Renderer<'_> {
+    /// Render a template: `None` where a placeholder has no meaning at these
+    /// types (an order the lift does not model, an unbound variable).
+    fn render(
+        &self,
+        template: &str,
+        own: Option<&str>,
+        guard: Option<&str>,
+        aux: &mut Vec<Decl>,
+    ) -> Option<String> {
+        let binds = self.binds;
+        let mut text = template.to_string();
+        while let Some((open, close)) = innermost(&text) {
+            let inner = text[open + 1..close].to_string();
+            let w = words(&inner);
+            let ty = |v: &str| binds.get(v.strip_prefix('$')?);
+            let entry = || {
+                Some(Ty::Tuple(vec![
+                    binds.get("k")?.clone(),
+                    binds.get("v")?.clone(),
+                ]))
+            };
+            let value = match w.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
+                [n] if n.chars().all(|c| c.is_ascii_digit()) => {
+                    self.args.get(n.parse::<usize>().ok()?)?.clone()
+                }
+                ["ty", v] => ty(v)?.render(),
+                ["prelude", f] => format!("{}::{f}", lift::PRELUDE),
+                ["self"] => own?.to_string(),
+                ["guard"] => guard?.to_string(),
+                ["entry"] => entry()?.render(),
+                ["key", x] => lift::tuple_item(&entry()?, x, 0),
+                ["value", x] => lift::tuple_item(&entry()?, x, 1),
+                ["pair", a, b] => {
+                    lift::tuple_value(&entry()?, &[(*a).to_string(), (*b).to_string()])
+                }
+                ["default", v] => (self.defaults)(ty(v)?)?,
+                // A tuple of the type the pattern names, from its items.
+                ["make", pattern, items @ ..] => {
+                    let t = build(&parse_pat(pattern)?, binds)?;
+                    let items: Vec<String> = items.iter().map(|i| (*i).to_string()).collect();
+                    match &t {
+                        Ty::Tuple(ts) if ts.len() == items.len() => lift::tuple_value(&t, &items),
+                        _ => return None,
+                    }
+                }
+                ["item", i, x] => format!("(project {x} item{})", i.parse::<usize>().ok()?),
+                ["eq", v, a, b] => match ty(v)? {
+                    Ty::Str | Ty::Char | Ty::Bool => format!("(prim equal {a} {b} : Bool)"),
+                    Ty::Nat(_) => format!("({a} =? {b})"),
+                    _ => return None,
+                },
+                ["lt", v, a, b] => match ty(v)? {
+                    Ty::Str | Ty::Char => format!("(prim less_than {a} {b} : Bool)"),
+                    Ty::Nat(_) => format!("({a} <? {b})"),
+                    _ => return None,
+                },
+                ["aux", n] => self.instantiate(n, aux)?,
+                _ => return None,
+            };
+            // A rendered record literal's braces are not placeholders.
+            let value = value.replace('{', "\u{e000}").replace('}', "\u{e001}");
+            text.replace_range(open..=close, &value);
+        }
+        Some(text.replace('\u{e000}', "{").replace('\u{e001}', "}"))
     }
-    let mut params = Vec::new();
-    for p in &a.params {
-        let (pn, pt) = p.split_once(" : ")?;
-        params.push((pn.to_string(), render(pt, &[], binds, Some(&name), aux)?));
+
+    /// The auxiliary definition `n` at the bound types, added to `aux`: its
+    /// name.
+    fn instantiate(&self, n: &str, aux: &mut Vec<Decl>) -> Option<String> {
+        let binds = self.binds;
+        let a = table().aux.get(n)?;
+        let all = format!("{} {} {}", a.params.join(" "), a.result, a.body);
+        let tags: String = binds
+            .iter()
+            .filter(|(v, _)| {
+                all.contains(&format!("${v}"))
+                    || (matches!(v.as_str(), "k" | "v") && all.contains("{entry}"))
+            })
+            .map(|(_, t)| t.tag())
+            .collect();
+        let name = format!("{}{tags}", crate::lex::camel(&["std", n]));
+        if aux.iter().any(|d| d.name() == name) {
+            return Some(name);
+        }
+        // An auxiliary definition reads only its own parameters.
+        let own = Renderer {
+            args: &[],
+            binds,
+            defaults: self.defaults,
+        };
+        let mut params = Vec::new();
+        for p in &a.params {
+            let (pn, pt) = p.split_once(" : ")?;
+            params.push((pn.to_string(), own.render(pt, Some(&name), None, aux)?));
+        }
+        let result = own.render(&a.result, Some(&name), None, aux)?;
+        let body = own.render(&a.body, Some(&name), None, aux)?;
+        aux.push(Decl::Definition {
+            name: name.clone(),
+            parameters: params,
+            result,
+            body: Expr::Flat(body),
+            axioms: Vec::new(),
+            recursive: a.recursive.clone(),
+            termination: None,
+            mutual: None,
+        });
+        Some(name)
     }
-    let result = render(&a.result, &[], binds, Some(&name), aux)?;
-    let body = render(&a.body, &[], binds, Some(&name), aux)?;
-    aux.push(Decl::Definition {
-        name: name.clone(),
-        parameters: params,
-        result,
-        body: Expr::Flat(body),
-        axioms: Vec::new(),
-        recursive: a.recursive.clone(),
-        termination: None,
-        mutual: None,
-    });
-    Some(name)
 }
 
 /// An instance of a std body: the item's [`key`], its MIR text at the
@@ -691,6 +795,10 @@ mod tests {
             key("core::slice::<impl [lift::Ty]>::contains"),
             "slice::[]::contains"
         );
+        assert_eq!(
+            key("<&[ast::Stmt] as std::iter::IntoIterator>::into_iter"),
+            key("<&[T] as std::iter::IntoIterator>::into_iter")
+        );
     }
 
     #[test]
@@ -699,13 +807,15 @@ mod tests {
             "core::str::<impl str>::trim",
             &[("s".into(), Ty::Str)],
             &Ty::Str,
+            &|_| None,
         )
         .expect("trim");
         assert_eq!(a.term, "(Prelude::textTrim s)");
         assert!(apply(
             "core::str::<impl str>::trim",
             &[("s".into(), Ty::Bool)],
-            &Ty::Str
+            &Ty::Str,
+            &|_| None,
         )
         .is_none());
         let set = Ty::Set(Box::new(Ty::Str), true);
@@ -713,6 +823,7 @@ mod tests {
             "std::collections::BTreeSet::insert",
             &[("s".into(), set), ("x".into(), Ty::Str)],
             &Ty::Bool,
+            &|_| None,
         )
         .expect("insert");
         assert_eq!(ins.updates[&0], "(stdInsertString s x)");

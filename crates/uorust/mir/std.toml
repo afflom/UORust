@@ -60,6 +60,30 @@ path = "std::collections::BTreeSet"
 model = "set<$t>"
 floor = "a BTreeMap<T, SetValZST>, whose nodes are behind NonNull raw pointers"
 
+# An iterator over a sequence is a cursor: the items and the two positions
+# it has reached from the front and from the back (slice::Iter's `ptr` and
+# `end` as indices into its slice). `next` is `Some` exactly while the front
+# is below the back, so a `for` loop over it exits on an order of naturals.
+[[type]]
+path = "std::slice::Iter"
+model = "cursor<$t>"
+floor = "the pointers ptr and end_or_len into the slice (NonNull<T>, *const T)"
+
+[[type]]
+path = "std::vec::IntoIter"
+model = "cursor<$t>"
+floor = "the buffer and the pointers ptr and end into it (NonNull<T>, *const T)"
+
+[[type]]
+path = "std::collections::btree_set::Iter"
+model = "cursor<$t>"
+floor = "a range of leaf edges, handles behind NonNull node pointers"
+
+[[type]]
+path = "std::collections::btree_set::IntoIter"
+model = "cursor<$t>"
+floor = "a dying B-tree's leaf edges, handles behind NonNull node pointers"
+
 # str: the byte-level searches use get_unchecked and from_utf8_unchecked.
 [[model]]
 path = "core::str::<impl str>::trim"
@@ -374,6 +398,144 @@ floor = "the joined bytes are copied with ptr::copy_nonoverlapping"
 rust = "{0}.join({1})"
 vectors = [['["a", "b"]', '"-"', '"a-b"']]
 
+[[model]]
+path = "core::slice::<impl [T]>::get"
+args = ["list<$t>", "usize"]
+result = "option<$t>"
+guard = "({1} <? (prim length {0} : Nat))"
+term = "({aux at} {0} {1})"
+floor = "get_unchecked reads through a raw pointer once the bound is checked"
+rust = "{0}.get({1}).copied()"
+vectors = [["[1u8, 2]", "1", "Some(2u8)"], ["[1u8, 2]", "2", "None"]]
+
+# Iteration: a sequence as a cursor, its `next` guarded by its positions.
+[[model]]
+path = "core::slice::<impl [T]>::iter"
+args = ["list<$t>"]
+result = "cursor<$t>"
+term = "{make cursor<$t> {0} 0 (prim length {0} : Nat)}"
+floor = "the iterator holds raw pointers to the slice's first item and past its last"
+rust = "{0}.iter().as_slice().to_vec()"
+vectors = [["[1u8, 2]", "vec![1u8, 2]"]]
+
+[[model]]
+path = "<&std::vec::Vec as std::iter::IntoIterator>::into_iter"
+args = ["list<$t>"]
+result = "cursor<$t>"
+term = "{make cursor<$t> {0} 0 (prim length {0} : Nat)}"
+floor = "slice::Iter's raw pointers into the vector's buffer"
+rust = "IntoIterator::into_iter(&{0}).as_slice().to_vec()"
+vectors = [["vec![1u8, 2]", "vec![1u8, 2]"]]
+
+[[model]]
+path = "<&[T] as std::iter::IntoIterator>::into_iter"
+args = ["list<$t>"]
+result = "cursor<$t>"
+term = "{make cursor<$t> {0} 0 (prim length {0} : Nat)}"
+floor = "slice::Iter's raw pointers into the slice"
+rust = "<&[u8] as IntoIterator>::into_iter(&{0}).as_slice().to_vec()"
+vectors = [["[1u8, 2]", "vec![1u8, 2]"]]
+
+[[model]]
+path = "<std::vec::Vec as std::iter::IntoIterator>::into_iter"
+args = ["list<$t>"]
+result = "cursor<$t>"
+term = "{make cursor<$t> {0} 0 (prim length {0} : Nat)}"
+floor = "the buffer is taken over with ManuallyDrop and read through raw pointers"
+rust = "{0}.into_iter().as_slice().to_vec()"
+vectors = [["vec![1u8, 2]", "vec![1u8, 2]"]]
+
+[[model]]
+path = "<&std::collections::BTreeSet as std::iter::IntoIterator>::into_iter"
+args = ["set<$t>"]
+result = "cursor<$t>"
+term = "{make cursor<$t> {0} 0 (prim length {0} : Nat)}"
+floor = "a range of leaf edges, handles behind NonNull node pointers"
+rust = "IntoIterator::into_iter(&{0}).copied().collect::<Vec<_>>()"
+vectors = [["std::collections::BTreeSet::from([2u8, 1])", "vec![1u8, 2]"]]
+
+[[model]]
+path = "std::collections::BTreeSet::iter"
+args = ["set<$t>"]
+result = "cursor<$t>"
+term = "{make cursor<$t> {0} 0 (prim length {0} : Nat)}"
+floor = "a range of leaf edges, handles behind NonNull node pointers"
+rust = "{0}.iter().copied().collect::<Vec<_>>()"
+vectors = [["std::collections::BTreeSet::from([2u8, 1])", "vec![1u8, 2]"]]
+
+[[model]]
+path = "<std::collections::BTreeSet as std::iter::IntoIterator>::into_iter"
+args = ["set<$t>"]
+result = "cursor<$t>"
+term = "{make cursor<$t> {0} 0 (prim length {0} : Nat)}"
+floor = "the dying tree's leaf edges, handles behind NonNull node pointers"
+rust = "{0}.into_iter().collect::<Vec<_>>()"
+vectors = [["std::collections::BTreeSet::from([2u8, 1])", "vec![1u8, 2]"]]
+
+[[model]]
+path = "<std::slice::Iter as std::iter::Iterator>::next"
+args = ["cursor<$t>"]
+result = "option<$t>"
+guard = "({item 1 {0}} <? {item 2 {0}})"
+term = "({aux at} {item 0 {0}} {item 1 {0}})"
+update = { 0 = "{make cursor<$t> {item 0 {0}} (if {guard} then ({item 1 {0}} + 1) else {item 1 {0}}) {item 2 {0}}}" }
+floor = "ptr is compared with end and advanced with NonNull::add"
+rust = "{{ let v = {0}; let mut it = v.iter(); (it.next().copied(), it.as_slice().to_vec()) }}"
+vectors = [["[1u8, 2]", "(Some(1u8), vec![2u8])"], ["[0u8; 0]", "(None, vec![])"]]
+
+[[model]]
+path = "<std::slice::Iter as std::iter::DoubleEndedIterator>::next_back"
+args = ["cursor<$t>"]
+result = "option<$t>"
+guard = "({item 1 {0}} <? {item 2 {0}})"
+term = "({aux at} {item 0 {0}} (prim subtract {item 2 {0}} 1 : Nat))"
+update = { 0 = "{make cursor<$t> {item 0 {0}} {item 1 {0}} (if {guard} then (prim subtract {item 2 {0}} 1 : Nat) else {item 2 {0}})}" }
+floor = "end is compared with ptr and moved back with NonNull::sub"
+rust = "{{ let v = {0}; let mut it = v.iter(); (it.next_back().copied(), it.as_slice().to_vec()) }}"
+vectors = [["[1u8, 2]", "(Some(2u8), vec![1u8])"], ["[0u8; 0]", "(None, vec![])"]]
+
+[[model]]
+path = "<std::vec::IntoIter as std::iter::Iterator>::next"
+args = ["cursor<$t>"]
+result = "option<$t>"
+guard = "({item 1 {0}} <? {item 2 {0}})"
+term = "({aux at} {item 0 {0}} {item 1 {0}})"
+update = { 0 = "{make cursor<$t> {item 0 {0}} (if {guard} then ({item 1 {0}} + 1) else {item 1 {0}}) {item 2 {0}}}" }
+floor = "the item is moved out of the buffer with ptr::read"
+rust = "{{ let mut it = {0}.into_iter(); (it.next(), it.as_slice().to_vec()) }}"
+vectors = [["vec![1u8, 2]", "(Some(1u8), vec![2u8])"], ["Vec::<u8>::new()", "(None, vec![])"]]
+
+[[model]]
+path = "<std::collections::btree_set::Iter as std::iter::Iterator>::next"
+args = ["cursor<$t>"]
+result = "option<$t>"
+guard = "({item 1 {0}} <? {item 2 {0}})"
+term = "({aux at} {item 0 {0}} {item 1 {0}})"
+update = { 0 = "{make cursor<$t> {item 0 {0}} (if {guard} then ({item 1 {0}} + 1) else {item 1 {0}}) {item 2 {0}}}" }
+floor = "the front leaf edge is advanced through NonNull node pointers"
+rust = "{{ let s = {0}; let mut it = s.iter(); (it.next().copied(), it.copied().collect::<Vec<_>>()) }}"
+vectors = [["std::collections::BTreeSet::from([2u8, 1])", "(Some(1u8), vec![2u8])"]]
+
+[[model]]
+path = "<std::collections::btree_set::IntoIter as std::iter::Iterator>::next"
+args = ["cursor<$t>"]
+result = "option<$t>"
+guard = "({item 1 {0}} <? {item 2 {0}})"
+term = "({aux at} {item 0 {0}} {item 1 {0}})"
+update = { 0 = "{make cursor<$t> {item 0 {0}} (if {guard} then ({item 1 {0}} + 1) else {item 1 {0}}) {item 2 {0}}}" }
+floor = "the front leaf edge of the dying tree is advanced through NonNull node pointers"
+rust = "{{ let mut it = {0}.into_iter(); (it.next(), it.collect::<Vec<_>>()) }}"
+vectors = [["std::collections::BTreeSet::from([2u8, 1])", "(Some(1u8), vec![2u8])"]]
+
+[[model]]
+path = "<std::slice::Iter as std::iter::ExactSizeIterator>::len"
+args = ["cursor<$t>"]
+result = "usize"
+term = "(prim subtract {item 2 {0}} {item 1 {0}} : Nat)"
+floor = "the distance between the raw pointers end and ptr"
+rust = "{0}.iter().len()"
+vectors = [["[1u8, 2]", "2"]]
+
 # The auxiliary definitions the models name, instantiated per bound types.
 [aux.member]
 params = ["items : (List {ty $t})", "needle : {ty $t}"]
@@ -404,3 +566,8 @@ params = ["entries : (List {entry})", "key : {ty $k}", "value : {ty $v}"]
 result = "(List {entry})"
 recursive = "entries"
 body = "(match entries | List.nil => (cons {pair key value} (nil {entry})) | List.cons entry rest => (if {eq $k key {key entry}} then (cons {pair key value} rest) else (if {lt $k key {key entry}} then (cons {pair key value} (cons entry rest)) else (cons entry ({self} rest key value)))))"
+
+[aux.at]
+params = ["items : (List {ty $t})", "index : Nat"]
+result = "{ty $t}"
+body = "(match (prim index items index : (Option {ty $t})) | Option.none => {default $t} | Option.some item => item)"

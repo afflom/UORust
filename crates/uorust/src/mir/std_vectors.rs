@@ -52,4 +52,22 @@ fn std_agrees_with_every_vector_of_its_models() {
     assert!(["a", "b"].contains(&"b"), "core::slice::<impl [T]>::contains");
     assert!(!["a"].contains(&"c"), "core::slice::<impl [T]>::contains");
     assert_eq!(["a", "b"].join("-"), "a-b", "std::slice::<impl [T]>::join");
+    assert_eq!([1u8, 2].get(1).copied(), Some(2u8), "core::slice::<impl [T]>::get");
+    assert_eq!([1u8, 2].get(2).copied(), None, "core::slice::<impl [T]>::get");
+    assert_eq!([1u8, 2].iter().as_slice().to_vec(), vec![1u8, 2], "core::slice::<impl [T]>::iter");
+    assert_eq!(IntoIterator::into_iter(&vec![1u8, 2]).as_slice().to_vec(), vec![1u8, 2], "<&std::vec::Vec as std::iter::IntoIterator>::into_iter");
+    assert_eq!(<&[u8] as IntoIterator>::into_iter(&[1u8, 2]).as_slice().to_vec(), vec![1u8, 2], "<&[T] as std::iter::IntoIterator>::into_iter");
+    assert_eq!(vec![1u8, 2].into_iter().as_slice().to_vec(), vec![1u8, 2], "<std::vec::Vec as std::iter::IntoIterator>::into_iter");
+    assert_eq!(IntoIterator::into_iter(&std::collections::BTreeSet::from([2u8, 1])).copied().collect::<Vec<_>>(), vec![1u8, 2], "<&std::collections::BTreeSet as std::iter::IntoIterator>::into_iter");
+    assert_eq!(std::collections::BTreeSet::from([2u8, 1]).iter().copied().collect::<Vec<_>>(), vec![1u8, 2], "std::collections::BTreeSet::iter");
+    assert_eq!(std::collections::BTreeSet::from([2u8, 1]).into_iter().collect::<Vec<_>>(), vec![1u8, 2], "<std::collections::BTreeSet as std::iter::IntoIterator>::into_iter");
+    assert_eq!({ let v = [1u8, 2]; let mut it = v.iter(); (it.next().copied(), it.as_slice().to_vec()) }, (Some(1u8), vec![2u8]), "<std::slice::Iter as std::iter::Iterator>::next");
+    assert_eq!({ let v = [0u8; 0]; let mut it = v.iter(); (it.next().copied(), it.as_slice().to_vec()) }, (None, vec![]), "<std::slice::Iter as std::iter::Iterator>::next");
+    assert_eq!({ let v = [1u8, 2]; let mut it = v.iter(); (it.next_back().copied(), it.as_slice().to_vec()) }, (Some(2u8), vec![1u8]), "<std::slice::Iter as std::iter::DoubleEndedIterator>::next_back");
+    assert_eq!({ let v = [0u8; 0]; let mut it = v.iter(); (it.next_back().copied(), it.as_slice().to_vec()) }, (None, vec![]), "<std::slice::Iter as std::iter::DoubleEndedIterator>::next_back");
+    assert_eq!({ let mut it = vec![1u8, 2].into_iter(); (it.next(), it.as_slice().to_vec()) }, (Some(1u8), vec![2u8]), "<std::vec::IntoIter as std::iter::Iterator>::next");
+    assert_eq!({ let mut it = Vec::<u8>::new().into_iter(); (it.next(), it.as_slice().to_vec()) }, (None, vec![]), "<std::vec::IntoIter as std::iter::Iterator>::next");
+    assert_eq!({ let s = std::collections::BTreeSet::from([2u8, 1]); let mut it = s.iter(); (it.next().copied(), it.copied().collect::<Vec<_>>()) }, (Some(1u8), vec![2u8]), "<std::collections::btree_set::Iter as std::iter::Iterator>::next");
+    assert_eq!({ let mut it = std::collections::BTreeSet::from([2u8, 1]).into_iter(); (it.next(), it.collect::<Vec<_>>()) }, (Some(1u8), vec![2u8]), "<std::collections::btree_set::IntoIter as std::iter::Iterator>::next");
+    assert_eq!([1u8, 2].iter().len(), 2, "<std::slice::Iter as std::iter::ExactSizeIterator>::len");
 }

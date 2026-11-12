@@ -90,3 +90,63 @@ pub fn above(xs: &[u32], floor: Option<u32>) -> Option<usize> {
     }
     None
 }
+
+/// Whether any item is above a floor: a `for` loop over a slice, whose
+/// iterator is a cursor (the items and the two positions it has reached)
+/// and whose `next` is `Some` exactly while the front is below the back, so
+/// the loop's measure is derived from that guard as a `while` loop's is.
+pub fn has_above(xs: &[u32], floor: u32) -> bool {
+    for x in xs {
+        if *x > floor {
+            return true;
+        }
+    }
+    false
+}
+
+/// The first item, capped: `?` on an `Option`, whose residual
+/// `Option<Infallible>` holds only `None`.
+pub fn first_capped(xs: &[u32], cap: u32) -> Option<u32> {
+    let x = *xs.first()?;
+    Some(x.min(cap))
+}
+
+/// The first rise between neighbours: a `for` loop whose state is an
+/// option set on each pass, with an early return.
+pub fn first_rise(xs: &[u32]) -> Option<u32> {
+    let mut prev: Option<u32> = None;
+    for x in xs {
+        if let Some(p) = prev {
+            if *x > p {
+                return Some(*x - p);
+            }
+        }
+        prev = Some(*x);
+    }
+    None
+}
+
+/// The sum of the bytes before the first `stop`, saturating: a `for` loop
+/// left by `break`.
+pub fn sum_until(xs: &[u8], stop: u8) -> u32 {
+    let mut total = 0u32;
+    for x in xs {
+        if *x == stop {
+            break;
+        }
+        total = total.saturating_add(u32::from(*x));
+    }
+    total
+}
+
+/// Whether the second name is in the set: `?` on an `Option` from a slice
+/// and a loop over a `BTreeSet`'s members.
+pub fn second_known(names: &[&str], known: &std::collections::BTreeSet<String>) -> Option<bool> {
+    let second = names.get(1)?;
+    for k in known {
+        if k == second {
+            return Some(true);
+        }
+    }
+    Some(false)
+}

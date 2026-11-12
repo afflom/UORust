@@ -1277,6 +1277,12 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
         "name: stdInsertString,",
         "(stdInsertString (stdInsertString (nil String) a) b)",
         "(Prelude::textTrim ",
+        // A `for` loop over a slice: its iterator a cursor, the loop's
+        // measure the distance between the cursor's positions, which its
+        // guarded `next` is `Some` within.
+        "name: walkFirstRiseLoop2,",
+        "measure: (prim subtract (project iter item2) (project iter item1) : Nat)",
+        "name: stdAtNat,",
     ] {
         assert!(behavior.contains(decl), "the trial projection lacks {decl}");
     }
@@ -1303,6 +1309,10 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
         "walk::distinct",
         "walk::first_blank",
         "walk::above",
+        // `for` loops over a slice and a set, `break`, and `?` on an option.
+        "walk::first_rise",
+        "walk::sum_until",
+        "walk::second_known",
     ] {
         assert!(
             lifted_functions(&decided).contains(&f.to_string()),
