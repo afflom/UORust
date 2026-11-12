@@ -127,6 +127,8 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterFloors is made
     And the interface call Interface::callThermoCoreRosterRoomLabels is made
     And the interface call Interface::callThermoCoreRosterReadingWithin is made
+    And the interface call Interface::callThermoCoreRosterBookedOrFirst is made
+    And the interface call Interface::callThermoCoreRosterNamedOrSpare is made
     And the interface call Interface::callThermoCoreRosterStartsUnnamed is made
     And the interface call Interface::callThermoCoreRosterMarkedRooms is made
     And the interface call Interface::callThermoCoreRosterDoubledRoom is made

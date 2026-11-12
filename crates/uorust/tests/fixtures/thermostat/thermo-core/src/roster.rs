@@ -621,6 +621,16 @@ pub fn reading_within(reading: u32, low: u32, high: u32) -> bool {
     (low..=high).contains(&reading)
 }
 
+/// The room a booking names, else the first of the fallbacks, if any.
+pub fn booked_or_first(booking: Option<String>, fallbacks: Option<Vec<String>>) -> Option<String> {
+    booking.or_else(|| fallbacks?.first().cloned())
+}
+
+/// The first named room, else the spare one.
+pub fn named_or_spare(named: Option<String>, spare: Option<String>) -> Option<String> {
+    named.as_ref().cloned().or(spare)
+}
+
 /// Whether the roster names no room, or its first room is unnamed.
 pub fn starts_unnamed(rooms: &[String]) -> bool {
     if rooms.first().is_none() {
@@ -825,6 +835,8 @@ mod tests {
         );
         assert_eq!(none_taken(&["den".to_string()], &[]), Ok(()));
         assert!(starts_unnamed(&[]));
+        assert_eq!(booked_or_first(None, None), None);
+        assert_eq!(named_or_spare(None, Some("den".to_string())), Some("den".to_string()));
         assert_eq!(floors(2, 5), vec![2, 3, 4]);
         assert_eq!(floors(5, 2), Vec::<usize>::new());
         assert_eq!(room_labels(2), vec!["room-1".to_string(), "room-2".to_string()]);

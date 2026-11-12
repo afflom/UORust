@@ -3608,6 +3608,9 @@ fn method(
         (Ty::Str, "to_string" | "to_owned")
         | (Ty::List(_), "as_slice")
         | (Ty::Option(_), "as_deref")
+        // An option of a borrow, or a borrowed slice: the same value, since
+        // LexLean holds every value by reference.
+        | (Ty::Option(_) | Ty::List(_), "as_ref")
         | (_, "clone" | "copied" | "cloned" | "to_vec")
             if args.is_empty() =>
         {
@@ -4078,6 +4081,27 @@ fn wrapped_method(
                 acc,
             ))
         }
+        // `o.or(p)`, `o.or_else(|| p)`: the option where it holds a value,
+        // else the other.
+        ("or" | "or_else", [d]) if failure.is_none() => {
+            let whole = opt(&value);
+            let (other, acc) = if name == "or" {
+                let ((dv, dt), acc) = flat_of(d, env, ctx, acc, Some(&whole))?;
+                if !dt.same(&whole) {
+                    return Err(Residue::Form(format!("{name} of another type")));
+                }
+                (Expr::Flat(dv), acc)
+            } else {
+                let (lam, acc) = closure(d, &[], acc, Some(&whole))?;
+                if !lam.ty.same(&whole) {
+                    return Err(Residue::Form(format!("{name} of another type")));
+                }
+                (lam.wrap(lam.core.clone()), acc)
+            };
+            let (v, acc) = ctx.fresh(env, acc, "value");
+            let kept = Expr::Flat(some(&value, &v));
+            Ok(((two(&v, kept, &fresh_e, other), whole), acc))
+        }
         ("unwrap_or_else", [f]) => {
             let params: Vec<Ty> = failure.iter().cloned().collect();
             let (lam, acc) = closure(f, &params, acc, Some(&value))?;
@@ -4390,7 +4414,13 @@ fn lambda(
         lets = more;
         binders.push(name);
     }
-    let ((core, ty), acc) = flat_of(&c.body, env, &scope, acc, want)?;
+    // A `?` in a closure that gives an option leaves the closure with
+    // `None`: the body is the match it stands for.
+    let body = match want {
+        Some(Ty::Option(_)) => closure_tries(&c.body, acc.fresh),
+        _ => (*c.body).clone(),
+    };
+    let ((core, ty), acc) = flat_of(&body, env, &scope, acc, want)?;
     let (acc, own) = acc.rejoin(before);
     if !own.descends.is_empty() && ctx.elements.is_none() {
         return Err(Residue::Form("recursion inside a closure".to_string()));
@@ -4407,6 +4437,37 @@ fn lambda(
         },
         acc,
     ))
+}
+
+/// A closure body giving an option, each `?` it evaluates unconditionally
+/// written as the match that leaves with `None`, numbered from `n`.
+fn closure_tries(body: &rs::RustExpr, n: usize) -> rs::RustExpr {
+    let var = format!("tried{}", n + 1);
+    let Some((found, rest)) = take_try(body, &var) else {
+        return body.clone();
+    };
+    let held = rs::Pat::TupleStruct(rs::PatTupleStruct {
+        path: rs::Path::ident("Some"),
+        elems: vec![rs::Pat::Ident(rs::PatIdent {
+            ident: var,
+            by_ref: false,
+            subpat: None,
+        })],
+    });
+    let none = rs::Path::ident("None");
+    rs::RustExpr::Match(rs::ExprMatch {
+        expr: Box::new(found),
+        arms: vec![
+            rs::MatchArm {
+                pat: held,
+                body: Box::new(closure_tries(&rest, n + 1)),
+            },
+            rs::MatchArm {
+                pat: rs::Pat::Path(none.clone()),
+                body: Box::new(rs::RustExpr::Path(none)),
+            },
+        ],
+    })
 }
 
 /// The outer locals a helper's body names: they become its parameters.

@@ -1935,6 +1935,33 @@ definition{
 }
 
 definition{
+  name: bookedOrFirstPart1,
+  parameters: [fallbacks : (Option (List String))],
+  result: (Option String),
+  body: (match fallbacks
+    | Option.none => (ctor Option.none [String])
+    | Option.some tried2 => (prim index tried2 0 : (Option String)))
+}
+
+definition{
+  name: bookedOrFirst,
+  parameters: [booking : (Option String), fallbacks : (Option (List String))],
+  result: (Option String),
+  body: (match booking
+    | Option.none => (bookedOrFirstPart1 fallbacks)
+    | Option.some value2 => (ctor Option.some [String] value2))
+}
+
+definition{
+  name: namedOrSpare,
+  parameters: [named : (Option String), spare : (Option String)],
+  result: (Option String),
+  body: (match named
+    | Option.none => spare
+    | Option.some value2 => (ctor Option.some [String] value2))
+}
+
+definition{
   name: startsUnnamedPart1,
   parameters: [rooms : (List String)],
   result: Bool,
@@ -2542,84 +2569,98 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom25,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom22,
   parameters: [],
-  statement: ((readingWithin 20 18 20) = true),
+  statement: ((bookedOrFirst (ctor Option.none [String]) (ctor Option.none [(List String)])) = (ctor Option.none [String])),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom26,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom23,
   parameters: [],
-  statement: ((readingWithin 21 18 20) = false),
+  statement: ((namedOrSpare (ctor Option.none [String]) (ctor Option.some [String] "den")) = (ctor Option.some [String] "den")),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom27,
   parameters: [],
-  statement: ((inComfortBand 20) = true),
+  statement: ((readingWithin 20 18 20) = true),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom28,
   parameters: [],
-  statement: ((inComfortBand 30) = false),
+  statement: ((readingWithin 21 18 20) = false),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom29,
   parameters: [],
-  statement: ((pressing (ctor Priority.Urgent)) = true),
+  statement: ((inComfortBand 20) = true),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom30,
   parameters: [],
-  statement: ((countByte 300) = 44),
+  statement: ((inComfortBand 30) = false),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom31,
   parameters: [],
+  statement: ((pressing (ctor Priority.Urgent)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom32,
+  parameters: [],
+  statement: ((countByte 300) = 44),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom33,
+  parameters: [],
   statement: ((codeIndex 7) = 7),
-  proof: decide{}
-}
-
-theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom35,
-  parameters: [],
-  statement: ((startsUnnamed (cons "den" (nil String))) = false),
-  proof: decide{}
-}
-
-theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom36,
-  parameters: [],
-  statement: ((perRoom 7 2) = 3),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom37,
   parameters: [],
-  statement: ((perRoom 7 0) = 0),
+  statement: ((startsUnnamed (cons "den" (nil String))) = false),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom38,
   parameters: [],
-  statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
+  statement: ((perRoom 7 2) = 3),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom39,
+  parameters: [],
+  statement: ((perRoom 7 0) = 0),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom40,
+  parameters: [],
+  statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom41,
   parameters: [],
   statement: ((leftOver 7 3) = (ctor Option.some [Nat] 1)),
   proof: decide{}

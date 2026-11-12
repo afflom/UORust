@@ -395,6 +395,12 @@ reason = "call"
 detail = "calls exact_string, which is not lifted"
 
 [[residue]]
+kappa = "7822d98718bb8316d9c2fac79ab259ce05670e2efee6b06fc7d2d6d347740229"
+function = "uorust::lift::closure_tries"
+reason = "arithmetic"
+detail = "usize + wraps or panics where its value leaves the pointer width: past 2^32 on wasm32-unknown-unknown and thumbv7em-none-eabihf, past 2^64 on x86_64-unknown-linux-gnu and aarch64-unknown-linux-gnu"
+
+[[residue]]
 kappa = "0db7e30395970dc929134a62d48e6c0eee0ad9ae4826077b35ff4985eee7c626"
 function = "uorust::lift::collection"
 reason = "form"
@@ -563,16 +569,10 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "cdb4cd83014e2d5981dab5f819db603f3f3017262a9d62f328fc37dca7ba6d9a"
+kappa = "7b647ff142ad842c666f9b45f5d93315d5c30a31980858391d1a83d56cb481cf"
 function = "uorust::lift::lambda"
-reason = "form"
-detail = "expression form outside the lift: method call .as_ref"
-
-[[residue]]
-kappa = "0c93d31550b1284d4d6856dfa955988e777d055af40933202696c124ac3a8f56"
-function = "uorust::lift::leaving_match"
-reason = "form"
-detail = "expression form outside the lift: method call .as_ref"
+reason = "call"
+detail = "calls new, which is not lifted"
 
 [[residue]]
 kappa = "226bd26c2de0efa4987ae4c45d513494a658b099eafa2821b2ff3d4430cead67"
@@ -647,7 +647,7 @@ reason = "form"
 detail = "expression form outside the lift: vec! of a repeated value"
 
 [[residue]]
-kappa = "f1711f94531cad1935e8e937ae09b21cc03100e65d38437ee4f5f96bc0b7e25d"
+kappa = "629622e11d569118efd4e242148a5427ebfa1543d501b7662ee00ffb713bb992"
 function = "uorust::lift::method"
 reason = "form"
 detail = "expression form outside the lift: match pattern"
@@ -685,8 +685,8 @@ detail = "expression form outside the lift: let pattern"
 [[residue]]
 kappa = "4444fecbe7fe4cf80c20708658982524670fad2d72b7a94472a6367f194f422f"
 function = "uorust::lift::question"
-reason = "form"
-detail = "expression form outside the lift: method call .as_ref"
+reason = "call"
+detail = "calls flat_of, which is not lifted"
 
 [[residue]]
 kappa = "fdb579f576c613cc9a534cd104248c89813241d849541bde44508648211ab087"
@@ -715,8 +715,8 @@ detail = "expression form outside the lift: recursion that does not descend on a
 [[residue]]
 kappa = "37000e97ee9f362227433897467f5ca09a62822d0a1367383db946d26bd45ed5"
 function = "uorust::lift::returns_local"
-reason = "form"
-detail = "expression form outside the lift: method call .as_ref"
+reason = "call"
+detail = "calls returns_in, which is not lifted"
 
 [[residue]]
 kappa = "f1c917e01e68891f258f1c90c470ab8643fd1300ae26eea1d94dc6b42b5891af"
@@ -815,12 +815,6 @@ reason = "form"
 detail = "expression form outside the lift: struct ExprBlock"
 
 [[residue]]
-kappa = "f7fcf0859d8ef01e1eeb7014d3745b64a1b7cae64407673d78440c70acafe046"
-function = "uorust::lift::update_target"
-reason = "form"
-detail = "expression form outside the lift: method call .or_else"
-
-[[residue]]
 kappa = "cdd54c04a1f73b888bf6b5fce8ca68ed50a67ff635c9935a2536b194c9dbd2f2"
 function = "uorust::lift::updated"
 reason = "form"
@@ -835,8 +829,8 @@ detail = "expression form outside the lift: recursion that does not descend on a
 [[residue]]
 kappa = "c397a55b8bab815cdb0e445c360ff9fb8ee7da4e3c3cf43720863892227d38a7"
 function = "uorust::lift::use_in_stmts"
-reason = "form"
-detail = "expression form outside the lift: method call .as_ref"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
 kappa = "ebe0e63a8809ecb2ee36f4a5d18ebced2e1f5c1748676561f6a3c764c78e9b3d"
@@ -875,7 +869,7 @@ reason = "call"
 detail = "calls wrap_ctor, which is not lifted"
 
 [[residue]]
-kappa = "cf9134e5b36a44b07bd0c8f414c92549d0291ae3b63c7efec3d0729265b36b15"
+kappa = "58992fcb074a46bbb0168e93e2c65c001cf12d7c1b67a6fc42ab04510b4320d8"
 function = "uorust::lift::wrapped_method"
 reason = "form"
 detail = "expression form outside the lift: None of an unknown type"
@@ -2018,6 +2012,11 @@ function = "uorust::lift::leaves"
 definition = "Behavior::leaves"
 
 [[lifted]]
+kappa = "0c93d31550b1284d4d6856dfa955988e777d055af40933202696c124ac3a8f56"
+function = "uorust::lift::leaving_match"
+definition = "Behavior::leavingMatch"
+
+[[lifted]]
 kappa = "b6b13315b326cf8a47ca70d6b2eb800910e01fc609771e35aa743ac17da6e3f9"
 function = "uorust::lift::leaving_value"
 definition = "Behavior::leavingValue"
@@ -2111,6 +2110,11 @@ definition = "Behavior::unicodeProperty"
 kappa = "4b467d250fed725a263d58d71626203b2099511d26b7ff372868b33db3b30553"
 function = "uorust::lift::untyped"
 definition = "Behavior::untyped"
+
+[[lifted]]
+kappa = "f7fcf0859d8ef01e1eeb7014d3745b64a1b7cae64407673d78440c70acafe046"
+function = "uorust::lift::update_target"
+definition = "Behavior::updateTarget"
 
 [[lifted]]
 kappa = "46b77dfae61358f07975af0a2d60a199403a5ce382cb8995a7cdc163a113d8dd"
