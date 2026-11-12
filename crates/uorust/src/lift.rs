@@ -2916,6 +2916,16 @@ fn call(
         ([s, n], [], Some(t @ Ty::Map(_, _, true))) if s == "BTreeMap" && n == "new" => {
             return flat(format!("(nil {})", t.entry().render()), t.clone(), acc);
         }
+        // `std::slice::from_ref(&x)`: the list of the one value.
+        ([.., s, n], [a], _) if s == "slice" && n == "from_ref" => {
+            let elem = match want {
+                Some(Ty::List(t)) => Some(&**t),
+                _ => None,
+            };
+            let ((v, vt), acc) = flat_of(a, env, ctx, acc, elem)?;
+            let list = Ty::List(Box::new(vt.clone()));
+            return flat(format!("(cons {v} (nil {}))", vt.render()), list, acc);
+        }
         // A capacity is a hint to the allocator: the value is the empty list.
         ([s, n], [_], Some(t @ Ty::List(inner))) if s == "Vec" && n == "with_capacity" => {
             return flat(format!("(nil {})", inner.render()), t.clone(), acc);
@@ -4680,17 +4690,39 @@ fn closure_tries(body: &rs::RustExpr, n: usize) -> rs::RustExpr {
 
 /// The outer locals a helper's body names: they become its parameters.
 fn captures(ctx: &Ctx, texts: &[String], bound: &[String]) -> Vec<(String, Ty)> {
-    let mut tokens: BTreeSet<&str> = BTreeSet::new();
-    for text in texts {
-        tokens.extend(text.split(|c: char| !(c.is_ascii_alphanumeric() || c == '_')));
-    }
     let found: BTreeSet<(String, Ty)> = ctx
         .locals
         .values()
-        .filter(|(n, _)| tokens.contains(n.as_str()) && !bound.contains(n))
+        .filter(|(n, _)| !bound.contains(n) && texts.iter().any(|t| mentions_word(t, n)))
         .cloned()
         .collect();
     found.into_iter().collect()
+}
+
+/// Whether a character continues a LexLean word.
+fn word_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
+}
+
+/// Whether `text` holds `word` as a whole word: an occurrence that no word
+/// character continues on either side.
+fn mentions_word(text: &str, word: &str) -> bool {
+    !word.is_empty()
+        && word.chars().all(word_char)
+        && text.contains(word)
+        && apart(&text.split(word).collect::<Vec<&str>>())
+}
+
+/// Whether two consecutive pieces of a split meet where neither continues
+/// a word: the separator between them stands alone.
+fn apart(pieces: &[&str]) -> bool {
+    pieces
+        .iter()
+        .zip(pieces.iter().skip(1))
+        .any(|(before, after)| {
+            !before.chars().last().is_some_and(word_char)
+                && !after.chars().next().is_some_and(word_char)
+        })
 }
 
 /// The recursive call of a walk, given the values it threads.
@@ -6785,12 +6817,17 @@ fn scan_exprs(exprs: &[&rs::RustExpr]) -> (BTreeSet<String>, BTreeSet<String>) {
 /// The locals a loop body updates that are bound before the loop.
 fn loop_state(body: &[rs::Stmt], ctx: &Ctx) -> Lift<Vec<String>> {
     let (updated, declared) = scan_stmts(body);
-    if updated.iter().any(|u| declared.contains(u)) {
+    // A local the body declares and updates is the body's own, unless it
+    // shadows one bound before the loop.
+    if updated
+        .iter()
+        .any(|u| declared.contains(u) && ctx.locals.contains_key(u))
+    {
         return Err(Residue::Form("a loop that shadows its state".to_string()));
     }
     let state: Vec<String> = updated
         .into_iter()
-        .filter(|u| ctx.locals.contains_key(u))
+        .filter(|u| ctx.locals.contains_key(u) && !declared.contains(u))
         .collect();
     // A loop of the function's own statements that updates nothing may
     // still leave it: a walk whose state is `()`.
