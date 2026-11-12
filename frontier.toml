@@ -359,42 +359,6 @@ reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
 
 [[residue]]
-kappa = "0aa9b2ea544a1e849599b78709c17b1c0cb52104a69df3e7aac200bc0fdfbda3"
-function = "uorust::lift::Types::new"
-reason = "type"
-detail = "type outside the lift: Types"
-
-[[residue]]
-kappa = "cbe30114b7921677e5d8f5eb5468566ccf1efb331eb748d5aee828f785bac773"
-function = "uorust::lift::Types::resolve"
-reason = "type"
-detail = "type outside the lift: Types"
-
-[[residue]]
-kappa = "ccf3636d6f13840804b80535c26449d9a62e0a8bb1db0f45263adf917242753c"
-function = "uorust::lift::Types::signature"
-reason = "type"
-detail = "type outside the lift: Types"
-
-[[residue]]
-kappa = "39e358788a0f3a51a89c7ed638795f13cbc3477120a82da639ec47c18b7be13b"
-function = "uorust::lift::Types::ty"
-reason = "type"
-detail = "type outside the lift: Types"
-
-[[residue]]
-kappa = "2e9e7b31635b7e09eaeb7d2111ae9a9d048c278a8927c7ec4774cbf7268485ce"
-function = "uorust::lift::Types::ty_in"
-reason = "type"
-detail = "type outside the lift: Types"
-
-[[residue]]
-kappa = "1c503d4ff2b5982b9a861bfac1c33c9682e4c293172992bbf4b4df8bcd2d32c7"
-function = "uorust::lift::Types::with_data"
-reason = "type"
-detail = "type outside the lift: Types"
-
-[[residue]]
 kappa = "7b3c1d02716c7c71fb4a0d151dcb8105b36f0072605304f4153ee2b9e0034b9b"
 function = "uorust::lift::ascii_byte"
 reason = "form"
@@ -421,8 +385,8 @@ detail = "type outside the lift: Ctx<'_>"
 [[residue]]
 kappa = "cffc788e64c41a64ec8ca228c26236621734d39190d6193aa94927686b35f612"
 function = "uorust::lift::constructors"
-reason = "type"
-detail = "type outside the lift: Types"
+reason = "form"
+detail = "expression form outside the lift: match pattern"
 
 [[residue]]
 kappa = "86ea7e45ce317a1d749e0f4fa570ada84900559e2c0bcac98cf4c3bf73c95897"
@@ -439,14 +403,14 @@ detail = "signature outside the lift: generic, async, unsafe or variadic"
 [[residue]]
 kappa = "4f486010fccebff96796201767699530f88202ccaf275ff5f59c6ab625fb03d2"
 function = "uorust::lift::default_in"
-reason = "type"
-detail = "type outside the lift: Types"
+reason = "form"
+detail = "expression form outside the lift: format! hole"
 
 [[residue]]
 kappa = "de32640f6c74bdb60cf07268365ab0028b0bd28c04d019e2de3fc45f39b2114a"
 function = "uorust::lift::default_of"
-reason = "type"
-detail = "type outside the lift: Types"
+reason = "call"
+detail = "calls default_in, which is not lifted"
 
 [[residue]]
 kappa = "86bebca43ea9704a9f592c0ff1e8e797e63b86c62545b814ae04ed557ee4e1e3"
@@ -535,8 +499,8 @@ detail = "expression form outside the lift: an iterator adapter given a function
 [[residue]]
 kappa = "de2ca02eeaa740e42da48aa79a532dd978a33811a219054f4428d3c5c75563e0"
 function = "uorust::lift::types_has_data"
-reason = "type"
-detail = "type outside the lift: Types"
+reason = "form"
+detail = "expression form outside the lift: matches! with a guard"
 
 [[residue]]
 kappa = "8616c882c327f89614131a2e8e074a3d8374360c3cf0497b05eda1be79f894b7"
@@ -571,8 +535,8 @@ detail = "type outside the lift: register::Register"
 [[residue]]
 kappa = "fb4b5731ff303fd10e0f9871358f7305c5c8d2044aa42a0da3760e00e64ff66d"
 function = "uorust::project::Model::all_fns"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: expr::range"
 
 [[residue]]
 kappa = "b89259491998469fe6111037c2752847ad8ce7d789e5c6e648d233c16c6eaa51"
@@ -595,8 +559,8 @@ detail = "type outside the lift: &mut Notes"
 [[residue]]
 kappa = "816815f493f8b5ca37ceb9e08e14f7934e91d27064af02c0d373ef033a89ba91"
 function = "uorust::project::advisory_threats"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: let of another type"
 
 [[residue]]
 kappa = "d7987dd90e4469035751f7701ea6a86dc5ba9602f986eb318621404c56dbe34f"
@@ -607,17 +571,17 @@ detail = "type outside the lift: Module"
 [[residue]]
 kappa = "35fdc8d0565e486a2bc909c23c160080f9d449ec40e7163106a4b3674c8e8b6a"
 function = "uorust::project::audience"
-reason = "type"
-detail = "type outside the lift: Named"
+reason = "form"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "52f13a9d0e38b313ff9492860b42e68cbde5899dedbdc91119bc5a6fdba4b35a"
 function = "uorust::project::audience_index"
 reason = "call"
-detail = "calls audience, which is not lifted"
+detail = "calls indexed, which is not lifted"
 
 [[residue]]
-kappa = "ef4e607359efe71b5135dacd9afc0d5ca9f4db6823106419b4dbc2a3067d0010"
+kappa = "10458e3db919465ffbc7367d3c050341d427d58197902b4eda0101071239fcfa"
 function = "uorust::project::behavior"
 reason = "type"
 detail = "type outside the lift: Syntax"
@@ -751,8 +715,8 @@ detail = "type outside the lift: Module"
 [[residue]]
 kappa = "cc405c12c08ff52e4bfea0287c60506327826c7a0661f4c784bbfcf3b8064513"
 function = "uorust::project::threats"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: let pattern"
 
 [[residue]]
 kappa = "4a380bdd5537319dedc460ff371014e268421b0a7c384c3a4dd75772bbc73499"
@@ -764,7 +728,7 @@ detail = "integer operator + wraps or panics depending on the build profile"
 kappa = "37bedbf025fb620c0035c71090104619b8122284fdf8853d0d0f64066aee8832"
 function = "uorust::project::type_decls"
 reason = "type"
-detail = "type outside the lift: Types"
+detail = "type outside the lift: &mut BTreeSet<Ty>"
 
 [[residue]]
 kappa = "c50385c9db11d3220f374e5c16493327815285109d418db96c073cbe87e28479"
@@ -829,8 +793,8 @@ detail = "expression form outside the lift: method call .div_euclid"
 [[residue]]
 kappa = "144be536cd1b2e3e2af8c52d3ee25bd06ceeedf5752a471e096ebd94ecc76aa6"
 function = "xtask::audit::effective_lines"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: method call .matches"
 
 [[residue]]
 kappa = "62aa38b0a165fc315905b35a949d8478ae50eb7150319d6c153bf44ee73d728c"
@@ -932,6 +896,11 @@ function = "uorust::ingest::effect_of"
 detail = "takes or returns syn::Block, a type of the syn crate with no LexLean model"
 
 [[foreign]]
+kappa = "b22ead5099434e94ac64c2b88e8ef5412c8c9022f4cae4ecf2ed0bf5ba04662e"
+function = "uorust::ingest::expand_aliases"
+detail = "takes or returns &mut syn::Type, a type of the syn crate with no LexLean model"
+
+[[foreign]]
 kappa = "940cd5b1b219c7dbe74e2ab162302956800b7d11433251ba6973e9f8c7b2090a"
 function = "uorust::ingest::function"
 detail = "takes or returns syn::Signature, a type of the syn crate with no LexLean model"
@@ -942,7 +911,7 @@ function = "uorust::ingest::ignores"
 detail = "takes or returns toml::Value, a type of the toml crate with no LexLean model"
 
 [[foreign]]
-kappa = "62f602f4710a2201fd4e04de61351396fb619e0ab4a39f83096ab92ba3f06341"
+kappa = "387629a7a751a49c75245ea9c9249ec8ef46aa53d4f239c0657afd0e2aff6747"
 function = "uorust::ingest::items"
 detail = "takes or returns syn::Item, a type of the syn crate with no LexLean model"
 
@@ -955,6 +924,31 @@ detail = "takes or returns toml::Value, a type of the toml crate with no LexLean
 kappa = "08fea8f26c90330566f20b3aec8bfdcc2743f611fa935d3511f9eba5dff03f99"
 function = "uorust::ingest::use_paths"
 detail = "takes or returns syn::UseTree, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "0aa9b2ea544a1e849599b78709c17b1c0cb52104a69df3e7aac200bc0fdfbda3"
+function = "uorust::lift::Types::new"
+detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "ccf3636d6f13840804b80535c26449d9a62e0a8bb1db0f45263adf917242753c"
+function = "uorust::lift::Types::signature"
+detail = "takes or returns syn::Signature, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "39e358788a0f3a51a89c7ed638795f13cbc3477120a82da639ec47c18b7be13b"
+function = "uorust::lift::Types::ty"
+detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "2e9e7b31635b7e09eaeb7d2111ae9a9d048c278a8927c7ec4774cbf7268485ce"
+function = "uorust::lift::Types::ty_in"
+detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "1c503d4ff2b5982b9a861bfac1c33c9682e4c293172992bbf4b4df8bcd2d32c7"
+function = "uorust::lift::Types::with_data"
+detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
 
 [[foreign]]
 kappa = "dc997f359bbae4dd532d4859928090790a5dc8627910453c008b6ead596aae9f"
@@ -977,12 +971,12 @@ function = "uorust::lift::binder"
 detail = "takes or returns syn::Pat, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "d646fcb731a721bd95239f52452eefcabe1c6ee5d687a47e53a61125add909bb"
+kappa = "0bc9dc6dbfa8bf9c83aa8b94a7c077cf86cde754ae550dbba32c77cc8775f114"
 function = "uorust::lift::block"
 detail = "takes or returns syn::Stmt, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "965fe22b97ae16a10af2e670f1124adcb79ed0eb0db12986dea3b9bf4d7121ec"
+kappa = "d3e84be82c629a21b5f2a5a34046405a00e0669027865dde8b3cedaf61ec710c"
 function = "uorust::lift::call"
 detail = "takes or returns syn::ExprCall, a type of the syn crate with no LexLean model"
 
@@ -1047,6 +1041,11 @@ function = "uorust::lift::int_literal"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
 [[foreign]]
+kappa = "749e9e11adbbd3691bbbeb554e0fe09b9d61b63af93656207fdd0e3ba85d5adc"
+function = "uorust::lift::is_empty_vec"
+detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
+
+[[foreign]]
 kappa = "558c797b542c27123b24410c8bf96f628714dc4d91042ef64dadcfe5fed6da1d"
 function = "uorust::lift::is_literal"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
@@ -1105,6 +1104,11 @@ detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean mo
 kappa = "aa0ed7fb937a99759ebd4d78e55c46d3fec41d8ff57e78e26d0ad2ea0a91ad1c"
 function = "uorust::lift::returned"
 detail = "takes or returns syn::Block, a type of the syn crate with no LexLean model"
+
+[[foreign]]
+kappa = "c3448c1ac0fb944ed1168c3bc1171f100095e1dce039c9cf930b212a86589596"
+function = "uorust::lift::returned_type"
+detail = "takes or returns syn::Stmt, a type of the syn crate with no LexLean model"
 
 [[foreign]]
 kappa = "fd2889865b8cff7a1f58f244caf6c2c11d0997c28085a7b1450a922f0d4d6a29"
@@ -1450,6 +1454,11 @@ definition = "Behavior::residueCode"
 kappa = "a1f25f555f574a4b7d3f2908381f9366bfd94852825493a22f7133a446c985f9"
 function = "uorust::lift::Residue::detail"
 definition = "Behavior::residueDetail"
+
+[[lifted]]
+kappa = "cbe30114b7921677e5d8f5eb5468566ccf1efb331eb748d5aee828f785bac773"
+function = "uorust::lift::Types::resolve"
+definition = "Behavior::typesResolve"
 
 [[lifted]]
 kappa = "0597311d641125a2e844618970045d61b8f2aed8b2ecb1bf9e67caa875e2ae93"

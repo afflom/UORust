@@ -1752,6 +1752,10 @@ fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)>
         ([s, n], [], Some(t @ Ty::List(inner))) if s == "Vec" && n == "new" => {
             return flat(format!("(nil {})", inner.render()), t.clone());
         }
+        // A capacity is a hint to the allocator: the value is the empty list.
+        ([s, n], [_], Some(t @ Ty::List(inner))) if s == "Vec" && n == "with_capacity" => {
+            return flat(format!("(nil {})", inner.render()), t.clone());
+        }
         ([s, n], [a], _) if s == "String" && n == "from" => {
             let (v, vt) = flat_of(a, ctx, Some(&Ty::Str))?;
             if vt == Ty::Str {
@@ -4670,7 +4674,16 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
                 }
                 return question(&t.expr, &ident.ident.to_string(), declared, rest, ctx, want);
             }
-            let (value, vt) = flat_of(&init.expr, &ctx.below(), declared.as_ref())?;
+            // An empty vector the block goes on to return takes the type the
+            // block returns.
+            let hint = match &declared {
+                Some(d) => Some(d.clone()),
+                None if is_empty_vec(&init.expr) => {
+                    returned_type(&ident.ident.to_string(), rest, ctx, want)
+                }
+                None => None,
+            };
+            let (value, vt) = flat_of(&init.expr, &ctx.below(), hint.as_ref())?;
             if declared.as_ref().is_some_and(|d| !d.same(&vt)) {
                 return Break(Residue::Form("let of another type".to_string()));
             }
@@ -4688,6 +4701,69 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
         }
         _ => Break(Residue::Statements),
     }
+}
+
+/// `Vec::new()` or `Vec::with_capacity(n)`: a vector whose element type the
+/// expression does not say.
+fn is_empty_vec(e: &syn::Expr) -> bool {
+    let syn::Expr::Call(c) = e else {
+        return false;
+    };
+    let syn::Expr::Path(p) = &*c.func else {
+        return false;
+    };
+    let names: Vec<String> = p
+        .path
+        .segments
+        .iter()
+        .map(|s| s.ident.to_string())
+        .collect();
+    matches!(
+        (
+            names
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>()
+                .as_slice(),
+            c.args.len()
+        ),
+        (["Vec", "new"], 0) | (["Vec", "with_capacity"], 1)
+    )
+}
+
+/// The type a local takes from where the block returns it: the block's own
+/// type when its last statement is the local, or the function's result when
+/// a `return` of the local appears.
+fn returned_type(ident: &str, rest: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Option<Ty> {
+    let is_local = |e: &syn::Expr| matches!(e, syn::Expr::Path(p) if p.path.is_ident(ident));
+    if let Some(syn::Stmt::Expr(e, None)) = rest.last() {
+        if is_local(e) {
+            return want.cloned();
+        }
+    }
+    struct Returns<'i> {
+        ident: &'i str,
+        found: bool,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for Returns<'_> {
+        fn visit_expr_return(&mut self, r: &'ast syn::ExprReturn) {
+            if let Some(e) = &r.expr {
+                if matches!(&**e, syn::Expr::Path(p) if p.path.is_ident(self.ident)) {
+                    self.found = true;
+                }
+            }
+            syn::visit::visit_expr_return(self, r);
+        }
+        fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
+    }
+    let mut returns = Returns {
+        ident,
+        found: false,
+    };
+    for stmt in rest {
+        syn::visit::Visit::visit_stmt(&mut returns, stmt);
+    }
+    returns.found.then(|| ctx.result.clone())
 }
 
 /// `let x = e?; rest`: a match that returns the failure and continues with
@@ -5381,6 +5457,22 @@ mod tests {
         )
         .expect("lifts");
         assert!(out.contains("Option.some tried"), "{out}");
+    }
+
+    #[test]
+    fn an_empty_vector_takes_the_type_the_block_returns() {
+        let out = lift(
+            "fn f(xs: &[u32]) -> Vec<u32> { let mut out = Vec::new(); for x in xs { out.push(*x); } out }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(out.contains("(nil Nat)"), "{out}");
+        let early = lift(
+            "fn g(n: u32) -> Vec<u32> { let out = Vec::with_capacity(4); if n > 2 { return out; } out }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(early.contains("(nil Nat)"), "{early}");
     }
 
     #[test]

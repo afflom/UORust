@@ -911,6 +911,9 @@ fn items(
                     );
                 }
             }
+            syn::Item::Type(t) if !in_test && t.generics.params.is_empty() => {
+                syntax.aliases.push((t.ident.to_string(), (*t.ty).clone()));
+            }
             syn::Item::Const(c) if !in_test && product && c.generics.params.is_empty() => {
                 let value = &*c.expr;
                 syntax.consts.push((
@@ -1238,4 +1241,35 @@ fn effect_of(block: &syn::Block) -> Option<(Capability, String)> {
     let mut scan = Scan(None);
     scan.visit_block(block);
     scan.0
+}
+
+/// `ty` with every type alias of `aliases` it names replaced by what the
+/// alias stands for, to a bounded depth (an alias may name another).
+pub(crate) fn expand_aliases(ty: &mut syn::Type, aliases: &BTreeMap<String, syn::Type>) {
+    struct Expand<'a> {
+        aliases: &'a BTreeMap<String, syn::Type>,
+        depth: usize,
+    }
+    impl syn::visit_mut::VisitMut for Expand<'_> {
+        fn visit_type_mut(&mut self, ty: &mut syn::Type) {
+            if let syn::Type::Path(p) = ty {
+                if p.qself.is_none()
+                    && p.path.segments.len() == 1
+                    && p.path.segments[0].arguments.is_none()
+                {
+                    if let Some(to) = self.aliases.get(&p.path.segments[0].ident.to_string()) {
+                        if self.depth < 8 {
+                            *ty = to.clone();
+                            self.depth += 1;
+                            self.visit_type_mut(ty);
+                            self.depth -= 1;
+                            return;
+                        }
+                    }
+                }
+            }
+            syn::visit_mut::visit_type_mut(self, ty);
+        }
+    }
+    syn::visit_mut::VisitMut::visit_type_mut(&mut Expand { aliases, depth: 0 }, ty);
 }

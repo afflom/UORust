@@ -2884,7 +2884,24 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     // name within each crate; a name a crate declares twice is refused. A
     // name two crates share lifts qualified by each crate's name.
     let mut scoped: Vec<(Variants, Fields, Datas)> = Vec::new();
-    for package in &ws.packages {
+    // Each crate's type aliases, which its types and signatures are read through.
+    let type_aliases: Vec<BTreeMap<String, syn::Type>> = ws
+        .packages
+        .iter()
+        .map(|package| {
+            package
+                .files
+                .iter()
+                .flat_map(|file| syntax.files[&file.rel].aliases.iter().cloned())
+                .collect()
+        })
+        .collect();
+    let expanded = |pkg: usize, ty: &syn::Type| {
+        let mut ty = ty.clone();
+        crate::ingest::expand_aliases(&mut ty, &type_aliases[pkg]);
+        ty
+    };
+    for (pkg, package) in ws.packages.iter().enumerate() {
         let mut enums: BTreeMap<String, Vec<String>> = BTreeMap::new();
         let mut datas: Datas = BTreeMap::new();
         let mut raw_structs: BTreeMap<String, Vec<(String, syn::Type)>> = BTreeMap::new();
@@ -2913,7 +2930,20 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                         });
                         continue;
                     }
-                    datas.insert(e.name.clone(), payload.clone());
+                    datas.insert(
+                        e.name.clone(),
+                        payload
+                            .iter()
+                            .map(|(v, fs)| {
+                                (
+                                    v.clone(),
+                                    fs.iter()
+                                        .map(|(n, t)| (n.clone(), expanded(pkg, t)))
+                                        .collect(),
+                                )
+                            })
+                            .collect(),
+                    );
                     continue;
                 }
                 if enums.contains_key(&e.name) || datas.contains_key(&e.name) {
@@ -2949,7 +2979,13 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     });
                     continue;
                 }
-                raw_structs.insert(st.name.clone(), fields.clone());
+                raw_structs.insert(
+                    st.name.clone(),
+                    fields
+                        .iter()
+                        .map(|(n, t)| (n.clone(), expanded(pkg, t)))
+                        .collect(),
+                );
             }
         }
         for name in &clashing {
@@ -3097,7 +3133,16 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             }
         };
         let fn_syntax = syntax.function(&ctx.file(r).rel, r.idx);
-        let sig = &fn_syntax.signature;
+        let mut sig = fn_syntax.signature.clone();
+        for input in &mut sig.inputs {
+            if let syn::FnArg::Typed(t) = input {
+                *t.ty = expanded(r.pkg, &t.ty);
+            }
+        }
+        if let syn::ReturnType::Type(_, t) = &mut sig.output {
+            **t = expanded(r.pkg, t);
+        }
+        let sig = &sig;
         let Some(block) = &fn_syntax.block else {
             continue;
         };
