@@ -117,6 +117,9 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterNoneTaken is made
     And the interface call Interface::callThermoCoreRosterAllBooked is made
     And the interface call Interface::callThermoCoreRosterRosterChecks is made
+    And the interface call Interface::callThermoCoreRosterFiledName is made
+    And the interface call Interface::callThermoCoreRosterSameFile is made
+    And the interface call Interface::callThermoCoreRosterCutName is made
     And the interface call Interface::callThermoCoreRosterStartsUnnamed is made
     And the interface call Interface::callThermoCoreRosterMarkedRooms is made
     And the interface call Interface::callThermoCoreRosterDoubledRoom is made

@@ -763,6 +763,30 @@ fn no_lifted_kappa_turns_unlifted_ue_16() {
                 assert!(row.get(field).is_some(), "{name}: untyped residue {row}");
             }
         }
+        // A divergence is a lifted row's alone, and it says where the
+        // definition parts from the Rust function; the register keeps it.
+        for table in ["residue", "foreign", "effect"] {
+            for row in rows(table) {
+                assert!(row.get("divergence").is_none(), "{name}: {row}");
+            }
+        }
+        for row in rows("lifted") {
+            if let Some(divergence) = row.get("divergence") {
+                assert!(
+                    divergence.as_str().is_some_and(|d| !d.trim().is_empty()),
+                    "{name}: an empty divergence {row}"
+                );
+                let function = row.get("function").and_then(|v| v.as_str());
+                assert!(
+                    candidate
+                        .rows
+                        .values()
+                        .any(|r| Some(r.function.as_str()) == function
+                            && r.divergence.as_deref() == divergence.as_str()),
+                    "{name}: the register drops the divergence of {row}"
+                );
+            }
+        }
         for row in &rows("foreign") {
             let detail = row
                 .get("detail")

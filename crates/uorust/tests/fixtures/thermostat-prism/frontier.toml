@@ -6,7 +6,8 @@
 # the security facet records each effect as a capability of its crate.
 # A foreign row is a function whose parameter or result is a type of a registry
 # dependency (syn, toml, serde_json, ...) that has no LexLean model.
-# A lifted row names the definition a function lifted to. Every function of
+# A lifted row names the definition a function lifted to and, where that
+# definition parts from the Rust function, its divergence. Every function of
 # product code has exactly one residue, foreign, effect or lifted row, keyed
 # by the κ of its question (crate path and tokens): a lifted κ never turns
 # unlifted in a later projection.
@@ -343,6 +344,12 @@ span = "thermo-core/src/roster.rs:141"
 definition = "Behavior::coldNames"
 
 [[lifted]]
+kappa = "30e4e94f70dd48d66526750ea15273e794e469ed6091a687d771adf23e5df50c"
+function = "thermo_core::roster::cut_name"
+span = "thermo-core/src/roster.rs:578"
+definition = "Behavior::cutName"
+
+[[lifted]]
 kappa = "2e7f20d7f68fc1246a730f019d20a5e2107c5bcc23146e903227f29754d44962"
 function = "thermo_core::roster::digit_count"
 span = "thermo-core/src/roster.rs:251"
@@ -357,8 +364,15 @@ definition = "Behavior::divider"
 [[lifted]]
 kappa = "ab4c9669b562df89942d03cd27dad4446eaca34863fb3103711ad5161ec56873"
 function = "thermo_core::roster::doubled_room"
-span = "thermo-core/src/roster.rs:592"
+span = "thermo-core/src/roster.rs:612"
 definition = "Behavior::doubledRoom"
+
+[[lifted]]
+kappa = "96740a304f47f24d3a1d64bc972fc4c63ffffc9f93046531184b71300f7d1295"
+function = "thermo_core::roster::filed_name"
+span = "thermo-core/src/roster.rs:567"
+definition = "Behavior::filedName"
+divergence = "to_lowercase lowers every letter the Unicode case table maps; the lift lowers the ASCII letters only, since no Unicode case table is bound in LexLean or the SDK, so the two differ on text holding a non-ASCII letter that has a lowercase form"
 
 [[lifted]]
 kappa = "15925333000ebc0d891045be0311f64107cc76625b42e69b7dfe26b951945df5"
@@ -423,7 +437,7 @@ definition = "Behavior::lineTarget"
 [[lifted]]
 kappa = "188f53acc21fb5d4168ba253ac8565704b304c87e1c7a9b7a782477ebcba922f"
 function = "thermo_core::roster::marked_rooms"
-span = "thermo-core/src/roster.rs:576"
+span = "thermo-core/src/roster.rs:596"
 definition = "Behavior::markedRooms"
 
 [[lifted]]
@@ -483,7 +497,7 @@ definition = "Behavior::positions"
 [[lifted]]
 kappa = "4dbb45cf3cb4c97f32ac8827d299806d6f181cb1e56aa51f95cf7b3d8ef70b0c"
 function = "thermo_core::roster::queue"
-span = "thermo-core/src/roster.rs:601"
+span = "thermo-core/src/roster.rs:621"
 definition = "Behavior::queue"
 
 [[lifted]]
@@ -529,9 +543,16 @@ span = "thermo-core/src/roster.rs:556"
 definition = "Behavior::rosterChecks"
 
 [[lifted]]
+kappa = "8c99479f766d5682ead59efe64c7d31b56c799db4c922f27f5e1d6588786a8bc"
+function = "thermo_core::roster::same_file"
+span = "thermo-core/src/roster.rs:572"
+definition = "Behavior::sameFile"
+divergence = "to_lowercase lowers every letter the Unicode case table maps; the lift lowers the ASCII letters only, since no Unicode case table is bound in LexLean or the SDK, so the two differ on text holding a non-ASCII letter that has a lowercase form"
+
+[[lifted]]
 kappa = "4dffd1e264a839be4658d65b554ab62750bf4149b63d7db1be5bad0e18299f99"
 function = "thermo_core::roster::same_zone"
-span = "thermo-core/src/roster.rs:615"
+span = "thermo-core/src/roster.rs:635"
 definition = "Behavior::sameZone"
 
 [[lifted]]
@@ -567,7 +588,7 @@ definition = "Behavior::secondLast"
 [[lifted]]
 kappa = "27e5ca15be5aef72c7be4febc5121f6fb71bbb519c4b7dbdd8aae86dc72a789f"
 function = "thermo_core::roster::set_point"
-span = "thermo-core/src/roster.rs:620"
+span = "thermo-core/src/roster.rs:640"
 definition = "Behavior::setPoint"
 
 [[lifted]]
@@ -585,7 +606,7 @@ definition = "Behavior::slots"
 [[lifted]]
 kappa = "9bf42f3a9461665c2ecc69c7bc420674e05f0ec91f0dbb113977341adda5fe44"
 function = "thermo_core::roster::sorts_before"
-span = "thermo-core/src/roster.rs:610"
+span = "thermo-core/src/roster.rs:630"
 definition = "Behavior::sortsBefore"
 
 [[lifted]]
@@ -597,7 +618,7 @@ definition = "Behavior::spelled"
 [[lifted]]
 kappa = "ad832bef08e869adf153cb6bbd28fe314341c16cda507d4ab46e3cb02706b183"
 function = "thermo_core::roster::starts_unnamed"
-span = "thermo-core/src/roster.rs:567"
+span = "thermo-core/src/roster.rs:587"
 definition = "Behavior::startsUnnamed"
 
 [[lifted]]

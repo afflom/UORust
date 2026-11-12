@@ -2409,6 +2409,20 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
             flat(format!("({l} {op} {r})"), Ty::Bool, acc)
         }
         B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge => comparison(b, env, ctx, acc),
+        // `s + t` of a `String` and a `&str`: the two joined.
+        B::Add if text_operand(&b.left, env, ctx, &acc) => {
+            let ((l, _), acc) = flat_of(&b.left, env, ctx, acc, Some(&Ty::Str))?;
+            let ((r, rt), acc) = flat_of(&b.right, env, ctx, acc, Some(&Ty::Str))?;
+            if rt != Ty::Str {
+                return Err(Residue::Form("+ of a string and another type".to_string()));
+            }
+            let acc = acc.axiom("propext");
+            flat(
+                format!("(prim join (cons {l} (cons {r} (nil String))) \"\" : String)"),
+                Ty::Str,
+                acc,
+            )
+        }
         B::Add => {
             let want = Ty::Nat(None);
             let ((l, lt), acc) = flat_of(&b.left, env, ctx, acc, Some(&want))?;
@@ -2458,6 +2472,14 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
         }
         _ => Err(Residue::Arithmetic(op_text())),
     }
+}
+
+/// Whether an operand lifts to text: the left side of a `String` `+`.
+fn text_operand(e: &rs::RustExpr, env: &Env, ctx: &Ctx, acc: &Acc) -> bool {
+    matches!(
+        flat_of(e, env, ctx, acc.clone(), None),
+        Ok(((_, Ty::Str), _))
+    )
 }
 
 /// Equality of two values of a unit-variant enum, through the enum's own
@@ -3054,6 +3076,13 @@ fn text_method(
             let (s, acc) = acc.prelude("textAsciiLower", &[r]);
             flat(s, rt.clone(), acc)
         }
+        // No Unicode case table is bound in LexLean or the SDK: the ASCII
+        // letters lower as Rust lowers them, and the definition records
+        // that it diverges on the others.
+        ("to_lowercase", []) => {
+            let (s, acc) = acc.prelude("textAsciiLower", &[r]);
+            flat(s, rt.clone(), acc.axiom(&format!("{DIVERGES}{LOWERCASE}")))
+        }
         ("to_ascii_uppercase", []) => {
             let (s, acc) = acc.prelude("textAsciiUpper", &[r]);
             flat(s, rt.clone(), acc)
@@ -3131,6 +3160,16 @@ fn text_method(
         _ => Ok((None, acc)),
     }
 }
+
+/// The mark of a divergence among a definition's axioms: what follows it
+/// says where the definition and the Rust function part, and it leaves the
+/// axioms for the register row.
+pub(crate) const DIVERGES: &str = "#diverges ";
+
+/// Where a lifted `to_lowercase` parts from Rust's.
+pub(crate) const LOWERCASE: &str = "to_lowercase lowers every letter the Unicode case table maps; \
+     the lift lowers the ASCII letters only, since no Unicode case table is bound in LexLean or \
+     the SDK, so the two differ on text holding a non-ASCII letter that has a lowercase form";
 
 /// The axioms of the runtime's string length and decimal formatting.
 const ALL_AXIOMS: [&str; 3] = ["Classical.choice", "Quot.sound", "propext"];
@@ -4642,7 +4681,8 @@ fn combinator(
                 Some([rs::GenericArgument::Type(t)]) if t.text == "String"
             );
             if to_string {
-                if *elem != Ty::Str {
+                // A `char` is held as the one-character string it is.
+                if !matches!(elem, Ty::Str | Ty::Char) {
                     return Err(Residue::Form("collect of non-strings into a String".into()));
                 }
                 let acc = acc.axiom("propext");
@@ -7677,6 +7717,9 @@ pub(crate) struct Lifted {
     pub(crate) opaque: BTreeSet<String>,
     /// The types whose derived order the lifted definitions compare by.
     pub(crate) ordered: BTreeSet<Ty>,
+    /// Rust name -> where its definition parts from the Rust function, its
+    /// own and its callees'.
+    pub(crate) divergences: BTreeMap<String, Vec<String>>,
 }
 
 /// The primitives whose Lean definitions the kernel does not unfold.
@@ -7900,12 +7943,26 @@ pub(crate) fn lift_all(
                     axioms.insert(m.clone(), all.iter().cloned().collect());
                 }
             }
+            // A divergence is the register's, not Lean's: it leaves the
+            // axioms, and a definition diverges where a callee does.
+            let mut divergences: BTreeMap<String, Vec<String>> = BTreeMap::new();
+            for (key, all) in &mut axioms {
+                let parted: Vec<String> = all
+                    .iter()
+                    .filter_map(|a| a.strip_prefix(DIVERGES).map(String::from))
+                    .collect();
+                all.retain(|a| !a.starts_with(DIVERGES));
+                if !parted.is_empty() {
+                    divergences.insert(key.clone(), parted);
+                }
+            }
             for (key, d) in &mut decls {
                 if let Decl::Definition { axioms: a, .. } = d {
                     a.clone_from(&axioms[key.as_str()]);
                 }
             }
             axioms.retain(|key, _| !key.starts_with('#'));
+            divergences.retain(|key, _| !key.starts_with('#'));
             let opaque_prelude = prelude_opaque();
             let mut opaque: BTreeSet<String> = decls
                 .iter()
@@ -7973,6 +8030,7 @@ pub(crate) fn lift_all(
                 axioms,
                 opaque,
                 ordered: compares.into_values().flatten().collect(),
+                divergences,
             };
         }
     }
@@ -8548,13 +8606,15 @@ mod tests {
         )
         .expect("lifts");
         assert!(out.contains("(Prelude::textFirst text \"=\")"), "{out}");
-        assert_eq!(
-            lift(
-                "fn t(text: &str) -> String { text.to_lowercase() }",
-                &plain()
-            ),
-            Err(Residue::Form("method call .to_lowercase".to_string()))
-        );
+        // `to_lowercase` lifts to the ASCII lowering, and its row records
+        // the divergence rather than an axiom.
+        let out = lift(
+            "fn t(text: &str) -> String { text.to_lowercase() }",
+            &plain(),
+        )
+        .expect("lifts");
+        assert!(out.contains("(Prelude::textAsciiLower text)"), "{out}");
+        assert!(!out.contains(DIVERGES), "{out}");
     }
 
     #[test]

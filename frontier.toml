@@ -383,7 +383,7 @@ reason = "form"
 detail = "expression form outside the lift: expr::return"
 
 [[residue]]
-kappa = "fdbe9b87f08eee9e0c81669e514583d205e450e5e35058c5a0cc0339df30171b"
+kappa = "af19563de0f0ea6905f5d0937dff90d71755d3ca68c01adf18f0439b3f3fc123"
 function = "uorust::lift::binary"
 reason = "statements"
 detail = "the body has statements other than let"
@@ -437,7 +437,7 @@ reason = "form"
 detail = "expression form outside the lift: free name cons"
 
 [[residue]]
-kappa = "4bf9f7d0566f28fa0737e141836e8c064cef44c5d8c380b709ef557c6bba996f"
+kappa = "02d0fc5203cc2d48f9ccaf62793bed5354417af684594515c2f3edaad7e1288c"
 function = "uorust::lift::combinator"
 reason = "call"
 detail = "calls some, which is not lifted"
@@ -617,7 +617,7 @@ reason = "form"
 detail = "expression form outside the lift: struct Block"
 
 [[residue]]
-kappa = "8bcb1bc626e4c7b3d4c00637cfd3bd3c385d952320384fea32890a24f951181f"
+kappa = "a246b53c44ca8c84a28558a2608bcfa35ca577de04542dabb1cde3e074e3bfaa"
 function = "uorust::lift::lift_all"
 reason = "form"
 detail = "expression form outside the lift: expr::loop"
@@ -833,10 +833,16 @@ reason = "statements"
 detail = "the body has statements other than let"
 
 [[residue]]
-kappa = "d537bbb03dca3f43ce15c51bf8502c10eea201ead0c113abb526ded0520a4472"
+kappa = "96fbd72ac109785322d252557c5aaa867e5087461e1ff055764f20a57716abfb"
 function = "uorust::lift::text_method"
 reason = "form"
 detail = "expression form outside the lift: ? outside a let"
+
+[[residue]]
+kappa = "5834f1e76ab2a5e6aceb504e668b03609c43fd2adf8cc0ab0fe8c0c34c25c548"
+function = "uorust::lift::text_operand"
+reason = "call"
+detail = "calls flat_of, which is not lifted"
 
 [[residue]]
 kappa = "5345d6296812f819d3a2da21ee14f8adb37745d42cf36861434d59879b2af6ad"
@@ -1085,7 +1091,7 @@ reason = "call"
 detail = "calls indexed, which is not lifted"
 
 [[residue]]
-kappa = "fb1dcdfdb94e250c1f5d4e7065532bb1d8b67bf99b79a363b1b244338663f313"
+kappa = "6f37e7d4cfe3d2cf0910b59f8643468b29b3d5505e9f42fa0bf04319c3ebd36f"
 function = "uorust::project::behavior"
 reason = "type"
 detail = "type outside the lift: &mut Notes"
@@ -1217,37 +1223,25 @@ reason = "statements"
 detail = "the body has statements other than let"
 
 [[residue]]
-kappa = "4a380bdd5537319dedc460ff371014e268421b0a7c384c3a4dd75772bbc73499"
-function = "uorust::project::truncate"
-reason = "arithmetic"
-detail = "integer operator - wraps or panics depending on the build profile"
-
-[[residue]]
 kappa = "698a4faa139fd0ffb8bd93a8751c6cceeadfda514348e590738c43d41d55dc8c"
 function = "uorust::project::type_decls"
 reason = "type"
 detail = "type outside the lift: &mut BTreeSet<Ty>"
 
 [[residue]]
-kappa = "c50385c9db11d3220f374e5c16493327815285109d418db96c073cbe87e28479"
+kappa = "2147e90f73458b8a0202ca065a4643d9c705445d4a90edf253ad1369f38be970"
 function = "uorust::register::Register::parse"
 reason = "form"
 detail = "expression form outside the lift: parse into a type outside the lift"
 
 [[residue]]
-kappa = "743018deb9668e04589d042e75ad131aa8d18a7c6169ee072e3d17893f9cf520"
+kappa = "6d19e3a5038cf53a11f78a80a4087e515762fae48c43b677630f5fd865f68808"
 function = "uorust::register::Register::to_text"
 reason = "statements"
 detail = "the body has statements other than let"
 
 [[residue]]
-kappa = "1beac70383f59b717ff6ae1f1c18166f22c16b75ccf443def74b24044f4e494b"
-function = "uorust::register::Register::unlifted"
-reason = "arithmetic"
-detail = "integer operator - wraps or panics depending on the build profile"
-
-[[residue]]
-kappa = "e67e7b64defb62e05a3155c3843dc97a4185e8840dc26890be6e0b9f35a2b5b2"
+kappa = "15db96b5f602a253e0e7cb051d8fecd585c49a1f1c8e7729b2ee853d4df9b817"
 function = "uorust::register::admit"
 reason = "collision"
 detail = "another function of the crate is also named admit"
@@ -1337,28 +1331,10 @@ reason = "type"
 detail = "type outside the lift: Self"
 
 [[residue]]
-kappa = "8f19c5063aee90357f93316cddddd4883fecfd9d02dfd33e95aa9f5134fe1e35"
-function = "xtask::scaffold::Capability::slug"
-reason = "form"
-detail = "expression form outside the lift: method call .to_lowercase"
-
-[[residue]]
-kappa = "8c7cbbe7dd415ab59419adbf4d2e52a4d8bffd0fa5df54960e958cc8d0aad8d8"
-function = "xtask::scaffold::Capability::test_name"
-reason = "form"
-detail = "expression form outside the lift: method call .slug"
-
-[[residue]]
 kappa = "0761a008dd9aa083f6a933802b3cba2d1cbd08640b1e8e119af99498380843d5"
 function = "xtask::scaffold::register_with"
 reason = "form"
 detail = "expression form outside the lift: let of another type"
-
-[[residue]]
-kappa = "c024e53c910ce92670c394aa49c6dd4ae5fc241e3a160b8fdcc6d739f0827405"
-function = "xtask::scaffold::test_case"
-reason = "form"
-detail = "expression form outside the lift: method call .test_name"
 
 [[foreign]]
 kappa = "974a6dc280059cb96102a95a2965014db93bfc3e320118b319d772fae261607f"
@@ -2231,7 +2207,7 @@ function = "uorust::project::effect_phrase"
 definition = "Behavior::effectPhrase"
 
 [[lifted]]
-kappa = "d36eb912c42106f9bd67f2867518cfdbfffeecf4bb11ced9fc05ed44888599de"
+kappa = "c2606f9e5b279533439abf5c64f23ac053c0f02bc2164888792fa6b37c9ae80f"
 function = "uorust::project::frontier"
 definition = "Behavior::frontier"
 
@@ -2276,9 +2252,19 @@ function = "uorust::project::toml_string"
 definition = "Behavior::uorustTomlString"
 
 [[lifted]]
+kappa = "209ab6a13b30c52430f065270fa0e490382db3538f5489599ecaeda3effdd093"
+function = "uorust::project::truncate"
+definition = "Behavior::truncate"
+
+[[lifted]]
 kappa = "411898ac47eb48ea8c880212dbbdfee693a37f2bdb38a4be706393fb1ff5403f"
 function = "uorust::register::Register::lifted"
 definition = "Behavior::registerLifted"
+
+[[lifted]]
+kappa = "097e9874679011ff327157aebf34493d9de8da6c9a789040c97e065edcd234d1"
+function = "uorust::register::Register::unlifted"
+definition = "Behavior::registerUnlifted"
 
 [[lifted]]
 kappa = "2a68d24d9816ed6c03ef16298d7a6c15a9e82940b7e821c4316669d56212ecd9"
@@ -2361,6 +2347,18 @@ function = "xtask::bootstrap::workflow_history_is_complete"
 definition = "Behavior::workflowHistoryIsComplete"
 
 [[lifted]]
+kappa = "8f19c5063aee90357f93316cddddd4883fecfd9d02dfd33e95aa9f5134fe1e35"
+function = "xtask::scaffold::Capability::slug"
+definition = "Behavior::xtaskCapabilitySlug"
+divergence = "to_lowercase lowers every letter the Unicode case table maps; the lift lowers the ASCII letters only, since no Unicode case table is bound in LexLean or the SDK, so the two differ on text holding a non-ASCII letter that has a lowercase form"
+
+[[lifted]]
+kappa = "8c7cbbe7dd415ab59419adbf4d2e52a4d8bffd0fa5df54960e958cc8d0aad8d8"
+function = "xtask::scaffold::Capability::test_name"
+definition = "Behavior::xtaskCapabilityTestName"
+divergence = "to_lowercase lowers every letter the Unicode case table maps; the lift lowers the ASCII letters only, since no Unicode case table is bound in LexLean or the SDK, so the two differ on text holding a non-ASCII letter that has a lowercase form"
+
+[[lifted]]
 kappa = "7984e8055d9d535423a5230f7a717636cb06521807fef8c1d43f1be280f781f4"
 function = "xtask::scaffold::id_is_well_formed"
 definition = "Behavior::idIsWellFormed"
@@ -2374,6 +2372,12 @@ definition = "Behavior::paths"
 kappa = "6aa2a168a39d26adac7a01aa0c64a796d87ab3d993f5b118ee3a99fa89a4a956"
 function = "xtask::scaffold::scenario"
 definition = "Behavior::scenario"
+
+[[lifted]]
+kappa = "c024e53c910ce92670c394aa49c6dd4ae5fc241e3a160b8fdcc6d739f0827405"
+function = "xtask::scaffold::test_case"
+definition = "Behavior::testCase"
+divergence = "to_lowercase lowers every letter the Unicode case table maps; the lift lowers the ASCII letters only, since no Unicode case table is bound in LexLean or the SDK, so the two differ on text holding a non-ASCII letter that has a lowercase form"
 
 [[lifted]]
 kappa = "80c10049fbf368c0cbc2a8fe32353542fe2c8325afea7d274acf00718555468f"

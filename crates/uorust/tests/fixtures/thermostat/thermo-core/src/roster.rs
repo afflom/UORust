@@ -563,6 +563,26 @@ pub fn roster_checks(
     Ok(())
 }
 
+/// A room's name as the roster files it: lowercase.
+pub fn filed_name(name: &str) -> String {
+    name.to_lowercase()
+}
+
+/// Whether two rooms file under one name.
+pub fn same_file(a: &str, b: &str) -> bool {
+    filed_name(a) == filed_name(b)
+}
+
+/// A room's name cut to `limit` characters, the last three of them an
+/// ellipsis where it is cut.
+pub fn cut_name(name: &str, limit: usize) -> String {
+    if name.chars().count() <= limit {
+        name.to_string()
+    } else {
+        name.chars().take(limit.saturating_sub(3)).collect::<String>() + "..."
+    }
+}
+
 /// Whether the roster names no room, or its first room is unnamed.
 pub fn starts_unnamed(rooms: &[String]) -> bool {
     if rooms.first().is_none() {
@@ -767,6 +787,7 @@ mod tests {
         );
         assert_eq!(none_taken(&["den".to_string()], &[]), Ok(()));
         assert!(starts_unnamed(&[]));
+        assert!(same_file("Den", "den"));
         assert_eq!(
             roster_checks(&[], &[], &[None]),
             Err(RosterError::Twice("nobody".to_string()))

@@ -84,8 +84,9 @@ struct Notes {
     /// Functions at the boundary with a foreign crate: a parameter or the
     /// result is a type of a registry dependency that has no LexLean model.
     foreign: BTreeMap<String, (Span, String)>,
-    /// Functions the lift took: the definition each lifted to.
-    lifted: BTreeMap<String, (Span, String)>,
+    /// Functions the lift took: the definition each lifted to, and where it
+    /// parts from the Rust function, if anywhere.
+    lifted: BTreeMap<String, (Span, String, Vec<String>)>,
 }
 
 impl Model {
@@ -2643,7 +2644,13 @@ fn truncate(text: &str, limit: usize) -> String {
     if collapsed.chars().count() <= limit {
         collapsed
     } else {
-        collapsed.chars().take(limit - 3).collect::<String>() + "..."
+        // The ellipsis takes three of the limit; a limit below three keeps
+        // no character of the text, as `saturating_sub` says.
+        collapsed
+            .chars()
+            .take(limit.saturating_sub(3))
+            .collect::<String>()
+            + "..."
     }
 }
 
@@ -3369,7 +3376,11 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             ) {
                 notes.lifted.insert(
                     ctx.path(r),
-                    (ctx.func(r).span.clone(), qualified(BEHAVIOR, &c.name)),
+                    (
+                        ctx.func(r).span.clone(),
+                        qualified(BEHAVIOR, &c.name),
+                        out.divergences.get(&c.rust).cloned().unwrap_or_default(),
+                    ),
                 );
             }
         }
@@ -3877,7 +3888,8 @@ fn frontier(notes: &Notes, kappas: &BTreeMap<String, String>) -> String {
          # the security facet records each effect as a capability of its crate.\n\
          # A foreign row is a function whose parameter or result is a type of a registry\n\
          # dependency (syn, toml, serde_json, ...) that has no LexLean model.\n\
-         # A lifted row names the definition a function lifted to. Every function of\n\
+         # A lifted row names the definition a function lifted to and, where that\n\
+         # definition parts from the Rust function, its divergence. Every function of\n\
          # product code has exactly one residue, foreign, effect or lifted row, keyed\n\
          # by the κ of its question (crate path and tokens): a lifted κ never turns\n\
          # unlifted in a later projection.\n\n\
@@ -3920,7 +3932,7 @@ fn frontier(notes: &Notes, kappas: &BTreeMap<String, String>) -> String {
             toml_string(effect)
         ));
     }
-    for (path, (span, definition)) in &notes.lifted {
+    for (path, (span, definition, divergence)) in &notes.lifted {
         out.push_str(&format!(
             "\n[[lifted]]\n{}function = {}\nspan = {}\ndefinition = {}\n",
             kappa(path),
@@ -3928,6 +3940,12 @@ fn frontier(notes: &Notes, kappas: &BTreeMap<String, String>) -> String {
             toml_string(&span.render()),
             toml_string(definition)
         ));
+        if !divergence.is_empty() {
+            out.push_str(&format!(
+                "divergence = {}\n",
+                toml_string(&divergence.join("; "))
+            ));
+        }
     }
     out
 }

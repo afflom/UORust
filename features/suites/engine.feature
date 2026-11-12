@@ -101,4 +101,4 @@ Feature: engine
   Scenario: A lifted function never turns unlifted
     Given this workspace, the thermostat fixture and their committed lift registers
     When the suite exercises UE-16
-    Then every function of product code counted from the source has exactly one typed row keyed by its κ, no κ a committed register records as lifted is decided otherwise, this workspace's register is current, and a planted function whose callee stops lifting is refused by the register, by uorust write and by uorust check
+    Then every function of product code counted from the source has exactly one typed row keyed by its κ, a divergence appears on lifted rows only and the register keeps it, no κ a committed register records as lifted is decided otherwise, this workspace's register is current, and a planted function whose callee stops lifting is refused by the register, by uorust write and by uorust check

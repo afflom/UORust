@@ -69,6 +69,10 @@ pub struct Row {
     pub function: String,
     /// What the lift decided.
     pub status: Status,
+    /// Where a lifted function's definition parts from the Rust function:
+    /// a cause the lift states, such as a Unicode table LexLean does not
+    /// bind. A row that is not lifted has none.
+    pub divergence: Option<String>,
 }
 
 /// Every function of product code, by κ.
@@ -122,11 +126,19 @@ impl Register {
                 if functions.insert(function.clone(), ()).is_some() {
                     return Err(bad(format!("{function} has more than one row")));
                 }
-                if register
-                    .rows
-                    .insert(kappa.clone(), Row { function, status })
-                    .is_some()
-                {
+                let divergence = match row.get("divergence") {
+                    None => None,
+                    Some(_) if table != "lifted" => {
+                        return Err(bad(format!("a {table} row with a divergence: {row}")));
+                    }
+                    Some(_) => Some(field("divergence")?),
+                };
+                let new = Row {
+                    function,
+                    status,
+                    divergence,
+                };
+                if register.rows.insert(kappa.clone(), new).is_some() {
                     return Err(bad(format!("κ {kappa} has more than one row")));
                 }
             }
@@ -143,9 +155,15 @@ impl Register {
     }
 
     /// How many functions did not lift yet: the observation of the measure
-    /// whose requirement is that every function of product code lifts.
+    /// whose requirement is that every function of product code lifts. The
+    /// rows the two counts take part the register, so they sum to its
+    /// length; each is counted, so neither is a difference that could
+    /// underflow.
     pub fn unlifted(&self) -> usize {
-        self.rows.len() - self.lifted()
+        self.rows
+            .values()
+            .filter(|r| !matches!(r.status, Status::Lifted(_)))
+            .count()
     }
 
     /// The register file: one row per function, by table and then function,
@@ -182,6 +200,9 @@ impl Register {
                         out.push_str(&format!("effect = {}\n", quoted(effect)));
                     }
                 }
+                if let Some(divergence) = &row.divergence {
+                    out.push_str(&format!("divergence = {}\n", quoted(divergence)));
+                }
             }
         }
         out
@@ -200,6 +221,15 @@ pub fn admit(incumbent: &Register, candidate: &Register) -> Vec<String> {
         .filter_map(|(kappa, row)| {
             let now = candidate.rows.get(kappa)?;
             match &now.status {
+                // A κ lifted exactly stays exact: a divergence is a weaker
+                // claim.
+                Status::Lifted(_) if row.divergence.is_none() && now.divergence.is_some() => {
+                    Some(format!(
+                        "{} (κ {kappa}) was lifted exactly and now diverges: {}",
+                        row.function,
+                        now.divergence.as_deref().unwrap_or_default()
+                    ))
+                }
                 Status::Lifted(_) => None,
                 other => Some(format!(
                     "{} (κ {kappa}) was lifted and is now {}",
@@ -234,6 +264,7 @@ mod tests {
             Row {
                 function: function.into(),
                 status,
+                divergence: None,
             },
         )
     }
@@ -254,6 +285,7 @@ mod tests {
                     Row {
                         function: "c::g".into(),
                         status: Status::Lifted("Behavior::g".into()),
+                        divergence: None,
                     },
                 ),
             ]
@@ -274,6 +306,7 @@ mod tests {
                     Row {
                         function: "c::f".into(),
                         status: Status::Residue("call".into(), "calls g".into()),
+                        divergence: None,
                     },
                 ),
                 other,
@@ -284,6 +317,20 @@ mod tests {
         let refused = admit(&incumbent, &worse);
         assert_eq!(refused.len(), 1);
         assert!(refused[0].contains(&lifted.0), "{refused:?}");
+        // The same κ lifted, but now with a divergence: a weaker claim,
+        // refused; a κ that diverged and now lifts exactly is admitted.
+        let diverging = |r: &(String, Row)| {
+            let mut r = r.clone();
+            r.1.divergence = Some("no Unicode case table".into());
+            r
+        };
+        let weaker = Register {
+            rows: [diverging(&lifted)].into_iter().collect(),
+        };
+        let refused = admit(&incumbent, &weaker);
+        assert_eq!(refused.len(), 1);
+        assert!(refused[0].contains("now diverges"), "{refused:?}");
+        assert!(admit(&weaker, &incumbent).is_empty());
     }
 
     #[test]
@@ -291,6 +338,11 @@ mod tests {
         let register = Register {
             rows: [
                 row("c::f", Status::Lifted("Behavior::f".into())),
+                {
+                    let (k, mut r) = row("c::e", Status::Lifted("Behavior::e".into()));
+                    r.divergence = Some("lowers ASCII letters only".into());
+                    (k, r)
+                },
                 row("c::g", Status::Effect("Fs effect: std::fs::read".into())),
                 row(
                     "c::h",
@@ -309,7 +361,10 @@ mod tests {
             Register::parse(at, &register.to_text()),
             Ok(register.clone())
         );
-        assert_eq!((register.lifted(), register.unlifted()), (1, 3));
+        assert_eq!((register.lifted(), register.unlifted()), (2, 3));
+        assert_eq!(register.lifted() + register.unlifted(), register.rows.len());
+        let stray = "[[residue]]\nkappa = \"00\"\nfunction = \"c::f\"\nreason = \"form\"\ndetail = \"d\"\ndivergence = \"x\"\n";
+        assert!(Register::parse(at, stray).is_err());
         let untyped = "[[residue]]\nkappa = \"00\"\nfunction = \"c::f\"\n";
         assert!(Register::parse(at, untyped).is_err());
         let twice = format!(
