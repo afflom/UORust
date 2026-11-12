@@ -44,7 +44,7 @@ Feature: engine
     Then each ends in its own UorustError variant
 
   @UE-07 @build
-  Scenario: just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check
+  Scenario: The gate checks the committed fixture projection and a fresh projection of this workspace with lexlean and prismpm
     Given the Justfile
     When the suite exercises UE-07
     Then vv runs the uorust recipe, which runs the three SDK checks on both projections

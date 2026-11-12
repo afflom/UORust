@@ -1,0 +1,124 @@
+{
+  "spec": "prism/content/1",
+  "about": "What scripts/content (the content standard, scripts/content/standard.json) needs to know about this site: where the documentation pages are, one persona per stakeholder of app/src/Architecture.lex.tex (the gate refuses a stakeholder without one), which persona guides which page, and the terms only this site uses. The same five guides appear on every Prism model's site, so a reader meets the same characters wherever they go.",
+  "site": "UORust",
+  "pages": [
+    "docs/"
+  ],
+  "css": "docs/content.css",
+  "defaultStage": "discover",
+  "defaultType": "explanation",
+  "personas": [
+    {
+      "id": "kai",
+      "stakeholder": "stakeholderRustDeveloper",
+      "name": "Kai",
+      "prop": "terminal",
+      "accessory": "goggles",
+      "need": "A working Prism model of my own Cargo workspace, without writing it by hand.",
+      "asks": {
+        "discover": "What is Prism, and what would it do for my Rust code?",
+        "evaluate": "Will it read my workspace as it is, or make me rewrite it?",
+        "learn": "Show me each command and what it writes.",
+        "build": "How do I make an app that does what I need?",
+        "scale": "How do I keep my model in step as my code changes?"
+      }
+    },
+    {
+      "id": "iris",
+      "stakeholder": "stakeholderPrismModeler",
+      "name": "Iris",
+      "prop": "compass",
+      "accessory": "sparkle",
+      "need": "To see how a complete model is laid out, one record kind at a time.",
+      "asks": {
+        "discover": "How is a complete Prism model laid out?",
+        "evaluate": "Is every record here traced back to its source?",
+        "learn": "Walk me through each facet, one record kind at a time.",
+        "build": "Which pattern fits the app I have in mind?",
+        "scale": "How do I ship it and keep it verified?"
+      }
+    },
+    {
+      "id": "vera",
+      "stakeholder": "stakeholderSecurityReviewer",
+      "name": "Vera",
+      "prop": "magnifier",
+      "accessory": "glasses",
+      "need": "Evidence that what the model claims about threats and controls is true.",
+      "asks": {
+        "discover": "What does this system claim, and who checks it?",
+        "evaluate": "Which threats are modeled, and what answers each one?",
+        "learn": "Where does each control come from?",
+        "build": "Can a mistake here slip past the checks?",
+        "scale": "Is the release signed, and can I trace it?"
+      }
+    },
+    {
+      "id": "wren",
+      "stakeholder": "stakeholderDevRelAuthor",
+      "name": "Wren",
+      "prop": "quill",
+      "accessory": "headset",
+      "need": "To know which records no page teaches yet, and who each page is for.",
+      "asks": {
+        "discover": "Who is each page for, and what do they need first?",
+        "evaluate": "Which claims can I make, and which are proved?",
+        "learn": "Which records does no page teach yet?",
+        "build": "Which example shows this best?",
+        "scale": "How do the docs stay in step without hand edits?"
+      }
+    },
+    {
+      "id": "otto",
+      "stakeholder": "stakeholderMaintainer",
+      "name": "Otto",
+      "prop": "wrench",
+      "accessory": "beanie",
+      "need": "Everything kept in step when the subject changes, with no generated page edited by hand.",
+      "asks": {
+        "discover": "What runs where, and who owns it?",
+        "evaluate": "What breaks if this changes?",
+        "learn": "Which command writes what?",
+        "build": "Where does a new rule or route go?",
+        "scale": "How do releases and re-pins happen on their own?"
+      }
+    }
+  ],
+  "audience": [
+    {
+      "path": "^docs/",
+      "persona": "kai"
+    }
+  ],
+  "reading": {
+    "tutorial": "A tutorial: follow the steps in order. Each one works if the one before it did.",
+    "howToGuide": "A how-to guide: each section is one step toward one task. Skip what you already have.",
+    "reference": "Reference: look up what you need. Nothing here asks to be read in order.",
+    "explanation": "Explanation: read it end to end, away from the keyboard.",
+    "home": "Start here. Each card leads to the pages for one reader or one stage."
+  },
+  "terms": [
+    {
+      "term": "route table",
+      "match": [
+        "route table"
+      ],
+      "plain": "UORust's table of which kind of Rust fact becomes which kind of Prism record, in which facet."
+    },
+    {
+      "term": "projection",
+      "match": [
+        "projections?"
+      ],
+      "plain": "The Prism project UORust writes for a Cargo workspace: one module per facet, written the same way every time."
+    },
+    {
+      "term": "Cargo workspace",
+      "match": [
+        "Cargo workspaces?"
+      ],
+      "plain": "A set of Rust packages that Cargo builds together, with one lock file."
+    }
+  ]
+}

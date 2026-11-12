@@ -117,3 +117,8 @@ fixtures:
 # workspace, then CONFORMANCE.md from the register. `generate.yml` runs this on
 # every push to main and commits what changed, so no generated file is stale.
 generate: self-model-write fixtures register model-write
+
+# The content standard (scripts/content/standard.json) on an assembled site.
+content site="site":
+    node scripts/content/enrich.mjs {{site}}
+    node scripts/content/check.mjs {{site}}

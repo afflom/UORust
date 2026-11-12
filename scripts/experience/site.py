@@ -115,6 +115,12 @@ def section(sid, eyebrow, title, intro, inner):
             f'<h2 id="{sid}-h">{esc(title)}</h2><p class="dc-summary">{esc(intro)}</p>{inner}</section>')
 
 
+def figure(spec):
+    """A figure as the declarative spec scripts/content/enrich.mjs draws, with its caption and data."""
+    return ('<figure class="cs-figure"><script type="application/vnd.prism.figure+json">'
+            + json.dumps(spec, ensure_ascii=False).replace("<", "\\u003c") + "</script></figure>")
+
+
 def table(head, rows):
     th = "".join(f"<th scope=\"col\">{esc(h)}</th>" for h in head)
     tr = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
@@ -128,6 +134,26 @@ for u, journey, outcome in goal_rows:
     who.append(f'<li><div class="dc-home-card"><div class="dc-card-body"><em class="fd-mono">{esc(sname)}</em>'
                f'<strong>{esc(outcome)}</strong><span>{esc(stext)}</span><ul>'
                + "".join(f'<li>{i + 1}. {esc(s)}</li>' for i, s in enumerate(steps)) + "</ul></div></div></li>")
+
+# The first user group's tasks, in order: what the product is for, at a glance.
+u0, journey0, outcome0 = goal_rows[0]
+hero = figure({
+    "kind": "flow", "title": f"What a {stakeholders[group_refs[u0]][0].lower()} does with {name}",
+    "caption": f"The tasks of the first user group's goal, in order. Each one is a feature of {name} with acceptance tests.",
+    "steps": [{"label": words(f, "feature"), "sub": fields(features[f], "statement")[0]} for g, f in task_rows if goal_rows[g][1] == journey0],
+})
+
+# The components and the edges between them, as the architecture declares them.
+comp_name = {nats(b, "index")[0]: fields(b, "name")[0] for _, b in records(arch, "Foundation.Arch::Component")}
+comp_kind = {nats(b, "index")[0]: re.search(r"ComponentKind\.(\w+)", b).group(1) for _, b in records(arch, "Foundation.Arch::Component")}
+edges = [(nats(b, "fromIndex")[0], nats(b, "toIndex")[0], re.search(r"EdgeKind\.(\w+)", b).group(1)) for _, b in records(arch, "Foundation.Arch::Edge")]
+linked = sorted({i for f, t, _ in edges for i in (f, t)})
+wiring = figure({
+    "kind": "graph", "title": f"How the parts of {name} connect",
+    "caption": "Each box is a component, coloured by its kind. Each arrow is an edge of the architecture: data or control moving from one part to another.",
+    "nodes": [{"id": str(i), "label": comp_name[i], "group": comp_kind[i]} for i in linked],
+    "edges": [{"from": str(f), "to": str(t)} for f, t, _ in edges],
+})
 
 run = "".join(f'<li><div class="dc-home-card"><div class="dc-card-body"><code>{esc(c)}</code><span>{esc(s)}</span></div></div></li>'
               for c, s in commands)
@@ -152,9 +178,10 @@ body = f"""<header class="dc-header"><div class="dc-topbar"><a class="dc-brand" 
 <p class="dc-summary">{esc(lead)}</p>
 <p class="dc-body">{esc(element['productPromise'])} {esc(APP['promise']['detail'])}</p>
 <div class="dc-actions"><a class="dc-cta" href="../">Try the route table</a><a class="dc-ghost" href="{esc(LINKS['learn'])}">Learn {esc(name)}</a><a class="dc-ghost" href="{esc(LINKS['source'])}">Source</a><a class="dc-ghost" href="{esc(LINKS['releases'])}">Releases</a></div>
-{section("who", "Context of use · ISO 9241-11", "Who it is for", f"Every user group of {name}, the goal each one comes for, and the tasks that get it done, in order. Each task is a feature with acceptance tests.", '<ul class="dc-home-grid">' + "".join(who) + "</ul>")}
+{hero}
+{section("who", "Context of use · ISO 9241-11", "Who it is for", f"Every user group of {name}, the goal each one comes for, and the tasks that get it done, in order. Each task is a feature with acceptance tests. The guides below speak for each group.", '<div data-content="cast"></div><ul class="dc-home-grid">' + "".join(who) + "</ul>")}
 {section("run", "Command line", "Run it", f"What {name}'s command line answers, read from the features that call it.", '<ul class="dc-home-grid">' + run + "</ul>")}
-{section("parts", "Architecture · ISO/IEC/IEEE 42010", "How it works", f"The components of {name} and the systems it works with.", parts)}
+{section("parts", "Architecture · ISO/IEC/IEEE 42010", "How it works", f"The components of {name} and the systems it works with.", wiring + parts)}
 {section("safe", "Security · ISO/IEC 27034 and 27005", "How it is kept safe", f"{len(threats)} threats and the {len(controls)} controls that answer them. The threat model maps every threat to a control with evidence.", safe)}
 {section("quality", "Quality · ISO/IEC 25010", "How it is measured", "Each quality measure and the bound it must stay within.", qual)}
 {section("brand", "Brand · Wheeler, W3C design tokens, WCAG 2.2", "The brand it carries", f"Read from {element['name']} at the commit brand/foundation.lock pins. Every text colour meets its WCAG 2.2 contrast criterion, a theorem the Lean kernel checks.", identity + '<ul class="dc-home-grid">' + swatches + "</ul>" + ratios)}

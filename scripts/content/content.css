@@ -1,0 +1,82 @@
+/* The content standard's parts of a page (scripts/content): guides, figures,
+   defined terms and folds, in the --fd-* tokens of the docs stylesheet. */
+
+/* Guide card: who the page is for. */
+.cs-guide { display: flex; gap: 18px; align-items: center; margin: 28px 0 32px; padding: 16px 20px 16px 12px; border: 1px solid hsl(var(--fd-line)); border-radius: 16px; background: linear-gradient(135deg, hsl(var(--fd-panel)), hsl(var(--fd-bg))); position: relative; overflow: hidden; }
+.cs-guide::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--fd-spectrum); }
+.cs-guide .cs-avatar { flex: none; width: 88px; height: 88px; }
+.cs-guide-text p { margin: 0; }
+.cs-guide-who { font-size: 15px; }
+.cs-guide-who span { color: hsl(var(--fd-dim)); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin-left: 6px; }
+.cs-guide-says { font-size: 18px; line-height: 1.45; margin-top: 4px !important; }
+.cs-guide-how { margin-top: 8px !important; color: hsl(var(--fd-dim)); font-size: 14px; }
+@media (max-width: 599px) { .cs-guide { align-items: flex-start; gap: 12px; } .cs-guide .cs-avatar { width: 64px; height: 64px; } .cs-guide-says { font-size: 16px; } }
+
+/* Avatar parts. */
+.cs-g-dark { fill: hsl(0 0% 8%); }
+.cs-g-shadow { fill: hsl(0 0% 0% / .45); }
+.cs-g-line { fill: none; stroke: hsl(0 0% 8%); stroke-width: 2.4; stroke-linecap: round; }
+.cs-g-hat { fill: hsl(0 0% 14%); }
+.cs-g-hat-band { fill: hsl(0 0% 22%); }
+.cs-g-spark { fill: hsl(0 0% 98%); }
+.cs-g-lens { fill: hsl(190 90% 70% / .85); }
+.cs-g-chip { fill: hsl(0 0% 10%); stroke: hsl(0 0% 100% / .35); }
+
+/* The cast: every guide, on a home page. */
+.cs-cast { list-style: none; padding: 0; margin: 24px 0 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 14px; }
+.cs-cast-member > a, .cs-cast-member { text-decoration: none; }
+.cs-cast-member > a, .cs-cast-member:not(:has(a)) { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; height: 100%; padding: 16px; border: 1px solid hsl(var(--fd-line)); border-radius: 16px; background: hsl(var(--fd-panel)); transition: border-color .2s, transform .2s; }
+.cs-cast-member > a:hover { border-color: hsl(var(--fd-line-strong)); transform: translateY(-2px); }
+.cs-cast-role { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: hsl(var(--fd-dim)); }
+.cs-cast-need { font-size: 14px; line-height: 1.45; color: hsl(var(--fd-dim)); margin-top: 6px; }
+@media (max-width: 599px) { .cs-cast { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .cs-cast-member > a, .cs-cast-member:not(:has(a)) { padding: 12px; } .cs-cast .cs-avatar { width: 56px; height: 56px; } .cs-cast-need { display: none; } }
+
+/* Figures. */
+.cs-figure { margin: 28px 0 36px; }
+.cs-canvas { padding: 20px; border: 1px solid hsl(var(--fd-line)); border-radius: 16px; background: radial-gradient(120% 140% at 0% 0%, hsl(0 0% 9%), hsl(var(--fd-bg))); }
+.cs-svg { display: block; width: 100%; height: auto; max-height: 72vh; overflow: visible; }
+.cs-square { max-width: 520px; margin: 0 auto; }
+.cs-tall { display: none; }
+@media (max-width: 599px) { .cs-wide { display: none; } .cs-tall { display: block; } .cs-canvas { padding: 14px; } }
+.cs-figure figcaption { margin-top: 12px; font-size: 15px; color: hsl(var(--fd-dim)); }
+.cs-figure figcaption strong { color: hsl(var(--fd-fg)); }
+.cs-svg text { font-family: "Space Grotesk", system-ui, sans-serif; fill: hsl(var(--fd-fg)); }
+.cs-card { fill: hsl(0 0% 9%); stroke: hsl(var(--fd-line-strong)); stroke-width: 1; }
+.cs-cell { fill: hsl(0 0% 11%); stroke: hsl(var(--fd-line)); }
+.cs-node:hover .cs-card { stroke: hsl(var(--fd-fg)); }
+.cs-label { font-size: 13.5px; font-weight: 700; }
+.cs-big { font-size: 20px; font-weight: 700; }
+.cs-left { font-weight: 400; }
+.cs-sub { font-size: 11.5px; fill: hsl(var(--fd-dim)) !important; font-family: "JetBrains Mono", ui-monospace, monospace !important; }
+.cs-step { font-size: 11px; fill: hsl(var(--fd-dim)) !important; font-family: "JetBrains Mono", ui-monospace, monospace !important; }
+.cs-value { font-size: 12.5px; font-family: "JetBrains Mono", ui-monospace, monospace !important; }
+.cs-edge { fill: none; stroke: hsl(var(--fd-line-strong)); stroke-width: 1.6; }
+.cs-back { stroke-dasharray: 5 4; }
+.cs-arrowhead { fill: hsl(var(--fd-line-strong)); }
+.cs-pill { fill: hsl(var(--fd-bg)); stroke: hsl(var(--fd-line)); }
+.cs-track { fill: hsl(0 0% 12%); }
+.cs-axis { stroke: hsl(var(--fd-line)); stroke-dasharray: 4 6; }
+.cs-bound { stroke: hsl(var(--fd-fg)); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.cs-data { margin-top: 10px; font-size: 14px; }
+.cs-data > summary, .cs-fold > summary, .cs-terms > summary { cursor: pointer; color: hsl(var(--fd-dim)); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.cs-data > summary::before, .cs-fold > summary::before, .cs-terms > summary::before { content: "+"; display: inline-grid; place-items: center; width: 22px; height: 22px; border: 1px solid hsl(var(--fd-line-strong)); border-radius: 6px; color: hsl(var(--fd-fg)); }
+details[open].cs-data > summary::before, details[open].cs-fold > summary::before, details[open].cs-terms > summary::before { content: "−"; }
+.cs-data table { width: 100%; border-collapse: collapse; }
+.cs-data th, .cs-data td { text-align: left; padding: 6px 10px; border-bottom: 1px solid hsl(var(--fd-line)); vertical-align: top; }
+
+/* Folds: a long block, behind a summary of what it holds. */
+.cs-fold { margin: 16px 0; border: 1px solid hsl(var(--fd-line)); border-radius: 12px; padding: 0 14px; background: hsl(var(--fd-panel)); }
+.cs-fold > summary { color: hsl(var(--fd-fg)); font-family: "Space Grotesk", system-ui, sans-serif; font-size: 15px; }
+.cs-fold-n { margin-left: auto; color: hsl(var(--fd-dim)); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; }
+.cs-fold[open] { padding-bottom: 14px; }
+
+/* Defined terms. */
+a.cs-term { text-decoration: underline dotted hsl(var(--fd-dim)); text-underline-offset: 4px; cursor: help; }
+a.cs-term:hover { text-decoration-color: hsl(var(--fd-fg)); }
+.cs-terms { margin: 40px 0 24px; border-top: 1px solid hsl(var(--fd-line)); padding-top: 8px; }
+.cs-terms > summary span { color: hsl(var(--fd-fg)); }
+.cs-terms dl { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 8px 20px; margin: 8px 0 0; }
+.cs-terms dt { font-weight: 700; scroll-margin-top: 7rem; }
+.cs-terms dt:target, .cs-terms dt:target + dd { color: hsl(var(--fd-fg)); background: hsl(0 0% 100% / .06); }
+.cs-terms dd { margin: 0; color: hsl(var(--fd-dim)); }
+@media (max-width: 599px) { .cs-terms dl { grid-template-columns: 1fr; gap: 2px; } .cs-terms dd { margin-bottom: 10px; } }

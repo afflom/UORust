@@ -1,0 +1,25 @@
+{
+  "about": "Terms every Prism model's documentation shares, each with a definition a newcomer can read. scripts/content/enrich.mjs links the first use of each on a page to its definition; a repository adds its own in model/content.json. `match` lists the forms that count as a use; `case` keeps the match case-sensitive.",
+  "terms": [
+    { "term": "Prism model", "match": ["Prism models?"], "plain": "A description of an app, written in LexLean, that covers every facet of it and that the Lean kernel checks before the app is built." },
+    { "term": "facet", "match": ["facets?"], "plain": "One view of a model, such as its architecture, its security or its quality. Each facet holds records." },
+    { "term": "record", "match": ["records?"], "plain": "One entry in a facet: a component, a threat, a measure or a journey step, with the place in the source it came from." },
+    { "term": "LexLean", "case": true, "plain": "The language Prism models are written in. It reads like LaTeX and compiles to Lean 4." },
+    { "term": "Lean kernel", "match": ["Lean kernel", "the kernel"], "plain": "The small checker at the heart of the Lean prover. It accepts a proof only if every step follows the rules." },
+    { "term": "theorem", "match": ["theorems?"], "plain": "A statement about the model that the Lean kernel has checked, so it holds for every input, not only the ones tested." },
+    { "term": "holo", "match": ["holos?"], "plain": "The app Prism builds: one signed, verified file that a browser or a device runs." },
+    { "term": "SDK", "case": true, "plain": "Software development kit. Here, the PrismPM container image that builds, checks and verifies Prism models." },
+    { "term": "κ", "match": ["κ", "kappa"], "plain": "A content address: a hash of the exact bytes a record was read from, so anyone can check where it came from." },
+    { "term": "lift", "match": ["lifted", "lifts?", "lifting"], "plain": "To translate a Rust function into a LexLean definition with its proofs, so the model says what the code does." },
+    { "term": "residue", "match": ["residue"], "plain": "The part of a subject not lifted yet. It is listed by name and may only shrink." },
+    { "term": "acceptance test", "match": ["acceptance tests?", "acceptance vectors?"], "plain": "An input and the output the app must give for it. The holo replays each one before it is offered." },
+    { "term": "Diátaxis", "match": ["Diátaxis", "Diataxis"], "case": true, "plain": "A way of organizing documentation into four kinds: tutorials, how-to guides, reference and explanation." },
+    { "term": "stakeholder", "match": ["stakeholders?"], "plain": "A person or group with an interest in the system, as ISO/IEC/IEEE 42010 defines it." },
+    { "term": "persona", "match": ["personas?"], "plain": "A reader drawn from one stakeholder, with a name and a goal, so a page is written for someone in particular." },
+    { "term": "MCP", "case": true, "plain": "Model Context Protocol: an open protocol through which AI agents call tools such as the Prism builder." },
+    { "term": "UOR", "case": true, "plain": "Universal Object Reference: the UOR Foundation's framework for naming any object by its content." },
+    { "term": "provenance", "match": ["provenance"], "plain": "A signed record of where a build came from: which source, which workflow and which inputs." },
+    { "term": "llms.txt", "match": ["llms\\.txt"], "plain": "A plain-text index of a site, at its root, written for language models to read." }
+  ],
+  "proper": ["Prism", "PrismPM", "UORust", "Rust", "Lean", "LexLean", "Cargo", "GitHub", "Pages", "Diátaxis", "ISO", "WCAG", "UOR", "Foundation", "Markdown", "JSON", "Chromium", "Discord", "DevRel", "Lewko", "Parton", "Procida", "Material", "Design", "OPM", "UML", "MIR", "Wasm", "WebAssembly", "Model", "Context", "Protocol", "Schema", "Kincaid", "Flesch", "Cooper", "Mayer", "Nielsen", "Prism-DevRel", "Rule", "Bitcoin", "Atlas", "Foundry", "Hologram", "Holo", "DMN", "XACML", "Lighthouse", "Justfile", "Charon", "Aeneas"]
+}

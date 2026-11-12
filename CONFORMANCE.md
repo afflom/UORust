@@ -28,7 +28,7 @@ model does not sanction.
 | `UE-04` | `build` | Total functions over bool, unsigned comparisons and unit enums lift to LexLean definitions, closed assertions over them become decide theorems, and every other function is residue with a typed reason |
 | `UE-05` | `build` | The engine's router equals model/routes.toml route for route and answers every router vector of that table exactly |
 | `UE-06` | `build` | Every way a run can end without a projection is a typed UorustError variant with a negative test |
-| `UE-07` | `build` | just vv checks the committed fixture projection and a fresh projection of this workspace with lexlean fmt --check, lexlean lock --check and prismpm check |
+| `UE-07` | `build` | The gate checks the committed fixture projection and a fresh projection of this workspace with lexlean and prismpm |
 | `UE-08` | `build` | A public trait's methods are interface calls its module's feature names, and a method call through the trait resolves to the trait's declaration |
 | `UE-09` | `build` | Each module with processes is its own OPM view beside its component's: the component is the object, the module's functions are its processes, and each process zooms into the processes it calls in the module |
 | `UE-10` | `build` | The Behavior and SupplyChain modules take their titles from uorust.titles, a glossary package the projection carries and locks |
@@ -45,7 +45,7 @@ model does not sanction.
 | --- | --- | --- |
 | `SM-01` | `build` | UORust's application answers the route table of model/routes.toml route for route, and replays every router and workbench vector of that file in order |
 | `SM-02` | `build` | The route table's theorems state, over the whole table and by decide, that every fact kind routes to its own row, that facts are distinct, and that any two kinds naming different routes are refused as ambiguous |
-| `SM-03` | `build` | UORust is modeled in every facet: architecture, design views, features and journeys, security with its threat model, quality, the browser system release and compliance, each with records, and every module title has a project-local glossary entry |
+| `SM-03` | `build` | UORust is modeled in every facet, each with records, and every module title has a project-local glossary entry |
 | `SM-04` | `build` | The threat model maps every threat to a control with evidence or accepts it with a rationale, and every control's evidence names a gate, proof or review |
 | `SM-05` | `build` | UORust's brand identity and design system are read from uor.foundation: every Wheeler brand element and every W3C design token of the pinned site, each with its source span, and every text and focus colour the site sets on a surface meets its WCAG 2.2 contrast criterion |
 | `SM-06` | `build` | UORust's context of use (ISO 9241-11) is read from its own model: every journey's actor is a user group, every journey a goal whose tasks are its steps in order and each accepted, every user-facing component a technical environment, and every goal's usability measured or recorded open |

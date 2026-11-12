@@ -1,0 +1,263 @@
+{
+  "spec": "prism/content-standard/1",
+  "about": "The content standard every documentation page of a Prism model meets. It adopts published standards and style guides rather than inventing rules: each rule names the authority and clause it enforces, and every bound is either quoted from that authority or measured from the site itself. scripts/content/enrich.mjs applies the rules a machine can apply (guides, terms, structured data, progressive disclosure); scripts/content/check.mjs measures every rule on the rendered pages and refuses the site when one fails.",
+  "framework": {
+    "name": "ISO 24495-1:2023 Plain language — Part 1: Governing principles and guidelines",
+    "href": "https://www.iso.org/standard/78907.html",
+    "principles": [
+      {
+        "id": "relevant",
+        "label": "Relevant",
+        "text": "Readers get what they need."
+      },
+      {
+        "id": "findable",
+        "label": "Findable",
+        "text": "Readers can easily find what they need."
+      },
+      {
+        "id": "understandable",
+        "label": "Understandable",
+        "text": "Readers can easily understand what they find."
+      },
+      {
+        "id": "usable",
+        "label": "Usable",
+        "text": "Readers can easily use the information."
+      }
+    ]
+  },
+  "authorities": {
+    "iso24495": {
+      "name": "ISO 24495-1:2023 Plain language",
+      "href": "https://www.iso.org/standard/78907.html"
+    },
+    "diataxis": {
+      "name": "Daniele Procida, Diátaxis",
+      "href": "https://diataxis.fr"
+    },
+    "cooper": {
+      "name": "Alan Cooper, The Inmates Are Running the Asylum (1999), chapter 9: personas",
+      "href": "https://www.cooper.com/journal/2008/05/the_origin_of_personas/"
+    },
+    "iso9241": {
+      "name": "ISO 9241-11:2018 Usability: definitions and concepts, context of use",
+      "href": "https://www.iso.org/standard/63500.html"
+    },
+    "govuk": {
+      "name": "GOV.UK Service Manual, Writing for GOV.UK: sentence length",
+      "href": "https://www.gov.uk/guidance/content-design/writing-for-gov-uk"
+    },
+    "wcag315": {
+      "name": "WCAG 2.2 Success Criterion 3.1.5 Reading Level",
+      "href": "https://www.w3.org/WAI/WCAG22/Understanding/reading-level.html"
+    },
+    "wcag313": {
+      "name": "WCAG 2.2 Success Criterion 3.1.3 Unusual Words",
+      "href": "https://www.w3.org/WAI/WCAG22/Understanding/unusual-words.html"
+    },
+    "wcag111": {
+      "name": "WCAG 2.2 Success Criterion 1.1.1 Non-text Content",
+      "href": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html"
+    },
+    "wcag131": {
+      "name": "WCAG 2.2 Success Criterion 1.3.1 Info and Relationships",
+      "href": "https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html"
+    },
+    "wcag244": {
+      "name": "WCAG 2.2 Success Criterion 2.4.4 Link Purpose (In Context)",
+      "href": "https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html"
+    },
+    "mayer": {
+      "name": "Richard E. Mayer, Multimedia Learning (2nd ed., Cambridge, 2009): the multimedia principle",
+      "href": "https://doi.org/10.1017/CBO9780511811678"
+    },
+    "nngdisclosure": {
+      "name": "Jakob Nielsen, Progressive Disclosure (Nielsen Norman Group, 2006)",
+      "href": "https://www.nngroup.com/articles/progressive-disclosure/"
+    },
+    "m3": {
+      "name": "Material Design 3, window size classes",
+      "href": "https://m3.material.io/foundations/layout/applying-layout/window-size-classes"
+    },
+    "google": {
+      "name": "Google developer documentation style guide",
+      "href": "https://developers.google.com/style"
+    },
+    "schema": {
+      "name": "Schema.org TechArticle and LearningResource",
+      "href": "https://schema.org/TechArticle"
+    },
+    "llmstxt": {
+      "name": "llms.txt",
+      "href": "https://llmstxt.org"
+    },
+    "flesch": {
+      "name": "Kincaid, Fishburne, Rogers and Chissom, Derivation of New Readability Formulas (Naval Technical Training Command, 1975)",
+      "href": "https://stars.library.ucf.edu/istlibrary/56/"
+    },
+    "isced": {
+      "name": "UNESCO International Standard Classification of Education (ISCED 2011): level 2, lower secondary",
+      "href": "https://uis.unesco.org/en/topic/international-standard-classification-education-isced"
+    }
+  },
+  "rules": [
+    {
+      "id": "CS-01",
+      "principle": "relevant",
+      "title": "Every page names its reader",
+      "text": "A page opens with a guide: one persona of the model's own stakeholders (ISO 9241-11 user groups), the question that persona brings at this journey stage, and what they leave with.",
+      "authority": [
+        "cooper",
+        "iso9241",
+        "iso24495"
+      ],
+      "measure": "guide card present, persona is a stakeholder of the model"
+    },
+    {
+      "id": "CS-02",
+      "principle": "understandable",
+      "title": "Every page has a plain summary",
+      "text": "The summary under the title is written at the lower secondary reading level, so a page whose body needs more has the supplement WCAG 3.1.5 asks for.",
+      "authority": [
+        "wcag315",
+        "flesch",
+        "isced"
+      ],
+      "measure": "Flesch-Kincaid grade of the summary",
+      "bound": {
+        "max": 9,
+        "from": "isced",
+        "why": "ISCED 2011 level 2 (lower secondary) ends at the ninth year of schooling, which WCAG 3.1.5 names as the level above which supplemental content is required."
+      }
+    },
+    {
+      "id": "CS-03",
+      "principle": "understandable",
+      "title": "Sentences stay short",
+      "text": "No sentence of prose is longer than the GOV.UK limit. Code, commands, identifiers and data tables are not prose; each code span counts as one word.",
+      "authority": [
+        "govuk",
+        "google"
+      ],
+      "measure": "words in the longest prose sentence",
+      "bound": {
+        "max": 25,
+        "from": "govuk",
+        "why": "Writing for GOV.UK: sentences of 25 words or fewer."
+      }
+    },
+    {
+      "id": "CS-04",
+      "principle": "understandable",
+      "title": "Every page shows, not only tells",
+      "text": "Every page leads with a figure (a diagram, chart or illustration drawn from the model's own data) before its first section, so the reader sees the shape of the page before reading it.",
+      "authority": [
+        "mayer",
+        "wcag315"
+      ],
+      "measure": "pages with no figure before the first h2"
+    },
+    {
+      "id": "CS-05",
+      "principle": "usable",
+      "title": "Every figure has a text alternative and its data",
+      "text": "Every figure is an image role with an accessible name, a caption, and its data in text beside it, so screen readers and machines read what the picture shows.",
+      "authority": [
+        "wcag111",
+        "wcag131"
+      ],
+      "measure": "figures without role=img and a name, without figcaption, or without a data alternative"
+    },
+    {
+      "id": "CS-06",
+      "principle": "findable",
+      "title": "Long blocks fold away",
+      "text": "No open block (table, list, code or paragraph) is taller than the compact window. A longer one sits behind a disclosure whose summary says what it holds and how much.",
+      "authority": [
+        "nngdisclosure",
+        "m3"
+      ],
+      "measure": "height of the tallest unfolded block at the compact window class",
+      "bound": {
+        "max": "compact.height",
+        "from": "m3",
+        "why": "The compact window class bootstrap/screens.mjs tests every page at; a block taller than it cannot be seen whole on a phone."
+      }
+    },
+    {
+      "id": "CS-07",
+      "principle": "understandable",
+      "title": "Technical terms are explained where they first appear",
+      "text": "The first use of each glossary term on a page is marked as a defined term, with its plain definition and a link to the glossary.",
+      "authority": [
+        "wcag313",
+        "iso24495"
+      ],
+      "measure": "glossary terms whose first use on a page is unmarked"
+    },
+    {
+      "id": "CS-08",
+      "principle": "findable",
+      "title": "Headings tell the structure",
+      "text": "One h1 per page, no skipped heading levels, and headings in sentence case.",
+      "authority": [
+        "wcag131",
+        "google"
+      ],
+      "measure": "pages with more than one h1, a skipped level, or a title-case heading"
+    },
+    {
+      "id": "CS-09",
+      "principle": "usable",
+      "title": "Links say where they go",
+      "text": "No link text is a bare instruction like \"here\", \"click here\", \"read more\" or \"this\".",
+      "authority": [
+        "wcag244",
+        "google"
+      ],
+      "measure": "links whose whole text is a word on the list"
+    },
+    {
+      "id": "CS-10",
+      "principle": "understandable",
+      "title": "No filler words",
+      "text": "Prose leaves out words the Google style guide lists as condescending or empty: simply, just, easy, easily, obviously, seamlessly, basically, of course.",
+      "authority": [
+        "google"
+      ],
+      "measure": "occurrences in prose, outside code"
+    },
+    {
+      "id": "CS-11",
+      "principle": "usable",
+      "title": "Machines read the page too",
+      "text": "Every page carries Schema.org TechArticle data naming its Diátaxis type, its journey stage and its reader, keeps its Markdown twin, and is listed in llms.txt.",
+      "authority": [
+        "schema",
+        "llmstxt",
+        "diataxis"
+      ],
+      "measure": "pages without valid JSON-LD, twin or llms.txt entry"
+    }
+  ],
+  "fillers": [
+    "simply",
+    "just",
+    "easy",
+    "easily",
+    "obviously",
+    "seamlessly",
+    "basically",
+    "of course"
+  ],
+  "vagueLinks": [
+    "here",
+    "click here",
+    "read more",
+    "more",
+    "this",
+    "link",
+    "this page"
+  ]
+}

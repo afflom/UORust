@@ -133,6 +133,15 @@ jobs:
           # The product home in the uor.foundation brand, read from the model,
           # and a "Docs" link to it on the app page (scripts/experience/site.py).
           python3 -I scripts/experience/site.py . site
+          # The content standard (scripts/content/standard.json): draw every
+          # figure from its data, add each page's guide, mark defined terms,
+          # fold long blocks and add structured data, then measure every rule
+          # on every page in Chromium and refuse the site on any fault. The
+          # measurements ship as content-report.json.
+          npm install --no-audit --no-fund --global playwright@1.56.1
+          playwright install --with-deps chromium
+          node scripts/content/enrich.mjs site
+          node scripts/content/check.mjs site
           node bootstrap/precache.mjs site
       - name: Lighthouse at 100 on mobile, before anything is deployed
         shell: bash
