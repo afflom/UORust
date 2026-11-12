@@ -482,6 +482,23 @@ pub fn booked(bookings: &Bookings, room: &str) -> Bookings {
     out
 }
 
+/// The marked rooms' names without their mark, or `None` where a name is
+/// empty or a marked name lacks its closing `!`.
+pub fn marked_rooms(names: &[String]) -> Option<Vec<String>> {
+    let mut out: Vec<String> = Vec::new();
+    for n in names {
+        if n.is_empty() {
+            return None;
+        }
+        let Some(rest) = n.strip_prefix("room-") else {
+            continue;
+        };
+        let tail = rest.strip_suffix('!')?;
+        out.push(tail.to_string());
+    }
+    Some(out)
+}
+
 /// The room a zone names, doubled, when it names one room.
 pub fn doubled_room(zone: &Zone) -> Option<String> {
     let room = match zone {
@@ -639,6 +656,13 @@ mod tests {
             Some("denden".to_string())
         );
         assert_eq!(doubled_room(&Zone::Group(Vec::new())), None);
+        let names = |xs: &[&str]| xs.iter().map(|x| x.to_string()).collect::<Vec<_>>();
+        assert_eq!(
+            marked_rooms(&names(&["room-den!", "hall"])),
+            Some(names(&["den"]))
+        );
+        assert_eq!(marked_rooms(&names(&["room-den"])), None);
+        assert_eq!(marked_rooms(&names(&["hall", ""])), None);
         let none = Bookings {
             order: Vec::new(),
             by_name: BTreeSet::new(),

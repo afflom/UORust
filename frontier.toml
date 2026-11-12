@@ -341,6 +341,12 @@ reason = "form"
 detail = "expression form outside the lift: expr::loop"
 
 [[residue]]
+kappa = "b9e7c2c015723080631873cab6f0c5490f8506d9be4b8d9476c9b29733d4387b"
+function = "uorust::lift::Ctx::returning"
+reason = "call"
+detail = "calls map_tails, which is not lifted"
+
+[[residue]]
 kappa = "486adf97c015b8e1f6e5514d94f0b39e4eba353318a014cefa021252f9f053f7"
 function = "uorust::lift::Types::member_fields"
 reason = "form"
@@ -391,20 +397,20 @@ detail = "expression form outside the lift: index of (List TupleStringListTupleS
 [[residue]]
 kappa = "47846b5a4f1e90d112cc28813e94c4ae9ab9f58ca5dc3629b575469688f6040a"
 function = "uorust::lift::acceptance"
-reason = "form"
-detail = "expression form outside the lift: method call .then"
+reason = "call"
+detail = "calls literal, which is not lifted"
 
 [[residue]]
 kappa = "24f2558e5d21c7dc26e3d2fa13851a2e75755b21c4d9b33c328c5d516cac823a"
 function = "uorust::lift::applied"
-reason = "form"
-detail = "expression form outside the lift: ? outside a let"
+reason = "call"
+detail = "calls literal, which is not lifted"
 
 [[residue]]
 kappa = "dfa02b50d55194a4288c274791cc98313d5c390ddc3bfdcb604eaf4319c97eed"
 function = "uorust::lift::applied_closure"
 reason = "form"
-detail = "expression form outside the lift: method call .clone"
+detail = "expression form outside the lift: ? outside a let"
 
 [[residue]]
 kappa = "908d4c720768e46449580df96033e99950a2ab33eb0ff15a285696bf3b9d773d"
@@ -433,8 +439,8 @@ detail = "the body has statements other than let"
 [[residue]]
 kappa = "7899d8426f50a4b12c11bfc0b184577c4aff6479099b38e263242046da9a172f"
 function = "uorust::lift::bind_parts"
-reason = "form"
-detail = "expression form outside the lift: let pattern"
+reason = "width"
+detail = ".parse into usize depends on an integer width LexLean does not fix"
 
 [[residue]]
 kappa = "f147f754c42637e3e104c708d47b510a652564b4d68c61f9f100e829884a44d0"
@@ -443,7 +449,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "31df464a947cb3f1d77e1d3ad3612574bfb8ea29342a8a737a809388d7359208"
+kappa = "04b5dfead52825ae0bb0a33375eeff5081e5bedddc8293fe9115211c94bd9e59"
 function = "uorust::lift::block"
 reason = "form"
 detail = "expression form outside the lift: struct Local"
@@ -473,7 +479,7 @@ reason = "call"
 detail = "calls exact_string, which is not lifted"
 
 [[residue]]
-kappa = "a9dc9a1b2ae7a16a507a967caba2f77ce561f3a7a2a1c0e6ecd2fbbc3e41b659"
+kappa = "0db7e30395970dc929134a62d48e6c0eee0ad9ae4826077b35ff4985eee7c626"
 function = "uorust::lift::collection"
 reason = "form"
 detail = "expression form outside the lift: free name cons"
@@ -545,7 +551,7 @@ reason = "form"
 detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
-kappa = "88841da6a835b4cfc7de8705e499cdfd0aa8fff0e95755d665a17b65723d57d2"
+kappa = "653629d6840e4466afcd6dba6bedc3db46ec4d459447245f1ac0839903254aa5"
 function = "uorust::lift::expr_form"
 reason = "form"
 detail = "expression form outside the lift: narrowing or sign-changing cast"
@@ -569,7 +575,7 @@ reason = "form"
 detail = "expression form outside the lift: method call .flat"
 
 [[residue]]
-kappa = "a951d6d8a0abb189145a32bf745e79eb69adc83b984123fcbf4b62c3210e75f0"
+kappa = "db09413b7469cfe53c364993a2bdde4db16ecf86bfc78201d829c5a6fe9c8d0d"
 function = "uorust::lift::for_loop"
 reason = "form"
 detail = "expression form outside the lift: expr::return"
@@ -614,7 +620,7 @@ detail = "expression form outside the lift: ? below the function's own statement
 kappa = "206d90301d680fefd7dfcb0717b84e149bc25b5489310bf36c8cac9229f8c41f"
 function = "uorust::lift::insert_all"
 reason = "form"
-detail = "expression form outside the lift: method call .clone"
+detail = "expression form outside the lift: method call .fresh"
 
 [[residue]]
 kappa = "94478ad7b2f30b6019b124c9f5c56eeafb78b8309e7e91bb3f3f14f88e0815de"
@@ -659,7 +665,7 @@ reason = "form"
 detail = "expression form outside the lift: struct Block"
 
 [[residue]]
-kappa = "ad25ea93e8ac89663600d46576418f81c53772fc712a14c3b70c471e29d836cd"
+kappa = "d0e616a53a24a2dd5c5b4188627ce087b492647cab4a9777b86bf4d1a9db5935"
 function = "uorust::lift::lift_all"
 reason = "form"
 detail = "expression form outside the lift: expr::loop"
@@ -725,7 +731,7 @@ reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "019b7a3624c6ff375b184bee0892e38ac567005c1f046b4ce577323625bb4e21"
+kappa = "1f0b5871a219727eb34611df3da69ead6cc3f2793c6b9b77b1bfe3c882cd69df"
 function = "uorust::lift::method"
 reason = "form"
 detail = "expression form outside the lift: match pattern"
@@ -761,7 +767,7 @@ reason = "form"
 detail = "expression form outside the lift: let pattern"
 
 [[residue]]
-kappa = "61dc9e6bf1c38ca8ea473d0515b3ca32575daa394edc12ad87c95fa117060360"
+kappa = "4444fecbe7fe4cf80c20708658982524670fad2d72b7a94472a6367f194f422f"
 function = "uorust::lift::question"
 reason = "form"
 detail = "expression form outside the lift: method call .as_ref"
@@ -781,8 +787,8 @@ detail = "expression form outside the lift: expr::range"
 [[residue]]
 kappa = "3fdf88c1893d2c1714aec3854643f063a2e5258102c6db58dae9cdbd47d86bd5"
 function = "uorust::lift::returned_type"
-reason = "form"
-detail = "expression form outside the lift: method call .then"
+reason = "type"
+detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
 kappa = "ab6abc7164edcda703aa7227517d028e4ddb937b66a0f01ea697cef765444c88"
@@ -799,8 +805,8 @@ detail = "expression form outside the lift: method call .as_ref"
 [[residue]]
 kappa = "f1c917e01e68891f258f1c90c470ab8643fd1300ae26eea1d94dc6b42b5891af"
 function = "uorust::lift::same_value"
-reason = "form"
-detail = "expression form outside the lift: method call .then"
+reason = "call"
+detail = "calls operator, which is not lifted"
 
 [[residue]]
 kappa = "0ce9b666e082ee233a5e3198674576c5f8a1baf03702ee44e906b805d2a1b486"
@@ -830,7 +836,7 @@ detail = "signature outside the lift: generic, async, unsafe or variadic"
 kappa = "98cd33bbcee02877441c658f058650972670e2a23f4af39d28f148879e0a751c"
 function = "uorust::lift::sorted_insert"
 reason = "form"
-detail = "expression form outside the lift: method call .clone"
+detail = "expression form outside the lift: expr::return"
 
 [[residue]]
 kappa = "8cdedfd79216af743838c54102ef5d8a39b6bcfe397dadb4d639c09cbc181f03"
@@ -908,7 +914,7 @@ detail = "expression form outside the lift: recursion that does not descend on a
 kappa = "c397a55b8bab815cdb0e445c360ff9fb8ee7da4e3c3cf43720863892227d38a7"
 function = "uorust::lift::use_in_stmts"
 reason = "form"
-detail = "expression form outside the lift: method call .clone"
+detail = "expression form outside the lift: method call .as_ref"
 
 [[residue]]
 kappa = "ebe0e63a8809ecb2ee36f4a5d18ebced2e1f5c1748676561f6a3c764c78e9b3d"
@@ -1064,7 +1070,7 @@ detail = "expression form outside the lift: method call .member_fields"
 kappa = "1a46930b5e4b99ca4464931a18fd9c5db9a396725acb3d8eddc4e4beb955ede1"
 function = "uorust::order::reads_text"
 reason = "form"
-detail = "expression form outside the lift: method call .clone"
+detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
 kappa = "43cfd8591ffa42b122a92e0ac675ace135b4a65b7a85e48b44dedc0a5a229369"
@@ -1297,8 +1303,8 @@ detail = "calls String, which is not lifted"
 [[residue]]
 kappa = "9d814fb0efc2849af878f17543c0938b637ae4ec10f4f1cd0bb820232f777904"
 function = "uorust::route::classify"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "form"
+detail = "expression form outside the lift: expr::return"
 
 [[residue]]
 kappa = "c1580136bb502df057f2969490ce53c39767789a61de787c9f2e20425391256d"
@@ -2063,6 +2069,11 @@ definition = "Behavior::isRest"
 kappa = "2a819341b8e012fc1c14617d8c68a5bae073a61853be9b8e51813576794b3a0b"
 function = "uorust::lift::leaves"
 definition = "Behavior::leaves"
+
+[[lifted]]
+kappa = "b6b13315b326cf8a47ca70d6b2eb800910e01fc609771e35aa743ac17da6e3f9"
+function = "uorust::lift::leaving_value"
+definition = "Behavior::leavingValue"
 
 [[lifted]]
 kappa = "00dd4b7aa3f789faa5fc54ce0721af8049fc1c373b84380c6d75064f5f28bd01"

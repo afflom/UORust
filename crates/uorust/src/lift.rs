@@ -1025,6 +1025,10 @@ struct Ctx {
     /// Natural-number terms -> a lower bound the conditions in scope
     /// establish: `n` at least 2 after `if n < 2 { return .. }`.
     bounds: BTreeMap<String, u128>,
+    /// The state type of the loop step the statements in hand are, where
+    /// they are the function's own: a `return` or `?` there leaves the walk
+    /// with the function's value.
+    exits: Option<Ty>,
 }
 
 /// A closure a `let` binds: its parameters, its body, and the locals in
@@ -1291,6 +1295,18 @@ impl Ctx {
         let mut next = self.clone();
         next.top = false;
         next
+    }
+
+    /// A value the function returns, from where the statements in hand
+    /// stand: itself, or in a loop step, the mark that leaves the walk.
+    fn returning(&self, value: (Expr, Ty)) -> (Expr, Ty) {
+        match &self.exits {
+            Some(state) => (
+                map_tails(value.0, &|s| format!("{LEAVE}{s}")),
+                state.clone(),
+            ),
+            None => value,
+        }
     }
 }
 
@@ -1991,7 +2007,8 @@ fn expr_form(
         rs::RustExpr::Try(_) => Err(Residue::Form("? outside a let".to_string())),
         // A `return` in tail position: the function's value.
         rs::RustExpr::Return(Some(v)) if ctx.top => {
-            expr(v, env, &ctx.below(), acc, Some(&ctx.result))
+            let (value, acc) = expr(v, env, &ctx.below(), acc, Some(&ctx.result))?;
+            Ok((ctx.returning(value), acc))
         }
         // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
         rs::RustExpr::Macro(m) if m.path.is_ident("matches") => {
@@ -3347,6 +3364,24 @@ fn method(
             flat(r, rt.clone(), acc)
         }
         // `b.then_some(v)`: `Some(v)` where `b` holds.
+        // `c.then(|| v)`: the value where the test holds. A lifted value
+        // is pure and total, so building it eagerly changes nothing.
+        (Ty::Bool, "then") if matches!(args.as_slice(), [rs::RustExpr::Closure(c)] if c.inputs.is_empty()) =>
+        {
+            let [rs::RustExpr::Closure(c)] = args.as_slice() else {
+                return Err(Residue::Form(".then of another argument".into()));
+            };
+            let inner = match want {
+                Some(Ty::Option(t)) => Some(&**t),
+                _ => None,
+            };
+            let ((v, vt), acc) = flat_of(&c.body, env, &ctx.below(), acc, inner)?;
+            flat(
+                format!("(if {r} then {} else {})", some(&vt, &v), none(&vt)),
+                opt(&vt),
+                acc,
+            )
+        }
         (Ty::Bool, "then_some") if args.len() == 1 => {
             let ((v, vt), acc) = flat_of(args[0], env, ctx, acc, None)?;
             flat(
@@ -4376,6 +4411,7 @@ fn collection(
         )))
     };
     match (rt, name, args) {
+        (_, "clone", []) => flat(r.to_string(), rt.clone(), acc),
         (_, "len", []) => flat(format!("(prim length {r} : Nat)"), Ty::Nat(None), acc),
         (_, "is_empty", []) => flat(format!("((prim length {r} : Nat) =? 0)"), Ty::Bool, acc),
         (Ty::Map(_, v, _), "get", [k]) => lookup(env, ctx, acc, "Get", r, &rt.entry(), Some(v), k),
@@ -6241,6 +6277,10 @@ fn wrap_lets(lets: Vec<(String, String, String)>, body: Expr) -> Expr {
 /// The mark on a loop step's value that ends the walk: a `break`.
 const BREAK: &str = "#break ";
 
+/// The mark on a loop step's value that leaves the function: a `return`
+/// or a failed `?`.
+const LEAVE: &str = "#leave ";
+
 /// The value of a `continue` or `break` in a loop step: the loop's state as
 /// the step leaves it.
 fn loop_exit(env: &Env, ctx: &Ctx, acc: Acc, label: bool, breaks: bool) -> Lift<((Expr, Ty), Acc)> {
@@ -6292,8 +6332,8 @@ fn for_loop(
     let (acc, before) = acc.apart();
     let mut base = Ctx {
         tails: BTreeMap::new(),
-        top: false,
         looping: Some(state.clone()),
+        exits: ctx.top.then(|| state_ty.clone()),
         ..ctx.clone()
     };
     // The outer names stay taken inside the step: the step's binders may
@@ -6325,11 +6365,38 @@ fn for_loop(
     let (items, acc) = ctx.fresh(env, acc, "items");
     let (rest_name, acc) = ctx.fresh(env, acc, "rest");
     let text = step.flat();
+    // A step that can leave the function walks to the final state or to
+    // the function's value.
+    let leaving = text.contains(LEAVE);
+    let walked = if leaving {
+        Ty::Outcome(Box::new(state_ty.clone()), Box::new(ctx.result.clone()))
+    } else {
+        state_ty.clone()
+    };
+    let acc = acc.saw(&walked);
+    let done = |s: String| {
+        if leaving {
+            format!(
+                "(ctor Result.ok [{}, {}] {s})",
+                state_ty.render(),
+                ctx.result.render()
+            )
+        } else {
+            s
+        }
+    };
     let caps = captures(ctx, &[text], std::slice::from_ref(&current));
     let cap_names: Vec<String> = caps.iter().map(|(c, _)| c.clone()).collect();
     let recur = |s: String| {
         if let Some(last) = s.strip_prefix(BREAK) {
-            return last.to_string();
+            return done(last.to_string());
+        }
+        if let Some(value) = s.strip_prefix(LEAVE) {
+            return format!(
+                "(ctor Result.error [{}, {}] {value})",
+                state_ty.render(),
+                ctx.result.render()
+            );
         }
         let mut parts = vec![name.clone(), rest_name.clone(), s];
         parts.extend(cap_names.iter().cloned());
@@ -6344,13 +6411,13 @@ fn for_loop(
     let acc = acc.helper(Helper {
         name: name.clone(),
         params,
-        result: state_ty.render(),
+        result: walked.render(),
         body: Expr::Match {
             scrutinee: items,
             arms: vec![
                 Arm {
                     pattern: "List.nil".to_string(),
-                    body: Expr::Flat(current),
+                    body: Expr::Flat(done(current)),
                 },
                 Arm {
                     pattern: format!("List.cons {head} {rest_name}"),
@@ -6371,13 +6438,42 @@ fn for_loop(
     let (whole, acc) = ctx.fresh(env, acc, "state");
     let (after, acc, lets) = rebind(env, ctx, acc, &state, &whole, Vec::new());
     let ((rest, rt), acc) = block(rest, env, &after, acc, want)?;
+    let call = format!("({})", parts.join(" "));
+    if !leaving {
+        return Ok((
+            (
+                Expr::Let {
+                    name: whole,
+                    ty: state_ty.render(),
+                    value: Box::new(Expr::Flat(call)),
+                    body: Box::new(wrap_lets(lets, rest)),
+                },
+                rt,
+            ),
+            acc,
+        ));
+    }
+    // The walk's value: the final state goes on to the rest, the
+    // function's value leaves.
+    let (value, acc) = ctx.fresh(env, acc, "value");
+    let (left, left_ty) = ctx.returning((Expr::Flat(value.clone()), ctx.result.clone()));
+    if !left_ty.same(&rt) {
+        return Err(Residue::Form("a loop step of another type".to_string()));
+    }
     Ok((
         (
-            Expr::Let {
-                name: whole,
-                ty: state_ty.render(),
-                value: Box::new(Expr::Flat(format!("({})", parts.join(" ")))),
-                body: Box::new(wrap_lets(lets, rest)),
+            Expr::Match {
+                scrutinee: call,
+                arms: vec![
+                    Arm {
+                        pattern: format!("Result.ok {whole}"),
+                        body: wrap_lets(lets, rest),
+                    },
+                    Arm {
+                        pattern: format!("Result.error {value}"),
+                        body: left,
+                    },
+                ],
             },
             rt,
         ),
@@ -6617,8 +6713,13 @@ fn block(
             expr(&whole, env, ctx, acc, want)
         }
         [rs::Stmt::Expr(rs::RustExpr::Return(r), _), ..] if ctx.top => match r {
-            Some(v) => expr(v, env, &ctx.below(), acc, Some(&ctx.result)),
-            None if ctx.result == Ty::Unit => Ok(((Expr::Flat("()".into()), Ty::Unit), acc)),
+            Some(v) => {
+                let (value, acc) = expr(v, env, &ctx.below(), acc, Some(&ctx.result))?;
+                Ok((ctx.returning(value), acc))
+            }
+            None if ctx.result == Ty::Unit => {
+                Ok((ctx.returning((Expr::Flat("()".into()), Ty::Unit)), acc))
+            }
             None => Err(Residue::Type("()".to_string())),
         },
         // `if c { return v; } rest`: an early exit from the function.
@@ -6641,7 +6742,7 @@ fn block(
                     stmts: rest.to_vec(),
                 };
                 let early = rs::Block {
-                    stmts: vec![rs::Stmt::Expr((*v).clone(), false)],
+                    stmts: vec![rs::Stmt::Expr(leaving_value(v, ctx), false)],
                 };
                 let arms = vec![(&l.pat, Body::Block(&early)), (&wild, Body::Block(&tail))];
                 return matching(&l.expr, &arms, env, ctx, acc, want);
@@ -6650,10 +6751,14 @@ fn block(
             if ct != Ty::Bool {
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
-            let ((then, tt), acc) = expr(v, env, &inner, acc, Some(&ctx.result))?;
+            let (value, acc) = expr(v, env, &inner, acc, Some(&ctx.result))?;
+            if !value.1.same(&ctx.result) {
+                return Err(Residue::Form("branches of different types".to_string()));
+            }
+            let (then, tt) = ctx.returning(value);
             let after = ctx.assuming(&i.cond, false, env, &acc);
             let ((other, ot), acc) = block(rest, env, &after, acc, want)?;
-            if !tt.same(&ctx.result) || !ot.same(&tt) {
+            if !ot.same(&tt) {
                 return Err(Residue::Form("branches of different types".to_string()));
             }
             Ok((
@@ -6683,15 +6788,25 @@ fn block(
             let rs::RustExpr::Block(eb) = &**otherwise else {
                 return Err(Residue::Form("let else".to_string()));
             };
-            let Some(v) = returned(&eb.block) else {
-                return Err(Residue::Form("let else".to_string()));
+            // A `continue` or `break` in a loop step leaves the step.
+            let skips = ctx.looping.is_some()
+                && matches!(
+                    eb.block.stmts.as_slice(),
+                    [rs::Stmt::Expr(
+                        rs::RustExpr::Continue(_) | rs::RustExpr::Break(_),
+                        _
+                    )]
+                );
+            let early = match returned(&eb.block) {
+                Some(v) => rs::Block {
+                    stmts: vec![rs::Stmt::Expr(leaving_value(v, ctx), false)],
+                },
+                None if skips => eb.block.clone(),
+                None => return Err(Residue::Form("let else".to_string())),
             };
             let wild = rs::Pat::Wild;
             let tail = rs::Block {
                 stmts: rest.to_vec(),
-            };
-            let early = rs::Block {
-                stmts: vec![rs::Stmt::Expr((*v).clone(), false)],
             };
             let arms = vec![
                 (&local.pat, Body::Block(&tail)),
@@ -6948,6 +7063,15 @@ fn let_pattern(
         Some(_) => return Err(Residue::Form("let else".to_string())),
     };
     matching(&init.expr, &arms, env, ctx, acc, want)
+}
+
+/// The value of an early exit, as the arm that takes it states it: the
+/// value itself, or in a loop step a `return` of it, which leaves the walk.
+fn leaving_value(v: &rs::RustExpr, ctx: &Ctx) -> rs::RustExpr {
+    match ctx.exits {
+        Some(_) => rs::RustExpr::Return(Some(Box::new(v.clone()))),
+        None => v.clone(),
+    }
 }
 
 /// Whether an arm's value leaves the function: a `return`, alone or as
@@ -7272,11 +7396,12 @@ fn question(
     } else {
         format!("Result.ok {name}")
     };
+    let (failed, _) = ctx.returning((Expr::Flat(early.1), ctx.result.clone()));
     let arms = if matches!(st, Ty::Option(_)) {
         vec![
             Arm {
                 pattern: early.0,
-                body: Expr::Flat(early.1),
+                body: failed,
             },
             Arm {
                 pattern: ok,
@@ -7291,7 +7416,7 @@ fn question(
             },
             Arm {
                 pattern: early.0,
-                body: Expr::Flat(early.1),
+                body: failed,
             },
         ]
     };
@@ -7393,6 +7518,7 @@ pub(crate) fn lift_all(
                 elements: None,
                 rebuilt: BTreeMap::new(),
                 bounds: BTreeMap::new(),
+                exits: None,
                 own: c.name.clone(),
                 top: true,
                 looping: None,

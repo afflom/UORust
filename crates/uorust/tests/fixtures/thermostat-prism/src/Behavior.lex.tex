@@ -1719,6 +1719,31 @@ definition{
 }
 
 definition{
+  name: markedRoomsLoop1,
+  parameters: [items3 : (List String), state1 : (List String)],
+  result: (Result (List String) (Option (List String))),
+  body: (match items3
+    | List.nil => (ctor Result.ok [(List String), (Option (List String))] state1)
+    | List.cons n rest4 => (if (prim equal n "" : Bool) then (ctor Result.error [(List String), (Option (List String))] (ctor Option.none [(List String)])) else (match (Prelude::textStripPrefix n "room-")
+      | Option.none => (markedRoomsLoop1 rest4 state1)
+      | Option.some rest => (match (Prelude::textStripSuffix rest "!")
+        | Option.none => (ctor Result.error [(List String), (Option (List String))] (ctor Option.none [(List String)]))
+        | Option.some tail => (let out2 : (List String) := (prim append state1 (cons tail (nil String)) : (List String)); (markedRoomsLoop1 rest4 out2)))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items3
+}
+
+definition{
+  name: markedRooms,
+  parameters: [namesArg : (List String)],
+  result: (Option (List String)),
+  body: (let out : (List String) := (nil String); (match (markedRoomsLoop1 namesArg out)
+    | Result.ok state5 => (ctor Option.some [(List String)] state5)
+    | Result.error value6 => value6)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
   name: doubledRoom,
   parameters: [zone : Zone],
   result: (Option String),
