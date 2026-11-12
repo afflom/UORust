@@ -9,6 +9,7 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/model" "$work/scripts"
 cp "$root/model/routes.toml" "$work/model/"
+cp "$root/Cargo.toml" "$work/"
 cp -r "$root/scripts/self-model" "$work/scripts/"
 tar -C "$root" --exclude=app/.lexlean --exclude=app/.prism --exclude=app/target --exclude=app/.lake -cf - app | tar -C "$work" -xf -
 python3 -I "$work/scripts/self-model/routes.py" "$work"

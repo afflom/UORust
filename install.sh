@@ -6,7 +6,7 @@
 # Picks the release archive for this machine, checks its SHA-256 against the
 # release's SHA256SUMS, and installs the binary. Settings, all optional:
 #
-#   UORUST_VERSION      the release to install, e.g. 0.1.0 (default: the latest)
+#   UORUST_VERSION      the release to install, e.g. 0.1.1 (default: the latest)
 #   UORUST_INSTALL_DIR  where the binary goes (default: $HOME/.local/bin)
 #   UORUST_REPOSITORY   the GitHub repository (default: afflom/UORust)
 #   UORUST_ATTESTATION  1 to also verify the archive's build provenance with

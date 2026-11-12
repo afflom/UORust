@@ -80,6 +80,9 @@ def line_of(module, record, path, needle):
     cite(module, record, path, hits[0], hits[0])
     return hits[0]
 
+# The release the control set describes: the workspace version.
+WORKSPACE_VERSION = tomllib.loads(open(f"{SRC}/Cargo.toml", encoding="utf-8").read())["workspace"]["package"]["version"]
+
 IDS = {r["id"]: r for r in tomllib.loads(open(f"{SRC}/model/ids.toml", encoding="utf-8").read())["id"]}
 
 def register_row(module, record, rid):
@@ -537,7 +540,7 @@ for c in controls:
 for c in measured:
     n = "measurement" + c[0][7:]
     out += defn(n, "Foundation.Sec::VerificationMeasurement", f"(record Foundation.Sec::VerificationMeasurement {{index := {mi[n]}, controlIndex := {ki[c[0]]}, passed := true}})") + "\n"
-out += defn("threatModelControlSet", "Production.ThreatModel::ControlSet", '(record Production.ThreatModel::ControlSet {title := "UORust security controls", text := "uorust reads a Cargo workspace and writes a Prism project. It runs locally, builds nothing it reads, opens no network connection and writes only below its output directory.", version := "0.1.0", lastModified := "2026-11-11T00:00:00Z"})') + "\n"
+out += defn("threatModelControlSet", "Production.ThreatModel::ControlSet", '(record Production.ThreatModel::ControlSet {title := "UORust security controls", text := "uorust reads a Cargo workspace and writes a Prism project. It runs locally, builds nothing it reads, opens no network connection and writes only below its output directory.", version := ' + q(WORKSPACE_VERSION) + ', lastModified := "2026-11-11T00:00:00Z"})') + "\n"
 for n, comp, name, text in assets:
     out += defn("modeled" + n[0].upper() + n[1:], "Production.ThreatModel::ModeledAsset", f"(record Production.ThreatModel::ModeledAsset {{asset := {q('Security::' + n)}, name := {q(name)}, text := {q(text)}}})") + "\n"
 for t in threats:

@@ -141,6 +141,10 @@ tpl = re.sub(r"\(prim split_exact text \"\\n\" \(\d+ : UInt32\)", lambda m: f'(p
 # too-large vector reaches the guest and its answer is modeled.
 tpl = re.sub(r"requestMaximum := \(\d+ : UInt32\)", f"requestMaximum := ({LIMIT} : UInt32)", tpl)
 tpl = re.sub(r"guestAllocationMaximum := \(\d+ : UInt32\)", f"guestAllocationMaximum := ({LIMIT + 1} : UInt32)", tpl)
+# The generated program's package version is the workspace's.
+cargo = open(f"{root}/Cargo.toml", encoding="utf-8").read()
+version = re.search(r'\[workspace\.package\][^\[]*?\nversion = "([^"]+)"', cargo).group(1)
+tpl = re.sub(r'cargoVersion := "[^"]*"', f'cargoVersion := "{version}"', tpl)
 open(f"{root}/app/src/Routes.lex.tex", "w").write(tpl)
 
 def lstr2(t):

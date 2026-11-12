@@ -65,9 +65,9 @@ builds it from the locked sources. CI installs through each one and runs
 | Homebrew | `brew tap afflom/uorust https://github.com/afflom/UORust` then `brew install afflom/uorust/uorust` | the formula's `sha256`, written from `SHA256SUMS` |
 | Nix | `nix run github:afflom/UORust -- --version` or `nix profile install github:afflom/UORust` | builds `main` from `Cargo.lock` at a pinned nixpkgs |
 | crates.io | `cargo install --locked uorust` | builds from crates.io with the published `Cargo.lock` |
-| From a tag | `cargo install --locked --git https://github.com/afflom/UORust --tag v0.1.0 uorust` | builds that tag with its `Cargo.lock` |
+| From a tag | `cargo install --locked --git https://github.com/afflom/UORust --tag v0.1.1 uorust` | builds that tag with its `Cargo.lock` |
 
-The install script takes `UORUST_VERSION` (a release such as `0.1.0`; the
+The install script takes `UORUST_VERSION` (a release such as `0.1.1`; the
 newest by default) and `UORUST_INSTALL_DIR` (default `~/.local/bin`; on Windows
 `%LOCALAPPDATA%\Programs\uorust\bin`, which it adds to the user `PATH`). Read it
 before running it: [`install.sh`](install.sh), [`install.ps1`](install.ps1).
@@ -97,7 +97,7 @@ it builds.
 ### Verify a download by hand
 
 ```sh
-gh release download v0.1.0 --repo afflom/UORust --pattern 'uorust-x86_64-unknown-linux-gnu.tar.gz' --pattern SHA256SUMS
+gh release download v0.1.1 --repo afflom/UORust --pattern 'uorust-x86_64-unknown-linux-gnu.tar.gz' --pattern SHA256SUMS
 sha256sum --check --ignore-missing SHA256SUMS
 gh attestation verify uorust-x86_64-unknown-linux-gnu.tar.gz --repo afflom/UORust \
   --signer-workflow afflom/UORust/.github/workflows/release.yml
