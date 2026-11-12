@@ -104,6 +104,9 @@ pub(crate) enum Ty {
     Char,
     /// The error of an integer `parse`: the prelude's `ParseIntError`.
     ParseError,
+    /// A `PathBuf` or `Path`: the prelude's owned path record, its
+    /// components and whether it is absolute.
+    Path,
     /// A unit-variant enum or a struct.
     Named(String),
     Option(Box<Ty>),
@@ -133,6 +136,7 @@ impl Ty {
             Self::Int(_) => "Int64".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => format!("{PRELUDE}::ParseIntError"),
+            Self::Path => format!("{PRELUDE}::FilePath"),
             Self::Named(n) => n.clone(),
             Self::Option(t) => format!("(Option {})", t.render()),
             Self::Outcome(t, e) => format!("(Result {} {})", t.render(), e.render()),
@@ -166,6 +170,7 @@ impl Ty {
             Self::Int(_) => "Int".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => "ParseIntError".into(),
+            Self::Path => "FilePath".into(),
             Self::Named(n) => n.clone(),
             Self::Option(t) => format!("Option{}", t.tag()),
             Self::Outcome(t, e) => format!("Result{}{}", t.tag(), e.tag()),
@@ -687,6 +692,15 @@ impl Types {
                 }
                 Ok(self.tuple(ts))
             }
+            // `std::path::PathBuf`, written out.
+            rs::TypeKind::Path { qself: false, path }
+                if path.segments.len() == 3
+                    && path.segments[0].ident == "std"
+                    && path.segments[1].ident == "path"
+                    && matches!(path.segments[2].ident.as_str(), "Path" | "PathBuf") =>
+            {
+                Ok(Ty::Path)
+            }
             rs::TypeKind::Path { qself: false, path } if path.segments.len() == 1 => {
                 let seg = &path.segments[0];
                 let name = seg.ident.clone();
@@ -734,6 +748,9 @@ impl Types {
                     {
                         Ty::Named(self.resolve(n))
                     }
+                    // The standard path, where the crate declares no type
+                    // of the name.
+                    ("Path" | "PathBuf", []) => Ty::Path,
                     _ => return bad(),
                 };
                 Ok(ty)
@@ -1029,6 +1046,9 @@ struct Ctx {
     /// they are the function's own: a `return` or `?` there leaves the walk
     /// with the function's value.
     exits: Option<Ty>,
+    /// The formatter parameter of a `Display` impl's `fmt`, which `write!`
+    /// writes the function's text into.
+    formatter: Option<String>,
 }
 
 /// A closure a `let` binds: its parameters, its body, and the locals in
@@ -1685,6 +1705,7 @@ fn expr_inner(
         rs::RustExpr::Call(c) => call(c, env, ctx, acc, want),
         rs::RustExpr::MethodCall(m) => method(m, env, ctx, acc, want),
         rs::RustExpr::Macro(m) if m.path.is_ident("format") => format_macro(m, env, ctx, acc),
+        rs::RustExpr::Macro(m) if m.path.is_ident("write") => write_macro(m, env, ctx, acc),
         _ => expr_form(e, env, ctx, acc, want),
     }
 }
@@ -1761,7 +1782,7 @@ fn expr_form(
                 ];
                 return matching(&l.expr, &arms, env, ctx, acc, want);
             }
-            let ((c, ct), acc) = expr(&i.cond, env, &ctx.below(), acc, Some(&Ty::Bool))?;
+            let ((c, ct), acc) = flat_of(&i.cond, env, &ctx.below(), acc, Some(&Ty::Bool))?;
             if ct != Ty::Bool {
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
@@ -1788,7 +1809,7 @@ fn expr_form(
             Ok((
                 (
                     Expr::If {
-                        condition: Box::new(Expr::Flat(flat_text(c)?)),
+                        condition: Box::new(Expr::Flat(c)),
                         then: Box::new(then),
                         otherwise: Box::new(other),
                     },
@@ -1957,7 +1978,7 @@ fn expr_form(
         }
         rs::RustExpr::Cast(c) => {
             let ((v, vt), acc) = flat_of(&c.expr, env, ctx, acc, None)?;
-            let target = match env.types.ty(&c.ty) {
+            let target = match env.types.ty(&c.ty.localized(&ctx.imports)) {
                 Ok(t) => t,
                 Err(_) => return Err(Residue::Form("cast".to_string())),
             };
@@ -2083,6 +2104,28 @@ fn is_identifier(hole: &str) -> bool {
     chars.next().is_some_and(|c| c.is_alphabetic() || c == '_')
         && chars.all(|c| c.is_alphanumeric() || c == '_')
         && hole != "_"
+}
+
+/// `write!(f, ..)` into the formatter of a `Display` impl: the text the
+/// same `format!` makes, which the impl's lifted function returns.
+fn write_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty), Acc)> {
+    let into_formatter = |e: &rs::RustExpr| match (e, &ctx.formatter) {
+        (rs::RustExpr::Path(p), Some(f)) => p.is_ident(f),
+        _ => false,
+    };
+    match mac.args.as_deref() {
+        Some([f, rest @ ..]) if into_formatter(f) => {
+            let text = rs::ExprMacro {
+                path: mac.path.clone(),
+                args: Some(rest.to_vec()),
+                matches: None,
+            };
+            format_macro(&text, env, ctx, acc)
+        }
+        _ => Err(Residue::Form(
+            "write! into something other than the formatter".to_string(),
+        )),
+    }
 }
 
 /// `format!` whose holes are all strings: the pieces joined.
@@ -2466,7 +2509,10 @@ fn applied_closure(
     let mut acc = acc;
     for (input, arg) in closure.inputs.iter().zip(args) {
         let (pat, declared) = match input {
-            rs::Pat::Type(pt) => (&*pt.pat, Some(env.types.ty(&pt.ty)?)),
+            rs::Pat::Type(pt) => (
+                &*pt.pat,
+                Some(env.types.ty(&pt.ty.localized(&ctx.imports))?),
+            ),
             p => (p, None),
         };
         let ((value, ty), after) = flat_of(arg, env, &ctx.below(), acc, declared.as_ref())?;
@@ -2613,6 +2659,19 @@ fn call(
             let (insert, acc) = sorted_insert(&set, env, ctx, acc)?;
             let (helper, acc) = insert_all(&set, &vt, &insert, env, ctx, acc);
             return flat(format!("({helper} {v} (nil {}))", elem.render()), set, acc);
+        }
+        // `Path::new(s)`, `PathBuf::from(s)`: the path the text names.
+        ([s, n], [a], _) | ([_, _, s, n], [a], _)
+            if (s == "Path" && n == "new" || s == "PathBuf" && n == "from")
+                && (segments.len() == 2 || segments[..2] == ["std", "path"])
+                && !env.types.structs.contains_key(s.as_str()) =>
+        {
+            let ((v, vt), acc) = flat_of(a, env, ctx, acc, Some(&Ty::Str))?;
+            if vt != Ty::Str {
+                return Err(Residue::Form("a path of something other than text".into()));
+            }
+            let (path, acc) = acc.prelude("pathOf", &[&v]);
+            return flat(path, Ty::Path, acc);
         }
         ([s, n], [a], _) if s == "Box" && n == "new" => {
             let ((v, vt), acc) = flat_of(a, env, ctx, acc, want)?;
@@ -3047,7 +3106,9 @@ fn text_method(
         ("parse", []) if !chars => {
             let target = match &m.turbofish {
                 Some(t) => match t.as_slice() {
-                    [rs::GenericArgument::Type(t)] => Some(env.types.ty(t)?),
+                    [rs::GenericArgument::Type(t)] => {
+                        Some(env.types.ty(&t.localized(&ctx.imports))?)
+                    }
                     _ => None,
                 },
                 None => match want {
@@ -3165,6 +3226,33 @@ fn method(
     let some = |t: &Ty, v: &str| format!("(ctor Option.some [{}] {v})", t.render());
     let none = |t: &Ty| format!("(ctor Option.none [{}])", t.render());
     let opt = |t: &Ty| Ty::Option(Box::new(t.clone()));
+    // A path's text, and the path itself where Rust borrows or copies it.
+    if rt == Ty::Path && args.is_empty() {
+        match name.as_str() {
+            "display" => {
+                let (text, acc) = acc.prelude("pathDisplay", &[&r]);
+                return flat(text, Ty::Str, acc);
+            }
+            "to_path_buf" | "clone" | "to_owned" => return flat(r, Ty::Path, acc),
+            _ => {}
+        }
+    }
+    // `p.join(q)`: the path of `q` where it is absolute, else `q` pushed
+    // onto `p` after a separator.
+    if let (Ty::Path, "join", [piece]) = (&rt, name.as_str(), args.as_slice()) {
+        let ((v, vt), acc) = flat_of(piece, env, ctx, acc, Some(&Ty::Str))?;
+        let (text, acc) = match vt {
+            Ty::Str => (v, acc),
+            Ty::Path => acc.prelude("pathDisplay", &[&v]),
+            _ => {
+                return Err(Residue::Form(
+                    "a join of something other than a path".into(),
+                ))
+            }
+        };
+        let (joined, acc) = acc.prelude("pathJoin", &[&r, &text]);
+        return flat(joined, Ty::Path, acc);
+    }
     if let Ty::Named(owner) = &rt {
         let key = format!("{owner}::{name}");
         if let Some(sig) = env.fns.get(&key) {
@@ -3574,7 +3662,7 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
         Ty::Str | Ty::Char => "\"\"".into(),
         Ty::ParseError => format!("(ctor {PRELUDE}::ParseIntError.InvalidDigit)"),
         Ty::Option(t) => format!("(ctor Option.none [{}])", t.render()),
-        Ty::Outcome(..) => return None,
+        Ty::Outcome(..) | Ty::Path => return None,
         Ty::List(t) | Ty::Set(t, _) => format!("(nil {})", t.render()),
         Ty::Map(..) => format!("(nil {})", ty.entry().render()),
         Ty::Tuple(ts) | Ty::Pair(ts) => {
@@ -5975,6 +6063,31 @@ fn updated(
             Ok((struct_value(name, &parts, &env.types), acc))
         }
         (rs::RustExpr::Assign(a), _) => value_of(&a.right, ty, acc),
+        // `xs.extend(o)` of an option: the one value it holds, if any.
+        (rs::RustExpr::MethodCall(m), Ty::List(t) | Ty::Set(t, true))
+            if m.method == "extend" && extends_by_option(&m.args[0], t, env, &inner, &acc) =>
+        {
+            let ((v, _), acc) = flat_of(&m.args[0], env, &inner, acc, None)?;
+            let (x, acc) = ctx.fresh(env, acc, "item");
+            let (added, acc) = match ty {
+                Ty::Set(..) => {
+                    let (insert, acc) = sorted_insert(ty, env, ctx, acc)?;
+                    (format!("({insert} {current} {x})"), acc)
+                }
+                _ => (
+                    format!(
+                        "(prim append {current} (cons {x} (nil {})) : {})",
+                        t.render(),
+                        ty.render()
+                    ),
+                    acc,
+                ),
+            };
+            Ok((
+                format!("(match {v} | Option.none => {current} | Option.some {x} => {added})"),
+                acc,
+            ))
+        }
         // `xs.extend(ys)`: the list followed by the items.
         (rs::RustExpr::MethodCall(m), Ty::List(_)) if m.method == "extend" => {
             let (v, acc) = value_of(&m.args[0], ty, acc)?;
@@ -6042,6 +6155,15 @@ fn updated(
             joined(piece, acc)
         }
         _ => Err(Residue::Form("an update outside the lift".to_string())),
+    }
+}
+
+/// Whether `e` is an option of the element type `t`: what `extend` adds
+/// at most one of.
+fn extends_by_option(e: &rs::RustExpr, t: &Ty, env: &Env, ctx: &Ctx, acc: &Acc) -> bool {
+    match flat_of(e, env, ctx, acc.clone(), None) {
+        Ok(((_, Ty::Option(inner)), _)) => inner.same(t),
+        _ => false,
     }
 }
 
@@ -6237,7 +6359,9 @@ fn loop_state(body: &[rs::Stmt], ctx: &Ctx) -> Lift<Vec<String>> {
         .into_iter()
         .filter(|u| ctx.locals.contains_key(u))
         .collect();
-    if state.is_empty() {
+    // A loop of the function's own statements that updates nothing may
+    // still leave it: a walk whose state is `()`.
+    if state.is_empty() && !ctx.top {
         return Err(Residue::Form("a loop that updates no local".to_string()));
     }
     Ok(state)
@@ -6381,6 +6505,7 @@ fn for_loop(
     let state = loop_state(&f.body.stmts, ctx)?;
     let tys: Vec<Ty> = state.iter().map(|v| ctx.locals[v].1.clone()).collect();
     let state_ty = match tys.as_slice() {
+        [] => Ty::Unit,
         [one] => one.clone(),
         many => Ty::Tuple(many.to_vec()),
     };
@@ -6425,6 +6550,9 @@ fn for_loop(
     // A step that can leave the function walks to the final state or to
     // the function's value.
     let leaving = text.contains(LEAVE);
+    if state.is_empty() && !leaving {
+        return Err(Residue::Form("a loop that updates no local".to_string()));
+    }
     let walked = if leaving {
         Ty::Outcome(Box::new(state_ty.clone()), Box::new(ctx.result.clone()))
     } else {
@@ -6804,7 +6932,7 @@ fn block(
                 let arms = vec![(&l.pat, Body::Block(&early)), (&wild, Body::Block(&tail))];
                 return matching(&l.expr, &arms, env, ctx, acc, want);
             }
-            let ((c, ct), acc) = expr(&i.cond, env, &inner, acc, Some(&Ty::Bool))?;
+            let ((c, ct), acc) = flat_of(&i.cond, env, &inner, acc, Some(&Ty::Bool))?;
             if ct != Ty::Bool {
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
@@ -6821,7 +6949,7 @@ fn block(
             Ok((
                 (
                     Expr::If {
-                        condition: Box::new(Expr::Flat(flat_text(c)?)),
+                        condition: Box::new(Expr::Flat(c)),
                         then: Box::new(then),
                         otherwise: Box::new(other),
                     },
@@ -6985,7 +7113,7 @@ fn block(
                 && !matches!(&*i.cond, rs::RustExpr::Let(_))
                 && returned(&i.then_branch).is_none() =>
         {
-            let ((c, ct), acc) = expr(&i.cond, env, &ctx.below(), acc, Some(&Ty::Bool))?;
+            let ((c, ct), acc) = flat_of(&i.cond, env, &ctx.below(), acc, Some(&Ty::Bool))?;
             if ct != Ty::Bool {
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
@@ -7008,7 +7136,7 @@ fn block(
             Ok((
                 (
                     Expr::If {
-                        condition: Box::new(Expr::Flat(flat_text(c)?)),
+                        condition: Box::new(Expr::Flat(c)),
                         then: Box::new(a),
                         otherwise: Box::new(b),
                     },
@@ -7022,7 +7150,7 @@ fn block(
                 rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => (i, None),
                 rs::Pat::Type(pt) => match &*pt.pat {
                     rs::Pat::Ident(i) if i.subpat.is_none() && !i.by_ref => {
-                        (i, Some(env.types.ty(&pt.ty)?))
+                        (i, Some(env.types.ty(&pt.ty.localized(&ctx.imports))?))
                     }
                     other => return let_pattern(other, local, rest, env, ctx, acc, want),
                 },
@@ -7366,13 +7494,44 @@ fn static_type(e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Op
 /// type when its last statement is the local, or the function's result when
 /// a `return` of the local appears.
 fn returned_type(ident: &str, rest: &[rs::Stmt], ctx: &Ctx, want: Option<&Ty>) -> Option<Ty> {
-    let is_local = |e: &rs::RustExpr| matches!(e, rs::RustExpr::Path(p) if p.is_ident(ident));
-    if let Some(rs::Stmt::Expr(e, false)) = rest.last() {
-        if is_local(e) {
-            return want.cloned();
+    if let (Some(rs::Stmt::Expr(e, false)), Some(w)) = (rest.last(), want) {
+        if let Some(t) = tail_type(e, ident, w) {
+            return Some(t);
         }
     }
     returns_local(rest, ident).then(|| ctx.result.clone())
+}
+
+/// The type of the local `ident` where a tail of type `want` holds it: the
+/// tail itself, a member of a tuple, or the value of `Some`, `Ok` or
+/// `then_some`.
+fn tail_type(e: &rs::RustExpr, ident: &str, want: &Ty) -> Option<Ty> {
+    let is_local = |e: &rs::RustExpr| matches!(e, rs::RustExpr::Path(p) if p.is_ident(ident));
+    let inner = match want {
+        Ty::Option(t) | Ty::Outcome(t, _) => Some((**t).clone()),
+        _ => None,
+    };
+    match (e, want) {
+        (rs::RustExpr::Path(p), _) if p.is_ident(ident) => Some(want.clone()),
+        (rs::RustExpr::Tuple(items), Ty::Tuple(ts)) if items.len() == ts.len() => items
+            .iter()
+            .zip(ts)
+            .find(|(item, _)| is_local(item))
+            .map(|(_, t)| t.clone()),
+        (rs::RustExpr::Call(c), _) => match (&*c.func, c.args.as_slice()) {
+            (rs::RustExpr::Path(p), [arg])
+                if is_local(arg) && (p.is_ident("Some") || p.is_ident("Ok")) =>
+            {
+                inner
+            }
+            _ => None,
+        },
+        (rs::RustExpr::MethodCall(m), _) => match m.args.as_slice() {
+            [arg] if m.method == "then_some" && is_local(arg) => inner,
+            _ => None,
+        },
+        _ => None,
+    }
 }
 
 /// Whether a `return` of the local `ident` appears in the statements,
@@ -7489,6 +7648,9 @@ pub(crate) struct Candidate<'a> {
     pub(crate) block: &'a rs::Block,
     /// The `use` imports of its file: name -> the path it names.
     pub(crate) imports: BTreeMap<String, String>,
+    /// The formatter parameter of a `Display` impl's `fmt`, which lifts as
+    /// the function from the value to the text it writes.
+    pub(crate) formatter: Option<String>,
 }
 
 /// What a lift produced.
@@ -7582,6 +7744,7 @@ pub(crate) fn lift_all(
                 hidden: Vec::new(),
                 closures: BTreeMap::new(),
                 imports: c.imports.clone(),
+                formatter: c.formatter.clone(),
             };
             let lifted = block(&c.block.stmts, &env, &ctx, Acc::default(), Some(&c.result));
             let outcome = match lifted {
@@ -8125,6 +8288,7 @@ mod tests {
             result,
             block: &block,
             imports: BTreeMap::from([("Sha256".to_string(), "sha2::Sha256".to_string())]),
+            formatter: None,
         };
         let out = lift_all(&[c], types, &pointer_widths(&[]), &BTreeSet::new());
         match out.failed.into_values().next() {

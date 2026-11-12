@@ -32,10 +32,12 @@ pub struct Model {
 /// A failure to load or to cross-check the model.
 #[derive(Debug)]
 pub enum ModelError {
-    /// A model file could not be read.
-    Io(PathBuf, std::io::Error),
-    /// A model file could not be parsed.
-    Parse(PathBuf, toml::de::Error),
+    /// A model file could not be read: the file and what the operating
+    /// system reported.
+    Io(PathBuf, String),
+    /// A model file could not be parsed: the file and what the parser
+    /// reported.
+    Parse(PathBuf, String),
     /// The model disagrees with itself, or with a derivation (CM-01).
     Inconsistent(String),
 }
@@ -155,8 +157,9 @@ impl Model {
 
 fn read<T: serde::de::DeserializeOwned>(dir: &Path, name: &str) -> Result<T, ModelError> {
     let path = dir.join(name);
-    let text = std::fs::read_to_string(&path).map_err(|e| ModelError::Io(path.clone(), e))?;
-    toml::from_str(&text).map_err(|e| ModelError::Parse(path, e))
+    let text =
+        std::fs::read_to_string(&path).map_err(|e| ModelError::Io(path.clone(), e.to_string()))?;
+    toml::from_str(&text).map_err(|e| ModelError::Parse(path, e.to_string()))
 }
 
 /// The repository root, resolved from this crate's manifest directory.

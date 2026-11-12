@@ -501,6 +501,52 @@ pub fn ups(name: &str) -> usize {
     name.matches("-up").count()
 }
 
+/// Why a roster does not check.
+#[derive(Debug, PartialEq, Eq)]
+pub enum RosterError {
+    /// A room is listed twice.
+    Twice(String),
+    /// A room's schedule file is missing.
+    Missing(std::path::PathBuf),
+}
+
+impl std::fmt::Display for RosterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Twice(room) => write!(f, "{room} is listed twice"),
+            Self::Missing(path) => write!(f, "{} is missing", path.display()),
+        }
+    }
+}
+
+/// The file a room's schedule is kept in, below `root`.
+pub fn schedule_file(root: &std::path::Path, room: &str) -> std::path::PathBuf {
+    root.join("schedules").join(format!("{room}.toml"))
+}
+
+/// The error for a room whose schedule file is missing, below `root`.
+pub fn missing_schedule(root: &str, room: &str) -> RosterError {
+    RosterError::Missing(schedule_file(std::path::Path::new(root), room))
+}
+
+/// Nothing, or the first of `rooms` that `taken` already lists.
+pub fn none_taken(rooms: &[String], taken: &[String]) -> Result<(), RosterError> {
+    for room in rooms {
+        if taken.contains(room) {
+            return Err(RosterError::Twice(room.clone()));
+        }
+    }
+    Ok(())
+}
+
+/// Whether the roster names no room, or its first room is unnamed.
+pub fn starts_unnamed(rooms: &[String]) -> bool {
+    if rooms.first().is_none() {
+        return true;
+    }
+    rooms[0].is_empty()
+}
+
 /// The marked rooms' names without their mark, or `None` where a name is
 /// empty or a marked name lacks its closing `!`.
 pub fn marked_rooms(names: &[String]) -> Option<Vec<String>> {
@@ -683,6 +729,21 @@ mod tests {
         assert_eq!(marked_rooms(&names(&["room-den"])), None);
         assert_eq!(marked_rooms(&names(&["hall", ""])), None);
         assert_eq!(ups("hall-up-up"), 2);
+        assert_eq!(
+            missing_schedule("/etc", "den").to_string(),
+            "/etc/schedules/den.toml is missing"
+        );
+        assert_eq!(
+            RosterError::Twice("den".to_string()).to_string(),
+            "den is listed twice"
+        );
+        assert_eq!(
+            none_taken(&["den".to_string()], &["den".to_string()]),
+            Err(RosterError::Twice("den".to_string()))
+        );
+        assert_eq!(none_taken(&["den".to_string()], &[]), Ok(()));
+        assert!(starts_unnamed(&[]));
+        assert!(!starts_unnamed(&["den".to_string()]));
         assert_eq!(per_room(7, 2), 3);
         assert_eq!(per_room(7, 0), 0);
         assert_eq!(left_over(7, 0), None);

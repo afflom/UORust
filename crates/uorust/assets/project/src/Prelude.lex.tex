@@ -750,6 +750,50 @@ definition{
 }
 
 structure{
+  name: FilePath,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: components, type: (List String)}, {name: absolute, type: Bool}]
+}
+
+definition{
+  name: pathDisplay,
+  parameters: [path : FilePath],
+  result: String,
+  body: (if (project path absolute) then (prim join (cons "/" (cons (prim join (project path components) "/" : String) (nil String))) "" : String) else (prim join (project path components) "/" : String)),
+  axioms: [propext]
+}
+
+definition{
+  name: pathParts,
+  parameters: [parts : (List String)],
+  result: (List String),
+  body: (match parts
+    | List.nil => (nil String)
+    | List.cons head tail => (if ((prim equal head "" : Bool) || (prim equal head "." : Bool)) then (pathParts tail) else (cons head (pathParts tail)))),
+  axioms: [],
+  recursive_argument: parts
+}
+
+definition{
+  name: pathOf,
+  parameters: [text : String],
+  result: FilePath,
+  body: (let absolute : Bool := (textStartsWith text "/"); (let parts : (List String) := (textSplit text "/"); (record FilePath {components := (match parts
+    | List.nil => (nil String)
+    | List.cons head tail => (if ((not absolute) && (prim equal head "." : Bool)) then (cons head (pathParts tail)) else (pathParts parts))), absolute := absolute}))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: pathJoin,
+  parameters: [path : FilePath, piece : String],
+  result: FilePath,
+  body: (if (textStartsWith piece "/") then (pathOf piece) else (let shown : String := (pathDisplay path); (if (prim equal shown "" : Bool) then (pathOf piece) else (pathOf (prim join (cons shown (cons "/" (cons piece (nil String)))) "" : String))))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+structure{
   name: ShaWords,
   type_parameters: [],
   parameters: [],

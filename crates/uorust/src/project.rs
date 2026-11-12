@@ -3156,8 +3156,20 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         // Inherent methods of a type the lift names lift with `self` as their
         // first parameter; trait methods and methods of other types stop, each
         // with a row of its own.
+        let known = |o: &String| {
+            types.enums.contains_key(&types.resolve(o))
+                || types.structs.contains_key(&types.resolve(o))
+                || types.datas.contains_key(&types.resolve(o))
+        };
+        // `Display::fmt` lifts as the function from the value to the text
+        // it writes: `write!` into its formatter is that `format!`.
+        let display = matches!(
+            (&f.owner, &f.implements),
+            (Some(o), Some(t)) if t == "Display" && f.name == "fmt" && !f.in_trait && known(o)
+        );
         let method = match (&f.owner, &f.implements) {
             (None, _) => None,
+            (Some(o), Some(_)) if display => Some(types.resolve(o)),
             (Some(_), _) if f.in_trait => {
                 let reason = Residue::Signature("a method a trait declares".to_string());
                 ctx.stopped(notes, &effectful, r, reason);
@@ -3190,6 +3202,17 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
         if let Some(t) = &mut sig.output {
             *t = expanded(r.pkg, &t.localized(&ctx.file(r).imports));
         }
+        let formatter = match sig.inputs.as_slice() {
+            [crate::ast::FnArg::Receiver { plain: true }, crate::ast::FnArg::Typed(t)]
+                if display =>
+            {
+                match &*t.pat {
+                    crate::ast::Pat::Ident(i) => Some(i.ident.clone()),
+                    _ => None,
+                }
+            }
+            _ => None,
+        };
         let sig = &sig;
         let Some(block) = &fn_syntax.block else {
             continue;
@@ -3202,7 +3225,21 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
             None => (f.name.clone(), lift::local_name(&f.name)),
         };
         let (candidates, names) = &mut scoped[r.pkg];
-        match types.signature(sig, method.as_deref()) {
+        let signature = match (&formatter, &method) {
+            (Some(_), Some(o)) => Ok((
+                vec![(
+                    "self".to_string(),
+                    lift::local_name("self"),
+                    lift::Ty::Named(o.clone()),
+                )],
+                lift::Ty::Str,
+            )),
+            (None, _) if display => Err(Residue::Signature(
+                "a Display impl whose formatter is not a plain parameter".to_string(),
+            )),
+            _ => types.signature(sig, method.as_deref()),
+        };
+        match signature {
             Ok((params, result)) => {
                 if names.contains_key(&rust)
                     || candidates.iter().any(|c: &Candidate<'_>| c.name == name)
@@ -3223,6 +3260,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     result,
                     block,
                     imports: ctx.file(r).imports.clone(),
+                    formatter,
                 });
             }
             Err(reason) => ctx.stopped(notes, &effectful, r, reason),
@@ -3258,6 +3296,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                     result,
                     block,
                     imports: file.imports.clone(),
+                    formatter: None,
                 });
             }
         }

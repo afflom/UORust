@@ -25,8 +25,8 @@ status = "open"
 kappa = "15fda2ed4c7ce72362556e29d0f052075ef6713907fcb42fec8941805da94ee0"
 function = "thermo_core::config::ConfigError::fmt"
 span = "thermo-core/src/config.rs:15"
-reason = "signature"
-detail = "signature outside the lift: implements the trait Display"
+reason = "form"
+detail = "expression form outside the lift: format! hole"
 
 [[residue]]
 status = "open"
@@ -241,6 +241,12 @@ span = "thermo-core/src/roster.rs:21"
 definition = "Behavior::roomReread"
 
 [[lifted]]
+kappa = "f26e23bfaf24ffc78e4b5fb0912070545e4ea10a26ff447b258a5da2c014d768"
+function = "thermo_core::roster::RosterError::fmt"
+span = "thermo-core/src/roster.rs:514"
+definition = "Behavior::rosterErrorFmt"
+
+[[lifted]]
 kappa = "7de5e1abd20cd3be12033bc0b5e51d3efe94b06cc320602c698abf00e734701a"
 function = "thermo_core::roster::Zone::heats"
 span = "thermo-core/src/roster.rs:333"
@@ -345,7 +351,7 @@ definition = "Behavior::divider"
 [[lifted]]
 kappa = "ab4c9669b562df89942d03cd27dad4446eaca34863fb3103711ad5161ec56873"
 function = "thermo_core::roster::doubled_room"
-span = "thermo-core/src/roster.rs:522"
+span = "thermo-core/src/roster.rs:568"
 definition = "Behavior::doubledRoom"
 
 [[lifted]]
@@ -411,14 +417,26 @@ definition = "Behavior::lineTarget"
 [[lifted]]
 kappa = "188f53acc21fb5d4168ba253ac8565704b304c87e1c7a9b7a782477ebcba922f"
 function = "thermo_core::roster::marked_rooms"
-span = "thermo-core/src/roster.rs:506"
+span = "thermo-core/src/roster.rs:552"
 definition = "Behavior::markedRooms"
+
+[[lifted]]
+kappa = "25e975d550878be8323ceef4e6a6f91fcb1d9e18fb44d700f0e3183e316254c1"
+function = "thermo_core::roster::missing_schedule"
+span = "thermo-core/src/roster.rs:528"
+definition = "Behavior::missingSchedule"
 
 [[lifted]]
 kappa = "7270be9b65f887eb4fa53ff5f3d14b2c3ba784ffcf678f503265f2915349526c"
 function = "thermo_core::roster::names"
 span = "thermo-core/src/roster.rs:38"
 definition = "Behavior::names"
+
+[[lifted]]
+kappa = "bef31a1c9aaaa64eb25df0c8c7b5e97781950eede89e8eb3d2d74f5f809d4717"
+function = "thermo_core::roster::none_taken"
+span = "thermo-core/src/roster.rs:533"
+definition = "Behavior::noneTaken"
 
 [[lifted]]
 kappa = "63573a575bf41d1824b1441668d0b7c44f9a58097e770ed2a80d4f45ecbc04e5"
@@ -459,7 +477,7 @@ definition = "Behavior::positions"
 [[lifted]]
 kappa = "4dbb45cf3cb4c97f32ac8827d299806d6f181cb1e56aa51f95cf7b3d8ef70b0c"
 function = "thermo_core::roster::queue"
-span = "thermo-core/src/roster.rs:531"
+span = "thermo-core/src/roster.rs:577"
 definition = "Behavior::queue"
 
 [[lifted]]
@@ -501,7 +519,7 @@ definition = "Behavior::roomsUntilStop"
 [[lifted]]
 kappa = "4dffd1e264a839be4658d65b554ab62750bf4149b63d7db1be5bad0e18299f99"
 function = "thermo_core::roster::same_zone"
-span = "thermo-core/src/roster.rs:545"
+span = "thermo-core/src/roster.rs:591"
 definition = "Behavior::sameZone"
 
 [[lifted]]
@@ -509,6 +527,12 @@ kappa = "946f8f16ffab74a86c94c9c37408e977c775fcd41fb97cf73495b75b02edb4bb"
 function = "thermo_core::roster::saturated_total"
 span = "thermo-core/src/roster.rs:424"
 definition = "Behavior::saturatedTotal"
+
+[[lifted]]
+kappa = "26ee249711d67c37d166687cd11a496f4e9fa24876eda103a9cc25e723b23f9f"
+function = "thermo_core::roster::schedule_file"
+span = "thermo-core/src/roster.rs:523"
+definition = "Behavior::scheduleFile"
 
 [[lifted]]
 kappa = "aac12e2d2de37f030377770af5679290aa735e0be7ba94fa9798342a783b80a1"
@@ -531,7 +555,7 @@ definition = "Behavior::secondLast"
 [[lifted]]
 kappa = "27e5ca15be5aef72c7be4febc5121f6fb71bbb519c4b7dbdd8aae86dc72a789f"
 function = "thermo_core::roster::set_point"
-span = "thermo-core/src/roster.rs:550"
+span = "thermo-core/src/roster.rs:596"
 definition = "Behavior::setPoint"
 
 [[lifted]]
@@ -549,7 +573,7 @@ definition = "Behavior::slots"
 [[lifted]]
 kappa = "9bf42f3a9461665c2ecc69c7bc420674e05f0ec91f0dbb113977341adda5fe44"
 function = "thermo_core::roster::sorts_before"
-span = "thermo-core/src/roster.rs:540"
+span = "thermo-core/src/roster.rs:586"
 definition = "Behavior::sortsBefore"
 
 [[lifted]]
@@ -557,6 +581,12 @@ kappa = "cb59b04ff727c8cc7ea4e11a92f9c7f4fb4db4b0be5db2a1fa19bd0538d0f589"
 function = "thermo_core::roster::spelled"
 span = "thermo-core/src/roster.rs:290"
 definition = "Behavior::spelled"
+
+[[lifted]]
+kappa = "ad832bef08e869adf153cb6bbd28fe314341c16cda507d4ab46e3cb02706b183"
+function = "thermo_core::roster::starts_unnamed"
+span = "thermo-core/src/roster.rs:543"
+definition = "Behavior::startsUnnamed"
 
 [[lifted]]
 kappa = "2d774eb6eb42a548aca3bd66e1c89e300b9d625dbd101ee026fa689404eef7e4"

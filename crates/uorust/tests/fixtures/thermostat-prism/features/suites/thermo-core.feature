@@ -112,6 +112,10 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterPerRoom is made
     And the interface call Interface::callThermoCoreRosterLeftOver is made
     And the interface call Interface::callThermoCoreRosterUps is made
+    And the interface call Interface::callThermoCoreRosterScheduleFile is made
+    And the interface call Interface::callThermoCoreRosterMissingSchedule is made
+    And the interface call Interface::callThermoCoreRosterNoneTaken is made
+    And the interface call Interface::callThermoCoreRosterStartsUnnamed is made
     And the interface call Interface::callThermoCoreRosterMarkedRooms is made
     And the interface call Interface::callThermoCoreRosterDoubledRoom is made
     And the interface call Interface::callThermoCoreRosterQueue is made

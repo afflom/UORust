@@ -12,6 +12,13 @@ inductive{
   constructors: [{name: Unreadable, fields: []}, {name: NotANumber, fields: []}]
 }
 
+inductive{
+  name: RosterErrorFailure,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Twice, fields: []}, {name: Missing, fields: []}]
+}
+
 structure{
   name: Band,
   type_parameters: [],
@@ -165,6 +172,13 @@ structure{
   type_parameters: [],
   parameters: [],
   fields: [{name: name, type: String}, {name: reading, type: Nat}]
+}
+
+inductive{
+  name: RosterError,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: Twice, fields: [String]}, {name: Missing, fields: [Prelude::FilePath]}]
 }
 
 inductive{
@@ -1741,6 +1755,86 @@ definition{
 }
 
 definition{
+  name: rosterErrorFmt,
+  parameters: [selfValue : RosterError],
+  result: String,
+  body: (match selfValue
+    | RosterError.Twice room => (prim join (cons room (cons " is listed twice" (nil String))) "" : String)
+    | RosterError.Missing path => (prim join (cons (Prelude::pathDisplay path) (cons " is missing" (nil String))) "" : String)),
+  axioms: [propext]
+}
+
+definition{
+  name: scheduleFile,
+  parameters: [root : Prelude::FilePath, room : String],
+  result: Prelude::FilePath,
+  body: (Prelude::pathJoin (Prelude::pathJoin root "schedules") (prim join (cons room (cons ".toml" (nil String))) "" : String)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: missingSchedule,
+  parameters: [root : String, room : String],
+  result: RosterError,
+  body: (ctor RosterError.Missing (scheduleFile (Prelude::pathOf root) room)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: noneTakenContains1,
+  parameters: [items4 : (List String), needle3 : String],
+  result: Bool,
+  body: (match items4
+    | List.nil => false
+    | List.cons item2 rest5 => (if (prim equal item2 needle3 : Bool) then true else (noneTakenContains1 rest5 needle3))),
+  recursive_argument: items4
+}
+
+definition{
+  name: noneTakenLoop2,
+  parameters: [items6 : (List String), state1 : Unit, taken : (List String)],
+  result: (Result Unit (Result Unit RosterError)),
+  body: (match items6
+    | List.nil => (ctor Result.ok [Unit, (Result Unit RosterError)] state1)
+    | List.cons room rest7 => (if (noneTakenContains1 taken room) then (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice room))) else (noneTakenLoop2 rest7 () taken))),
+  recursive_argument: items6
+}
+
+definition{
+  name: noneTaken,
+  parameters: [rooms : (List String), taken : (List String)],
+  result: (Result Unit RosterError),
+  body: (match (noneTakenLoop2 rooms () taken)
+    | Result.ok state8 => (ctor Result.ok [Unit, RosterError] ())
+    | Result.error value9 => value9)
+}
+
+definition{
+  name: startsUnnamedPart1,
+  parameters: [rooms : (List String)],
+  result: Bool,
+  body: (match (prim index rooms 0 : (Option String))
+    | Option.none => true
+    | Option.some value1 => false)
+}
+
+definition{
+  name: startsUnnamedPart2,
+  parameters: [rooms : (List String)],
+  result: String,
+  body: (match (prim index rooms 0 : (Option String))
+    | Option.none => ""
+    | Option.some item2 => item2)
+}
+
+definition{
+  name: startsUnnamed,
+  parameters: [rooms : (List String)],
+  result: Bool,
+  body: (if (startsUnnamedPart1 rooms) then true else (prim equal (startsUnnamedPart2 rooms) "" : Bool))
+}
+
+definition{
   name: markedRoomsLoop1,
   parameters: [items3 : (List String), state1 : (List String)],
   result: (Result (List String) (Option (List String))),
@@ -2316,28 +2410,42 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom17,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom21,
+  parameters: [],
+  statement: ((startsUnnamed (nil String)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom22,
+  parameters: [],
+  statement: ((startsUnnamed (cons "den" (nil String))) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom23,
   parameters: [],
   statement: ((perRoom 7 2) = 3),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom18,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom24,
   parameters: [],
   statement: ((perRoom 7 0) = 0),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom19,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom25,
   parameters: [],
   statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom20,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom26,
   parameters: [],
   statement: ((leftOver 7 3) = (ctor Option.some [Nat] 1)),
   proof: decide{}

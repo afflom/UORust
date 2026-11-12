@@ -615,6 +615,34 @@ definition{
 }
 
 definition{
+  name: processThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreRosterMissingSchedule,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreRosterNoneTaken,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreRosterStartsUnnamed,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreRosterMarkedRooms,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -2264,6 +2292,69 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterUps"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterScheduleFile"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterScheduleFile"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreRosterMissingSchedule,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterMissingSchedule"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterMissingSchedule,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterMissingSchedule"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreRosterMissingScheduleThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreRosterMissingSchedule", target := "Design::processThermoCoreRosterScheduleFile"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreRosterNoneTaken,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterNoneTaken"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterNoneTaken,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterNoneTaken"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreRosterStartsUnnamed,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterStartsUnnamed"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterStartsUnnamed,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterStartsUnnamed"})
 }
 
 definition{
@@ -4049,6 +4140,76 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterUps"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterScheduleFile"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterScheduleFile"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterMissingSchedule,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterMissingSchedule"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterMissingSchedule,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterMissingSchedule"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInvokesThermoCoreRosterMissingScheduleThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreRosterMissingSchedule", target := "Design::processThermoCoreRosterScheduleFile"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterZoomThermoCoreRosterMissingScheduleThermoCoreRosterScheduleFile,
+  parameters: [],
+  result: Foundation.Arch::OpmZoom,
+  body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreRoster", process := "Design::processThermoCoreRosterMissingSchedule", subprocess := "Design::processThermoCoreRosterScheduleFile", order := 0})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterNoneTaken,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterNoneTaken"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterNoneTaken,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterNoneTaken"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterStartsUnnamed,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterStartsUnnamed"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterStartsUnnamed,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterStartsUnnamed"})
 }
 
 definition{
