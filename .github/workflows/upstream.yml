@@ -1,0 +1,41 @@
+# Watches the upstream fixes upstream.toml records. Each hour it asks whether
+# a release ships one; when it does, it opens an issue naming that release and
+# dispatches the re-pin where the re-pin is mechanical (template-update.yml for
+# the SDK). An upstream pull request closed without merging gets an issue too.
+# Nobody has to remember to check: the patch is replaced by its release the
+# hour the release exists.
+name: upstream
+
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    name: find the releases that ship our upstream fixes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      actions: write
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Report every patch, open issues and dispatch re-pins
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 -I scripts/ci/upstream.py --act | tee -a "$GITHUB_STEP_SUMMARY"

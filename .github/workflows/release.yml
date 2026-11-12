@@ -5,6 +5,9 @@
 # attestation. The signer is this repository's release workflow through
 # GitHub's OIDC issuer; check a download with
 #   gh attestation verify uorust-<target>.tar.gz --repo afflom/UORust
+# release-tag.yml cuts the tag for a green main whose workspace version has none
+# and dispatches this workflow for it (a tag the workflow token pushes starts
+# no `push` run); a tag pushed by hand runs it directly.
 # Windows is built where it builds: its leg may fail without holding back the
 # release, which then carries the other four platforms.
 name: release
@@ -12,12 +15,18 @@ name: release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The existing v* tag to build and publish.
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -55,6 +64,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
       - name: Install the pinned toolchain for the target
         shell: bash
         env:
@@ -126,6 +136,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
       - name: Download every archive that built
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -145,7 +156,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag || github.ref_name }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -156,5 +167,5 @@ jobs:
           if gh release view "$TAG" --repo "$REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/* --repo "$REPOSITORY" --clobber
           else
-            gh release create "$TAG" dist/* --repo "$REPOSITORY" --title "UORust $TAG" --notes "$notes" --verify-tag
+            gh release create "$TAG" dist/* --repo "$REPOSITORY" --title "UORust $TAG" --notes "$notes" --generate-notes --verify-tag
           fi

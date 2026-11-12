@@ -106,3 +106,14 @@ self-model-check:
 
 self-model-write:
     scripts/self-model/write.sh
+
+# Rewrite the committed fixture projection that `uorust` checks (UE-01): the
+# same command line as the check, with `project` in place of `check`.
+fixtures:
+    cargo run -q --locked -p uorust -- project crates/uorust/tests/fixtures/thermostat --out crates/uorust/tests/fixtures/thermostat-prism --name thermostat --last-modified 2026-11-11T00:00:00Z
+
+# Every writer, in the order their outputs feed each other: the self model and
+# the fixture projection from the sources, the lift register from the
+# workspace, then CONFORMANCE.md from the register. `generate.yml` runs this on
+# every push to main and commits what changed, so no generated file is stale.
+generate: self-model-write fixtures register model-write

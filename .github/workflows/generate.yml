@@ -1,0 +1,45 @@
+# Keeps every generated file current on main. On each push to main it runs
+# `just generate` (every writer the gate checks the output of) through the
+# locked SDK and, when anything changed, pushes the result as one commit and
+# dispatches the gate and the page for it. Nobody has to remember a writer:
+# a push that forgot one is followed by the commit that runs it.
+name: generate
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Only the newest main matters: an older run's output would be refused anyway.
+concurrency:
+  group: generate
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: run every writer and push what changed
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run every writer through the locked SDK
+        shell: bash
+        run: scripts/ci/sdk.sh 'just generate'
+      - name: Push the regenerated files and dispatch the gate and the page
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/ci/push.sh "Regenerate the generated files" \
+            "CONFORMANCE.md app model frontier.toml crates/uorust/tests/fixtures/thermostat-prism" \
+            bootstrap.yml pages.yml

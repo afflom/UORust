@@ -1,0 +1,57 @@
+# Cuts a release when main is green and the workspace version is new. The
+# version in Cargo.toml's [workspace.package] is the one release decision:
+# when the gate passes on both architectures for a main commit whose version
+# has no `v<version>` tag, this tags that exact commit and dispatches
+# release.yml for the tag. A version already released is never re-tagged, so
+# every other green main does nothing.
+name: release-tag
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: tag a green main whose version is unreleased
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out the commit the gate passed
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Tag it and dispatch the release when its version is new
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          version=$(sed -n '/^\[workspace\.package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml)
+          [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+].*)?$ ]]
+          tag="v$version"
+          if git ls-remote --exit-code --tags "https://github.com/$REPOSITORY.git" "refs/tags/$tag" >/dev/null; then
+            echo "release-tag: $tag is already released; nothing to do"
+            exit 0
+          fi
+          main=$(git ls-remote "https://github.com/$REPOSITORY.git" refs/heads/main | cut -f1)
+          if [[ $main != "$sha" ]]; then
+            echo "release-tag: main moved past $sha; the gate of the newer commit decides"
+            exit 0
+          fi
+          gh api "repos/$REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$sha" >/dev/null
+          gh workflow run release.yml --repo "$REPOSITORY" --ref main -f tag="$tag"
+          printf '## Released %s\n\nTagged `%s` and dispatched release.yml.\n' "$tag" "$sha" >>"$GITHUB_STEP_SUMMARY"

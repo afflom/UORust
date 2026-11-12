@@ -1,0 +1,34 @@
+# Every upstream fix this repository carries as a local patch, and how to tell
+# that a release ships it. Policy: patch the upstream, open its PR, pin to the
+# patch, and re-pin to the release once it ships. upstream.yml reads this file
+# on a schedule (scripts/ci/upstream.py): when a release carries a fix it opens
+# an issue naming the release and, where the re-pin is mechanical, dispatches
+# it. Add a row the moment a patch lands; delete it when the re-pin does.
+#
+#   fix       the upstream commit that carries the fix, once merged; until then
+#             `pull` is followed to its merge commit.
+#   release   how a release is found:
+#               ghcr  an image repository tagged sha-<commit> per build
+#               npm   a package whose versions record gitHead
+#   repin     what re-pins: "template-update" dispatches template-update.yml
+#             with the release's SDK image and its PrismPM action commit at
+#             the template revision template.lock pins; "issue" only reports.
+
+[[patch]]
+id = "prismpm-sdk-view-closure"
+what = "The SDK is ghcr.io/afflom/prismpm-sdk-patched (sdk-patch.yml): the pinned candidate plus prismpm with the browser closure v2 fix."
+pinned = "prismpm.lock, .devcontainer/devcontainer.json, template.lock"
+repository = "UOR-Foundation/PrismPM"
+pull = 615
+fix = "359d7f5bfa8e01272ba6028c30c94459420ebb6a"
+release = { kind = "ghcr", image = "ghcr.io/uor-foundation/prismpm-sdk-candidate" }
+repin = "template-update"
+
+[[patch]]
+id = "prism-code-target2-stack-globals"
+what = "try/vendor/prism-code/src/core.mjs accepts a target/2 guest's __stack_low and __stack_high exports (VENDOR.md, Local patch)."
+pinned = "try/vendor/prism-code"
+repository = "UOR-Foundation/PrismPM"
+pull = 640
+release = { kind = "npm", package = "prism-code" }
+repin = "issue"
