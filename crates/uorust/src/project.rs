@@ -3308,8 +3308,13 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     let mut ordered: BTreeSet<Ty> = BTreeSet::new();
     // Per crate: the lifted functions' signatures and their axioms.
     let mut results: Vec<(Sigs, Axioms)> = Vec::new();
+    let every_name: BTreeSet<String> = scoped
+        .iter()
+        .flat_map(|(candidates, _)| candidates.iter().map(|c| c.name.clone()))
+        .collect();
     for ((candidates, names), types) in scoped.iter().zip(&scopes) {
-        let out = lift::lift_all(candidates, types, &lift::pointer_widths(&ctx.ws.targets));
+        let widths = lift::pointer_widths(&ctx.ws.targets);
+        let out = lift::lift_all(candidates, types, &widths, &every_name);
         for (rust, reason) in out.failed {
             if let Some(&r) = names.get(&rust) {
                 ctx.stopped(notes, &effectful, r, reason);

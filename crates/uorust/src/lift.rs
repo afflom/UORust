@@ -983,6 +983,9 @@ pub(crate) struct Env {
     /// The pointer widths `usize` takes, each with the targets it is the
     /// width of.
     pub(crate) widths: Vec<(u32, Vec<String>)>,
+    /// The LexLean names of every crate's candidates, which share one
+    /// module: a binder takes none of them.
+    pub(crate) names: BTreeSet<String>,
 }
 
 /// The scope an expression or statement lifts in.
@@ -1016,6 +1019,9 @@ struct Ctx {
     /// The parameter a list in hand is a sub-term of, where a closure
     /// walking it binds each element: a recursive call on one descends.
     elements: Option<String>,
+    /// A parameter a match split -> its constructor applied to the arm's
+    /// binders, which names it there.
+    rebuilt: BTreeMap<String, String>,
 }
 
 /// A closure a `let` binds: its parameters, its body, and the locals in
@@ -1199,6 +1205,7 @@ impl Ctx {
         self.locals.values().any(|(n, _)| n == name)
             || self.hidden.iter().any(|n| n == name)
             || env.fns.values().any(|f| f.name == name)
+            || env.names.contains(name)
     }
 
     /// A LexLean binder for a Rust name: a binder may not shadow another.
@@ -3260,7 +3267,10 @@ fn method(
         (Ty::Str, "is_empty") if args.is_empty() => {
             flat(format!("(prim equal {r} \"\" : Bool)"), Ty::Bool, acc)
         }
-        (Ty::Str, "to_string" | "to_owned") | (_, "clone" | "copied" | "cloned" | "to_vec")
+        (Ty::Str, "to_string" | "to_owned")
+        | (Ty::List(_), "as_slice")
+        | (Ty::Option(_), "as_deref")
+        | (_, "clone" | "copied" | "cloned" | "to_vec")
             if args.is_empty() =>
         {
             flat(r, rt.clone(), acc)
@@ -3826,6 +3836,63 @@ fn bind_pat(
 }
 
 /// A closure argument over parameters of these types.
+/// The closure `|a0, ..| f(a0, ..)` of a function path `f` of `arity`
+/// parameters; for a path `T::m` that names no lifted function, a method
+/// of another type, `|a0, ..| a0.m(..)`.
+fn applying(f: &rs::Path, arity: usize, env: &Env) -> rs::RustExpr {
+    let names: Vec<String> = (0..arity).map(|i| format!("argument{i}")).collect();
+    let local = |n: &String| {
+        rs::RustExpr::Path(rs::Path {
+            segments: vec![rs::PathSegment {
+                ident: n.clone(),
+                arguments: rs::PathArguments::None,
+            }],
+            text: n.clone(),
+        })
+    };
+    rs::RustExpr::Closure(rs::ExprClosure {
+        inputs: names
+            .iter()
+            .map(|n| {
+                rs::Pat::Ident(rs::PatIdent {
+                    ident: n.clone(),
+                    by_ref: false,
+                    subpat: None,
+                })
+            })
+            .collect(),
+        body: Box::new(applied_path(f, names.iter().map(local).collect(), env)),
+        asyncness: false,
+    })
+}
+
+/// A call of the function path `f` on `args`: [`applying`]'s body.
+fn applied_path(f: &rs::Path, args: Vec<rs::RustExpr>, env: &Env) -> rs::RustExpr {
+    let names: Vec<&String> = f.segments.iter().map(|s| &s.ident).collect();
+    let lifted = match names.as_slice() {
+        [.., owner, method] => env
+            .fns
+            .contains_key(&format!("{}::{method}", env.types.resolve(owner))),
+        _ => true,
+    };
+    // `T::from` converts its argument: a call, not a method of it.
+    let converts = names.last().is_some_and(|m| *m == "from");
+    match (lifted || converts, names.last(), args.split_first()) {
+        (false, Some(method), Some((receiver, rest))) => {
+            rs::RustExpr::MethodCall(rs::ExprMethodCall {
+                receiver: Box::new(receiver.clone()),
+                method: (*method).clone(),
+                turbofish: None,
+                args: rest.to_vec(),
+            })
+        }
+        _ => rs::RustExpr::Call(rs::ExprCall {
+            func: Box::new(rs::RustExpr::Path(f.clone())),
+            args,
+        }),
+    }
+}
+
 fn lambda(
     e: &rs::RustExpr,
     params: &[Ty],
@@ -3834,7 +3901,12 @@ fn lambda(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<(Lambda, Acc)> {
-    let rs::RustExpr::Closure(c) = e else {
+    // A function given by its path is the closure that calls it.
+    let named = match e {
+        rs::RustExpr::Path(p) => Some(applying(p, params.len(), env)),
+        _ => None,
+    };
+    let Some(rs::RustExpr::Closure(c)) = named.as_ref().or(Some(e)) else {
         return Err(Residue::Form(
             "an iterator adapter given a function, not a closure".to_string(),
         ));
@@ -5081,6 +5153,7 @@ fn compile<'a>(
         let mut lets = Vec::new();
         let mut acc = acc;
         for (rust, value, ty) in binds {
+            let value = ctx.rebuilt.get(&value).cloned().unwrap_or(value);
             if value.chars().all(|c| c.is_alphanumeric() || c == '_') {
                 if let Some((old, _)) = scope.locals.insert(rust, (value, ty)) {
                     scope.hidden.push(old);
@@ -5310,6 +5383,7 @@ fn compile<'a>(
                 for r in rust {
                     scope.locals.insert(r, (whole.clone(), col.ty.clone()));
                 }
+                scope.rebuilt.insert(col.value.clone(), whole);
             }
         }
         let binders: Vec<String> = names.iter().map(|c| c.value.clone()).collect();
@@ -6879,6 +6953,7 @@ pub(crate) fn lift_all(
     candidates: &[Candidate<'_>],
     types: &Types,
     widths: &[(u32, Vec<String>)],
+    names: &BTreeSet<String>,
 ) -> Lifted {
     let mut failed: BTreeMap<String, Residue> = BTreeMap::new();
     loop {
@@ -6900,6 +6975,7 @@ pub(crate) fn lift_all(
             types: types.clone(),
             fns,
             widths: widths.to_vec(),
+            names: names.clone(),
         };
         let mut decls = Vec::new();
         let mut graph: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -6925,6 +7001,7 @@ pub(crate) fn lift_all(
                     .collect(),
                 tails: BTreeMap::new(),
                 elements: None,
+                rebuilt: BTreeMap::new(),
                 own: c.name.clone(),
                 top: true,
                 looping: None,
@@ -7475,7 +7552,7 @@ mod tests {
             block: &block,
             imports: BTreeMap::from([("Sha256".to_string(), "sha2::Sha256".to_string())]),
         };
-        let out = lift_all(&[c], types, &pointer_widths(&[]));
+        let out = lift_all(&[c], types, &pointer_widths(&[]), &BTreeSet::new());
         match out.failed.into_values().next() {
             Some(r) => Err(r),
             None => Ok(out

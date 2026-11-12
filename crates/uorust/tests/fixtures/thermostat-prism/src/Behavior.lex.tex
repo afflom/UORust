@@ -1507,6 +1507,62 @@ definition{
 }
 
 definition{
+  name: allGroupsNamedAll1,
+  parameters: [items1 : (List Zone)],
+  result: Bool,
+  body: (match items1
+    | List.nil => true
+    | List.cons argument0 rest2 => (if (allNamed argument0) then (allGroupsNamedAll1 rest2) else false)),
+  recursive_argument: items1
+}
+
+definition{
+  name: allGroupsNamed,
+  parameters: [group : Zone],
+  result: Bool,
+  body: (match group | Zone.Room value => true | Zone.Group zones => (allGroupsNamedAll1 zones))
+}
+
+definition{
+  name: trimmedMap1,
+  parameters: [items1 : (List String)],
+  result: (List String),
+  body: (match items1
+    | List.nil => (nil String)
+    | List.cons argument0 rest2 => (cons argument0 (trimmedMap1 rest2))),
+  recursive_argument: items1
+}
+
+definition{
+  name: trimmedMap2,
+  parameters: [items3 : (List String)],
+  result: (List String),
+  body: (match items3
+    | List.nil => (nil String)
+    | List.cons argument0 rest4 => (cons (Prelude::textTrim argument0) (trimmedMap2 rest4))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items3
+}
+
+definition{
+  name: trimmedMap3,
+  parameters: [items5 : (List String)],
+  result: (List String),
+  body: (match items5
+    | List.nil => (nil String)
+    | List.cons argument0 rest6 => (cons argument0 (trimmedMap3 rest6))),
+  recursive_argument: items5
+}
+
+definition{
+  name: trimmed,
+  parameters: [namesArg : (List String)],
+  result: (List String),
+  body: (trimmedMap3 (trimmedMap2 (trimmedMap1 namesArg))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
   name: queueInsert1,
   parameters: [items2 : (List Request), item3 : Request],
   result: (List Request),
@@ -1719,9 +1775,9 @@ definition{
   parameters: [step : Step],
   result: (Option Nat),
   body: (match step
-    | Step.Hold value => (if (value =? 0) then (ctor Option.none [Nat]) else (occupiedTarget step))
-    | Step.Either value other => (if (isSequence other) then (ctor Option.none [Nat]) else (occupiedTarget step))
-    | Step.Sequence value => (occupiedTarget step)),
+    | Step.Hold value => (if (value =? 0) then (ctor Option.none [Nat]) else (let other : Step := (ctor Step.Hold value); (occupiedTarget other)))
+    | Step.Either value other => (if (isSequence other) then (ctor Option.none [Nat]) else (let other1 : Step := (ctor Step.Either value other); (occupiedTarget other1)))
+    | Step.Sequence value => (let other : Step := (ctor Step.Sequence value); (occupiedTarget other))),
   axioms: [Quot.sound, propext]
 }
 

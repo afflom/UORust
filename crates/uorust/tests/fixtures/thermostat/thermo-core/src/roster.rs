@@ -384,6 +384,25 @@ pub fn own_rooms(zone: &Zone) -> Vec<String> {
     }
 }
 
+/// Whether every zone of a group names all its rooms, the check given by
+/// its path.
+pub fn all_groups_named(group: &Zone) -> bool {
+    match group {
+        Zone::Group(zones) => zones.as_slice().iter().all(all_named),
+        Zone::Room(_) => true,
+    }
+}
+
+/// Each room name, trimmed, the method given by its path.
+pub fn trimmed(names: &[String]) -> Vec<String> {
+    names
+        .iter()
+        .map(String::as_str)
+        .map(str::trim)
+        .map(String::from)
+        .collect()
+}
+
 /// The distinct requests, in the order they sort in.
 pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
     let mut out = BTreeSet::new();
