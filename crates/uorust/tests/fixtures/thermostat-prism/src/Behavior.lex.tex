@@ -1330,6 +1330,146 @@ definition{
 }
 
 definition{
+  name: zoneHeatsAny1,
+  parameters: [items1 : (List Zone), room : String],
+  result: Bool,
+  body: (match items1
+    | List.nil => false
+    | List.cons z rest2 => (if (zoneHeats z room) then true else (zoneHeatsAny1 rest2 room))),
+  mutual: zoneHeatsMutual,
+  recursive_argument: items1
+}
+
+definition{
+  name: zoneHeats,
+  parameters: [selfValue : Zone, room : String],
+  result: Bool,
+  body: (match selfValue
+    | Zone.Room r => (prim equal r room : Bool)
+    | Zone.Group zones => (zoneHeatsAny1 zones room)),
+  mutual: zoneHeatsMutual,
+  recursive_argument: selfValue
+}
+
+definition{
+  name: allNamedAll1,
+  parameters: [items1 : (List Zone)],
+  result: Bool,
+  body: (match items1
+    | List.nil => true
+    | List.cons z rest2 => (if (allNamed z) then (allNamedAll1 rest2) else false)),
+  mutual: allNamedMutual,
+  recursive_argument: items1
+}
+
+definition{
+  name: allNamed,
+  parameters: [zone : Zone],
+  result: Bool,
+  body: (match zone
+    | Zone.Room r => (not (prim equal r "" : Bool))
+    | Zone.Group zones => (allNamedAll1 zones)),
+  mutual: allNamedMutual,
+  recursive_argument: zone
+}
+
+definition{
+  name: zoneRoomsInsert1,
+  parameters: [items1 : (List String), item2 : String],
+  result: (List String),
+  body: (match items1
+    | List.nil => (cons item2 (nil String))
+    | List.cons head3 rest4 => (if (prim equal item2 head3 : Bool) then (cons head3 rest4) else (if (prim less_than item2 head3 : Bool) then (cons item2 (cons head3 rest4)) else (cons head3 (zoneRoomsInsert1 rest4 item2))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items1
+}
+
+definition{
+  name: zoneRoomsInsertAll2,
+  parameters: [items6 : (List String), set5 : (List String)],
+  result: (List String),
+  body: (match items6
+    | List.nil => set5
+    | List.cons head7 rest8 => (zoneRoomsInsertAll2 rest8 (zoneRoomsInsert1 set5 head7))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items6
+}
+
+definition{
+  name: zoneRoomsInsert3,
+  parameters: [items10 : (List String), item11 : String],
+  result: (List String),
+  body: (match items10
+    | List.nil => (cons item11 (nil String))
+    | List.cons head12 rest13 => (if (prim equal item11 head12 : Bool) then (cons head12 rest13) else (if (prim less_than item11 head12 : Bool) then (cons item11 (cons head12 rest13)) else (cons head12 (zoneRoomsInsert3 rest13 item11))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items10
+}
+
+definition{
+  name: zoneRoomsInsertAll4,
+  parameters: [items15 : (List String), set14 : (List String)],
+  result: (List String),
+  body: (match items15
+    | List.nil => set14
+    | List.cons head16 rest17 => (zoneRoomsInsertAll4 rest17 (zoneRoomsInsert3 set14 head16))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items15
+}
+
+definition{
+  name: zoneRoomsLoop5,
+  parameters: [items19 : (List Zone), state9 : (List String)],
+  result: (List String),
+  body: (match items19
+    | List.nil => state9
+    | List.cons z rest20 => (let out18 : (List String) := (zoneRoomsInsertAll4 (zoneRooms z) state9); (zoneRoomsLoop5 rest20 out18))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  mutual: zoneRoomsMutual,
+  recursive_argument: items19
+}
+
+definition{
+  name: zoneRooms,
+  parameters: [zone : Zone],
+  result: (List String),
+  body: (match zone
+    | Zone.Room r => (zoneRoomsInsertAll2 (cons r (nil String)) (nil String))
+    | Zone.Group zones => (let out : (List String) := (nil String); (let state21 : (List String) := (zoneRoomsLoop5 zones out); state21))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  mutual: zoneRoomsMutual,
+  recursive_argument: zone
+}
+
+definition{
+  name: apartContains1,
+  parameters: [items4 : (List String), needle3 : String],
+  result: Bool,
+  body: (match items4
+    | List.nil => false
+    | List.cons item2 rest5 => (if (prim equal item2 needle3 : Bool) then true else (apartContains1 rest5 needle3))),
+  recursive_argument: items4
+}
+
+definition{
+  name: apartDisjoint2,
+  parameters: [items6 : (List String), right : (List String)],
+  result: Bool,
+  body: (match items6
+    | List.nil => true
+    | List.cons member1 rest7 => (if (apartContains1 right member1) then false else (apartDisjoint2 rest7 right))),
+  recursive_argument: items6
+}
+
+definition{
+  name: apart,
+  parameters: [a : Zone, b : Zone],
+  result: Bool,
+  body: (let left : (List String) := (zoneRooms a); (let right : (List String) := (zoneRooms b); (apartDisjoint2 left right))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
   name: queueInsert1,
   parameters: [items2 : (List Request), item3 : Request],
   result: (List Request),

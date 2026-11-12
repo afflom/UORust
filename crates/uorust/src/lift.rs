@@ -137,9 +137,16 @@ impl Ty {
             Self::Option(t) => format!("(Option {})", t.render()),
             Self::Outcome(t, e) => format!("(Result {} {})", t.render(), e.render()),
             Self::List(t) | Self::Set(t, _) => format!("(List {})", t.render()),
-            Self::Tuple(ts) => tuple_name(ts),
-            Self::Pair(ts) => format!("({} * {})", ts[0].render(), ts[1].render()),
-            Self::Map(..) => format!("(List {})", self.entry().render()),
+            Self::Tuple(ts) => format!("Tuple{}", ts.iter().map(|t| t.tag()).collect::<String>()),
+            Self::Pair(ts) => format!(
+                "({})",
+                ts.iter()
+                    .map(|t| t.render())
+                    .collect::<Vec<String>>()
+                    .join(" * ")
+            ),
+            // The list of its entries, each the tuple of a key and a value.
+            Self::Map(k, v, _) => format!("(List Tuple{}{})", k.tag(), v.tag()),
         }
     }
 
@@ -163,9 +170,9 @@ impl Ty {
             Self::Option(t) => format!("Option{}", t.tag()),
             Self::Outcome(t, e) => format!("Result{}{}", t.tag(), e.tag()),
             Self::List(t) | Self::Set(t, _) => format!("List{}", t.tag()),
-            Self::Tuple(ts) => tuple_name(ts),
-            Self::Pair(ts) => format!("Pair{}{}", ts[0].tag(), ts[1].tag()),
-            Self::Map(..) => format!("List{}", self.entry().tag()),
+            Self::Tuple(ts) => format!("Tuple{}", ts.iter().map(|t| t.tag()).collect::<String>()),
+            Self::Pair(ts) => format!("Pair{}", ts.iter().map(|t| t.tag()).collect::<String>()),
+            Self::Map(k, v, _) => format!("ListTuple{}{}", k.tag(), v.tag()),
         }
     }
 
@@ -175,29 +182,37 @@ impl Ty {
     }
 
     /// Every named type and tuple this type mentions, itself included.
-    pub(crate) fn mentions(&self, out: &mut BTreeSet<Ty>) {
+    pub(crate) fn mentions(&self) -> BTreeSet<Ty> {
         match self {
-            Self::Named(_) => {
-                out.insert(self.clone());
-            }
+            Self::Named(_) => BTreeSet::from([self.clone()]),
             Self::Tuple(ts) => {
-                out.insert(self.clone());
+                let mut out = BTreeSet::from([self.clone()]);
                 for t in ts {
-                    t.mentions(out);
+                    out.extend(t.mentions());
                 }
+                out
             }
             Self::Pair(ts) => {
+                let mut out = BTreeSet::new();
                 for t in ts {
-                    t.mentions(out);
+                    out.extend(t.mentions());
                 }
+                out
             }
-            Self::Option(t) | Self::List(t) | Self::Set(t, _) => t.mentions(out),
-            Self::Map(..) => self.entry().mentions(out),
+            Self::Option(t) | Self::List(t) | Self::Set(t, _) => t.mentions(),
+            // Its entry: the tuple of a key and a value.
+            Self::Map(k, v, _) => {
+                let mut out = BTreeSet::from([Ty::Tuple(vec![(**k).clone(), (**v).clone()])]);
+                out.extend(k.mentions());
+                out.extend(v.mentions());
+                out
+            }
             Self::Outcome(t, e) => {
-                t.mentions(out);
-                e.mentions(out);
+                let mut out = t.mentions();
+                out.extend(e.mentions());
+                out
             }
-            _ => {}
+            _ => BTreeSet::new(),
         }
     }
 }
@@ -211,12 +226,6 @@ fn named_in(types: &BTreeSet<Ty>) -> BTreeSet<String> {
             _ => None,
         })
         .collect()
-}
-
-/// The structure a tuple type lifts to: `TupleNatBool` for `(u32, bool)`.
-pub(crate) fn tuple_name(ts: &[Ty]) -> String {
-    let tags: String = ts.iter().map(Ty::tag).collect();
-    format!("Tuple{tags}")
 }
 
 /// A struct value from its fields in declaration order: a record, or the
@@ -314,8 +323,7 @@ fn positive(ty: &Ty, family: &BTreeSet<String>) -> bool {
         Ty::Outcome(t, e) => positive(t, family) && positive(e, family),
         Ty::Pair(ts) => ts.iter().all(|t| positive(t, family)),
         Ty::Tuple(_) | Ty::Map(..) | Ty::Set(..) => {
-            let mut inner = BTreeSet::new();
-            ty.mentions(&mut inner);
+            let inner = ty.mentions();
             named_in(&inner).is_disjoint(family)
         }
         _ => true,
@@ -336,8 +344,7 @@ fn nested_ok(ty: &Ty, me: &str) -> bool {
         Ty::Outcome(t, e) => nested_ok(t, me) && nested_ok(e, me),
         Ty::Pair(ts) => ts.iter().all(|t| nested_ok(t, me)),
         Ty::Tuple(_) | Ty::Map(..) | Ty::Set(..) => {
-            let mut inner = BTreeSet::new();
-            ty.mentions(&mut inner);
+            let inner = ty.mentions();
             !inner.contains(&Ty::Named(me.to_string()))
         }
         _ => true,
@@ -434,7 +441,7 @@ impl Types {
                 let mut out = BTreeSet::new();
                 for (_, fields) in variants {
                     for (_, t) in fields {
-                        t.mentions(&mut out);
+                        out.extend(t.mentions());
                     }
                 }
                 graph.insert(name.clone(), named_in(&out));
@@ -442,7 +449,7 @@ impl Types {
             for (name, fields) in &fields_of {
                 let mut out = BTreeSet::new();
                 for (_, t) in fields {
-                    t.mentions(&mut out);
+                    out.extend(t.mentions());
                 }
                 graph.insert(name.clone(), named_in(&out));
             }
@@ -563,7 +570,7 @@ impl Types {
     pub(crate) fn tuple(&self, ts: Vec<Ty>) -> Ty {
         let mut inner = BTreeSet::new();
         for t in &ts {
-            t.mentions(&mut inner);
+            inner.extend(t.mentions());
         }
         let data = named_in(&inner).iter().any(|n| self.datas.contains_key(n));
         if ts.len() == 2 && data {
@@ -612,8 +619,7 @@ impl Types {
             || family.iter().any(|m| {
                 self.member_fields(m).iter().any(|t| {
                     !matches!(t, Ty::Named(_)) && {
-                        let mut inner = BTreeSet::new();
-                        t.mentions(&mut inner);
+                        let inner = t.mentions();
                         !named_in(&inner).is_disjoint(family)
                     }
                 })
@@ -642,8 +648,7 @@ impl Types {
     pub(crate) fn sizable(&self, family: &BTreeSet<String>) -> bool {
         family.iter().all(|m| {
             self.member_fields(m).iter().all(|t| {
-                let mut inner = BTreeSet::new();
-                t.mentions(&mut inner);
+                let inner = t.mentions();
                 named_in(&inner).is_disjoint(family) || self.size_name(t, family).is_some()
             })
         })
@@ -1008,6 +1013,9 @@ struct Ctx {
     /// The closures `let` binds, by Rust name: a call of one is its body
     /// with its parameters bound to the arguments.
     closures: BTreeMap<String, Closure>,
+    /// The parameter a list in hand is a sub-term of, where a closure
+    /// walking it binds each element: a recursive call on one descends.
+    elements: Option<String>,
 }
 
 /// A closure a `let` binds: its parameters, its body, and the locals in
@@ -1077,7 +1085,7 @@ impl Acc {
     /// The state with every type `ty` mentions seen.
     fn saw(self, ty: &Ty) -> Acc {
         let mut seen = self.seen;
-        ty.mentions(&mut seen);
+        seen.extend(ty.mentions());
         Acc { seen, ..self }
     }
 
@@ -1168,6 +1176,10 @@ pub(crate) struct Helper {
     pub(crate) axioms: BTreeSet<String>,
     /// It recurses on its first parameter; a hoisted operand does not.
     pub(crate) recursive: bool,
+    /// Its closure calls the function being lifted on an element of the
+    /// list it walks, a sub-term of the function's recursive parameter:
+    /// the two are one mutual group, each structural on its own.
+    pub(crate) entwined: bool,
 }
 
 impl Ctx {
@@ -1298,6 +1310,7 @@ fn flat_of(
         calls: own.calls,
         axioms: own.axioms,
         recursive: false,
+        entwined: false,
     });
     let acc = acc.called(format!("#{name}"));
     Ok(((format!("({})", parts.join(" ")), t), acc))
@@ -1589,12 +1602,32 @@ fn expr_inner(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<((Expr, Ty), Acc)> {
-    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
+    // The forms a nested expression recurses through, each in a function
+    // of its own, so this frame stays small however deep they nest.
     match e {
-        rs::RustExpr::Lit(lit) => literal_of(lit, want, false).map(|v| (v, acc)),
         rs::RustExpr::Paren(p) => expr(p, env, ctx, acc, want),
         rs::RustExpr::Block(b) if !b.label => block(&b.block.stmts, env, ctx, acc, want),
         rs::RustExpr::Reference(r) if !r.mutable => expr(&r.expr, env, ctx, acc, want),
+        rs::RustExpr::Binary(b) => binary(b, env, ctx, acc),
+        rs::RustExpr::Call(c) => call(c, env, ctx, acc, want),
+        rs::RustExpr::MethodCall(m) => method(m, env, ctx, acc, want),
+        rs::RustExpr::Macro(m) if m.path.is_ident("format") => format_macro(m, env, ctx, acc),
+        _ => expr_form(e, env, ctx, acc, want),
+    }
+}
+
+/// The other forms of [`expr_inner`].
+#[inline(never)]
+fn expr_form(
+    e: &rs::RustExpr,
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
+    match e {
+        rs::RustExpr::Lit(lit) => literal_of(lit, want, false).map(|v| (v, acc)),
         rs::RustExpr::Path(p) => {
             if let Some(ident) = p.get_ident() {
                 if let Some((name, ty)) = ctx.locals.get(&ident.to_string()) {
@@ -1643,7 +1676,6 @@ fn expr_inner(
             },
             rs::UnOp::Deref => expr(&u.expr, env, ctx, acc, want),
         },
-        rs::RustExpr::Binary(b) => binary(b, env, ctx, acc),
         rs::RustExpr::If(i) => {
             let Some(otherwise) = &i.else_branch else {
                 return Err(Residue::Form("if without else".to_string()));
@@ -1688,8 +1720,6 @@ fn expr_inner(
                 .collect();
             matching(&m.expr, &arms, env, ctx, acc, want)
         }
-        rs::RustExpr::Call(c) => call(c, env, ctx, acc, want),
-        rs::RustExpr::MethodCall(m) => method(m, env, ctx, acc, want),
         rs::RustExpr::Field(f) => {
             let ((base, bt), acc) = flat_of(&f.base, env, ctx, acc, None)?;
             match (&f.member, &bt) {
@@ -1887,7 +1917,6 @@ fn expr_inner(
         rs::RustExpr::Continue(label) => loop_exit(env, ctx, acc, *label, false),
         rs::RustExpr::Break(b) if b.expr.is_none() => loop_exit(env, ctx, acc, b.label, true),
         rs::RustExpr::Try(_) => Err(Residue::Form("? outside a let".to_string())),
-        rs::RustExpr::Macro(m) if m.path.is_ident("format") => format_macro(m, env, ctx, acc),
         // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
         rs::RustExpr::Macro(m) if m.path.is_ident("matches") => {
             let Some((scrutinee, pat)) = &m.matches else {
@@ -2090,6 +2119,141 @@ fn format_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((E
     ))
 }
 
+/// A comparison `==`, `!=`, `<`, `<=`, `>` or `>=`, apart from [`binary`]
+/// so the frame of each stays small where expressions nest deeply.
+#[inline(never)]
+fn comparison(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty), Acc)> {
+    use rs::BinOp as B;
+    let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
+    let op_text = || b.op.text().to_string();
+    let ((l, lt), (r, _), acc) = if is_literal(&b.left) {
+        let (right, acc) = flat_of(&b.right, env, ctx, acc, None)?;
+        let (left, acc) = flat_of(&b.left, env, ctx, acc, Some(&right.1))?;
+        (left, right, acc)
+    } else {
+        let (left, acc) = flat_of(&b.left, env, ctx, acc, None)?;
+        let (right, acc) = flat_of(&b.right, env, ctx, acc, Some(&left.1))?;
+        (left, right, acc)
+    };
+    let (text, acc) = match (&lt, b.op) {
+        (Ty::Nat(_), B::Eq) => (format!("({l} =? {r})"), acc),
+        (Ty::Nat(_), B::Ne) => (format!("(not ({l} =? {r}))"), acc),
+        (Ty::Nat(_), B::Lt) => (format!("({l} <? {r})"), acc),
+        (Ty::Nat(_), B::Le) => (format!("({l} <=? {r})"), acc),
+        (Ty::Nat(_), B::Gt) => (format!("({r} <? {l})"), acc),
+        (Ty::Nat(_), B::Ge) => (format!("({r} <=? {l})"), acc),
+        (Ty::Bool | Ty::Named(_), B::Eq) if is_enum_or_bool(&lt, env) => {
+            (same_constructor(&lt, &l, &r), acc)
+        }
+        (Ty::Bool | Ty::Named(_), B::Ne) if is_enum_or_bool(&lt, env) => {
+            (format!("(not {})", same_constructor(&lt, &l, &r)), acc)
+        }
+        (Ty::Int(_) | Ty::Str | Ty::Char, B::Eq) => (format!("(prim equal {l} {r} : Bool)"), acc),
+        (Ty::Int(_) | Ty::Str | Ty::Char, B::Ne) => {
+            (format!("(not (prim equal {l} {r} : Bool))"), acc)
+        }
+        // Strings order by their scalar values, as Rust's `str` and
+        // `char` do.
+        (Ty::Int(_) | Ty::Str | Ty::Char, B::Lt | B::Gt | B::Le | B::Ge) => {
+            // Int64's order is decided through propositional
+            // extensionality; a string's through its scalars.
+            let acc = acc.axiom("propext");
+            let acc = if matches!(lt, Ty::Int(_)) {
+                acc
+            } else {
+                acc.all_axioms()
+            };
+            let (x, y) = match b.op {
+                B::Lt | B::Ge => (&l, &r),
+                _ => (&r, &l),
+            };
+            let less = format!("(prim less_than {x} {y} : Bool)");
+            if matches!(b.op, B::Lt | B::Gt) {
+                (less, acc)
+            } else {
+                (format!("(not {less})"), acc)
+            }
+        }
+        (Ty::Option(inner), B::Eq | B::Ne) => {
+            let (x, acc) = ctx.fresh(env, acc, "left");
+            let (y, acc) = ctx.fresh(env, acc, "right");
+            let Some((same, acc)) = same_value(inner, &x, &y, env, acc) else {
+                return Err(Residue::Form(format!(
+                    "comparison {} of {}",
+                    op_text(),
+                    lt.render()
+                )));
+            };
+            let eq = matches!(b.op, B::Eq);
+            let (yes, no) = if eq {
+                ("true", "false")
+            } else {
+                ("false", "true")
+            };
+            let same = if eq { same } else { format!("(not {same})") };
+            let none_r = Expr::Match {
+                scrutinee: r.clone(),
+                arms: vec![
+                    Arm {
+                        pattern: "Option.none".into(),
+                        body: Expr::Flat(yes.into()),
+                    },
+                    Arm {
+                        pattern: format!("Option.some {y}"),
+                        body: Expr::Flat(no.into()),
+                    },
+                ],
+            };
+            let some_r = Expr::Match {
+                scrutinee: r.clone(),
+                arms: vec![
+                    Arm {
+                        pattern: "Option.none".into(),
+                        body: Expr::Flat(no.into()),
+                    },
+                    Arm {
+                        pattern: format!("Option.some {y}"),
+                        body: Expr::Flat(same),
+                    },
+                ],
+            };
+            return Ok((
+                (
+                    Expr::Match {
+                        scrutinee: l.clone(),
+                        arms: vec![
+                            Arm {
+                                pattern: "Option.none".into(),
+                                body: none_r,
+                            },
+                            Arm {
+                                pattern: format!("Option.some {x}"),
+                                body: some_r,
+                            },
+                        ],
+                    },
+                    Ty::Bool,
+                ),
+                acc,
+            ));
+        }
+        // Any other type compares by its derived order.
+        _ => match crate::order::operator(&op_text(), &lt, &l, &r) {
+            Some(test) if crate::order::derived(&lt, &env.types) => {
+                (test, acc.ordered(&lt, &env.types))
+            }
+            _ => {
+                return Err(Residue::Form(format!(
+                    "comparison {} of {}",
+                    op_text(),
+                    lt.render()
+                )))
+            }
+        },
+    };
+    flat(text, Ty::Bool, acc)
+}
+
 fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty), Acc)> {
     use rs::BinOp as B;
     let flat = |s: String, t: Ty, acc: Acc| Ok(((Expr::Flat(s), t), acc));
@@ -2104,136 +2268,7 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
             let op = if matches!(b.op, B::And) { "&&" } else { "||" };
             flat(format!("({l} {op} {r})"), Ty::Bool, acc)
         }
-        B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge => {
-            let ((l, lt), (r, _), acc) = if is_literal(&b.left) {
-                let (right, acc) = flat_of(&b.right, env, ctx, acc, None)?;
-                let (left, acc) = flat_of(&b.left, env, ctx, acc, Some(&right.1))?;
-                (left, right, acc)
-            } else {
-                let (left, acc) = flat_of(&b.left, env, ctx, acc, None)?;
-                let (right, acc) = flat_of(&b.right, env, ctx, acc, Some(&left.1))?;
-                (left, right, acc)
-            };
-            let (text, acc) = match (&lt, b.op) {
-                (Ty::Nat(_), B::Eq) => (format!("({l} =? {r})"), acc),
-                (Ty::Nat(_), B::Ne) => (format!("(not ({l} =? {r}))"), acc),
-                (Ty::Nat(_), B::Lt) => (format!("({l} <? {r})"), acc),
-                (Ty::Nat(_), B::Le) => (format!("({l} <=? {r})"), acc),
-                (Ty::Nat(_), B::Gt) => (format!("({r} <? {l})"), acc),
-                (Ty::Nat(_), B::Ge) => (format!("({r} <=? {l})"), acc),
-                (Ty::Bool | Ty::Named(_), B::Eq) if is_enum_or_bool(&lt, env) => {
-                    (same_constructor(&lt, &l, &r), acc)
-                }
-                (Ty::Bool | Ty::Named(_), B::Ne) if is_enum_or_bool(&lt, env) => {
-                    (format!("(not {})", same_constructor(&lt, &l, &r)), acc)
-                }
-                (Ty::Int(_) | Ty::Str | Ty::Char, B::Eq) => {
-                    (format!("(prim equal {l} {r} : Bool)"), acc)
-                }
-                (Ty::Int(_) | Ty::Str | Ty::Char, B::Ne) => {
-                    (format!("(not (prim equal {l} {r} : Bool))"), acc)
-                }
-                // Strings order by their scalar values, as Rust's `str` and
-                // `char` do.
-                (Ty::Int(_) | Ty::Str | Ty::Char, B::Lt | B::Gt | B::Le | B::Ge) => {
-                    // Int64's order is decided through propositional
-                    // extensionality; a string's through its scalars.
-                    let acc = acc.axiom("propext");
-                    let acc = if matches!(lt, Ty::Int(_)) {
-                        acc
-                    } else {
-                        acc.all_axioms()
-                    };
-                    let (x, y) = match b.op {
-                        B::Lt | B::Ge => (&l, &r),
-                        _ => (&r, &l),
-                    };
-                    let less = format!("(prim less_than {x} {y} : Bool)");
-                    if matches!(b.op, B::Lt | B::Gt) {
-                        (less, acc)
-                    } else {
-                        (format!("(not {less})"), acc)
-                    }
-                }
-                (Ty::Option(inner), B::Eq | B::Ne) => {
-                    let (x, acc) = ctx.fresh(env, acc, "left");
-                    let (y, acc) = ctx.fresh(env, acc, "right");
-                    let Some((same, acc)) = same_value(inner, &x, &y, env, acc) else {
-                        return Err(Residue::Form(format!(
-                            "comparison {} of {}",
-                            op_text(),
-                            lt.render()
-                        )));
-                    };
-                    let eq = matches!(b.op, B::Eq);
-                    let (yes, no) = if eq {
-                        ("true", "false")
-                    } else {
-                        ("false", "true")
-                    };
-                    let same = if eq { same } else { format!("(not {same})") };
-                    let none_r = Expr::Match {
-                        scrutinee: r.clone(),
-                        arms: vec![
-                            Arm {
-                                pattern: "Option.none".into(),
-                                body: Expr::Flat(yes.into()),
-                            },
-                            Arm {
-                                pattern: format!("Option.some {y}"),
-                                body: Expr::Flat(no.into()),
-                            },
-                        ],
-                    };
-                    let some_r = Expr::Match {
-                        scrutinee: r.clone(),
-                        arms: vec![
-                            Arm {
-                                pattern: "Option.none".into(),
-                                body: Expr::Flat(no.into()),
-                            },
-                            Arm {
-                                pattern: format!("Option.some {y}"),
-                                body: Expr::Flat(same),
-                            },
-                        ],
-                    };
-                    return Ok((
-                        (
-                            Expr::Match {
-                                scrutinee: l.clone(),
-                                arms: vec![
-                                    Arm {
-                                        pattern: "Option.none".into(),
-                                        body: none_r,
-                                    },
-                                    Arm {
-                                        pattern: format!("Option.some {x}"),
-                                        body: some_r,
-                                    },
-                                ],
-                            },
-                            Ty::Bool,
-                        ),
-                        acc,
-                    ));
-                }
-                // Any other type compares by its derived order.
-                _ => match crate::order::operator(&op_text(), &lt, &l, &r) {
-                    Some(test) if crate::order::derived(&lt, &env.types) => {
-                        (test, acc.ordered(&lt, &env.types))
-                    }
-                    _ => {
-                        return Err(Residue::Form(format!(
-                            "comparison {} of {}",
-                            op_text(),
-                            lt.render()
-                        )))
-                    }
-                },
-            };
-            flat(text, Ty::Bool, acc)
-        }
+        B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge => comparison(b, env, ctx, acc),
         B::Add => {
             let want = Ty::Nat(None);
             let ((l, lt), acc) = flat_of(&b.left, env, ctx, acc, Some(&want))?;
@@ -2447,6 +2482,17 @@ fn call(
             return flat(format!("(nil {})", inner.render()), t.clone(), acc);
         }
         // A box is its value: LexLean holds every value by reference.
+        // `BTreeSet::from([..])`: each member inserted in turn, from empty.
+        ([s, n], [items @ rs::RustExpr::Array(_)], _) if s == "BTreeSet" && n == "from" => {
+            let ((v, vt), acc) = flat_of(items, env, ctx, acc, want)?;
+            let Ty::List(elem) = &vt else {
+                return Err(Residue::Form("BTreeSet::from of another type".into()));
+            };
+            let set = Ty::Set(elem.clone(), true);
+            let (insert, acc) = sorted_insert(&set, env, ctx, acc)?;
+            let (helper, acc) = insert_all(&set, &vt, &insert, env, ctx, acc);
+            return flat(format!("({helper} {v} (nil {}))", elem.render()), set, acc);
+        }
         ([s, n], [a], _) if s == "Box" && n == "new" => {
             let ((v, vt), acc) = flat_of(a, env, ctx, acc, want)?;
             return flat(v, vt, acc);
@@ -3697,6 +3743,11 @@ struct Lambda {
     ty: Ty,
     calls: BTreeSet<String>,
     axioms: BTreeSet<String>,
+    /// The parameters of the function being lifted that the body's
+    /// recursive calls descend on: through an element of a list that is a
+    /// sub-term of one, so the helper walking the list and the function
+    /// are one mutual group.
+    descends: BTreeSet<usize>,
 }
 
 impl Lambda {
@@ -3784,12 +3835,17 @@ fn lambda(
         top: false,
         looping: None,
         hidden: Vec::new(),
+        elements: None,
         ..ctx.clone()
     };
     let mut binders = Vec::new();
     let mut lets = Vec::new();
     for (p, ty) in c.inputs.iter().zip(params) {
-        let (next, name, after, more) = bind_pat(p, ty, env, &scope, acc, lets, false)?;
+        let (mut next, name, after, more) = bind_pat(p, ty, env, &scope, acc, lets, false)?;
+        // An element of a list that is a sub-term of a parameter is one.
+        if let (Some(param), true) = (&ctx.elements, binders.is_empty()) {
+            next.tails.insert(name.clone(), param.clone());
+        }
         scope = next;
         acc = after;
         lets = more;
@@ -3797,7 +3853,7 @@ fn lambda(
     }
     let ((core, ty), acc) = flat_of(&c.body, env, &scope, acc, want)?;
     let (acc, own) = acc.rejoin(before);
-    if !own.descends.is_empty() {
+    if !own.descends.is_empty() && ctx.elements.is_none() {
         return Err(Residue::Form("recursion inside a closure".to_string()));
     }
     Ok((
@@ -3808,6 +3864,7 @@ fn lambda(
             ty,
             calls: own.calls,
             axioms: own.axioms,
+            descends: own.descends,
         },
         acc,
     ))
@@ -3893,8 +3950,12 @@ fn walk(
         calls: lam.calls.clone(),
         axioms: lam.axioms.clone(),
         recursive: true,
+        entwined: !lam.descends.is_empty(),
     });
-    let acc = acc.called(format!("#{name}"));
+    let acc = lam
+        .descends
+        .iter()
+        .fold(acc.called(format!("#{name}")), |acc, i| acc.descended(*i));
     let mut parts = vec![name, list.to_string()];
     parts.extend(lead.iter().map(|(_, _, v)| v.clone()));
     parts.extend(cap_names);
@@ -3975,6 +4036,7 @@ fn lookup(
         } else {
             BTreeSet::new()
         },
+        descends: BTreeSet::new(),
     };
     let (result, nil, hit) = match value {
         Some(vt) if kind == "Get" => (
@@ -4010,6 +4072,75 @@ fn lookup(
     ))
 }
 
+/// The Rust name the lift binds a member under while it searches another
+/// collection for it: no Rust identifier spells it.
+const PROBE: &str = "#probe";
+
+/// `a.is_disjoint(b)`: no member of `a` is a member of `b`, which must be
+/// a local the search captures.
+fn disjoint(
+    r: &str,
+    elem: &Ty,
+    other: &rs::RustExpr,
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+) -> Lift<((Expr, Ty), Acc)> {
+    let set = Ty::Set(Box::new(elem.clone()), true);
+    let ((o, ot), acc) = flat_of(other, env, ctx, acc, Some(&set))?;
+    let local = ctx.locals.values().any(|(n, _)| *n == o);
+    if !local || !matches!(&ot, Ty::Set(t, _) | Ty::List(t) if t.same(elem)) {
+        return Err(Residue::Form(".is_disjoint of another set".into()));
+    }
+    let (head, acc) = ctx.fresh(env, acc, "member");
+    let mut probing = ctx.clone();
+    probing
+        .locals
+        .insert(PROBE.into(), (head.clone(), elem.clone()));
+    let probe = rs::RustExpr::Path(rs::Path {
+        segments: vec![rs::PathSegment {
+            ident: PROBE.into(),
+            arguments: rs::PathArguments::None,
+        }],
+        text: PROBE.into(),
+    });
+    let before = acc.calls.clone();
+    let ((test, _), acc) = lookup(env, &probing, acc, "Contains", &o, elem, None, &probe)?;
+    let calls: BTreeSet<String> = acc.calls.difference(&before).cloned().collect();
+    let axioms: BTreeSet<String> = acc
+        .helpers
+        .iter()
+        .filter(|h| calls.contains(&format!("#{}", h.name)))
+        .flat_map(|h| h.axioms.iter().cloned())
+        .collect();
+    let core = test.flat();
+    let lam = Lambda {
+        binders: vec![head.clone()],
+        lets: Vec::new(),
+        core: core.clone(),
+        ty: Ty::Bool,
+        calls,
+        axioms,
+        descends: BTreeSet::new(),
+    };
+    let cons =
+        |rec: Recur<'_>, _: &str| Expr::Flat(format!("(if {core} then false else {})", rec(&[])));
+    Ok(walk(
+        env,
+        ctx,
+        acc,
+        "Disjoint",
+        r,
+        elem,
+        &lam,
+        &head,
+        &[],
+        &Ty::Bool,
+        "true".into(),
+        &cons,
+    ))
+}
+
 /// Reads of a map or a set, held as the list of its entries or members:
 /// `get`, `contains_key`, `contains`, `len` and `is_empty`, and, where the
 /// order is the key order, `iter`, `keys` and `values`.
@@ -4036,6 +4167,7 @@ fn collection(
             lookup(env, ctx, acc, "Has", r, &rt.entry(), Some(v), k)
         }
         (Ty::Set(t, _), "contains", [k]) => lookup(env, ctx, acc, "Contains", r, t, None, k),
+        (Ty::Set(t, _), "is_disjoint", [other]) => disjoint(r, t, other, env, ctx, acc),
         (Ty::Map(..), "iter" | "into_iter", []) => match rt {
             Ty::Map(_, _, true) => flat(r.to_string(), Ty::List(Box::new(rt.entry())), acc),
             _ => unordered(),
@@ -4065,6 +4197,7 @@ fn collection(
                 ty: (**ty).clone(),
                 calls: BTreeSet::new(),
                 axioms: BTreeSet::new(),
+                descends: BTreeSet::new(),
             };
             let cons = |rec: Recur<'_>, _: &str| Expr::Flat(format!("(cons {core} {})", rec(&[])));
             let kind = if name == "keys" { "Keys" } else { "Values" };
@@ -4136,7 +4269,13 @@ fn combinator(
         )?)),
         ("map" | "filter" | "any" | "all" | "find", [f]) => {
             let want = if name == "map" { None } else { Some(&Ty::Bool) };
-            let (lam, acc) = lambda(f, std::slice::from_ref(elem), env, ctx, acc, want)?;
+            // A list that is a sub-term of a parameter: the closure may
+            // recurse on its elements.
+            let ranged = Ctx {
+                elements: ctx.tails.get(r).cloned(),
+                ..ctx.clone()
+            };
+            let (lam, acc) = lambda(f, std::slice::from_ref(elem), env, &ranged, acc, want)?;
             if name != "map" && lam.ty != Ty::Bool {
                 return Err(Residue::Form(format!(
                     "a .{name} predicate of another type"
@@ -4256,6 +4395,7 @@ fn combinator(
                 ty: elem.clone(),
                 calls: BTreeSet::new(),
                 axioms: BTreeSet::new(),
+                descends: BTreeSet::new(),
             };
             if name == "rev" {
                 let e = elem.render();
@@ -4320,6 +4460,7 @@ fn combinator(
                 ty: elem.clone(),
                 calls: BTreeSet::new(),
                 axioms: BTreeSet::new(),
+                descends: BTreeSet::new(),
             };
             let e = elem.render();
             let take = name == "take";
@@ -5134,8 +5275,26 @@ fn compile<'a>(
             // own type, are sub-terms: a recursive call on one descends.
             for (i, field) in names.iter().enumerate() {
                 let tail = lex == "List.cons" && i == 1;
-                if tail || (types_has_data(&col.ty, &env.types) && field.ty.same(&col.ty)) {
+                let data = types_has_data(&col.ty, &env.types);
+                let list = Ty::List(Box::new(col.ty.clone()));
+                if tail || (data && (field.ty.same(&col.ty) || field.ty.same(&list))) {
                     scope.tails.insert(field.value.clone(), col.value.clone());
+                }
+            }
+            // A structural match names the parameter only through its
+            // parts: in the arm, the parameter is its constructor applied
+            // to them.
+            if types_has_data(&col.ty, &env.types) {
+                let parts: String = names.iter().map(|f| format!(" {}", f.value)).collect();
+                let whole = format!("(ctor {lex}{parts})");
+                let rust: Vec<String> = ctx
+                    .locals
+                    .iter()
+                    .filter(|(_, (n, _))| *n == col.value)
+                    .map(|(r, _)| r.clone())
+                    .collect();
+                for r in rust {
+                    scope.locals.insert(r, (whole.clone(), col.ty.clone()));
                 }
             }
         }
@@ -5436,6 +5595,7 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
         calls: BTreeSet::new(),
         axioms,
         recursive: true,
+        entwined: false,
     });
     let acc = acc.called(format!("#{name}"));
     Ok((name, acc))
@@ -5476,6 +5636,7 @@ fn insert_all(ty: &Ty, items: &Ty, insert: &str, env: &Env, ctx: &Ctx, acc: Acc)
         calls: BTreeSet::from([format!("#{insert}")]),
         axioms,
         recursive: true,
+        entwined: false,
     });
     let acc = acc.called(format!("#{name}"));
     (name, acc)
@@ -5701,15 +5862,24 @@ fn for_loop(
     }
     let (current, acc) = base.fresh(env, acc, "state");
     let (scope, acc, lets) = rebind(env, &base, acc, &state, &current, Vec::new());
-    let (scope, head, acc, pat_lets) =
+    let (mut scope, head, acc, pat_lets) =
         bind_pat(&f.pat, &elem, env, &scope, acc, Vec::new(), false)?;
+    // Each element of a list that is a sub-term of a parameter is one: a
+    // recursive call on it descends, and the loop and the function are one
+    // mutual group.
+    let element_of = ctx.tails.get(&list).cloned();
+    if let Some(param) = &element_of {
+        scope.tails.insert(head.clone(), param.clone());
+    }
     let mut stmts = f.body.stmts.clone();
     stmts.push(rs::Stmt::Expr(state_expr(&state), false));
     let ((step, st), acc) = block(&stmts, env, &scope, acc, Some(&state_ty))?;
     let (acc, own) = acc.rejoin(before);
-    if !st.same(&state_ty) || !own.descends.is_empty() {
+    if !st.same(&state_ty) || (!own.descends.is_empty() && element_of.is_none()) {
         return Err(Residue::Form("a loop step of another type".to_string()));
     }
+    let entwined = !own.descends.is_empty();
+    let acc = own.descends.iter().fold(acc, |acc, i| acc.descended(*i));
     let name = ctx.helper_name(env, &acc, "Loop");
     let (items, acc) = ctx.fresh(env, acc, "items");
     let (rest_name, acc) = ctx.fresh(env, acc, "rest");
@@ -5750,6 +5920,7 @@ fn for_loop(
         calls: own.calls,
         axioms: own.axioms,
         recursive: true,
+        entwined,
     });
     let acc = acc.called(format!("#{name}"));
     // The loop's value, then the rest with the final state.
@@ -6505,6 +6676,8 @@ pub(crate) fn lift_all(
         let mut graph: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let mut mentioned: BTreeMap<String, BTreeSet<Ty>> = BTreeMap::new();
         let mut compares: BTreeMap<String, BTreeSet<Ty>> = BTreeMap::new();
+        // Each mutual group of a function and its entwined helpers, by key.
+        let mut groups: Vec<Vec<String>> = Vec::new();
         let mut own: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let mut changed = false;
         for c in candidates {
@@ -6522,6 +6695,7 @@ pub(crate) fn lift_all(
                     .map(|(rust, n, t)| (rust.clone(), (n.clone(), t.clone())))
                     .collect(),
                 tails: BTreeMap::new(),
+                elements: None,
                 own: c.name.clone(),
                 top: true,
                 looping: None,
@@ -6549,6 +6723,11 @@ pub(crate) fn lift_all(
                 Err(r) => Err(r),
             };
             let outcome = match outcome {
+                // Recursion through a helper of the same mutual group is
+                // structural on each member's own argument.
+                Ok((body, Some(arg), acc)) if acc.helpers.iter().any(|h| h.entwined) => {
+                    Ok((body, Some(arg), None, Vec::new(), acc))
+                }
                 Ok((body, Some(arg), acc)) => {
                     well_founded(c, &body, &arg, types).map(|(recursive, termination, theorems)| {
                         (body, recursive, termination, theorems, acc)
@@ -6570,14 +6749,29 @@ pub(crate) fn lift_all(
                     graph.insert(c.rust.clone(), acc.calls);
                     let mut seen = acc.seen;
                     for (_, _, t) in &c.params {
-                        t.mentions(&mut seen);
+                        seen.extend(t.mentions());
                     }
-                    c.result.mentions(&mut seen);
+                    seen.extend(c.result.mentions());
                     mentioned.insert(c.rust.clone(), seen);
                     compares.insert(c.rust.clone(), acc.ordered);
                     let mut axioms = acc.axioms;
                     axioms.extend(evidence_axioms);
                     own.insert(c.rust.clone(), axioms);
+                    let group = acc
+                        .helpers
+                        .iter()
+                        .any(|h| h.entwined)
+                        .then(|| format!("{}Mutual", c.name));
+                    if group.is_some() {
+                        let mut members = vec![c.rust.clone()];
+                        members.extend(
+                            acc.helpers
+                                .iter()
+                                .filter(|h| h.entwined)
+                                .map(|h| format!("#{}", h.name)),
+                        );
+                        groups.push(members);
+                    }
                     for h in acc.helpers {
                         let key = format!("#{}", h.name);
                         graph.insert(key.clone(), h.calls);
@@ -6596,7 +6790,7 @@ pub(crate) fn lift_all(
                                 body: h.body,
                                 axioms: Vec::new(),
                                 termination: None,
-                                mutual: None,
+                                mutual: if h.entwined { group.clone() } else { None },
                             },
                         ));
                     }
@@ -6614,7 +6808,7 @@ pub(crate) fn lift_all(
                             axioms: Vec::new(),
                             recursive,
                             termination,
-                            mutual: None,
+                            mutual: group,
                         },
                     ));
                 }
@@ -6643,6 +6837,17 @@ pub(crate) fn lift_all(
                     }
                 }
                 axioms.insert(rust.clone(), all.into_iter().collect());
+            }
+            // A mutual group elaborates as one: each member with every
+            // member's axioms.
+            for members in &groups {
+                let all: BTreeSet<String> = members
+                    .iter()
+                    .flat_map(|m| axioms.get(m).cloned().unwrap_or_default())
+                    .collect();
+                for m in members {
+                    axioms.insert(m.clone(), all.iter().cloned().collect());
+                }
             }
             for (key, d) in &mut decls {
                 if let Decl::Definition { axioms: a, .. } = d {
@@ -6711,7 +6916,7 @@ pub(crate) fn lift_all(
                 pending = rest;
             }
             return Lifted {
-                decls: ordered,
+                decls: grouped(ordered),
                 failed,
                 types,
                 axioms,
@@ -6720,6 +6925,33 @@ pub(crate) fn lift_all(
             };
         }
     }
+}
+
+/// The definitions with each mutual group's members together, where the
+/// group's last member stands.
+fn grouped(decls: Vec<Decl>) -> Vec<Decl> {
+    let label = |d: &Decl| match d {
+        Decl::Definition { mutual, .. } => mutual.clone(),
+        _ => None,
+    };
+    let last: BTreeMap<String, usize> = decls
+        .iter()
+        .enumerate()
+        .filter_map(|(i, d)| label(d).map(|l| (l, i)))
+        .collect();
+    let mut held: BTreeMap<String, Vec<Decl>> = BTreeMap::new();
+    let mut out = Vec::new();
+    for (i, d) in decls.into_iter().enumerate() {
+        match label(&d) {
+            Some(l) if last[&l] == i => {
+                out.extend(held.remove(&l).unwrap_or_default());
+                out.push(d);
+            }
+            Some(l) => held.entry(l).or_default().push(d),
+            None => out.push(d),
+        }
+    }
+    out
 }
 
 /// The recursion of a candidate descending on `arg`: structural, or, over

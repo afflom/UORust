@@ -92,6 +92,10 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterFirstWord is made
     And the interface call Interface::callThermoCoreRosterSpelled is made
     And the interface call Interface::callThermoCoreRosterSlots is made
+    And the interface call Interface::callThermoCoreRosterZoneHeats is made
+    And the interface call Interface::callThermoCoreRosterAllNamed is made
+    And the interface call Interface::callThermoCoreRosterZoneRooms is made
+    And the interface call Interface::callThermoCoreRosterApart is made
     And the interface call Interface::callThermoCoreRosterQueue is made
     And the interface call Interface::callThermoCoreRosterSortsBefore is made
     And the interface call Interface::callThermoCoreRosterSameZone is made

@@ -3472,8 +3472,7 @@ fn family_decls(
     }
     for m in family {
         for t in types.member_fields(m) {
-            let mut inner = BTreeSet::new();
-            t.mentions(&mut inner);
+            let inner = t.mentions();
             for dep in &inner {
                 type_decls(dep, types, compared, emitted, decls);
             }
@@ -3635,8 +3634,7 @@ fn type_decls(
         if let Some(variants) = types.datas.get(n) {
             for (_, fields) in variants {
                 for (_, t) in fields {
-                    let mut inner = BTreeSet::new();
-                    t.mentions(&mut inner);
+                    let inner = t.mentions();
                     for dep in &inner {
                         type_decls(dep, types, compared, emitted, decls);
                     }
@@ -3678,8 +3676,7 @@ fn type_decls(
         _ => return,
     };
     for (_, t) in &fields {
-        let mut inner = BTreeSet::new();
-        t.mentions(&mut inner);
+        let inner = t.mentions();
         for dep in &inner {
             type_decls(dep, types, compared, emitted, decls);
         }

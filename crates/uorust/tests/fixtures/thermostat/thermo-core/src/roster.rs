@@ -328,6 +328,45 @@ pub enum Zone {
     Group(Vec<Zone>),
 }
 
+impl Zone {
+    /// Whether the zone heats the room, at any depth.
+    pub fn heats(&self, room: &str) -> bool {
+        match self {
+            Zone::Room(r) => r == room,
+            Zone::Group(zones) => zones.iter().any(|z| z.heats(room)),
+        }
+    }
+}
+
+/// Whether every room of the zone has a name.
+pub fn all_named(zone: &Zone) -> bool {
+    match zone {
+        Zone::Room(r) => !r.is_empty(),
+        Zone::Group(zones) => zones.iter().all(|z| all_named(z)),
+    }
+}
+
+/// Every room a zone heats, each once, in order.
+pub fn zone_rooms(zone: &Zone) -> BTreeSet<String> {
+    match zone {
+        Zone::Room(r) => BTreeSet::from([r.clone()]),
+        Zone::Group(zones) => {
+            let mut out = BTreeSet::new();
+            for z in zones {
+                out.extend(zone_rooms(z));
+            }
+            out
+        }
+    }
+}
+
+/// Whether two zones heat no room in common.
+pub fn apart(a: &Zone, b: &Zone) -> bool {
+    let left = zone_rooms(a);
+    let right = zone_rooms(b);
+    left.is_disjoint(&right)
+}
+
 /// The distinct requests, in the order they sort in.
 pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
     let mut out = BTreeSet::new();
@@ -457,5 +496,13 @@ mod tests {
             &Zone::Room("hall".to_string())
         ));
         assert_eq!(set_point(&BTreeMap::new(), Priority::Low, 7), None);
+        assert!(Zone::Group(vec![Zone::Room("hall".to_string())]).heats("hall"));
+        assert!(apart(
+            &Zone::Room("hall".to_string()),
+            &Zone::Group(vec![Zone::Room("den".to_string())])
+        ));
+        assert!(all_named(&Zone::Group(vec![Zone::Room(
+            "hall".to_string()
+        )])));
     }
 }
