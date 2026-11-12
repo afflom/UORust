@@ -239,18 +239,6 @@ reason = "form"
 detail = "expression form outside the lift: method call .insert"
 
 [[residue]]
-kappa = "fc75568ad60ae6e4afd7ca2ce24a2030c5a83ce77c3a58b6e252d86dd9256bb4"
-function = "uorust::lift::Ctx::fresh"
-reason = "form"
-detail = "expression form outside the lift: expr::loop"
-
-[[residue]]
-kappa = "f05537aca6d433ae47cf990d8e027310fd4d97caeb908b03300ebf6521eb3d3f"
-function = "uorust::lift::Ctx::helper_name"
-reason = "form"
-detail = "expression form outside the lift: expr::loop"
-
-[[residue]]
 kappa = "b9e7c2c015723080631873cab6f0c5490f8506d9be4b8d9476c9b29733d4387b"
 function = "uorust::lift::Ctx::returning"
 reason = "call"
@@ -359,7 +347,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "02bdc2be75b05b7edb56ff254fbadb5bd4f11c94fd3a1d4a7b1cc490aa669ca8"
+kappa = "00058faa6ff2ba53204bd7ddbc06a8d333d9c5e6542057baafe358b264d2c946"
 function = "uorust::lift::block"
 reason = "form"
 detail = "expression form outside the lift: struct Local"
@@ -533,12 +521,6 @@ reason = "form"
 detail = "expression form outside the lift: ? below the function's own statements"
 
 [[residue]]
-kappa = "206d90301d680fefd7dfcb0717b84e149bc25b5489310bf36c8cac9229f8c41f"
-function = "uorust::lift::insert_all"
-reason = "form"
-detail = "expression form outside the lift: method call .fresh"
-
-[[residue]]
 kappa = "94478ad7b2f30b6019b124c9f5c56eeafb78b8309e7e91bb3f3f14f88e0815de"
 function = "uorust::lift::int_literal"
 reason = "form"
@@ -563,7 +545,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "7b647ff142ad842c666f9b45f5d93315d5c30a31980858391d1a83d56cb481cf"
+kappa = "b66cfd25ff8f523bdd7bebe41590650199e0bfa7919ca5c70806ef679b77a520"
 function = "uorust::lift::lambda"
 reason = "call"
 detail = "calls new, which is not lifted"
@@ -745,8 +727,8 @@ detail = "signature outside the lift: generic, async, unsafe or variadic"
 [[residue]]
 kappa = "98cd33bbcee02877441c658f058650972670e2a23f4af39d28f148879e0a751c"
 function = "uorust::lift::sorted_insert"
-reason = "form"
-detail = "expression form outside the lift: method call .fresh"
+reason = "call"
+detail = "calls operator, which is not lifted"
 
 [[residue]]
 kappa = "8cdedfd79216af743838c54102ef5d8a39b6bcfe397dadb4d639c09cbc181f03"
@@ -1891,6 +1873,21 @@ function = "uorust::lift::Ctx::below"
 definition = "Behavior::ctxBelow"
 
 [[lifted]]
+kappa = "0e4386bd681545c827d009009122b9b7e201cf71a21ed9f41f544195a5743fd4"
+function = "uorust::lift::Ctx::fresh"
+definition = "Behavior::ctxFresh"
+
+[[lifted]]
+kappa = "63d8223842b11c5bda29d5ad277089f65ad81a73fd13078aaaed716063714be0"
+function = "uorust::lift::Ctx::helper_name"
+definition = "Behavior::ctxHelperName"
+
+[[lifted]]
+kappa = "77a32cbfef777373c3dc5d2790f142c4e4f47ed728867f5d23b0f1dbe4a790d1"
+function = "uorust::lift::Ctx::names_from"
+definition = "Behavior::ctxNamesFrom"
+
+[[lifted]]
 kappa = "1b0e3e236514b792b904be5db153c4fefbd6755c917dc21c40fa8e7f2ce1717c"
 function = "uorust::lift::Ctx::taken"
 definition = "Behavior::ctxTaken"
@@ -1991,9 +1988,19 @@ function = "uorust::lift::equality_name"
 definition = "Behavior::equalityName"
 
 [[lifted]]
+kappa = "0fa98ec9c33b0e15a99d1a1032849c7c9ccd0c1696ba825c69053b0fcc4bf43a"
+function = "uorust::lift::first_free"
+definition = "Behavior::firstFree"
+
+[[lifted]]
 kappa = "53b1ca514f3600f95a869edd040bda9dc90e1b166e0519c252a1d1f237796f59"
 function = "uorust::lift::hex_of"
 definition = "Behavior::hexOf"
+
+[[lifted]]
+kappa = "206d90301d680fefd7dfcb0717b84e149bc25b5489310bf36c8cac9229f8c41f"
+function = "uorust::lift::insert_all"
+definition = "Behavior::insertAll"
 
 [[lifted]]
 kappa = "cc232825922d5f89341a3dc571df0a6496c70e77e0408093e63c6a26ccb62793"

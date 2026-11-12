@@ -1071,8 +1071,8 @@ struct Acc {
     descends: BTreeSet<usize>,
     /// The other lifted functions the body calls.
     calls: BTreeSet<String>,
-    /// How many fresh binders the body has taken.
-    fresh: usize,
+    /// The fresh binders the body has taken, in order.
+    given: Vec<String>,
     /// Every type an expression of the body has.
     seen: BTreeSet<Ty>,
     /// The Lean axioms the body's primitives elaborate with.
@@ -1218,17 +1218,36 @@ pub(crate) struct Helper {
     pub(crate) entwined: bool,
 }
 
+/// The first of `base1`, `base2`, .. that `taken` does not hold. Each
+/// taken name rules out at most one of the first `taken.len() + 1`
+/// numbers, so one of them is free.
+fn first_free(base: &str, taken: &[String]) -> String {
+    (1..taken.len() + 2)
+        .map(|k| format!("{base}{k}"))
+        .find(|name| !taken.contains(name))
+        .unwrap_or_default()
+}
+
 impl Ctx {
     /// A fresh name for a helper of the function being lifted.
     fn helper_name(&self, env: &Env, acc: &Acc, kind: &str) -> String {
-        let mut n = acc.helpers.len() + 1;
-        loop {
-            let candidate = format!("{}{kind}{n}", self.own);
-            if !acc.helpers.iter().any(|h| h.name == candidate) && !self.taken(env, &candidate) {
-                return candidate;
-            }
-            n += 1;
-        }
+        let base = format!("{}{kind}", self.own);
+        let helpers: Vec<String> = acc.helpers.iter().map(|h| h.name.clone()).collect();
+        first_free(&base, &self.names_from(env, acc, &base, helpers))
+    }
+
+    /// The names in scope, given or in `more` that start with `base`.
+    fn names_from(&self, env: &Env, acc: &Acc, base: &str, more: Vec<String>) -> Vec<String> {
+        self.locals
+            .values()
+            .map(|(n, _)| n.clone())
+            .chain(self.hidden.iter().cloned())
+            .chain(env.fns.values().map(|f| f.name.clone()))
+            .chain(env.names.iter().cloned())
+            .chain(acc.given.iter().cloned())
+            .chain(more)
+            .filter(|n| n.starts_with(base))
+            .collect()
     }
 
     fn taken(&self, env: &Env, name: &str) -> bool {
@@ -1253,16 +1272,13 @@ impl Ctx {
         (next, name, acc)
     }
 
-    /// A binder no name in scope takes: `base` and a number.
+    /// A binder no name in scope and no name given before takes: `base`
+    /// and a number.
     fn fresh(&self, env: &Env, acc: Acc, base: &str) -> (String, Acc) {
-        let mut n = acc.fresh;
-        loop {
-            n += 1;
-            let name = format!("{base}{n}");
-            if !self.taken(env, &name) {
-                return (name, Acc { fresh: n, ..acc });
-            }
-        }
+        let name = first_free(base, &self.names_from(env, &acc, base, Vec::new()));
+        let mut given = acc.given;
+        given.push(name.clone());
+        (name, Acc { given, ..acc })
     }
 
     /// The same scope where `cond` is `holds`: with the lower bound it
@@ -4420,7 +4436,7 @@ fn lambda(
     // A `?` in a closure that gives an option leaves the closure with
     // `None`: the body is the match it stands for.
     let body = match want {
-        Some(Ty::Option(_)) => closure_tries(&c.body, acc.fresh),
+        Some(Ty::Option(_)) => closure_tries(&c.body, acc.given.len()),
         _ => (*c.body).clone(),
     };
     let ((core, ty), acc) = flat_of(&body, env, &scope, acc, want)?;
@@ -7049,9 +7065,11 @@ fn block(
     }
     if ctx.top {
         if let Some((first, rest)) = stmts.split_first() {
-            let n = acc.fresh + 1;
+            let n = acc.given.len() + 1;
             if let Some((binding, stmt)) = hoist_try(first, n) {
-                let acc = Acc { fresh: n, ..acc };
+                let mut given = acc.given;
+                given.push(format!("tried{n}"));
+                let acc = Acc { given, ..acc };
                 let mut out = vec![binding, stmt];
                 out.extend(rest.iter().cloned());
                 return block(&out, env, ctx, acc, want);

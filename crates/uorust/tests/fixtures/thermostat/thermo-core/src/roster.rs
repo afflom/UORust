@@ -709,6 +709,15 @@ pub fn opening(name: &str) -> bool {
     OPENING.iter().any(|room| *room == name)
 }
 
+/// The first room name `taken` leaves spare: each taken name rules out at
+/// most one of the first `taken.len() + 1` numbers.
+pub fn spare_room(taken: &[String]) -> String {
+    (1..taken.len() + 2)
+        .map(|k| format!("room{k}"))
+        .find(|name| !taken.contains(name))
+        .unwrap_or_default()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -880,6 +889,7 @@ mod tests {
         };
         assert_eq!(booked(&none, "den").order, vec!["den".to_string()]);
         assert_eq!(first(), "hall");
+        assert_eq!(spare_room(&["room1".to_string()]), "room2");
         assert!(opening("den"));
         assert!(!opening("attic"));
         assert!(all_named(&Zone::Group(vec![Zone::Room(

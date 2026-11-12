@@ -711,7 +711,7 @@ definition{
   parameters: [band : (Result Band ConfigError), current : Nat],
   result: (Result Bool ConfigError),
   body: (match band
-    | Result.ok band2 => (ctor Result.ok [Bool, ConfigError] (current <? (project band2 low)))
+    | Result.ok band1 => (ctor Result.ok [Bool, ConfigError] (current <? (project band1 low)))
     | Result.error error1 => (ctor Result.error [Bool, ConfigError] error1))
 }
 
@@ -735,7 +735,7 @@ definition{
   parameters: [band : (Result Band ConfigError)],
   result: (Result Nat ConfigError),
   body: (match band
-    | Result.ok band2 => (ctor Result.ok [Nat, ConfigError] (project band2 low))
+    | Result.ok band1 => (ctor Result.ok [Nat, ConfigError] (project band1 low))
     | Result.error error1 => (ctor Result.error [Nat, ConfigError] error1))
 }
 
@@ -774,8 +774,8 @@ definition{
   parameters: [text : String],
   result: (Result Nat ConfigError),
   body: (match (Prelude::textParseNat (Prelude::textTrim text) 4294967295)
-    | Result.ok value3 => (ctor Result.ok [Nat, ConfigError] value3)
-    | Result.error item2 => (ctor Result.error [Nat, ConfigError] (ctor ConfigError.NotANumber))),
+    | Result.ok value1 => (ctor Result.ok [Nat, ConfigError] value1)
+    | Result.error item1 => (ctor Result.error [Nat, ConfigError] (ctor ConfigError.NotANumber))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -847,7 +847,7 @@ definition{
   result: (List String),
   body: (match items1
     | List.nil => (nil String)
-    | List.cons room rest2 => (cons (project room name) (namesMap1 rest2))),
+    | List.cons room rest1 => (cons (project room name) (namesMap1 rest1))),
   recursive_argument: items1
 }
 
@@ -864,7 +864,7 @@ definition{
   result: (List Room),
   body: (match items1
     | List.nil => (nil Room)
-    | List.cons room rest2 => (if (roomIsCold room floor) then (cons room (coldFilter1 rest2 floor)) else (coldFilter1 rest2 floor))),
+    | List.cons room rest1 => (if (roomIsCold room floor) then (cons room (coldFilter1 rest1 floor)) else (coldFilter1 rest1 floor))),
   recursive_argument: items1
 }
 
@@ -881,7 +881,7 @@ definition{
   result: Bool,
   body: (match items1
     | List.nil => false
-    | List.cons room rest2 => (if ((project room reading) <? floor) then true else (anyColdAny1 rest2 floor))),
+    | List.cons room rest1 => (if ((project room reading) <? floor) then true else (anyColdAny1 rest1 floor))),
   recursive_argument: items1
 }
 
@@ -898,7 +898,7 @@ definition{
   result: Bool,
   body: (match items1
     | List.nil => true
-    | List.cons r rest2 => (if ((low <=? r) && (r <=? high)) then (allWithinAll1 rest2 high low) else false)),
+    | List.cons r rest1 => (if ((low <=? r) && (r <=? high)) then (allWithinAll1 rest1 high low) else false)),
   recursive_argument: items1
 }
 
@@ -915,7 +915,7 @@ definition{
   result: (Option Room),
   body: (match items1
     | List.nil => (ctor Option.none [Room])
-    | List.cons room rest2 => (if (roomIsCold room floor) then (ctor Option.some [Room] room) else (firstColdFind1 rest2 floor))),
+    | List.cons room rest1 => (if (roomIsCold room floor) then (ctor Option.some [Room] room) else (firstColdFind1 rest1 floor))),
   recursive_argument: items1
 }
 
@@ -932,7 +932,7 @@ definition{
   result: Nat,
   body: (match items1
     | List.nil => best
-    | List.cons r rest2 => (highestFold1 rest2 (if (best <=? r) then r else best))),
+    | List.cons r rest1 => (highestFold1 rest1 (if (best <=? r) then r else best))),
   recursive_argument: items1
 }
 
@@ -949,7 +949,7 @@ definition{
   result: (List Room),
   body: (match items1
     | List.nil => (nil Room)
-    | List.cons room rest2 => (if (roomIsCold room floor) then (cons room (coldCountFilter1 rest2 floor)) else (coldCountFilter1 rest2 floor))),
+    | List.cons room rest1 => (if (roomIsCold room floor) then (cons room (coldCountFilter1 rest1 floor)) else (coldCountFilter1 rest1 floor))),
   recursive_argument: items1
 }
 
@@ -962,12 +962,12 @@ definition{
 
 definition{
   name: scheduledContains1,
-  parameters: [items3 : (List String), needle2 : String],
+  parameters: [items1 : (List String), needle1 : String],
   result: Bool,
-  body: (match items3
+  body: (match items1
     | List.nil => false
-    | List.cons item1 rest4 => (if (prim equal item1 needle2 : Bool) then true else (scheduledContains1 rest4 needle2))),
-  recursive_argument: items3
+    | List.cons item1 rest1 => (if (prim equal item1 needle1 : Bool) then true else (scheduledContains1 rest1 needle1))),
+  recursive_argument: items1
 }
 
 definition{
@@ -987,13 +987,13 @@ definition{
 
 definition{
   name: pairsMap1,
-  parameters: [items2 : (List TupleStringInt)],
+  parameters: [items1 : (List TupleStringInt)],
   result: (List String),
-  body: (match items2
+  body: (match items1
     | List.nil => (nil String)
-    | List.cons pair1 rest3 => (let name : String := (project pair1 item0); (let reading : Int64 := (project pair1 item1); (cons (prim join (cons name (cons "=" (cons (prim format_decimal reading : String) (nil String)))) "" : String) (pairsMap1 rest3))))),
+    | List.cons pair1 rest1 => (let name : String := (project pair1 item0); (let reading : Int64 := (project pair1 item1); (cons (prim join (cons name (cons "=" (cons (prim format_decimal reading : String) (nil String)))) "" : String) (pairsMap1 rest1))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items2
+  recursive_argument: items1
 }
 
 definition{
@@ -1006,12 +1006,12 @@ definition{
 
 definition{
   name: targetOfGet1,
-  parameters: [items3 : (List TupleStringNat), needle2 : String],
+  parameters: [items1 : (List TupleStringNat), needle1 : String],
   result: (Option Nat),
-  body: (match items3
+  body: (match items1
     | List.nil => (ctor Option.none [Nat])
-    | List.cons item1 rest4 => (if (prim equal (project item1 item0) needle2 : Bool) then (ctor Option.some [Nat] (project item1 item1)) else (targetOfGet1 rest4 needle2))),
-  recursive_argument: items3
+    | List.cons item1 rest1 => (if (prim equal (project item1 item0) needle1 : Bool) then (ctor Option.some [Nat] (project item1 item1)) else (targetOfGet1 rest1 needle1))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1023,12 +1023,12 @@ definition{
 
 definition{
   name: roomsOfKeys1,
-  parameters: [items2 : (List TupleStringNat)],
+  parameters: [items1 : (List TupleStringNat)],
   result: (List String),
-  body: (match items2
+  body: (match items1
     | List.nil => (nil String)
-    | List.cons entry1 rest3 => (cons (project entry1 item0) (roomsOfKeys1 rest3))),
-  recursive_argument: items2
+    | List.cons entry1 rest1 => (cons (project entry1 item0) (roomsOfKeys1 rest1))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1040,12 +1040,12 @@ definition{
 
 definition{
   name: hasTargetHas1,
-  parameters: [items3 : (List TupleStringNat), needle2 : String],
+  parameters: [items1 : (List TupleStringNat), needle1 : String],
   result: Bool,
-  body: (match items3
+  body: (match items1
     | List.nil => false
-    | List.cons item1 rest4 => (if (prim equal (project item1 item0) needle2 : Bool) then true else (hasTargetHas1 rest4 needle2))),
-  recursive_argument: items3
+    | List.cons item1 rest1 => (if (prim equal (project item1 item0) needle1 : Bool) then true else (hasTargetHas1 rest1 needle1))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1057,12 +1057,12 @@ definition{
 
 definition{
   name: closedContains1,
-  parameters: [items3 : (List String), needle2 : String],
+  parameters: [items1 : (List String), needle1 : String],
   result: Bool,
-  body: (match items3
+  body: (match items1
     | List.nil => false
-    | List.cons item1 rest4 => (if (prim equal item1 needle2 : Bool) then true else (closedContains1 rest4 needle2))),
-  recursive_argument: items3
+    | List.cons item1 rest1 => (if (prim equal item1 needle1 : Bool) then true else (closedContains1 rest1 needle1))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1091,55 +1091,55 @@ definition{name: blank, parameters: [], result: String, body: ""}
 
 definition{
   name: coldNamesLoop1,
-  parameters: [items3 : (List Room), state1 : (List String), floor : Nat],
+  parameters: [items1 : (List Room), state1 : (List String), floor : Nat],
   result: (List String),
-  body: (match items3
+  body: (match items1
     | List.nil => state1
-    | List.cons room rest4 => (if ((project room reading) <? floor) then (let out2 : (List String) := (prim append state1 (cons (project room name) (nil String)) : (List String)); (coldNamesLoop1 rest4 out2 floor)) else (coldNamesLoop1 rest4 state1 floor))),
-  recursive_argument: items3
+    | List.cons room rest1 => (if ((project room reading) <? floor) then (let out1 : (List String) := (prim append state1 (cons (project room name) (nil String)) : (List String)); (coldNamesLoop1 rest1 out1 floor)) else (coldNamesLoop1 rest1 state1 floor))),
+  recursive_argument: items1
 }
 
 definition{
   name: coldNames,
   parameters: [rooms : (List Room), floor : Nat],
   result: (List String),
-  body: (let out : (List String) := (nil String); (let state5 : (List String) := (coldNamesLoop1 rooms out floor); state5))
+  body: (let out : (List String) := (nil String); (let state2 : (List String) := (coldNamesLoop1 rooms out floor); state2))
 }
 
 definition{
   name: reportLoop1,
-  parameters: [items10 : (List Room), state1 : TupleStringNat],
+  parameters: [items1 : (List Room), state1 : TupleStringNat],
   result: TupleStringNat,
-  body: (match items10
+  body: (match items1
     | List.nil => state1
-    | List.cons room rest11 => (let line2 : String := (project state1 item0); (let seen3 : Nat := (project state1 item1); (if (prim equal (project room name) "" : Bool) then (let line4 : String := (prim join (cons line2 (cons "?" (nil String))) "" : String); (let line5 : String := (prim join (cons line4 (cons ";" (nil String))) "" : String); (let seen6 : Nat := (if ((seen3 + 1) <? 4294967296) then (seen3 + 1) else 4294967295); (reportLoop1 rest11 (record TupleStringNat {item0 := line5, item1 := seen6}))))) else (let line7 : String := (prim join (cons line2 (cons (project room name) (nil String))) "" : String); (let line8 : String := (prim join (cons line7 (cons ";" (nil String))) "" : String); (let seen9 : Nat := (if ((seen3 + 1) <? 4294967296) then (seen3 + 1) else 4294967295); (reportLoop1 rest11 (record TupleStringNat {item0 := line8, item1 := seen9}))))))))),
+    | List.cons room rest1 => (let line1 : String := (project state1 item0); (let seen1 : Nat := (project state1 item1); (if (prim equal (project room name) "" : Bool) then (let line2 : String := (prim join (cons line1 (cons "?" (nil String))) "" : String); (let line3 : String := (prim join (cons line2 (cons ";" (nil String))) "" : String); (let seen2 : Nat := (if ((seen1 + 1) <? 4294967296) then (seen1 + 1) else 4294967295); (reportLoop1 rest1 (record TupleStringNat {item0 := line3, item1 := seen2}))))) else (let line4 : String := (prim join (cons line1 (cons (project room name) (nil String))) "" : String); (let line5 : String := (prim join (cons line4 (cons ";" (nil String))) "" : String); (let seen3 : Nat := (if ((seen1 + 1) <? 4294967296) then (seen1 + 1) else 4294967295); (reportLoop1 rest1 (record TupleStringNat {item0 := line5, item1 := seen3}))))))))),
   axioms: [propext],
-  recursive_argument: items10
+  recursive_argument: items1
 }
 
 definition{
   name: report,
   parameters: [rooms : (List Room)],
   result: TupleStringNat,
-  body: (let line : String := ""; (let seen : Nat := 0; (let state12 : TupleStringNat := (reportLoop1 rooms (record TupleStringNat {item0 := line, item1 := seen})); (let line13 : String := (project state12 item0); (let seen14 : Nat := (project state12 item1); (record TupleStringNat {item0 := line13, item1 := seen14})))))),
+  body: (let line : String := ""; (let seen : Nat := 0; (let state2 : TupleStringNat := (reportLoop1 rooms (record TupleStringNat {item0 := line, item1 := seen})); (let line6 : String := (project state2 item0); (let seen4 : Nat := (project state2 item1); (record TupleStringNat {item0 := line6, item1 := seen4})))))),
   axioms: [propext]
 }
 
 definition{
   name: readingsOfLoop1,
-  parameters: [items5 : (List TupleStringNat), state1 : (List Nat)],
+  parameters: [items1 : (List TupleStringNat), state1 : (List Nat)],
   result: (List Nat),
-  body: (match items5
+  body: (match items1
     | List.nil => state1
-    | List.cons pair2 rest6 => (let item3 : String := (project pair2 item0); (let reading : Nat := (project pair2 item1); (let out4 : (List Nat) := (prim append state1 (cons reading (nil Nat)) : (List Nat)); (readingsOfLoop1 rest6 out4))))),
-  recursive_argument: items5
+    | List.cons pair1 rest1 => (let item1 : String := (project pair1 item0); (let reading : Nat := (project pair1 item1); (let out1 : (List Nat) := (prim append state1 (cons reading (nil Nat)) : (List Nat)); (readingsOfLoop1 rest1 out1))))),
+  recursive_argument: items1
 }
 
 definition{
   name: readingsOf,
   parameters: [entries : (List TupleStringNat)],
   result: (List Nat),
-  body: (let out : (List Nat) := (nil Nat); (let state7 : (List Nat) := (readingsOfLoop1 entries out); state7))
+  body: (let out : (List Nat) := (nil Nat); (let state2 : (List Nat) := (readingsOfLoop1 entries out); state2))
 }
 
 definition{
@@ -1148,7 +1148,7 @@ definition{
   result: (Option TupleStringString),
   body: (match (Prelude::textFirst line "=")
     | Option.none => (ctor Option.none [TupleStringString])
-    | Option.some at2 => (ctor Option.some [TupleStringString] (record TupleStringString {item0 := (Prelude::textSlice line 0 at2), item1 := (Prelude::textSlice line (at2 + (Prelude::textLength "=")) (Prelude::textLength line))}))),
+    | Option.some at1 => (ctor Option.some [TupleStringString] (record TupleStringString {item0 := (Prelude::textSlice line 0 at1), item1 := (Prelude::textSlice line (at1 + (Prelude::textLength "=")) (Prelude::textLength line))}))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -1158,7 +1158,7 @@ definition{
   result: (Option String),
   body: (match (lineRoomPart1 line)
     | Option.none => (ctor Option.none [String])
-    | Option.some tried1 => (let pair3 : TupleStringString := tried1; (let name : String := (project pair3 item0); (let item4 : String := (project pair3 item1); (let name5 : String := (Prelude::textTrim name); (if (prim equal name5 "" : Bool) then (ctor Option.none [String]) else (ctor Option.some [String] name5))))))),
+    | Option.some tried1 => (let pair1 : TupleStringString := tried1; (let name : String := (project pair1 item0); (let item1 : String := (project pair1 item1); (let name1 : String := (Prelude::textTrim name); (if (prim equal name1 "" : Bool) then (ctor Option.none [String]) else (ctor Option.some [String] name1))))))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -1168,7 +1168,7 @@ definition{
   result: (Option TupleStringString),
   body: (match (Prelude::textLast line "=")
     | Option.none => (ctor Option.none [TupleStringString])
-    | Option.some at2 => (ctor Option.some [TupleStringString] (record TupleStringString {item0 := (Prelude::textSlice line 0 at2), item1 := (Prelude::textSlice line (at2 + (Prelude::textLength "=")) (Prelude::textLength line))}))),
+    | Option.some at1 => (ctor Option.some [TupleStringString] (record TupleStringString {item0 := (Prelude::textSlice line 0 at1), item1 := (Prelude::textSlice line (at1 + (Prelude::textLength "=")) (Prelude::textLength line))}))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -1178,46 +1178,46 @@ definition{
   result: (Option Nat),
   body: (match (lineTargetPart1 line)
     | Option.none => (ctor Option.none [Nat])
-    | Option.some tried1 => (let pair3 : TupleStringString := tried1; (let item4 : String := (project pair3 item0); (let value : String := (project pair3 item1); (match (Prelude::textParseNat (Prelude::textTrimEnd (Prelude::textTrimStart value)) 4294967295)
-      | Result.ok value5 => (ctor Option.some [Nat] value5)
-      | Result.error error6 => (ctor Option.none [Nat])))))),
+    | Option.some tried1 => (let pair1 : TupleStringString := tried1; (let item1 : String := (project pair1 item0); (let value : String := (project pair1 item1); (match (Prelude::textParseNat (Prelude::textTrimEnd (Prelude::textTrimStart value)) 4294967295)
+      | Result.ok value1 => (ctor Option.some [Nat] value1)
+      | Result.error error1 => (ctor Option.none [Nat])))))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
   name: scheduleRoomsLoop1,
-  parameters: [items4 : (List String), state1 : (List String)],
+  parameters: [items1 : (List String), state1 : (List String)],
   result: (List String),
-  body: (match items4
+  body: (match items1
     | List.nil => state1
-    | List.cons line rest5 => (let line2 : String := (Prelude::textTrim line); (if ((prim equal line2 "" : Bool) || (Prelude::textStartsWith line2 "#")) then (scheduleRoomsLoop1 rest5 state1) else (let out3 : (List String) := (prim append state1 (cons line2 (nil String)) : (List String)); (scheduleRoomsLoop1 rest5 out3))))),
+    | List.cons line rest1 => (let line1 : String := (Prelude::textTrim line); (if ((prim equal line1 "" : Bool) || (Prelude::textStartsWith line1 "#")) then (scheduleRoomsLoop1 rest1 state1) else (let out1 : (List String) := (prim append state1 (cons line1 (nil String)) : (List String)); (scheduleRoomsLoop1 rest1 out1))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items4
+  recursive_argument: items1
 }
 
 definition{
   name: scheduleRooms,
   parameters: [text : String],
   result: (List String),
-  body: (let out : (List String) := (nil String); (let state6 : (List String) := (scheduleRoomsLoop1 (Prelude::textLines text) out); state6)),
+  body: (let out : (List String) := (nil String); (let state2 : (List String) := (scheduleRoomsLoop1 (Prelude::textLines text) out); state2)),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
   name: roomsUntilStopLoop1,
-  parameters: [items3 : (List String), state1 : (List String)],
+  parameters: [items1 : (List String), state1 : (List String)],
   result: (List String),
-  body: (match items3
+  body: (match items1
     | List.nil => state1
-    | List.cons item rest4 => (if (prim equal item "stop" : Bool) then state1 else (let out2 : (List String) := (prim append state1 (cons item (nil String)) : (List String)); (roomsUntilStopLoop1 rest4 out2)))),
-  recursive_argument: items3
+    | List.cons item rest1 => (if (prim equal item "stop" : Bool) then state1 else (let out1 : (List String) := (prim append state1 (cons item (nil String)) : (List String)); (roomsUntilStopLoop1 rest1 out1)))),
+  recursive_argument: items1
 }
 
 definition{
   name: roomsUntilStop,
   parameters: [list : String],
   result: (List String),
-  body: (let out : (List String) := (nil String); (let state5 : (List String) := (roomsUntilStopLoop1 (Prelude::textSplit list ", ") out); state5)),
+  body: (let out : (List String) := (nil String); (let state2 : (List String) := (roomsUntilStopLoop1 (Prelude::textSplit list ", ") out); state2)),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -1245,7 +1245,7 @@ definition{
   name: tag,
   parameters: [text : String],
   result: String,
-  body: (let bare : String := (tagPart1 text); (let bare3 : String := (tagPart2 bare); (Prelude::textAsciiLower bare3))),
+  body: (let bare : String := (tagPart1 text); (let bare1 : String := (tagPart2 bare); (Prelude::textAsciiLower bare1))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -1267,49 +1267,49 @@ definition{
 
 definition{
   name: signKindLoop1,
-  parameters: [items3 : (List String), state1 : Nat],
+  parameters: [items1 : (List String), state1 : Nat],
   result: Nat,
-  body: (match items3
+  body: (match items1
     | List.nil => state1
-    | List.cons c rest4 => (let kind2 : Nat := (if (prim equal c "-" : Bool) then 1 else (if (prim equal c "+" : Bool) then 2 else (if ((not (prim less_than c "0" : Bool)) && (not (prim less_than "9" c : Bool))) then 3 else (if (Prelude::textIsWhitespace c) then 4 else 5)))); kind2)),
+    | List.cons c rest1 => (let kind1 : Nat := (if (prim equal c "-" : Bool) then 1 else (if (prim equal c "+" : Bool) then 2 else (if ((not (prim less_than c "0" : Bool)) && (not (prim less_than "9" c : Bool))) then 3 else (if (Prelude::textIsWhitespace c) then 4 else 5)))); kind1)),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items3
+  recursive_argument: items1
 }
 
 definition{
   name: signKind,
   parameters: [reading : String],
   result: Nat,
-  body: (let kind : Nat := 0; (let state5 : Nat := (signKindLoop1 (Prelude::textChars reading) kind); state5)),
+  body: (let kind : Nat := 0; (let state2 : Nat := (signKindLoop1 (Prelude::textChars reading) kind); state2)),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
   name: digitCountLoop1,
-  parameters: [items3 : (List Nat), state1 : Nat],
+  parameters: [items1 : (List Nat), state1 : Nat],
   result: Nat,
-  body: (match items3
+  body: (match items1
     | List.nil => state1
-    | List.cons byte rest4 => (if ((48 <=? byte) && (byte <=? 57)) then (let count2 : Nat := (if ((state1 + 1) <? 4294967296) then (state1 + 1) else 4294967295); (digitCountLoop1 rest4 count2)) else (digitCountLoop1 rest4 state1))),
-  recursive_argument: items3
+    | List.cons byte rest1 => (if ((48 <=? byte) && (byte <=? 57)) then (let count1 : Nat := (if ((state1 + 1) <? 4294967296) then (state1 + 1) else 4294967295); (digitCountLoop1 rest1 count1)) else (digitCountLoop1 rest1 state1))),
+  recursive_argument: items1
 }
 
 definition{
   name: digitCount,
   parameters: [reading : String],
   result: Nat,
-  body: (let count : Nat := 0; (let state5 : Nat := (digitCountLoop1 (Prelude::textBytes reading) count); state5)),
+  body: (let count : Nat := 0; (let state2 : Nat := (digitCountLoop1 (Prelude::textBytes reading) count); state2)),
   axioms: [Quot.sound, propext]
 }
 
 definition{
   name: numberedEnumerate1,
-  parameters: [items3 : (List Room), index2 : Nat],
+  parameters: [items1 : (List Room), index1 : Nat],
   result: (List TupleNatRoom),
-  body: (match items3
+  body: (match items1
     | List.nil => (nil TupleNatRoom)
-    | List.cons item1 rest4 => (cons (record TupleNatRoom {item0 := index2, item1 := item1}) (numberedEnumerate1 rest4 (index2 + 1)))),
-  recursive_argument: items3
+    | List.cons item1 rest1 => (cons (record TupleNatRoom {item0 := index1, item1 := item1}) (numberedEnumerate1 rest1 (index1 + 1)))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1335,10 +1335,10 @@ definition{
   body: (match (firstIsPart1 name rooms)
     | Option.none => (match (ctor Option.some [String] name)
       | Option.none => true
-      | Option.some right3 => false)
-    | Option.some left2 => (match (ctor Option.some [String] name)
+      | Option.some right1 => false)
+    | Option.some left1 => (match (ctor Option.some [String] name)
       | Option.none => false
-      | Option.some right3 => (prim equal left2 right3 : Bool)))
+      | Option.some right1 => (prim equal left1 right1 : Bool)))
 }
 
 definition{
@@ -1357,7 +1357,7 @@ definition{
   result: (List String),
   body: (match items1
     | List.nil => (nil String)
-    | List.cons c rest2 => (cons c (spelledMap1 rest2))),
+    | List.cons c rest1 => (cons c (spelledMap1 rest1))),
   recursive_argument: items1
 }
 
@@ -1382,7 +1382,7 @@ definition{
   result: Bool,
   body: (match items1
     | List.nil => false
-    | List.cons z rest2 => (if (zoneHeats z room) then true else (zoneHeatsAny1 rest2 room))),
+    | List.cons z rest1 => (if (zoneHeats z room) then true else (zoneHeatsAny1 rest1 room))),
   mutual: zoneHeatsMutual,
   recursive_argument: items1
 }
@@ -1404,7 +1404,7 @@ definition{
   result: Bool,
   body: (match items1
     | List.nil => true
-    | List.cons z rest2 => (if (allNamed z) then (allNamedAll1 rest2) else false)),
+    | List.cons z rest1 => (if (allNamed z) then (allNamedAll1 rest1) else false)),
   mutual: allNamedMutual,
   recursive_argument: items1
 }
@@ -1422,58 +1422,58 @@ definition{
 
 definition{
   name: zoneRoomsInsert1,
-  parameters: [items1 : (List String), item2 : String],
+  parameters: [items1 : (List String), item1 : String],
   result: (List String),
   body: (match items1
-    | List.nil => (cons item2 (nil String))
-    | List.cons head3 rest4 => (if (prim equal item2 head3 : Bool) then (cons head3 rest4) else (if (prim less_than item2 head3 : Bool) then (cons item2 (cons head3 rest4)) else (cons head3 (zoneRoomsInsert1 rest4 item2))))),
+    | List.nil => (cons item1 (nil String))
+    | List.cons head1 rest1 => (if (prim equal item1 head1 : Bool) then (cons head1 rest1) else (if (prim less_than item1 head1 : Bool) then (cons item1 (cons head1 rest1)) else (cons head1 (zoneRoomsInsert1 rest1 item1))))),
   axioms: [Classical.choice, Quot.sound, propext],
   recursive_argument: items1
 }
 
 definition{
+  name: zoneRoomsInsertAll1,
+  parameters: [items2 : (List String), set1 : (List String)],
+  result: (List String),
+  body: (match items2
+    | List.nil => set1
+    | List.cons head2 rest2 => (zoneRoomsInsertAll1 rest2 (zoneRoomsInsert1 set1 head2))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items2
+}
+
+definition{
+  name: zoneRoomsInsert2,
+  parameters: [items3 : (List String), item2 : String],
+  result: (List String),
+  body: (match items3
+    | List.nil => (cons item2 (nil String))
+    | List.cons head3 rest3 => (if (prim equal item2 head3 : Bool) then (cons head3 rest3) else (if (prim less_than item2 head3 : Bool) then (cons item2 (cons head3 rest3)) else (cons head3 (zoneRoomsInsert2 rest3 item2))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items3
+}
+
+definition{
   name: zoneRoomsInsertAll2,
-  parameters: [items6 : (List String), set5 : (List String)],
+  parameters: [items4 : (List String), set2 : (List String)],
   result: (List String),
-  body: (match items6
-    | List.nil => set5
-    | List.cons head7 rest8 => (zoneRoomsInsertAll2 rest8 (zoneRoomsInsert1 set5 head7))),
+  body: (match items4
+    | List.nil => set2
+    | List.cons head4 rest4 => (zoneRoomsInsertAll2 rest4 (zoneRoomsInsert2 set2 head4))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items6
+  recursive_argument: items4
 }
 
 definition{
-  name: zoneRoomsInsert3,
-  parameters: [items10 : (List String), item11 : String],
+  name: zoneRoomsLoop1,
+  parameters: [items5 : (List Zone), state1 : (List String)],
   result: (List String),
-  body: (match items10
-    | List.nil => (cons item11 (nil String))
-    | List.cons head12 rest13 => (if (prim equal item11 head12 : Bool) then (cons head12 rest13) else (if (prim less_than item11 head12 : Bool) then (cons item11 (cons head12 rest13)) else (cons head12 (zoneRoomsInsert3 rest13 item11))))),
-  axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items10
-}
-
-definition{
-  name: zoneRoomsInsertAll4,
-  parameters: [items15 : (List String), set14 : (List String)],
-  result: (List String),
-  body: (match items15
-    | List.nil => set14
-    | List.cons head16 rest17 => (zoneRoomsInsertAll4 rest17 (zoneRoomsInsert3 set14 head16))),
-  axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items15
-}
-
-definition{
-  name: zoneRoomsLoop5,
-  parameters: [items19 : (List Zone), state9 : (List String)],
-  result: (List String),
-  body: (match items19
-    | List.nil => state9
-    | List.cons z rest20 => (let out18 : (List String) := (zoneRoomsInsertAll4 (zoneRooms z) state9); (zoneRoomsLoop5 rest20 out18))),
+  body: (match items5
+    | List.nil => state1
+    | List.cons z rest5 => (let out1 : (List String) := (zoneRoomsInsertAll2 (zoneRooms z) state1); (zoneRoomsLoop1 rest5 out1))),
   axioms: [Classical.choice, Quot.sound, propext],
   mutual: zoneRoomsMutual,
-  recursive_argument: items19
+  recursive_argument: items5
 }
 
 definition{
@@ -1481,8 +1481,8 @@ definition{
   parameters: [zone : Zone],
   result: (List String),
   body: (match zone
-    | Zone.Room r => (zoneRoomsInsertAll2 (cons r (nil String)) (nil String))
-    | Zone.Group zones => (let out : (List String) := (nil String); (let state21 : (List String) := (zoneRoomsLoop5 zones out); state21))),
+    | Zone.Room r => (zoneRoomsInsertAll1 (cons r (nil String)) (nil String))
+    | Zone.Group zones => (let out : (List String) := (nil String); (let state2 : (List String) := (zoneRoomsLoop1 zones out); state2))),
   axioms: [Classical.choice, Quot.sound, propext],
   mutual: zoneRoomsMutual,
   recursive_argument: zone
@@ -1490,59 +1490,59 @@ definition{
 
 definition{
   name: apartContains1,
-  parameters: [items4 : (List String), needle3 : String],
+  parameters: [items1 : (List String), needle1 : String],
   result: Bool,
-  body: (match items4
+  body: (match items1
     | List.nil => false
-    | List.cons item2 rest5 => (if (prim equal item2 needle3 : Bool) then true else (apartContains1 rest5 needle3))),
-  recursive_argument: items4
+    | List.cons item1 rest1 => (if (prim equal item1 needle1 : Bool) then true else (apartContains1 rest1 needle1))),
+  recursive_argument: items1
 }
 
 definition{
-  name: apartDisjoint2,
-  parameters: [items6 : (List String), right : (List String)],
+  name: apartDisjoint1,
+  parameters: [items2 : (List String), right : (List String)],
   result: Bool,
-  body: (match items6
+  body: (match items2
     | List.nil => true
-    | List.cons member1 rest7 => (if (apartContains1 right member1) then false else (apartDisjoint2 rest7 right))),
-  recursive_argument: items6
+    | List.cons member1 rest2 => (if (apartContains1 right member1) then false else (apartDisjoint1 rest2 right))),
+  recursive_argument: items2
 }
 
 definition{
   name: apart,
   parameters: [a : Zone, b : Zone],
   result: Bool,
-  body: (let left : (List String) := (zoneRooms a); (let right : (List String) := (zoneRooms b); (apartDisjoint2 left right))),
+  body: (let left : (List String) := (zoneRooms a); (let right : (List String) := (zoneRooms b); (apartDisjoint1 left right))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
   name: requestedRoomsInsert1,
-  parameters: [items2 : (List String), item3 : String],
+  parameters: [items1 : (List String), item1 : String],
   result: (List String),
-  body: (match items2
-    | List.nil => (cons item3 (nil String))
-    | List.cons head4 rest5 => (if (prim equal item3 head4 : Bool) then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool) then (cons item3 (cons head4 rest5)) else (cons head4 (requestedRoomsInsert1 rest5 item3))))),
+  body: (match items1
+    | List.nil => (cons item1 (nil String))
+    | List.cons head1 rest1 => (if (prim equal item1 head1 : Bool) then (cons head1 rest1) else (if (prim less_than item1 head1 : Bool) then (cons item1 (cons head1 rest1)) else (cons head1 (requestedRoomsInsert1 rest1 item1))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items2
+  recursive_argument: items1
 }
 
 definition{
-  name: requestedRoomsLoop2,
-  parameters: [items7 : (List Request), state1 : (List String)],
+  name: requestedRoomsLoop1,
+  parameters: [items2 : (List Request), state1 : (List String)],
   result: (List String),
-  body: (match items7
+  body: (match items2
     | List.nil => state1
-    | List.cons r rest8 => (let rooms6 : (List String) := (requestedRoomsInsert1 state1 (project r room)); (requestedRoomsLoop2 rest8 rooms6))),
+    | List.cons r rest2 => (let rooms1 : (List String) := (requestedRoomsInsert1 state1 (project r room)); (requestedRoomsLoop1 rest2 rooms1))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items7
+  recursive_argument: items2
 }
 
 definition{
   name: requestedRooms,
   parameters: [requests : (List Request)],
   result: Nat,
-  body: (let rooms : (List String) := (nil String); (let state9 : (List String) := (requestedRoomsLoop2 requests rooms); (prim length state9 : Nat))),
+  body: (let rooms : (List String) := (nil String); (let state2 : (List String) := (requestedRoomsLoop1 requests rooms); (prim length state2 : Nat))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -1559,7 +1559,7 @@ definition{
   result: Bool,
   body: (match items1
     | List.nil => true
-    | List.cons argument0 rest2 => (if (allNamed argument0) then (allGroupsNamedAll1 rest2) else false)),
+    | List.cons argument0 rest1 => (if (allNamed argument0) then (allGroupsNamedAll1 rest1) else false)),
   recursive_argument: items1
 }
 
@@ -1576,29 +1576,29 @@ definition{
   result: (List String),
   body: (match items1
     | List.nil => (nil String)
-    | List.cons argument0 rest2 => (cons argument0 (trimmedMap1 rest2))),
+    | List.cons argument0 rest1 => (cons argument0 (trimmedMap1 rest1))),
   recursive_argument: items1
 }
 
 definition{
   name: trimmedMap2,
-  parameters: [items3 : (List String)],
+  parameters: [items2 : (List String)],
   result: (List String),
-  body: (match items3
+  body: (match items2
     | List.nil => (nil String)
-    | List.cons argument0 rest4 => (cons (Prelude::textTrim argument0) (trimmedMap2 rest4))),
+    | List.cons argument0 rest2 => (cons (Prelude::textTrim argument0) (trimmedMap2 rest2))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items3
+  recursive_argument: items2
 }
 
 definition{
   name: trimmedMap3,
-  parameters: [items5 : (List String)],
+  parameters: [items3 : (List String)],
   result: (List String),
-  body: (match items5
+  body: (match items3
     | List.nil => (nil String)
-    | List.cons argument0 rest6 => (cons argument0 (trimmedMap3 rest6))),
-  recursive_argument: items5
+    | List.cons argument0 rest3 => (cons argument0 (trimmedMap3 rest3))),
+  recursive_argument: items3
 }
 
 definition{
@@ -1611,39 +1611,39 @@ definition{
 
 definition{
   name: urgentRoomsFilter1,
-  parameters: [items2 : (List Request)],
+  parameters: [items1 : (List Request)],
   result: (List Request),
-  body: (match items2
+  body: (match items1
     | List.nil => (nil Request)
-    | List.cons pair1 rest3 => (let priority : Priority := (project pair1 priority); (if (equalPriority priority (ctor Priority.Urgent)) then (cons pair1 (urgentRoomsFilter1 rest3)) else (urgentRoomsFilter1 rest3)))),
-  recursive_argument: items2
+    | List.cons pair1 rest1 => (let priority : Priority := (project pair1 priority); (if (equalPriority priority (ctor Priority.Urgent)) then (cons pair1 (urgentRoomsFilter1 rest1)) else (urgentRoomsFilter1 rest1)))),
+  recursive_argument: items1
 }
 
 definition{
-  name: urgentRoomsMap2,
-  parameters: [items5 : (List Request)],
+  name: urgentRoomsMap1,
+  parameters: [items2 : (List Request)],
   result: (List String),
-  body: (match items5
+  body: (match items2
     | List.nil => (nil String)
-    | List.cons pair4 rest6 => (let room : String := (project pair4 room); (cons room (urgentRoomsMap2 rest6)))),
-  recursive_argument: items5
+    | List.cons pair2 rest2 => (let room : String := (project pair2 room); (cons room (urgentRoomsMap1 rest2)))),
+  recursive_argument: items2
 }
 
 definition{
   name: urgentRooms,
   parameters: [requests : (List Request)],
   result: (List String),
-  body: (urgentRoomsMap2 (urgentRoomsFilter1 requests))
+  body: (urgentRoomsMap1 (urgentRoomsFilter1 requests))
 }
 
 definition{
   name: bandWidthsMap1,
-  parameters: [items4 : (List TupleStringTupleNatNat)],
+  parameters: [items1 : (List TupleStringTupleNatNat)],
   result: (List Nat),
-  body: (match items4
+  body: (match items1
     | List.nil => (nil Nat)
-    | List.cons pair1 rest5 => (let item2 : String := (project pair1 item0); (let pair3 : TupleNatNat := (project pair1 item1); (let low : Nat := (project pair3 item0); (let high : Nat := (project pair3 item1); (cons (prim subtract high low : Nat) (bandWidthsMap1 rest5))))))),
-  recursive_argument: items4
+    | List.cons pair1 rest1 => (let item1 : String := (project pair1 item0); (let pair2 : TupleNatNat := (project pair1 item1); (let low : Nat := (project pair2 item0); (let high : Nat := (project pair2 item1); (cons (prim subtract high low : Nat) (bandWidthsMap1 rest1))))))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1665,13 +1665,13 @@ definition{
 
 definition{
   name: pairedZip1,
-  parameters: [items1 : (List String), others2 : (List Nat)],
+  parameters: [items1 : (List String), others1 : (List Nat)],
   result: (List TupleStringNat),
   body: (match items1
     | List.nil => (nil TupleStringNat)
-    | List.cons item3 rest4 => (match others2
+    | List.cons item1 rest1 => (match others1
       | List.nil => (nil TupleStringNat)
-      | List.cons partner5 more6 => (cons (record TupleStringNat {item0 := item3, item1 := partner5}) (pairedZip1 rest4 more6)))),
+      | List.cons partner1 more1 => (cons (record TupleStringNat {item0 := item1, item1 := partner1}) (pairedZip1 rest1 more1)))),
   recursive_argument: items1
 }
 
@@ -1715,20 +1715,20 @@ definition{
 
 definition{
   name: bookedInsert1,
-  parameters: [items2 : (List String), item3 : String],
+  parameters: [items1 : (List String), item1 : String],
   result: (List String),
-  body: (match items2
-    | List.nil => (cons item3 (nil String))
-    | List.cons head4 rest5 => (if (prim equal item3 head4 : Bool) then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool) then (cons item3 (cons head4 rest5)) else (cons head4 (bookedInsert1 rest5 item3))))),
+  body: (match items1
+    | List.nil => (cons item1 (nil String))
+    | List.cons head1 rest1 => (if (prim equal item1 head1 : Bool) then (cons head1 rest1) else (if (prim less_than item1 head1 : Bool) then (cons item1 (cons head1 rest1)) else (cons head1 (bookedInsert1 rest1 item1))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items2
+  recursive_argument: items1
 }
 
 definition{
   name: booked,
   parameters: [bookings : Bookings, room : String],
   result: Bookings,
-  body: (let out : Bookings := bookings; (let out1 : Bookings := (record Bookings {order := (prim append (project out order) (cons room (nil String)) : (List String)), byName := (project out byName)}); (let out6 : Bookings := (record Bookings {order := (project out1 order), byName := (bookedInsert1 (project out1 byName) room)}); out6))),
+  body: (let out : Bookings := bookings; (let out1 : Bookings := (record Bookings {order := (prim append (project out order) (cons room (nil String)) : (List String)), byName := (project out byName)}); (let out2 : Bookings := (record Bookings {order := (project out1 order), byName := (bookedInsert1 (project out1 byName) room)}); out2))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -1782,43 +1782,43 @@ definition{
 
 definition{
   name: noneTakenContains1,
-  parameters: [items4 : (List String), needle3 : String],
+  parameters: [items1 : (List String), needle1 : String],
   result: Bool,
-  body: (match items4
+  body: (match items1
     | List.nil => false
-    | List.cons item2 rest5 => (if (prim equal item2 needle3 : Bool) then true else (noneTakenContains1 rest5 needle3))),
-  recursive_argument: items4
+    | List.cons item1 rest1 => (if (prim equal item1 needle1 : Bool) then true else (noneTakenContains1 rest1 needle1))),
+  recursive_argument: items1
 }
 
 definition{
-  name: noneTakenLoop2,
-  parameters: [items6 : (List String), state1 : Unit, taken : (List String)],
+  name: noneTakenLoop1,
+  parameters: [items2 : (List String), state1 : Unit, taken : (List String)],
   result: (Result Unit (Result Unit RosterError)),
-  body: (match items6
+  body: (match items2
     | List.nil => (ctor Result.ok [Unit, (Result Unit RosterError)] state1)
-    | List.cons room rest7 => (if (noneTakenContains1 taken room) then (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice room))) else (noneTakenLoop2 rest7 () taken))),
-  recursive_argument: items6
+    | List.cons room rest2 => (if (noneTakenContains1 taken room) then (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice room))) else (noneTakenLoop1 rest2 () taken))),
+  recursive_argument: items2
 }
 
 definition{
   name: noneTaken,
   parameters: [rooms : (List String), taken : (List String)],
   result: (Result Unit RosterError),
-  body: (match (noneTakenLoop2 rooms () taken)
-    | Result.ok state8 => (ctor Result.ok [Unit, RosterError] ())
-    | Result.error value9 => value9)
+  body: (match (noneTakenLoop1 rooms () taken)
+    | Result.ok state2 => (ctor Result.ok [Unit, RosterError] ())
+    | Result.error value1 => value1)
 }
 
 definition{
   name: allBookedLoop1,
-  parameters: [items2 : (List (Option String)), state1 : Unit],
+  parameters: [items1 : (List (Option String)), state1 : Unit],
   result: (Result Unit (Result Unit RosterError)),
-  body: (match items2
+  body: (match items1
     | List.nil => (ctor Result.ok [Unit, (Result Unit RosterError)] state1)
-    | List.cons booking rest3 => (match booking
+    | List.cons booking rest1 => (match booking
       | Option.none => (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice "nobody")))
-      | Option.some who => (if (prim equal who "" : Bool) then (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice who))) else (allBookedLoop1 rest3 ())))),
-  recursive_argument: items2
+      | Option.some who => (if (prim equal who "" : Bool) then (ctor Result.error [Unit, (Result Unit RosterError)] (ctor Result.error [Unit, RosterError] (ctor RosterError.Twice who))) else (allBookedLoop1 rest1 ())))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1826,8 +1826,8 @@ definition{
   parameters: [bookings : (List (Option String))],
   result: (Result Unit RosterError),
   body: (match (allBookedLoop1 bookings ())
-    | Result.ok state4 => (ctor Result.ok [Unit, RosterError] ())
-    | Result.error value5 => value5)
+    | Result.ok state2 => (ctor Result.ok [Unit, RosterError] ())
+    | Result.error value1 => value1)
 }
 
 definition{
@@ -1837,8 +1837,8 @@ definition{
   body: (match (noneTaken rooms taken)
     | Result.ok tried1 => (match (allBooked bookings)
       | Result.ok tried3 => (ctor Result.ok [Unit, RosterError] ())
-      | Result.error error4 => (ctor Result.error [Unit, RosterError] error4))
-    | Result.error error2 => (ctor Result.error [Unit, RosterError] error2))
+      | Result.error error2 => (ctor Result.error [Unit, RosterError] error2))
+    | Result.error error1 => (ctor Result.error [Unit, RosterError] error1))
 }
 
 definition{
@@ -1859,12 +1859,12 @@ definition{
 
 definition{
   name: cutNameTake1,
-  parameters: [items3 : (List String), count2 : Nat],
+  parameters: [items1 : (List String), count1 : Nat],
   result: (List String),
-  body: (match items3
+  body: (match items1
     | List.nil => (nil String)
-    | List.cons item1 rest4 => (if (count2 =? 0) then (nil String) else (cons item1 (cutNameTake1 rest4 (prim subtract count2 1 : Nat))))),
-  recursive_argument: items3
+    | List.cons item1 rest1 => (if (count1 =? 0) then (nil String) else (cons item1 (cutNameTake1 rest1 (prim subtract count1 1 : Nat))))),
+  recursive_argument: items1
 }
 
 definition{
@@ -1914,7 +1914,7 @@ definition{
   result: (List String),
   body: (match items1
     | List.nil => (nil String)
-    | List.cons i rest2 => (cons (prim join (cons "room-" (cons (Prelude::natDecimal i) (nil String))) "" : String) (roomLabelsMap1 rest2))),
+    | List.cons i rest1 => (cons (prim join (cons "room-" (cons (Prelude::natDecimal i) (nil String))) "" : String) (roomLabelsMap1 rest1))),
   axioms: [propext],
   recursive_argument: items1
 }
@@ -1949,7 +1949,7 @@ definition{
   result: (Option String),
   body: (match booking
     | Option.none => (bookedOrFirstPart1 fallbacks)
-    | Option.some value2 => (ctor Option.some [String] value2))
+    | Option.some value1 => (ctor Option.some [String] value1))
 }
 
 definition{
@@ -1958,7 +1958,7 @@ definition{
   result: (Option String),
   body: (match named
     | Option.none => spare
-    | Option.some value2 => (ctor Option.some [String] value2))
+    | Option.some value1 => (ctor Option.some [String] value1))
 }
 
 definition{
@@ -1976,7 +1976,7 @@ definition{
   result: String,
   body: (match (prim index rooms 0 : (Option String))
     | Option.none => ""
-    | Option.some item2 => item2)
+    | Option.some item1 => item1)
 }
 
 definition{
@@ -1988,17 +1988,17 @@ definition{
 
 definition{
   name: markedRoomsLoop1,
-  parameters: [items3 : (List String), state1 : (List String)],
+  parameters: [items1 : (List String), state1 : (List String)],
   result: (Result (List String) (Option (List String))),
-  body: (match items3
+  body: (match items1
     | List.nil => (ctor Result.ok [(List String), (Option (List String))] state1)
-    | List.cons n rest4 => (if (prim equal n "" : Bool) then (ctor Result.error [(List String), (Option (List String))] (ctor Option.none [(List String)])) else (match (Prelude::textStripPrefix n "room-")
-      | Option.none => (markedRoomsLoop1 rest4 state1)
+    | List.cons n rest1 => (if (prim equal n "" : Bool) then (ctor Result.error [(List String), (Option (List String))] (ctor Option.none [(List String)])) else (match (Prelude::textStripPrefix n "room-")
+      | Option.none => (markedRoomsLoop1 rest1 state1)
       | Option.some rest => (match (Prelude::textStripSuffix rest "!")
         | Option.none => (ctor Result.error [(List String), (Option (List String))] (ctor Option.none [(List String)]))
-        | Option.some tail => (let out2 : (List String) := (prim append state1 (cons tail (nil String)) : (List String)); (markedRoomsLoop1 rest4 out2)))))),
+        | Option.some tail => (let out1 : (List String) := (prim append state1 (cons tail (nil String)) : (List String)); (markedRoomsLoop1 rest1 out1)))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items3
+  recursive_argument: items1
 }
 
 definition{
@@ -2006,8 +2006,8 @@ definition{
   parameters: [namesArg : (List String)],
   result: (Option (List String)),
   body: (let out : (List String) := (nil String); (match (markedRoomsLoop1 namesArg out)
-    | Result.ok state5 => (ctor Option.some [(List String)] state5)
-    | Result.error value6 => value6)),
+    | Result.ok state2 => (ctor Option.some [(List String)] state2)
+    | Result.error value1 => value1)),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -2023,31 +2023,31 @@ definition{
 
 definition{
   name: queueInsert1,
-  parameters: [items2 : (List Request), item3 : Request],
+  parameters: [items1 : (List Request), item1 : Request],
   result: (List Request),
-  body: (match items2
-    | List.nil => (cons item3 (nil Request))
-    | List.cons head4 rest5 => (if (ordering_is_Equal (compare_Request item3 head4)) then (cons head4 rest5) else (if (ordering_is_Less (compare_Request item3 head4)) then (cons item3 (cons head4 rest5)) else (cons head4 (queueInsert1 rest5 item3))))),
+  body: (match items1
+    | List.nil => (cons item1 (nil Request))
+    | List.cons head1 rest1 => (if (ordering_is_Equal (compare_Request item1 head1)) then (cons head1 rest1) else (if (ordering_is_Less (compare_Request item1 head1)) then (cons item1 (cons head1 rest1)) else (cons head1 (queueInsert1 rest1 item1))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items2
+  recursive_argument: items1
 }
 
 definition{
-  name: queueLoop2,
-  parameters: [items7 : (List Request), state1 : (List Request)],
+  name: queueLoop1,
+  parameters: [items2 : (List Request), state1 : (List Request)],
   result: (List Request),
-  body: (match items7
+  body: (match items2
     | List.nil => state1
-    | List.cons r rest8 => (let out6 : (List Request) := (queueInsert1 state1 r); (queueLoop2 rest8 out6))),
+    | List.cons r rest2 => (let out1 : (List Request) := (queueInsert1 state1 r); (queueLoop1 rest2 out1))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items7
+  recursive_argument: items2
 }
 
 definition{
   name: queue,
   parameters: [requests : (List Request)],
   result: (List Request),
-  body: (let out : (List Request) := (nil Request); (let state9 : (List Request) := (queueLoop2 requests out); state9)),
+  body: (let out : (List Request) := (nil Request); (let state2 : (List Request) := (queueLoop1 requests out); state2)),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -2069,12 +2069,12 @@ definition{
 
 definition{
   name: setPointGet1,
-  parameters: [items3 : (List TupleTuplePriorityNatNat), needle2 : TuplePriorityNat],
+  parameters: [items1 : (List TupleTuplePriorityNatNat), needle1 : TuplePriorityNat],
   result: (Option Nat),
-  body: (match items3
+  body: (match items1
     | List.nil => (ctor Option.none [Nat])
-    | List.cons item1 rest4 => (if (ordering_is_Equal (compare_TuplePriorityNat (project item1 item0) needle2)) then (ctor Option.some [Nat] (project item1 item1)) else (setPointGet1 rest4 needle2))),
-  recursive_argument: items3
+    | List.cons item1 rest1 => (if (ordering_is_Equal (compare_TuplePriorityNat (project item1 item0) needle1)) then (ctor Option.some [Nat] (project item1 item1)) else (setPointGet1 rest1 needle1))),
+  recursive_argument: items1
 }
 
 definition{
@@ -2090,8 +2090,49 @@ definition{
   result: Bool,
   body: (match items1
     | List.nil => false
-    | List.cons room rest2 => (if (prim equal room name : Bool) then true else (openingAny1 rest2 name))),
+    | List.cons room rest1 => (if (prim equal room name : Bool) then true else (openingAny1 rest1 name))),
   recursive_argument: items1
+}
+
+definition{
+  name: spareRoomMap1,
+  parameters: [items1 : (List Nat)],
+  result: (List String),
+  body: (match items1
+    | List.nil => (nil String)
+    | List.cons k rest1 => (cons (prim join (cons "room" (cons (Prelude::natDecimal k) (nil String))) "" : String) (spareRoomMap1 rest1))),
+  axioms: [propext],
+  recursive_argument: items1
+}
+
+definition{
+  name: spareRoomContains1,
+  parameters: [items2 : (List String), needle1 : String],
+  result: Bool,
+  body: (match items2
+    | List.nil => false
+    | List.cons item1 rest2 => (if (prim equal item1 needle1 : Bool) then true else (spareRoomContains1 rest2 needle1))),
+  recursive_argument: items2
+}
+
+definition{
+  name: spareRoomFind1,
+  parameters: [items3 : (List String), taken : (List String)],
+  result: (Option String),
+  body: (match items3
+    | List.nil => (ctor Option.none [String])
+    | List.cons name rest3 => (if (not (spareRoomContains1 taken name)) then (ctor Option.some [String] name) else (spareRoomFind1 rest3 taken))),
+  recursive_argument: items3
+}
+
+definition{
+  name: spareRoom,
+  parameters: [taken : (List String)],
+  result: String,
+  body: (match (spareRoomFind1 (spareRoomMap1 (Prelude::natRange 1 (prim subtract ((prim length taken : Nat) + 2) 1 : Nat))) taken)
+    | Option.none => ""
+    | Option.some value1 => value1),
+  axioms: [propext]
 }
 
 theorem{
@@ -2154,31 +2195,31 @@ definition{
 
 definition{
   name: labelsInsert1,
-  parameters: [items2 : (List String), item3 : String],
+  parameters: [items1 : (List String), item1 : String],
   result: (List String),
-  body: (match items2
-    | List.nil => (cons item3 (nil String))
-    | List.cons head4 rest5 => (if (prim equal item3 head4 : Bool) then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool) then (cons item3 (cons head4 rest5)) else (cons head4 (labelsInsert1 rest5 item3))))),
+  body: (match items1
+    | List.nil => (cons item1 (nil String))
+    | List.cons head1 rest1 => (if (prim equal item1 head1 : Bool) then (cons head1 rest1) else (if (prim less_than item1 head1 : Bool) then (cons item1 (cons head1 rest1)) else (cons head1 (labelsInsert1 rest1 item1))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items2
+  recursive_argument: items1
 }
 
 definition{
-  name: labelsLoop2,
-  parameters: [items7 : (List Phase), state1 : (List String)],
+  name: labelsLoop1,
+  parameters: [items2 : (List Phase), state1 : (List String)],
   result: (List String),
-  body: (match items7
+  body: (match items2
     | List.nil => state1
-    | List.cons phase rest8 => (let out6 : (List String) := (labelsInsert1 state1 (field_Phase_label phase)); (labelsLoop2 rest8 out6))),
+    | List.cons phase rest2 => (let out1 : (List String) := (labelsInsert1 state1 (field_Phase_label phase)); (labelsLoop1 rest2 out1))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items7
+  recursive_argument: items2
 }
 
 definition{
   name: labels,
   parameters: [phases : (List Phase)],
   result: (List String),
-  body: (let out : (List String) := (nil String); (let state9 : (List String) := (labelsLoop2 phases out); state9)),
+  body: (let out : (List String) := (nil String); (let state2 : (List String) := (labelsLoop1 phases out); state2)),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -2188,37 +2229,37 @@ definition{
   result: Nat,
   body: (match (occupiedTarget (field_Phase_step phase))
     | Option.none => 0
-    | Option.some value2 => value2),
+    | Option.some value1 => value1),
   axioms: [Quot.sound, propext]
 }
 
 definition{
-  name: heldTargetsInsert2,
-  parameters: [items3 : (List TupleStringNat), item4 : TupleStringNat],
+  name: heldTargetsInsert1,
+  parameters: [items1 : (List TupleStringNat), item1 : TupleStringNat],
   result: (List TupleStringNat),
-  body: (match items3
-    | List.nil => (cons item4 (nil TupleStringNat))
-    | List.cons head5 rest6 => (if (prim equal (project item4 item0) (project head5 item0) : Bool) then (cons item4 rest6) else (if (prim less_than (project item4 item0) (project head5 item0) : Bool) then (cons item4 (cons head5 rest6)) else (cons head5 (heldTargetsInsert2 rest6 item4))))),
+  body: (match items1
+    | List.nil => (cons item1 (nil TupleStringNat))
+    | List.cons head1 rest1 => (if (prim equal (project item1 item0) (project head1 item0) : Bool) then (cons item1 rest1) else (if (prim less_than (project item1 item0) (project head1 item0) : Bool) then (cons item1 (cons head1 rest1)) else (cons head1 (heldTargetsInsert1 rest1 item1))))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items3
+  recursive_argument: items1
 }
 
 definition{
-  name: heldTargetsLoop3,
-  parameters: [items8 : (List Phase), state1 : (List TupleStringNat)],
+  name: heldTargetsLoop1,
+  parameters: [items2 : (List Phase), state1 : (List TupleStringNat)],
   result: (List TupleStringNat),
-  body: (match items8
+  body: (match items2
     | List.nil => state1
-    | List.cons phase rest9 => (let out7 : (List TupleStringNat) := (heldTargetsInsert2 state1 (record TupleStringNat {item0 := (field_Phase_label phase), item1 := (heldTargetsPart1 phase)})); (heldTargetsLoop3 rest9 out7))),
+    | List.cons phase rest2 => (let out1 : (List TupleStringNat) := (heldTargetsInsert1 state1 (record TupleStringNat {item0 := (field_Phase_label phase), item1 := (heldTargetsPart1 phase)})); (heldTargetsLoop1 rest2 out1))),
   axioms: [Classical.choice, Quot.sound, propext],
-  recursive_argument: items8
+  recursive_argument: items2
 }
 
 definition{
   name: heldTargets,
   parameters: [phases : (List Phase)],
   result: (List TupleStringNat),
-  body: (let out : (List TupleStringNat) := (nil TupleStringNat); (let state10 : (List TupleStringNat) := (heldTargetsLoop3 phases out); state10)),
+  body: (let out : (List TupleStringNat) := (nil TupleStringNat); (let state2 : (List TupleStringNat) := (heldTargetsLoop1 phases out); state2)),
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -2259,9 +2300,9 @@ definition{
     | List.cons value rest => (match (field_Phase_step value)
       | Step.Hold value1 => (match rest
         | List.nil => (let label : String := (field_Phase_label value); (ctor Option.some [String] label))
-        | List.cons value2 rest3 => (ctor Option.none [String]))
-      | Step.Either value4 rest5 => (ctor Option.none [String])
-      | Step.Sequence value6 => (ctor Option.none [String])))
+        | List.cons value2 rest1 => (ctor Option.none [String]))
+      | Step.Either value3 rest2 => (ctor Option.none [String])
+      | Step.Sequence value4 => (ctor Option.none [String])))
 }
 
 definition{
@@ -2301,21 +2342,21 @@ definition{
 
 definition{
   name: atLeastLoop1,
-  parameters: [items3 : (List Nat), state1 : (List Nat), floor : Nat],
+  parameters: [items1 : (List Nat), state1 : (List Nat), floor : Nat],
   result: (List Nat),
-  body: (match items3
+  body: (match items1
     | List.nil => state1
-    | List.cons r rest4 => (match (if (floor <=? r) then (ctor Option.some [Nat] (prim subtract r floor : Nat)) else (ctor Option.none [Nat]))
-      | Option.none => (atLeastLoop1 rest4 state1 floor)
-      | Option.some kept => (let out2 : (List Nat) := (prim append state1 (cons kept (nil Nat)) : (List Nat)); (atLeastLoop1 rest4 out2 floor)))),
-  recursive_argument: items3
+    | List.cons r rest1 => (match (if (floor <=? r) then (ctor Option.some [Nat] (prim subtract r floor : Nat)) else (ctor Option.none [Nat]))
+      | Option.none => (atLeastLoop1 rest1 state1 floor)
+      | Option.some kept => (let out1 : (List Nat) := (prim append state1 (cons kept (nil Nat)) : (List Nat)); (atLeastLoop1 rest1 out1 floor)))),
+  recursive_argument: items1
 }
 
 definition{
   name: atLeast,
   parameters: [readings : (List Nat), floor : Nat],
   result: (List Nat),
-  body: (let out : (List Nat) := (nil Nat); (let state5 : (List Nat) := (atLeastLoop1 readings out floor); state5))
+  body: (let out : (List Nat) := (nil Nat); (let state2 : (List Nat) := (atLeastLoop1 readings out floor); state2))
 }
 
 definition{
@@ -2330,30 +2371,30 @@ definition{name: firstConst, parameters: [], result: String, body: "hall"}
 definition{name: heldUnit, parameters: [], result: String, body: "C"}
 
 definition{
-  name: numberedPart2,
+  name: numberedPart1,
   parameters: [i : Nat],
   result: String,
   body: (match (prim index (positions) (if (i <=? 2) then i else 2) : (Option String))
     | Option.none => ""
-    | Option.some item7 => item7)
+    | Option.some item2 => item2)
 }
 
 definition{
-  name: numberedLoop3,
-  parameters: [items9 : (List TupleNatRoom), state5 : (List String)],
+  name: numberedLoop1,
+  parameters: [items2 : (List TupleNatRoom), state1 : (List String)],
   result: (List String),
-  body: (match items9
-    | List.nil => state5
-    | List.cons pair6 rest10 => (let i : Nat := (project pair6 item0); (let room : Room := (project pair6 item1); (let out8 : (List String) := (prim append state5 (cons (prim join (cons (numberedPart2 i) (cons ":" (cons (project room name) (nil String)))) "" : String) (nil String)) : (List String)); (numberedLoop3 rest10 out8))))),
+  body: (match items2
+    | List.nil => state1
+    | List.cons pair1 rest2 => (let i : Nat := (project pair1 item0); (let room : Room := (project pair1 item1); (let out1 : (List String) := (prim append state1 (cons (prim join (cons (numberedPart1 i) (cons ":" (cons (project room name) (nil String)))) "" : String) (nil String)) : (List String)); (numberedLoop1 rest2 out1))))),
   axioms: [propext],
-  recursive_argument: items9
+  recursive_argument: items2
 }
 
 definition{
   name: numbered,
   parameters: [rooms : (List Room)],
   result: (List String),
-  body: (let out : (List String) := (nil String); (let state11 : (List String) := (numberedLoop3 (numberedEnumerate1 rooms 0) out); state11)),
+  body: (let out : (List String) := (nil String); (let state2 : (List String) := (numberedLoop1 (numberedEnumerate1 rooms 0) out); state2)),
   axioms: [propext]
 }
 
@@ -2702,14 +2743,14 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom44,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom45,
   parameters: [],
   statement: ((opening "den") = true),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom45,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom46,
   parameters: [],
   statement: ((opening "attic") = false),
   proof: decide{}
