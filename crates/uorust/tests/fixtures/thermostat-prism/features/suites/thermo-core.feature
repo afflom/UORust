@@ -100,7 +100,10 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreSchedulePhaseLabel is made
     And the interface call Interface::callThermoCoreScheduleIsFinal is made
     And the interface call Interface::callThermoCoreScheduleLabelOr is made
+    And the interface call Interface::callThermoCoreScheduleLabels is made
+    And the interface call Interface::callThermoCoreScheduleHeldTargets is made
     Then the acceptance row Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel holds
+    And the acceptance row Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder holds
 
   @FT-06 @build
   Scenario: thermo_core::sensor: Temperature sensors the controller reads from.

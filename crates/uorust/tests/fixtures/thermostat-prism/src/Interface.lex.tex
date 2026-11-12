@@ -111,6 +111,13 @@ definition{
 }
 
 definition{
+  name: acThermoCoreScheduleLabelsAreKeptOnceAndInOrder,
+  parameters: [],
+  result: String,
+  body: "labels_are_kept_once_and_in_order at thermo-core/tests/schedule.rs:14: A label appears once, however many phases carry it."
+}
+
+definition{
   name: acDocThermoCoreShouldHeat,
   parameters: [],
   result: String,
@@ -573,6 +580,20 @@ definition{
 }
 
 definition{
+  name: callThermoCoreScheduleLabels,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::labels: fn labels(phases: &[Phase]) -> BTreeSet<String>"
+}
+
+definition{
+  name: callThermoCoreScheduleHeldTargets,
+  parameters: [],
+  result: String,
+  body: "thermo_core::schedule::held_targets: fn held_targets(phases: &[Phase]) -> BTreeMap<String, u32>"
+}
+
+definition{
   name: callThermoCoreSensorSensorRead,
   parameters: [],
   result: String,
@@ -625,7 +646,7 @@ definition{
   name: featureThermoCoreSchedule,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (cons "Interface::callThermoCoreScheduleLabelOr" (nil String))))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::schedule: A heating schedule: steps that hold a target, choose between steps, or run labelled phases in order.", calls := (cons "Interface::callThermoCoreScheduleOccupiedTarget" (cons "Interface::callThermoCoreScheduleIsSequence" (cons "Interface::callThermoCoreScheduleHold" (cons "Interface::callThermoCoreSchedulePhaseLabel" (cons "Interface::callThermoCoreScheduleIsFinal" (cons "Interface::callThermoCoreScheduleLabelOr" (cons "Interface::callThermoCoreScheduleLabels" (cons "Interface::callThermoCoreScheduleHeldTargets" (nil String))))))))), acceptance := (cons "Interface::acThermoCoreScheduleAHeldPhaseKeepsItsLabel" (cons "Interface::acThermoCoreScheduleLabelsAreKeptOnceAndInOrder" (nil String)))})
 }
 
 definition{

@@ -100,11 +100,11 @@ pub(crate) enum Ty {
     /// which an inductive may hold itself in (`Vec<(String, Self)>`), where
     /// a generated tuple structure would make the two mutually recursive.
     Pair(Vec<Ty>),
-    /// A map read and never built, held as the list of its entries; `true`
-    /// when its iteration order is its key order (`BTreeMap`).
+    /// A map, held as the list of its entries; `true` when its iteration
+    /// order is its key order (`BTreeMap`), which `insert` keeps.
     Map(Box<Ty>, Box<Ty>, bool),
-    /// A set read and never built, held as the list of its members; `true`
-    /// when its iteration order is its member order (`BTreeSet`).
+    /// A set, held as the list of its members; `true` when its iteration
+    /// order is its member order (`BTreeSet`), which `insert` keeps.
     Set(Box<Ty>, bool),
 }
 
@@ -2001,6 +2001,14 @@ fn call(c: &syn::ExprCall, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty)>
         ([s, n], [], _) if s == "String" && n == "new" => return flat("\"\"".into(), Ty::Str),
         ([s, n], [], Some(t @ Ty::List(inner))) if s == "Vec" && n == "new" => {
             return flat(format!("(nil {})", inner.render()), t.clone());
+        }
+        // An empty ordered set or map: the empty list of its members or of
+        // its entries, which `insert` keeps sorted and free of duplicates.
+        ([s, n], [], Some(t @ Ty::Set(inner, true))) if s == "BTreeSet" && n == "new" => {
+            return flat(format!("(nil {})", inner.render()), t.clone());
+        }
+        ([s, n], [], Some(t @ Ty::Map(_, _, true))) if s == "BTreeMap" && n == "new" => {
+            return flat(format!("(nil {})", t.entry().render()), t.clone());
         }
         // A capacity is a hint to the allocator: the value is the empty list.
         ([s, n], [_], Some(t @ Ty::List(inner))) if s == "Vec" && n == "with_capacity" => {
@@ -4293,6 +4301,11 @@ fn update_target(e: &syn::Expr) -> Option<String> {
         {
             ident(&m.receiver)
         }
+        // The value of `insert` (whether it was new, or the replaced value)
+        // is dropped where it is a statement of a loop.
+        syn::Expr::MethodCall(m) if m.method == "insert" && (1..=2).contains(&m.args.len()) => {
+            ident(&m.receiver)
+        }
         _ => None,
     }
 }
@@ -4329,6 +4342,25 @@ fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String>
         (syn::Expr::Binary(b), _) => Break(Residue::Arithmetic(
             quote::ToTokens::to_token_stream(&b.op).to_string(),
         )),
+        (syn::Expr::MethodCall(m), Ty::Set(t, true))
+            if m.method == "insert" && m.args.len() == 1 =>
+        {
+            let v = value_of(&m.args[0], t)?;
+            let helper = sorted_insert(ty, ctx)?;
+            Continue(format!("({helper} {current} {v})"))
+        }
+        (syn::Expr::MethodCall(m), Ty::Map(k, v, true))
+            if m.method == "insert" && m.args.len() == 2 =>
+        {
+            let key = value_of(&m.args[0], k)?;
+            let value = value_of(&m.args[1], v)?;
+            let helper = sorted_insert(ty, ctx)?;
+            let entry = ty.entry();
+            Continue(format!(
+                "({helper} {current} {})",
+                tuple_value(&entry, &[key, value])
+            ))
+        }
         (syn::Expr::MethodCall(m), Ty::List(t)) if m.method == "push" => {
             let v = value_of(&m.args[0], t)?;
             Continue(format!(
@@ -4347,6 +4379,82 @@ fn updated(e: &syn::Expr, ty: &Ty, current: &str, ctx: &Ctx<'_>) -> Lift<String>
         }
         _ => Break(Residue::Form("an update outside the lift".to_string())),
     }
+}
+
+/// The helper inserting into the sorted list an ordered set or map is held
+/// as, keeping it sorted by key with each key once: a set ignores a member
+/// it holds, a map replaces the value of a key it holds. `BTreeSet` and
+/// `BTreeMap` order `String` keys by their bytes, which is the order of
+/// their scalars, and naturals as numbers; other keys' order is not modelled.
+fn sorted_insert(ty: &Ty, ctx: &Ctx<'_>) -> Lift<String> {
+    let (key, entry) = match ty {
+        Ty::Set(t, true) => ((**t).clone(), (**t).clone()),
+        Ty::Map(k, _, true) => ((**k).clone(), ty.entry()),
+        _ => return Break(Residue::Form("insert into an unordered collection".into())),
+    };
+    let list = Ty::List(Box::new(entry.clone()));
+    let items = ctx.fresh("items");
+    let item = ctx.fresh("item");
+    let head = ctx.fresh("head");
+    let rest = ctx.fresh("rest");
+    let key_of = |v: &str| match ty {
+        Ty::Map(..) => tuple_item(&entry, v, 0),
+        _ => v.to_string(),
+    };
+    let (k, h) = (key_of(&item), key_of(&head));
+    let mut axioms = BTreeSet::new();
+    let (same, less) = match key {
+        Ty::Nat(_) => (format!("({k} =? {h})"), format!("({k} <? {h})")),
+        Ty::Str | Ty::Char => {
+            axioms.insert("propext".to_string());
+            axioms.extend(ALL_AXIOMS.map(String::from));
+            (
+                format!("(prim equal {k} {h} : Bool)"),
+                format!("(prim less_than {k} {h} : Bool)"),
+            )
+        }
+        other => {
+            return Break(Residue::Form(format!(
+                "insert by a key of {}, whose order the lift does not model",
+                other.render()
+            )))
+        }
+    };
+    let name = ctx.helper_name("Insert");
+    entry.mentions(&mut ctx.seen.borrow_mut());
+    // A structural match names the list only through its parts.
+    let whole = format!("(cons {head} {rest})");
+    let kept = match ty {
+        Ty::Map(..) => format!("(cons {item} {rest})"),
+        _ => whole.clone(),
+    };
+    let body = Expr::Match {
+        scrutinee: items.clone(),
+        arms: vec![
+            Arm {
+                pattern: "List.nil".into(),
+                body: Expr::Flat(format!("(cons {item} (nil {}))", entry.render())),
+            },
+            Arm {
+                pattern: format!("List.cons {head} {rest}"),
+                body: Expr::Flat(format!(
+                    "(if {same} then {kept} else (if {less} then (cons {item} {whole}) else (cons {head} ({name} {rest} {item}))))"
+                )),
+            },
+        ],
+    };
+    ctx.axioms.borrow_mut().extend(axioms.iter().cloned());
+    ctx.helpers.borrow_mut().push(Helper {
+        name: name.clone(),
+        params: vec![(items, list.render()), (item, entry.render())],
+        result: list.render(),
+        body,
+        calls: BTreeSet::new(),
+        axioms,
+        recursive: true,
+    });
+    ctx.calls.borrow_mut().insert(format!("#{name}"));
+    Continue(name)
 }
 
 /// The locals a loop body updates that are bound before the loop.
@@ -5034,7 +5142,7 @@ fn is_empty_vec(e: &syn::Expr) -> bool {
                 .as_slice(),
             c.args.len()
         ),
-        (["Vec", "new"], 0) | (["Vec", "with_capacity"], 1)
+        (["Vec" | "BTreeSet" | "BTreeMap", "new"], 0) | (["Vec", "with_capacity"], 1)
     )
 }
 

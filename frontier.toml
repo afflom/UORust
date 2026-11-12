@@ -397,8 +397,8 @@ detail = "expression form outside the lift: match pattern"
 [[residue]]
 kappa = "86ea7e45ce317a1d749e0f4fa570ada84900559e2c0bcac98cf4c3bf73c95897"
 function = "uorust::lift::cyclic"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: a loop that shadows its state"
 
 [[residue]]
 kappa = "0b3e2a7f0fc3d89898f2d7cd983f36fd49dc777cd6e070b168d592cfb8b16c39"
@@ -495,6 +495,12 @@ kappa = "2ac2f99b962af4df3013645619589893c31805a66ec7e7f30b17cb389c453410"
 function = "uorust::lift::rebind"
 reason = "type"
 detail = "type outside the lift: Ctx<'a>"
+
+[[residue]]
+kappa = "2f3d97e643fcb5d4874e17a36c56dfc775fd5a8c39f7e1112cdd263157df737d"
+function = "uorust::lift::sorted_insert"
+reason = "type"
+detail = "type outside the lift: Ctx<'_>"
 
 [[residue]]
 kappa = "5a2b0588e777860a04c7a24a59011515cac79283c94ff254f524cb4c1c989f5f"
@@ -643,8 +649,8 @@ detail = "calls new, which is not lifted"
 [[residue]]
 kappa = "e9a2a6f1dbcd60cd977d8b1857610e4038a7173cec8a06ca6650f9b293b15b80"
 function = "uorust::project::edges"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: Get over keys of this type"
 
 [[residue]]
 kappa = "2c628a06b68d38f2cc67263d4eb8babcaf8388b571c65cf984eccd55855ff34d"
@@ -691,8 +697,8 @@ detail = "expression form outside the lift: method call .all_fns"
 [[residue]]
 kappa = "0c42923c090bc25e34c72fb2bce5ba5533e3797f30646a6762c7061521b28b93"
 function = "uorust::project::module_opm"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: a loop that updates no local"
 
 [[residue]]
 kappa = "807755b44bf961c3d8764429cd395f6d19e827f9fea4011e34f976a469c197af"
@@ -715,8 +721,8 @@ detail = "type outside the lift: impl Fn(&String) -> bool"
 [[residue]]
 kappa = "20326988e7199cb217a94f2c400faed6aac63daff662395ceb655af4aab5e2d8"
 function = "uorust::project::register"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
 kappa = "efd73d00ad11a5f83f81c47a43527403d1db3c4a4a5101d12a5cc7f197f8bb18"
@@ -1053,7 +1059,7 @@ function = "uorust::lift::block"
 detail = "takes or returns syn::Stmt, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "d3e84be82c629a21b5f2a5a34046405a00e0669027865dde8b3cedaf61ec710c"
+kappa = "d02e5ffa16f08ce8c2f5c8ae72fa5c70ff29768c8066e1f320cbdf292ed655ea"
 function = "uorust::lift::call"
 detail = "takes or returns syn::ExprCall, a type of the syn crate with no LexLean model"
 
@@ -1123,7 +1129,7 @@ function = "uorust::lift::int_literal"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "749e9e11adbbd3691bbbeb554e0fe09b9d61b63af93656207fdd0e3ba85d5adc"
+kappa = "b4a9a87e5b91910e2be0f787bc81be3f179b093bd0b3751bf162edd41aea61d8"
 function = "uorust::lift::is_empty_vec"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
@@ -1218,12 +1224,12 @@ function = "uorust::lift::then_rest"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "dfe3b5e7a225551c11d4c63d5b7366b67fcd3b3058b085ef8dda0a0ff9fdf7c2"
+kappa = "d8b1a58ebcbffbbd809c60571edcffa8c9c5f9534f91f57617e37a15d39cb814"
 function = "uorust::lift::update_target"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "541dbe83b763c3681b7906d4967c837a6cf8510ec8de615cf97a20062e794e23"
+kappa = "549a2aa7405dbe0e5138b1567754daf7447ec7b4cf612c5c12086249a4db704c"
 function = "uorust::lift::updated"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 

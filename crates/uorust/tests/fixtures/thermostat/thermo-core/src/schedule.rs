@@ -1,6 +1,8 @@
 //! A heating schedule: steps that hold a target, choose between steps, or
 //! run labelled phases in order.
 
+use std::collections::{BTreeMap, BTreeSet};
+
 /// One step of a schedule.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Step {
@@ -71,4 +73,23 @@ pub fn label_or<'a>(phase: &'a Phase, fallback: &'a str) -> &'a str {
     } else {
         &phase.label
     }
+}
+
+/// The labels of the phases, each once, in order.
+pub fn labels(phases: &[Phase]) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    for phase in phases {
+        out.insert(phase.label.clone());
+    }
+    out
+}
+
+/// Each label's held target; a later phase of the same label replaces an
+/// earlier one.
+pub fn held_targets(phases: &[Phase]) -> BTreeMap<String, u32> {
+    let mut out = BTreeMap::new();
+    for phase in phases {
+        out.insert(phase.label.clone(), occupied_target(&phase.step).unwrap_or(0));
+    }
+    out
 }

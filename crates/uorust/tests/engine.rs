@@ -458,6 +458,13 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         ("isFinal", "| Menu.Choose"),
         // A lifetime parameter is erased.
         ("labelOr", "parameters: [phase : Phase, fallback : String]"),
+        // An ordered set or map is built by a sorted insert.
+        ("labels", "(labelsLoop2 phases out)"),
+        (
+            "labelsInsert1",
+            "then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool)",
+        ),
+        ("heldTargetsInsert2", "then (cons item4 rest6) else"),
     ] {
         let d = decl(name);
         assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");

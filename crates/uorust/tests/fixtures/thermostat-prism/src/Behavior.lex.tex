@@ -921,6 +921,76 @@ definition{
 }
 
 definition{
+  name: labelsInsert1,
+  parameters: [items2 : (List String), item3 : String],
+  result: (List String),
+  body: (match items2
+    | List.nil => (cons item3 (nil String))
+    | List.cons head4 rest5 => (if (prim equal item3 head4 : Bool) then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool) then (cons item3 (cons head4 rest5)) else (cons head4 (labelsInsert1 rest5 item3))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items2
+}
+
+definition{
+  name: labelsLoop2,
+  parameters: [items7 : (List Phase), state1 : (List String)],
+  result: (List String),
+  body: (match items7
+    | List.nil => state1
+    | List.cons phase rest8 => (let out6 : (List String) := (labelsInsert1 state1 (field_Phase_label phase)); (labelsLoop2 rest8 out6))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items7
+}
+
+definition{
+  name: labels,
+  parameters: [phases : (List Phase)],
+  result: (List String),
+  body: (let out : (List String) := (nil String); (let state9 : (List String) := (labelsLoop2 phases out); state9)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: heldTargetsPart1,
+  parameters: [phase : Phase],
+  result: Nat,
+  body: (match (occupiedTarget (field_Phase_step phase))
+    | Option.none => 0
+    | Option.some value2 => value2),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: heldTargetsInsert2,
+  parameters: [items3 : (List TupleStringNat), item4 : TupleStringNat],
+  result: (List TupleStringNat),
+  body: (match items3
+    | List.nil => (cons item4 (nil TupleStringNat))
+    | List.cons head5 rest6 => (if (prim equal (project item4 item0) (project head5 item0) : Bool) then (cons item4 rest6) else (if (prim less_than (project item4 item0) (project head5 item0) : Bool) then (cons item4 (cons head5 rest6)) else (cons head5 (heldTargetsInsert2 rest6 item4))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items3
+}
+
+definition{
+  name: heldTargetsLoop3,
+  parameters: [items8 : (List Phase), state1 : (List TupleStringNat)],
+  result: (List TupleStringNat),
+  body: (match items8
+    | List.nil => state1
+    | List.cons phase rest9 => (let out7 : (List TupleStringNat) := (heldTargetsInsert2 state1 (record TupleStringNat {item0 := (field_Phase_label phase), item1 := (heldTargetsPart1 phase)})); (heldTargetsLoop3 rest9 out7))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items8
+}
+
+definition{
+  name: heldTargets,
+  parameters: [phases : (List Phase)],
+  result: (List TupleStringNat),
+  body: (let out : (List TupleStringNat) := (nil TupleStringNat); (let state10 : (List TupleStringNat) := (heldTargetsLoop3 phases out); state10)),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
   name: numberedPart2,
   parameters: [i : Nat],
   result: String,
