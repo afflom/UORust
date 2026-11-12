@@ -771,8 +771,11 @@ pub fn annexed_room(plan: &Plan) -> Option<String> {
     }
 }
 
+/// A function from a room's name to another.
+pub type Namer<'a> = &'a dyn Fn(&str) -> String;
+
 /// Each room's name, through `name`.
-pub fn renamed(rooms: &[String], name: &dyn Fn(&str) -> String) -> Vec<String> {
+pub fn renamed(rooms: &[String], name: Namer<'_>) -> Vec<String> {
     rooms.iter().map(|room| name(room)).collect()
 }
 

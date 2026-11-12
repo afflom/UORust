@@ -4696,7 +4696,7 @@ fn captures(ctx: &Ctx, texts: &[String], bound: &[String]) -> Vec<(String, Ty)> 
 /// The recursive call of a walk, given the values it threads.
 type Recur<'a> = &'a dyn Fn(&[String]) -> String;
 /// A walk's step from its recursive call.
-type Step<'a> = &'a dyn Fn(Recur<'_>, &str) -> Expr;
+type WalkStep<'a> = &'a dyn Fn(Recur<'_>, &str) -> Expr;
 
 /// A walk over a list: a helper that matches its first parameter and calls
 /// itself on the tail. `lead` are parameters after the list that the walk
@@ -4715,7 +4715,7 @@ fn walk(
     lead: &[(String, Ty, String)],
     result: &Ty,
     nil: String,
-    cons: Step<'_>,
+    cons: WalkStep<'_>,
 ) -> ((Expr, Ty), Acc) {
     let name = ctx.helper_name(env, &acc, kind);
     let (items, acc) = ctx.fresh(env, acc, "items");

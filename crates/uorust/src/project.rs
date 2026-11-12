@@ -2891,23 +2891,39 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     // name within each crate; a name a crate declares twice is refused. A
     // name two crates share lifts qualified by each crate's name.
     let mut scoped: Vec<(Variants, Fields, Datas)> = Vec::new();
-    // Each crate's type aliases, which its types and signatures are read through.
+    // Each crate's type aliases, which its types and signatures are read
+    // through. An alias spelled like a type the crate declares names one
+    // thing in its module and another elsewhere: it is not read.
     let type_aliases: Vec<BTreeMap<String, crate::ast::Alias>> = ws
         .packages
         .iter()
         .map(|package| {
+            let declared: BTreeSet<&str> = package
+                .files
+                .iter()
+                .flat_map(|file| {
+                    file.enums
+                        .iter()
+                        .map(|e| e.name.as_str())
+                        .chain(file.structs.iter().map(|s| s.name.as_str()))
+                })
+                .collect();
             package
                 .files
                 .iter()
                 .flat_map(|file| {
-                    syntax.files[&file.rel].aliases.iter().map(|(n, a)| {
-                        let to = a.to.localized(&file.imports);
-                        let alias = crate::ast::Alias {
-                            params: a.params.clone(),
-                            to,
-                        };
-                        (n.clone(), alias)
-                    })
+                    syntax.files[&file.rel]
+                        .aliases
+                        .iter()
+                        .filter(|(n, _)| !declared.contains(n.as_str()))
+                        .map(|(n, a)| {
+                            let to = a.to.localized(&file.imports);
+                            let alias = crate::ast::Alias {
+                                params: a.params.clone(),
+                                to,
+                            };
+                            (n.clone(), alias)
+                        })
                 })
                 .collect()
         })

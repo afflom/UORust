@@ -58,42 +58,42 @@ definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsItsRooms,
   parameters: [],
   result: String,
-  body: "the_roster_reads_its_rooms at thermo-core/src/roster.rs:813 passes."
+  body: "the_roster_reads_its_rooms at thermo-core/src/roster.rs:816 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps,
   parameters: [],
   result: String,
-  body: "the_roster_folds_and_clamps at thermo-core/src/roster.rs:827 passes."
+  body: "the_roster_folds_and_clamps at thermo-core/src/roster.rs:830 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms,
   parameters: [],
   result: String,
-  body: "the_roster_loops_over_its_rooms at thermo-core/src/roster.rs:843 passes."
+  body: "the_roster_loops_over_its_rooms at thermo-core/src/roster.rs:846 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsItsMaps,
   parameters: [],
   result: String,
-  body: "the_roster_reads_its_maps at thermo-core/src/roster.rs:851 passes."
+  body: "the_roster_reads_its_maps at thermo-core/src/roster.rs:854 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterTheRosterReadsText,
   parameters: [],
   result: String,
-  body: "the_roster_reads_text at thermo-core/src/roster.rs:863 passes."
+  body: "the_roster_reads_text at thermo-core/src/roster.rs:866 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreRosterRequestsSortByPriorityThenRoom,
   parameters: [],
   result: String,
-  body: "requests_sort_by_priority_then_room at thermo-core/src/roster.rs:886 passes."
+  body: "requests_sort_by_priority_then_room at thermo-core/src/roster.rs:889 passes."
 }
 
 definition{
@@ -954,7 +954,7 @@ definition{
   name: callThermoCoreRosterRenamed,
   parameters: [],
   result: String,
-  body: "thermo_core::roster::renamed: fn renamed(rooms: &[String], name: &dyn Fn(&str) -> String) -> Vec<String>"
+  body: "thermo_core::roster::renamed: fn renamed(rooms: &[String], name: Namer<'_>) -> Vec<String>"
 }
 
 definition{

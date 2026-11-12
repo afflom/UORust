@@ -952,10 +952,12 @@ fn items(
             }
             syn::Item::Type(t)
                 if !in_test
-                    && t.generics
-                        .params
-                        .iter()
-                        .all(|p| matches!(p, syn::GenericParam::Type(_))) =>
+                    && t.generics.params.iter().all(|p| {
+                        matches!(
+                            p,
+                            syn::GenericParam::Type(_) | syn::GenericParam::Lifetime(_)
+                        )
+                    }) =>
             {
                 syntax.aliases.push((
                     t.ident.to_string(),

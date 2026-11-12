@@ -391,8 +391,8 @@ detail = "usize + wraps or panics where its value leaves the pointer width: past
 [[residue]]
 kappa = "0db7e30395970dc929134a62d48e6c0eee0ad9ae4826077b35ff4985eee7c626"
 function = "uorust::lift::collection"
-reason = "form"
-detail = "expression form outside the lift: free name cons"
+reason = "call"
+detail = "calls lookup, which is not lifted"
 
 [[residue]]
 kappa = "0a1b19b7d66a2ae7359878ab74419b8f86ee915b90a2fb5b9dd3ec9d8e1e258d"
@@ -631,8 +631,8 @@ detail = "calls camel, which is not lifted"
 [[residue]]
 kappa = "43dba0c48970133c1e182044bc1c8d7f2b652b565ef5f10b58940b6a1145d11f"
 function = "uorust::lift::lookup"
-reason = "form"
-detail = "expression form outside the lift: free name cons"
+reason = "call"
+detail = "calls from_ref, which is not lifted"
 
 [[residue]]
 kappa = "7a45ae3515dfce9acfa5c595f856563367bc8da743a10fa83f8f95d88696f9c9"
@@ -857,10 +857,10 @@ reason = "form"
 detail = "expression form outside the lift: method call .checked_shl"
 
 [[residue]]
-kappa = "0df86b8925aade1226a036d1bbfb6f2e34d32aa6843fdf70c8915ed018c7d78c"
+kappa = "59cd35aaafd0bff3e97dc4e3dfa2addbc5fd4f649e095bee32fbfa2427e2f4a6"
 function = "uorust::lift::walk"
 reason = "call"
-detail = "calls cons, which is not lifted"
+detail = "calls captures, which is not lifted"
 
 [[residue]]
 kappa = "2eb81dc80d91fcd03eeb1dd7c6d94d3dac2c10dd0673e5d5ff998521d03101f3"
@@ -1067,7 +1067,7 @@ reason = "call"
 detail = "calls indexed, which is not lifted"
 
 [[residue]]
-kappa = "3c0f333839d3b76a31b64458f6c5ef04c82a391fb2f9dd99833d5bb8325d1077"
+kappa = "e4fa757f677c2cb375b6c1cda1b195a01739e0ab73c6e89aaa1f7307d62bb99f"
 function = "uorust::project::behavior"
 reason = "type"
 detail = "type outside the lift: &mut Notes"
@@ -1441,7 +1441,7 @@ function = "uorust::ingest::ignores"
 detail = "takes or returns toml::Value, a type of the toml crate with no LexLean model"
 
 [[foreign]]
-kappa = "25dd359225a4c953012785ea9209a5154941aeee4c54fb3b45866308ffbfb1d9"
+kappa = "cb938e6c3f199eaf1179987655ba9bf6bc7c7f0476b0cf3f0a3abb8b479e616d"
 function = "uorust::ingest::items"
 detail = "takes or returns syn::Item, a type of the syn crate with no LexLean model"
 
