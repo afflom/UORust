@@ -131,7 +131,7 @@ jobs:
           ' "$FINGERPRINT" "$ATTESTATION_URL"
           node bootstrap/page.mjs site
           # The product home in the uor.foundation brand, read from the model,
-          # and a "Docs" link to it on the app page (scripts/experience/site.py).
+          # and checks the app page links to it (app.json links; scripts/experience/site.py).
           python3 -I scripts/experience/site.py . site
           # The content standard (scripts/content/standard.json): draw every
           # figure from its data, add each page's guide, mark defined terms,

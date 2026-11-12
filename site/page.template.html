@@ -47,7 +47,7 @@
       <header class="head">
         <div class="ident">
           <h1 id="name">{{NAME}}</h1>
-          <p id="lede" class="lede">{{TAGLINE}}</p>
+          <p id="lede" class="lede">{{TAGLINE}}</p>{{NAV}}
         </div>
         <a id="open-spec" class="spec-link" href="#spec" aria-controls="spec" aria-expanded="false" aria-keyshortcuts=".">{{ICON_DOC}}<span>View spec</span></a>
       </header>
@@ -56,8 +56,7 @@
 {{SURFACE}}
         </div>
         <div class="rail" id="rail">
-          <div class="result" id="result" aria-live="polite"><output id="out" class="idle">—</output></div>
-          <div class="actions"><p class="k" id="actions-k">{{ACTIONS_LABEL}}</p><div class="tries" id="tries">{{TRIES}}</div></div>
+{{RAIL}}
           <div class="history"><p class="k" id="history-k">Recent</p><ol class="list" id="hist"></ol></div>
           <p id="offline" class="offline" hidden>Offline. Everything here still works.</p>
         </div>

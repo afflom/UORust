@@ -12,7 +12,7 @@ share, over the tokens in brand/foundation.css.
     python3 -I site.py ROOT SITE
 
 writes SITE/docs/index.html, SITE/docs/foundation.css, and puts a "Docs" link
-beside "View spec" on the app page SITE/index.html.
+checks the app page SITE/index.html links to it.
 """
 import html, json, pathlib, re, shutil, sys, tomllib
 
@@ -197,15 +197,12 @@ page = f"""<!doctype html>
 (SITE / "docs/index.html").write_text(page)
 shutil.copyfile(ROOT / "brand/foundation.css", SITE / "docs/foundation.css")
 
-# The app page gains a way to the product home, beside "View spec".
+# The app page's ways on (app.json "links", drawn by the frame under the
+# description) must include the product home this writes.
 index = SITE / "index.html"
 if index.exists():
-    text = index.read_text()
-    anchor = re.compile(r'(<a id="open-spec" class="spec-link"[^>]*>[\s\S]*?</a>)')
-    if 'id="open-docs"' not in text:
-        if not anchor.search(text):
-            raise SystemExit('site: index.html has no "View spec" link to put the docs link beside')
-        doc_icon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>'
-        index.write_text(anchor.sub(lambda m: f'<span class="head-links"><a id="open-docs" class="spec-link" href="./docs/">{doc_icon}<span>Docs</span></a>{m.group(1)}</span>', text, count=1))
+    nav = re.search(r'<nav class="head-nav"[^>]*>([\s\S]*?)</nav>', index.read_text())
+    if not nav or 'href="./docs/"' not in nav.group(1):
+        raise SystemExit('site: the app page does not link to the product home (add {"href": "./docs/"} to app.json links)')
 print(f"site: docs/index.html with {len(who)} goals, {len(commands)} commands, {len(components)} components, "
       f"{len(threats)} threats, {len(measures)} measures, {len(tokens)} tokens")

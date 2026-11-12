@@ -6,7 +6,9 @@
 // screen), any touch target under 48 px on a coarse pointer, a margin other
 // than the class's, a missing workspace split from 840 px (the surface and
 // its rail), a clipped line at 200 percent text, a spec that does not open
-// beside the window, or a page that never verifies. Screenshots go to
+// beside the window, a page that never verifies, or a control that does
+// nothing a visitor can see: every example, Enter, the button and an empty
+// request must each put an answer on screen, under the form. Screenshots go to
 // screens/ for the run's artifact, so every app's screens are on record.
 //   node bootstrap/screens.mjs site screens
 // Needs playwright with Chromium: npm install -g playwright && playwright install chromium
@@ -101,7 +103,7 @@ for (const c of classes) {
       const small = [];
       // The frame draws in its own shadow root; its controls count too.
       const roots = [document, ...[...document.querySelectorAll("*")].map((el) => el.shadowRoot).filter(Boolean)];
-      for (const el of roots.flatMap((root) => [...root.querySelectorAll("button, input, a.ghost, a.spec-link, summary")])) {
+      for (const el of roots.flatMap((root) => [...root.querySelectorAll("button, input, a.ghost, a.spec-link, .head-nav a, summary")])) {
         if (el.hidden || el.closest("[hidden]") || el.classList.contains("use") || el.classList.contains("bare")) continue;
         // The spec, closed, is off screen; it is checked open, below.
         if (getComputedStyle(el).visibility === "hidden") continue;
@@ -110,7 +112,9 @@ for (const c of classes) {
         if (coarse && (r.height < 48 || (el.tagName === "BUTTON" && r.width < 48))) small.push(`${el.tagName.toLowerCase()}#${el.id || el.className} ${Math.round(r.width)}x${Math.round(r.height)}`);
       }
       return {
-        overflow: doc.scrollWidth > doc.clientWidth,
+        // Main clips too, so content wider than it is hidden, not scrolled:
+        // that counts as overflow.
+        overflow: doc.scrollWidth > doc.clientWidth || document.querySelector("main").scrollWidth > document.querySelector("main").clientWidth + 1,
         // The page clips rather than scrolls (html and body hide overflow), so
         // the check is that the workspace ends inside the screen and holds
         // everything it has: a planted 4 rem passed a scroll check alone.
@@ -135,6 +139,54 @@ for (const c of classes) {
     if (c.touch && !facts.coarse) fail(where, "the emulated device is not a coarse pointer");
     for (const s of facts.small) fail(where, `touch target under 48 px: ${s}`);
     if (facts.verified !== "verified") fail(where, `status is "${facts.verified}"`);
+    // Every way on from the header lands on a page.
+    if (theme === "dark") {
+      for (const href of await page.locator(".head-nav a").evaluateAll((links) => links.map((a) => a.href))) {
+        if (!href.startsWith(origin)) continue;
+        const status = (await page.request.get(href)).status();
+        if (status !== 200) fail(where, `the header link ${href.slice(origin.length - 1)} lands nowhere (${status})`);
+      }
+    }
+    // The journey, as a visitor takes it: each example, then a request typed
+    // and sent with Enter, then with the button, then the button with
+    // nothing typed. Each must show an answer, in words, on screen.
+    if (theme === "dark" && await page.locator("#ask").count()) {
+      // An answer counts once the page has shown a new one (app.mjs counts them).
+      let seen = 0;
+      const answered = async (what, states) => {
+        await page.waitForFunction((n) => Number(document.getElementById("out").dataset.answers ?? 0) > n, seen, { timeout: 10000 }).catch(() => {});
+        seen = Number(await page.locator("#out").getAttribute("data-answers") ?? 0);
+        const r = await page.evaluate(() => {
+          const o = document.getElementById("out");
+          const box = o.getBoundingClientRect();
+          return { state: o.className, text: o.textContent.trim(), tag: document.getElementById("state").textContent.trim(), onScreen: box.height > 0 && box.top >= 0 && box.top < innerHeight - 16 };
+        });
+        if (!states.includes(r.state) || !r.text || !r.tag) fail(where, `${what} showed no answer (state "${r.state}", "${r.text.slice(0, 60)}")`);
+        else if (!r.onScreen) fail(where, `${what} answered off screen`);
+        return r;
+      };
+      const examples = await page.locator("#tries button[data-request]").all();
+      if (!examples.length) fail(where, "the page offers no examples to try");
+      for (const button of examples) {
+        const request = await button.getAttribute("data-request");
+        await button.click();
+        await answered(`the example "${request}"`, ["good", "bad"]);
+        if (await page.inputValue("#input") !== request) fail(where, `the example "${request}" did not fill the field`);
+      }
+      const first = examples.length ? await examples[0].getAttribute("data-request") : "0";
+      await page.fill("#input", first);
+      const left = await page.locator("#out").getAttribute("class");
+      if (left !== "idle") fail(where, `typing a new request left the old answer up (${left})`);
+      await page.press("#input", "Enter");
+      await answered("Enter", ["good", "bad"]);
+      await page.fill("#input", first);
+      await page.click("#go");
+      await answered("the submit button", ["good", "bad"]);
+      await page.fill("#input", "");
+      await page.click("#go");
+      await answered("the submit button with nothing typed", ["refuse"]);
+      await page.fill("#input", "");
+    }
     await page.screenshot({ path: join(out, `${c.name}-${theme}.png`), fullPage: true });
     // The spec opens beside the window from 840 px (the window narrows by
     // the spec's width) and over it below; either way it is on screen,
