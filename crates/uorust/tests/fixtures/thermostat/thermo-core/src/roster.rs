@@ -781,6 +781,15 @@ pub fn prefixed(rooms: &[String], prefix: &str) -> Vec<String> {
     renamed(rooms, &|room| format!("{prefix}{room}"))
 }
 
+/// The rooms by the reading they show.
+pub fn by_reading(rooms: &[Room]) -> BTreeMap<u32, Vec<String>> {
+    let mut out: BTreeMap<u32, Vec<String>> = BTreeMap::new();
+    for room in rooms {
+        out.entry(room.reading).or_default().push(room.name.clone());
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -952,6 +961,10 @@ mod tests {
         };
         assert_eq!(booked(&none, "den").order, vec!["den".to_string()]);
         assert_eq!(first(), "hall");
+        assert_eq!(
+            by_reading(&[room("hall", 18), room("den", 18)]).get(&18),
+            Some(&vec!["hall".to_string(), "den".to_string()])
+        );
         assert_eq!(prefixed(&["den".to_string()], "the "), vec!["the den".to_string()]);
         assert_eq!(
             annexed_room(&Plan::Annex(Box::new(Plan::Room("den".to_string())))),

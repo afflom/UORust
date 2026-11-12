@@ -353,7 +353,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "887169e9aa2495b4d3406e50b6803461ad56ead959c3c2126350fd1eb44383df"
+kappa = "c642d0d5f6ac72bd57f4eb225f1f823c20f0d56db921edc7a1021d97aaafd9db"
 function = "uorust::lift::block"
 reason = "form"
 detail = "expression form outside the lift: struct Local"
@@ -455,6 +455,12 @@ reason = "form"
 detail = "expression form outside the lift: struct Path"
 
 [[residue]]
+kappa = "e2f758204bb41a60688370a2bc9c09225084a08ad87e26bf8bd17c58825c3781"
+function = "uorust::lift::entry_update"
+reason = "statements"
+detail = "the body has statements other than let"
+
+[[residue]]
 kappa = "4a2bd233f7536206283dfc7be0a4d3589954167c2ac4a9c025a34dd254b8fdae"
 function = "uorust::lift::exact_string"
 reason = "form"
@@ -524,7 +530,7 @@ detail = "expression form outside the lift: method call .flat"
 kappa = "ec76a8188cd726811bfed55ca3aef62cb1259a461114eccf92e3802273fb7446"
 function = "uorust::lift::grouped"
 reason = "form"
-detail = "expression form outside the lift: index by a range"
+detail = "expression form outside the lift: arms of different types"
 
 [[residue]]
 kappa = "22a3d9ea6c50d8ebcb37c772d8fe99f2623955591b81c24672dd7a0c38747566"
@@ -663,12 +669,6 @@ kappa = "7a8e7baa31fd81cfc220e1750f97ac4df07332f75d3cc3a0158bde81eaa54460"
 function = "uorust::lift::pat_head"
 reason = "form"
 detail = "expression form outside the lift: char::is_uppercase tests the Unicode Uppercase property, and no Unicode table is bound in LexLean or the SDK"
-
-[[residue]]
-kappa = "20bd5e218d21872edf3a0dad90b54c06cc6837e1acc4ac2b13de991826170660"
-function = "uorust::lift::pointer_widths"
-reason = "statements"
-detail = "the body has statements other than let"
 
 [[residue]]
 kappa = "d932cb2cb833ef0271f6d547b69562a6f9f920f4667c4269fc1f18ba117a4498"
@@ -1135,8 +1135,8 @@ detail = "calls new, which is not lifted"
 [[residue]]
 kappa = "0c42923c090bc25e34c72fb2bce5ba5533e3797f30646a6762c7061521b28b93"
 function = "uorust::project::module_opm"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "form"
+detail = "expression form outside the lift: a loop that shadows its state"
 
 [[residue]]
 kappa = "807755b44bf961c3d8764429cd395f6d19e827f9fea4011e34f976a469c197af"
@@ -1159,8 +1159,8 @@ detail = "calls new, which is not lifted"
 [[residue]]
 kappa = "20326988e7199cb217a94f2c400faed6aac63daff662395ceb655af4aab5e2d8"
 function = "uorust::project::register"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "form"
+detail = "expression form outside the lift: method call .into_bytes"
 
 [[residue]]
 kappa = "efd73d00ad11a5f83f81c47a43527403d1db3c4a4a5101d12a5cc7f197f8bb18"
@@ -1195,8 +1195,8 @@ detail = "calls new, which is not lifted"
 [[residue]]
 kappa = "cc405c12c08ff52e4bfea0287c60506327826c7a0661f4c784bbfcf3b8064513"
 function = "uorust::project::threats"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "call"
+detail = "calls advisory_threats, which is not lifted"
 
 [[residue]]
 kappa = "698a4faa139fd0ffb8bd93a8751c6cceeadfda514348e590738c43d41d55dc8c"
@@ -2042,6 +2042,11 @@ function = "uorust::lift::data_variant"
 definition = "Behavior::dataVariant"
 
 [[lifted]]
+kappa = "657c6ede2afce13b299afe133dff562d43ee0ddc27f834ea005bc4c8744e366a"
+function = "uorust::lift::default_entry"
+definition = "Behavior::defaultEntry"
+
+[[lifted]]
 kappa = "0597311d641125a2e844618970045d61b8f2aed8b2ecb1bf9e67caa875e2ae93"
 function = "uorust::lift::equality"
 definition = "Behavior::equality"
@@ -2122,6 +2127,11 @@ function = "uorust::lift::pointer_width"
 definition = "Behavior::pointerWidth"
 
 [[lifted]]
+kappa = "20bd5e218d21872edf3a0dad90b54c06cc6837e1acc4ac2b13de991826170660"
+function = "uorust::lift::pointer_widths"
+definition = "Behavior::pointerWidths"
+
+[[lifted]]
 kappa = "412da91afe2fdde4845de990b136d3a5ae8df0387d40b32df9a43c5ac06dcb94"
 function = "uorust::lift::positive"
 definition = "Behavior::positive"
@@ -2192,7 +2202,7 @@ function = "uorust::lift::untyped"
 definition = "Behavior::untyped"
 
 [[lifted]]
-kappa = "f7fcf0859d8ef01e1eeb7014d3745b64a1b7cae64407673d78440c70acafe046"
+kappa = "8371e6e46a4854777a75291d5f39b7b0fb50c1664b2bbe92494c28a185fc2103"
 function = "uorust::lift::update_target"
 definition = "Behavior::updateTarget"
 

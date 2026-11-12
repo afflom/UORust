@@ -487,6 +487,12 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         // lambda, with the captures it reads.
         ("renamedMap1", "(apply name room)"),
         ("prefixed", "(fun [prefix] (room : String) =>"),
+        // `m.entry(k).or_default().push(v)` reads the entry, updates it
+        // and inserts it back.
+        (
+            "byReadingPart1",
+            "(match (byReadingGet1 state1 (project room reading))",
+        ),
         // `()` is LexLean's Unit.
         ("validate", "(ctor Result.ok [Unit, String] ())"),
     ] {

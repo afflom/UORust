@@ -2340,6 +2340,52 @@ definition{
   axioms: [propext]
 }
 
+definition{
+  name: byReadingGet1,
+  parameters: [items1 : (List TupleNatListString), needle1 : Nat],
+  result: (Option (List String)),
+  body: (match items1
+    | List.nil => (ctor Option.none [(List String)])
+    | List.cons item1 rest1 => (if ((project item1 item0) =? needle1) then (ctor Option.some [(List String)] (project item1 item1)) else (byReadingGet1 rest1 needle1))),
+  recursive_argument: items1
+}
+
+definition{
+  name: byReadingPart1,
+  parameters: [room : Room, state1 : (List TupleNatListString)],
+  result: (List String),
+  body: (match (byReadingGet1 state1 (project room reading))
+    | Option.none => (nil String)
+    | Option.some value1 => value1)
+}
+
+definition{
+  name: byReadingInsert1,
+  parameters: [items2 : (List TupleNatListString), item2 : TupleNatListString],
+  result: (List TupleNatListString),
+  body: (match items2
+    | List.nil => (cons item2 (nil TupleNatListString))
+    | List.cons head1 rest2 => (if ((project item2 item0) =? (project head1 item0)) then (cons item2 rest2) else (if ((project item2 item0) <? (project head1 item0)) then (cons item2 (cons head1 rest2)) else (cons head1 (byReadingInsert1 rest2 item2))))),
+  recursive_argument: items2
+}
+
+definition{
+  name: byReadingLoop1,
+  parameters: [items3 : (List Room), state1 : (List TupleNatListString)],
+  result: (List TupleNatListString),
+  body: (match items3
+    | List.nil => state1
+    | List.cons room rest3 => (let entry2 : (List String) := (byReadingPart1 room state1); (let entry21 : (List String) := (prim append entry2 (cons (project room name) (nil String)) : (List String)); (let out1 : (List TupleNatListString) := (byReadingInsert1 state1 (record TupleNatListString {item0 := (project room reading), item1 := entry21})); (byReadingLoop1 rest3 out1))))),
+  recursive_argument: items3
+}
+
+definition{
+  name: byReading,
+  parameters: [rooms : (List Room)],
+  result: (List TupleNatListString),
+  body: (let out : (List TupleNatListString) := (nil TupleNatListString); (let state2 : (List TupleNatListString) := (byReadingLoop1 rooms out); state2))
+}
+
 theorem{
   name: decreases_occupiedTarget_0,
   parameters: [step : Step, occupied : Step, rest : Step],
@@ -2948,14 +2994,14 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom50,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom51,
   parameters: [],
   statement: ((opening "den") = true),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom51,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom52,
   parameters: [],
   statement: ((opening "attic") = false),
   proof: decide{}

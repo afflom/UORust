@@ -6338,7 +6338,17 @@ fn update_target(e: &rs::RustExpr) -> Option<String> {
             rs::RustExpr::Field(f) if matches!(f.member, rs::Member::Named(_)) => ident(&f.base),
             left => ident(left),
         },
-        rs::RustExpr::Binary(b) if b.op == rs::BinOp::AddAssign => ident(&b.left),
+        // `*m.entry(k).or_default() += v` and `m.entry(k).or_default().push(v)`
+        // update the map.
+        rs::RustExpr::Binary(b) if b.op == rs::BinOp::AddAssign => match &*b.left {
+            rs::RustExpr::Unary(u) if matches!(u.op, rs::UnOp::Deref) => {
+                ident(default_entry(&u.expr)?.0)
+            }
+            left => ident(left),
+        },
+        rs::RustExpr::MethodCall(m) if default_entry(&m.receiver).is_some() => {
+            ident(default_entry(&m.receiver)?.0)
+        }
         rs::RustExpr::MethodCall(m)
             if matches!(m.method.as_str(), "push" | "push_str" | "extend") && m.args.len() == 1 =>
         {
@@ -7583,6 +7593,101 @@ fn take_first(items: &[rs::RustExpr], var: &str) -> Option<(rs::RustExpr, Vec<rs
     Some((found, items))
 }
 
+/// The map and key of `m.entry(k).or_default()`, where `m` is a local.
+fn default_entry(e: &rs::RustExpr) -> Option<(&rs::RustExpr, &rs::RustExpr)> {
+    let rs::RustExpr::MethodCall(d) = e else {
+        return None;
+    };
+    let rs::RustExpr::MethodCall(en) = &*d.receiver else {
+        return None;
+    };
+    match (
+        d.method.as_str(),
+        d.args.as_slice(),
+        en.method.as_str(),
+        en.args.as_slice(),
+    ) {
+        ("or_default", [], "entry", [k]) if matches!(&*en.receiver, rs::RustExpr::Path(p) if p.get_ident().is_some()) => {
+            Some((&en.receiver, k))
+        }
+        _ => None,
+    }
+}
+
+/// An update through an entry, `m.entry(k).or_default().push(v);` or
+/// `*m.entry(k).or_default() += v;`, as the statements that read the entry
+/// into the local `entry{n}`, update it, and insert it back.
+fn entry_update(stmt: &rs::Stmt, n: usize) -> Option<Vec<rs::Stmt>> {
+    let rs::Stmt::Expr(e, true) = stmt else {
+        return None;
+    };
+    let var = format!("entry{n}");
+    let local = rs::RustExpr::Path(rs::Path::ident(&var));
+    let ((map, key), update) = match e {
+        rs::RustExpr::MethodCall(m) => {
+            let found = default_entry(&m.receiver)?;
+            let update = rs::RustExpr::MethodCall(rs::ExprMethodCall {
+                receiver: Box::new(local.clone()),
+                ..m.clone()
+            });
+            (found, update)
+        }
+        rs::RustExpr::Binary(b) if b.op == rs::BinOp::AddAssign => {
+            let rs::RustExpr::Unary(u) = &*b.left else {
+                return None;
+            };
+            if !matches!(u.op, rs::UnOp::Deref) {
+                return None;
+            }
+            let found = default_entry(&u.expr)?;
+            let update = rs::RustExpr::Binary(rs::ExprBinary {
+                left: Box::new(local.clone()),
+                ..b.clone()
+            });
+            (found, update)
+        }
+        _ => return None,
+    };
+    let call = |receiver: rs::RustExpr, method: &str, args: Vec<rs::RustExpr>| {
+        rs::RustExpr::MethodCall(rs::ExprMethodCall {
+            receiver: Box::new(receiver),
+            method: method.to_string(),
+            turbofish: None,
+            args,
+        })
+    };
+    let borrowed = rs::RustExpr::Reference(rs::ExprReference {
+        mutable: false,
+        expr: Box::new(key.clone()),
+    });
+    let read = call(
+        call(
+            call(map.clone(), "get", vec![borrowed]),
+            "cloned",
+            Vec::new(),
+        ),
+        "unwrap_or_default",
+        Vec::new(),
+    );
+    let bind = rs::Stmt::Local(rs::Local {
+        pat: rs::Pat::Ident(rs::PatIdent {
+            ident: var,
+            by_ref: false,
+            subpat: None,
+        }),
+        init: Some(rs::LocalInit {
+            expr: Box::new(read),
+            diverge: None,
+        }),
+    });
+    let write = call(map.clone(), "insert", vec![key.clone(), local]);
+    Some(vec![
+        bind,
+        rs::Stmt::Expr(update, true),
+        rs::Stmt::Expr(write, true),
+    ])
+}
+
 /// A statement with a `?` inside it, as `let v = e?;` before the statement
 /// with `v` in its place.
 fn hoist_try(stmt: &rs::Stmt, n: usize) -> Option<(rs::Stmt, rs::Stmt)> {
@@ -7635,6 +7740,19 @@ fn block(
             return loop_exit(env, ctx, acc, b.label, true);
         }
         _ => {}
+    }
+    // `m.entry(k).or_default().push(v);`: the entry read, updated and
+    // written back.
+    if let Some((first, rest)) = stmts.split_first() {
+        let n = acc.given.len() + 1;
+        if let Some(written) = entry_update(first, n) {
+            let mut given = acc.given;
+            given.push(format!("entry{n}"));
+            let acc = Acc { given, ..acc };
+            let mut out = written;
+            out.extend(rest.iter().cloned());
+            return block(&out, env, ctx, acc, want);
+        }
     }
     if ctx.top {
         if let Some((first, rest)) = stmts.split_first() {
