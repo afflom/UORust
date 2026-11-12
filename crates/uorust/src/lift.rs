@@ -1022,6 +1022,9 @@ struct Ctx {
     /// A parameter a match split -> its constructor applied to the arm's
     /// binders, which names it there.
     rebuilt: BTreeMap<String, String>,
+    /// Natural-number terms -> a lower bound the conditions in scope
+    /// establish: `n` at least 2 after `if n < 2 { return .. }`.
+    bounds: BTreeMap<String, u128>,
 }
 
 /// A closure a `let` binds: its parameters, its body, and the locals in
@@ -1233,6 +1236,53 @@ impl Ctx {
                 return (name, Acc { fresh: n, ..acc });
             }
         }
+    }
+
+    /// The same scope where `cond` is `holds`: with the lower bound it
+    /// gives a natural-number term, from `x >= k`, `x > k`, `!(x < k)`,
+    /// `!(x <= k)` or `x != 0`, either way round.
+    fn assuming(&self, cond: &rs::RustExpr, holds: bool, env: &Env, acc: &Acc) -> Ctx {
+        use rs::BinOp as B;
+        let next = self.clone();
+        let b = match cond {
+            rs::RustExpr::Unary(u) if matches!(u.op, rs::UnOp::Not) => {
+                return self.assuming(&u.expr, !holds, env, acc);
+            }
+            rs::RustExpr::Paren(p) => return self.assuming(p, holds, env, acc),
+            rs::RustExpr::Binary(b) => b,
+            _ => return next,
+        };
+        // The bound on the term, with the term on the left.
+        let (term, op, k) = match (int_literal(&b.left), int_literal(&b.right)) {
+            (None, Some(k)) => (&*b.left, b.op, k),
+            (Some(k), None) => {
+                let flipped = match b.op {
+                    B::Lt => B::Gt,
+                    B::Le => B::Ge,
+                    B::Gt => B::Lt,
+                    B::Ge => B::Le,
+                    other => other,
+                };
+                (&*b.right, flipped, k)
+            }
+            _ => return next,
+        };
+        let at_least = match (op, holds) {
+            (B::Ge, true) | (B::Lt, false) => Some(k),
+            (B::Gt, true) | (B::Le, false) => k.checked_add(1),
+            (B::Ne, true) | (B::Eq, false) if k == 0 => Some(1),
+            _ => None,
+        };
+        let Some(at_least) = at_least else {
+            return next;
+        };
+        let Ok(((t, Ty::Nat(_)), _)) = flat_of(term, env, &self.below(), acc.clone(), None) else {
+            return next;
+        };
+        let mut next = next;
+        let known = next.bounds.get(&t).copied().unwrap_or(0);
+        next.bounds.insert(t, known.max(at_least));
+        next
     }
 
     /// The same scope, below the function's own statements: a `return`
@@ -1699,18 +1749,20 @@ fn expr_form(
             if ct != Ty::Bool {
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
+            let yes = ctx.assuming(&i.cond, true, env, &acc);
+            let no = ctx.assuming(&i.cond, false, env, &acc);
             let ((then, tt), (other, ot), acc) =
-                match block(&i.then_branch.stmts, env, ctx, acc.clone(), want) {
+                match block(&i.then_branch.stmts, env, &yes, acc.clone(), want) {
                     // A branch whose type only the other says: that one first.
                     Err(r) if want.is_none() && untyped(&r) => {
-                        let ((other, ot), acc) = expr(otherwise, env, ctx, acc, None)?;
-                        let (then, acc) = block(&i.then_branch.stmts, env, ctx, acc, Some(&ot))?;
+                        let ((other, ot), acc) = expr(otherwise, env, &no, acc, None)?;
+                        let (then, acc) = block(&i.then_branch.stmts, env, &yes, acc, Some(&ot))?;
                         (then, (other, ot), acc)
                     }
                     lifted => {
                         let ((then, tt), acc) = lifted?;
                         let (other, acc) =
-                            expr(otherwise, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
+                            expr(otherwise, env, &no, acc, Some(want.unwrap_or(&tt)))?;
                         ((then, tt), other, acc)
                     }
                 };
@@ -2301,6 +2353,17 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                 return Err(Residue::Arithmetic(op_text()));
             }
             flat(usize_sum(&b.left, &b.right, &l, &r, env)?, want, acc)
+        }
+        // `a - k` where the conditions in scope bound `a` below by `k` or
+        // more: it does not underflow, so it is the natural difference.
+        B::Sub => {
+            let ((l, lt), acc) = flat_of(&b.left, env, ctx, acc, Some(&Ty::Nat(None)))?;
+            match (&lt, int_literal(&b.right)) {
+                (Ty::Nat(_), Some(k)) if ctx.bounds.get(&l).is_some_and(|m| *m >= k) => {
+                    flat(format!("(prim subtract {l} {k} : Nat)"), lt, acc)
+                }
+                _ => Err(Residue::Arithmetic(op_text())),
+            }
         }
         B::Div | B::Rem => {
             let ((l, lt), acc) = flat_of(&b.left, env, ctx, acc, None)?;
@@ -3278,6 +3341,15 @@ fn method(
             if args.is_empty() =>
         {
             flat(r, rt.clone(), acc)
+        }
+        // `b.then_some(v)`: `Some(v)` where `b` holds.
+        (Ty::Bool, "then_some") if args.len() == 1 => {
+            let ((v, vt), acc) = flat_of(args[0], env, ctx, acc, None)?;
+            flat(
+                format!("(if {r} then {} else {})", some(&vt, &v), none(&vt)),
+                opt(&vt),
+                acc,
+            )
         }
         (Ty::Option(_), "is_some" | "is_none") if args.is_empty() => {
             let (v, acc) = ctx.fresh(env, acc, "value");
@@ -6484,7 +6556,8 @@ fn block(
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
             let ((then, tt), acc) = expr(v, env, &inner, acc, Some(&ctx.result))?;
-            let ((other, ot), acc) = block(rest, env, ctx, acc, want)?;
+            let after = ctx.assuming(&i.cond, false, env, &acc);
+            let ((other, ot), acc) = block(rest, env, &after, acc, want)?;
             if !tt.same(&ctx.result) || !ot.same(&tt) {
                 return Err(Residue::Form("branches of different types".to_string()));
             }
@@ -7199,6 +7272,7 @@ pub(crate) fn lift_all(
                 tails: BTreeMap::new(),
                 elements: None,
                 rebuilt: BTreeMap::new(),
+                bounds: BTreeMap::new(),
                 own: c.name.clone(),
                 top: true,
                 looping: None,

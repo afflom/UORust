@@ -323,6 +323,12 @@ reason = "call"
 detail = "calls prelude_axioms, which is not lifted"
 
 [[residue]]
+kappa = "9a1b097799ad239da1558f00bad808e05a04899ae7b8c454f1917b0a72b73c9f"
+function = "uorust::lift::Ctx::assuming"
+reason = "statements"
+detail = "the body has statements other than let"
+
+[[residue]]
 kappa = "b5aa705c01c382a641e6a9cdd2776aead09d74808ba0aaaf626161ec41c2ad0b"
 function = "uorust::lift::Ctx::bind"
 reason = "form"
@@ -425,7 +431,7 @@ reason = "form"
 detail = "expression form outside the lift: expr::return"
 
 [[residue]]
-kappa = "396e36b154fa1a49969b0ef26cbaef28d9a43f4f46be9fdd60d66679433162b0"
+kappa = "0890a0458307591bb9c18e40d048f58f8900ede9daaa806007bcdc9192582148"
 function = "uorust::lift::binary"
 reason = "statements"
 detail = "the body has statements other than let"
@@ -443,7 +449,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "13ec938541aba033f83ac3ea372fabb05c3a848d88fcb718bf73c32c0a746a02"
+kappa = "c45f9998cf85292c293b18ca5d53534410f85337410648bb0fdf30ed3b0fa6fe"
 function = "uorust::lift::block"
 reason = "form"
 detail = "expression form outside the lift: method call .as_ref"
@@ -503,12 +509,6 @@ reason = "form"
 detail = "expression form outside the lift: expr::return"
 
 [[residue]]
-kappa = "5dad399fa122601107dc02d7d1afff4acbbb55adb684dadfc6ce78fc6a20c140"
-function = "uorust::lift::ctor"
-reason = "arithmetic"
-detail = "integer operator - wraps or panics depending on the build profile"
-
-[[residue]]
 kappa = "86a11b42b8be3a0fa28592b3ab842b05500281ed075c7cee8a72eeddbd28d6f9"
 function = "uorust::lift::ctor_key"
 reason = "call"
@@ -519,12 +519,6 @@ kappa = "86ea7e45ce317a1d749e0f4fa570ada84900559e2c0bcac98cf4c3bf73c95897"
 function = "uorust::lift::cyclic"
 reason = "form"
 detail = "expression form outside the lift: a loop that shadows its state"
-
-[[residue]]
-kappa = "7432c779cb0e30dea650bd249317392af35f8f7d1468f9054303cfbeeef6e0dc"
-function = "uorust::lift::data_variant"
-reason = "arithmetic"
-detail = "integer operator - wraps or panics depending on the build profile"
 
 [[residue]]
 kappa = "ca850246961ebfd030c33fb9d34b852a2d488ed13947682c249d3206c3e38f86"
@@ -557,7 +551,7 @@ reason = "form"
 detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
-kappa = "5907fe214f98b770470dbdd99387f4099d401a8b0ba9b8c03a9f99095a4c1fc2"
+kappa = "0c95577c7bfcadb9b071919a49458a3fa059e1f65a94b885269516e7ed3cabd1"
 function = "uorust::lift::expr_form"
 reason = "form"
 detail = "expression form outside the lift: let pattern"
@@ -614,7 +608,7 @@ detail = "the body has statements other than let"
 kappa = "53b1ca514f3600f95a869edd040bda9dc90e1b166e0519c252a1d1f237796f59"
 function = "uorust::lift::hex_of"
 reason = "form"
-detail = "expression form outside the lift: method call .then_some"
+detail = "expression form outside the lift: method call .is_ident"
 
 [[residue]]
 kappa = "8e46a41c8235ce6ec3a0a877e88a00584c03183a80a7d3bf48b43caa4a3075de"
@@ -665,7 +659,7 @@ reason = "form"
 detail = "expression form outside the lift: struct Block"
 
 [[residue]]
-kappa = "7a65fc8443bb644896278d300fb33d301ba3f1ce19322dba2491b749101bf841"
+kappa = "ad25ea93e8ac89663600d46576418f81c53772fc712a14c3b70c471e29d836cd"
 function = "uorust::lift::lift_all"
 reason = "form"
 detail = "expression form outside the lift: expr::loop"
@@ -731,7 +725,7 @@ reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "0d051cd7769d92cb9de07b702e6cea5ef143624eebfc097de5d8c1a4091ad3fe"
+kappa = "019b7a3624c6ff375b184bee0892e38ac567005c1f046b4ce577323625bb4e21"
 function = "uorust::lift::method"
 reason = "form"
 detail = "expression form outside the lift: match pattern"
@@ -2041,6 +2035,16 @@ definition = "Behavior::typesSizeName"
 kappa = "9060decb3c32b9cd2ecc7113b16f99d738aa970231034f994171f5b545650e0a"
 function = "uorust::lift::Types::tuple"
 definition = "Behavior::typesTuple"
+
+[[lifted]]
+kappa = "5dad399fa122601107dc02d7d1afff4acbbb55adb684dadfc6ce78fc6a20c140"
+function = "uorust::lift::ctor"
+definition = "Behavior::ctorValue"
+
+[[lifted]]
+kappa = "7432c779cb0e30dea650bd249317392af35f8f7d1468f9054303cfbeeef6e0dc"
+function = "uorust::lift::data_variant"
+definition = "Behavior::dataVariant"
 
 [[lifted]]
 kappa = "0597311d641125a2e844618970045d61b8f2aed8b2ecb1bf9e67caa875e2ae93"

@@ -105,6 +105,9 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterSaturatedTotal is made
     And the interface call Interface::callThermoCoreRosterPaired is made
     And the interface call Interface::callThermoCoreRosterUrgentAndNamed is made
+    And the interface call Interface::callThermoCoreRosterSecondLast is made
+    And the interface call Interface::callThermoCoreRosterAboveTen is made
+    And the interface call Interface::callThermoCoreRosterWarm is made
     And the interface call Interface::callThermoCoreRosterQueue is made
     And the interface call Interface::callThermoCoreRosterSortsBefore is made
     And the interface call Interface::callThermoCoreRosterSameZone is made

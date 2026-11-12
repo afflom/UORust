@@ -1672,6 +1672,27 @@ definition{
 }
 
 definition{
+  name: secondLast,
+  parameters: [readings : (List Nat)],
+  result: (Option Nat),
+  body: (let n : Nat := (prim length readings : Nat); (if (n <? 2) then (ctor Option.none [Nat]) else (prim index readings (prim subtract n 2 : Nat) : (Option Nat))))
+}
+
+definition{
+  name: aboveTen,
+  parameters: [reading : Nat],
+  result: Nat,
+  body: (if (10 <=? reading) then (prim subtract reading 10 : Nat) else 0)
+}
+
+definition{
+  name: warm,
+  parameters: [reading : Nat],
+  result: (Option Nat),
+  body: (if (18 <=? reading) then (ctor Option.some [Nat] reading) else (ctor Option.none [Nat]))
+}
+
+definition{
   name: queueInsert1,
   parameters: [items2 : (List Request), item3 : Request],
   result: (List Request),
@@ -2187,6 +2208,27 @@ theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom7,
   parameters: [],
   statement: ((urgentAndNamed (record Request {priority := (ctor Priority.Low), room := "hall"})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom8,
+  parameters: [],
+  statement: ((secondLast (cons 4 (cons 5 (cons 6 (nil Nat))))) = (ctor Option.some [Nat] 5)),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom9,
+  parameters: [],
+  statement: ((aboveTen 12) = 2),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom10,
+  parameters: [],
+  statement: ((warm 20) = (ctor Option.some [Nat] 20)),
   proof: decide{}
 }
 

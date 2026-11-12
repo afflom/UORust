@@ -442,6 +442,29 @@ pub fn urgent_and_named(request: &Request) -> bool {
     matches!(request.priority, Priority::Urgent if !request.room.is_empty())
 }
 
+/// The reading before the last, when there are two or more.
+pub fn second_last(readings: &[u32]) -> Option<u32> {
+    let n = readings.len();
+    if n < 2 {
+        return None;
+    }
+    readings.get(n - 2).copied()
+}
+
+/// How far a reading lies above ten, the subtraction guarded.
+pub fn above_ten(reading: u32) -> u32 {
+    if reading >= 10 {
+        reading - 10
+    } else {
+        0
+    }
+}
+
+/// The reading where it is warm enough.
+pub fn warm(reading: u32) -> Option<u32> {
+    (reading >= 18).then_some(reading)
+}
+
 /// The distinct requests, in the order they sort in.
 pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
     let mut out = BTreeSet::new();
@@ -582,6 +605,9 @@ mod tests {
             priority: Priority::Low,
             room: "hall".to_string()
         }));
+        assert_eq!(second_last(&[4, 5, 6]), Some(5));
+        assert_eq!(above_ten(12), 2);
+        assert_eq!(warm(20), Some(20));
         assert!(all_named(&Zone::Group(vec![Zone::Room(
             "hall".to_string()
         )])));
