@@ -6158,7 +6158,7 @@ fn block(
                 return Err(Residue::Statements);
             };
             if init.diverge.is_some() {
-                return Err(Residue::Form("let else".to_string()));
+                return let_pattern(&local.pat, local, rest, env, ctx, acc, want);
             }
             if let rs::RustExpr::Closure(c) = &*init.expr {
                 if c.asyncness || declared.is_some() {
@@ -6228,13 +6228,22 @@ fn let_pattern(
     let Some(init) = &local.init else {
         return Err(Residue::Statements);
     };
-    if init.diverge.is_some() || matches!(&*init.expr, rs::RustExpr::Try(_)) {
+    if matches!(&*init.expr, rs::RustExpr::Try(_)) {
         return Err(Residue::Form("let pattern".to_string()));
     }
     let tail = rs::Block {
         stmts: rest.to_vec(),
     };
-    let arms = vec![(pat, Body::Block(&tail))];
+    let wild = rs::Pat::Wild;
+    // `let P = e else { .. };`: the block the other values take, such as
+    // a `continue` of the loop the statements are a step of.
+    let arms = match init.diverge.as_deref() {
+        None => vec![(pat, Body::Block(&tail))],
+        Some(rs::RustExpr::Block(b)) if !b.label => {
+            vec![(pat, Body::Block(&tail)), (&wild, Body::Block(&b.block))]
+        }
+        Some(_) => return Err(Residue::Form("let else".to_string())),
+    };
     matching(&init.expr, &arms, env, ctx, acc, want)
 }
 

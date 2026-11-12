@@ -139,8 +139,8 @@ detail = "expression form outside the lift: method call .as_slice"
 [[residue]]
 kappa = "bb4b21a0736693f3dd480f27e9d60274bfb2f939cabf64847bdc41d18c9f2cb0"
 function = "uorust::ast::transitions"
-reason = "form"
-detail = "expression form outside the lift: let pattern"
+reason = "call"
+detail = "calls arm_paths, which is not lifted"
 
 [[residue]]
 kappa = "a5d90fb210b5214d0ed661572881aa802a3b7654e4988c7a61c51acd75636162"
@@ -223,8 +223,8 @@ detail = "integer operator * wraps or panics depending on the build profile"
 [[residue]]
 kappa = "c2396382a133b91b69b67ef46ee5b241da680779fd76a8f704773b7a2a2abad5"
 function = "uorust::ingest::doctests"
-reason = "form"
-detail = "expression form outside the lift: let pattern"
+reason = "arithmetic"
+detail = "integer operator += wraps or panics depending on the build profile"
 
 [[residue]]
 kappa = "b3dee15b810cef00b2374a25b61b8b559257f9199e55cafa4fb83e6f29e9cdf9"
@@ -455,7 +455,7 @@ reason = "form"
 detail = "expression form outside the lift: recursion that does not descend on a slice"
 
 [[residue]]
-kappa = "4bb4814636b85ee80f8d7aeac39486c9b25fa1d48506db4debdffe6ed05116cf"
+kappa = "04be0def08445c403e943041968ccece686792ad44de09768f968eb4cab20355"
 function = "uorust::lift::block"
 reason = "form"
 detail = "expression form outside the lift: method call .split_first"
@@ -653,7 +653,7 @@ reason = "call"
 detail = "calls new, which is not lifted"
 
 [[residue]]
-kappa = "2b6a6d94cd95e68ba483889c59ee27bb1a9689fe0ea86e29a850a3b488f7a4ce"
+kappa = "226bd26c2de0efa4987ae4c45d513494a658b099eafa2821b2ff3d4430cead67"
 function = "uorust::lift::let_pattern"
 reason = "form"
 detail = "expression form outside the lift: struct Block"
@@ -673,8 +673,8 @@ detail = "expression form outside the lift: None of an unknown type"
 [[residue]]
 kappa = "4707249cfd2870dd1e06a1e0fe6cab599cefd60d2a4ca615aa8d76f1ab9dcbf1"
 function = "uorust::lift::literal"
-reason = "form"
-detail = "expression form outside the lift: let pattern"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
 kappa = "cff1f47c8ec56c8a25d6df37ebc134c4d524cf64037e1ea32af2bbeffc72f160"
@@ -1160,7 +1160,7 @@ detail = "calls new, which is not lifted"
 kappa = "cc405c12c08ff52e4bfea0287c60506327826c7a0661f4c784bbfcf3b8064513"
 function = "uorust::project::threats"
 reason = "form"
-detail = "expression form outside the lift: let pattern"
+detail = "expression form outside the lift: Get over keys of this type"
 
 [[residue]]
 kappa = "4a380bdd5537319dedc460ff371014e268421b0a7c384c3a4dd75772bbc73499"
@@ -1207,8 +1207,8 @@ detail = "calls String, which is not lifted"
 [[residue]]
 kappa = "9d814fb0efc2849af878f17543c0938b637ae4ec10f4f1cd0bb820232f777904"
 function = "uorust::route::classify"
-reason = "form"
-detail = "expression form outside the lift: let pattern"
+reason = "statements"
+detail = "the body has statements other than let"
 
 [[residue]]
 kappa = "c1580136bb502df057f2969490ce53c39767789a61de787c9f2e20425391256d"

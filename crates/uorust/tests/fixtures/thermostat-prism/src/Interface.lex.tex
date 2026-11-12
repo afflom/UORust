@@ -100,7 +100,7 @@ definition{
   name: acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue,
   parameters: [],
   result: String,
-  body: "a_fixed_sensor_reads_its_value at thermo-core/src/sensor.rs:33 passes."
+  body: "a_fixed_sensor_reads_its_value at thermo-core/src/sensor.rs:46 passes."
 }
 
 definition{
@@ -720,6 +720,13 @@ definition{
 }
 
 definition{
+  name: callThermoCoreSensorAtLeast,
+  parameters: [],
+  result: String,
+  body: "thermo_core::sensor::at_least: fn at_least(readings: &[u32], floor: u32) -> Vec<u32>"
+}
+
+definition{
   name: callCliThermoMain,
   parameters: [],
   result: String,
@@ -765,7 +772,7 @@ definition{
   name: featureThermoCoreSensor,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::sensor: Temperature sensors the controller reads from.", calls := (cons "Interface::callThermoCoreSensorSensorRead" (cons "Interface::callThermoCoreSensorSensorCalibrated" (cons "Interface::callThermoCoreSensorTotal" (nil String)))), acceptance := (cons "Interface::acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue" (nil String))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::sensor: Temperature sensors the controller reads from.", calls := (cons "Interface::callThermoCoreSensorSensorRead" (cons "Interface::callThermoCoreSensorSensorCalibrated" (cons "Interface::callThermoCoreSensorTotal" (cons "Interface::callThermoCoreSensorAtLeast" (nil String))))), acceptance := (cons "Interface::acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue" (nil String))})
 }
 
 definition{

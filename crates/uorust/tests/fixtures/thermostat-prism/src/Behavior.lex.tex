@@ -1120,6 +1120,25 @@ definition{
   body: (ctor Step.Either occupied otherwise)
 }
 
+definition{
+  name: atLeastLoop1,
+  parameters: [items3 : (List Nat), state1 : (List Nat), floor : Nat],
+  result: (List Nat),
+  body: (match items3
+    | List.nil => state1
+    | List.cons r rest4 => (match (if (floor <=? r) then (ctor Option.some [Nat] (prim subtract r floor : Nat)) else (ctor Option.none [Nat]))
+      | Option.none => (atLeastLoop1 rest4 state1 floor)
+      | Option.some kept => (let out2 : (List Nat) := (prim append state1 (cons kept (nil Nat)) : (List Nat)); (atLeastLoop1 rest4 out2 floor)))),
+  recursive_argument: items3
+}
+
+definition{
+  name: atLeast,
+  parameters: [readings : (List Nat), floor : Nat],
+  result: (List Nat),
+  body: (let out : (List Nat) := (nil Nat); (let state5 : (List Nat) := (atLeastLoop1 readings out floor); state5))
+}
+
 definition{name: heldUnit, parameters: [], result: String, body: "C"}
 
 definition{

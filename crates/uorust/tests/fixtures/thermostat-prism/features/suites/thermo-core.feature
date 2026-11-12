@@ -126,4 +126,5 @@ Feature: thermo-core
     When the interface call Interface::callThermoCoreSensorSensorRead is made
     And the interface call Interface::callThermoCoreSensorSensorCalibrated is made
     And the interface call Interface::callThermoCoreSensorTotal is made
+    And the interface call Interface::callThermoCoreSensorAtLeast is made
     Then the acceptance row Interface::acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue holds

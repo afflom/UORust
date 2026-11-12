@@ -32,7 +32,7 @@ detail = "signature outside the lift: implements the trait Display"
 status = "open"
 kappa = "d14ab24fef42a528488c4d86b88652360bfe897939a4dd9bd6d2deb39518d112"
 function = "thermo_core::sensor::Fixed::read"
-span = "thermo-core/src/sensor.rs:23"
+span = "thermo-core/src/sensor.rs:36"
 reason = "signature"
 detail = "signature outside the lift: implements the trait Sensor"
 
@@ -539,6 +539,12 @@ kappa = "35a3a9b3a4fa18e46335bb03430c4d6057cc4ad680f06c0a72ac1eea35dfd1a7"
 function = "thermo_core::schedule::validate"
 span = "thermo-core/src/schedule.rs:108"
 definition = "Behavior::validate"
+
+[[lifted]]
+kappa = "6c3926e3c4c8456a182f927e61fdd77231d66cc20fef86931d821e50dd95cf32"
+function = "thermo_core::sensor::at_least"
+span = "thermo-core/src/sensor.rs:21"
+definition = "Behavior::atLeast"
 
 [[lifted]]
 kappa = "727b4327a9a70bfd21eeae28700eb0672f4928c31c8ca46493614db36bc04fbd"

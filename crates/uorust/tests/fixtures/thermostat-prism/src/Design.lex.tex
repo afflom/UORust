@@ -601,6 +601,13 @@ definition{
 }
 
 definition{
+  name: processThermoCoreSensorAtLeast,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: stateThermoCoreModeIdle,
   parameters: [],
   result: Foundation.Arch::SystemState,
@@ -2085,6 +2092,20 @@ definition{
 }
 
 definition{
+  name: opmLibThermoCoreThingThermoCoreSensorAtLeast,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSensorAtLeast"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreSensorAtLeast,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSensorAtLeast"})
+}
+
+definition{
   name: opmLibThermoCoreStateThermoCoreModeIdle,
   parameters: [],
   result: Foundation.Arch::OpmState,
@@ -3524,6 +3545,20 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSensor", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSensorTotal"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreSensorThingThermoCoreSensorAtLeast,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSensor", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSensorAtLeast"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreSensorInstrumentThermoCoreSensorAtLeast,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSensor", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSensorAtLeast"})
 }
 \end{semanticmodule}
 \end{lexlean}
