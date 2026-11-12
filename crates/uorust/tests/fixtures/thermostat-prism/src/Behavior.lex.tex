@@ -1470,6 +1470,43 @@ definition{
 }
 
 definition{
+  name: requestedRoomsInsert1,
+  parameters: [items2 : (List String), item3 : String],
+  result: (List String),
+  body: (match items2
+    | List.nil => (cons item3 (nil String))
+    | List.cons head4 rest5 => (if (prim equal item3 head4 : Bool) then (cons head4 rest5) else (if (prim less_than item3 head4 : Bool) then (cons item3 (cons head4 rest5)) else (cons head4 (requestedRoomsInsert1 rest5 item3))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items2
+}
+
+definition{
+  name: requestedRoomsLoop2,
+  parameters: [items7 : (List Request), state1 : (List String)],
+  result: (List String),
+  body: (match items7
+    | List.nil => state1
+    | List.cons r rest8 => (let rooms6 : (List String) := (requestedRoomsInsert1 state1 (project r room)); (requestedRoomsLoop2 rest8 rooms6))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  recursive_argument: items7
+}
+
+definition{
+  name: requestedRooms,
+  parameters: [requests : (List Request)],
+  result: Nat,
+  body: (let rooms : (List String) := (nil String); (let state9 : (List String) := (requestedRoomsLoop2 requests rooms); (prim length state9 : Nat))),
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: ownRooms,
+  parameters: [zone : Zone],
+  result: (List String),
+  body: (match zone | Zone.Room r => (cons r (nil String)) | Zone.Group value => (nil String))
+}
+
+definition{
   name: queueInsert1,
   parameters: [items2 : (List Request), item3 : Request],
   result: (List Request),

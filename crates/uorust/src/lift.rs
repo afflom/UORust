@@ -1692,8 +1692,21 @@ fn expr_form(
             if ct != Ty::Bool {
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
-            let ((then, tt), acc) = block(&i.then_branch.stmts, env, ctx, acc, want)?;
-            let ((other, ot), acc) = expr(otherwise, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
+            let ((then, tt), (other, ot), acc) =
+                match block(&i.then_branch.stmts, env, ctx, acc.clone(), want) {
+                    // A branch whose type only the other says: that one first.
+                    Err(r) if want.is_none() && untyped(&r) => {
+                        let ((other, ot), acc) = expr(otherwise, env, ctx, acc, None)?;
+                        let (then, acc) = block(&i.then_branch.stmts, env, ctx, acc, Some(&ot))?;
+                        (then, (other, ot), acc)
+                    }
+                    lifted => {
+                        let ((then, tt), acc) = lifted?;
+                        let (other, acc) =
+                            expr(otherwise, env, ctx, acc, Some(want.unwrap_or(&tt)))?;
+                        ((then, tt), other, acc)
+                    }
+                };
             if !tt.same(&ot) {
                 return Err(Residue::Form("branches of different types".to_string()));
             }
@@ -5237,6 +5250,7 @@ fn compile<'a>(
     };
     let mut out = Vec::new();
     let mut result: Option<Ty> = want.cloned();
+    let mut deferred = Vec::new();
     let mut acc = acc;
     for (key, lex, field_tys) in &ctors {
         let Some(next) = reach(key, field_tys.len()) else {
@@ -5299,7 +5313,24 @@ fn compile<'a>(
             }
         }
         let binders: Vec<String> = names.iter().map(|c| c.value.clone()).collect();
-        let ((e, t), after) = compile(&around(names), &next, env, &scope, acc, result.as_ref())?;
+        let pattern = std::iter::once(lex.clone())
+            .chain(binders)
+            .collect::<Vec<_>>()
+            .join(" ");
+        let cols = around(names);
+        let ((e, t), after) = match compile(&cols, &next, env, &scope, acc.clone(), result.as_ref())
+        {
+            // An arm whose type only a sibling says waits for the others.
+            Err(r) if result.is_none() && untyped(&r) => {
+                deferred.push((out.len(), cols, next, scope));
+                out.push(Arm {
+                    pattern,
+                    body: Expr::Flat(String::new()),
+                });
+                continue;
+            }
+            lifted => lifted?,
+        };
         acc = after;
         match &result {
             Some(r) if !r.same(&t) => {
@@ -5307,20 +5338,34 @@ fn compile<'a>(
             }
             _ => result = Some(t),
         }
-        let pattern = std::iter::once(lex.clone())
-            .chain(binders)
-            .collect::<Vec<_>>()
-            .join(" ");
         out.push(Arm { pattern, body: e });
     }
     let Some(result) = result else {
         return Err(Residue::Form("empty match".to_string()));
     };
+    for (at, cols, next, scope) in deferred {
+        let ((e, t), after) = compile(&cols, &next, env, &scope, acc, Some(&result))?;
+        acc = after;
+        if !result.same(&t) {
+            return Err(Residue::Form("arms of different types".to_string()));
+        }
+        out[at].body = e;
+    }
     let e = Expr::Match {
         scrutinee: col.value.clone(),
         arms: out,
     };
     Ok(((e, result), acc))
+}
+
+/// A residue that says only that an expression's type was not known where
+/// it was lifted: an empty collection or a `None` no sibling had typed yet.
+fn untyped(r: &Residue) -> bool {
+    match r {
+        Residue::Call(n) => n == "new",
+        Residue::Form(f) => f == "None of an unknown type",
+        _ => false,
+    }
 }
 
 /// A branch followed by the statements after it, as one block expression.
@@ -6407,6 +6452,7 @@ fn block(
                 Some(d) => Some(d.clone()),
                 None if is_empty_vec(&init.expr) => {
                     returned_type(&ident.ident.clone(), rest, ctx, want)
+                        .or_else(|| used_type(&ident.ident, &init.expr, rest, env, ctx))
                 }
                 None => None,
             };
@@ -6486,6 +6532,189 @@ fn is_empty_vec(e: &rs::RustExpr) -> bool {
         ),
         (["Vec" | "BTreeSet" | "BTreeMap", "new"], 0) | (["Vec", "with_capacity"], 1)
     )
+}
+
+/// How a later statement uses an empty collection: it adds an element,
+/// an entry, or it is passed where a type is declared.
+enum Use {
+    Element(Ty),
+    Entry(Ty, Ty),
+    Whole(Ty),
+}
+
+/// The type an empty collection bound to `ident` takes from its first use
+/// in the statements after it whose type the lifted signatures say: an
+/// element `insert`ed, `push`ed or `extend`ed with, an entry `insert`ed,
+/// or an argument of a lifted function's declared type.
+fn used_type(
+    ident: &str,
+    init: &rs::RustExpr,
+    rest: &[rs::Stmt],
+    env: &Env,
+    ctx: &Ctx,
+) -> Option<Ty> {
+    let rs::RustExpr::Call(c) = init else {
+        return None;
+    };
+    let rs::RustExpr::Path(p) = &*c.func else {
+        return None;
+    };
+    let kind = p.segments.first()?.ident.clone();
+    let locals: BTreeMap<String, Ty> = ctx
+        .locals
+        .iter()
+        .map(|(r, (_, t))| (r.clone(), t.clone()))
+        .collect();
+    match (kind.as_str(), use_in_stmts(ident, rest, env, &locals)?) {
+        (_, Use::Whole(t)) => Some(t),
+        ("Vec", Use::Element(t)) => Some(Ty::List(Box::new(t))),
+        ("BTreeSet", Use::Element(t)) => Some(Ty::Set(Box::new(t), true)),
+        ("BTreeMap", Use::Entry(k, v)) => Some(Ty::Map(Box::new(k), Box::new(v), true)),
+        _ => None,
+    }
+}
+
+/// [`used_type`] over statements, with the locals they bind in turn.
+fn use_in_stmts(
+    ident: &str,
+    stmts: &[rs::Stmt],
+    env: &Env,
+    locals: &BTreeMap<String, Ty>,
+) -> Option<Use> {
+    let mut scope = locals.clone();
+    for stmt in stmts {
+        match stmt {
+            rs::Stmt::Local(l) => {
+                let init = l.init.as_ref()?;
+                if let Some(u) = use_in(ident, &init.expr, env, &scope) {
+                    return Some(u);
+                }
+                if let rs::Pat::Ident(i) = &l.pat {
+                    match static_type(&init.expr, env, &scope) {
+                        Some(t) => scope.insert(i.ident.clone(), t),
+                        None => scope.remove(&i.ident),
+                    };
+                }
+            }
+            rs::Stmt::Expr(e, _) => {
+                if let Some(u) = use_in(ident, e, env, &scope) {
+                    return Some(u);
+                }
+            }
+            rs::Stmt::Macro(_) | rs::Stmt::Other => {}
+        }
+    }
+    None
+}
+
+/// [`used_type`] in an expression.
+fn use_in(ident: &str, e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Option<Use> {
+    let named = |x: &rs::RustExpr| match x {
+        rs::RustExpr::Reference(r) => {
+            matches!(&*r.expr, rs::RustExpr::Path(p) if p.is_ident(ident))
+        }
+        rs::RustExpr::Path(p) => p.is_ident(ident),
+        _ => false,
+    };
+    match e {
+        rs::RustExpr::MethodCall(m) if named(&m.receiver) => {
+            let ty = |x: &rs::RustExpr| static_type(x, env, locals);
+            match (m.method.as_str(), m.args.as_slice()) {
+                ("insert" | "push", [x]) => ty(x).map(Use::Element),
+                ("insert", [k, v]) => Some(Use::Entry(ty(k)?, ty(v)?)),
+                ("extend", [x]) => match ty(x)? {
+                    Ty::List(t) | Ty::Set(t, _) => Some(Use::Element(*t)),
+                    _ => None,
+                },
+                _ => None,
+            }
+        }
+        rs::RustExpr::Call(c) => match c.args.iter().position(named) {
+            Some(i) => {
+                let rs::RustExpr::Path(p) = &*c.func else {
+                    return None;
+                };
+                let sig = env.fns.get(&p.segments.last()?.ident)?;
+                sig.params.get(i).cloned().map(Use::Whole)
+            }
+            None => c.args.iter().find_map(|a| use_in(ident, a, env, locals)),
+        },
+        rs::RustExpr::ForLoop(f) => {
+            if let Some(u) = use_in(ident, &f.expr, env, locals) {
+                return Some(u);
+            }
+            let mut inner = locals.clone();
+            if let rs::Pat::Ident(i) = &f.pat {
+                let elem = match static_type(&f.expr, env, locals) {
+                    Some(Ty::List(t) | Ty::Set(t, _)) => Some(*t),
+                    Some(m @ Ty::Map(..)) => Some(m.entry()),
+                    _ => None,
+                };
+                match elem {
+                    Some(t) => inner.insert(i.ident.clone(), t),
+                    None => inner.remove(&i.ident),
+                };
+            }
+            use_in_stmts(ident, &f.body.stmts, env, &inner)
+        }
+        rs::RustExpr::Closure(_) => None,
+        other => {
+            let (exprs, blocks) = other.parts();
+            exprs
+                .iter()
+                .find_map(|x| use_in(ident, x, env, locals))
+                .or_else(|| {
+                    blocks
+                        .iter()
+                        .find_map(|b| use_in_stmts(ident, &b.stmts, env, locals))
+                })
+        }
+    }
+}
+
+/// The type of an expression of locals, borrows, clones and calls of
+/// lifted functions and methods, read from their signatures.
+fn static_type(e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Option<Ty> {
+    match e {
+        rs::RustExpr::Path(p) => locals.get(p.get_ident()?).cloned(),
+        rs::RustExpr::Reference(r) => static_type(&r.expr, env, locals),
+        rs::RustExpr::Paren(x) => static_type(x, env, locals),
+        rs::RustExpr::MethodCall(m)
+            if m.args.is_empty()
+                && matches!(
+                    m.method.as_str(),
+                    "iter" | "into_iter" | "clone" | "to_owned" | "cloned"
+                ) =>
+        {
+            static_type(&m.receiver, env, locals)
+        }
+        rs::RustExpr::MethodCall(m) => match static_type(&m.receiver, env, locals)? {
+            Ty::Named(owner) => env
+                .fns
+                .get(&format!("{owner}::{}", m.method))
+                .map(|s| s.result.clone()),
+            _ => None,
+        },
+        rs::RustExpr::Call(c) => match &*c.func {
+            rs::RustExpr::Path(p) => env
+                .fns
+                .get(&p.segments.last()?.ident)
+                .map(|s| s.result.clone()),
+            _ => None,
+        },
+        rs::RustExpr::Field(f) => match (static_type(&f.base, env, locals)?, &f.member) {
+            (Ty::Named(n), rs::Member::Named(m)) => env
+                .types
+                .structs
+                .get(&n)?
+                .iter()
+                .find(|(field, _)| *field == local_name(m))
+                .map(|(_, t)| t.clone()),
+            (Ty::Tuple(ts), rs::Member::Unnamed(i)) => ts.get(usize::try_from(*i).ok()?).cloned(),
+            _ => None,
+        },
+        _ => None,
+    }
 }
 
 /// The type a local takes from where the block returns it: the block's own

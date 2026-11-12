@@ -367,6 +367,23 @@ pub fn apart(a: &Zone, b: &Zone) -> bool {
     left.is_disjoint(&right)
 }
 
+/// How many distinct rooms the requests are for.
+pub fn requested_rooms(requests: &[Request]) -> usize {
+    let mut rooms = BTreeSet::new();
+    for r in requests {
+        rooms.insert(r.room.clone());
+    }
+    rooms.len()
+}
+
+/// The rooms a zone names itself, not through a group.
+pub fn own_rooms(zone: &Zone) -> Vec<String> {
+    match zone {
+        Zone::Group(_) => Vec::new(),
+        Zone::Room(r) => vec![r.clone()],
+    }
+}
+
 /// The distinct requests, in the order they sort in.
 pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
     let mut out = BTreeSet::new();
@@ -501,6 +518,7 @@ mod tests {
             &Zone::Room("hall".to_string()),
             &Zone::Group(vec![Zone::Room("den".to_string())])
         ));
+        assert_eq!(own_rooms(&Zone::Room("den".to_string())).len(), 1);
         assert!(all_named(&Zone::Group(vec![Zone::Room(
             "hall".to_string()
         )])));
