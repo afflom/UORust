@@ -593,6 +593,19 @@ pub fn code_index(code: u16) -> usize {
     code as usize
 }
 
+/// Whether a reading is in the comfortable band.
+pub fn in_comfort_band(reading: u32) -> bool {
+    const LOW: u32 = 18;
+    const HIGH: u32 = 24;
+    LOW <= reading && reading <= HIGH
+}
+
+/// Whether a booking's priority is the urgent one.
+pub fn pressing(priority: Priority) -> bool {
+    use Priority as P;
+    matches!(priority, P::Urgent)
+}
+
 /// Whether the roster names no room, or its first room is unnamed.
 pub fn starts_unnamed(rooms: &[String]) -> bool {
     if rooms.first().is_none() {
@@ -797,6 +810,9 @@ mod tests {
         );
         assert_eq!(none_taken(&["den".to_string()], &[]), Ok(()));
         assert!(starts_unnamed(&[]));
+        assert!(in_comfort_band(20));
+        assert!(!in_comfort_band(30));
+        assert!(pressing(Priority::Urgent));
         assert_eq!(count_byte(300), 44);
         assert_eq!(code_index(7), 7);
         assert!(same_file("Den", "den"));

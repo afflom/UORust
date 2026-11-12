@@ -122,6 +122,8 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterCutName is made
     And the interface call Interface::callThermoCoreRosterCountByte is made
     And the interface call Interface::callThermoCoreRosterCodeIndex is made
+    And the interface call Interface::callThermoCoreRosterInComfortBand is made
+    And the interface call Interface::callThermoCoreRosterPressing is made
     And the interface call Interface::callThermoCoreRosterStartsUnnamed is made
     And the interface call Interface::callThermoCoreRosterMarkedRooms is made
     And the interface call Interface::callThermoCoreRosterDoubledRoom is made

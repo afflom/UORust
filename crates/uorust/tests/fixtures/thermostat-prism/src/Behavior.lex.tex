@@ -1885,6 +1885,23 @@ definition{
 definition{name: codeIndex, parameters: [code : Nat], result: Nat, body: code}
 
 definition{
+  name: inComfortBand,
+  parameters: [reading : Nat],
+  result: Bool,
+  body: (let low : Nat := 18; (let high : Nat := 24; ((low <=? reading) && (reading <=? high))))
+}
+
+definition{
+  name: pressing,
+  parameters: [priority : Priority],
+  result: Bool,
+  body: (match priority
+    | Priority.Low => false
+    | Priority.Normal => false
+    | Priority.Urgent => true)
+}
+
+definition{
   name: startsUnnamedPart1,
   parameters: [rooms : (List String)],
   result: Bool,
@@ -2494,47 +2511,68 @@ theorem{
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom22,
   parameters: [],
-  statement: ((countByte 300) = 44),
+  statement: ((inComfortBand 20) = true),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom23,
   parameters: [],
+  statement: ((inComfortBand 30) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom24,
+  parameters: [],
+  statement: ((pressing (ctor Priority.Urgent)) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom25,
+  parameters: [],
+  statement: ((countByte 300) = 44),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom26,
+  parameters: [],
   statement: ((codeIndex 7) = 7),
-  proof: decide{}
-}
-
-theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom27,
-  parameters: [],
-  statement: ((startsUnnamed (cons "den" (nil String))) = false),
-  proof: decide{}
-}
-
-theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom28,
-  parameters: [],
-  statement: ((perRoom 7 2) = 3),
-  proof: decide{}
-}
-
-theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom29,
-  parameters: [],
-  statement: ((perRoom 7 0) = 0),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom30,
   parameters: [],
-  statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
+  statement: ((startsUnnamed (cons "den" (nil String))) = false),
   proof: decide{}
 }
 
 theorem{
   name: acceptThermoCoreRequestsSortByPriorityThenRoom31,
+  parameters: [],
+  statement: ((perRoom 7 2) = 3),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom32,
+  parameters: [],
+  statement: ((perRoom 7 0) = 0),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom33,
+  parameters: [],
+  statement: ((leftOver 7 0) = (ctor Option.none [Nat])),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom34,
   parameters: [],
   statement: ((leftOver 7 3) = (ctor Option.some [Nat] 1)),
   proof: decide{}

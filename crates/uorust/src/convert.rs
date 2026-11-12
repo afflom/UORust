@@ -115,8 +115,85 @@ fn member(m: &syn::Member) -> Member {
 
 /// A block.
 pub(crate) fn block(b: &syn::Block) -> Block {
-    Block {
-        stmts: b.stmts.iter().map(stmt).collect(),
+    // A `use` in a body names paths for the statements after it: they are
+    // read as written out in full.
+    let mut stmts = Vec::new();
+    let mut rest: Vec<syn::Stmt> = b.stmts.clone();
+    while !rest.is_empty() {
+        let first = rest.remove(0);
+        match &first {
+            syn::Stmt::Item(syn::Item::Use(u)) if u.leading_colon.is_none() => {
+                let mut names = Vec::new();
+                if !used_names(&u.tree, &mut Vec::new(), &mut names) {
+                    stmts.push(Stmt::Other);
+                    continue;
+                }
+                let mut written = WrittenOut { names };
+                for s in &mut rest {
+                    syn::visit_mut::VisitMut::visit_stmt_mut(&mut written, s);
+                }
+            }
+            other => stmts.push(stmt(other)),
+        }
+    }
+    Block { stmts }
+}
+
+/// The names a `use` tree binds, each with the path it names, or `false`
+/// for a glob, whose names the tree does not say.
+fn used_names(
+    tree: &syn::UseTree,
+    prefix: &mut Vec<syn::Ident>,
+    out: &mut Vec<(syn::Ident, Vec<syn::Ident>)>,
+) -> bool {
+    match tree {
+        syn::UseTree::Path(p) => {
+            prefix.push(p.ident.clone());
+            let ok = used_names(&p.tree, prefix, out);
+            prefix.pop();
+            ok
+        }
+        syn::UseTree::Name(n) => {
+            let mut full = prefix.clone();
+            full.push(n.ident.clone());
+            out.push((n.ident.clone(), full));
+            true
+        }
+        syn::UseTree::Rename(r) => {
+            let mut full = prefix.clone();
+            full.push(r.ident.clone());
+            out.push((r.rename.clone(), full));
+            true
+        }
+        syn::UseTree::Group(g) => g.items.iter().all(|t| used_names(t, prefix, out)),
+        syn::UseTree::Glob(_) => false,
+    }
+}
+
+/// Rewrites each path that starts with a name a body's `use` binds into
+/// the path that name stands for.
+struct WrittenOut {
+    names: Vec<(syn::Ident, Vec<syn::Ident>)>,
+}
+
+impl syn::visit_mut::VisitMut for WrittenOut {
+    fn visit_path_mut(&mut self, p: &mut syn::Path) {
+        if p.leading_colon.is_none() {
+            let head = p.segments.first().map(|s| s.ident.clone());
+            if let Some((_, full)) = self.names.iter().find(|(n, _)| Some(n) == head.as_ref()) {
+                let mut segments: Punctuated<syn::PathSegment, syn::Token![::]> = full
+                    .iter()
+                    .map(|i| syn::PathSegment::from(i.clone()))
+                    .collect();
+                let first = p.segments.iter().next().cloned();
+                if let (Some(last), Some(first)) = (segments.last_mut(), first) {
+                    last.arguments = first.arguments;
+                }
+                segments.extend(p.segments.iter().skip(1).cloned());
+                p.segments = segments;
+            }
+        }
+        syn::visit_mut::visit_path_mut(self, p);
     }
 }
 
@@ -131,6 +208,21 @@ fn stmt(s: &syn::Stmt) -> Stmt {
         }),
         syn::Stmt::Expr(e, semi) => Stmt::Expr(expr(e), semi.is_some()),
         syn::Stmt::Macro(m) => Stmt::Macro(mac(&m.mac)),
+        // `const N: T = e;` in a body is the value `e` of type `T`.
+        syn::Stmt::Item(syn::Item::Const(c)) => Stmt::Local(Local {
+            pat: Pat::Type(PatType {
+                pat: Box::new(Pat::Ident(PatIdent {
+                    ident: c.ident.to_string(),
+                    by_ref: false,
+                    subpat: None,
+                })),
+                ty: ty(&c.ty),
+            }),
+            init: Some(LocalInit {
+                expr: Box::new(expr(&c.expr)),
+                diverge: None,
+            }),
+        }),
         syn::Stmt::Item(_) => Stmt::Other,
     }
 }

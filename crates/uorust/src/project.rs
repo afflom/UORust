@@ -3182,8 +3182,23 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
                 ctx.stopped(notes, &effectful, r, reason);
                 continue;
             }
+            // A trait method over a registry crate's types, such as a `syn`
+            // visitor, is the converter shell's: a foreign row.
             (Some(_), Some(t)) => {
-                let reason = Residue::Signature(format!("implements the trait {t}"));
+                let sig = &syntax.function(&ctx.file(r).rel, r.idx).signature;
+                let foreign = sig
+                    .inputs
+                    .iter()
+                    .filter_map(|i| match i {
+                        crate::ast::FnArg::Typed(p) => Some(p.ty.text.clone()),
+                        crate::ast::FnArg::Receiver { .. } => None,
+                    })
+                    .chain(sig.output.iter().map(|o| o.text.clone()))
+                    .find(|ty| foreign_crate(&ctx.ws.packages[r.pkg], ty).is_some());
+                let reason = match foreign {
+                    Some(ty) => Residue::Type(ty),
+                    None => Residue::Signature(format!("implements the trait {t}")),
+                };
                 ctx.stopped(notes, &effectful, r, reason);
                 continue;
             }
