@@ -544,6 +544,8 @@ pub(crate) enum RustExpr {
     Index(ExprIndex),
     Let(ExprLet),
     Lit(Lit),
+    /// `loop { body }`.
+    Loop(ExprLoop),
     Macro(ExprMacro),
     Match(ExprMatch),
     MethodCall(ExprMethodCall),
@@ -559,6 +561,9 @@ pub(crate) enum RustExpr {
     /// `()` and `(a, b, ..)`.
     Tuple(Vec<RustExpr>),
     Unary(ExprUnary),
+    /// `while cond { body }`; `while let p = e` has the `let` as its
+    /// condition.
+    While(ExprWhile),
     /// Any other form: its kind (`expr::while`) and the expressions and
     /// blocks inside it.
     Other(ExprOther),
@@ -628,6 +633,21 @@ pub(crate) struct ExprForLoop {
     pub(crate) label: bool,
     pub(crate) pat: Pat,
     pub(crate) expr: Box<RustExpr>,
+    pub(crate) body: Block,
+}
+
+/// `loop { body }`, and whether it has a label.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ExprLoop {
+    pub(crate) label: bool,
+    pub(crate) body: Block,
+}
+
+/// `while cond { body }`, and whether it has a label.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct ExprWhile {
+    pub(crate) label: bool,
+    pub(crate) cond: Box<RustExpr>,
     pub(crate) body: Block,
 }
 
@@ -744,6 +764,8 @@ impl RustExpr {
             Self::Closure(c) => (vec![&c.body], none),
             Self::Field(f) => (vec![&f.base], none),
             Self::ForLoop(f) => (vec![&f.expr], vec![&f.body]),
+            Self::Loop(l) => (Vec::new(), vec![&l.body]),
+            Self::While(w) => (vec![&w.cond], vec![&w.body]),
             Self::If(i) => {
                 let mut out = vec![&*i.cond];
                 out.extend(i.else_branch.as_deref());
@@ -801,6 +823,7 @@ impl RustExpr {
             Self::Index(_) => "index",
             Self::Let(_) => "let",
             Self::Lit(_) => "lit",
+            Self::Loop(_) => "loop",
             Self::Macro(_) => "macro",
             Self::Match(_) => "match",
             Self::MethodCall(_) => "methodcall",
@@ -812,6 +835,7 @@ impl RustExpr {
             Self::Try(_) => "try",
             Self::Tuple(_) => "tuple",
             Self::Unary(_) => "unary",
+            Self::While(_) => "while",
             Self::Other(o) => return o.kind.clone(),
         };
         format!("expr::{name}")

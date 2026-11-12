@@ -216,6 +216,13 @@ structure{
 }
 
 structure{
+  name: TupleNatListString,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: item0, type: Nat}, {name: item1, type: (List String)}]
+}
+
+structure{
   name: TupleNatNat,
   type_parameters: [],
   parameters: [],
@@ -2135,6 +2142,91 @@ definition{
   axioms: [propext]
 }
 
+definition{
+  name: everyOtherPart1,
+  parameters: [at1 : Nat, rooms : (List String)],
+  result: String,
+  body: (match (prim index rooms at1 : (Option String))
+    | Option.none => ""
+    | Option.some item1 => item1)
+}
+
+definition{
+  name: everyOtherStep1,
+  parameters: [at1 : Nat, state1 : (List String), rooms : (List String)],
+  result: (List String),
+  body: (let out1 : (List String) := (prim append state1 (cons (everyOtherPart1 at1 rooms) (nil String)) : (List String)); (let atValue1 : Nat := (at1 + 2); out1))
+}
+
+theorem{
+  name: decreases_everyOtherLoop1_0,
+  parameters: [at1 : Nat, state1 : (List String), rooms : (List String)],
+  statement: (((at1 <? (prim length rooms : Nat)) = true) -> ((prim subtract (prim length rooms : Nat) (at1 + 2) : Nat) < (prim subtract (prim length rooms : Nat) at1 : Nat))),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: everyOtherLoop1,
+  parameters: [at1 : Nat, state1 : (List String), rooms : (List String)],
+  result: TupleNatListString,
+  body: (if (at1 <? (prim length rooms : Nat)) then (everyOtherLoop1 (at1 + 2) (everyOtherStep1 at1 state1 rooms) rooms) else (record TupleNatListString {item0 := at1, item1 := state1})),
+  axioms: [Quot.sound, propext],
+  termination: {
+    evidence: [decreases_everyOtherLoop1_0],
+    measure: (prim subtract (prim length rooms : Nat) at1 : Nat)
+  }
+}
+
+definition{
+  name: everyOther,
+  parameters: [rooms : (List String)],
+  result: (List String),
+  body: (let out : (List String) := (nil String); (let atValue : Nat := 0; (let state2 : TupleNatListString := (everyOtherLoop1 atValue out rooms); (let atValue2 : Nat := (project state2 item0); (let out2 : (List String) := (project state2 item1); out2))))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: firstRoomsPart1,
+  parameters: [at1 : Nat, rooms : (List String)],
+  result: String,
+  body: (match (prim index rooms at1 : (Option String))
+    | Option.none => ""
+    | Option.some item1 => item1)
+}
+
+definition{
+  name: firstRoomsStep1,
+  parameters: [at1 : Nat, state1 : (List String), count : Nat, rooms : (List String)],
+  result: (List String),
+  body: (if (at1 <? (prim length rooms : Nat)) then (let out1 : (List String) := (prim append state1 (cons (firstRoomsPart1 at1 rooms) (nil String)) : (List String)); (let atValue1 : Nat := (at1 + 1); out1)) else (let atValue2 : Nat := (at1 + 1); state1))
+}
+
+theorem{
+  name: decreases_firstRoomsLoop1_0,
+  parameters: [at1 : Nat, state1 : (List String), count : Nat, rooms : (List String)],
+  statement: (((at1 <? count) = true) -> ((prim subtract count (at1 + 1) : Nat) < (prim subtract count at1 : Nat))),
+  proof: linear_arithmetic{},
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: firstRoomsLoop1,
+  parameters: [at1 : Nat, state1 : (List String), count : Nat, rooms : (List String)],
+  result: TupleNatListString,
+  body: (if (at1 <? count) then (firstRoomsLoop1 (at1 + 1) (firstRoomsStep1 at1 state1 count rooms) count rooms) else (record TupleNatListString {item0 := at1, item1 := state1})),
+  axioms: [Quot.sound, propext],
+  termination: {evidence: [decreases_firstRoomsLoop1_0], measure: (prim subtract count at1 : Nat)}
+}
+
+definition{
+  name: firstRooms,
+  parameters: [rooms : (List String), count : Nat],
+  result: (List String),
+  body: (let out : (List String) := (nil String); (let atValue : Nat := 0; (let state2 : TupleNatListString := (firstRoomsLoop1 atValue out count rooms); (let atValue3 : Nat := (project state2 item0); (let out2 : (List String) := (project state2 item1); out2))))),
+  axioms: [Quot.sound, propext]
+}
+
 theorem{
   name: decreases_occupiedTarget_0,
   parameters: [step : Step, occupied : Step, rest : Step],
@@ -2743,14 +2835,14 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom45,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom47,
   parameters: [],
   statement: ((opening "den") = true),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom46,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom48,
   parameters: [],
   statement: ((opening "attic") = false),
   proof: decide{}

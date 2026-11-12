@@ -1045,6 +1045,11 @@ struct Ctx {
     /// Natural-number terms -> a lower bound the conditions in scope
     /// establish: `n` at least 2 after `if n < 2 { return .. }`.
     bounds: BTreeMap<String, u128>,
+    /// Natural-number terms the conditions in scope hold below a `usize`
+    /// -> the largest constant that added to one stays in range: one below
+    /// any `usize`, half the narrowest width below a collection's length,
+    /// which is at most `isize::MAX`.
+    capped: BTreeMap<String, u128>,
     /// The state type of the loop step the statements in hand are, where
     /// they are the function's own: a `return` or `?` there leaves the walk
     /// with the function's value.
@@ -1216,6 +1221,9 @@ pub(crate) struct Helper {
     /// list it walks, a sub-term of the function's recursive parameter:
     /// the two are one mutual group, each structural on its own.
     pub(crate) entwined: bool,
+    /// A walk that is not structural: its measure and the theorems that
+    /// each recursive call decreases it, which precede it.
+    pub(crate) termination: Option<(String, Vec<Decl>)>,
 }
 
 /// The first of `base1`, `base2`, .. that `taken` does not hold. Each
@@ -1423,6 +1431,7 @@ fn flat_of(
         axioms: own.axioms,
         recursive: false,
         entwined: false,
+        termination: None,
     });
     let acc = acc.called(format!("#{name}"));
     Ok(((format!("({})", parts.join(" ")), t), acc))
@@ -1525,14 +1534,17 @@ fn usize_sum(
     l: &str,
     r: &str,
     env: &Env,
+    capped: &BTreeMap<String, u128>,
 ) -> Lift<String> {
     let is_len = |e: &rs::RustExpr| matches!(e, rs::RustExpr::MethodCall(m) if m.method == "len" && m.args.is_empty());
     let narrowest = env.widths.first().map(|(w, _)| *w);
     let half = narrowest.and_then(|w| 1u128.checked_shl(w - 1));
-    let bounded = |len: &rs::RustExpr, k: &rs::RustExpr| {
-        is_len(len) && matches!((int_literal(k), half), (Some(k), Some(h)) if k <= h)
+    let bounded = |len: &rs::RustExpr, text: &str, k: &rs::RustExpr| match int_literal(k) {
+        Some(k) if is_len(len) => half.is_some_and(|h| k <= h),
+        Some(k) => capped.get(text).is_some_and(|m| k <= *m),
+        None => false,
     };
-    if bounded(left, right) || bounded(right, left) {
+    if bounded(left, l, right) || bounded(right, r, left) {
         return Ok(format!("({l} + {r})"));
     }
     Err(Residue::Overflow("+".to_string(), env.widths.clone()))
@@ -2491,7 +2503,11 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
             if lt != want || rt != want {
                 return Err(Residue::Arithmetic(op_text()));
             }
-            flat(usize_sum(&b.left, &b.right, &l, &r, env)?, want, acc)
+            flat(
+                usize_sum(&b.left, &b.right, &l, &r, env, &ctx.capped)?,
+                want,
+                acc,
+            )
         }
         // `a - k` where the conditions in scope bound `a` below by `k` or
         // more: it does not underflow, so it is the natural difference.
@@ -4570,6 +4586,7 @@ fn walk(
         axioms: lam.axioms.clone(),
         recursive: true,
         entwined: !lam.descends.is_empty(),
+        termination: None,
     });
     let acc = lam
         .descends
@@ -4947,6 +4964,7 @@ fn combinator(
                 axioms: BTreeSet::new(),
                 recursive: true,
                 entwined: false,
+                termination: None,
             });
             let acc = acc.called(format!("#{name}"));
             flat(format!("({name} {r} {o})"), pairs, acc)
@@ -6336,6 +6354,12 @@ fn updated(
             let (piece, acc) = value_of(&b.right, &Ty::Str, acc)?;
             joined(piece, acc)
         }
+        // `i += k` on `usize`: the sum, where it stays in range.
+        (rs::RustExpr::Binary(b), Ty::Nat(None)) if b.op == rs::BinOp::AddAssign => {
+            let (k, acc) = value_of(&b.right, ty, acc)?;
+            let sum = usize_sum(&b.left, &b.right, current, &k, env, &ctx.capped)?;
+            Ok((sum, acc))
+        }
         (rs::RustExpr::Binary(b), _) => Err(Residue::Arithmetic(b.op.text().to_string())),
         (rs::RustExpr::MethodCall(m), Ty::Set(t, true))
             if m.method == "insert" && m.args.len() == 1 =>
@@ -6477,6 +6501,7 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
         axioms,
         recursive: true,
         entwined: false,
+        termination: None,
     });
     let acc = acc.called(format!("#{name}"));
     Ok((name, acc))
@@ -6518,6 +6543,7 @@ fn insert_all(ty: &Ty, items: &Ty, insert: &str, env: &Env, ctx: &Ctx, acc: Acc)
         axioms,
         recursive: true,
         entwined: false,
+        termination: None,
     });
     let acc = acc.called(format!("#{name}"));
     (name, acc)
@@ -6838,6 +6864,7 @@ fn for_loop(
         axioms: own.axioms,
         recursive: true,
         entwined,
+        termination: None,
     });
     let acc = acc.called(format!("#{name}"));
     // The loop's value, then the rest with the final state.
@@ -6883,6 +6910,389 @@ fn for_loop(
                         body: left,
                     },
                 ],
+            },
+            rt,
+        ),
+        acc,
+    ))
+}
+
+/// The cursor and bound of a loop condition `i < n`: a local the loop
+/// updates below a value it does not.
+fn cursor_of<'e>(cond: &'e rs::RustExpr, state: &[String]) -> Option<(String, &'e rs::RustExpr)> {
+    let rs::RustExpr::Binary(b) = cond else {
+        return None;
+    };
+    let rs::RustExpr::Path(p) = &*b.left else {
+        return None;
+    };
+    let cursor = p.get_ident()?.clone();
+    let (updated_bound, _) = scan_exprs(&[&b.right]);
+    (b.op == rs::BinOp::Lt
+        && state.contains(&cursor)
+        && updated_bound.is_empty()
+        && !state.iter().any(|name| uses_local(&b.right, name)))
+    .then_some((cursor, &*b.right))
+}
+
+/// Whether an expression reads the local `name`.
+fn uses_local(e: &rs::RustExpr, name: &str) -> bool {
+    match e {
+        rs::RustExpr::Path(p) => p.is_ident(name),
+        rs::RustExpr::Macro(_) => true,
+        other => {
+            let (exprs, blocks) = other.parts();
+            exprs.iter().any(|x| uses_local(x, name))
+                || blocks.iter().any(|b| {
+                    b.stmts.iter().any(|s| match s {
+                        rs::Stmt::Local(l) => {
+                            l.init.as_ref().is_some_and(|i| uses_local(&i.expr, name))
+                        }
+                        rs::Stmt::Expr(x, _) => uses_local(x, name),
+                        rs::Stmt::Macro(_) | rs::Stmt::Other => true,
+                    })
+                })
+        }
+    }
+}
+
+/// The constant a statement advances the local `cursor` by: `i += k` or
+/// `i = i + k`, with `k` at least one.
+fn advance(stmt: &rs::Stmt, cursor: &str) -> Option<u128> {
+    let rs::Stmt::Expr(e, true) = stmt else {
+        return None;
+    };
+    let is_cursor = |x: &rs::RustExpr| matches!(x, rs::RustExpr::Path(p) if p.is_ident(cursor));
+    let k = match e {
+        rs::RustExpr::Binary(b) if b.op == rs::BinOp::AddAssign && is_cursor(&b.left) => {
+            int_literal(&b.right)
+        }
+        rs::RustExpr::Assign(a) if is_cursor(&a.left) => match &*a.right {
+            rs::RustExpr::Binary(b) if b.op == rs::BinOp::Add && is_cursor(&b.left) => {
+                int_literal(&b.right)
+            }
+            _ => None,
+        },
+        _ => None,
+    }?;
+    (k >= 1).then_some(k)
+}
+
+/// Whether statements leave a loop step other than at its end: a
+/// `continue`, `break`, `return` or `?` outside a closure.
+fn leaves_step(stmts: &[rs::Stmt]) -> bool {
+    stmts.iter().any(|s| match s {
+        rs::Stmt::Local(l) => l
+            .init
+            .as_ref()
+            .is_some_and(|i| i.diverge.is_some() || leaves_in(&i.expr)),
+        rs::Stmt::Expr(e, _) => leaves_in(e),
+        rs::Stmt::Macro(_) | rs::Stmt::Other => false,
+    })
+}
+
+/// [`leaves_step`] in an expression.
+fn leaves_in(e: &rs::RustExpr) -> bool {
+    match e {
+        rs::RustExpr::Continue(_)
+        | rs::RustExpr::Break(_)
+        | rs::RustExpr::Return(_)
+        | rs::RustExpr::Try(_) => true,
+        rs::RustExpr::Closure(_) => false,
+        other => {
+            let (exprs, blocks) = other.parts();
+            exprs.iter().any(|x| leaves_in(x)) || blocks.iter().any(|b| leaves_step(&b.stmts))
+        }
+    }
+}
+
+/// `while i < n { body } rest`: a walk whose state is the locals the body
+/// updates, measured by `n - i`. The body advances `i` by a constant once
+/// and leaves only at its end, so each step is a helper of the state, and
+/// the walk calls itself on the step while the condition holds; its one
+/// recursive call carries the theorem that the step decreases `n - i`.
+fn while_loop(
+    w: &rs::ExprWhile,
+    rest: &[rs::Stmt],
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    if w.label {
+        return Err(Residue::Form("labelled loop".to_string()));
+    }
+    if matches!(&*w.cond, rs::RustExpr::Let(_)) {
+        return Err(Residue::Form(
+            "a while let, whose walk the lift reads no measure for".to_string(),
+        ));
+    }
+    let state = loop_state(&w.body.stmts, ctx)?;
+    let Some((cursor, bound)) = cursor_of(&w.cond, &state) else {
+        return Err(Residue::Form(
+            "a while loop whose condition is not a cursor below a bound".to_string(),
+        ));
+    };
+    let steps: Vec<&rs::Stmt> = w
+        .body
+        .stmts
+        .iter()
+        .filter(|s| advance(s, &cursor).is_some())
+        .collect();
+    let elsewhere = w
+        .body
+        .stmts
+        .iter()
+        .filter(|s| advance(s, &cursor).is_none())
+        .any(|s| scan_stmts(std::slice::from_ref(s)).0.contains(&cursor));
+    if steps.len() != 1 || elsewhere || leaves_step(&w.body.stmts) {
+        return Err(Residue::Form(
+            "a while loop that does not advance its cursor once per step".to_string(),
+        ));
+    }
+    // `i < n` types `i` as `n`: a cursor below a `usize` is one, though
+    // the lift read its unsuffixed literal as a `u32`. The bound's type is
+    // checked below.
+    let mut retyped = ctx.clone();
+    match retyped.locals.get_mut(&cursor) {
+        Some((_, t @ Ty::Nat(_))) => *t = Ty::Nat(None),
+        _ => {
+            return Err(Residue::Form(
+                "a while loop over a cursor of another type".to_string(),
+            ))
+        }
+    }
+    let ctx = &retyped;
+    let tys: Vec<Ty> = state.iter().map(|v| ctx.locals[v].1.clone()).collect();
+    let state_ty = match tys.as_slice() {
+        [one] => one.clone(),
+        many => Ty::Tuple(many.to_vec()),
+    };
+    let acc = acc.saw(&state_ty);
+    let Some(step_by) = steps.first().and_then(|s| advance(s, &cursor)) else {
+        return Err(Residue::Form(
+            "a while loop that does not advance its cursor once per step".to_string(),
+        ));
+    };
+    // The walk takes the cursor apart from the rest of the state: the
+    // decrease reads the cursor alone, and its next value is the cursor
+    // plus the constant, which the step adds once.
+    let others: Vec<String> = state.iter().filter(|v| **v != cursor).cloned().collect();
+    let other_tys: Vec<Ty> = others.iter().map(|v| ctx.locals[v].1.clone()).collect();
+    let rest_ty = match other_tys.as_slice() {
+        [] => None,
+        [one] => Some(one.clone()),
+        many => Some(Ty::Tuple(many.to_vec())),
+    };
+    let acc = rest_ty.as_ref().map_or(acc.clone(), |t| acc.saw(t));
+    let (acc, before) = acc.apart();
+    let mut base = Ctx {
+        tails: BTreeMap::new(),
+        looping: None,
+        exits: None,
+        top: false,
+        ..ctx.clone()
+    };
+    // The outer names stay taken inside the walk.
+    for (rust, binding) in &ctx.locals {
+        base.locals
+            .insert(format!("#outer {rust}"), binding.clone());
+    }
+    let (at, acc) = base.fresh(env, acc, "at");
+    let (held, acc) = base.fresh(env, acc, "state");
+    let mut scope = base.clone();
+    if let Some((old, _)) = scope
+        .locals
+        .insert(cursor.clone(), (at.clone(), Ty::Nat(None)))
+    {
+        scope.hidden.push(old);
+    }
+    // The condition and the bound read the cursor from the walk's
+    // parameter: LexLean states a decrease over parameters only.
+    let ((cond, ct), acc) = flat_of(&w.cond, env, &scope.below(), acc, Some(&Ty::Bool))?;
+    let ((limit, lt), acc) = flat_of(bound, env, &scope.below(), acc, Some(&Ty::Nat(None)))?;
+    if ct != Ty::Bool || lt != Ty::Nat(None) {
+        return Err(Residue::Form(
+            "a while loop over a cursor of another type".to_string(),
+        ));
+    }
+    // The rest of the state after one step, from the state where the
+    // condition holds: the cursor is below a length there.
+    let mut step_text = Vec::new();
+    let mut step_def = None;
+    let mut acc = acc;
+    if let Some(rt) = &rest_ty {
+        let (inner, after, lets) = rebind(env, &scope, acc, &others, &held, Vec::new());
+        let mut inner = inner;
+        let is_len =
+            matches!(bound, rs::RustExpr::MethodCall(m) if m.method == "len" && m.args.is_empty());
+        let half = env
+            .widths
+            .first()
+            .and_then(|(w, _)| 1u128.checked_shl(w - 1));
+        let room = if is_len { half.unwrap_or(1) } else { 1 };
+        inner.capped.insert(at.clone(), room);
+        let mut stmts = w.body.stmts.clone();
+        stmts.push(rs::Stmt::Expr(state_expr(&others), false));
+        let ((step, st), after) = block(&stmts, env, &inner, after, Some(rt))?;
+        if !st.same(rt) {
+            return Err(Residue::Form("a loop step of another type".to_string()));
+        }
+        acc = after;
+        let step = wrap_lets(lets, step);
+        step_text.push(step.flat());
+        step_def = Some(step);
+    }
+    let (acc, own) = acc.rejoin(before);
+    if !own.descends.is_empty() {
+        return Err(Residue::Form("recursion inside a loop step".to_string()));
+    }
+    let mut texts = step_text;
+    texts.push(cond.clone());
+    texts.push(limit.clone());
+    let caps = captures(ctx, &texts, &[at.clone(), held.clone()]);
+    let cap_names: Vec<String> = caps.iter().map(|(c, _)| c.clone()).collect();
+    let mut params = vec![(at.clone(), Ty::Nat(None).render())];
+    if let Some(rt) = &rest_ty {
+        params.push((held.clone(), rt.render()));
+    }
+    params.extend(caps.iter().map(|(c, t)| (c.clone(), t.render())));
+    let applied = |head: &str, lead: &[String]| {
+        let mut parts = vec![head.to_string()];
+        parts.extend(lead.iter().cloned());
+        parts.extend(cap_names.iter().cloned());
+        format!("({})", parts.join(" "))
+    };
+    let mut lead = vec![format!("({at} + {step_by})")];
+    let mut acc = acc;
+    let mut own_calls = BTreeSet::new();
+    if let Some(step) = step_def {
+        let step_name = ctx.helper_name(env, &acc, "Step");
+        acc = acc
+            .helper(Helper {
+                name: step_name.clone(),
+                params: params.clone(),
+                result: rest_ty.as_ref().map(Ty::render).unwrap_or_default(),
+                body: step,
+                calls: own.calls,
+                axioms: own.axioms,
+                recursive: false,
+                entwined: false,
+                termination: None,
+            })
+            .called(format!("#{step_name}"));
+        own_calls.insert(format!("#{step_name}"));
+        lead.push(applied(&step_name, &[at.clone(), held.clone()]));
+    }
+    // The final state, in the locals' order.
+    let items: Vec<String> = state
+        .iter()
+        .map(|v| match others.iter().position(|o| o == v) {
+            None => at.clone(),
+            Some(_) if others.len() == 1 => held.clone(),
+            Some(j) => tuple_item(rest_ty.as_ref().unwrap_or(&Ty::Unit), &held, j),
+        })
+        .collect();
+    let done = match items.as_slice() {
+        [one] => one.clone(),
+        _ => tuple_value(&state_ty, &items),
+    };
+    let measure = |cursor_text: &str| format!("(prim subtract {limit} {cursor_text} : Nat)");
+    let name = ctx.helper_name(env, &acc, "Loop");
+    let evidence = format!("decreases_{name}_0");
+    let axioms: Vec<String> = ["Quot.sound", "propext"].map(String::from).to_vec();
+    let theorem = Decl::Theorem {
+        name: evidence,
+        parameters: params.clone(),
+        statement: format!(
+            "(({cond} = true) -> ({} < {}))",
+            measure(&lead[0]),
+            measure(&at)
+        ),
+        proof: "linear_arithmetic{}".to_string(),
+        axioms: axioms.clone(),
+    };
+    let acc = acc.helper(Helper {
+        name: name.clone(),
+        params,
+        result: state_ty.render(),
+        body: Expr::If {
+            condition: Box::new(Expr::Flat(cond)),
+            then: Box::new(Expr::Flat(applied(&name, &lead))),
+            otherwise: Box::new(Expr::Flat(done)),
+        },
+        calls: own_calls,
+        axioms: axioms.into_iter().collect(),
+        recursive: false,
+        entwined: false,
+        termination: Some((measure(&at), vec![theorem])),
+    });
+    let acc = acc.called(format!("#{name}"));
+    // The walk from the state before the loop, then the rest with its end.
+    let ((first, _), acc) = flat_of(
+        &rs::RustExpr::Path(rs::Path::ident(&cursor)),
+        env,
+        &ctx.below(),
+        acc,
+        Some(&Ty::Nat(None)),
+    )?;
+    let mut start = vec![first];
+    if let Some(rt) = &rest_ty {
+        let ((init, _), next) = flat_of(
+            &state_expr(&others),
+            env,
+            &ctx.below(),
+            acc.clone(),
+            Some(rt),
+        )?;
+        start.push(init);
+        return finish_walk(
+            applied(&name, &start),
+            &state,
+            &state_ty,
+            rest,
+            env,
+            ctx,
+            next,
+            want,
+        );
+    }
+    finish_walk(
+        applied(&name, &start),
+        &state,
+        &state_ty,
+        rest,
+        env,
+        ctx,
+        acc,
+        want,
+    )
+}
+
+/// The rest of a block after a walk: the walk's value bound, and the
+/// statements after it with the locals its state names taking their final
+/// values.
+#[allow(clippy::too_many_arguments)]
+fn finish_walk(
+    call: String,
+    state: &[String],
+    state_ty: &Ty,
+    rest: &[rs::Stmt],
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    let (whole, acc) = ctx.fresh(env, acc, "state");
+    let (after, acc, lets) = rebind(env, ctx, acc, state, &whole, Vec::new());
+    let ((rest, rt), acc) = block(rest, env, &after, acc, want)?;
+    Ok((
+        (
+            Expr::Let {
+                name: whole,
+                ty: state_ty.render(),
+                value: Box::new(Expr::Flat(call)),
+                body: Box::new(wrap_lets(lets, rest)),
             },
             rt,
         ),
@@ -7267,6 +7677,10 @@ fn block(
         [rs::Stmt::Expr(rs::RustExpr::ForLoop(f), _), rest @ ..] if !rest.is_empty() => {
             for_loop(f, rest, env, ctx, acc, want)
         }
+        // `while i < n { .. }`: a walk measured by `n - i`.
+        [rs::Stmt::Expr(rs::RustExpr::While(w), _), rest @ ..] if !rest.is_empty() => {
+            while_loop(w, rest, env, ctx, acc, want)
+        }
         // `x = e;`, `x += s;`, `x.push(e);`: the local's next value.
         [rs::Stmt::Expr(e, true), rest @ ..] if !rest.is_empty() && update_target(e).is_some() => {
             let Some(target) = update_target(e) else {
@@ -7596,12 +8010,11 @@ fn use_in_stmts(
                 if let Some(u) = use_in(ident, &init.expr, env, &scope) {
                     return Some(u);
                 }
-                if let rs::Pat::Ident(i) = &l.pat {
-                    match static_type(&init.expr, env, &scope) {
-                        Some(t) => scope.insert(i.ident.clone(), t),
-                        None => scope.remove(&i.ident),
-                    };
-                }
+                let ty = match &l.pat {
+                    rs::Pat::Type(pt) => env.types.ty(&pt.ty).ok(),
+                    _ => static_type(&init.expr, env, &scope),
+                };
+                scope = typed_binders(&l.pat, ty.as_ref(), scope);
             }
             rs::Stmt::Expr(e, _) => {
                 if let Some(u) = use_in(ident, e, env, &scope) {
@@ -7612,6 +8025,39 @@ fn use_in_stmts(
         }
     }
     None
+}
+
+/// The locals with the binders of `pat` typed from `ty`, the type of the
+/// value it matches: an identifier takes it, a tuple's items take its
+/// items'. A binder of a type not known is dropped.
+fn typed_binders(
+    pat: &rs::Pat,
+    ty: Option<&Ty>,
+    locals: BTreeMap<String, Ty>,
+) -> BTreeMap<String, Ty> {
+    match (pat, ty) {
+        (rs::Pat::Ident(i), Some(t)) if i.subpat.is_none() => {
+            let mut locals = locals;
+            locals.insert(i.ident.clone(), t.clone());
+            locals
+        }
+        (rs::Pat::Ident(i), _) => locals
+            .into_iter()
+            .filter(|(name, _)| *name != i.ident)
+            .collect(),
+        (rs::Pat::Type(pt), _) => typed_binders(&pt.pat, ty, locals),
+        (rs::Pat::Reference(inner), _) => typed_binders(inner, ty, locals),
+        (rs::Pat::Tuple(items), Some(Ty::Tuple(ts) | Ty::Pair(ts))) if items.len() == ts.len() => {
+            items
+                .iter()
+                .zip(ts)
+                .fold(locals, |scope, (p, t)| typed_binders(p, Some(t), scope))
+        }
+        (rs::Pat::Tuple(items), _) => items
+            .iter()
+            .fold(locals, |scope, p| typed_binders(p, None, scope)),
+        _ => locals,
+    }
 }
 
 /// [`used_type`] in an expression.
@@ -7686,6 +8132,11 @@ fn static_type(e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Op
         rs::RustExpr::Path(p) => locals.get(p.get_ident()?).cloned(),
         rs::RustExpr::Reference(r) => static_type(&r.expr, env, locals),
         rs::RustExpr::Paren(x) => static_type(x, env, locals),
+        // `x?`: the value an option or result holds.
+        rs::RustExpr::Try(x) => match static_type(x, env, locals)? {
+            Ty::Option(t) | Ty::Outcome(t, _) => Some(*t),
+            _ => None,
+        },
         rs::RustExpr::MethodCall(m)
             if m.args.is_empty()
                 && matches!(
@@ -7974,6 +8425,7 @@ pub(crate) fn lift_all(
                 elements: None,
                 rebuilt: BTreeMap::new(),
                 bounds: BTreeMap::new(),
+                capped: BTreeMap::new(),
                 exits: None,
                 own: c.name.clone(),
                 top: true,
@@ -8056,6 +8508,14 @@ pub(crate) fn lift_all(
                         let key = format!("#{}", h.name);
                         graph.insert(key.clone(), h.calls);
                         own.insert(key.clone(), h.axioms);
+                        let termination = h.termination.map(|(measure, theorems)| {
+                            let names: Vec<String> =
+                                theorems.iter().map(|t| t.name().to_string()).collect();
+                            for t in theorems {
+                                decls.push((format!("#{}", t.name()), t));
+                            }
+                            (measure, names)
+                        });
                         decls.push((
                             key,
                             Decl::Definition {
@@ -8069,7 +8529,7 @@ pub(crate) fn lift_all(
                                 result: h.result,
                                 body: h.body,
                                 axioms: Vec::new(),
-                                termination: None,
+                                termination,
                                 mutual: if h.entwined { group.clone() } else { None },
                             },
                         ));

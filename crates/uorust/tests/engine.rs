@@ -469,6 +469,17 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         ("describe", "(Prelude::natDecimal target)"),
         ("describe", "(if sequence then \"true\" else \"false\")"),
         ("describe", "(cons (heldUnit) "),
+        // A while loop is a walk measured by its bound less its cursor,
+        // with the theorem that each step decreases it.
+        (
+            "everyOtherLoop1",
+            "measure: (prim subtract (prim length rooms : Nat) at1 : Nat)",
+        ),
+        (
+            "everyOtherLoop1",
+            "(everyOtherLoop1 (at1 + 2) (everyOtherStep1 at1 state1 rooms) rooms)",
+        ),
+        ("firstRoomsLoop1", "evidence: [decreases_firstRoomsLoop1_0]"),
         // `()` is LexLean's Unit.
         ("validate", "(ctor Result.ok [Unit, String] ())"),
     ] {

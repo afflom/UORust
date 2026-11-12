@@ -9,11 +9,11 @@ use syn::punctuated::Punctuated;
 
 use crate::ast::{
     Alias, BinOp, Block, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprCast,
-    ExprClosure, ExprField, ExprForLoop, ExprIf, ExprIndex, ExprLet, ExprMacro, ExprMatch,
-    ExprMethodCall, ExprOther, ExprReference, ExprStruct, ExprUnary, FieldPat, FieldValue, FnArg,
-    GenericArgument, GenericParam, Lit, Local, LocalInit, MatchArm, Member, Pat, PatGuard,
-    PatIdent, PatRange, PatStruct, PatTupleStruct, PatType, Path, PathArguments, PathSegment,
-    RustExpr, RustType, Signature, Stmt, TypeKind, UnOp,
+    ExprClosure, ExprField, ExprForLoop, ExprIf, ExprIndex, ExprLet, ExprLoop, ExprMacro,
+    ExprMatch, ExprMethodCall, ExprOther, ExprReference, ExprStruct, ExprUnary, ExprWhile,
+    FieldPat, FieldValue, FnArg, GenericArgument, GenericParam, Lit, Local, LocalInit, MatchArm,
+    Member, Pat, PatGuard, PatIdent, PatRange, PatStruct, PatTupleStruct, PatType, Path,
+    PathArguments, PathSegment, RustExpr, RustType, Signature, Stmt, TypeKind, UnOp,
 };
 
 fn text(tokens: &dyn ToTokens) -> String {
@@ -425,7 +425,10 @@ pub(crate) fn expr(e: &syn::Expr) -> RustExpr {
         E::Async(a) => other("async", Vec::new(), vec![&a.block]),
         E::Await(a) => other("await", vec![&a.base], Vec::new()),
         E::Const(c) => other("const", Vec::new(), vec![&c.block]),
-        E::Loop(l) => other("loop", Vec::new(), vec![&l.body]),
+        E::Loop(l) => RustExpr::Loop(ExprLoop {
+            label: l.label.is_some(),
+            body: block(&l.body),
+        }),
         // `a..b` and `a..=b` keep their bounds in order; a range open at
         // either end is `expr::range` of its one bound.
         E::Range(r) => other(
@@ -440,7 +443,11 @@ pub(crate) fn expr(e: &syn::Expr) -> RustExpr {
         E::Repeat(r) => other("repeat", vec![&r.expr, &r.len], Vec::new()),
         E::TryBlock(t) => other("tryblock", Vec::new(), vec![&t.block]),
         E::Unsafe(u) => other("unsafe", Vec::new(), vec![&u.block]),
-        E::While(w) => other("while", vec![&w.cond], vec![&w.body]),
+        E::While(w) => RustExpr::While(ExprWhile {
+            label: w.label.is_some(),
+            cond: Box::new(expr(&w.cond)),
+            body: block(&w.body),
+        }),
         E::Yield(y) => other("yield", y.expr.iter().map(|e| &**e).collect(), Vec::new()),
         _ => {
             let debug = format!("{e:?}");

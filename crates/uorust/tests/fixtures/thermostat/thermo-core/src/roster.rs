@@ -718,6 +718,32 @@ pub fn spare_room(taken: &[String]) -> String {
         .unwrap_or_default()
 }
 
+/// Every other room, from the first: a walk whose cursor advances by two
+/// while it is below the number of rooms.
+pub fn every_other(rooms: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut at = 0;
+    while at < rooms.len() {
+        out.push(rooms[at].clone());
+        at += 2;
+    }
+    out
+}
+
+/// The first `count` rooms there are: a walk whose cursor advances by one
+/// while it is below the count.
+pub fn first_rooms(rooms: &[String], count: usize) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut at = 0;
+    while at < count {
+        if at < rooms.len() {
+            out.push(rooms[at].clone());
+        }
+        at = at + 1;
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -889,6 +915,11 @@ mod tests {
         };
         assert_eq!(booked(&none, "den").order, vec!["den".to_string()]);
         assert_eq!(first(), "hall");
+        assert_eq!(
+            every_other(&["a".to_string(), "b".to_string(), "c".to_string()]),
+            vec!["a".to_string(), "c".to_string()]
+        );
+        assert_eq!(first_rooms(&["a".to_string()], 2), vec!["a".to_string()]);
         assert_eq!(spare_room(&["room1".to_string()]), "room2");
         assert!(opening("den"));
         assert!(!opening("attic"));
