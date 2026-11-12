@@ -1745,7 +1745,7 @@ fn expr_form(
                 ];
                 return matching(&l.expr, &arms, env, ctx, acc, want);
             }
-            let ((c, ct), acc) = expr(&i.cond, env, ctx, acc, Some(&Ty::Bool))?;
+            let ((c, ct), acc) = expr(&i.cond, env, &ctx.below(), acc, Some(&Ty::Bool))?;
             if ct != Ty::Bool {
                 return Err(Residue::Form("non-boolean condition".to_string()));
             }
@@ -1989,6 +1989,10 @@ fn expr_form(
         rs::RustExpr::Continue(label) => loop_exit(env, ctx, acc, *label, false),
         rs::RustExpr::Break(b) if b.expr.is_none() => loop_exit(env, ctx, acc, b.label, true),
         rs::RustExpr::Try(_) => Err(Residue::Form("? outside a let".to_string())),
+        // A `return` in tail position: the function's value.
+        rs::RustExpr::Return(Some(v)) if ctx.top => {
+            expr(v, env, &ctx.below(), acc, Some(&ctx.result))
+        }
         // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
         rs::RustExpr::Macro(m) if m.path.is_ident("matches") => {
             let Some((scrutinee, pat)) = &m.matches else {
@@ -6520,7 +6524,50 @@ fn block(
     match stmts {
         // A block with no value is `()`.
         [] if want == Some(&Ty::Unit) => Ok(((Expr::Flat("()".into()), Ty::Unit), acc)),
+        // The arms of a match and the branches of an if in tail position
+        // are in tail position too: a `return` there leaves the function.
+        [rs::Stmt::Expr(e @ (rs::RustExpr::Match(_) | rs::RustExpr::If(_)), false)] => {
+            expr(e, env, ctx, acc, want)
+        }
         [rs::Stmt::Expr(e, false)] => expr(e, env, &ctx.below(), acc, want),
+        // `let P = match s { .., _ => return v }; rest`: the match, with
+        // the binding and the rest in each arm that does not leave.
+        [rs::Stmt::Local(l), rest @ ..] if ctx.top && leaving_match(l).is_some() => {
+            let Some(m) = leaving_match(l) else {
+                return Err(Residue::Statements);
+            };
+            let arms = m
+                .arms
+                .iter()
+                .map(|a| {
+                    let body = if leaves(&a.body) {
+                        (*a.body).clone()
+                    } else {
+                        let mut stmts = vec![rs::Stmt::Local(rs::Local {
+                            pat: l.pat.clone(),
+                            init: Some(rs::LocalInit {
+                                expr: a.body.clone(),
+                                diverge: None,
+                            }),
+                        })];
+                        stmts.extend(rest.iter().cloned());
+                        rs::RustExpr::Block(rs::ExprBlock {
+                            label: false,
+                            block: rs::Block { stmts },
+                        })
+                    };
+                    rs::MatchArm {
+                        pat: a.pat.clone(),
+                        body: Box::new(body),
+                    }
+                })
+                .collect();
+            let whole = rs::RustExpr::Match(rs::ExprMatch {
+                expr: m.expr.clone(),
+                arms,
+            });
+            expr(&whole, env, ctx, acc, want)
+        }
         [rs::Stmt::Expr(rs::RustExpr::Return(r), _), ..] if ctx.top => match r {
             Some(v) => expr(v, env, &ctx.below(), acc, Some(&ctx.result)),
             None if ctx.result == Ty::Unit => Ok(((Expr::Flat("()".into()), Ty::Unit), acc)),
@@ -6853,6 +6900,31 @@ fn let_pattern(
         Some(_) => return Err(Residue::Form("let else".to_string())),
     };
     matching(&init.expr, &arms, env, ctx, acc, want)
+}
+
+/// Whether an arm's value leaves the function: a `return`, alone or as
+/// the last statement of a block.
+fn leaves(e: &rs::RustExpr) -> bool {
+    match e {
+        rs::RustExpr::Return(_) => true,
+        rs::RustExpr::Block(b) if !b.label => matches!(
+            b.block.stmts.last(),
+            Some(rs::Stmt::Expr(rs::RustExpr::Return(_), _))
+        ),
+        _ => false,
+    }
+}
+
+/// The match a `let` binds where an arm of it leaves the function.
+fn leaving_match(l: &rs::Local) -> Option<&rs::ExprMatch> {
+    let init = l.init.as_ref()?;
+    if init.diverge.is_some() {
+        return None;
+    }
+    match &*init.expr {
+        rs::RustExpr::Match(m) if m.arms.iter().any(|a| leaves(&a.body)) => Some(m),
+        _ => None,
+    }
 }
 
 /// `Vec::new()` or `Vec::with_capacity(n)`: a vector whose element type the

@@ -1693,6 +1693,16 @@ definition{
 }
 
 definition{
+  name: doubledRoom,
+  parameters: [zone : Zone],
+  result: (Option String),
+  body: (match zone
+    | Zone.Room r => (let room : String := r; (ctor Option.some [String] (prim join (cons room (cons room (nil String))) "" : String)))
+    | Zone.Group value => (ctor Option.none [String])),
+  axioms: [propext]
+}
+
+definition{
   name: queueInsert1,
   parameters: [items2 : (List Request), item3 : Request],
   result: (List Request),

@@ -465,6 +465,15 @@ pub fn warm(reading: u32) -> Option<u32> {
     (reading >= 18).then_some(reading)
 }
 
+/// The room a zone names, doubled, when it names one room.
+pub fn doubled_room(zone: &Zone) -> Option<String> {
+    let room = match zone {
+        Zone::Room(r) => r.clone(),
+        Zone::Group(_) => return None,
+    };
+    Some(format!("{room}{room}"))
+}
+
 /// The distinct requests, in the order they sort in.
 pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
     let mut out = BTreeSet::new();
@@ -608,6 +617,11 @@ mod tests {
         assert_eq!(second_last(&[4, 5, 6]), Some(5));
         assert_eq!(above_ten(12), 2);
         assert_eq!(warm(20), Some(20));
+        assert_eq!(
+            doubled_room(&Zone::Room("den".to_string())),
+            Some("denden".to_string())
+        );
+        assert_eq!(doubled_room(&Zone::Group(Vec::new())), None);
         assert!(all_named(&Zone::Group(vec![Zone::Room(
             "hall".to_string()
         )])));
