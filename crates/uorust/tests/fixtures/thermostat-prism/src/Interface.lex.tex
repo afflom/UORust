@@ -16,14 +16,14 @@ definition{
   name: acThermoCoreThermoCoreBandBandsMeasureAndCount,
   parameters: [],
   result: String,
-  body: "bands_measure_and_count at thermo-core/src/band.rs:119 passes."
+  body: "bands_measure_and_count at thermo-core/src/band.rs:138 passes."
 }
 
 definition{
   name: acThermoCoreThermoCoreBandCountersAndSignedReadings,
   parameters: [],
   result: String,
-  body: "counters_and_signed_readings at thermo-core/src/band.rs:135 passes."
+  body: "counters_and_signed_readings at thermo-core/src/band.rs:154 passes."
 }
 
 definition{
@@ -241,6 +241,27 @@ definition{
   parameters: [],
   result: String,
   body: "thermo_core::band::not_a_number: fn not_a_number(error: cfg::ConfigError) -> bool"
+}
+
+definition{
+  name: callThermoCoreBandWithHigh,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::with_high: fn with_high(band: Band, high: u32) -> Band"
+}
+
+definition{
+  name: callThermoCoreBandWithLow,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::with_low: fn with_low(band: Band, low: u32) -> Band"
+}
+
+definition{
+  name: callThermoCoreBandJoined,
+  parameters: [],
+  result: String,
+  body: "thermo_core::band::joined: fn joined(first: Vec<u32>, second: Vec<u32>) -> Vec<u32>"
 }
 
 definition{
@@ -695,7 +716,7 @@ definition{
   name: featureThermoCoreBand,
   parameters: [],
   result: Foundation.Arch::Feature,
-  body: (record Foundation.Arch::Feature {statement := "thermo_core::band: Temperature bands, counters and readings.", calls := (cons "Interface::callThermoCoreBandWidth" (cons "Interface::callThermoCoreBandCheckedMidpoint" (cons "Interface::callThermoCoreBandTick" (cons "Interface::callThermoCoreBandShortfall" (cons "Interface::callThermoCoreBandFreezing" (cons "Interface::callThermoCoreBandDelta" (cons "Interface::callThermoCoreBandChecked" (cons "Interface::callThermoCoreBandIsCelsius" (cons "Interface::callThermoCoreBandAbove" (cons "Interface::callThermoCoreBandFirstReading" (cons "Interface::callThermoCoreBandTargetOr" (cons "Interface::callThermoCoreBandHeatFor" (cons "Interface::callThermoCoreBandFanLabel" (cons "Interface::callThermoCoreBandLabelled" (cons "Interface::callThermoCoreBandLowOf" (cons "Interface::callThermoCoreBandNotANumber" (nil String))))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreBandBandsMeasureAndCount" (cons "Interface::acThermoCoreThermoCoreBandCountersAndSignedReadings" (nil String)))})
+  body: (record Foundation.Arch::Feature {statement := "thermo_core::band: Temperature bands, counters and readings.", calls := (cons "Interface::callThermoCoreBandWidth" (cons "Interface::callThermoCoreBandCheckedMidpoint" (cons "Interface::callThermoCoreBandTick" (cons "Interface::callThermoCoreBandShortfall" (cons "Interface::callThermoCoreBandFreezing" (cons "Interface::callThermoCoreBandDelta" (cons "Interface::callThermoCoreBandChecked" (cons "Interface::callThermoCoreBandIsCelsius" (cons "Interface::callThermoCoreBandAbove" (cons "Interface::callThermoCoreBandFirstReading" (cons "Interface::callThermoCoreBandTargetOr" (cons "Interface::callThermoCoreBandHeatFor" (cons "Interface::callThermoCoreBandFanLabel" (cons "Interface::callThermoCoreBandLabelled" (cons "Interface::callThermoCoreBandLowOf" (cons "Interface::callThermoCoreBandNotANumber" (cons "Interface::callThermoCoreBandWithHigh" (cons "Interface::callThermoCoreBandWithLow" (cons "Interface::callThermoCoreBandJoined" (nil String)))))))))))))))))))), acceptance := (cons "Interface::acThermoCoreThermoCoreBandBandsMeasureAndCount" (cons "Interface::acThermoCoreThermoCoreBandCountersAndSignedReadings" (nil String)))})
 }
 
 definition{

@@ -279,6 +279,27 @@ definition{
 }
 
 definition{
+  name: withHigh,
+  parameters: [band : Band, high : Nat],
+  result: Band,
+  body: (record Band {low := (project band low), high := high})
+}
+
+definition{
+  name: withLow,
+  parameters: [band : Band, low : Nat],
+  result: Band,
+  body: (let out : Band := band; (let out1 : Band := (record Band {low := low, high := (project out high)}); out1))
+}
+
+definition{
+  name: joined,
+  parameters: [firstValue : (List Nat), secondValue : (List Nat)],
+  result: (List Nat),
+  body: (let out : (List Nat) := firstValue; (let out1 : (List Nat) := (prim append out secondValue : (List Nat)); out1))
+}
+
+definition{
   name: parseTarget,
   parameters: [text : String],
   result: (Result Nat ConfigError),

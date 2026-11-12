@@ -1579,7 +1579,7 @@ fn expr_inner(
         }
         // `E::V { a, b }`: a struct variant, its fields in declaration order.
         rs::RustExpr::Struct(s)
-            if !s.rest && !s.qself && data_variant(&s.path, &env.types).is_some() =>
+            if s.rest.is_none() && !s.qself && data_variant(&s.path, &env.types).is_some() =>
         {
             let Some((owner, variant, fields)) = data_variant(&s.path, &env.types) else {
                 return Err(Residue::Form("struct variant".to_string()));
@@ -1609,11 +1609,19 @@ fn expr_inner(
             }
             flat(format!("({})", parts.join(" ")), Ty::Named(owner), acc)
         }
-        rs::RustExpr::Struct(s) if !s.rest && !s.qself => {
-            let Some(name) = s.path.get_ident().map(|i| env.types.resolve(i)) else {
+        // `S { a: x, .. }`, or `S { a: x, ..base }` where `base` gives the
+        // fields not written.
+        rs::RustExpr::Struct(s) if !s.qself => {
+            let Some(written) = s.path.segments.last().map(|seg| seg.ident.clone()) else {
                 return Err(Residue::Form("struct path".to_string()));
             };
-            let Some(fields) = env.types.structs.get(&name) else {
+            let owner = ctx.current.split_once("::").map(|(o, _)| o.to_string());
+            let name = match (written.as_str(), owner) {
+                ("Self", Some(o)) => env.types.resolve(&o),
+                _ => env.types.resolve(&written),
+            };
+            let local = s.path.segments.len() == 1 || written == "Self";
+            let Some(fields) = env.types.structs.get(&name).filter(|_| local) else {
                 return Err(Residue::Form(format!("struct {name}")));
             };
             let mut given = BTreeMap::new();
@@ -1623,20 +1631,39 @@ fn expr_inner(
                 };
                 given.insert(local_name(id), &fv.expr);
             }
-            if given.len() != fields.len() {
-                return Err(Residue::Form("struct literal".to_string()));
-            }
-            let mut parts = Vec::new();
             let mut acc = acc;
-            for (field, ty) in fields {
-                let Some(value) = given.get(field) else {
-                    return Err(Residue::Form("struct literal".to_string()));
-                };
-                let ((v, vt), next) = flat_of(value, env, ctx, acc, Some(ty))?;
-                acc = next;
-                if !vt.same(ty) {
-                    return Err(Residue::Form("struct field of another type".to_string()));
+            let base = match &s.rest {
+                Some(b) => {
+                    let ((bv, bt), next) =
+                        flat_of(b, env, ctx, acc, Some(&Ty::Named(name.clone())))?;
+                    acc = next;
+                    if bt != Ty::Named(name.clone()) {
+                        return Err(Residue::Form("struct update of another type".to_string()));
+                    }
+                    Some(bv)
                 }
+                None if given.len() != fields.len() => {
+                    return Err(Residue::Form("struct literal".to_string()));
+                }
+                None => None,
+            };
+            let mut parts = Vec::new();
+            for (field, ty) in fields {
+                let v = match (given.get(field), &base) {
+                    (Some(value), _) => {
+                        let ((v, vt), next) = flat_of(value, env, ctx, acc, Some(ty))?;
+                        acc = next;
+                        if !vt.same(ty) {
+                            return Err(Residue::Form("struct field of another type".to_string()));
+                        }
+                        v
+                    }
+                    (None, Some(b)) if env.types.boxed(&name) => {
+                        format!("({} {b})", Types::accessor(&name, field))
+                    }
+                    (None, Some(b)) => format!("(project {b} {field})"),
+                    (None, None) => return Err(Residue::Form("struct literal".to_string())),
+                };
                 parts.push((field, v));
             }
             flat(
@@ -4997,10 +5024,14 @@ fn update_target(e: &rs::RustExpr) -> Option<String> {
         _ => None,
     };
     match e {
-        rs::RustExpr::Assign(a) => ident(&a.left),
+        // `x.f = v`: the structure `x` with its field `f` replaced.
+        rs::RustExpr::Assign(a) => match &*a.left {
+            rs::RustExpr::Field(f) if matches!(f.member, rs::Member::Named(_)) => ident(&f.base),
+            left => ident(left),
+        },
         rs::RustExpr::Binary(b) if b.op == rs::BinOp::AddAssign => ident(&b.left),
         rs::RustExpr::MethodCall(m)
-            if (m.method == "push" || m.method == "push_str") && m.args.len() == 1 =>
+            if matches!(m.method.as_str(), "push" | "push_str" | "extend") && m.args.len() == 1 =>
         {
             ident(&m.receiver)
         }
@@ -5047,7 +5078,59 @@ fn updated(
         }
     };
     match (e, ty) {
+        (rs::RustExpr::Assign(a), Ty::Named(name))
+            if matches!(&*a.left, rs::RustExpr::Field(_)) =>
+        {
+            let rs::RustExpr::Field(f) = &*a.left else {
+                return Err(Residue::Form("an update outside the lift".to_string()));
+            };
+            let rs::Member::Named(member) = &f.member else {
+                return Err(Residue::Form("an update outside the lift".to_string()));
+            };
+            let Some(fields) = env.types.structs.get(name) else {
+                return Err(Residue::Form(format!("a field update of {name}")));
+            };
+            let target = local_name(member);
+            let mut acc = acc;
+            let mut parts = Vec::new();
+            for (field, fty) in fields {
+                let v = if *field == target {
+                    let (v, after) = value_of(&a.right, fty, acc)?;
+                    acc = after;
+                    v
+                } else if env.types.boxed(name) {
+                    format!("({} {current})", Types::accessor(name, field))
+                } else {
+                    format!("(project {current} {field})")
+                };
+                parts.push((field, v));
+            }
+            if !fields.iter().any(|(f, _)| *f == target) {
+                return Err(Residue::Form(format!("a field update of {name}")));
+            }
+            Ok((struct_value(name, &parts, &env.types), acc))
+        }
         (rs::RustExpr::Assign(a), _) => value_of(&a.right, ty, acc),
+        // `xs.extend(ys)`: the list followed by the items.
+        (rs::RustExpr::MethodCall(m), Ty::List(_)) if m.method == "extend" => {
+            let (v, acc) = value_of(&m.args[0], ty, acc)?;
+            Ok((
+                format!("(prim append {current} {v} : {})", ty.render()),
+                acc,
+            ))
+        }
+        // `set.extend(items)`: each item inserted in turn.
+        (rs::RustExpr::MethodCall(m), Ty::Set(t, true)) if m.method == "extend" => {
+            let items = Ty::List(t.clone());
+            let ((v, vt), acc) = flat_of(&m.args[0], env, &inner, acc, Some(ty))?;
+            let held = matches!(&vt, Ty::List(e) | Ty::Set(e, true) if e.same(t));
+            if !held {
+                return Err(Residue::Form("an update of another type".to_string()));
+            }
+            let (insert, acc) = sorted_insert(ty, env, ctx, acc)?;
+            let (helper, acc) = insert_all(ty, &items, &insert, env, ctx, acc);
+            Ok((format!("({helper} {v} {current})"), acc))
+        }
         (rs::RustExpr::Binary(b), Ty::Str) => {
             let (piece, acc) = value_of(&b.right, &Ty::Str, acc)?;
             joined(piece, acc)
@@ -5172,6 +5255,46 @@ fn sorted_insert(ty: &Ty, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<(String, Acc)>
     });
     let acc = acc.called(format!("#{name}"));
     Ok((name, acc))
+}
+
+/// The helper inserting each item of a list into an ordered set, in turn,
+/// through the set's `insert` helper.
+fn insert_all(ty: &Ty, items: &Ty, insert: &str, env: &Env, ctx: &Ctx, acc: Acc) -> (String, Acc) {
+    let (set, acc) = ctx.fresh(env, acc, "set");
+    let (list, acc) = ctx.fresh(env, acc, "items");
+    let (head, acc) = ctx.fresh(env, acc, "head");
+    let (rest, acc) = ctx.fresh(env, acc, "rest");
+    let name = ctx.helper_name(env, &acc, "InsertAll");
+    let body = Expr::Match {
+        scrutinee: list.clone(),
+        arms: vec![
+            Arm {
+                pattern: "List.nil".into(),
+                body: Expr::Flat(set.clone()),
+            },
+            Arm {
+                pattern: format!("List.cons {head} {rest}"),
+                body: Expr::Flat(format!("({name} {rest} ({insert} {set} {head}))")),
+            },
+        ],
+    };
+    let axioms = acc
+        .helpers
+        .iter()
+        .find(|h| h.name == insert)
+        .map(|h| h.axioms.clone())
+        .unwrap_or_default();
+    let acc = acc.helper(Helper {
+        name: name.clone(),
+        params: vec![(list, items.render()), (set, ty.render())],
+        result: ty.render(),
+        body,
+        calls: BTreeSet::from([format!("#{insert}")]),
+        axioms,
+        recursive: true,
+    });
+    let acc = acc.called(format!("#{name}"));
+    (name, acc)
 }
 
 /// The locals the statements update and the locals they declare, outside
@@ -6552,7 +6675,7 @@ fn literal(e: &rs::RustExpr, want: &Ty, types: &Types) -> Option<String> {
             }
         }
         // `S { a: lit, .. }`: a structure of literals, every field given.
-        rs::RustExpr::Struct(st) if !st.rest && !st.qself => {
+        rs::RustExpr::Struct(st) if st.rest.is_none() && !st.qself => {
             // The crate declares a structure's name once: its last segment.
             let name = types.resolve(&st.path.segments.last()?.ident);
             let fields = types.structs.get(&name)?;

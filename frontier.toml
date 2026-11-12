@@ -77,7 +77,7 @@ reason = "form"
 detail = "expression form outside the lift: expr::return"
 
 [[residue]]
-kappa = "93c9a533da1a692f2f7d48fd8cb85eef87ce3c9559e9cb8aba1581019f198821"
+kappa = "2f5097fbf67d9607028691a12100f36b3dd18e8630888796d1ee28754bc787a6"
 function = "uorust::ast::RustExpr::parts"
 reason = "form"
 detail = "expression form outside the lift: method call .iter"
@@ -305,68 +305,14 @@ reason = "form"
 detail = "expression form outside the lift: free name ALL_AXIOMS"
 
 [[residue]]
-kappa = "741a3deaa502b11218727a1ec4a6b1a4e6a28d5556860e53c9be3bc53ab869c7"
-function = "uorust::lift::Acc::apart"
-reason = "form"
-detail = "expression form outside the lift: expr::struct"
-
-[[residue]]
-kappa = "fc58076ed9e45b680a7f27579779bafaf70b16e2b43d5de335bf828782dfa395"
-function = "uorust::lift::Acc::axiom"
-reason = "form"
-detail = "expression form outside the lift: expr::struct"
-
-[[residue]]
-kappa = "f86640194e33078ede8e321e8345ad59769eee1897e5f5573047cd4ec45d2013"
-function = "uorust::lift::Acc::axioms_all"
-reason = "statements"
-detail = "the body has statements other than let"
-
-[[residue]]
-kappa = "c793df1c29a3fa4e371b4ddf412b9a96c784210dd5e4038e07e627398e9a8edf"
-function = "uorust::lift::Acc::called"
-reason = "form"
-detail = "expression form outside the lift: expr::struct"
-
-[[residue]]
-kappa = "e1c197b0fb6d63c2977ccf09071432f1b865d075de89336b9fafd32459fd4eb2"
-function = "uorust::lift::Acc::called_all"
-reason = "statements"
-detail = "the body has statements other than let"
-
-[[residue]]
-kappa = "dbfd19ff6fdcba53babb2ea901920bf5abe89dcfb303fa6d77a5bd0a5169e99d"
-function = "uorust::lift::Acc::descended"
-reason = "form"
-detail = "expression form outside the lift: expr::struct"
-
-[[residue]]
-kappa = "ab9964d870ab234f119534da803332743d26be997ce401e8c4d89d53f28aa583"
-function = "uorust::lift::Acc::helper"
-reason = "form"
-detail = "expression form outside the lift: expr::struct"
-
-[[residue]]
 kappa = "6f8e879070a77d3c4bfb610ac06b652527e8b974d9c8c31c39be48feec9aeed1"
 function = "uorust::lift::Acc::prelude"
-reason = "form"
-detail = "expression form outside the lift: method call .axioms_all"
-
-[[residue]]
-kappa = "e9885374b0e490a68ccd996720600869104548c91c1d957c829da3b1580c35f8"
-function = "uorust::lift::Acc::rejoin"
-reason = "form"
-detail = "expression form outside the lift: expr::struct"
+reason = "call"
+detail = "calls prelude_axioms, which is not lifted"
 
 [[residue]]
 kappa = "90a3e4b50a39bca03fd90b040be6d0ec7f7ceda1425f52e2fcf52e30feca665f"
 function = "uorust::lift::Acc::saw"
-reason = "statements"
-detail = "the body has statements other than let"
-
-[[residue]]
-kappa = "e92d1a1a2cba572f6c6f6ecdfcd3924f83ccdf4e52d377123e3d629356cfc697"
-function = "uorust::lift::Ctx::below"
 reason = "statements"
 detail = "the body has statements other than let"
 
@@ -481,8 +427,8 @@ detail = "expression form outside the lift: method call .zip"
 [[residue]]
 kappa = "dfa02b50d55194a4288c274791cc98313d5c390ddc3bfdcb604eaf4319c97eed"
 function = "uorust::lift::applied_closure"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "form"
+detail = "expression form outside the lift: method call .clone"
 
 [[residue]]
 kappa = "7b3c1d02716c7c71fb4a0d151dcb8105b36f0072605304f4153ee2b9e0034b9b"
@@ -524,7 +470,7 @@ detail = "expression form outside the lift: method call .as_slice"
 kappa = "8850480ea95de282bb448cd42ae16f3a4375448f8cf971a83f5e81dfedf88b7c"
 function = "uorust::lift::captures"
 reason = "form"
-detail = "expression form outside the lift: a loop that updates no local"
+detail = "expression form outside the lift: expr::closure"
 
 [[residue]]
 kappa = "1acd1b7508e87ff23b24ccb57d7e5a398435a09fdb69ae99a1e2948d53277f3e"
@@ -605,7 +551,7 @@ reason = "form"
 detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
-kappa = "6aa958d1d56d23157591ab349aa41b8d6db23d8a134de94312a46738066fafba"
+kappa = "14e54869731d5b0baa03a14d14da61ce133e00365306ac0065cf1be5f8c49949"
 function = "uorust::lift::expr_inner"
 reason = "form"
 detail = "expression form outside the lift: let pattern"
@@ -614,7 +560,7 @@ detail = "expression form outside the lift: let pattern"
 kappa = "937472697aa09f4cb1e68330205e44ef0d5b0c4c3d08c30778bac945f11e6bc7"
 function = "uorust::lift::flat_of"
 reason = "form"
-detail = "expression form outside the lift: expr::struct"
+detail = "expression form outside the lift: closure pattern"
 
 [[residue]]
 kappa = "b2422fb1d47c5414c85c72d7d224b5612c9546d54ec7b270855fabf7d8bbd281"
@@ -659,6 +605,12 @@ reason = "form"
 detail = "expression form outside the lift: ? below the function's own statements"
 
 [[residue]]
+kappa = "597f78c778998baaf38e581a715130426dd8b600b29009c6bac5363ce0a29d56"
+function = "uorust::lift::insert_all"
+reason = "form"
+detail = "expression form outside the lift: method call .clone"
+
+[[residue]]
 kappa = "94478ad7b2f30b6019b124c9f5c56eeafb78b8309e7e91bb3f3f14f88e0815de"
 function = "uorust::lift::int_literal"
 reason = "form"
@@ -691,14 +643,14 @@ detail = "expression form outside the lift: method call .as_deref"
 [[residue]]
 kappa = "107f350c696a2c7b92273118bd7f59368f5f9fab13338acd5136320e2e4e025b"
 function = "uorust::lift::lambda"
-reason = "form"
-detail = "expression form outside the lift: expr::struct"
+reason = "call"
+detail = "calls new, which is not lifted"
 
 [[residue]]
 kappa = "2b6a6d94cd95e68ba483889c59ee27bb1a9689fe0ea86e29a850a3b488f7a4ce"
 function = "uorust::lift::let_pattern"
 reason = "form"
-detail = "expression form outside the lift: struct path"
+detail = "expression form outside the lift: struct Block"
 
 [[residue]]
 kappa = "e931641411a37af9c901c76edaf8e053034796706d94a7c82225aba68d2ccd0b"
@@ -713,7 +665,7 @@ reason = "form"
 detail = "expression form outside the lift: None of an unknown type"
 
 [[residue]]
-kappa = "2e6806be1f3f04d2d9e9d09aa49847f1ebc47b918a12a37ed46678a6a84d19f8"
+kappa = "4707249cfd2870dd1e06a1e0fe6cab599cefd60d2a4ca615aa8d76f1ab9dcbf1"
 function = "uorust::lift::literal"
 reason = "form"
 detail = "expression form outside the lift: let pattern"
@@ -931,8 +883,8 @@ detail = "expression form outside the lift: comparison == of Ty"
 [[residue]]
 kappa = "5345d6296812f819d3a2da21ee14f8adb37745d42cf36861434d59879b2af6ad"
 function = "uorust::lift::then_rest"
-reason = "statements"
-detail = "the body has statements other than let"
+reason = "form"
+detail = "expression form outside the lift: struct ExprBlock"
 
 [[residue]]
 kappa = "10e784a1578825cac8e64160214ee62c8ccccf4d7ec695f3940e6166f1059173"
@@ -953,13 +905,13 @@ reason = "form"
 detail = "expression form outside the lift: matches! with a guard"
 
 [[residue]]
-kappa = "f1b40865ab7b1cc655fbfdbd54ed413f8ff93f974855057a8b48a2607386e67c"
+kappa = "787f0b5c4c55b4d11ec570ddbc6ac0f342e54c2e345381bf0ca7e1eafa7b18e2"
 function = "uorust::lift::update_target"
 reason = "type"
 detail = "type outside the lift: rs::RustExpr"
 
 [[residue]]
-kappa = "5363cb02c1bf0fcdb6bc3628675cfc3a261fad324efea6b91dd89c58714aa888"
+kappa = "10271a12792bec1e6e99bb8df169d3605897c3bd5fa0222e07190bd936753cfc"
 function = "uorust::lift::updated"
 reason = "type"
 detail = "type outside the lift: rs::RustExpr"
@@ -1371,7 +1323,7 @@ function = "uorust::convert::block"
 detail = "takes or returns syn::Block, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "3a80248fe4f966ab85d5b234f1f8f7696a9ef6169208e225d302ee7c17ac6f03"
+kappa = "055c65f2c3fce7391d5a14e0fa09f214f6f580ee7e7e4bf5644fca6f83d6e14e"
 function = "uorust::convert::expr"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
@@ -1814,6 +1766,51 @@ definition = "Behavior::members"
 kappa = "eed3bbb135ec803687ee54bb6f66a15301bf12c4ce907a632af0d0fd8381d8d8"
 function = "uorust::lex::params"
 definition = "Behavior::params"
+
+[[lifted]]
+kappa = "741a3deaa502b11218727a1ec4a6b1a4e6a28d5556860e53c9be3bc53ab869c7"
+function = "uorust::lift::Acc::apart"
+definition = "Behavior::accApart"
+
+[[lifted]]
+kappa = "fc58076ed9e45b680a7f27579779bafaf70b16e2b43d5de335bf828782dfa395"
+function = "uorust::lift::Acc::axiom"
+definition = "Behavior::accAxiom"
+
+[[lifted]]
+kappa = "f86640194e33078ede8e321e8345ad59769eee1897e5f5573047cd4ec45d2013"
+function = "uorust::lift::Acc::axioms_all"
+definition = "Behavior::accAxiomsAll"
+
+[[lifted]]
+kappa = "c793df1c29a3fa4e371b4ddf412b9a96c784210dd5e4038e07e627398e9a8edf"
+function = "uorust::lift::Acc::called"
+definition = "Behavior::accCalled"
+
+[[lifted]]
+kappa = "e1c197b0fb6d63c2977ccf09071432f1b865d075de89336b9fafd32459fd4eb2"
+function = "uorust::lift::Acc::called_all"
+definition = "Behavior::accCalledAll"
+
+[[lifted]]
+kappa = "dbfd19ff6fdcba53babb2ea901920bf5abe89dcfb303fa6d77a5bd0a5169e99d"
+function = "uorust::lift::Acc::descended"
+definition = "Behavior::accDescended"
+
+[[lifted]]
+kappa = "ab9964d870ab234f119534da803332743d26be997ce401e8c4d89d53f28aa583"
+function = "uorust::lift::Acc::helper"
+definition = "Behavior::accHelper"
+
+[[lifted]]
+kappa = "e9885374b0e490a68ccd996720600869104548c91c1d957c829da3b1580c35f8"
+function = "uorust::lift::Acc::rejoin"
+definition = "Behavior::accRejoin"
+
+[[lifted]]
+kappa = "e92d1a1a2cba572f6c6f6ecdfcd3924f83ccdf4e52d377123e3d629356cfc697"
+function = "uorust::lift::Ctx::below"
+definition = "Behavior::ctxBelow"
 
 [[lifted]]
 kappa = "203f09a401eb20510a1f18e5e5fe5cba87d317f3e21101c6d181e53673a3234e"

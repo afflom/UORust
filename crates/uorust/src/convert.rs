@@ -300,7 +300,7 @@ pub(crate) fn expr(e: &syn::Expr) -> RustExpr {
                     expr: expr(&f.expr),
                 })
                 .collect(),
-            rest: s.rest.is_some(),
+            rest: s.rest.as_ref().map(|e| Box::new(expr(e))),
         }),
         E::Try(t) => RustExpr::Try(Box::new(expr(&t.expr))),
         E::Tuple(t) => RustExpr::Tuple(t.elems.iter().map(expr).collect()),

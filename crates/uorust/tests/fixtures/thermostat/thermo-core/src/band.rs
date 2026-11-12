@@ -111,6 +111,25 @@ pub fn not_a_number(error: cfg::ConfigError) -> bool {
     matches!(error, cfg::ConfigError::NotANumber)
 }
 
+/// The band with its high end moved: a struct update.
+pub fn with_high(band: Band, high: u32) -> Band {
+    Band { high, ..band }
+}
+
+/// The band with its low end moved: a field assignment.
+pub fn with_low(band: Band, low: u32) -> Band {
+    let mut out = band;
+    out.low = low;
+    out
+}
+
+/// Two runs of readings, one after the other.
+pub fn joined(first: Vec<u32>, second: Vec<u32>) -> Vec<u32> {
+    let mut out = first;
+    out.extend(second);
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

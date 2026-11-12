@@ -36,6 +36,9 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreBandLabelled is made
     And the interface call Interface::callThermoCoreBandLowOf is made
     And the interface call Interface::callThermoCoreBandNotANumber is made
+    And the interface call Interface::callThermoCoreBandWithHigh is made
+    And the interface call Interface::callThermoCoreBandWithLow is made
+    And the interface call Interface::callThermoCoreBandJoined is made
     Then the acceptance row Interface::acThermoCoreThermoCoreBandBandsMeasureAndCount holds
     And the acceptance row Interface::acThermoCoreThermoCoreBandCountersAndSignedReadings holds
 

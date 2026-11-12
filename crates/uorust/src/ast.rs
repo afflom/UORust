@@ -690,7 +690,7 @@ pub(crate) struct ExprStruct {
     pub(crate) qself: bool,
     pub(crate) path: Path,
     pub(crate) fields: Vec<FieldValue>,
-    pub(crate) rest: bool,
+    pub(crate) rest: Option<Box<RustExpr>>,
 }
 
 /// `member: expr` in a struct expression.
@@ -761,7 +761,14 @@ impl RustExpr {
             Self::Paren(e) | Self::Try(e) => (vec![&**e], none),
             Self::Reference(r) => (vec![&r.expr], none),
             Self::Return(r) => (r.iter().map(|e| &**e).collect(), none),
-            Self::Struct(s) => (s.fields.iter().map(|f| &f.expr).collect(), none),
+            Self::Struct(s) => (
+                s.fields
+                    .iter()
+                    .map(|f| &f.expr)
+                    .chain(s.rest.as_deref())
+                    .collect(),
+                none,
+            ),
             Self::Unary(u) => (vec![&u.expr], none),
             Self::Other(o) => (o.exprs.iter().collect(), o.blocks.iter().collect()),
             Self::Continue(_) | Self::Lit(_) | Self::Macro(_) | Self::Path(_) => (Vec::new(), none),
