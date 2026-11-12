@@ -11,9 +11,9 @@ use crate::ast::{
     Alias, BinOp, Block, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprCast,
     ExprClosure, ExprField, ExprForLoop, ExprIf, ExprIndex, ExprLet, ExprLoop, ExprMacro,
     ExprMatch, ExprMethodCall, ExprOther, ExprReference, ExprStruct, ExprUnary, ExprWhile,
-    FieldPat, FieldValue, FnArg, GenericArgument, GenericParam, Lit, Local, LocalInit, MatchArm,
-    Member, Pat, PatGuard, PatIdent, PatRange, PatStruct, PatTupleStruct, PatType, Path,
-    PathArguments, PathSegment, RustExpr, RustType, Signature, Stmt, TypeKind, UnOp,
+    FieldPat, FieldValue, FnArg, GenericArgument, GenericParam, Lit, Local, LocalInit, MacroArgs,
+    MacroMatch, MatchArm, Member, Pat, PatGuard, PatIdent, PatRange, PatStruct, PatTupleStruct,
+    PatType, Path, PathArguments, PathSegment, RustExpr, RustType, Signature, Stmt, TypeKind, UnOp,
 };
 
 fn text(tokens: &dyn ToTokens) -> String {
@@ -234,7 +234,9 @@ fn mac(m: &syn::Macro) -> ExprMacro {
     let args = m
         .parse_body_with(Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated)
         .ok()
-        .map(|list| list.iter().map(expr).collect());
+        .map(|list| MacroArgs {
+            items: list.iter().map(expr).collect(),
+        });
     let matches = if m.path.is_ident("matches") {
         m.parse_body_with(|input: syn::parse::ParseStream<'_>| {
             let e: syn::Expr = input.parse()?;
@@ -259,7 +261,10 @@ fn mac(m: &syn::Macro) -> ExprMacro {
                 }),
                 None => pat(&p),
             };
-            (Box::new(expr(&e)), Box::new(p))
+            MacroMatch {
+                expr: Box::new(expr(&e)),
+                pat: Box::new(p),
+            }
         })
     } else {
         None

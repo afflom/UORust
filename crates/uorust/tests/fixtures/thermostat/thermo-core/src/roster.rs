@@ -744,6 +744,33 @@ pub fn first_rooms(rooms: &[String], count: usize) -> Vec<String> {
     out
 }
 
+/// A floor plan: a room, a wing that may hold plans, or an annex to a plan.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Plan {
+    /// One room.
+    Room(String),
+    /// A wing, whose floor may not be drawn yet.
+    Wing(Option<Floor>),
+    /// An annex to a plan.
+    Annex(Box<Plan>),
+}
+
+/// The plans of one floor of a wing.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Floor {
+    /// The plans, in order.
+    pub plans: Vec<Plan>,
+}
+
+/// The room an annex chain ends in, if it ends in one.
+pub fn annexed_room(plan: &Plan) -> Option<String> {
+    match plan {
+        Plan::Room(name) => Some(name.clone()),
+        Plan::Wing(_) => None,
+        Plan::Annex(inner) => annexed_room(inner),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -915,6 +942,11 @@ mod tests {
         };
         assert_eq!(booked(&none, "den").order, vec!["den".to_string()]);
         assert_eq!(first(), "hall");
+        assert_eq!(
+            annexed_room(&Plan::Annex(Box::new(Plan::Room("den".to_string())))),
+            Some("den".to_string())
+        );
+        assert_eq!(annexed_room(&Plan::Wing(None)), None);
         assert_eq!(
             every_other(&["a".to_string(), "b".to_string(), "c".to_string()]),
             vec!["a".to_string(), "c".to_string()]

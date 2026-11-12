@@ -3607,17 +3607,7 @@ fn family_decls(
     }
     // The types the sizes range over: the members, then the lists and
     // options of members the members hold.
-    let mut domains: Vec<Ty> = family.iter().map(|m| Ty::Named(m.clone())).collect();
-    for m in family {
-        for t in types.member_fields(m) {
-            if !matches!(t, Ty::Named(_))
-                && types.size_name(&t, family).is_some()
-                && !domains.contains(&t)
-            {
-                domains.push(t);
-            }
-        }
-    }
+    let domains = types.size_domains(family);
     let size_label = format!("SizeOf{first}");
     let measure = |t: &Ty, v: &str| types.size_name(t, family).map(|f| format!("({f} {v})"));
     let sum = |base: &str, parts: Vec<String>| {

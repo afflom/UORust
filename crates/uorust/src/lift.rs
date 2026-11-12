@@ -356,6 +356,40 @@ fn nested_ok(ty: &Ty, me: &str) -> bool {
     }
 }
 
+/// The suffix of the size function of a type of a nested family: the
+/// member's name, behind `list_` or `option_` for a container around it.
+fn size_suffix(ty: &Ty, family: &BTreeSet<String>) -> Option<String> {
+    match ty {
+        Ty::Named(n) if family.contains(n) => Some(n.clone()),
+        // LexLean measures a member, or a list or an option of one: a
+        // container of a container is outside every recursive family.
+        Ty::List(t) => match &**t {
+            Ty::Named(n) if family.contains(n) => Some(format!("list_{n}")),
+            _ => None,
+        },
+        Ty::Option(t) => match &**t {
+            Ty::Named(n) if family.contains(n) => Some(format!("option_{n}")),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// The size domains with a field type's added: the containers inside it
+/// first, then itself, where it is a container that has a size.
+fn with_domains(ty: &Ty, family: &BTreeSet<String>, domains: Vec<Ty>) -> Vec<Ty> {
+    let domains = match ty {
+        Ty::List(t) | Ty::Option(t) => with_domains(t, family, domains),
+        _ => domains,
+    };
+    if matches!(ty, Ty::Named(_)) || size_suffix(ty, family).is_none() || domains.contains(ty) {
+        return domains;
+    }
+    let mut domains = domains;
+    domains.push(ty.clone());
+    domains
+}
+
 impl Types {
     /// The lifted types with data-carrying enums among them: every type to
     /// the fixpoint where each names only types that lift, and no two name
@@ -632,20 +666,20 @@ impl Types {
     }
 
     /// The size function of a type of a nested family: the members, and
-    /// lists and options of them. `None` for any other type.
+    /// lists and options of types that have one. `None` for any other type.
     pub(crate) fn size_name(&self, ty: &Ty, family: &BTreeSet<String>) -> Option<String> {
-        match ty {
-            Ty::Named(n) if family.contains(n) => Some(format!("size_of_{n}")),
-            Ty::List(t) => match &**t {
-                Ty::Named(n) if family.contains(n) => Some(format!("size_of_list_{n}")),
-                _ => None,
-            },
-            Ty::Option(t) => match &**t {
-                Ty::Named(n) if family.contains(n) => Some(format!("size_of_option_{n}")),
-                _ => None,
-            },
-            _ => None,
-        }
+        size_suffix(ty, family).map(|s| format!("size_of_{s}"))
+    }
+
+    /// The types the sizes of a family range over: the members, then each
+    /// list or option the members hold whose items have a size, after the
+    /// ones inside it.
+    pub(crate) fn size_domains(&self, family: &BTreeSet<String>) -> Vec<Ty> {
+        let fields: Vec<Ty> = family.iter().flat_map(|m| self.member_fields(m)).collect();
+        let members: Vec<Ty> = family.iter().map(|m| Ty::Named(m.clone())).collect();
+        fields
+            .iter()
+            .fold(members, |domains, t| with_domains(t, family, domains))
     }
 
     /// Whether a nested family has a structural size: every occurrence of a
@@ -2106,7 +2140,11 @@ fn expr_form(
         }
         // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
         rs::RustExpr::Macro(m) if m.path.is_ident("matches") => {
-            let Some((scrutinee, pat)) = &m.matches else {
+            let Some(rs::MacroMatch {
+                expr: scrutinee,
+                pat,
+            }) = &m.matches
+            else {
                 return Err(Residue::Form("matches! of another form".to_string()));
             };
             let yes = rs::RustExpr::Lit(rs::Lit::Bool(true));
@@ -2120,7 +2158,7 @@ fn expr_form(
             matching(scrutinee, &arms, env, ctx, acc, Some(&Ty::Bool))
         }
         rs::RustExpr::Macro(m) if m.path.is_ident("vec") => {
-            let Some(items) = &m.args else {
+            let Some(rs::MacroArgs { items }) = &m.args else {
                 return Err(Residue::Form("vec! of a repeated value".to_string()));
             };
             list_of(items, env, ctx, acc, want)
@@ -2186,11 +2224,13 @@ fn write_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Ex
         (rs::RustExpr::Path(p), Some(f)) => p.is_ident(f),
         _ => false,
     };
-    match mac.args.as_deref() {
+    match mac.args.as_ref().map(|a| a.items.as_slice()) {
         Some([f, rest @ ..]) if into_formatter(f) => {
             let text = rs::ExprMacro {
                 path: mac.path.clone(),
-                args: Some(rest.to_vec()),
+                args: Some(rs::MacroArgs {
+                    items: rest.to_vec(),
+                }),
                 matches: None,
             };
             format_macro(&text, env, ctx, acc)
@@ -2204,7 +2244,7 @@ fn write_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Ex
 /// `format!` whose holes are all strings: the pieces joined.
 fn format_macro(mac: &rs::ExprMacro, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty), Acc)> {
     let bad = |what: &str| Err(Residue::Form(format!("format! {what}")));
-    let Some(args) = &mac.args else {
+    let Some(rs::MacroArgs { items: args }) = &mac.args else {
         return bad("arguments");
     };
     let mut args = args.iter();
@@ -2934,7 +2974,7 @@ fn hex_of(e: &rs::RustExpr) -> Option<&rs::RustExpr> {
         return None;
     };
     let hole = format!("{{{}:02x}}", b.ident);
-    let named = match mac.args.as_deref() {
+    let named = match mac.args.as_ref().map(|a| a.items.as_slice()) {
         Some([rs::RustExpr::Lit(rs::Lit::Str(t))]) => *t == hole,
         Some([rs::RustExpr::Lit(rs::Lit::Str(t)), rs::RustExpr::Path(p)]) => {
             t == "{:02x}" && p.is_ident(&b.ident)
@@ -8769,11 +8809,12 @@ fn well_founded(
     else {
         return refused();
     };
-    let mut definitions: Vec<String> = Vec::new();
+    let mut definitions: Vec<String> = types
+        .size_domains(&family)
+        .iter()
+        .filter_map(|d| types.size_name(d, &family))
+        .collect();
     for m in &family {
-        definitions.push(format!("size_of_{m}"));
-        definitions.push(format!("size_of_list_{m}"));
-        definitions.push(format!("size_of_option_{m}"));
         if let Some(fields) = types.structs.get(m).filter(|_| types.boxed(m)) {
             definitions.extend(fields.iter().map(|(f, _)| Types::accessor(m, f)));
         }

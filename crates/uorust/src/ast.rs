@@ -678,8 +678,22 @@ pub(crate) struct ExprLet {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct ExprMacro {
     pub(crate) path: Path,
-    pub(crate) args: Option<Vec<RustExpr>>,
-    pub(crate) matches: Option<(Box<RustExpr>, Box<Pat>)>,
+    pub(crate) args: Option<MacroArgs>,
+    pub(crate) matches: Option<MacroMatch>,
+}
+
+/// The arguments of a macro that read as a comma-separated list of
+/// expressions.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct MacroArgs {
+    pub(crate) items: Vec<RustExpr>,
+}
+
+/// The scrutinee and pattern of `matches!(e, P)`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct MacroMatch {
+    pub(crate) expr: Box<RustExpr>,
+    pub(crate) pat: Box<Pat>,
 }
 
 /// `match expr { arms }`.
@@ -1037,7 +1051,7 @@ impl ExprMacro {
             .last()
             .map(|s| s.ident.clone())
             .unwrap_or_default();
-        let Some(args) = &self.args else {
+        let Some(MacroArgs { items: args }) = &self.args else {
             return Scan::none();
         };
         let own = if matches!(name.as_str(), "assert" | "assert_eq" | "assert_ne") {

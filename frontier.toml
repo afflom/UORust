@@ -29,7 +29,7 @@ reason = "form"
 detail = "expression form outside the lift: method call .scan"
 
 [[residue]]
-kappa = "0765c464eb02965ffda903b361cfed733de6e23106f2dfa7f56087d754c5144d"
+kappa = "16bae4bba6d69642ec848d17b9408a6cb10d98b2b0aaf7009a913217332cc298"
 function = "uorust::ast::ExprMacro::scan"
 reason = "form"
 detail = "expression form outside the lift: method call .scan"
@@ -275,6 +275,12 @@ reason = "form"
 detail = "expression form outside the lift: method call .member_fields"
 
 [[residue]]
+kappa = "4d28add5706344e411bf06aa4543ad39e80056879c7d999bd479fa9424eb366d"
+function = "uorust::lift::Types::size_domains"
+reason = "form"
+detail = "expression form outside the lift: method call .member_fields"
+
+[[residue]]
 kappa = "9c9074cf6b1478c76bd97b7bc9e9a4be07898757c26d587fe519d201c2a54633"
 function = "uorust::lift::Types::ty"
 reason = "form"
@@ -297,12 +303,6 @@ kappa = "47846b5a4f1e90d112cc28813e94c4ae9ab9f58ca5dc3629b575469688f6040a"
 function = "uorust::lift::acceptance"
 reason = "call"
 detail = "calls literal, which is not lifted"
-
-[[residue]]
-kappa = "bb0e9ee4917461bfeee904cf8f0a81d762155fc976f35ca537a1c3cf0d7791fc"
-function = "uorust::lift::advance"
-reason = "call"
-detail = "calls int_literal, which is not lifted"
 
 [[residue]]
 kappa = "24f2558e5d21c7dc26e3d2fa13851a2e75755b21c4d9b33c328c5d516cac823a"
@@ -467,7 +467,7 @@ reason = "form"
 detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
-kappa = "43052a8ae7ba16cf9208badd26c94c0fbcfc14bac0cfa4b2b333a91a52c5a945"
+kappa = "c245b87e92d1d4502c1a212c7b457f46ba855fb793b50af1133261b9348aadd3"
 function = "uorust::lift::expr_form"
 reason = "form"
 detail = "expression form outside the lift: let pattern"
@@ -509,7 +509,7 @@ reason = "form"
 detail = "expression form outside the lift: index of (List TupleStringPairStringTy)"
 
 [[residue]]
-kappa = "88e492d4fb051262a1877f920d1211e3e3c7b58f4d7f14b3f2039492d7aabf1c"
+kappa = "8f44242eef9975b4e7260368c500d880059dc2fe49af12cabe014311e99f115f"
 function = "uorust::lift::format_macro"
 reason = "call"
 detail = "calls new, which is not lifted"
@@ -537,12 +537,6 @@ kappa = "8e46a41c8235ce6ec3a0a877e88a00584c03183a80a7d3bf48b43caa4a3075de"
 function = "uorust::lift::hoist_try"
 reason = "form"
 detail = "expression form outside the lift: ? below the function's own statements"
-
-[[residue]]
-kappa = "94478ad7b2f30b6019b124c9f5c56eeafb78b8309e7e91bb3f3f14f88e0815de"
-function = "uorust::lift::int_literal"
-reason = "form"
-detail = "expression form outside the lift: recursion over the nested type RustExpr that LexLean cannot measure"
 
 [[residue]]
 kappa = "0bd257c18e1a137976f064f13724a3ecaf23ca3e1d4e8bcef8056a06f9cfc4c6"
@@ -869,7 +863,7 @@ reason = "call"
 detail = "calls cons, which is not lifted"
 
 [[residue]]
-kappa = "8af96a5ef67db5d80193e705fc9f8a5b483e1f153ac36a98cd299f10b02fab25"
+kappa = "2eb81dc80d91fcd03eeb1dd7c6d94d3dac2c10dd0673e5d5ff998521d03101f3"
 function = "uorust::lift::well_founded"
 reason = "call"
 detail = "calls obligations, which is not lifted"
@@ -879,6 +873,12 @@ kappa = "6fbc09ff1270b6d057e37a620db218b30ca5398271efed31dc3f8c6a731b1506"
 function = "uorust::lift::while_loop"
 reason = "call"
 detail = "calls from_ref, which is not lifted"
+
+[[residue]]
+kappa = "83e94d255b644ab9f8a57db03e0244adc5066ee7d4ee57e8dce86a5e71911fef"
+function = "uorust::lift::with_domains"
+reason = "form"
+detail = "expression form outside the lift: recursion inside a match or let in an operand"
 
 [[residue]]
 kappa = "e209eef64d0f4b52a1b5a818238c2679c3cb5c3cc1815948dff37b2ef008579d"
@@ -905,7 +905,7 @@ reason = "form"
 detail = "expression form outside the lift: None of an unknown type"
 
 [[residue]]
-kappa = "2ccbe266b37cb7cc14d6e0146a98ef43ae8c526edec4e63cebd79c18b5e30906"
+kappa = "5611175b207208239ca55042df21b4ba9a0f4b6607f3af476b0bbddd223a3ea6"
 function = "uorust::lift::write_macro"
 reason = "form"
 detail = "expression form outside the lift: struct ExprMacro"
@@ -1103,7 +1103,7 @@ reason = "form"
 detail = "expression form outside the lift: method call .to_string"
 
 [[residue]]
-kappa = "d2fafc71272281ec0ebada11409dda23668b0aa377314f736a9be49e6fe09e81"
+kappa = "d272468a904e7b95591c925ff419d39042b30084487ec73c7cbafa99be145448"
 function = "uorust::project::family_decls"
 reason = "type"
 detail = "type outside the lift: &mut BTreeSet<Ty>"
@@ -1331,7 +1331,7 @@ function = "uorust::convert::lit"
 detail = "takes or returns syn::Lit, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "e9b0853385602d14644358564bee0a24699d291305721f5d7ad31d0641ad9f94"
+kappa = "c35688e9df26a0b11b5f14ab366e34c5addd7ec7b06eec236995819246d5faa5"
 function = "uorust::convert::mac"
 detail = "takes or returns syn::Macro, a type of the syn crate with no LexLean model"
 
@@ -2006,7 +2006,7 @@ function = "uorust::lift::Types::resolve"
 definition = "Behavior::typesResolve"
 
 [[lifted]]
-kappa = "307c1a4365d8b0eeed8685d038b96205aba737f4d9218d2c5a2c46e92c867dad"
+kappa = "ee7f8c251085eebc28a8d49f6f847463a5399c931b6255a50567071a43a7ef31"
 function = "uorust::lift::Types::size_name"
 definition = "Behavior::typesSizeName"
 
@@ -2014,6 +2014,11 @@ definition = "Behavior::typesSizeName"
 kappa = "9060decb3c32b9cd2ecc7113b16f99d738aa970231034f994171f5b545650e0a"
 function = "uorust::lift::Types::tuple"
 definition = "Behavior::typesTuple"
+
+[[lifted]]
+kappa = "bb0e9ee4917461bfeee904cf8f0a81d762155fc976f35ca537a1c3cf0d7791fc"
+function = "uorust::lift::advance"
+definition = "Behavior::advance"
 
 [[lifted]]
 kappa = "5dad399fa122601107dc02d7d1afff4acbbb55adb684dadfc6ce78fc6a20c140"
@@ -2041,7 +2046,7 @@ function = "uorust::lift::first_free"
 definition = "Behavior::firstFree"
 
 [[lifted]]
-kappa = "53b1ca514f3600f95a869edd040bda9dc90e1b166e0519c252a1d1f237796f59"
+kappa = "a494753839e902f04ac21bb67009f22acd4fcb8cd90a8db434d671c03de1af64"
 function = "uorust::lift::hex_of"
 definition = "Behavior::hexOf"
 
@@ -2049,6 +2054,11 @@ definition = "Behavior::hexOf"
 kappa = "77070144b985d40a851308affce21ca89665d8ac9ed66175f628da916d1dbc4f"
 function = "uorust::lift::insert_all"
 definition = "Behavior::insertAll"
+
+[[lifted]]
+kappa = "94478ad7b2f30b6019b124c9f5c56eeafb78b8309e7e91bb3f3f14f88e0815de"
+function = "uorust::lift::int_literal"
+definition = "Behavior::intLiteral"
 
 [[lifted]]
 kappa = "cc232825922d5f89341a3dc571df0a6496c70e77e0408093e63c6a26ccb62793"
@@ -2124,6 +2134,11 @@ definition = "Behavior::returned"
 kappa = "201fd6f5370c2260d9e2118bce76a7aa5b20e6b2b22d18169537e4f77d93013e"
 function = "uorust::lift::same_constructor"
 definition = "Behavior::sameConstructor"
+
+[[lifted]]
+kappa = "8a06236aca30e5c62bf58c0e3e026bc7c96baee8064e17aa23d111af5357a65f"
+function = "uorust::lift::size_suffix"
+definition = "Behavior::sizeSuffix"
 
 [[lifted]]
 kappa = "e8ca2d397bfb150c978838d1ab10804415422ac9a48f432d8da0357e39ef8a21"
