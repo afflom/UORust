@@ -5,6 +5,9 @@
 #                               app/src/Guide.lex.tex (sections, examples) and the
 #                               [[vector]] / [[workbench_vector]] rows of routes.toml
 #   scripts/self-model/facets.py -> Architecture, Design, Features, Security, Quality
+#   scripts/self-model/release.py -> Release (the targets of release.yml, its
+#                               artifacts, the channels install.yml proves) and
+#                               the README's release-target table
 #   scripts/experience/experience.py -> Brand, Users, Foundation.Experience.V1.Model,
 #                               brand/tokens.json and brand/foundation.css, read
 #                               from uor.foundation (brand/foundation.lock) and
@@ -19,6 +22,7 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root"
 python3 -I scripts/self-model/routes.py "$root"
 python3 -I scripts/self-model/facets.py "$root" "$root" >/dev/null
+python3 -I scripts/self-model/release.py "$root" "$root" >/dev/null
 python3 -I scripts/experience/authority.py "$root" --check >/dev/null
 python3 -I scripts/experience/experience.py "$root" "$root"
 (cd app && lexlean lock >/dev/null && lexlean fmt >/dev/null)

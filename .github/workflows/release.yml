@@ -101,11 +101,14 @@ jobs:
             tar -C "$RUNNER_TEMP" -czf "$out/$archive" "uorust-$TARGET"
           fi
           cd "$out"
+          # One text form on every platform, "<hex>  <name>": Git Bash's
+          # sha256sum on Windows marks binary mode with "*<name>".
           if command -v sha256sum >/dev/null; then
-            sha256sum "$archive" >"$archive.sha256"
+            digest=$(sha256sum "$archive" | cut -d' ' -f1)
           else
-            shasum -a 256 "$archive" >"$archive.sha256"
+            digest=$(shasum -a 256 "$archive" | cut -d' ' -f1)
           fi
+          printf '%s  %s\n' "$digest" "$archive" >"$archive.sha256"
           {
             echo "path=$out"
             echo "archive=$out/$archive"
@@ -160,7 +163,9 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          notes="Install from source: cargo install --locked --git https://github.com/$REPOSITORY --tag $TAG uorust
+          notes="Install: curl -fsSL https://github.com/$REPOSITORY/raw/$TAG/install.sh | UORUST_VERSION=$TAG sh
+          (Windows: install.ps1), cargo binstall uorust, brew install afflom/uorust/uorust, nix run github:$REPOSITORY/$TAG,
+          or from source: cargo install --locked --git https://github.com/$REPOSITORY --tag $TAG uorust
 
           Or download the archive for your platform, check it with SHA256SUMS, and verify its provenance:
           gh attestation verify uorust-<target>.tar.gz --repo $REPOSITORY"
@@ -169,3 +174,106 @@ jobs:
           else
             gh release create "$TAG" dist/* --repo "$REPOSITORY" --title "UORust $TAG" --notes "$notes" --generate-notes --verify-tag
           fi
+
+  # crates.io: every publishable crate of the tagged workspace, each after the
+  # crates it depends on (scripts/release/crates.py). A version already on
+  # crates.io is left as it is, so a re-dispatched tag publishes only what is
+  # missing. Without the CARGO_REGISTRY_TOKEN secret the job says so and skips.
+  crates:
+    name: publish the crates to crates.io
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the tagged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+      - name: Publish in dependency order
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z ${CARGO_REGISTRY_TOKEN:-} ]]; then
+            echo "::notice title=crates.io skipped::The CARGO_REGISTRY_TOKEN secret is not set (Settings > Secrets and variables > Actions); no crate was published."
+            exit 0
+          fi
+          rustup show active-toolchain || rustup toolchain install
+          cargo metadata --locked --no-deps --format-version 1 >"$RUNNER_TEMP/metadata.json"
+          python3 -I scripts/release/crates.py <"$RUNNER_TEMP/metadata.json" >"$RUNNER_TEMP/order"
+          while read -r crate; do
+            version=$(python3 -I -c 'import json, sys; print(next(p["version"] for p in json.load(open(sys.argv[1]))["packages"] if p["name"] == sys.argv[2]))' "$RUNNER_TEMP/metadata.json" "$crate")
+            if curl -fsS -o /dev/null -A "afflom/UORust release workflow" "https://crates.io/api/v1/crates/$crate/$version"; then
+              echo "$crate $version is already on crates.io"
+              continue
+            fi
+            cargo publish --locked -p "$crate"
+            echo "- published $crate $version" >>"$GITHUB_STEP_SUMMARY"
+          done <"$RUNNER_TEMP/order"
+
+  # Homebrew: Formula/uorust.rb on main, written from this release's
+  # SHA256SUMS by scripts/release/formula.py, so that
+  #   brew tap afflom/uorust https://github.com/afflom/UORust
+  #   brew install afflom/uorust/uorust
+  # installs the newest release. An older tag re-dispatched leaves it.
+  formula:
+    name: point the Homebrew formula at the release
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Write the formula from the release's SHA256SUMS and push it to main
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sums="$RUNNER_TEMP/SHA256SUMS"
+          gh release download "$TAG" --repo "$REPOSITORY" --pattern SHA256SUMS --output "$sums"
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          remote="https://github.com/$REPOSITORY.git"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Rebase onto a moving main until the push lands; the job's timeout bounds it.
+          while :; do
+            git -c "http.extraheader=AUTHORIZATION: basic $auth" fetch -q "$remote" main
+            git reset -q --hard FETCH_HEAD
+            current=$(sed -n 's/^  version "\(.*\)"$/\1/p' Formula/uorust.rb 2>/dev/null || true)
+            if [[ -n $current ]] && [[ $(printf '%s\n%s\n' "$current" "${TAG#v}" | sort -V | tail -n1) != "${TAG#v}" ]]; then
+              echo "formula: main's formula is at $current, newer than $TAG; left as it is"
+              exit 0
+            fi
+            mkdir -p Formula
+            python3 -I scripts/release/formula.py . "$TAG" "$sums" >Formula/uorust.rb
+            git add Formula/uorust.rb
+            if git diff --cached --quiet; then
+              echo "formula: Formula/uorust.rb already installs $TAG"
+              exit 0
+            fi
+            git commit -q -m "Point the Homebrew formula at $TAG" -m "Written by the release workflow from the SHA256SUMS of $TAG."
+            if git -c "http.extraheader=AUTHORIZATION: basic $auth" push -q "$remote" HEAD:refs/heads/main; then
+              break
+            fi
+          done
+          # A push with the workflow token starts no workflow: gate the new head
+          # and check the channels it changes.
+          for workflow in bootstrap.yml install.yml; do
+            gh workflow run "$workflow" --repo "$REPOSITORY" --ref main
+          done
+          printf '## Homebrew\n\nFormula/uorust.rb installs %s.\n' "$TAG" >>"$GITHUB_STEP_SUMMARY"

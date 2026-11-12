@@ -1,0 +1,319 @@
+# Installs the uorust CLI through every distribution channel and runs it: each
+# job is one channel, and its CHANNEL_* environment is what the self model's
+# Release facet lists (scripts/self-model/release.py reads it, with the targets
+# release.yml builds). CHANNEL_SOURCE names the release.yml job whose output the
+# channel installs. The channels install the newest release; `package` checks
+# that the crates of this revision package and build as crates.io would take
+# them, in publish order.
+name: install
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - install.sh
+      - install.ps1
+      - flake.nix
+      - Formula/**
+      - Cargo.toml
+      - Cargo.lock
+      - crates/*/Cargo.toml
+      - scripts/release/**
+      - .github/workflows/install.yml
+      - .github/workflows/release.yml
+  workflow_run:
+    workflows: [release, pages]
+    types: [completed]
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: install-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: every publishable crate packages and builds (cargo publish --dry-run)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out the revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Dry-run cargo publish for each crate in dependency order
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup show active-toolchain || rustup toolchain install
+          cargo metadata --locked --no-deps --format-version 1 | python3 -I scripts/release/crates.py >"$RUNNER_TEMP/order"
+          while read -r crate; do
+            cargo publish --dry-run --locked -p "$crate"
+            cargo package --locked -p "$crate" --list >"$RUNNER_TEMP/$crate.files"
+            echo "- $crate: $(wc -l <"$RUNNER_TEMP/$crate.files") files packaged" >>"$GITHUB_STEP_SUMMARY"
+          done <"$RUNNER_TEMP/order"
+
+  release-archive:
+    name: release archive (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    env:
+      CHANNEL: release-archive
+      CHANNEL_KIND: github-release
+      CHANNEL_SOURCE: publish
+      CHANNEL_COMMAND: gh release download --repo afflom/UORust --pattern 'uorust-<target>.*'
+      CHANNEL_VERIFY: sha256sum --check SHA256SUMS; gh attestation verify
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15]
+    steps:
+      - name: Download, check SHA256SUMS and the provenance, run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          case "$(uname -s)-$(uname -m)" in
+            Linux-x86_64) target=x86_64-unknown-linux-gnu ;;
+            Linux-aarch64) target=aarch64-unknown-linux-gnu ;;
+            Darwin-arm64) target=aarch64-apple-darwin ;;
+            Darwin-x86_64) target=x86_64-apple-darwin ;;
+          esac
+          cd "$RUNNER_TEMP"
+          gh release download --repo "$REPOSITORY" --pattern "uorust-$target.tar.gz" --pattern SHA256SUMS
+          grep " uorust-$target.tar.gz\$" SHA256SUMS | shasum -a 256 --check
+          gh attestation verify "uorust-$target.tar.gz" --repo "$REPOSITORY" \
+            --signer-workflow "$REPOSITORY/.github/workflows/release.yml"
+          tar -xzf "uorust-$target.tar.gz"
+          "./uorust-$target/uorust" --version
+          "./uorust-$target/uorust" routes >/dev/null
+
+  install-sh:
+    name: install.sh (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    env:
+      CHANNEL: install-sh
+      CHANNEL_KIND: install-script
+      CHANNEL_SOURCE: publish
+      CHANNEL_COMMAND: curl -fsSL https://afflom.github.io/UORust/install.sh | sh
+      CHANNEL_VERIFY: SHA-256 against SHA256SUMS; UORUST_ATTESTATION=1 adds gh attestation verify
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15]
+    steps:
+      - name: Check out the revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install with this revision's install.sh, provenance included
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UORUST_ATTESTATION: '1'
+          UORUST_INSTALL_DIR: ${{ runner.temp }}/bin
+        run: |
+          set -euo pipefail
+          sh install.sh
+          "$UORUST_INSTALL_DIR/uorust" --version
+      - name: A missing release is refused
+        shell: bash
+        env:
+          UORUST_VERSION: 0.0.0
+          UORUST_INSTALL_DIR: ${{ runner.temp }}/refused
+        run: |
+          if sh install.sh; then
+            echo "install.sh installed a release that does not exist" >&2
+            exit 1
+          fi
+      - name: Install with the script the page serves
+        if: github.event_name != 'push'
+        shell: bash
+        env:
+          UORUST_INSTALL_DIR: ${{ runner.temp }}/served
+        run: |
+          set -euo pipefail
+          curl -fsSL https://afflom.github.io/UORust/install.sh | sh
+          "$UORUST_INSTALL_DIR/uorust" --version
+
+  install-ps1:
+    name: install.ps1 (windows)
+    runs-on: windows-2025
+    timeout-minutes: 15
+    env:
+      CHANNEL: install-ps1
+      CHANNEL_KIND: install-script
+      CHANNEL_SOURCE: publish
+      CHANNEL_COMMAND: powershell -ExecutionPolicy Bypass -c "irm https://afflom.github.io/UORust/install.ps1 | iex"
+      CHANNEL_VERIFY: SHA-256 against SHA256SUMS; UORUST_ATTESTATION=1 adds gh attestation verify
+    steps:
+      - name: Check out the revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install with this revision's install.ps1, provenance included
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UORUST_ATTESTATION: '1'
+        run: |
+          ./install.ps1
+          & "$env:LOCALAPPDATA\Programs\uorust\bin\uorust.exe" --version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $path = [Environment]::GetEnvironmentVariable('Path', 'User')
+          if (-not (($path -split ';') -contains "$env:LOCALAPPDATA\Programs\uorust\bin")) { throw 'not on the user PATH' }
+      - name: Install with the script the page serves
+        if: github.event_name != 'push'
+        shell: pwsh
+        env:
+          UORUST_INSTALL_DIR: ${{ runner.temp }}\served
+        run: |
+          irm https://afflom.github.io/UORust/install.ps1 | iex
+          & "$env:UORUST_INSTALL_DIR\uorust.exe" --version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+  binstall:
+    name: cargo binstall
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CHANNEL: cargo-binstall
+      CHANNEL_KIND: cargo-binstall
+      CHANNEL_SOURCE: publish
+      CHANNEL_COMMAND: cargo binstall uorust
+      CHANNEL_VERIFY: the archive release.yml attests, named by [package.metadata.binstall]
+    steps:
+      - name: Check out the revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install cargo-binstall, checked against its pinned sum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl -fsSL -o binstall.tgz https://github.com/cargo-bins/cargo-binstall/releases/download/v1.27.0/cargo-binstall-x86_64-unknown-linux-musl.tgz
+          echo "b2e4b70fcddc5bd6fd90c5cf8dc17b4cf0ea54a3db16c65ee0307f42c9bd3187  binstall.tgz" | sha256sum --check
+          tar -xzf binstall.tgz -C "$HOME/.cargo/bin"
+      - name: Install the newest release through this revision's binstall metadata
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          version=$(sed -n '/^\[workspace\.package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml)
+          latest=$(gh api "repos/$REPOSITORY/releases/latest" --jq .tag_name)
+          if [[ v$version != "$latest" ]]; then
+            echo "::notice title=binstall::main is at $version, the newest release is $latest; the metadata is checked when $version is released"
+            exit 0
+          fi
+          cargo binstall --no-confirm --disable-strategies quick-install,compile \
+            --manifest-path crates/uorust --install-path "$RUNNER_TEMP/bin" uorust
+          "$RUNNER_TEMP/bin/uorust" --version
+      - name: Install from crates.io, once uorust is published there
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! curl -fsS -o /dev/null -A "afflom/UORust install workflow" https://crates.io/api/v1/crates/uorust; then
+            echo "::notice title=binstall::uorust is not on crates.io yet; cargo binstall uorust needs it there"
+            exit 0
+          fi
+          cd "$RUNNER_TEMP"
+          cargo binstall --no-confirm --disable-strategies quick-install,compile --install-path "$RUNNER_TEMP/registry" uorust
+          "$RUNNER_TEMP/registry/uorust" --version
+
+  cargo-install:
+    name: cargo install
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CHANNEL: cargo-install
+      CHANNEL_KIND: crates-io
+      CHANNEL_SOURCE: crates
+      CHANNEL_COMMAND: cargo install --locked uorust
+      CHANNEL_VERIFY: crates.io checksums in Cargo.lock; the build is local
+    steps:
+      - name: Build and install the newest release from its tag, and from crates.io once published
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          latest=$(gh api "repos/$REPOSITORY/releases/latest" --jq .tag_name)
+          cargo install --locked --root "$RUNNER_TEMP/git" --git "https://github.com/$REPOSITORY" --tag "$latest" uorust
+          "$RUNNER_TEMP/git/bin/uorust" --version
+          if curl -fsS -o /dev/null -A "afflom/UORust install workflow" https://crates.io/api/v1/crates/uorust; then
+            cargo install --locked --root "$RUNNER_TEMP/registry" uorust
+            "$RUNNER_TEMP/registry/bin/uorust" --version
+          else
+            echo "::notice title=crates.io::uorust is not on crates.io yet (release.yml publishes it once CARGO_REGISTRY_TOKEN is set)"
+          fi
+
+  homebrew:
+    name: Homebrew (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    env:
+      CHANNEL: homebrew
+      CHANNEL_KIND: homebrew-tap
+      CHANNEL_SOURCE: formula
+      CHANNEL_COMMAND: brew tap afflom/uorust https://github.com/afflom/UORust && brew install afflom/uorust/uorust
+      CHANNEL_VERIFY: the formula's sha256, written from the release's SHA256SUMS
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, ubuntu-24.04]
+    steps:
+      - name: Tap this repository and install the formula on main
+        shell: bash
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if ! command -v brew >/dev/null; then
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          fi
+          brew tap afflom/uorust "https://github.com/$REPOSITORY"
+          brew install afflom/uorust/uorust
+          uorust --version
+          brew test afflom/uorust/uorust
+
+  nix:
+    name: Nix flake
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CHANNEL: nix
+      CHANNEL_KIND: nix-flake
+      CHANNEL_SOURCE: none
+      CHANNEL_COMMAND: nix run github:afflom/UORust -- --version
+      CHANNEL_VERIFY: the locked workspace (Cargo.lock) built from source at a pinned nixpkgs
+    steps:
+      - name: Check out the revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Nix
+        uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+      - name: Build and run the flake's uorust
+        shell: bash
+        run: |
+          set -euo pipefail
+          nix run --no-write-lock-file .#uorust -- --version
+          nix run --no-write-lock-file .#uorust -- routes >/dev/null

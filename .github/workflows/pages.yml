@@ -143,6 +143,9 @@ jobs:
           node scripts/content/enrich.mjs site
           node scripts/content/check.mjs site
           node bootstrap/precache.mjs site
+          # The install scripts at the page's root, after the precache list:
+          # fetched by curl and irm, never by the page.
+          cp install.sh install.ps1 site/
       - name: Lighthouse at 100 on mobile, before anything is deployed
         shell: bash
         run: |

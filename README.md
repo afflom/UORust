@@ -51,24 +51,64 @@ Re-running on the same workspace writes byte-identical files.
 
 ## Install it
 
-```sh
-cargo install --locked --git https://github.com/afflom/UORust uorust
-```
+Every channel installs the same `uorust` binary that a release of
+[`.github/workflows/release.yml`](.github/workflows/release.yml) builds, or
+builds it from the locked sources. CI installs through each one and runs
+`uorust --version`
+([`.github/workflows/install.yml`](.github/workflows/install.yml)).
 
-installs the `uorust` CLI from source with the committed `Cargo.lock` (add
-`--tag v0.1.0` for a release). Each release tag also carries prebuilt archives
-for `x86_64` and `aarch64` Linux (`*-unknown-linux-gnu`) and macOS
-(`*-apple-darwin`), and for `x86_64-pc-windows-msvc` where it builds, from
-[the releases page](https://github.com/afflom/UORust/releases). Each archive
-has a `.sha256` beside it, `SHA256SUMS` lists them all, and each carries a
-signed build-provenance attestation from `.github/workflows/release.yml`:
+| Channel | Command | What is checked |
+| --- | --- | --- |
+| Install script (Linux, macOS) | `curl -fsSL https://afflom.github.io/UORust/install.sh \| sh` | SHA-256 against the release's `SHA256SUMS`; with `UORUST_ATTESTATION=1`, also the build provenance |
+| Install script (Windows) | `powershell -ExecutionPolicy Bypass -c "irm https://afflom.github.io/UORust/install.ps1 \| iex"` | the same |
+| cargo-binstall | `cargo binstall uorust` | the release archive `[package.metadata.binstall]` names |
+| Homebrew | `brew tap afflom/uorust https://github.com/afflom/UORust` then `brew install afflom/uorust/uorust` | the formula's `sha256`, written from `SHA256SUMS` |
+| Nix | `nix run github:afflom/UORust -- --version` or `nix profile install github:afflom/UORust` | builds `main` from `Cargo.lock` at a pinned nixpkgs |
+| crates.io | `cargo install --locked uorust` | builds from crates.io with the published `Cargo.lock` |
+| From a tag | `cargo install --locked --git https://github.com/afflom/UORust --tag v0.1.0 uorust` | builds that tag with its `Cargo.lock` |
+
+The install script takes `UORUST_VERSION` (a release such as `0.1.0`; the
+newest by default) and `UORUST_INSTALL_DIR` (default `~/.local/bin`; on Windows
+`%LOCALAPPDATA%\Programs\uorust\bin`, which it adds to the user `PATH`). Read it
+before running it: [`install.sh`](install.sh), [`install.ps1`](install.ps1).
+`cargo binstall uorust` and `cargo install --locked uorust` work once the crate
+is on crates.io; until then use `cargo binstall --git
+https://github.com/afflom/UORust uorust`, or install from a tag.
+
+### Release targets
+
+Each release carries one archive per target, its `.sha256`, and `SHA256SUMS`
+listing them all. The table is the build matrix of `release.yml`, written by
+`scripts/self-model/release.py`:
+
+<!-- release-targets:begin (scripts/self-model/release.py) -->
+| Target | Archive | Built on | Release waits for it |
+| --- | --- | --- | --- |
+| `x86_64-unknown-linux-gnu` | `uorust-x86_64-unknown-linux-gnu.tar.gz` | `ubuntu-24.04` | yes |
+| `aarch64-unknown-linux-gnu` | `uorust-aarch64-unknown-linux-gnu.tar.gz` | `ubuntu-24.04-arm` | yes |
+| `x86_64-apple-darwin` | `uorust-x86_64-apple-darwin.tar.gz` | `macos-15` | yes |
+| `aarch64-apple-darwin` | `uorust-aarch64-apple-darwin.tar.gz` | `macos-15` | yes |
+| `x86_64-pc-windows-msvc` | `uorust-x86_64-pc-windows-msvc.zip` | `windows-2025` | no |
+<!-- release-targets:end -->
+
+The release waits for every target marked yes; one marked no is attached when
+it builds.
+
+### Verify a download by hand
 
 ```sh
-sha256sum --check uorust-x86_64-unknown-linux-gnu.tar.gz.sha256
-gh attestation verify uorust-x86_64-unknown-linux-gnu.tar.gz --repo afflom/UORust
+gh release download v0.1.0 --repo afflom/UORust --pattern 'uorust-x86_64-unknown-linux-gnu.tar.gz' --pattern SHA256SUMS
+sha256sum --check --ignore-missing SHA256SUMS
+gh attestation verify uorust-x86_64-unknown-linux-gnu.tar.gz --repo afflom/UORust \
+  --signer-workflow afflom/UORust/.github/workflows/release.yml
 tar -xzf uorust-x86_64-unknown-linux-gnu.tar.gz
-./uorust-x86_64-unknown-linux-gnu/uorust project path/to/workspace --out path/to/prism-project
+./uorust-x86_64-unknown-linux-gnu/uorust --version
 ```
+
+`gh attestation verify` checks that the archive's SHA-256 is the subject of a
+build-provenance attestation signed, through GitHub's OIDC issuer, by this
+repository's release workflow. On macOS use `shasum -a 256 --check` in place
+of `sha256sum --check`.
 
 ## Use it
 
@@ -149,6 +189,7 @@ oversized, non-UTF-8 or blank-line request.
 | Behavior | [`Routes.lex.tex`](app/src/Routes.lex.tex) | the route table, its dispatch, 7 decide theorems, 46 acceptance vectors, and the request limit derived from the table (the length of a request naming every kind once) |
 | Security and threat model (ISO 27034, 27005, STRIDE) | [`Security.lex.tex`](app/src/Security.lex.tex) | 6 assets, 11 threats and risks, 13 controls with gate, proof or review evidence, threat mappings and one accepted risk |
 | Quality (ISO/IEC 25010:2023) | [`Quality.lex.tex`](app/src/Quality.lex.tex) | 6 characteristics, 10 subcharacteristics, 12 requirements with measures: route coverage, vector coverage, self-model drift, byte-identical re-runs, run time, request bound, registered tests, Clippy warnings, MSRV, static CLI, no unsafe code, every function lifted. No threshold is chosen: each is counted from the route table, read from the manifest, the model's own request limit, a comparator measurement pinned in [`model/comparators.toml`](model/comparators.toml), or 0 for a count of defects, with an excess theorem where it is measured |
+| Release and distribution | [`Release.lex.tex`](app/src/Release.lex.tex) | the release targets of `release.yml` with their archives and whether the release waits for each, the release artifacts (archives, `.sha256` files, `SHA256SUMS`), the distribution channels `install.yml` proves (each with its command, verification and the `release.yml` job it installs from), and a theorem that the release version is the system model's product version; written by `scripts/self-model/release.py`, every record cited with its source span and κ in `Release::sourcesOfRelease` |
 | Workbench view | [`Guide.lex.tex`](app/src/Guide.lex.tex), [`Frame.lex.tex`](app/src/Frame.lex.tex) | the page's operations, examples, refusal hints and the route-table guide |
 
 The component, feature, acceptance and evidence text that UORust's code or
