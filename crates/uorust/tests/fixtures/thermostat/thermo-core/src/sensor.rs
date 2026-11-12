@@ -11,6 +11,11 @@ pub trait Sensor {
     }
 }
 
+/// Two reading counts together, which can leave `usize` on a narrow target.
+pub fn total(first: usize, second: usize) -> usize {
+    first + second
+}
+
 /// A sensor that always reads the same value.
 pub struct Fixed(pub u32);
 

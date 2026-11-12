@@ -32,7 +32,7 @@ detail = "signature outside the lift: implements the trait Display"
 status = "open"
 kappa = "d14ab24fef42a528488c4d86b88652360bfe897939a4dd9bd6d2deb39518d112"
 function = "thermo_core::sensor::Fixed::read"
-span = "thermo-core/src/sensor.rs:18"
+span = "thermo-core/src/sensor.rs:23"
 reason = "signature"
 detail = "signature outside the lift: implements the trait Sensor"
 
@@ -51,6 +51,14 @@ function = "thermo_core::sensor::Sensor::read"
 span = "thermo-core/src/sensor.rs:6"
 reason = "signature"
 detail = "signature outside the lift: a method a trait declares"
+
+[[residue]]
+status = "open"
+kappa = "4c4d1274bd544a2a00aefd4698223ac1df43438ada5c9f2fcbd9e6e56d395381"
+function = "thermo_core::sensor::total"
+span = "thermo-core/src/sensor.rs:15"
+reason = "arithmetic"
+detail = "usize + wraps or panics where its value leaves the pointer width: past 2^16 on any 16-bit target, past 2^32 on any 32-bit target, past 2^64 on any 64-bit target"
 
 [[effect]]
 kappa = "d863e3f4f3b888e8f7fededbe0a0d31230d2a1ae1a4399f53b6374340b948008"
@@ -411,6 +419,12 @@ kappa = "9ac54b3da9c4b44f27bfc342624de314551a207edf3d0d0f58e05638ab833cc8"
 function = "thermo_core::roster::sign_kind"
 span = "thermo-core/src/roster.rs:231"
 definition = "Behavior::signKind"
+
+[[lifted]]
+kappa = "3de56eae0e6fe1d3ec80efdb80774ccea05a723e59843a6b77610d0b44b05508"
+function = "thermo_core::roster::slots"
+span = "thermo-core/src/roster.rs:289"
+definition = "Behavior::slots"
 
 [[lifted]]
 kappa = "cb59b04ff727c8cc7ea4e11a92f9c7f4fb4db4b0be5db2a1fa19bd0538d0f589"

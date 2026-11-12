@@ -26,6 +26,8 @@ pub(crate) struct Workspace {
     pub(crate) deny_ignores: BTreeMap<String, String>,
     /// The advisories consulted, when an advisory database was given.
     pub(crate) advisories: Option<Advisories>,
+    /// The targets `rust-toolchain.toml` declares the workspace is built for.
+    pub(crate) targets: Vec<String>,
 }
 
 /// What an advisory database says about the locked packages.

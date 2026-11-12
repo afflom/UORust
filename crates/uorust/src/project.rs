@@ -3277,7 +3277,7 @@ fn behavior(ctx: &Model, syntax: &Syntax, notes: &mut Notes) -> Module {
     // Per crate: the lifted functions' signatures and their axioms.
     let mut results: Vec<(Sigs, Axioms)> = Vec::new();
     for ((candidates, names), types) in scoped.iter().zip(&scopes) {
-        let out = lift::lift_all(candidates, types);
+        let out = lift::lift_all(candidates, types, &lift::pointer_widths(&ctx.ws.targets));
         for (rust, reason) in out.failed {
             if let Some(&r) = names.get(&rust) {
                 ctx.stopped(notes, &effectful, r, reason);

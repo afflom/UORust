@@ -899,6 +899,13 @@ definition{
   axioms: [Classical.choice, Quot.sound, propext]
 }
 
+definition{
+  name: slots,
+  parameters: [rooms : (List Room)],
+  result: Nat,
+  body: ((prim length rooms : Nat) + 1)
+}
+
 theorem{
   name: decreases_occupiedTarget_0,
   parameters: [step : Step, occupied : Step, rest : Step],
@@ -1253,6 +1260,13 @@ theorem{
   name: acceptThermoCoreMidpointOfABand0,
   parameters: [],
   statement: ((midpoint 4 8) = 6),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreTheRosterReadsItsRooms0,
+  parameters: [],
+  statement: ((slots (nil Room)) = 1),
   proof: decide{}
 }
 

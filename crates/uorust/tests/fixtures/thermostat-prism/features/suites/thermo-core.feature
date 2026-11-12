@@ -90,6 +90,7 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterFirstIs is made
     And the interface call Interface::callThermoCoreRosterFirstWord is made
     And the interface call Interface::callThermoCoreRosterSpelled is made
+    And the interface call Interface::callThermoCoreRosterSlots is made
     Then the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterReadsItsMaps holds
@@ -123,4 +124,5 @@ Feature: thermo-core
     Given the record Interface::featureThermoCoreSensor
     When the interface call Interface::callThermoCoreSensorSensorRead is made
     And the interface call Interface::callThermoCoreSensorSensorCalibrated is made
+    And the interface call Interface::callThermoCoreSensorTotal is made
     Then the acceptance row Interface::acThermoCoreThermoCoreSensorAFixedSensorReadsItsValue holds

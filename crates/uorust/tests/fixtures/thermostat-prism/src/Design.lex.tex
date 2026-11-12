@@ -461,6 +461,13 @@ definition{
 }
 
 definition{
+  name: processThermoCoreRosterSlots,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreScheduleOccupiedTarget,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -574,6 +581,13 @@ definition{
 
 definition{
   name: processThermoCoreSensorSensorCalibrated,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreSensorTotal,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
   body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
@@ -1742,6 +1756,20 @@ definition{
 }
 
 definition{
+  name: opmLibThermoCoreThingThermoCoreRosterSlots,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterSlots"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterSlots,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterSlots"})
+}
+
+definition{
   name: opmLibThermoCoreThingThermoCoreScheduleOccupiedTarget,
   parameters: [],
   result: Foundation.Arch::OpmThing,
@@ -2019,6 +2047,20 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreSensorSensorCalibrated", target := "Design::processThermoCoreSensorSensorRead"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreSensorTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSensorTotal"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreSensorTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSensorTotal"})
 }
 
 definition{
@@ -3093,6 +3135,20 @@ definition{
 }
 
 definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterSlots,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterSlots"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterSlots,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterSlots"})
+}
+
+definition{
   name: opmModuleLibThermoCoreSchedule,
   parameters: [],
   result: Foundation.Arch::DesignView,
@@ -3419,6 +3475,20 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmZoom,
   body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreSensor", process := "Design::processThermoCoreSensorSensorCalibrated", subprocess := "Design::processThermoCoreSensorSensorRead", order := 0})
+}
+
+definition{
+  name: opmModuleLibThermoCoreSensorThingThermoCoreSensorTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSensor", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreSensorTotal"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreSensorInstrumentThermoCoreSensorTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSensor", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreSensorTotal"})
 }
 \end{semanticmodule}
 \end{lexlean}

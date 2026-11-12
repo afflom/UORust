@@ -55,6 +55,12 @@ pub(crate) fn workspace(
         Some(db) => Some(advisories(db, &lock)?),
         None => None,
     };
+    let toolchain = root.join("rust-toolchain.toml");
+    let targets = if toolchain.is_file() {
+        declared_targets(&read_toml(&toolchain)?)
+    } else {
+        Vec::new()
+    };
     Ok((
         Workspace {
             name,
@@ -63,9 +69,24 @@ pub(crate) fn workspace(
             deny_ignores,
             advisories,
             packages,
+            targets,
         },
         syntax,
     ))
+}
+
+/// `[toolchain] targets` of `rust-toolchain.toml`.
+fn declared_targets(toolchain: &toml::Value) -> Vec<String> {
+    toolchain
+        .get("toolchain")
+        .and_then(|t| t.get("targets"))
+        .and_then(|t| t.as_array())
+        .map(|ts| {
+            ts.iter()
+                .filter_map(|t| t.as_str().map(str::to_string))
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 /// `[advisories] ignore` of `deny.toml`: bare IDs, or `{ id, reason }`.

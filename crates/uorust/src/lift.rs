@@ -32,6 +32,9 @@ pub(crate) enum Residue {
     Statements,
     /// Integer arithmetic whose overflow behaviour is a build setting.
     Arithmetic(String),
+    /// A `usize` operator whose value leaves the width of these targets,
+    /// by pointer width: the operator, and the targets of each width.
+    Overflow(String, Vec<(u32, Vec<String>)>),
     /// Integer arithmetic whose meaning depends on the width of the type
     /// (`usize`, or a signed type narrower than `i64`).
     Width(String),
@@ -49,7 +52,7 @@ impl Residue {
             Self::Signature(_) => "signature",
             Self::Type(_) => "type",
             Self::Statements => "statements",
-            Self::Arithmetic(_) => "arithmetic",
+            Self::Arithmetic(_) | Self::Overflow(..) => "arithmetic",
             Self::Width(_) => "width",
             Self::Form(_) => "form",
             Self::Call(_) => "call",
@@ -64,6 +67,16 @@ impl Residue {
             Self::Statements => "the body has statements other than let".to_string(),
             Self::Arithmetic(op) => {
                 format!("integer operator {op} wraps or panics depending on the build profile")
+            }
+            Self::Overflow(op, widths) => {
+                let at: Vec<String> = widths
+                    .iter()
+                    .map(|(bits, targets)| format!("past 2^{bits} on {}", targets.join(" and ")))
+                    .collect();
+                format!(
+                    "usize {op} wraps or panics where its value leaves the pointer width: {}",
+                    at.join(", ")
+                )
             }
             Self::Width(op) => {
                 format!("{op} depends on an integer width LexLean does not fix")
@@ -954,6 +967,9 @@ pub(crate) struct Env {
     pub(crate) types: Types,
     /// Candidate functions: Rust name -> signature.
     pub(crate) fns: BTreeMap<String, Sig>,
+    /// The pointer widths `usize` takes, each with the targets it is the
+    /// width of.
+    pub(crate) widths: Vec<(u32, Vec<String>)>,
 }
 
 /// The scope an expression or statement lifts in.
@@ -1266,6 +1282,116 @@ fn flat_of(
     });
     let acc = acc.called(format!("#{name}"));
     Ok(((format!("({})", parts.join(" ")), t), acc))
+}
+
+/// The pointer width of a target, from the architecture its triple names
+/// first, as rustc's target specifications set `target_pointer_width`.
+pub(crate) fn pointer_width(triple: &str) -> Option<u32> {
+    let arch = triple.split('-').next()?;
+    let wide = [
+        "x86_64",
+        "aarch64",
+        "arm64",
+        "riscv64",
+        "powerpc64",
+        "powerpc64le",
+        "s390x",
+        "sparc64",
+        "mips64",
+        "mips64el",
+        "loongarch64",
+        "wasm64",
+        "bpfel",
+        "bpfeb",
+    ];
+    let narrow = [
+        "i386",
+        "i586",
+        "i686",
+        "x86",
+        "arm",
+        "armv7",
+        "armv7a",
+        "armv7r",
+        "armebv7r",
+        "armv5te",
+        "armv4t",
+        "armv6",
+        "thumbv6m",
+        "thumbv7m",
+        "thumbv7em",
+        "thumbv7neon",
+        "thumbv8m.base",
+        "thumbv8m.main",
+        "riscv32i",
+        "riscv32im",
+        "riscv32imc",
+        "riscv32imac",
+        "riscv32imafc",
+        "powerpc",
+        "mips",
+        "mipsel",
+        "sparc",
+        "wasm32",
+        "hexagon",
+        "csky",
+        "xtensa",
+        "m68k",
+    ];
+    if wide.contains(&arch) {
+        Some(64)
+    } else if narrow.contains(&arch) || arch.starts_with("thumbv") || arch.starts_with("armv") {
+        Some(32)
+    } else if matches!(arch, "avr" | "msp430") {
+        Some(16)
+    } else {
+        None
+    }
+}
+
+/// The widths `usize` takes on the declared targets, narrowest first, each
+/// with its targets. A target whose width the triple does not name, and a
+/// workspace that declares none, leave every width the language allows.
+pub(crate) fn pointer_widths(targets: &[String]) -> Vec<(u32, Vec<String>)> {
+    let mut by: BTreeMap<u32, Vec<String>> = BTreeMap::new();
+    let mut open = targets.is_empty();
+    for t in targets {
+        match pointer_width(t) {
+            Some(w) => by.entry(w).or_default().push(t.clone()),
+            None => open = true,
+        }
+    }
+    if open {
+        for w in [16, 32, 64] {
+            by.entry(w).or_default().push(format!("any {w}-bit target"));
+        }
+    }
+    by.into_iter().collect()
+}
+
+/// `a + b` on `usize`, which agrees with the sum of naturals on every
+/// declared target where the declared limits bound it: a collection's
+/// length is at most `isize::MAX`, `2^(w-1) - 1` on a target of width `w`,
+/// so a length plus a constant `k <= 2^(w-1)` stays below `2^w` on all of
+/// them. Otherwise the residue names the targets, by width, where the sum
+/// can leave the width.
+fn usize_sum(
+    left: &rs::RustExpr,
+    right: &rs::RustExpr,
+    l: &str,
+    r: &str,
+    env: &Env,
+) -> Lift<String> {
+    let is_len = |e: &rs::RustExpr| matches!(e, rs::RustExpr::MethodCall(m) if m.method == "len" && m.args.is_empty());
+    let narrowest = env.widths.first().map(|(w, _)| *w);
+    let half = narrowest.and_then(|w| 1u128.checked_shl(w - 1));
+    let bounded = |len: &rs::RustExpr, k: &rs::RustExpr| {
+        is_len(len) && matches!((int_literal(k), half), (Some(k), Some(h)) if k <= h)
+    };
+    if bounded(left, right) || bounded(right, left) {
+        return Ok(format!("({l} + {r})"));
+    }
+    Err(Residue::Overflow("+".to_string(), env.widths.clone()))
 }
 
 fn int_literal(e: &rs::RustExpr) -> Option<u128> {
@@ -2090,6 +2216,15 @@ fn binary(b: &rs::ExprBinary, env: &Env, ctx: &Ctx, acc: Acc) -> Lift<((Expr, Ty
                 }
             };
             flat(text, Ty::Bool, acc)
+        }
+        B::Add => {
+            let want = Ty::Nat(None);
+            let ((l, lt), acc) = flat_of(&b.left, env, ctx, acc, Some(&want))?;
+            let ((r, rt), acc) = flat_of(&b.right, env, ctx, acc, Some(&want))?;
+            if lt != want || rt != want {
+                return Err(Residue::Arithmetic(op_text()));
+            }
+            flat(usize_sum(&b.left, &b.right, &l, &r, env)?, want, acc)
         }
         B::Div | B::Rem => {
             let ((l, lt), acc) = flat_of(&b.left, env, ctx, acc, None)?;
@@ -6280,7 +6415,11 @@ const KERNEL_OPAQUE: [&str; 6] = [
 
 /// Lift every candidate, to the fixpoint where no lifted body calls a function
 /// that failed to lift and no two lifted functions call each other.
-pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
+pub(crate) fn lift_all(
+    candidates: &[Candidate<'_>],
+    types: &Types,
+    widths: &[(u32, Vec<String>)],
+) -> Lifted {
     let mut failed: BTreeMap<String, Residue> = BTreeMap::new();
     loop {
         let fns: BTreeMap<String, Sig> = candidates
@@ -6300,6 +6439,7 @@ pub(crate) fn lift_all(candidates: &[Candidate<'_>], types: &Types) -> Lifted {
         let env = Env {
             types: types.clone(),
             fns,
+            widths: widths.to_vec(),
         };
         let mut decls = Vec::new();
         let mut graph: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -6811,7 +6951,7 @@ mod tests {
             block: &block,
             imports: BTreeMap::from([("Sha256".to_string(), "sha2::Sha256".to_string())]),
         };
-        let out = lift_all(&[c], types);
+        let out = lift_all(&[c], types, &pointer_widths(&[]));
         match out.failed.into_values().next() {
             Some(r) => Err(r),
             None => Ok(out
@@ -6821,6 +6961,22 @@ mod tests {
                 .collect::<Vec<_>>()
                 .join("\n")),
         }
+    }
+
+    #[test]
+    fn usize_widths_come_from_the_declared_targets() {
+        let declared = [
+            "x86_64-unknown-linux-gnu".to_string(),
+            "wasm32-unknown-unknown".to_string(),
+        ];
+        let widths = pointer_widths(&declared);
+        assert_eq!(widths.len(), 2);
+        assert_eq!(widths[0].0, 32);
+        assert_eq!(widths[0].1, vec!["wasm32-unknown-unknown".to_string()]);
+        assert_eq!(widths[1].0, 64);
+        let open: Vec<u32> = pointer_widths(&[]).iter().map(|(w, _)| *w).collect();
+        assert_eq!(open, vec![16, 32, 64]);
+        assert_eq!(pointer_width("avr-unknown-gnu-atmega328"), Some(16));
     }
 
     fn plain() -> Types {

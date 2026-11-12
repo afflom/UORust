@@ -284,6 +284,12 @@ pub fn spelled(label: &str) -> String {
     letters.join(".")
 }
 
+/// The slots a roster needs: one per room and one spare. A length is at
+/// most `isize::MAX`, so the sum fits `usize` on every target.
+pub fn slots(rooms: &[Room]) -> usize {
+    rooms.len() + 1
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -298,6 +304,7 @@ mod tests {
     #[test]
     fn the_roster_reads_its_rooms() {
         let rooms = vec![room("hall", 15), room("den", 21)];
+        assert_eq!(slots(&[]), 1);
         assert_eq!(names(&rooms), vec!["hall".to_string(), "den".to_string()]);
         assert_eq!(cold(&rooms, 18), vec![room("hall", 15)]);
         assert!(any_cold(&rooms, 18));
