@@ -130,6 +130,19 @@ pub fn joined(first: Vec<u32>, second: Vec<u32>) -> Vec<u32> {
     out
 }
 
+/// A band with a label it borrows: the lifetime is erased.
+pub struct Labelled<'a> {
+    /// What the band is called.
+    pub label: &'a str,
+    /// The band.
+    pub band: Band,
+}
+
+/// The label of a labelled band.
+pub fn label_of(view: Labelled<'_>) -> String {
+    view.label.to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -145,6 +158,18 @@ mod tests {
         assert_eq!(target_or(None, 21), 21);
         assert_eq!(heat_for(Ok(band), 17).ok(), Some(true));
         assert!(checked(band).1);
+        let view = Labelled {
+            label: "night",
+            band: Band { low: 16, high: 18 },
+        };
+        assert_eq!(view.band.low, 16);
+        assert_eq!(
+            label_of(Labelled {
+                label: "night",
+                band: Band { low: 16, high: 18 }
+            }),
+            "night"
+        );
         assert_eq!(low_of(Ok(band)).ok(), Some(18));
         assert!(not_a_number(ConfigError::NotANumber));
         assert!(!not_a_number(ConfigError::Unreadable));

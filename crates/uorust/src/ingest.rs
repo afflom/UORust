@@ -75,6 +75,15 @@ pub(crate) fn workspace(
     ))
 }
 
+/// Whether an item's generics are lifetimes alone, which say how long a
+/// borrow lives and which a LexLean value does not have: they are erased.
+fn only_lifetimes(generics: &syn::Generics) -> bool {
+    generics
+        .params
+        .iter()
+        .all(|p| matches!(p, syn::GenericParam::Lifetime(_)))
+}
+
 /// `[toolchain] targets` of `rust-toolchain.toml`.
 fn declared_targets(toolchain: &toml::Value) -> Vec<String> {
     toolchain
@@ -881,7 +890,7 @@ fn items(
                 }
             }
             syn::Item::Enum(e) => {
-                syntax.enums.push(if e.generics.params.is_empty() {
+                syntax.enums.push(if only_lifetimes(&e.generics) {
                     e.variants
                         .iter()
                         .map(|v| {
@@ -920,7 +929,7 @@ fn items(
                         .collect(),
                 });
             }
-            syn::Item::Struct(st) if st.generics.params.is_empty() => {
+            syn::Item::Struct(st) if only_lifetimes(&st.generics) => {
                 if let syn::Fields::Named(named) = &st.fields {
                     file.structs.push(StructFact {
                         name: st.ident.to_string(),

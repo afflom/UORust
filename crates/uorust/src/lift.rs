@@ -684,10 +684,12 @@ impl Types {
                     rs::PathArguments::None => {}
                     rs::PathArguments::AngleBracketed(a) => {
                         for arg in a {
-                            let rs::GenericArgument::Type(t) = arg else {
-                                return bad();
-                            };
-                            args.push(self.ty(t)?);
+                            match arg {
+                                rs::GenericArgument::Type(t) => args.push(self.ty(t)?),
+                                // A lifetime is erased.
+                                rs::GenericArgument::Other(l) if l.starts_with('\'') => {}
+                                rs::GenericArgument::Other(_) => return bad(),
+                            }
                         }
                     }
                     rs::PathArguments::Parenthesized => return bad(),
@@ -4528,10 +4530,10 @@ enum Head<'a> {
     Or(Vec<Cell<'a>>),
 }
 
-/// A row of the match compiler: a cell per column, the Rust names its
+/// A clause (a row) of the match compiler: a cell per column, the Rust names its
 /// cells bind (with the value and type each names), and its arm.
 #[derive(Clone)]
-struct Row<'a> {
+struct Clause<'a> {
     /// The arm the row is of: the alternatives of an or-pattern are rows
     /// of one arm.
     arm: usize,
@@ -4696,11 +4698,11 @@ fn pat_head<'a>(p: &'a rs::Pat, ty: &Ty, types: &Types) -> Option<(Vec<String>, 
 /// The row's heads at column `j`, one row per alternative of an or-pattern,
 /// each with the names the cell binds there.
 fn heads_at<'a>(
-    row: &Row<'a>,
+    row: &Clause<'a>,
     j: usize,
     col: &Column,
     types: &Types,
-) -> Option<Vec<(Row<'a>, Head<'a>)>> {
+) -> Option<Vec<(Clause<'a>, Head<'a>)>> {
     let (names, h) = head(row.cells[j], &col.ty, types)?;
     let mut row = row.clone();
     row.binds.extend(
@@ -4825,12 +4827,12 @@ fn matching<'a>(
             _ => vec![Cell::Pat(p)],
         }
     };
-    let rows: Option<Vec<Row<'a>>> = arms
+    let rows: Option<Vec<Clause<'a>>> = arms
         .iter()
         .enumerate()
         .map(|(arm, (p, b))| {
             let cells = spread(p);
-            (cells.len() == cols.len()).then_some(Row {
+            (cells.len() == cols.len()).then_some(Clause {
                 arm,
                 cells,
                 binds: Vec::new(),
@@ -4845,7 +4847,7 @@ fn matching<'a>(
 }
 
 /// The row's cells with the cells at column `j` in place of its cell there.
-fn replaced<'a>(row: &Row<'a>, j: usize, cells: Vec<Cell<'a>>) -> Vec<Cell<'a>> {
+fn replaced<'a>(row: &Clause<'a>, j: usize, cells: Vec<Cell<'a>>) -> Vec<Cell<'a>> {
     let mut out = row.cells[..j].to_vec();
     out.extend(cells);
     out.extend(row.cells[j + 1..].iter().copied());
@@ -4856,7 +4858,7 @@ fn replaced<'a>(row: &Row<'a>, j: usize, cells: Vec<Cell<'a>>) -> Vec<Cell<'a>> 
 /// whose cells all match, and whose guard holds, gives the value.
 fn compile<'a>(
     cols: &[Column],
-    rows: &[Row<'a>],
+    rows: &[Clause<'a>],
     env: &Env,
     ctx: &Ctx,
     acc: Acc,
@@ -4971,7 +4973,7 @@ fn compile<'a>(
                 Head::Items(cs) if cs.len() == items.len() => cs.clone(),
                 _ => return refuse(),
             };
-            next.push(Row {
+            next.push(Clause {
                 cells: replaced(row, j, cells),
                 ..row.clone()
             });
@@ -5005,8 +5007,8 @@ fn compile<'a>(
         };
         let mut matched = row.clone();
         matched.cells[j] = Cell::Wild;
-        let after: Vec<Row<'_>> = heads[taken..].iter().map(|(r, _)| r.clone()).collect();
-        let then_rows: Vec<Row<'_>> = std::iter::once(matched)
+        let after: Vec<Clause<'_>> = heads[taken..].iter().map(|(r, _)| r.clone()).collect();
+        let then_rows: Vec<Clause<'_>> = std::iter::once(matched)
             .chain(after.iter().cloned())
             .collect();
         let ((then, tt), acc) = compile(cols, &then_rows, env, ctx, acc, want)?;
@@ -5023,7 +5025,7 @@ fn compile<'a>(
     }
     // The rows a constructor's values reach, its fields' cells in place
     // of the column's.
-    let reach = |key: &str, arity: usize| -> Option<Vec<Row<'_>>> {
+    let reach = |key: &str, arity: usize| -> Option<Vec<Clause<'_>>> {
         let mut out = Vec::new();
         for (row, h) in &heads {
             let cells = match h {
@@ -5032,7 +5034,7 @@ fn compile<'a>(
                 Head::Ctor(k, _) if k != key => continue,
                 _ => return None,
             };
-            out.push(Row {
+            out.push(Clause {
                 cells: replaced(row, j, cells),
                 ..row.clone()
             });

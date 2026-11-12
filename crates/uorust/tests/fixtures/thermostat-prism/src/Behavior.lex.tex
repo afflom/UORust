@@ -26,6 +26,13 @@ inductive{
   constructors: [{name: Unreadable, fields: []}, {name: NotANumber, fields: []}]
 }
 
+structure{
+  name: Labelled,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: label, type: String}, {name: band, type: Band}]
+}
+
 inductive{
   name: Menu,
   type_parameters: [],
@@ -298,6 +305,8 @@ definition{
   result: (List Nat),
   body: (let out : (List Nat) := firstValue; (let out1 : (List Nat) := (prim append out secondValue : (List Nat)); out1))
 }
+
+definition{name: labelOf, parameters: [view : Labelled], result: String, body: (project view label)}
 
 definition{
   name: parseTarget,
@@ -1173,12 +1182,19 @@ theorem{
 theorem{
   name: acceptThermoCoreBandsMeasureAndCount9,
   parameters: [],
+  statement: ((labelOf (record Labelled {label := "night", band := (record Band {low := 16, high := 18})})) = "night"),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreBandsMeasureAndCount11,
+  parameters: [],
   statement: ((notANumber (ctor ConfigError.NotANumber)) = true),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreBandsMeasureAndCount10,
+  name: acceptThermoCoreBandsMeasureAndCount12,
   parameters: [],
   statement: ((notANumber (ctor ConfigError.Unreadable)) = false),
   proof: decide{}

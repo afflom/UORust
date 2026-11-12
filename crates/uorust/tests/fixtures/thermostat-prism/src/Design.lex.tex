@@ -146,6 +146,13 @@ definition{
 }
 
 definition{
+  name: processThermoCoreBandLabelOf,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreConfigParseTarget,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -1081,6 +1088,20 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandJoined"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreBandLabelOf,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandLabelOf"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreBandLabelOf,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelOf"})
 }
 
 definition{
@@ -2474,6 +2495,20 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandJoined"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandThingThermoCoreBandLabelOf,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreBandLabelOf"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreBandInstrumentThermoCoreBandLabelOf,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreBand", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreBandLabelOf"})
 }
 
 definition{
