@@ -469,6 +469,8 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         ("describe", "(Prelude::natDecimal target)"),
         ("describe", "(if sequence then \"true\" else \"false\")"),
         ("describe", "(cons (heldUnit) "),
+        // `()` is LexLean's Unit.
+        ("validate", "(ctor Result.ok [Unit, String] ())"),
     ] {
         let d = decl(name);
         assert!(d.contains(needle), "{name} lacks {needle}:\n{d}");

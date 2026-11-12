@@ -1000,6 +1000,13 @@ definition{
   axioms: [Quot.sound, propext]
 }
 
+definition{
+  name: validate,
+  parameters: [phase : Phase],
+  result: (Result Unit String),
+  body: (if (prim equal (field_Phase_label phase) "" : Bool) then (ctor Result.error [Unit, String] "a phase has no label") else (ctor Result.ok [Unit, String] ()))
+}
+
 definition{name: heldUnit, parameters: [], result: String, body: "C"}
 
 definition{

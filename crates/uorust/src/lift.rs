@@ -79,6 +79,8 @@ impl Residue {
 /// A Rust type the lift can name.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum Ty {
+    /// `()`: LexLean's `Unit`, whose one value is `()`.
+    Unit,
     Bool,
     /// An unsigned integer of this many bits; `None` for `usize`.
     Nat(Option<u32>),
@@ -112,6 +114,7 @@ impl Ty {
     /// The LexLean type.
     pub(crate) fn render(&self) -> String {
         match self {
+            Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
             Self::Nat(_) => "Nat".into(),
             Self::Int(_) => "Int64".into(),
@@ -137,6 +140,7 @@ impl Ty {
 
     fn tag(&self) -> String {
         match self {
+            Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
             Self::Nat(_) => "Nat".into(),
             Self::Int(_) => "Int".into(),
@@ -639,6 +643,7 @@ impl Types {
                 inner => self.ty(inner),
             },
             syn::Type::Paren(p) => self.ty(&p.elem),
+            syn::Type::Tuple(tp) if tp.elems.is_empty() => Continue(Ty::Unit),
             syn::Type::Group(g) => self.ty(&g.elem),
             syn::Type::Tuple(tp) if tp.elems.len() >= 2 => {
                 let mut ts = Vec::new();
@@ -758,7 +763,7 @@ impl Types {
             }
         }
         let result = match &sig.output {
-            syn::ReturnType::Default => return Break(Residue::Type("()".to_string())),
+            syn::ReturnType::Default => Ty::Unit,
             syn::ReturnType::Type(_, t) => self.ty_in(t, owner)?,
         };
         Continue((params, result))
@@ -1500,6 +1505,7 @@ fn expr_inner(e: &syn::Expr, ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, Ty
             }
             flat(struct_value(&name, &parts, ctx.types), Ty::Named(name))
         }
+        syn::Expr::Tuple(t) if t.elems.is_empty() => flat("()".into(), Ty::Unit),
         syn::Expr::Tuple(t) if t.elems.len() >= 2 => {
             let wants: Vec<Option<&Ty>> = match want {
                 Some(Ty::Tuple(ts) | Ty::Pair(ts)) if ts.len() == t.elems.len() => {
@@ -2690,6 +2696,7 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
         return None;
     }
     Some(match ty {
+        Ty::Unit => "()".into(),
         Ty::Bool => "false".into(),
         Ty::Nat(_) => "0".into(),
         Ty::Int(_) => "(0 : Int64)".into(),
@@ -4843,9 +4850,12 @@ fn block(stmts: &[syn::Stmt], ctx: &Ctx<'_>, want: Option<&Ty>) -> Lift<(Expr, T
         }
     }
     match stmts {
+        // A block with no value is `()`.
+        [] if want == Some(&Ty::Unit) => Continue((Expr::Flat("()".into()), Ty::Unit)),
         [syn::Stmt::Expr(e, None)] => expr(e, &ctx.below(), want),
         [syn::Stmt::Expr(syn::Expr::Return(r), _), ..] if ctx.top => match &r.expr {
             Some(v) => expr(v, &ctx.below(), Some(ctx.result)),
+            None if *ctx.result == Ty::Unit => Continue((Expr::Flat("()".into()), Ty::Unit)),
             None => Break(Residue::Type("()".to_string())),
         },
         // `if c { return v; } rest`: an early exit from the function.

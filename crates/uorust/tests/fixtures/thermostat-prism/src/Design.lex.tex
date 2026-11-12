@@ -489,6 +489,13 @@ definition{
 }
 
 definition{
+  name: processThermoCoreScheduleValidate,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -1742,6 +1749,20 @@ definition{
 }
 
 definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleValidate,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleValidate"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleValidate,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleValidate"})
+}
+
+definition{
   name: opmLibThermoCoreThingThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::OpmThing,
@@ -2950,6 +2971,20 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmZoom,
   body: (record Foundation.Arch::OpmZoom {view := "Design::opmModuleLibThermoCoreSchedule", process := "Design::processThermoCoreScheduleDescribe", subprocess := "Design::processThermoCoreScheduleIsSequence", order := 0})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleValidate,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleValidate"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleValidate,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleValidate"})
 }
 
 definition{

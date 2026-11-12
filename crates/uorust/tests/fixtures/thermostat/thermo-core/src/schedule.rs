@@ -103,3 +103,11 @@ pub fn describe(phase: &Phase) -> String {
     let sequence = is_sequence(&phase.step);
     format!("{}: {target}{HELD_UNIT} (sequence: {sequence})", phase.label)
 }
+
+/// A phase is valid when it has a label; nothing else is returned.
+pub fn validate(phase: &Phase) -> Result<(), String> {
+    if phase.label.is_empty() {
+        return Err("a phase has no label".to_string());
+    }
+    Ok(())
+}

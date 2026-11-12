@@ -8,19 +8,19 @@ spec = "uorust/register/1"
 kappa = "f2bf060ffde1eef49d395e224f0720e95c903f8c4f1ff27037eda3af479eca81"
 function = "repo_model::Model::check"
 reason = "type"
-detail = "type outside the lift: ()"
+detail = "type outside the lift: ModelError"
 
 [[residue]]
 kappa = "9a704eaa4389b9324c61bf904a2c2c0bcfb76fef0a02aada75181b819a286739"
 function = "repo_model::Model::check_authorities"
 reason = "type"
-detail = "type outside the lift: ()"
+detail = "type outside the lift: ModelError"
 
 [[residue]]
 kappa = "d37ec42be224bca4168343264b85c21c8660f90c8bb97f780ee1c44bc847e7af"
 function = "repo_model::Model::check_ids"
 reason = "type"
-detail = "type outside the lift: ()"
+detail = "type outside the lift: ModelError"
 
 [[residue]]
 kappa = "112a5545774f1f3b18dfec6d479fa45597bcc26f91b9d13af599d5bac3eff7cd"
@@ -38,7 +38,7 @@ detail = "expression form outside the lift: expr::reference"
 kappa = "d260f019dcf7e44d78ca9541fedd2b033d7fa448dc8a62e3ea426891d23bda5b"
 function = "repo_model::registry::Ledger::check"
 reason = "type"
-detail = "type outside the lift: ()"
+detail = "type outside the lift: ModelError"
 
 [[residue]]
 kappa = "6b8a571956c4424cbc44c6691fe1a86e21ee41dd97bc2c899da30ae5cf693d04"
@@ -305,7 +305,7 @@ reason = "type"
 detail = "type outside the lift: &mut BTreeSet<Ty>"
 
 [[residue]]
-kappa = "770f26c61df553545e1da883944726deca68a7ac24b35f809856101851132540"
+kappa = "0983b82a118960b89833990dd032bd395cec03365e5b147321ffa55ab97375d4"
 function = "uorust::lift::Ty::render"
 reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
@@ -317,7 +317,7 @@ reason = "form"
 detail = "expression form outside the lift: method call .render"
 
 [[residue]]
-kappa = "c8d4c2c3db9d5ea5631e76c4460fc5c63496900ee127aa508233b62393cfeb84"
+kappa = "b8fba774e628892868817bbd41e9e7724ab00907445765264435cd295534385f"
 function = "uorust::lift::Ty::tag"
 reason = "form"
 detail = "expression form outside the lift: a method that calls itself"
@@ -383,7 +383,7 @@ reason = "form"
 detail = "expression form outside the lift: a loop that shadows its state"
 
 [[residue]]
-kappa = "0b3e2a7f0fc3d89898f2d7cd983f36fd49dc777cd6e070b168d592cfb8b16c39"
+kappa = "ca850246961ebfd030c33fb9d34b852a2d488ed13947682c249d3206c3e38f86"
 function = "uorust::lift::default_in"
 reason = "form"
 detail = "expression form outside the lift: ? below the function's own statements"
@@ -991,12 +991,12 @@ function = "uorust::lift::Types::new"
 detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "2b6be240d1d66ed1cd2f8f914bc7b0a2d92571a67c4fca8bbcc8724a570ae070"
+kappa = "afd815d4d465af1a0ea18b367f91c81594d1a0221f0663de6cc6cce0f4ed4485"
 function = "uorust::lift::Types::signature"
 detail = "takes or returns syn::Signature, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "c64513db962c4c02b84d45c37dd19d7c2d27d5b6832c1de1af29ca063f95258e"
+kappa = "3b0d1cd8924eef9292724df4d924a145116980d6e5ece4901ceeaa6320b10546"
 function = "uorust::lift::Types::ty"
 detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
 
@@ -1036,7 +1036,7 @@ function = "uorust::lift::binder"
 detail = "takes or returns syn::Pat, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "0bc9dc6dbfa8bf9c83aa8b94a7c077cf86cde754ae550dbba32c77cc8775f114"
+kappa = "356d579e70108deda7146623b23eca3540c0eed41bd4cf5a93dfd2543d6d9043"
 function = "uorust::lift::block"
 detail = "takes or returns syn::Stmt, a type of the syn crate with no LexLean model"
 
@@ -1081,7 +1081,7 @@ function = "uorust::lift::expr"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "bb4ba9090d9c52c77b9c46ebb3d922fedad2c43650387292286677dc55512f44"
+kappa = "dd449e58ea0a540382b71e9901e674aee889fee6d7b5bca2beeeb16c11a340f8"
 function = "uorust::lift::expr_inner"
 detail = "takes or returns syn::Expr, a type of the syn crate with no LexLean model"
 
