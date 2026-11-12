@@ -280,7 +280,7 @@ impl RustType {
 
 /// Whether a path's first segment names a module of this crate: `crate`,
 /// `self`, `super`, or a name the file imports from this crate.
-fn crate_module(head: &str, imports: &BTreeMap<String, String>) -> bool {
+pub(crate) fn crate_module(head: &str, imports: &BTreeMap<String, String>) -> bool {
     head == "crate"
         || head == "self"
         || head == "super"

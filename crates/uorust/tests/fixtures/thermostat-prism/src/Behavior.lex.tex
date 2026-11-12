@@ -2386,6 +2386,13 @@ definition{
   body: (let out : (List TupleNatListString) := (nil TupleNatListString); (let state2 : (List TupleNatListString) := (byReadingLoop1 rooms out); state2))
 }
 
+definition{
+  name: openingBand,
+  parameters: [room : Room, target : Nat],
+  result: Band,
+  body: (record Band {low := (project room reading), high := target})
+}
+
 theorem{
   name: decreases_occupiedTarget_0,
   parameters: [step : Step, occupied : Step, rest : Step],
@@ -2994,14 +3001,14 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom51,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom52,
   parameters: [],
   statement: ((opening "den") = true),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom52,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom53,
   parameters: [],
   statement: ((opening "attic") = false),
   proof: decide{}

@@ -145,6 +145,7 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterRenamed is made
     And the interface call Interface::callThermoCoreRosterPrefixed is made
     And the interface call Interface::callThermoCoreRosterByReading is made
+    And the interface call Interface::callThermoCoreRosterOpeningBand is made
     Then the acceptance row Interface::acThermoCoreThermoCoreRosterRequestsSortByPriorityThenRoom holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterFoldsAndClamps holds
     And the acceptance row Interface::acThermoCoreThermoCoreRosterTheRosterLoopsOverItsRooms holds

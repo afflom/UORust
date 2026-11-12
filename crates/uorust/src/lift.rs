@@ -2078,7 +2078,17 @@ fn expr_form(
                 ("Self", Some(o)) => env.types.resolve(&o),
                 _ => env.types.resolve(&written),
             };
-            let local = s.path.segments.len() == 1 || written == "Self";
+            // `S`, `Self`, or `m::S` through modules of this crate, which
+            // declares a type name once.
+            let through_modules = s.path.segments.split_last().is_some_and(|(_, prefix)| {
+                prefix
+                    .first()
+                    .is_some_and(|h| rs::crate_module(&h.ident, &ctx.imports))
+                    && prefix
+                        .iter()
+                        .all(|seg| seg.arguments == rs::PathArguments::None)
+            });
+            let local = s.path.segments.len() == 1 || written == "Self" || through_modules;
             let Some(fields) = env.types.structs.get(&name).filter(|_| local) else {
                 return Err(Residue::Form(format!("struct {name}")));
             };

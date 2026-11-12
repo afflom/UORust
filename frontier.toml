@@ -325,8 +325,8 @@ detail = "expression form outside the lift: match pattern"
 [[residue]]
 kappa = "33ae51eafe7ef753437daaddc58dad9deebbddfdd549653ad643b7ae74a310a4"
 function = "uorust::lift::applying"
-reason = "form"
-detail = "expression form outside the lift: struct ExprClosure"
+reason = "call"
+detail = "calls applied_path, which is not lifted"
 
 [[residue]]
 kappa = "7b3c1d02716c7c71fb4a0d151dcb8105b36f0072605304f4153ee2b9e0034b9b"
@@ -338,7 +338,7 @@ detail = "expression form outside the lift: expr::return"
 kappa = "1dff0271a5c8ee3d446291c35a9d3737b2f5466fce81118bd99d737bda8925ce"
 function = "uorust::lift::binary"
 reason = "form"
-detail = "expression form outside the lift: method call .text"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "7899d8426f50a4b12c11bfc0b184577c4aff6479099b38e263242046da9a172f"
@@ -356,13 +356,13 @@ detail = "expression form outside the lift: recursion that does not descend on a
 kappa = "c642d0d5f6ac72bd57f4eb225f1f823c20f0d56db921edc7a1021d97aaafd9db"
 function = "uorust::lift::block"
 reason = "form"
-detail = "expression form outside the lift: struct Local"
+detail = "expression form outside the lift: None of an unknown type"
 
 [[residue]]
 kappa = "1808ed8ada2450dfe446e0eee534c56eb0fc0d37c5802d2124925f6752de5406"
 function = "uorust::lift::body"
 reason = "call"
-detail = "calls block, which is not lifted"
+detail = "calls expr, which is not lifted"
 
 [[residue]]
 kappa = "9c990416978aa0701ee2c34a5a03032389b02f5a3ac3087f5d1843b6b4f0bd6b"
@@ -452,7 +452,7 @@ detail = "calls default_in, which is not lifted"
 kappa = "9e8508713c08474fd350961d0a121c24eecbf839974941d5f1a89f71ce178831"
 function = "uorust::lift::disjoint"
 reason = "form"
-detail = "expression form outside the lift: struct Path"
+detail = "expression form outside the lift: method call .difference"
 
 [[residue]]
 kappa = "e2f758204bb41a60688370a2bc9c09225084a08ad87e26bf8bd17c58825c3781"
@@ -469,11 +469,11 @@ detail = "expression form outside the lift: match pattern"
 [[residue]]
 kappa = "da25b1ed1e5c0f8771890c6624454330a2a8d7fdc57446d7873c5d65273e5116"
 function = "uorust::lift::expr"
-reason = "call"
-detail = "calls expr_inner, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
-kappa = "c245b87e92d1d4502c1a212c7b457f46ba855fb793b50af1133261b9348aadd3"
+kappa = "329d095713243af67bc76bc9a3455e9be549abbb651524d79cec58057d7a9ab9"
 function = "uorust::lift::expr_form"
 reason = "form"
 detail = "expression form outside the lift: let pattern"
@@ -482,7 +482,7 @@ detail = "expression form outside the lift: let pattern"
 kappa = "0722577ff347f3aad511db011c42b562f2724bd4681c7a94bc8b8c930c339c51"
 function = "uorust::lift::expr_inner"
 reason = "form"
-detail = "expression form outside the lift: struct ExprClosure"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "bab7340f566b9ad0942922e3ab37e5a94cb2629e54e026ec62ea717f29a6570a"
@@ -499,8 +499,8 @@ detail = "calls rebind, which is not lifted"
 [[residue]]
 kappa = "1d349a0ec093dd8f44be9a4bcb7d2db64fc6c513787a78f50463b972c9b898fc"
 function = "uorust::lift::flat_of"
-reason = "call"
-detail = "calls captures, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "b2422fb1d47c5414c85c72d7d224b5612c9546d54ec7b270855fabf7d8bbd281"
@@ -524,7 +524,7 @@ detail = "calls new, which is not lifted"
 kappa = "d91466f96afa724aea29b86f9bb70076fb828cf73e35abd68a6e4bab68934784"
 function = "uorust::lift::function_value"
 reason = "form"
-detail = "expression form outside the lift: method call .flat"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "ec76a8188cd726811bfed55ca3aef62cb1259a461114eccf92e3802273fb7446"
@@ -571,8 +571,8 @@ detail = "expression form outside the lift: recursion that does not descend on a
 [[residue]]
 kappa = "b66cfd25ff8f523bdd7bebe41590650199e0bfa7919ca5c70806ef679b77a520"
 function = "uorust::lift::lambda"
-reason = "call"
-detail = "calls applying, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "e4e89b34e11e1b4505d2faf9a3f44064678c7dbf236336fa77b0d411e647c47f"
@@ -589,8 +589,8 @@ detail = "calls leaves_in, which is not lifted"
 [[residue]]
 kappa = "226bd26c2de0efa4987ae4c45d513494a658b099eafa2821b2ff3d4430cead67"
 function = "uorust::lift::let_pattern"
-reason = "form"
-detail = "expression form outside the lift: struct Block"
+reason = "call"
+detail = "calls matching, which is not lifted"
 
 [[residue]]
 kappa = "7416815b6cf751a920b50f693c71981e0e1db7e02f7b9872cdb6b176be445690"
@@ -691,8 +691,8 @@ detail = "expression form outside the lift: let pattern"
 [[residue]]
 kappa = "4444fecbe7fe4cf80c20708658982524670fad2d72b7a94472a6367f194f422f"
 function = "uorust::lift::question"
-reason = "form"
-detail = "expression form outside the lift: method call .bind"
+reason = "call"
+detail = "calls flat_of, which is not lifted"
 
 [[residue]]
 kappa = "fdb579f576c613cc9a534cd104248c89813241d849541bde44508648211ab087"
@@ -811,14 +811,8 @@ detail = "expression form outside the lift: ? outside a let"
 [[residue]]
 kappa = "5834f1e76ab2a5e6aceb504e668b03609c43fd2adf8cc0ab0fe8c0c34c25c548"
 function = "uorust::lift::text_operand"
-reason = "call"
-detail = "calls flat_of, which is not lifted"
-
-[[residue]]
-kappa = "5345d6296812f819d3a2da21ee14f8adb37745d42cf36861434d59879b2af6ad"
-function = "uorust::lift::then_rest"
 reason = "form"
-detail = "expression form outside the lift: struct ExprBlock"
+detail = "expression form outside the lift: mutual recursion"
 
 [[residue]]
 kappa = "8d6d134195970c71e0378608c9ce173165d291d9210183c769813f63483da5f6"
@@ -913,8 +907,8 @@ detail = "expression form outside the lift: None of an unknown type"
 [[residue]]
 kappa = "5611175b207208239ca55042df21b4ba9a0f4b6607f3af476b0bbddd223a3ea6"
 function = "uorust::lift::write_macro"
-reason = "form"
-detail = "expression form outside the lift: struct ExprMacro"
+reason = "call"
+detail = "calls format_macro, which is not lifted"
 
 [[residue]]
 kappa = "6a033770f2cf08cd4c2a71e07e15ddb10f7c43addfbc4c04ee19284bee906bff"
@@ -2175,6 +2169,11 @@ definition = "Behavior::stateExpr"
 kappa = "6d971932d213a34f41223d7a54ee6f390a634005f34dedca1347a2fae7fcd693"
 function = "uorust::lift::tail_type"
 definition = "Behavior::tailType"
+
+[[lifted]]
+kappa = "5345d6296812f819d3a2da21ee14f8adb37745d42cf36861434d59879b2af6ad"
+function = "uorust::lift::then_rest"
+definition = "Behavior::thenRest"
 
 [[lifted]]
 kappa = "0bf991a1eea796ea190d1cfc9ff552271328ed4f949780744e5793b7233882cc"

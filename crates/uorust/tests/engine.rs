@@ -493,6 +493,11 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
             "byReadingPart1",
             "(match (byReadingGet1 state1 (project room reading))",
         ),
+        // A struct written through the crate's modules is the crate's.
+        (
+            "openingBand",
+            "(record Band {low := (project room reading), high := target})",
+        ),
         // `()` is LexLean's Unit.
         ("validate", "(ctor Result.ok [Unit, String] ())"),
     ] {
