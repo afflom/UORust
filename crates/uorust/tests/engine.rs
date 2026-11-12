@@ -380,6 +380,10 @@ fn the_widened_lift_covers_the_fixture_ue_11() {
         ("checkedValue", "(record TupleBandBool {item0 := band"),
         ("isCelsius", "(prim equal unit \"C\" : Bool)"),
         ("holdsOff", "mutual: holdsOffMutual"),
+        (
+            "steady",
+            "(if coldArg then (if occupied then false else true)",
+        ),
         ("hasLine", "(let lines : (List String) := (nil String);"),
         ("phasesOff", "measure: (size_of_list_Phase phases)"),
         (

@@ -2750,6 +2750,13 @@ definition{
 }
 
 definition{
+  name: steady,
+  parameters: [coldArg : Bool, hot : Bool, occupied : Bool],
+  result: Bool,
+  body: (if coldArg then (if occupied then false else true) else (if hot then (if occupied then false else true) else true))
+}
+
+definition{
   name: atLeastLoop1,
   parameters: [items1 : (List Nat), state1 : (List Nat), floor : Nat],
   result: (List Nat),
@@ -3183,6 +3190,27 @@ theorem{
   name: acceptThermoCoreNestedPatternsChooseTheArm8,
   parameters: [],
   statement: ((comfortable (record Band {low := 16, high := 22})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreNestedPatternsChooseTheArm12,
+  parameters: [],
+  statement: ((steady true false false) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreNestedPatternsChooseTheArm13,
+  parameters: [],
+  statement: ((steady false false true) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreNestedPatternsChooseTheArm14,
+  parameters: [],
+  statement: ((steady true false true) = false),
   proof: decide{}
 }
 

@@ -6631,6 +6631,15 @@ fn matching<'a>(
             _ => vec![Cell::Pat(p)],
         }
     };
+    // An arm of alternatives over the columns is an arm per alternative,
+    // each with the arm's body, tried in order as Rust tries them.
+    let arms: Vec<(&'a rs::Pat, Body<'a>)> = arms
+        .iter()
+        .flat_map(|(p, b)| match p {
+            rs::Pat::Or(alts) if parts.len() > 1 => alts.iter().map(|a| (a, *b)).collect(),
+            _ => vec![(*p, *b)],
+        })
+        .collect();
     let rows: Option<Vec<Clause<'a>>> = arms
         .iter()
         .enumerate()

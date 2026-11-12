@@ -199,6 +199,15 @@ pub fn has_line(phases: &[Phase], line: &str) -> bool {
     lines.contains(&line.to_string())
 }
 
+/// Whether the readings call for no change: neither cold nor hot, or the
+/// room unoccupied whatever they say. One arm takes either alternative.
+pub fn steady(cold: bool, hot: bool, occupied: bool) -> bool {
+    match (cold, hot, occupied) {
+        (false, false, _) | (_, _, false) => true,
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -218,6 +227,9 @@ mod tests {
         let day = Step::Sequence(vec![hold("morning", 20), hold("evening", 18)]);
         assert!(!holds_off(&either(Step::Hold(21), day.clone())));
         assert!(has_line(&[hold("day", 21)], "day: 21"));
+        assert!(steady(true, false, false));
+        assert!(steady(false, false, true));
+        assert!(!steady(true, false, true));
         let night = Step::Sequence(vec![hold("night", 0)]);
         assert!(holds_off(&either(
             day,
