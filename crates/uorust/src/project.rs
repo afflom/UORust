@@ -300,6 +300,9 @@ pub(crate) fn project(
     modules.push(quality);
     modules.push(behavior);
     modules.push(supply);
+    // LexLean refuses a semantic module with no declaration (LLT4001), and a
+    // workspace with nothing to lift (a fresh `cargo new`) leaves Behavior so.
+    modules.retain(|m| !m.decls.is_empty());
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for (path, bytes) in crate::assets::FIXED {
