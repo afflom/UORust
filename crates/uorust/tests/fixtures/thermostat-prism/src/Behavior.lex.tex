@@ -2315,6 +2315,31 @@ definition{
   termination: {evidence: [decreases_annexedRoom_0], measure: (size_of_Plan plan)}
 }
 
+definition{
+  name: renamedMap1,
+  parameters: [items1 : (List String), name : (Fn (String) String)],
+  result: (List String),
+  body: (match items1
+    | List.nil => (nil String)
+    | List.cons room rest1 => (cons (apply name room) (renamedMap1 rest1 name))),
+  recursive_argument: items1
+}
+
+definition{
+  name: renamed,
+  parameters: [rooms : (List String), name : (Fn (String) String)],
+  result: (List String),
+  body: (renamedMap1 rooms name)
+}
+
+definition{
+  name: prefixed,
+  parameters: [rooms : (List String), prefix : String],
+  result: (List String),
+  body: (renamed rooms (fun [prefix] (room : String) => (prim join (cons prefix (cons room (nil String))) "" : String))),
+  axioms: [propext]
+}
+
 theorem{
   name: decreases_occupiedTarget_0,
   parameters: [step : Step, occupied : Step, rest : Step],
@@ -2923,14 +2948,14 @@ theorem{
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom49,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom50,
   parameters: [],
   statement: ((opening "den") = true),
   proof: decide{}
 }
 
 theorem{
-  name: acceptThermoCoreRequestsSortByPriorityThenRoom50,
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom51,
   parameters: [],
   statement: ((opening "attic") = false),
   proof: decide{}

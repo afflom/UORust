@@ -123,6 +123,9 @@ impl RustType {
             },
             TypeKind::Slice(t) => TypeKind::Slice(inner(t)),
             TypeKind::Array(t, n) => TypeKind::Array(inner(t), n.clone()),
+            TypeKind::Fn(ins, out) => {
+                TypeKind::Fn(ins.iter().map(|t| *inner(t)).collect(), inner(out))
+            }
             TypeKind::Paren(t) => TypeKind::Paren(inner(t)),
             TypeKind::Tuple(ts) => {
                 TypeKind::Tuple(ts.iter().map(|t| t.expanded(aliases, depth)).collect())
@@ -194,6 +197,9 @@ impl RustType {
             },
             TypeKind::Slice(t) => TypeKind::Slice(inner(t)),
             TypeKind::Array(t, n) => TypeKind::Array(inner(t), n.clone()),
+            TypeKind::Fn(ins, out) => {
+                TypeKind::Fn(ins.iter().map(|t| *inner(t)).collect(), inner(out))
+            }
             TypeKind::Paren(t) => TypeKind::Paren(inner(t)),
             TypeKind::Tuple(ts) => {
                 TypeKind::Tuple(ts.iter().map(|t| t.substituted(bound)).collect())
@@ -251,6 +257,9 @@ impl RustType {
             },
             TypeKind::Slice(t) => TypeKind::Slice(inner(t)),
             TypeKind::Array(t, n) => TypeKind::Array(inner(t), n.clone()),
+            TypeKind::Fn(ins, out) => {
+                TypeKind::Fn(ins.iter().map(|t| *inner(t)).collect(), inner(out))
+            }
             TypeKind::Paren(t) => TypeKind::Paren(inner(t)),
             TypeKind::Tuple(ts) => {
                 TypeKind::Tuple(ts.iter().map(|t| t.localized(imports)).collect())
@@ -339,6 +348,10 @@ fn written(kind: &TypeKind) -> String {
         } => format!("&{}", elem.text),
         TypeKind::Slice(t) => format!("[{}]", t.text),
         TypeKind::Array(t, n) => format!("[{}; {n}]", t.text),
+        TypeKind::Fn(ins, out) => {
+            let items: Vec<&str> = ins.iter().map(|t| t.text.as_str()).collect();
+            format!("dyn Fn({}) -> {}", items.join(", "), out.text)
+        }
         TypeKind::Paren(t) => format!("({})", t.text),
         TypeKind::Tuple(ts) => {
             let items: Vec<&str> = ts.iter().map(|t| t.text.as_str()).collect();
@@ -380,6 +393,9 @@ pub(crate) enum TypeKind {
     Slice(Box<RustType>),
     /// `[T; N]`, and the length as written.
     Array(Box<RustType>, String),
+    /// `dyn Fn(A, ..) -> R` or `impl Fn(A, ..) -> R`: a pure function of
+    /// its inputs.
+    Fn(Vec<RustType>, Box<RustType>),
     /// `(T)`, or an invisible group.
     Paren(Box<RustType>),
     /// `()` and `(A, B, ..)`.

@@ -483,6 +483,10 @@ fn iterator_chains_methods_and_maps_lift_ue_15() {
         // A family held in an option of a struct of a list is measured through it.
         ("size_of_option_Floor", "(1 + (size_of_Floor x0))"),
         ("annexedRoom", "measure: (size_of_Plan plan)"),
+        // A function parameter is applied; a closure passed for one is its
+        // lambda, with the captures it reads.
+        ("renamedMap1", "(apply name room)"),
+        ("prefixed", "(fun [prefix] (room : String) =>"),
         // `()` is LexLean's Unit.
         ("validate", "(ctor Result.ok [Unit, String] ())"),
     ] {

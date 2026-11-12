@@ -124,6 +124,8 @@ pub(crate) enum Ty {
     /// A set, held as the list of its members; `true` when its iteration
     /// order is its member order (`BTreeSet`), which `insert` keeps.
     Set(Box<Ty>, bool),
+    /// A pure function of its inputs: `&dyn Fn(A) -> R`, `impl Fn(A) -> R`.
+    Fn(Vec<Ty>, Box<Ty>),
 }
 
 impl Ty {
@@ -151,6 +153,14 @@ impl Ty {
             ),
             // The list of its entries, each the tuple of a key and a value.
             Self::Map(k, v, _) => format!("(List Tuple{}{})", k.tag(), v.tag()),
+            Self::Fn(ins, out) => format!(
+                "(Fn ({}) {})",
+                ins.iter()
+                    .map(Ty::render)
+                    .collect::<Vec<String>>()
+                    .join(" "),
+                out.render()
+            ),
         }
     }
 
@@ -178,6 +188,11 @@ impl Ty {
             Self::Tuple(ts) => format!("Tuple{}", ts.iter().map(|t| t.tag()).collect::<String>()),
             Self::Pair(ts) => format!("Pair{}", ts.iter().map(|t| t.tag()).collect::<String>()),
             Self::Map(k, v, _) => format!("ListTuple{}{}", k.tag(), v.tag()),
+            Self::Fn(ins, out) => format!(
+                "Fn{}To{}",
+                ins.iter().map(Ty::tag).collect::<String>(),
+                out.tag()
+            ),
         }
     }
 
@@ -215,6 +230,13 @@ impl Ty {
             Self::Outcome(t, e) => {
                 let mut out = t.mentions();
                 out.extend(e.mentions());
+                out
+            }
+            Self::Fn(ins, result) => {
+                let mut out = result.mentions();
+                for t in ins {
+                    out.extend(t.mentions());
+                }
                 out
             }
             _ => BTreeSet::new(),
@@ -718,6 +740,13 @@ impl Types {
                 _ => self.ty(elem),
             },
             rs::TypeKind::Paren(p) => self.ty(p),
+            rs::TypeKind::Fn(ins, out) => {
+                let mut inputs = Vec::new();
+                for t in ins {
+                    inputs.push(self.ty(t)?);
+                }
+                Ok(Ty::Fn(inputs, Box::new(self.ty(out)?)))
+            }
             // An array is the list of its items: its length is the
             // literal's, which the value fixes.
             rs::TypeKind::Array(t, _) => Ok(Ty::List(Box::new(self.ty(t)?))),
@@ -1771,8 +1800,81 @@ fn expr_inner(
         rs::RustExpr::MethodCall(m) => method(m, env, ctx, acc, want),
         rs::RustExpr::Macro(m) if m.path.is_ident("format") => format_macro(m, env, ctx, acc),
         rs::RustExpr::Macro(m) if m.path.is_ident("write") => write_macro(m, env, ctx, acc),
+        rs::RustExpr::Closure(_) if matches!(want, Some(Ty::Fn(..))) => {
+            function_value(e, env, ctx, acc, want)
+        }
+        // A closure a `let` binds, where a function is wanted: its lambda,
+        // in the scope it was written in.
+        rs::RustExpr::Path(p)
+            if matches!(want, Some(Ty::Fn(..)))
+                && p.get_ident().is_some_and(|i| ctx.closures.contains_key(i)) =>
+        {
+            let Some(closure) = p.get_ident().and_then(|i| ctx.closures.get(i)) else {
+                return Err(Residue::Form("a closure out of scope".to_string()));
+            };
+            let written = rs::RustExpr::Closure(rs::ExprClosure {
+                inputs: closure.inputs.clone(),
+                body: Box::new(closure.body.clone()),
+                asyncness: false,
+            });
+            let scope = Ctx {
+                locals: closure.locals.clone(),
+                ..ctx.clone()
+            };
+            function_value(&written, env, &scope, acc, want)
+        }
         _ => expr_form(e, env, ctx, acc, want),
     }
+}
+
+/// A closure where a function is wanted: the lambda of its body over its
+/// parameters, with the captures it reads.
+fn function_value(
+    e: &rs::RustExpr,
+    env: &Env,
+    ctx: &Ctx,
+    acc: Acc,
+    want: Option<&Ty>,
+) -> Lift<((Expr, Ty), Acc)> {
+    let Some(f @ Ty::Fn(inputs, output)) = want else {
+        return Err(Residue::Form(
+            "a closure where no function is wanted".to_string(),
+        ));
+    };
+    let (lam, acc) = lambda(e, inputs, env, ctx, acc, Some(output))?;
+    if !lam.ty.same(output) {
+        return Err(Residue::Form("a closure of another type".to_string()));
+    }
+    if !lam.descends.is_empty() {
+        return Err(Residue::Form("recursion inside a closure".to_string()));
+    }
+    let body = lam.wrap(lam.core.clone()).flat();
+    let texts = vec![body.clone()];
+    let caps = captures(ctx, &texts, &lam.binders);
+    let held = match caps.as_slice() {
+        [] => String::new(),
+        some => format!(
+            "[{}] ",
+            some.iter()
+                .map(|(c, _)| c.clone())
+                .collect::<Vec<String>>()
+                .join(", ")
+        ),
+    };
+    let params: Vec<String> = lam
+        .binders
+        .iter()
+        .zip(inputs)
+        .map(|(b, t)| format!("({b} : {})", t.render()))
+        .collect();
+    let acc = acc.called_all(lam.calls).axioms_all(lam.axioms);
+    Ok((
+        (
+            Expr::Flat(format!("(fun {held}{} => {body})", params.join(" "))),
+            f.clone(),
+        ),
+        acc,
+    ))
 }
 
 /// The other forms of [`expr_inner`].
@@ -2692,6 +2794,27 @@ fn call(
     };
     if let Some(closure) = p.get_ident().and_then(|i| ctx.closures.get(i)) {
         return applied_closure(closure, &c.args, env, ctx, acc, want);
+    }
+    // `f(x)` of a function parameter: its application.
+    if let Some((f, Ty::Fn(inputs, output))) = p.get_ident().and_then(|i| ctx.locals.get(i)) {
+        if inputs.len() != c.args.len() {
+            return Err(Residue::Form(
+                "a function applied to another arity".to_string(),
+            ));
+        }
+        let mut parts = vec!["apply".to_string(), f.clone()];
+        let mut acc = acc;
+        for (arg, ty) in c.args.iter().zip(inputs) {
+            let ((v, vt), next) = flat_of(arg, env, &ctx.below(), acc, Some(ty))?;
+            if !vt.same(ty) {
+                return Err(Residue::Form(
+                    "a function applied to another type".to_string(),
+                ));
+            }
+            acc = next;
+            parts.push(v);
+        }
+        return flat(format!("({})", parts.join(" ")), (**output).clone(), acc);
     }
     if let (Some(w), [arg]) = (wrapper(p), c.args.iter().collect::<Vec<_>>().as_slice()) {
         return match (w, want) {
@@ -3883,7 +4006,7 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
         Ty::Str | Ty::Char => "\"\"".into(),
         Ty::ParseError => format!("(ctor {PRELUDE}::ParseIntError.InvalidDigit)"),
         Ty::Option(t) => format!("(ctor Option.none [{}])", t.render()),
-        Ty::Outcome(..) | Ty::Path => return None,
+        Ty::Outcome(..) | Ty::Path | Ty::Fn(..) => return None,
         Ty::List(t) | Ty::Set(t, _) => format!("(nil {})", t.render()),
         Ty::Map(..) => format!("(nil {})", ty.entry().render()),
         Ty::Tuple(ts) | Ty::Pair(ts) => {

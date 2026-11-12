@@ -79,7 +79,7 @@ pub(crate) fn derived(ty: &Ty, types: &Types) -> bool {
 fn derived_in(ty: &Ty, types: &Types, assumed: &BTreeSet<String>) -> bool {
     match ty {
         Ty::Unit | Ty::Bool | Ty::Nat(_) | Ty::Str | Ty::Char => true,
-        Ty::Int(_) | Ty::ParseError | Ty::Path => false,
+        Ty::Int(_) | Ty::ParseError | Ty::Path | Ty::Fn(..) => false,
         Ty::Option(t) | Ty::List(t) | Ty::Set(t, true) => derived_in(t, types, assumed),
         Ty::Set(_, false) | Ty::Map(_, _, false) => false,
         Ty::Map(k, v, true) | Ty::Outcome(k, v) => {
@@ -411,7 +411,7 @@ fn body(ty: &Ty, types: &Types) -> Expr {
             }
             (None, None, None) => Expr::Flat(ordering_value("Equal")),
         },
-        Ty::Int(_) | Ty::ParseError | Ty::Path | Ty::Set(..) | Ty::Map(..) => {
+        Ty::Int(_) | Ty::ParseError | Ty::Path | Ty::Set(..) | Ty::Map(..) | Ty::Fn(..) => {
             Expr::Flat(ordering_value("Equal"))
         }
     }

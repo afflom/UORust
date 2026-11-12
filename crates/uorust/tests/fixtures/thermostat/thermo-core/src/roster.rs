@@ -771,6 +771,16 @@ pub fn annexed_room(plan: &Plan) -> Option<String> {
     }
 }
 
+/// Each room's name, through `name`.
+pub fn renamed(rooms: &[String], name: &dyn Fn(&str) -> String) -> Vec<String> {
+    rooms.iter().map(|room| name(room)).collect()
+}
+
+/// Each room's name behind `prefix`.
+pub fn prefixed(rooms: &[String], prefix: &str) -> Vec<String> {
+    renamed(rooms, &|room| format!("{prefix}{room}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -942,6 +952,7 @@ mod tests {
         };
         assert_eq!(booked(&none, "den").order, vec!["den".to_string()]);
         assert_eq!(first(), "hall");
+        assert_eq!(prefixed(&["den".to_string()], "the "), vec!["the den".to_string()]);
         assert_eq!(
             annexed_room(&Plan::Annex(Box::new(Plan::Room("den".to_string())))),
             Some("den".to_string())

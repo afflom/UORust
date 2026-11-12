@@ -61,6 +61,8 @@ pub(crate) fn ty(t: &syn::Type) -> RustType {
         },
         syn::Type::Slice(s) => TypeKind::Slice(Box::new(ty(&s.elem))),
         syn::Type::Array(a) => TypeKind::Array(Box::new(ty(&a.elem)), text(&a.len)),
+        syn::Type::TraitObject(t) => function(&t.bounds),
+        syn::Type::ImplTrait(t) => function(&t.bounds),
         syn::Type::Paren(p) => TypeKind::Paren(Box::new(ty(&p.elem))),
         syn::Type::Group(g) => TypeKind::Paren(Box::new(ty(&g.elem))),
         syn::Type::Tuple(tp) => TypeKind::Tuple(tp.elems.iter().map(ty).collect()),
@@ -73,6 +75,40 @@ pub(crate) fn ty(t: &syn::Type) -> RustType {
     RustType {
         text: text(t),
         kind,
+    }
+}
+
+/// The kind of `dyn B` or `impl B`: a function type where the one bound is
+/// `Fn(A, ..) -> R`.
+fn function(bounds: &Punctuated<syn::TypeParamBound, syn::Token![+]>) -> TypeKind {
+    let traits: Vec<&syn::TraitBound> = bounds
+        .iter()
+        .filter_map(|b| match b {
+            syn::TypeParamBound::Trait(t) => Some(t),
+            _ => None,
+        })
+        .collect();
+    let [one] = traits.as_slice() else {
+        return TypeKind::Other;
+    };
+    let Some(last) = one.path.segments.last() else {
+        return TypeKind::Other;
+    };
+    match (&last.arguments, one.path.segments.len()) {
+        (syn::PathArguments::Parenthesized(p), 1) if last.ident == "Fn" => {
+            let output = match &p.output {
+                syn::ReturnType::Default => RustType {
+                    text: "()".to_string(),
+                    kind: TypeKind::Tuple(Vec::new()),
+                },
+                syn::ReturnType::Type(_, t) => ty(t),
+            };
+            TypeKind::Fn(
+                p.inputs.iter().map(|a| ty(&a.ty)).collect(),
+                Box::new(output),
+            )
+        }
+        _ => TypeKind::Other,
     }
 }
 
