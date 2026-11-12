@@ -420,6 +420,28 @@ pub fn band_widths(bands: &[(String, (u32, u32))]) -> Vec<u32> {
         .collect()
 }
 
+/// The readings' total, saturating, walked with `split_first`.
+pub fn saturated_total(readings: &[u32]) -> u32 {
+    match readings.split_first() {
+        None => 0,
+        Some((first, rest)) => first.saturating_add(saturated_total(rest)),
+    }
+}
+
+/// Each room with its reading, paired in order, as long as the shorter.
+pub fn paired(rooms: &[String], readings: &[u32]) -> Vec<(String, u32)> {
+    rooms
+        .iter()
+        .cloned()
+        .zip(readings.iter().copied())
+        .collect()
+}
+
+/// Whether a request is urgent and for a named room.
+pub fn urgent_and_named(request: &Request) -> bool {
+    matches!(request.priority, Priority::Urgent if !request.room.is_empty())
+}
+
 /// The distinct requests, in the order they sort in.
 pub fn queue(requests: &[Request]) -> BTreeSet<Request> {
     let mut out = BTreeSet::new();
@@ -555,6 +577,11 @@ mod tests {
             &Zone::Group(vec![Zone::Room("den".to_string())])
         ));
         assert_eq!(own_rooms(&Zone::Room("den".to_string())).len(), 1);
+        assert_eq!(saturated_total(&[1, 2]), 3);
+        assert!(!urgent_and_named(&Request {
+            priority: Priority::Low,
+            room: "hall".to_string()
+        }));
         assert!(all_named(&Zone::Group(vec![Zone::Room(
             "hall".to_string()
         )])));

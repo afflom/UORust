@@ -1940,12 +1940,16 @@ fn expr_form(
         // `matches!(e, P)`: a match with `true` for `P` and `false` otherwise.
         rs::RustExpr::Macro(m) if m.path.is_ident("matches") => {
             let Some((scrutinee, pat)) = &m.matches else {
-                return Err(Residue::Form("matches! with a guard".to_string()));
+                return Err(Residue::Form("matches! of another form".to_string()));
             };
             let yes = rs::RustExpr::Lit(rs::Lit::Bool(true));
             let no = rs::RustExpr::Lit(rs::Lit::Bool(false));
             let wild = rs::Pat::Wild;
-            let arms = vec![(&**pat, Body::Expr(&yes)), (&wild, Body::Expr(&no))];
+            let first = match &**pat {
+                rs::Pat::Guard(g) => (&*g.pat, Body::Guarded(&g.guard, &yes)),
+                p => (p, Body::Expr(&yes)),
+            };
+            let arms = vec![first, (&wild, Body::Expr(&no))];
             matching(scrutinee, &arms, env, ctx, acc, Some(&Ty::Bool))
         }
         rs::RustExpr::Macro(m) if m.path.is_ident("vec") => {
@@ -4400,6 +4404,72 @@ fn combinator(
             let acc = acc.axiom("propext");
             flat(format!("(prim join {r} {s} : String)"), Ty::Str, acc)
         }
+        // `a.zip(b)`: the pairs of items at the same place, as long as the
+        // shorter.
+        ("zip", [other]) => {
+            let ((o, ot), acc) = flat_of(other, env, ctx, acc, None)?;
+            let oe = match &ot {
+                Ty::List(t) | Ty::Set(t, true) => (**t).clone(),
+                Ty::Map(_, _, true) => ot.entry(),
+                _ => {
+                    return Err(Residue::Form(
+                        ".zip with something other than a list".into(),
+                    ))
+                }
+            };
+            let pair = env.types.tuple(vec![elem.clone(), oe.clone()]);
+            let pairs = Ty::List(Box::new(pair.clone()));
+            let name = ctx.helper_name(env, &acc, "Zip");
+            let (items, acc) = ctx.fresh(env, acc, "items");
+            let (others, acc) = ctx.fresh(env, acc, "others");
+            let (head, acc) = ctx.fresh(env, acc, "item");
+            let (rest, acc) = ctx.fresh(env, acc, "rest");
+            let (partner, acc) = ctx.fresh(env, acc, "partner");
+            let (more, acc) = ctx.fresh(env, acc, "more");
+            let value = tuple_value(&pair, &[head.clone(), partner.clone()]);
+            let body = Expr::Match {
+                scrutinee: items.clone(),
+                arms: vec![
+                    Arm {
+                        pattern: "List.nil".into(),
+                        body: Expr::Flat(format!("(nil {})", pair.render())),
+                    },
+                    Arm {
+                        pattern: format!("List.cons {head} {rest}"),
+                        body: Expr::Match {
+                            scrutinee: others.clone(),
+                            arms: vec![
+                                Arm {
+                                    pattern: "List.nil".into(),
+                                    body: Expr::Flat(format!("(nil {})", pair.render())),
+                                },
+                                Arm {
+                                    pattern: format!("List.cons {partner} {more}"),
+                                    body: Expr::Flat(format!(
+                                        "(cons {value} ({name} {rest} {more}))"
+                                    )),
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+            let acc = acc.saw(&pair).helper(Helper {
+                name: name.clone(),
+                params: vec![
+                    (items, list.render()),
+                    (others, Ty::List(Box::new(oe)).render()),
+                ],
+                result: pairs.render(),
+                body,
+                calls: BTreeSet::new(),
+                axioms: BTreeSet::new(),
+                recursive: true,
+                entwined: false,
+            });
+            let acc = acc.called(format!("#{name}"));
+            flat(format!("({name} {r} {o})"), pairs, acc)
+        }
         ("contains", [needle]) => Ok(some(lookup(
             env, ctx, acc, "Contains", r, elem, None, needle,
         )?)),
@@ -5116,6 +5186,13 @@ fn matching<'a>(
     acc: Acc,
     want: Option<&Ty>,
 ) -> Lift<((Expr, Ty), Acc)> {
+    // `xs.split_first()`: a match on the slice itself, so a recursive call
+    // on its rest descends.
+    if let Some((slice, pats)) = split_first(scrutinee, arms) {
+        let arms: Vec<(&rs::Pat, Body<'_>)> =
+            pats.iter().zip(arms).map(|(p, (_, b))| (p, *b)).collect();
+        return matching(&slice, &arms, env, ctx, acc, want);
+    }
     // A tuple written in place is its items, a column each.
     let parts: Vec<&rs::RustExpr> = match scrutinee {
         rs::RustExpr::Tuple(items) if items.len() >= 2 => items.iter().collect(),
@@ -5154,6 +5231,77 @@ fn matching<'a>(
         return Err(Residue::Form("match pattern".to_string()));
     };
     compile(&cols, &rows, env, ctx, acc, want)
+}
+
+/// A match on `xs.split_first()`, alone or as an item of a tuple, as the
+/// match on `xs` itself: `None` is `[]`, and `Some((head, rest))` is
+/// `[head, rest @ ..]`.
+fn split_first(
+    scrutinee: &rs::RustExpr,
+    arms: &[(&rs::Pat, Body<'_>)],
+) -> Option<(rs::RustExpr, Vec<rs::Pat>)> {
+    let is_split = |e: &rs::RustExpr| matches!(e, rs::RustExpr::MethodCall(m) if m.method == "split_first" && m.args.is_empty());
+    let receiver = |e: &rs::RustExpr| match e {
+        rs::RustExpr::MethodCall(m) => (*m.receiver).clone(),
+        other => other.clone(),
+    };
+    let (slice, at) = match scrutinee {
+        rs::RustExpr::Tuple(items) if items.len() >= 2 => {
+            let k = items.iter().position(is_split)?;
+            let mut items = items.clone();
+            items[k] = receiver(&items[k]);
+            (rs::RustExpr::Tuple(items), Some(k))
+        }
+        one if is_split(one) => (receiver(one), None),
+        _ => return None,
+    };
+    let pats = arms
+        .iter()
+        .map(|(p, _)| match (at, p) {
+            (None, p) => sliced(p),
+            (Some(_), rs::Pat::Wild) => Some(rs::Pat::Wild),
+            (Some(k), rs::Pat::Tuple(items)) => {
+                let mut items = items.clone();
+                items[k] = sliced(items.get(k)?)?;
+                Some(rs::Pat::Tuple(items))
+            }
+            _ => None,
+        })
+        .collect::<Option<Vec<rs::Pat>>>()?;
+    Some((slice, pats))
+}
+
+/// A pattern of `split_first`'s value as a pattern of the slice.
+fn sliced(p: &rs::Pat) -> Option<rs::Pat> {
+    match p {
+        rs::Pat::Wild => Some(rs::Pat::Wild),
+        rs::Pat::Path(path) if wrapper(path) == Some("None") => Some(rs::Pat::Slice(Vec::new())),
+        rs::Pat::Ident(i) if i.ident == "None" && i.subpat.is_none() => {
+            Some(rs::Pat::Slice(Vec::new()))
+        }
+        rs::Pat::TupleStruct(ts) if wrapper(&ts.path) == Some("Some") => {
+            let [rs::Pat::Tuple(pair)] = ts.elems.as_slice() else {
+                return None;
+            };
+            let [head, rest] = pair.as_slice() else {
+                return None;
+            };
+            let mut elems = vec![head.clone()];
+            match rest {
+                rs::Pat::Wild => elems.push(rs::Pat::Rest),
+                rs::Pat::Ident(i) if i.subpat.is_none() => {
+                    elems.push(rs::Pat::Ident(rs::PatIdent {
+                        subpat: Some(Box::new(rs::Pat::Rest)),
+                        ..i.clone()
+                    }))
+                }
+                rs::Pat::Slice(more) => elems.extend(more.iter().cloned()),
+                _ => return None,
+            }
+            Some(rs::Pat::Slice(elems))
+        }
+        _ => None,
+    }
 }
 
 /// The row's cells with the cells at column `j` in place of its cell there.

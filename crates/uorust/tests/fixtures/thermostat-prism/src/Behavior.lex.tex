@@ -1633,6 +1633,45 @@ definition{
 }
 
 definition{
+  name: saturatedTotal,
+  parameters: [readings : (List Nat)],
+  result: Nat,
+  body: (match readings
+    | List.nil => 0
+    | List.cons firstValue rest => (if ((firstValue + (saturatedTotal rest)) <? 4294967296) then (firstValue + (saturatedTotal rest)) else 4294967295)),
+  recursive_argument: readings
+}
+
+definition{
+  name: pairedZip1,
+  parameters: [items1 : (List String), others2 : (List Nat)],
+  result: (List TupleStringNat),
+  body: (match items1
+    | List.nil => (nil TupleStringNat)
+    | List.cons item3 rest4 => (match others2
+      | List.nil => (nil TupleStringNat)
+      | List.cons partner5 more6 => (cons (record TupleStringNat {item0 := item3, item1 := partner5}) (pairedZip1 rest4 more6)))),
+  recursive_argument: items1
+}
+
+definition{
+  name: paired,
+  parameters: [rooms : (List String), readings : (List Nat)],
+  result: (List TupleStringNat),
+  body: (pairedZip1 rooms readings)
+}
+
+definition{
+  name: urgentAndNamed,
+  parameters: [request : Request],
+  result: Bool,
+  body: (match (project request priority)
+    | Priority.Low => false
+    | Priority.Normal => false
+    | Priority.Urgent => (if (not (prim equal (project request room) "" : Bool)) then true else false))
+}
+
+definition{
   name: queueInsert1,
   parameters: [items2 : (List Request), item3 : Request],
   result: (List Request),
@@ -2135,6 +2174,20 @@ theorem{
   statement: ((sameZone (ctor Zone.Room "hall") (ctor Zone.Room "hall")) = true),
   proof: decide{},
   axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom6,
+  parameters: [],
+  statement: ((saturatedTotal (cons 1 (cons 2 (nil Nat)))) = 3),
+  proof: decide{}
+}
+
+theorem{
+  name: acceptThermoCoreRequestsSortByPriorityThenRoom7,
+  parameters: [],
+  statement: ((urgentAndNamed (record Request {priority := (ctor Priority.Low), room := "hall"})) = false),
+  proof: decide{}
 }
 
 theorem{

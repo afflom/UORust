@@ -545,6 +545,27 @@ definition{
 }
 
 definition{
+  name: processThermoCoreRosterSaturatedTotal,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreRosterPaired,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
+  name: processThermoCoreRosterUrgentAndNamed,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreRosterQueue,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -2040,6 +2061,48 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterBandWidths"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreRosterSaturatedTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterSaturatedTotal"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterSaturatedTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterSaturatedTotal"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreRosterPaired,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterPaired"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterPaired,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterPaired"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreRosterUrgentAndNamed,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterUrgentAndNamed"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreRosterUrgentAndNamed,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterUrgentAndNamed"})
 }
 
 definition{
@@ -3657,6 +3720,48 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterBandWidths"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterSaturatedTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterSaturatedTotal"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterSaturatedTotal,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterSaturatedTotal"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterPaired,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterPaired"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterPaired,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterPaired"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterThingThermoCoreRosterUrgentAndNamed,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreRosterUrgentAndNamed"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreRosterInstrumentThermoCoreRosterUrgentAndNamed,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreRoster", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreRosterUrgentAndNamed"})
 }
 
 definition{

@@ -147,11 +147,27 @@ fn mac(m: &syn::Macro) -> ExprMacro {
             let e: syn::Expr = input.parse()?;
             input.parse::<syn::Token![,]>()?;
             let p = syn::Pat::parse_multi_with_leading_vert(input)?;
+            // `matches!(e, P if guard)`.
+            let guard = if input.peek(syn::Token![if]) {
+                input.parse::<syn::Token![if]>()?;
+                Some(input.parse::<syn::Expr>()?)
+            } else {
+                None
+            };
             let _ = input.parse::<Option<syn::Token![,]>>()?;
-            Ok((e, p))
+            Ok((e, p, guard))
         })
         .ok()
-        .map(|(e, p)| (Box::new(expr(&e)), Box::new(pat(&p))))
+        .map(|(e, p, guard)| {
+            let p = match guard {
+                Some(g) => Pat::Guard(PatGuard {
+                    pat: Box::new(pat(&p)),
+                    guard: Box::new(expr(&g)),
+                }),
+                None => pat(&p),
+            };
+            (Box::new(expr(&e)), Box::new(p))
+        })
     } else {
         None
     };
