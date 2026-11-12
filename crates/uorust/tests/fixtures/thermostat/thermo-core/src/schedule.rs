@@ -89,7 +89,10 @@ pub fn labels(phases: &[Phase]) -> BTreeSet<String> {
 pub fn held_targets(phases: &[Phase]) -> BTreeMap<String, u32> {
     let mut out = BTreeMap::new();
     for phase in phases {
-        out.insert(phase.label.clone(), occupied_target(&phase.step).unwrap_or(0));
+        out.insert(
+            phase.label.clone(),
+            occupied_target(&phase.step).unwrap_or(0),
+        );
     }
     out
 }
@@ -101,7 +104,10 @@ pub const HELD_UNIT: &str = "C";
 pub fn describe(phase: &Phase) -> String {
     let target = occupied_target(&phase.step).unwrap_or(0);
     let sequence = is_sequence(&phase.step);
-    format!("{}: {target}{HELD_UNIT} (sequence: {sequence})", phase.label)
+    format!(
+        "{}: {target}{HELD_UNIT} (sequence: {sequence})",
+        phase.label
+    )
 }
 
 /// A phase is valid when it has a label; nothing else is returned.
@@ -179,6 +185,20 @@ pub fn phase_off(phase: &Phase) -> bool {
     holds_off(&phase.step)
 }
 
+/// Whether any phase's line, its label and target as text, is the given
+/// line: the lines' type is read from what is pushed.
+pub fn has_line(phases: &[Phase], line: &str) -> bool {
+    let mut lines = Vec::new();
+    for phase in phases {
+        lines.push(format!(
+            "{}: {}",
+            phase.label,
+            occupied_target(&phase.step).unwrap_or(0)
+        ));
+    }
+    lines.contains(&line.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -197,7 +217,17 @@ mod tests {
         assert!(!is_sequence(&either(Step::Hold(16), Step::Hold(21))));
         let day = Step::Sequence(vec![hold("morning", 20), hold("evening", 18)]);
         assert!(!holds_off(&either(Step::Hold(21), day.clone())));
+        assert!(has_line(&[hold("day", 21)], "day: 21"));
         let night = Step::Sequence(vec![hold("night", 0)]);
-        assert!(holds_off(&either(day, Step::Sequence(vec![hold("late", 17), Phase { label: "out".to_string(), step: night }]))));
+        assert!(holds_off(&either(
+            day,
+            Step::Sequence(vec![
+                hold("late", 17),
+                Phase {
+                    label: "out".to_string(),
+                    step: night
+                }
+            ])
+        )));
     }
 }

@@ -986,6 +986,13 @@ definition{
 }
 
 definition{
+  name: processThermoCoreScheduleHasLine,
+  parameters: [],
+  result: Foundation.Arch::SystemProcess,
+  body: (record Foundation.Arch::SystemProcess {owner := "Architecture::componentLibThermoCore"})
+}
+
+definition{
   name: processThermoCoreSensorSensorRead,
   parameters: [],
   result: Foundation.Arch::SystemProcess,
@@ -3328,6 +3335,27 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreSchedulePhaseOff", target := "Design::processThermoCoreScheduleHoldsOff"})
+}
+
+definition{
+  name: opmLibThermoCoreThingThermoCoreScheduleHasLine,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleHasLine"})
+}
+
+definition{
+  name: opmLibThermoCoreInstrumentThermoCoreScheduleHasLine,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleHasLine"})
+}
+
+definition{
+  name: opmLibThermoCoreInvokesThermoCoreScheduleHasLineThermoCoreScheduleOccupiedTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmLibThermoCore", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleHasLine", target := "Design::processThermoCoreScheduleOccupiedTarget"})
 }
 
 definition{
@@ -5708,6 +5736,27 @@ definition{
   parameters: [],
   result: Foundation.Arch::OpmLink,
   body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreSchedulePhaseOff", target := "Design::processThermoCoreScheduleHoldsOff"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleThingThermoCoreScheduleHasLine,
+  parameters: [],
+  result: Foundation.Arch::OpmThing,
+  body: (record Foundation.Arch::OpmThing {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmThingKind.process), subject := "Design::processThermoCoreScheduleHasLine"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInstrumentThermoCoreScheduleHasLine,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.instrument), source := "Architecture::componentLibThermoCore", target := "Design::processThermoCoreScheduleHasLine"})
+}
+
+definition{
+  name: opmModuleLibThermoCoreScheduleInvokesThermoCoreScheduleHasLineThermoCoreScheduleOccupiedTarget,
+  parameters: [],
+  result: Foundation.Arch::OpmLink,
+  body: (record Foundation.Arch::OpmLink {view := "Design::opmModuleLibThermoCoreSchedule", kind := (ctor Foundation.Arch::OpmLinkKind.invocation), source := "Design::processThermoCoreScheduleHasLine", target := "Design::processThermoCoreScheduleOccupiedTarget"})
 }
 
 definition{

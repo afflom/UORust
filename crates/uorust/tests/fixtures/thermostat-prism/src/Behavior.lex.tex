@@ -2711,6 +2711,45 @@ definition{
 }
 
 definition{
+  name: hasLinePart1,
+  parameters: [phase : Phase],
+  result: Nat,
+  body: (match (occupiedTarget (field_Phase_step phase))
+    | Option.none => 0
+    | Option.some value1 => value1),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
+  name: hasLineLoop1,
+  parameters: [items1 : (List Phase), state1 : (List String)],
+  result: (List String),
+  body: (match items1
+    | List.nil => state1
+    | List.cons phase rest1 => (let lines1 : (List String) := (prim append state1 (cons (prim join (cons (field_Phase_label phase) (cons ": " (cons (Prelude::natDecimal (hasLinePart1 phase)) (nil String)))) "" : String) (nil String)) : (List String)); (hasLineLoop1 rest1 lines1))),
+  axioms: [Quot.sound, propext],
+  recursive_argument: items1
+}
+
+definition{
+  name: hasLineContains1,
+  parameters: [items2 : (List String), needle1 : String],
+  result: Bool,
+  body: (match items2
+    | List.nil => false
+    | List.cons item1 rest2 => (if (prim equal item1 needle1 : Bool) then true else (hasLineContains1 rest2 needle1))),
+  recursive_argument: items2
+}
+
+definition{
+  name: hasLine,
+  parameters: [phases : (List Phase), line : String],
+  result: Bool,
+  body: (let lines : (List String) := (nil String); (let state2 : (List String) := (hasLineLoop1 phases lines); (hasLineContains1 state2 line))),
+  axioms: [Quot.sound, propext]
+}
+
+definition{
   name: atLeastLoop1,
   parameters: [items1 : (List Nat), state1 : (List Nat), floor : Nat],
   result: (List Nat),

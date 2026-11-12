@@ -9582,7 +9582,10 @@ fn use_in(ident: &str, e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty
 /// lifted functions and methods, read from their signatures.
 fn static_type(e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Option<Ty> {
     match e {
-        rs::RustExpr::Path(p) => locals.get(p.get_ident()?).cloned(),
+        rs::RustExpr::Path(p) => match p.get_ident() {
+            Some(ident) => locals.get(ident).cloned(),
+            None => variant_owner(p, env),
+        },
         rs::RustExpr::Reference(r) => static_type(&r.expr, env, locals),
         rs::RustExpr::Paren(x) => static_type(x, env, locals),
         // `x?`: the value an option or result holds.
@@ -9599,6 +9602,18 @@ fn static_type(e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Op
         {
             static_type(&m.receiver, env, locals)
         }
+        rs::RustExpr::MethodCall(m) if m.args.is_empty() && m.method == "to_string" => {
+            Some(Ty::Str)
+        }
+        rs::RustExpr::MethodCall(m)
+            if m.args.is_empty() && matches!(m.method.as_str(), "keys" | "values") =>
+        {
+            match static_type(&m.receiver, env, locals)? {
+                Ty::Map(k, _, _) if m.method == "keys" => Some(Ty::List(k)),
+                Ty::Map(_, v, _) => Some(Ty::List(v)),
+                _ => None,
+            }
+        }
         rs::RustExpr::MethodCall(m) => match static_type(&m.receiver, env, locals)? {
             Ty::Named(owner) => env
                 .fns
@@ -9607,12 +9622,34 @@ fn static_type(e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Op
             _ => None,
         },
         rs::RustExpr::Call(c) => match &*c.func {
-            rs::RustExpr::Path(p) => env
-                .fns
-                .get(&p.segments.last()?.ident)
-                .map(|s| s.result.clone()),
+            rs::RustExpr::Path(p) => {
+                let last = &p.segments.last()?.ident;
+                if let Some(sig) = env.fns.get(last) {
+                    return Some(sig.result.clone());
+                }
+                match (last.as_str(), c.args.as_slice()) {
+                    ("Some", [x]) => Some(Ty::Option(Box::new(static_type(x, env, locals)?))),
+                    _ => variant_owner(p, env),
+                }
+            }
             _ => None,
         },
+        // A struct literal is of the struct it names.
+        rs::RustExpr::Struct(st) => {
+            let name = env.types.resolve(&st.path.segments.last()?.ident);
+            env.types
+                .structs
+                .contains_key(&name)
+                .then_some(Ty::Named(name))
+        }
+        rs::RustExpr::Tuple(items) if items.len() > 1 => items
+            .iter()
+            .map(|x| static_type(x, env, locals))
+            .collect::<Option<Vec<Ty>>>()
+            .map(Ty::Tuple),
+        rs::RustExpr::Lit(rs::Lit::Str(_)) => Some(Ty::Str),
+        rs::RustExpr::Lit(rs::Lit::Bool(_)) => Some(Ty::Bool),
+        rs::RustExpr::Macro(m) if m.path.is_ident("format") => Some(Ty::Str),
         rs::RustExpr::Field(f) => match (static_type(&f.base, env, locals)?, &f.member) {
             (Ty::Named(n), rs::Member::Named(m)) => env
                 .types
@@ -9626,6 +9663,15 @@ fn static_type(e: &rs::RustExpr, env: &Env, locals: &BTreeMap<String, Ty>) -> Op
         },
         _ => None,
     }
+}
+
+/// The enum a variant's path names: `Kind::Variant`, of the enum `Kind`
+/// the lift declares.
+fn variant_owner(p: &rs::Path, env: &Env) -> Option<Ty> {
+    let owner = p.segments.iter().rev().nth(1)?;
+    let name = env.types.resolve(&owner.ident);
+    (env.types.datas.contains_key(&name) || env.types.enums.contains_key(&name))
+        .then_some(Ty::Named(name))
 }
 
 /// The type a local takes from where the block returns it: the block's own

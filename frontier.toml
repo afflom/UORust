@@ -277,8 +277,8 @@ detail = "expression form outside the lift: method call .contains_key"
 [[residue]]
 kappa = "581ec09069f55e9e18b08cf36c80a7585d72e5d433042070e85aac78eb5ef594"
 function = "uorust::lift::Types::signature"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: ? outside a let"
 
 [[residue]]
 kappa = "c08f8c35687e2f59c7334e09ee13307e7ed0f8840a80c13d171418a15e10bf6e"
@@ -541,8 +541,8 @@ detail = "expression form outside the lift: method call .reach"
 [[residue]]
 kappa = "f276e5c02cbad5ed186b066edabfabd178455c5b5e446b87b3b204905a8ca256"
 function = "uorust::lift::compile_ctors"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "type"
+detail = "type outside the lift: Pending<'_>"
 
 [[residue]]
 kappa = "ad1aef92ec9816633ae0f4c6daf67063f31a7d1cd346dc410bfc171e9337b2a8"
@@ -1253,7 +1253,7 @@ reason = "form"
 detail = "expression form outside the lift: index of (List TupleStringPairStringTy)"
 
 [[residue]]
-kappa = "546acca7fbd5ea603bcf4db5dc63159e7b27535e1a2bf4ef04258a6b970ad245"
+kappa = "6e3a2a9263ea84dd80f4a47a8533c1bb6025bb9507b3f46e4620500366bc44a5"
 function = "uorust::lift::static_type"
 reason = "form"
 detail = "expression form outside the lift: ? outside a let"
@@ -1454,7 +1454,7 @@ detail = "calls flat_of, which is not lifted"
 kappa = "ec9b8558a6715d9ec7b0270ad9236d5a5737683aaeff61401713e74f1feab7b4"
 function = "uorust::lift::variant_value"
 reason = "call"
-detail = "calls new, which is not lifted"
+detail = "calls flat_of, which is not lifted"
 
 [[residue]]
 kappa = "23c497d1f68d1144d1592dfdcdb7ee255626e4790ed97b74fc15e730babb3134"
@@ -1652,7 +1652,7 @@ detail = "expression form outside the lift: let of another type"
 kappa = "d7987dd90e4469035751f7701ea6a86dc5ba9602f986eb318621404c56dbe34f"
 function = "uorust::project::architecture"
 reason = "call"
-detail = "calls new, which is not lifted"
+detail = "calls value, which is not lifted"
 
 [[residue]]
 kappa = "35fdc8d0565e486a2bc909c23c160080f9d449ec40e7163106a4b3674c8e8b6a"
@@ -1772,7 +1772,7 @@ detail = "calls new, which is not lifted"
 kappa = "688b14384f0280fabfed166713329bdfc0a51b3e598cebb31c295eed5f4ffc1f"
 function = "uorust::project::security"
 reason = "call"
-detail = "calls new, which is not lifted"
+detail = "calls indexed, which is not lifted"
 
 [[residue]]
 kappa = "3e265ac554ef85c59ebd70e2fbc20b72e5dc27dc245a52b3971787e46b779c59"
@@ -1783,8 +1783,8 @@ detail = "calls new, which is not lifted"
 [[residue]]
 kappa = "d01e16ff6165ea865435391594ece3b067873129979f8d2a2bf14126d127614a"
 function = "uorust::project::supply"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: method call .insert"
 
 [[residue]]
 kappa = "cc405c12c08ff52e4bfea0287c60506327826c7a0661f4c784bbfcf3b8064513"
@@ -1855,8 +1855,8 @@ detail = "calls mentions, which is not lifted"
 [[residue]]
 kappa = "ad63b6c9e88f61283b6289a82a589966a0130e51bf2340f2c2b8ec9cab7e2323"
 function = "uorust::wf::nodes"
-reason = "call"
-detail = "calls new, which is not lifted"
+reason = "form"
+detail = "expression form outside the lift: a while loop that does not advance its cursor once per step"
 
 [[residue]]
 kappa = "dc402421122fa29e5df70870963cf4dd54b45b152c274b9f4b1f994827fa2850"
@@ -2939,6 +2939,11 @@ definition = "Behavior::untyped"
 kappa = "8371e6e46a4854777a75291d5f39b7b0fb50c1664b2bbe92494c28a185fc2103"
 function = "uorust::lift::update_target"
 definition = "Behavior::updateTarget"
+
+[[lifted]]
+kappa = "e23985b01d982d7d49eb88cc3ae46d0222a96b23813655811c314b7aaa62c6b5"
+function = "uorust::lift::variant_owner"
+definition = "Behavior::variantOwner"
 
 [[lifted]]
 kappa = "59cd35aaafd0bff3e97dc4e3dfa2addbc5fd4f649e095bee32fbfa2427e2f4a6"
