@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://afflom.github.io/uorust/">Live route table</a>
+  <a href="https://afflom.github.io/UORust/">Live route table</a>
   ·
   <a href="model/routes.toml">Route table source</a>
   ·
@@ -30,7 +30,7 @@ reviewable description without anyone writing it by hand.
 UORust is itself modeled in every Prism facet, in [`app/`](app), and that
 model is verified by the same SDK. Its application is UORust's route table:
 the function that decides which Prism record each kind of Rust fact becomes.
-The [Pages site](https://afflom.github.io/uorust/) runs that verified table in
+The [Pages site](https://afflom.github.io/UORust/) runs that verified table in
 the browser.
 
 ## How it works
@@ -79,7 +79,10 @@ cargo run --locked -p uorust -- routes
 ```
 
 `project` writes the Prism project, `check` confirms a directory holds exactly
-the current projection, and `routes` prints the route table. Check the result
+the current projection, and `routes` prints the route table. `project` and
+`check` run `cargo metadata --offline` on the workspace (so `cargo` must be on
+`PATH`, or named by `CARGO`) and, when `--last-modified` is absent, `git log`
+for the HEAD commit time. Check the result
 with the locked SDK: `prismpm --project path/to/prism-project check`.
 
 The verified route table also ships on its own. `prismpm --project app build`
