@@ -66,10 +66,17 @@ uorust:
     cd crates/uorust/tests/fixtures/thermostat-prism && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
     rm -rf target/uorust-self
     cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z
+    cargo run -q --locked -p uorust -- check . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml
     cd target/uorust-self && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
     rm -rf target/uorust-advised
     cargo run -q --locked -p uorust -- project crates/uorust/tests/fixtures/advised --out target/uorust-advised --name advised --last-modified 2026-11-11T00:00:00Z --advisories crates/uorust/tests/fixtures/advised/advisory-db
     cd target/uorust-advised && lexlean fmt --check && lexlean lock --check && lexlean verify && prismpm check
+
+# Rewrite this workspace's lift register, frontier.toml (UE-16): refused when a
+# function it records as lifted is decided otherwise by the current source.
+register:
+    rm -rf target/uorust-self
+    cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml
 
 # Only the meta-gate, while iterating on a scenario. `test` already runs it.
 bdd:

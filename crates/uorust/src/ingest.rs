@@ -760,6 +760,10 @@ fn function(
         doctests: if lib && public { doctests(&doc) } else { 0 },
         doc,
         signature: tidy(&sig.to_token_stream().to_string()),
+        tokens: match block {
+            Some(block) => format!("{} {}", sig.to_token_stream(), block.to_token_stream()),
+            None => sig.to_token_stream().to_string(),
+        },
         calls: body.calls,
         literals: body.literals,
         transitions: body.transitions,

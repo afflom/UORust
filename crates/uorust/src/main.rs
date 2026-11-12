@@ -43,6 +43,12 @@ struct Args {
     /// A RustSec advisory database checkout to check Cargo.lock against.
     #[arg(long)]
     advisories: Option<PathBuf>,
+    /// A lift register file: the projection is admitted against it (no
+    /// function it records as lifted may be decided otherwise), then
+    /// `project` writes the projection's register there and `check` requires
+    /// it to be current.
+    #[arg(long)]
+    register: Option<PathBuf>,
 }
 
 fn options(args: &Args) -> Result<Options, UorustError> {
@@ -65,12 +71,21 @@ fn run(cli: Cli) -> Result<(), UorustError> {
     match cli.command {
         Command::Project(args) => {
             let files = uorust::project_workspace(&args.workspace, &options(&args)?)?;
+            if let Some(register) = &args.register {
+                uorust::admit(register, &files)?;
+            }
             uorust::write(&args.out, &files)?;
+            if let Some(register) = &args.register {
+                uorust::write_register(register, &files)?;
+            }
             println!("wrote {} files to {}", files.len(), args.out.display());
             Ok(())
         }
         Command::Check(args) => {
             let files = uorust::project_workspace(&args.workspace, &options(&args)?)?;
+            if let Some(register) = &args.register {
+                uorust::check_register(register, &files)?;
+            }
             uorust::check(&args.out, &files)?;
             println!("{} is the current projection", args.out.display());
             Ok(())

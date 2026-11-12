@@ -27,6 +27,11 @@ pub struct HonestyReport {
     pub ids_checked: usize,
     /// How many scenarios were read.
     pub scenarios_checked: usize,
+    /// Distances to requirements: measured and reported as open claims,
+    /// never violations. Today the lift register's (`frontier.toml`) functions
+    /// that are not lifted yet, against the requirement that every function
+    /// of product code lifts (threshold 0).
+    pub open: Vec<String>,
 }
 
 impl HonestyReport {
@@ -219,6 +224,24 @@ pub fn check_honesty(root: &Path, tests: &BTreeSet<String>) -> std::io::Result<H
                 }
             }
         }
+    }
+
+    // An open claim: the excess of the lift register over the requirement
+    // that every function of product code lifts. The gate is UE-16 (no lifted
+    // κ turns unlifted); this number is a distance, not a gate.
+    if let Ok(text) = std::fs::read_to_string(root.join("frontier.toml")) {
+        let rows = |table: &str| {
+            let head = format!("[[{table}]]");
+            text.lines().filter(|l| l.trim() == head).count()
+        };
+        let (residue, foreign, effect) = (rows("residue"), rows("foreign"), rows("effect"));
+        let unlifted = residue + foreign + effect;
+        report.open.push(format!(
+            "UE-16, requirementEveryFunctionLifted: {unlifted} of {} functions of product code \
+             are not lifted yet (residue {residue}, foreign {foreign}, effect {effect}); \
+             measureUnliftedFunctions has threshold 0, so the excess is {unlifted}",
+            unlifted + rows("lifted")
+        ));
     }
 
     Ok(report)

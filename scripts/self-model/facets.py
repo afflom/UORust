@@ -432,6 +432,11 @@ reqs = [  # requirement, sub, measure, threshold
     ("requirementMsrv", "subcharacteristicAdaptability", "measureMinimumRustMinor", 89),
     ("requirementStaticRouteCli", "subcharacteristicInstallability", "measureRouteCliNeededLibraries", 0),
     ("requirementNoUnsafe", "subcharacteristicIntegrity", "measureUnsafeBlocks", 0),
+    # Every function of product code lifts: the measure is the number of rows
+    # of the lift register (frontier.toml) that are not lifted. Its excess over
+    # 0 is the distance to the requirement, an open claim; the gate (UE-16) is
+    # that no lifted κ turns unlifted, never a count.
+    ("requirementEveryFunctionLifted", "subcharacteristicFunctionalCompleteness", "measureUnliftedFunctions", 0),
 ]
 chi = indexed(chars); subi = indexed([s for s, _ in subs]); rqi = indexed([r[0] for r in reqs]); msi = indexed([r[2] for r in reqs])
 out = header(Qm, "UORust quality model", ["Foundation.Qual"], ("prism.arch", "prism.qual"))
@@ -443,6 +448,31 @@ for r, s_, m, t in reqs:
     out += defn(r, "Foundation.Qual::QualityRequirement", f"(record Foundation.Qual::QualityRequirement {{index := {rqi[r]}, subcharacteristicIndex := {subi[s_]}}})") + "\n"
 for r, s_, m, t in reqs:
     out += defn(m, "Foundation.Qual::QualityMeasure", f"(record Foundation.Qual::QualityMeasure {{index := {msi[m]}, requirementIndex := {rqi[r]}, threshold := {t}}})") + "\n"
+# The distance from an observation to a measure's threshold, and the facts the
+# ratchet stands on: no excess is exactly meeting the threshold, and the excess
+# never rises while the observation does not.
+out += """definition{
+  name: excessOver,
+  parameters: [threshold : Nat, observed : Nat],
+  result: Nat,
+  body: (prim subtract observed threshold : Nat)
+}
+"""
+for name, params, statement in [
+    ("noExcessIsMet", "threshold : Nat, observed : Nat", "(((excessOver threshold observed) = 0) -> (observed <= threshold))"),
+    ("metHasNoExcess", "threshold : Nat, observed : Nat", "((observed <= threshold) -> ((excessOver threshold observed) = 0))"),
+    ("excessFallsWithTheObservation", "threshold : Nat, before : Nat, after : Nat", "((after <= before) -> ((excessOver threshold after) <= (excessOver threshold before)))"),
+    ("excessRisesOnlyWithTheObservation", "threshold : Nat, before : Nat, after : Nat", "(((excessOver threshold before) < (excessOver threshold after)) -> (before < after))"),
+]:
+    out += f"""
+theorem{{
+  name: {name},
+  parameters: [{params}],
+  statement: {statement},
+  proof: linear_arithmetic{{definitions: [excessOver]}},
+  axioms: [Quot.sound, propext]
+}}
+"""
 out = out.rstrip("\n") + "\n" + FOOT
 open(f"{OUT}/Quality.lex.tex", "w").write(out)
 

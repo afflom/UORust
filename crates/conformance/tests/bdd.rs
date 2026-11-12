@@ -90,6 +90,10 @@ fn every_id_has_a_scenario_and_a_test_cm_02() {
         report.scenarios_checked,
         tests.len()
     );
+    // Open claims: measured and reported, never asserted.
+    for claim in &report.open {
+        eprintln!("open: {claim}");
+    }
 }
 
 /// R3: there are no pending or skipped steps.

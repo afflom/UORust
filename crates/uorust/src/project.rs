@@ -384,7 +384,21 @@ pub(crate) fn project(
         files.insert(path, bytes);
     }
     files.insert("supply/spdx.json".into(), spdx(ws, options).into_bytes());
-    files.insert("frontier.toml".into(), frontier(&notes).into_bytes());
+    // The κ of every function of product code: the question its row answers.
+    let kappas: BTreeMap<String, String> = ctx
+        .all_fns()
+        .into_iter()
+        .filter(|&r| ctx.product(r))
+        .map(|r| {
+            let path = ctx.path(r);
+            let kappa = crate::register::kappa(&path, &ctx.func(r).tokens);
+            (path, kappa)
+        })
+        .collect();
+    files.insert(
+        "frontier.toml".into(),
+        frontier(&notes, &kappas).into_bytes(),
+    );
     files
 }
 
@@ -3440,7 +3454,13 @@ fn effect_phrase(effect: &str) -> String {
     }
 }
 
-fn frontier(notes: &Notes) -> String {
+fn frontier(notes: &Notes, kappas: &BTreeMap<String, String>) -> String {
+    let kappa = |path: &str| {
+        kappas
+            .get(path)
+            .map(|k| format!("kappa = \"{k}\"\n"))
+            .unwrap_or_default()
+    };
     let mut out = String::from(
         "# frontier.toml: what uorust did not admit or lift, each with a typed reason.\n\
          # A refusal is an open claim: the router proposed it and admission would\n\
@@ -3451,7 +3471,9 @@ fn frontier(notes: &Notes) -> String {
          # A foreign row is a function whose parameter or result is a type of a registry\n\
          # dependency (syn, toml, serde_json, ...) that has no LexLean model.\n\
          # A lifted row names the definition a function lifted to. Every function of\n\
-         # product code has exactly one residue, foreign, effect or lifted row.\n\n\
+         # product code has exactly one residue, foreign, effect or lifted row, keyed\n\
+         # by the κ of its question (crate path and tokens): a lifted κ never turns\n\
+         # unlifted in a later projection.\n\n\
          spec = \"uorust/frontier/1\"\n",
     );
     for r in &notes.refusals {
@@ -3465,7 +3487,8 @@ fn frontier(notes: &Notes) -> String {
     }
     for (path, (span, reason)) in &notes.residue {
         out.push_str(&format!(
-            "\n[[residue]]\nstatus = \"open\"\nfunction = {}\nspan = {}\nreason = \"{}\"\ndetail = {}\n",
+            "\n[[residue]]\nstatus = \"open\"\n{}function = {}\nspan = {}\nreason = \"{}\"\ndetail = {}\n",
+            kappa(path),
             toml_string(path),
             toml_string(&span.render()),
             reason.code(),
@@ -3474,7 +3497,8 @@ fn frontier(notes: &Notes) -> String {
     }
     for (path, (span, detail)) in &notes.foreign {
         out.push_str(&format!(
-            "\n[[foreign]]\nfunction = {}\nspan = {}\ndetail = {}\n",
+            "\n[[foreign]]\n{}function = {}\nspan = {}\ndetail = {}\n",
+            kappa(path),
             toml_string(path),
             toml_string(&span.render()),
             toml_string(detail)
@@ -3482,7 +3506,8 @@ fn frontier(notes: &Notes) -> String {
     }
     for (path, (span, effect)) in &notes.effects {
         out.push_str(&format!(
-            "\n[[effect]]\nfunction = {}\nspan = {}\neffect = {}\n",
+            "\n[[effect]]\n{}function = {}\nspan = {}\neffect = {}\n",
+            kappa(path),
             toml_string(path),
             toml_string(&span.render()),
             toml_string(effect)
@@ -3490,7 +3515,8 @@ fn frontier(notes: &Notes) -> String {
     }
     for (path, (span, definition)) in &notes.lifted {
         out.push_str(&format!(
-            "\n[[lifted]]\nfunction = {}\nspan = {}\ndefinition = {}\n",
+            "\n[[lifted]]\n{}function = {}\nspan = {}\ndefinition = {}\n",
+            kappa(path),
             toml_string(path),
             toml_string(&span.render()),
             toml_string(definition)

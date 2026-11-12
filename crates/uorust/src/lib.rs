@@ -19,6 +19,7 @@ mod ingest;
 mod lex;
 mod lift;
 mod project;
+pub mod register;
 mod route;
 
 use std::collections::BTreeMap;
@@ -111,10 +112,55 @@ pub fn is_timestamp(value: &str) -> bool {
         })
 }
 
+/// The lift register of a projection: its frontier's function rows by κ.
+pub fn lift_register(files: &BTreeMap<String, Vec<u8>>) -> Result<register::Register, UorustError> {
+    let text = String::from_utf8_lossy(files.get("frontier.toml").map_or(&[][..], Vec::as_slice));
+    register::Register::parse(Path::new("frontier.toml"), &text)
+}
+
+/// Admit a projection against the incumbent register at `path` (a
+/// `frontier.toml` or a register file), when there is one: refused when a κ
+/// the incumbent records as lifted is decided otherwise.
+pub fn admit(path: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), UorustError> {
+    if !path.is_file() {
+        return Ok(());
+    }
+    let text = std::fs::read_to_string(path).map_err(|e| error::io(path, e))?;
+    let incumbent = register::Register::parse(path, &text)?;
+    let regressed = register::admit(&incumbent, &lift_register(files)?);
+    if regressed.is_empty() {
+        Ok(())
+    } else {
+        Err(UorustError::Regressed(regressed))
+    }
+}
+
+/// Admit a projection against the register file at `path`, then write the
+/// projection's register there.
+pub fn write_register(path: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), UorustError> {
+    admit(path, files)?;
+    std::fs::write(path, lift_register(files)?.to_text()).map_err(|e| error::io(path, e))
+}
+
+/// Admit a projection against the register file at `path`, and require that
+/// file to be the projection's register.
+pub fn check_register(path: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), UorustError> {
+    admit(path, files)?;
+    match std::fs::read_to_string(path) {
+        Ok(text) if text == lift_register(files)?.to_text() => Ok(()),
+        _ => Err(UorustError::Stale(vec![path.display().to_string()])),
+    }
+}
+
 /// Write a projection into `out`, replacing an earlier projection there and
-/// refusing a directory that holds anything else.
+/// refusing a directory that holds anything else. The earlier projection's
+/// frontier is the incumbent register: a projection that decides one of its
+/// lifted κ unlifted is refused and nothing is written.
 pub fn write(out: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), UorustError> {
     let manifest = out.join(MANIFEST);
+    if manifest.is_file() {
+        admit(&out.join("frontier.toml"), files)?;
+    }
     if manifest.is_file() {
         let listed = std::fs::read_to_string(&manifest).map_err(|e| error::io(&manifest, e))?;
         for line in listed.lines() {
@@ -141,8 +187,10 @@ pub fn write(out: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), Uorust
     Ok(())
 }
 
-/// Compare a fresh projection with the one in `out`, byte for byte.
+/// Compare a fresh projection with the one in `out`, byte for byte, after
+/// admitting it against the frontier there.
 pub fn check(out: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), UorustError> {
+    admit(&out.join("frontier.toml"), files)?;
     let mut stale = Vec::new();
     for (path, bytes) in files {
         match std::fs::read(out.join(path)) {

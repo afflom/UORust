@@ -35,6 +35,9 @@ pub enum UorustError {
     ForeignOutput(PathBuf),
     /// `uorust check` found the committed projection differs from a fresh one.
     Stale(Vec<String>),
+    /// A function the incumbent lift register records as lifted (a proved
+    /// claim, by κ) is decided unlifted by this projection.
+    Regressed(Vec<String>),
 }
 
 impl fmt::Display for UorustError {
@@ -65,6 +68,11 @@ impl fmt::Display for UorustError {
                 f,
                 "the projection is stale; these files differ: {}",
                 paths.join(", ")
+            ),
+            Self::Regressed(rows) => write!(
+                f,
+                "a lifted function is no longer lifted, and a lifted κ is never re-decided: {}",
+                rows.join("; ")
             ),
         }
     }

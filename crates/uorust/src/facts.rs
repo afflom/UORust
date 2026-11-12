@@ -136,6 +136,9 @@ pub(crate) struct FnFact {
     pub(crate) doc: String,
     pub(crate) doctests: usize,
     pub(crate) signature: String,
+    /// The signature and body as tokens, which name the function's κ in the
+    /// lift register.
+    pub(crate) tokens: String,
     /// Path calls, `a::b::c` as written.
     pub(crate) calls: Vec<String>,
     /// String literals in the body.

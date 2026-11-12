@@ -7,7 +7,9 @@
 # A foreign row is a function whose parameter or result is a type of a registry
 # dependency (syn, toml, serde_json, ...) that has no LexLean model.
 # A lifted row names the definition a function lifted to. Every function of
-# product code has exactly one residue, foreign, effect or lifted row.
+# product code has exactly one residue, foreign, effect or lifted row, keyed
+# by the κ of its question (crate path and tokens): a lifted κ never turns
+# unlifted in a later projection.
 
 spec = "uorust/frontier/1"
 
@@ -20,6 +22,7 @@ detail = "no RustSec advisory database was given (--advisories), so no locked pa
 
 [[residue]]
 status = "open"
+kappa = "15fda2ed4c7ce72362556e29d0f052075ef6713907fcb42fec8941805da94ee0"
 function = "thermo_core::config::ConfigError::fmt"
 span = "thermo-core/src/config.rs:15"
 reason = "signature"
@@ -27,6 +30,7 @@ detail = "signature outside the lift: implements the trait Display"
 
 [[residue]]
 status = "open"
+kappa = "e14eb209c950573cae98d8ad0a6321dc95096f8e22f0f8cdf703c47396f6fe48"
 function = "thermo_core::config::parse_target"
 span = "thermo-core/src/config.rs:23"
 reason = "form"
@@ -34,6 +38,7 @@ detail = "expression form outside the lift: method call .trim"
 
 [[residue]]
 status = "open"
+kappa = "d14ab24fef42a528488c4d86b88652360bfe897939a4dd9bd6d2deb39518d112"
 function = "thermo_core::sensor::Fixed::read"
 span = "thermo-core/src/sensor.rs:18"
 reason = "signature"
@@ -41,6 +46,7 @@ detail = "signature outside the lift: implements the trait Sensor"
 
 [[residue]]
 status = "open"
+kappa = "7a6ce7c2f703134bd32798d5fdda3757ecf7ce2aa9f62532342d5a3c442ca180"
 function = "thermo_core::sensor::Sensor::calibrated"
 span = "thermo-core/src/sensor.rs:9"
 reason = "signature"
@@ -48,232 +54,278 @@ detail = "signature outside the lift: a method a trait declares"
 
 [[residue]]
 status = "open"
+kappa = "564cdc8bc2e971e52e5ce23026fe9d54b25f56234597ffca82e339a6be765898"
 function = "thermo_core::sensor::Sensor::read"
 span = "thermo-core/src/sensor.rs:6"
 reason = "signature"
 detail = "signature outside the lift: a method a trait declares"
 
 [[effect]]
+kappa = "d863e3f4f3b888e8f7fededbe0a0d31230d2a1ae1a4399f53b6374340b948008"
 function = "thermo::main"
 span = "thermo-cli/src/main.rs:6"
 effect = "Env effect: std::env::args"
 
 [[effect]]
+kappa = "8dc0cb022c1bd4c27dabe8687dd3266c85b6efbeb80db72346c76d7e4282baf3"
 function = "thermo_core::config::load_target"
 span = "thermo-core/src/config.rs:28"
 effect = "Fs effect: fs::read_to_string"
 
 [[effect]]
+kappa = "e48df321142b8eaa537bcb5b48fee10c4ee3aecdc5b23630e71214d97c4655f8"
 function = "thermo_core::config::target_from_env"
 span = "thermo-core/src/config.rs:34"
 effect = "Env effect: std::env::var"
 
 [[lifted]]
+kappa = "c59889176d44d3885a1f9c07db82c8fab5f652a64698f32e34c28fd6978b5270"
 function = "thermo_core::band::above"
 span = "thermo-core/src/band.rs:56"
 definition = "Behavior::above"
 
 [[lifted]]
+kappa = "54551ade276024c83ca3ebb09ce453b2d7c6b8694918e81c7fa194b9d2065605"
 function = "thermo_core::band::checked"
 span = "thermo-core/src/band.rs:46"
 definition = "Behavior::checkedValue"
 
 [[lifted]]
+kappa = "6e420350db98930feffe74e61ac482e6b8a83fc361c021ad05315faf7d1ebf6b"
 function = "thermo_core::band::checked_midpoint"
 span = "thermo-core/src/band.rs:20"
 definition = "Behavior::checkedMidpoint"
 
 [[lifted]]
+kappa = "afbdaa0d3d114208fb27ca2c8e4b736c47fafa6b3602e0a6d0dd9f63fda61d5e"
 function = "thermo_core::band::delta"
 span = "thermo-core/src/band.rs:41"
 definition = "Behavior::delta"
 
 [[lifted]]
+kappa = "07d1ad8bcb6b5dbbf3a852c900d44b7b959362c04c92c46db2f0827251564949"
 function = "thermo_core::band::fan_label"
 span = "thermo-core/src/band.rs:86"
 definition = "Behavior::fanLabel"
 
 [[lifted]]
+kappa = "92c7cd180baf2c1e3da1167bf13d947ad3576d38d7a01c24bfec30a17a2eb46f"
 function = "thermo_core::band::first_reading"
 span = "thermo-core/src/band.rs:70"
 definition = "Behavior::firstReading"
 
 [[lifted]]
+kappa = "99d41f51a9c7c97fe48ffe6ce3c77b8a53eece3e92e001884e07e4c5f95ed9f5"
 function = "thermo_core::band::freezing"
 span = "thermo-core/src/band.rs:36"
 definition = "Behavior::freezing"
 
 [[lifted]]
+kappa = "d13bd82800188394f2d098a7537ac794ecbe59bdcaf2056a2d49286ab6e1c86a"
 function = "thermo_core::band::heat_for"
 span = "thermo-core/src/band.rs:80"
 definition = "Behavior::heatFor"
 
 [[lifted]]
+kappa = "27d39f8dc1d96fe73e130dedb3233b04311f79ba34c2509d50508fc620026a1a"
 function = "thermo_core::band::is_celsius"
 span = "thermo-core/src/band.rs:51"
 definition = "Behavior::isCelsius"
 
 [[lifted]]
+kappa = "b3b5fc334daed093426c56415c1a896912f496406983b0803ca0ed42111b5a27"
 function = "thermo_core::band::labelled"
 span = "thermo-core/src/band.rs:95"
 definition = "Behavior::labelled"
 
 [[lifted]]
+kappa = "0319fcbcc6d6994d4a74bc46c30a6302bd5924605eefceadc202571b87ca02d2"
 function = "thermo_core::band::shortfall"
 span = "thermo-core/src/band.rs:31"
 definition = "Behavior::shortfall"
 
 [[lifted]]
+kappa = "f44cab4db186a8f9e420a066a1bf0a8387a757f853b49a95e81cdbb5359fa2d5"
 function = "thermo_core::band::target_or"
 span = "thermo-core/src/band.rs:75"
 definition = "Behavior::targetOr"
 
 [[lifted]]
+kappa = "6a64dd26fa3fd62c0cf411c6dfdb7b1f6f28cb774f913114fa425632f7adb914"
 function = "thermo_core::band::tick"
 span = "thermo-core/src/band.rs:26"
 definition = "Behavior::tick"
 
 [[lifted]]
+kappa = "7bf45e52f93e919eddff5fd15b025748bd875d501bda7c5ea9bccff5a1504fc7"
 function = "thermo_core::band::width"
 span = "thermo-core/src/band.rs:15"
 definition = "Behavior::width"
 
 [[lifted]]
+kappa = "4f526f8236777c68765f05dee4d414ee6e0b72718ab1f484b5b4a1a4c5cea2f0"
 function = "thermo_core::halt"
 span = "thermo-core/src/lib.rs:64"
 definition = "Behavior::halt"
 
 [[lifted]]
+kappa = "c79266f4d2b010be644cf36c10b035b4db86160aaeb803267eb5b5b19ef54dac"
 function = "thermo_core::midpoint"
 span = "thermo-core/src/lib.rs:73"
 definition = "Behavior::midpoint"
 
 [[lifted]]
+kappa = "406163d827d1780088db5937eca7c8639bac4ef31b80648fe5682852e5831f67"
 function = "thermo_core::next_mode"
 span = "thermo-core/src/lib.rs:35"
 definition = "Behavior::nextMode"
 
 [[lifted]]
+kappa = "2f731b1936e55586008d3e188f3d752d3d73d79a10067c56d39d4f2448bdf2c3"
 function = "thermo_core::roster::Room::is_cold"
 span = "thermo-core/src/roster.rs:16"
 definition = "Behavior::roomIsCold"
 
 [[lifted]]
+kappa = "a47ba58db0fd2334686f23ef915856d3045c035af7ee51de3d0401a06f0c3bbc"
 function = "thermo_core::roster::Room::label"
 span = "thermo-core/src/roster.rs:29"
 definition = "Behavior::roomLabel"
 
 [[lifted]]
+kappa = "dd39f28232dac526f148988f2b1fdf506c85c70ac1f44a445a03f37136184a8f"
 function = "thermo_core::roster::Room::reread"
 span = "thermo-core/src/roster.rs:21"
 definition = "Behavior::roomReread"
 
 [[lifted]]
+kappa = "59a1549150be7373ecc2174e1ce7b5650bfe6169bae9c18196b6c3f367f3d369"
 function = "thermo_core::roster::all_within"
 span = "thermo-core/src/roster.rs:53"
 definition = "Behavior::allWithin"
 
 [[lifted]]
+kappa = "d88d32c2064f2339b03d503b4bdae08b675d031468519072beef7fce8ac35a54"
 function = "thermo_core::roster::any_cold"
 span = "thermo-core/src/roster.rs:48"
 definition = "Behavior::anyCold"
 
 [[lifted]]
+kappa = "1108ebfdf1545719cee185e49b9e13f692c4115118e780ae641bb37e80c98202"
 function = "thermo_core::roster::blank"
 span = "thermo-core/src/roster.rs:132"
 definition = "Behavior::blank"
 
 [[lifted]]
+kappa = "6e324d574a1236780d1c707e8c9df2c736fb3dda17b06b010b31001be022fe59"
 function = "thermo_core::roster::clamp"
 span = "thermo-core/src/roster.rs:120"
 definition = "Behavior::clamp"
 
 [[lifted]]
+kappa = "62a74d505f6b6a66fc594dbb63e6dd864b37615ea3faba8507ccb4907e326b44"
 function = "thermo_core::roster::closed"
 span = "thermo-core/src/roster.rs:110"
 definition = "Behavior::closed"
 
 [[lifted]]
+kappa = "7d12d99b3facb71fdf4ba2fb18aa39597c6b3e8094ec68a42b5250418ba8d123"
 function = "thermo_core::roster::cold"
 span = "thermo-core/src/roster.rs:43"
 definition = "Behavior::cold"
 
 [[lifted]]
+kappa = "de99132622626ce3273f6408c9af7e34d19aca6cfdc1eb2868a2e2fe3a8a63ae"
 function = "thermo_core::roster::cold_count"
 span = "thermo-core/src/roster.rs:68"
 definition = "Behavior::coldCount"
 
 [[lifted]]
+kappa = "c6f2fa34d725eeb29debcbb43091ac73db7c32f7caee19d8053422d9e797a342"
 function = "thermo_core::roster::cold_names"
 span = "thermo-core/src/roster.rs:137"
 definition = "Behavior::coldNames"
 
 [[lifted]]
+kappa = "15925333000ebc0d891045be0311f64107cc76625b42e69b7dfe26b951945df5"
 function = "thermo_core::roster::first_cold"
 span = "thermo-core/src/roster.rs:58"
 definition = "Behavior::firstCold"
 
 [[lifted]]
+kappa = "e70d1cefb2ff0bf3256a630ccb5a335ee6e29c87f3ad8a73710654845cd95dde"
 function = "thermo_core::roster::has_target"
 span = "thermo-core/src/roster.rs:105"
 definition = "Behavior::hasTarget"
 
 [[lifted]]
+kappa = "76393f3fd7c2002d6dafb6fec8339eb512c9738336f560ace74b81ee57271621"
 function = "thermo_core::roster::highest"
 span = "thermo-core/src/roster.rs:63"
 definition = "Behavior::highest"
 
 [[lifted]]
+kappa = "495bd3b203df88e666d1ede1c7d473af9aba9b40162a9a3c5ee5a33d4626a0e1"
 function = "thermo_core::roster::label_width"
 span = "thermo-core/src/roster.rs:115"
 definition = "Behavior::labelWidth"
 
 [[lifted]]
+kappa = "7270be9b65f887eb4fa53ff5f3d14b2c3ba784ffcf678f503265f2915349526c"
 function = "thermo_core::roster::names"
 span = "thermo-core/src/roster.rs:38"
 definition = "Behavior::names"
 
 [[lifted]]
+kappa = "568e373c3600c58e27575b02b5636e196678f0f1992848f4b7fe3833b0053dbf"
 function = "thermo_core::roster::pairs"
 span = "thermo-core/src/roster.rs:83"
 definition = "Behavior::pairs"
 
 [[lifted]]
+kappa = "c3122f230beccabf23b19a4082382939b390badb9ee3e6d165329d09b2d7b774"
 function = "thermo_core::roster::readings_of"
 span = "thermo-core/src/roster.rs:164"
 definition = "Behavior::readingsOf"
 
 [[lifted]]
+kappa = "f168a2cb63a2be1d44e83de3bf54de19985593f5b8533f95cd2082468f31e65a"
 function = "thermo_core::roster::report"
 span = "thermo-core/src/roster.rs:148"
 definition = "Behavior::report"
 
 [[lifted]]
+kappa = "397b69f8bf5a06fb3de7046cf997d095922d505c4d493b6daa77f352ec7064c1"
 function = "thermo_core::roster::roll"
 span = "thermo-core/src/roster.rs:78"
 definition = "Behavior::roll"
 
 [[lifted]]
+kappa = "0ec87e4433c72b0fc5ca3ec55eae9706ef96d90728a41150ef0d116cc34f009f"
 function = "thermo_core::roster::rooms_of"
 span = "thermo-core/src/roster.rs:99"
 definition = "Behavior::roomsOf"
 
 [[lifted]]
+kappa = "fac1a9a89a4612dc613c979dc0272c1b8d8449c88ee8fac20c2b1988a67fc309"
 function = "thermo_core::roster::scheduled"
 span = "thermo-core/src/roster.rs:73"
 definition = "Behavior::scheduled"
 
 [[lifted]]
+kappa = "2084254326d80834b12ff9412cd615b358364375996094162b2172df810f878e"
 function = "thermo_core::roster::target_of"
 span = "thermo-core/src/roster.rs:91"
 definition = "Behavior::targetOf"
 
 [[lifted]]
+kappa = "727b4327a9a70bfd21eeae28700eb0672f4928c31c8ca46493614db36bc04fbd"
 function = "thermo_core::should_heat"
 span = "thermo-core/src/lib.rs:25"
 definition = "Behavior::shouldHeat"
 
 [[lifted]]
+kappa = "551730ece6a49e20c402547a90e678c6e4c1ce29115935122b040d71bef67a59"
 function = "thermo_core::within_band"
 span = "thermo-core/src/lib.rs:30"
 definition = "Behavior::withinBand"

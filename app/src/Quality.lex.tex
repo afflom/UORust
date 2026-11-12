@@ -122,21 +122,21 @@ definition{
   name: requirementRouteCoverage,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 6, subcharacteristicIndex := 3})
+  body: (record Foundation.Qual::QualityRequirement {index := 7, subcharacteristicIndex := 3})
 }
 
 definition{
   name: requirementVectorCoverage,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 10, subcharacteristicIndex := 4})
+  body: (record Foundation.Qual::QualityRequirement {index := 11, subcharacteristicIndex := 4})
 }
 
 definition{
   name: requirementSelfFixpoint,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 7, subcharacteristicIndex := 4})
+  body: (record Foundation.Qual::QualityRequirement {index := 8, subcharacteristicIndex := 4})
 }
 
 definition{
@@ -150,70 +150,77 @@ definition{
   name: requirementSelfProjectionTime,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 8, subcharacteristicIndex := 9})
+  body: (record Foundation.Qual::QualityRequirement {index := 9, subcharacteristicIndex := 9})
 }
 
 definition{
   name: requirementRequestBound,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 5, subcharacteristicIndex := 1})
+  body: (record Foundation.Qual::QualityRequirement {index := 6, subcharacteristicIndex := 1})
 }
 
 definition{
   name: requirementRegisteredTests,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 4, subcharacteristicIndex := 8})
+  body: (record Foundation.Qual::QualityRequirement {index := 5, subcharacteristicIndex := 8})
 }
 
 definition{
   name: requirementLintClean,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 1, subcharacteristicIndex := 7})
+  body: (record Foundation.Qual::QualityRequirement {index := 2, subcharacteristicIndex := 7})
 }
 
 definition{
   name: requirementMsrv,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 2, subcharacteristicIndex := 0})
+  body: (record Foundation.Qual::QualityRequirement {index := 3, subcharacteristicIndex := 0})
 }
 
 definition{
   name: requirementStaticRouteCli,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 9, subcharacteristicIndex := 5})
+  body: (record Foundation.Qual::QualityRequirement {index := 10, subcharacteristicIndex := 5})
 }
 
 definition{
   name: requirementNoUnsafe,
   parameters: [],
   result: Foundation.Qual::QualityRequirement,
-  body: (record Foundation.Qual::QualityRequirement {index := 3, subcharacteristicIndex := 6})
+  body: (record Foundation.Qual::QualityRequirement {index := 4, subcharacteristicIndex := 6})
+}
+
+definition{
+  name: requirementEveryFunctionLifted,
+  parameters: [],
+  result: Foundation.Qual::QualityRequirement,
+  body: (record Foundation.Qual::QualityRequirement {index := 1, subcharacteristicIndex := 3})
 }
 
 definition{
   name: measureRoutedFactKinds,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 6, requirementIndex := 6, threshold := 28})
+  body: (record Foundation.Qual::QualityMeasure {index := 6, requirementIndex := 7, threshold := 28})
 }
 
 definition{
   name: measureRouteVectors,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 5, requirementIndex := 10, threshold := 39})
+  body: (record Foundation.Qual::QualityMeasure {index := 5, requirementIndex := 11, threshold := 39})
 }
 
 definition{
   name: measureSelfModelDrift,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 7, requirementIndex := 7, threshold := 0})
+  body: (record Foundation.Qual::QualityMeasure {index := 7, requirementIndex := 8, threshold := 0})
 }
 
 definition{
@@ -227,49 +234,95 @@ definition{
   name: measureSelfProjectionSeconds,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 8, requirementIndex := 8, threshold := 10})
+  body: (record Foundation.Qual::QualityMeasure {index := 8, requirementIndex := 9, threshold := 10})
 }
 
 definition{
   name: measureRouteRequestBytes,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 4, requirementIndex := 5, threshold := 512})
+  body: (record Foundation.Qual::QualityMeasure {index := 4, requirementIndex := 6, threshold := 512})
 }
 
 definition{
   name: measureUnregisteredTests,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 9, requirementIndex := 4, threshold := 0})
+  body: (record Foundation.Qual::QualityMeasure {index := 10, requirementIndex := 5, threshold := 0})
 }
 
 definition{
   name: measureClippyWarnings,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 0, requirementIndex := 1, threshold := 0})
+  body: (record Foundation.Qual::QualityMeasure {index := 0, requirementIndex := 2, threshold := 0})
 }
 
 definition{
   name: measureMinimumRustMinor,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 1, requirementIndex := 2, threshold := 89})
+  body: (record Foundation.Qual::QualityMeasure {index := 1, requirementIndex := 3, threshold := 89})
 }
 
 definition{
   name: measureRouteCliNeededLibraries,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 3, requirementIndex := 9, threshold := 0})
+  body: (record Foundation.Qual::QualityMeasure {index := 3, requirementIndex := 10, threshold := 0})
 }
 
 definition{
   name: measureUnsafeBlocks,
   parameters: [],
   result: Foundation.Qual::QualityMeasure,
-  body: (record Foundation.Qual::QualityMeasure {index := 10, requirementIndex := 3, threshold := 0})
+  body: (record Foundation.Qual::QualityMeasure {index := 11, requirementIndex := 4, threshold := 0})
+}
+
+definition{
+  name: measureUnliftedFunctions,
+  parameters: [],
+  result: Foundation.Qual::QualityMeasure,
+  body: (record Foundation.Qual::QualityMeasure {index := 9, requirementIndex := 1, threshold := 0})
+}
+
+definition{
+  name: excessOver,
+  parameters: [threshold : Nat, observed : Nat],
+  result: Nat,
+  body: (prim subtract observed threshold : Nat)
+}
+
+theorem{
+  name: noExcessIsMet,
+  parameters: [threshold : Nat, observed : Nat],
+  statement: (((excessOver threshold observed) = 0) -> (observed <= threshold)),
+  proof: linear_arithmetic{definitions: [excessOver]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: metHasNoExcess,
+  parameters: [threshold : Nat, observed : Nat],
+  statement: ((observed <= threshold) -> ((excessOver threshold observed) = 0)),
+  proof: linear_arithmetic{definitions: [excessOver]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: excessFallsWithTheObservation,
+  parameters: [threshold : Nat, before : Nat, after : Nat],
+  statement: ((after <= before) -> ((excessOver threshold after) <= (excessOver threshold before))),
+  proof: linear_arithmetic{definitions: [excessOver]},
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: excessRisesOnlyWithTheObservation,
+  parameters: [threshold : Nat, before : Nat, after : Nat],
+  statement: (((excessOver threshold before) < (excessOver threshold after)) -> (before < after)),
+  proof: linear_arithmetic{definitions: [excessOver]},
+  axioms: [Quot.sound, propext]
 }
 \end{semanticmodule}
 \end{lexlean}

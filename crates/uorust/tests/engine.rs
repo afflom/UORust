@@ -696,19 +696,32 @@ fn the_self_projection_reproduces_the_hand_model_ue_14() {
 }
 
 #[test]
-fn residue_never_grows_on_the_way_to_zero_ue_16() {
-    let ceiling: toml::Value = toml::from_str(
-        &std::fs::read_to_string(
-            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/residue-ceiling.toml"),
-        )
-        .expect("residue-ceiling.toml"),
-    )
-    .expect("parses");
-    for (key, root, name) in [
-        ("self", root(), "uorust"),
-        ("fixture", fixture(), "thermostat"),
+fn no_lifted_kappa_turns_unlifted_ue_16() {
+    use uorust::register::{admit, Register};
+    // The incumbent registers: the committed fixture frontier and this
+    // workspace's committed lift register.
+    for (root, name, incumbent) in [
+        (root(), "uorust", root().join("frontier.toml")),
+        (fixture(), "thermostat", golden().join("frontier.toml")),
     ] {
         let files = project(&root, name);
+        // Typed, keyed by κ, every function once.
+        let candidate = uorust::lift_register(&files).expect("the frontier is a register");
+        let committed = std::fs::read_to_string(&incumbent).expect("the committed register");
+        let incumbent =
+            Register::parse(&incumbent, &committed).expect("the committed register parses");
+        let regressed = admit(&incumbent, &candidate);
+        assert!(
+            regressed.is_empty(),
+            "{name}: lifted κ decided otherwise:\n{}",
+            regressed.join("\n")
+        );
+        if name == "uorust" {
+            assert!(
+                committed == candidate.to_text(),
+                "frontier.toml is not this workspace's lift register; run `just register`"
+            );
+        }
         let frontier: toml::Value =
             toml::from_str(&text(&files, "frontier.toml")).expect("frontier parses");
         let rows = |table: &str| {
@@ -718,34 +731,12 @@ fn residue_never_grows_on_the_way_to_zero_ue_16() {
                 .cloned()
                 .unwrap_or_default()
         };
-        let residue = rows("residue");
-        let limit = ceiling
-            .get(key)
-            .and_then(toml::Value::as_integer)
-            .and_then(|n| usize::try_from(n).ok())
-            .expect("a ceiling");
-        assert!(
-            residue.len() <= limit,
-            "{name}: {} residue rows, over the ceiling {limit}",
-            residue.len()
-        );
-        for row in &residue {
+        for row in &rows("residue") {
             for field in ["function", "span", "reason", "detail"] {
                 assert!(row.get(field).is_some(), "{name}: untyped residue {row}");
             }
         }
-        let foreign = rows("foreign");
-        let foreign_limit = ceiling
-            .get(format!("{key}_foreign"))
-            .and_then(toml::Value::as_integer)
-            .and_then(|n| usize::try_from(n).ok())
-            .expect("a foreign ceiling");
-        assert!(
-            foreign.len() <= foreign_limit,
-            "{name}: {} foreign rows, over the ceiling {foreign_limit}",
-            foreign.len()
-        );
-        for row in &foreign {
+        for row in &rows("foreign") {
             let detail = row
                 .get("detail")
                 .and_then(|v| v.as_str())
@@ -896,5 +887,80 @@ fn every_function_of_product_code_has_exactly_one_row_ue_16() {
             source.len(),
             rows.len()
         );
+    }
+}
+
+/// The planted defect: a function the incumbent register records as lifted,
+/// whose own source is unchanged (so its κ is the same question), is decided
+/// unlifted because a function it calls stopped lifting. The gate refuses the
+/// projection, by the register and by `uorust::write` into the old output,
+/// and leaves the old projection in place.
+#[test]
+fn a_lifted_kappa_that_turns_unlifted_is_refused_ue_16() {
+    use uorust::register::{admit, Status};
+    let manifest =
+        "[package]\nname = \"ratchet\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[workspace]\n";
+    let caller = "/// Calls the test.\npub fn ready(x: u8) -> bool {\n    over(x)\n}\n";
+    let before = scratch(
+        "ue16-before",
+        &[
+            ("Cargo.toml", manifest),
+            (
+                "src/lib.rs",
+                &format!("//! R.\n\n/// The test.\npub fn over(x: u8) -> bool {{\n    x > 1\n}}\n\n{caller}"),
+            ),
+        ],
+    );
+    let after = scratch(
+        "ue16-after",
+        &[
+            ("Cargo.toml", manifest),
+            (
+                "src/lib.rs",
+                &format!("//! R.\n\n/// The test.\npub fn over(x: u8) -> bool {{\n    x + 1 > 2\n}}\n\n{caller}"),
+            ),
+        ],
+    );
+    let old = project(&before, "ratchet");
+    let new = project(&after, "ratchet");
+    let incumbent = uorust::lift_register(&old).expect("a register");
+    let candidate = uorust::lift_register(&new).expect("a register");
+    let (kappa, row) = incumbent
+        .rows
+        .iter()
+        .find(|(_, r)| r.function == "ratchet::ready")
+        .expect("ready has a row");
+    assert!(matches!(row.status, Status::Lifted(_)), "{row:?}");
+    // The same question, now decided otherwise.
+    assert!(
+        !matches!(candidate.rows[kappa].status, Status::Lifted(_)),
+        "{:?}",
+        candidate.rows[kappa]
+    );
+    let refused = admit(&incumbent, &candidate);
+    assert!(
+        refused.len() == 1 && refused[0].contains(kappa.as_str()),
+        "{refused:?}"
+    );
+    // The changed function is a new question: no regression of its own.
+    assert!(refused.iter().all(|r| !r.starts_with("ratchet::over")));
+    // Projecting into the incumbent's output is refused, and writes nothing.
+    let out = std::env::temp_dir().join(format!("uorust-ue16-out-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&out);
+    uorust::write(&out, &old).expect("a first projection");
+    match uorust::write(&out, &new) {
+        Err(UorustError::Regressed(rows)) => assert_eq!(rows, refused),
+        other => panic!("expected Regressed, got {other:?}"),
+    }
+    assert!(matches!(
+        uorust::check(&out, &new),
+        Err(UorustError::Regressed(_))
+    ));
+    assert_eq!(
+        std::fs::read(out.join("frontier.toml")).expect("kept"),
+        old["frontier.toml"]
+    );
+    for dir in [before, after, out] {
+        let _ = std::fs::remove_dir_all(dir);
     }
 }

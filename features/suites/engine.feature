@@ -98,7 +98,7 @@ Feature: engine
     Then every roster function and method is a LexLean definition, each chain a helper with recursive_argument, no roster function is residue, and lexlean verify passes on the committed projection
 
   @UE-16 @build
-  Scenario: Residue only shrinks on the way to zero
-    Given this workspace, the thermostat fixture and the committed residue ceilings
+  Scenario: A lifted function never turns unlifted
+    Given this workspace, the thermostat fixture and their committed lift registers
     When the suite exercises UE-16
-    Then neither projection has more residue or foreign rows than its ceilings, every residue row is typed, every foreign row names its crate, every effect row names its effect, and every function of product code counted from the source has exactly one residue, foreign, effect or lifted row
+    Then every function of product code counted from the source has exactly one typed row keyed by its κ, no κ a committed register records as lifted is decided otherwise, this workspace's register is current, and a planted function whose callee stops lifting is refused by the register, by uorust write and by uorust check
