@@ -120,6 +120,8 @@ Feature: thermo-core
     And the interface call Interface::callThermoCoreRosterFiledName is made
     And the interface call Interface::callThermoCoreRosterSameFile is made
     And the interface call Interface::callThermoCoreRosterCutName is made
+    And the interface call Interface::callThermoCoreRosterCountByte is made
+    And the interface call Interface::callThermoCoreRosterCodeIndex is made
     And the interface call Interface::callThermoCoreRosterStartsUnnamed is made
     And the interface call Interface::callThermoCoreRosterMarkedRooms is made
     And the interface call Interface::callThermoCoreRosterDoubledRoom is made

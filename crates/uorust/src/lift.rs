@@ -1982,9 +1982,26 @@ fn expr_form(
                 Ok(t) => t,
                 Err(_) => return Err(Residue::Form("cast".to_string())),
             };
+            // `usize` is as wide as the narrowest declared target's pointer.
+            let narrowest = env.widths.first().map(|(w, _)| *w);
             match (&vt, &target) {
                 (Ty::Nat(Some(a)), Ty::Nat(Some(b))) if a <= b => flat(v, target, acc),
+                (Ty::Nat(Some(a)), Ty::Nat(None)) if narrowest.is_some_and(|w| *a <= w) => {
+                    flat(v, target, acc)
+                }
+                // A cast to a narrower unsigned type keeps the low bits: the
+                // value modulo 2^bits, whatever the source's width.
+                (Ty::Nat(_), Ty::Nat(Some(b))) => flat(
+                    format!("(prim remainder {v} {} 0 : Nat)", pow2(*b)),
+                    target,
+                    acc,
+                ),
                 (Ty::Int(a), Ty::Int(b)) if a <= b => flat(v, target, acc),
+                (Ty::Nat(_), Ty::Int(_)) => Err(Residue::Form(
+                    "a cast from an unsigned to a signed integer, where LexLean binds no \
+                     conversion from Nat to Int64"
+                        .to_string(),
+                )),
                 _ => Err(Residue::Form("narrowing or sign-changing cast".to_string())),
             }
         }

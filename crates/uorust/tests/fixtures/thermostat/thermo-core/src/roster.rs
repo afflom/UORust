@@ -583,6 +583,16 @@ pub fn cut_name(name: &str, limit: usize) -> String {
     }
 }
 
+/// The low byte of a room count, as a one-byte register holds it.
+pub fn count_byte(rooms: usize) -> u8 {
+    rooms as u8
+}
+
+/// A sixteen-bit room code as an index.
+pub fn code_index(code: u16) -> usize {
+    code as usize
+}
+
 /// Whether the roster names no room, or its first room is unnamed.
 pub fn starts_unnamed(rooms: &[String]) -> bool {
     if rooms.first().is_none() {
@@ -787,6 +797,8 @@ mod tests {
         );
         assert_eq!(none_taken(&["den".to_string()], &[]), Ok(()));
         assert!(starts_unnamed(&[]));
+        assert_eq!(count_byte(300), 44);
+        assert_eq!(code_index(7), 7);
         assert!(same_file("Den", "den"));
         assert_eq!(
             roster_checks(&[], &[], &[None]),
