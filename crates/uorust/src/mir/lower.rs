@@ -447,6 +447,21 @@ fn const_reads(body: &IrBody) -> BTreeSet<String> {
         out.insert(after[..end].to_string());
         rest = &after[end..];
     }
+    // An array repeated a const parameter's times, `[v; N]`, reads it as
+    // its length.
+    let mut rest = printed.as_str();
+    while let Some(at) = rest.find("Other(Repeat, \"") {
+        let after = &rest[at + "Other(Repeat, \"".len()..];
+        let end = after.find('"').unwrap_or(after.len());
+        let length = after[..end]
+            .trim_end_matches(']')
+            .rsplit_once("; ")
+            .map(|(_, n)| n.trim_start_matches("const "));
+        if let Some(n) = length.filter(|n| n.starts_with('#')) {
+            out.insert(n.to_string());
+        }
+        rest = &after[end..];
+    }
     out
 }
 
@@ -3757,6 +3772,61 @@ impl Fun<'_, '_> {
         }
     }
 
+    /// `mirReplicate` of the element type `elem`: the list of `count`
+    /// copies of a value, by structural recursion on `count`, declared with
+    /// the theorem that its length is `count`. Returns its name.
+    fn replicate_aux(&mut self, elem: &Ty) -> String {
+        let name = format!("mirReplicate{}", elem.tag());
+        if !self.aux.contains_key(&name) {
+            let e = elem.render();
+            let parameters = vec![
+                ("count".to_string(), "Nat".to_string()),
+                ("value".to_string(), e.clone()),
+            ];
+            self.aux.insert(
+                name.clone(),
+                Decl::Definition {
+                    name: name.clone(),
+                    parameters: parameters.clone(),
+                    result: format!("(List {e})"),
+                    body: Expr::Match {
+                        scrutinee: "count".into(),
+                        arms: vec![
+                            Arm {
+                                pattern: "Nat.zero".into(),
+                                body: Expr::Flat(format!("(nil {e})")),
+                            },
+                            Arm {
+                                pattern: "Nat.succ rest".into(),
+                                body: Expr::Flat(format!("(cons value ({name} rest value))")),
+                            },
+                        ],
+                    },
+                    axioms: Vec::new(),
+                    recursive: Some("count".into()),
+                    termination: None,
+                    mutual: None,
+                },
+            );
+            let length = format!("{name}HasItsCount");
+            self.aux.insert(
+                length.clone(),
+                Decl::Theorem {
+                    name: length,
+                    parameters,
+                    statement: format!("((prim length ({name} count value) : Nat) = count)"),
+                    proof: format!(
+                        "induction{{branches: [{{proof: simplify{{definitions: [{name}]}}, binders: [], constructor: zero}}, {{proof: simplify{{definitions: [ih, {name}]}}, binders: [rest], constructor: succ}}], scrutinee: count}}"
+                    ),
+                    axioms: vec!["propext".into()],
+                },
+            );
+        }
+        self.mention(elem);
+        self.calls.insert(name.clone());
+        name
+    }
+
     /// The definition reading a list at an index, which an `assert` before
     /// it proves in bounds: the item there, or a value of its type where the
     /// index is past the end (never, by that theorem). With `write`, the
@@ -4242,17 +4312,37 @@ impl Fun<'_, '_> {
                     .and_then(|r| r.strip_suffix(']'))
                     .unwrap_or("");
                 let parts = super::parse::split_top(inner, ';');
-                let (Some(op), Some(n)) = (
-                    parts.first().and_then(|o| super::parse::operand(o)),
-                    parts.get(1).and_then(|n| {
-                        let n = n.trim().trim_start_matches("const ");
-                        n.split('_').next().and_then(|d| d.parse::<usize>().ok())
-                    }),
-                ) else {
-                    return Err(kind(k, "of a length that is not a literal"));
+                let length = parts.get(1).map(|n| n.trim().trim_start_matches("const "));
+                let (Some(op), Some(length)) =
+                    (parts.first().and_then(|o| super::parse::operand(o)), length)
+                else {
+                    return Err(kind(k, "of no value or no length"));
                 };
                 let Ty::List(e) = self.local_ty(dest.local, &dest.projection)? else {
                     return Err(kind(k, "into a place that holds no list"));
+                };
+                // A length that is a const parameter: `mirReplicate`'s list
+                // of that many copies, which its theorem shows has that
+                // length.
+                if length.starts_with('#') {
+                    let marker = IrConstant::Other(length.to_string());
+                    let (n, nt) = self.constant(&marker)?;
+                    if !matches!(nt, Ty::Nat(_)) {
+                        return Err(kind(k, "of a length that is no natural number"));
+                    }
+                    let (v, _) = match &op {
+                        IrOperand::Constant(c) => self.constant(c)?,
+                        _ => self.operand(&op, st)?,
+                    };
+                    let replicate = self.replicate_aux(&e);
+                    return Ok(Val::V(format!("({replicate} {n} {v})"), Ty::List(e)));
+                }
+                let Some(n) = length
+                    .split('_')
+                    .next()
+                    .and_then(|d| d.parse::<usize>().ok())
+                else {
+                    return Err(kind(k, "of a length that is not a literal"));
                 };
                 let (v, held) = match &op {
                     IrOperand::Constant(c) => (self.constant(c)?.0, None),
