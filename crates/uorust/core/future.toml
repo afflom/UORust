@@ -1,0 +1,142 @@
+[[fn]]
+path = "core::async_drop_in_place"
+kappa = "32448b06800c5a7b013e852703032045bb2c592d5373002b2032365607cecd67"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: {async fn body of future::async_drop::async_drop_in_place<u32>()}"
+
+[[fn]]
+path = "core::future::<impl at library/core/src/future/mod.rs:50:10: 50:15>::fmt"
+kappa = "9ad9359f28fc7840e1c6628e08881fc51e50557f4d6e694d86f29e8916ff6744"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::future::<impl at library/core/src/future/mod.rs:50:23: 50:28>::clone"
+kappa = "4a972bd0f2c5a3ffafd9f4e5d1815b2e4d2bdf4b85d2c08d96afc8027877c9d1"
+status = "residue"
+cause = "mir::Ty: future::ResumeTy"
+
+[[fn]]
+path = "core::future::future::<impl at library/core/src/future/future.rs:117:1: 117:51>::poll"
+kappa = "0ad2ab50b22ebe8549ed2bc566c860553545c4eaeceed8ba6d0e0b8a42eaef8f"
+at = "F=u32"
+status = "residue"
+cause = "mir::Ty: <u32 as future::future::Future>::Output"
+
+[[fn]]
+path = "core::future::future::Pin::poll"
+kappa = "2588d5bf71d03d04d763278d7a240cfcbb2037389dfe8a6210c1484be6300e87"
+at = "P=u32"
+status = "residue"
+cause = "mir::Ty: <<u32 as ops::deref::Deref>::Target as future::future::Future>::Output"
+
+[[fn]]
+path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:10: 10:15>::fmt"
+kappa = "c165d1cab7f37913e2852e997489be0a86a63acee6238996944bb92587a41c23"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:17: 10:22>::clone"
+kappa = "b376a0860062860ebed422fb3eff4c43aa0330d133fb93a2b7797bc53cd6b90f"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: future::ready::Ready<u32>"
+
+[[fn]]
+path = "core::future::ready::Ready::into_inner"
+kappa = "ea13b3091ec23e0466e29ef6b676508016795c1d128debba75f53d82385379b2"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Ready<u32>"
+
+[[fn]]
+path = "core::future::ready::Ready::poll"
+kappa = "bf932431be5a70c741faf38cd0df1c4f3be0a223bec61bd50938c5e1de596954"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: task::poll::Poll<u32>"
+
+[[fn]]
+path = "core::get_context"
+kappa = "1533212a9c6746ae53aa47f6d2a70b90d8e5d24c76310c3a39db747de2c539d0"
+status = "residue"
+cause = "mir::Ty: &mut task::wake::Context<'_>"
+
+[[fn]]
+path = "core::into_future::F::into_future"
+kappa = "190bfb0b4f4d9c9b48a51ad320d7b3eb7a6b3312aa7534053c82859c31bc19c0"
+at = "F=u32"
+status = "translated"
+digest = "c3b76fb391e7f374390b1f51c5b70261f7444bc49055763be8f945f29659d572"
+
+[[fn]]
+path = "core::join::MaybeDone::poll"
+kappa = "2b02d41939b587a150881a4d9f9931ff5cf7f39e2044c2403aeefe66334ba627"
+at = "F=u32"
+status = "residue"
+cause = "mir::Ty: task::poll::Poll<()>"
+
+[[fn]]
+path = "core::join::MaybeDone::take_output"
+kappa = "7a30c1298bcc8c9e64999ba702e2f4e22557e42239f3edf9f17aa2b31825b0df"
+at = "F=u32"
+status = "residue"
+cause = "mir::Ty: <u32 as future::future::Future>::Output"
+
+[[fn]]
+path = "core::pending"
+kappa = "766f4174a641a35bea2f2ec3ce548b7b02298ee78d2ead9d8e617740fe01c9a9"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: future::pending::Pending<u32>"
+
+[[fn]]
+path = "core::pending::Pending::clone"
+kappa = "8f207ae712019a1d20726b175c6f87f0e942cedc58c97c48695817264b01a744"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: future::pending::Pending<u32>"
+
+[[fn]]
+path = "core::pending::Pending::fmt"
+kappa = "cd2d1f86ad52e7d4cf5a42e4abf02f55f8af6b6656a2dadb48e91e7547d323aa"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::pending::Pending::poll"
+kappa = "b87ed8ceb5fd41dd2f7229ec7a72a0e42ccb6248a1708334ea4105690409b66a"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: task::poll::Poll<u32>"
+
+[[fn]]
+path = "core::poll_fn"
+kappa = "e43bc8d65f0717a8819dc906d787271814a250e921514f1c7210b074bf6a68a6"
+at = "F=u32"
+status = "residue"
+cause = "mir::Ty: future::poll_fn::PollFn<u32>"
+
+[[fn]]
+path = "core::poll_fn::PollFn::fmt"
+kappa = "dec7243ea4caa145c25d3e872e5ab0dda77d0372ddd6cc45eb3eafbcfbf96158"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::poll_fn::PollFn::poll"
+kappa = "d69d8208d0b22d7ed79e308d46a5d9ffd5eb5c1fbd8c7e42e27e1c989722bd78"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: task::poll::Poll<u32>"
+
+[[fn]]
+path = "core::ready"
+kappa = "3790bdcad8f9c560771e1c891af58ef0b6173cf2bb732aa397d19c4851943f9e"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: future::ready::Ready<u32>"
+

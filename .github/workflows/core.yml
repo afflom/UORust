@@ -1,0 +1,54 @@
+# Keeps the core register current: every body of Rust's `core`, at the
+# rust-src of the pinned toolchain, translated by the MIR path and recorded
+# by κ (crates/uorust/core). Daily, and on demand, it dumps core's MIR one
+# module shard at a time (scripts/mir/dump-core.sh), so a runner's disk holds
+# one shard's build at a time, runs `uorust core` over the shards, which
+# refuses a body the register records as translated that is now residue, and
+# pushes the rewritten register with the per-module counts and the causes the
+# residue stops at in the run's summary.
+name: core
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: translate core's MIR and push the core register
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Dump core by module and write the register through the locked SDK
+        shell: bash
+        run: scripts/ci/sdk.sh 'just core'
+      - name: Publish the core register's counts
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Core register'
+            echo
+            echo '```'
+            cat crates/uorust/core/frontier.toml
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+      - name: Push the rewritten register
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/ci/push.sh "Regenerate the core register" "crates/uorust/core"

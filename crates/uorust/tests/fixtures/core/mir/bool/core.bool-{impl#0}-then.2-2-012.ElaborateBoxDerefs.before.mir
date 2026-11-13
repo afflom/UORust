@@ -1,0 +1,64 @@
+// MIR for `bool::<impl at library/core/src/bool.rs:5:1: 5:10>::then` before ElaborateBoxDerefs
+
+fn bool::<impl at library/core/src/bool.rs:5:1: 5:10>::then(_1: bool, _2: F) -> Option<T> {
+    debug self => _1;
+    debug f => _2;
+    let mut _0: option::Option<T>;
+    let mut _3: bool;
+    let mut _4: T;
+    let mut _5: F;
+    let mut _6: ();
+    let mut _7: bool;
+
+    bb0: {
+        _7 = const false;
+        _7 = const true;
+        StorageLive(_3);
+        _3 = copy _1;
+        switchInt(move _3) -> [0: bb3, otherwise: bb1];
+    }
+
+    bb1: {
+        StorageLive(_4);
+        StorageLive(_5);
+        _7 = const false;
+        _5 = move _2;
+        StorageLive(_6);
+        _6 = ();
+        _4 = <F as function::FnOnce<()>>::call_once(move _5, move _6) -> [return: bb2, unwind: bb6];
+    }
+
+    bb2: {
+        StorageDead(_6);
+        StorageDead(_5);
+        _0 = Option::<T>::Some(move _4);
+        StorageDead(_4);
+        goto -> bb4;
+    }
+
+    bb3: {
+        _0 = Option::<T>::None;
+        goto -> bb4;
+    }
+
+    bb4: {
+        StorageDead(_3);
+        goto -> bb8;
+    }
+
+    bb5: {
+        return;
+    }
+
+    bb6 (cleanup): {
+        resume;
+    }
+
+    bb7: {
+        drop(_2) -> [return: bb5, unwind: bb6];
+    }
+
+    bb8: {
+        switchInt(copy _7) -> [0: bb5, otherwise: bb7];
+    }
+}

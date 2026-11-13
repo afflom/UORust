@@ -1,0 +1,97 @@
+[[fn]]
+path = "core::AsyncIterator::size_hint"
+kappa = "d5812b670e5473177bda240e5216d26463e5c0fac3682c9bee4d27fe18f104ba"
+status = "residue"
+cause = "mir::Ty: Self"
+
+[[fn]]
+path = "core::async_iter::async_iter::<impl at library/core/src/async_iter/async_iter.rs:86:1: 86:65>::poll_next"
+kappa = "5a26ee59452b7c1c931b3c23d3913e1028287ec92db759a6b20f5e0683a299eb"
+at = "S=u32"
+status = "residue"
+cause = "mir::Ty: <u32 as async_iter::async_iter::AsyncIterator>::Item"
+
+[[fn]]
+path = "core::async_iter::async_iter::<impl at library/core/src/async_iter/async_iter.rs:86:1: 86:65>::size_hint"
+kappa = "5d95e255eaf3ff7bdc02318b6fd9d46c5917f7b64e61e4673dbc4cad819b329f"
+at = "S=u32"
+status = "residue"
+cause = "mir::Ty: &mut u32"
+
+[[fn]]
+path = "core::async_iter::async_iter::I::into_async_iter"
+kappa = "4914978dc59323d585ae1adbe73438a8178179d0694248cfdbe54d7db354608c"
+at = "I=u32"
+status = "translated"
+digest = "260d25324a7ea18d7d5e24b980c798404c1c9cb40706551830642a51387cd2c5"
+
+[[fn]]
+path = "core::async_iter::async_iter::Pin::poll_next"
+kappa = "d6f73f0979bac67c1ca2616bb99e6a6ef5f1f28d6fed384175e3f270efa9cbec"
+at = "P=u32"
+status = "residue"
+cause = "mir::Ty: <<u32 as ops::deref::Deref>::Target as async_iter::async_iter::AsyncIterator>::Item"
+
+[[fn]]
+path = "core::async_iter::async_iter::Pin::size_hint"
+kappa = "2780a0f47f643c026194d9314879239da703ac55230c7a89d3eee3c79d640bba"
+at = "P=u32"
+status = "residue"
+cause = "mir::Ty: Pin<u32>"
+
+[[fn]]
+path = "core::async_iter::async_iter::Poll::FINISHED"
+kappa = "7b72947eb8d7348b3f66211ac36ecab0bbd9420884581f09eed419d0fa5dfd02"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: task::poll::Poll<option::Option<u32>>"
+
+[[fn]]
+path = "core::async_iter::async_iter::Poll::PENDING"
+kappa = "7b0224826697cbf1ba79b10fe6a1189ab5fc5ac6ffbbd3f545fbda5216f96ec6"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: task::poll::Poll<option::Option<u32>>"
+
+[[fn]]
+path = "core::async_iter::async_iter::Poll::async_gen_ready"
+kappa = "c8d9d5b0bac3bdf51cc072b8b6117ab3e0f30d1a27258d32d7495d349ddb1427"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: task::poll::Poll<option::Option<u32>>"
+
+[[fn]]
+path = "core::from_iter"
+kappa = "135e1be52dde816b37b8c6827a1f197de2f6780a8b43d1353d24d941f99d9e15"
+at = "I=u32"
+status = "residue"
+cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
+
+[[fn]]
+path = "core::from_iter::<impl at library/core/src/async_iter/from_iter.rs:12:10: 12:15>::clone"
+kappa = "1dc3ad7fdb34fc878be09d4ab3e741fb1ef152613c089c641e49ed5860ce8524"
+at = "I=u32"
+status = "residue"
+cause = "mir::Ty: async_iter::from_iter::FromIter<u32>"
+
+[[fn]]
+path = "core::from_iter::<impl at library/core/src/async_iter/from_iter.rs:12:17: 12:22>::fmt"
+kappa = "9c0bf208f5113de4752692ea9354e5e96c6be56667d1c04d2a583761b04ec968"
+at = "I=u32"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::from_iter::FromIter::poll_next"
+kappa = "41212a2da11c390e3502aece6f1e0073d7d5f18274b81ed11eb663fbafa8cdbd"
+at = "I=u32"
+status = "residue"
+cause = "mir::Ty: <u32 as iter::traits::iterator::Iterator>::Item"
+
+[[fn]]
+path = "core::from_iter::FromIter::size_hint"
+kappa = "224e059ea6ea058c83154dbca476ff16fbe5ca268ea03be5a58036735f0d4d6a"
+at = "I=u32"
+status = "residue"
+cause = "mir::Ty: FromIter<u32>"
+

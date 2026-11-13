@@ -2,10 +2,10 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 229 of 751 functions of product code are lifted; 438
-# are residue, 34 foreign and 50 effect rows.
+# Honesty report: 230 of 760 functions of product code are lifted; 441
+# are residue, 34 foreign and 55 effect rows.
 # Residue by cause:
-#   arithmetic: 2
+#   arithmetic: 3
 #   call: 7
 #   collision: 8
 #   form: 17
@@ -127,9 +127,9 @@
 #     7 uorust::lift::take_try, whose translation is not admitted
 #     1 uorust::lift::wrapped_method, whose translation is not admitted
 #     1 uorust::order::derived_in, whose translation is not admitted
-#   mir::TerminatorKind::Goto: 24
-#     24 a loop nested in a loop, whose helpers would call each other
-#   mir::Ty: 128
+#   mir::TerminatorKind::Goto: 25
+#     25 a loop nested in a loop, whose helpers would call each other
+#   mir::Ty: 129
 #     2 &mut project::Notes
 #     1 &mut std::collections::BTreeMap<std::string::String, lift::Ty>
 #     1 &mut std::collections::BTreeMap<std::string::String, std::string::String>
@@ -209,7 +209,7 @@
 #     1 std::str::Split<'_, &str>
 #     1 std::str::Split<'_, char>
 #     1 std::str::SplitWhitespace<'_>
-#     1 toml::Value
+#     2 toml::Value
 #   statements: 1
 #   type: 59
 # MIR kinds at toolchain 1.97.1: 81 of 118 lowered; every other kind is a
@@ -1848,6 +1848,24 @@ reason = "mir"
 detail = "mir::Ty: mir::ir::IrBody"
 
 [[residue]]
+kappa = "6446be8c046557b11343627abb840137fa873fe722e908054069fab79320c736"
+function = "uorust::mir::core::canonical_bindings"
+reason = "mir"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
+
+[[residue]]
+kappa = "fbe070fbfdef23ac025193869d22eb95b844b49f31a99c9f8d9ef7326cf25f75"
+function = "uorust::mir::core::cause_category"
+reason = "arithmetic"
+detail = "usize + wraps or panics where its value leaves the pointer width: past 2^32 on wasm32-unknown-unknown and thumbv7em-none-eabihf, past 2^64 on x86_64-unknown-linux-gnu and aarch64-unknown-linux-gnu"
+
+[[residue]]
+kappa = "69c796b17d9cfd1078ff251a7c62a58e7a817bc16912e159b5187520bf41c5c1"
+function = "uorust::mir::core::toml_quote"
+reason = "mir"
+detail = "mir::Ty: toml::Value"
+
+[[residue]]
 kappa = "7c1874ef38ba377aacaa7f8b0d86ba917c19abca230da648598d5de8dd175efe"
 function = "uorust::mir::coverage::report"
 reason = "mir"
@@ -3229,6 +3247,31 @@ function = "uorust::main"
 effect = "calls uorust::run, which reaches an effect"
 
 [[effect]]
+kappa = "25e8cc9ffbfe995584294a23aba57afa93c4c2313047ad9842ec020946495434"
+function = "uorust::mir::core::core_census"
+effect = "Fs effect: std::fs::read_dir"
+
+[[effect]]
+kappa = "622a204f6bb663477c97da98bacc5b861c0d1c512833ab9761b891602f38732b"
+function = "uorust::mir::core::core_regressions"
+effect = "Fs effect: std::fs::read_to_string"
+
+[[effect]]
+kappa = "604df166678990e59bc4e14d734df69223842cd7a87af98ba40a14b732143e62"
+function = "uorust::mir::core::core_shard"
+effect = "calls uorust::mir::resolve_impls, which reaches an effect"
+
+[[effect]]
+kappa = "a924ca5bfd2a33dff06f6a908f29bc26c744a06ca95b48602fa64c8a94a8c299"
+function = "uorust::mir::core::summarize_core_register"
+effect = "Fs effect: std::fs::read_dir"
+
+[[effect]]
+kappa = "546f26530183dc5dc83b74a994bfb66c63befa47b9336ed6b0e95292eb041ee5"
+function = "uorust::mir::core::write_core_register"
+effect = "Fs effect: std::fs::create_dir_all"
+
+[[effect]]
 kappa = "7bb3d4c3957d151db9adced168f032177bfa97549a01a61bf22b3de483833f03"
 function = "uorust::mir::dump"
 effect = "Process effect: Command::new"
@@ -3289,7 +3332,7 @@ function = "uorust::project_workspace"
 effect = "calls uorust::ingest::workspace, which performs a Fs effect: Path::canonicalize"
 
 [[effect]]
-kappa = "bc142d0caa21cde8da9dc26ec6fe8a3578ee9780171395c9a29be1d1f5c4056d"
+kappa = "604a2e0cf93c27847443d72eb46f660732a063afa77dffd4d1e28bbbcd12e16d"
 function = "uorust::run"
 effect = "calls uorust::project_workspace, which reaches an effect"
 
@@ -4052,6 +4095,11 @@ definition = "Behavior::wrapLets"
 kappa = "bf24882f5c53a2a4d7c45e1b6d0c805346ecef520d459a8498caa2c0a0d16833"
 function = "uorust::mir::Trial::admits"
 definition = "Behavior::trialAdmits"
+
+[[lifted]]
+kappa = "2e561377057c4bcea13476aaf627366ab1f6fc645a5247b4de7af7dc27be2ccb"
+function = "uorust::mir::core::CoreShard::translated_count"
+definition = "Behavior::coreShardTranslatedCount"
 
 [[lifted]]
 kappa = "543c25ee1fd0ef04e75f2516fc02a396466c33eef9dfbf7d6ce4e8f431cae0c8"

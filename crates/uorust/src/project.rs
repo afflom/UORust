@@ -26,7 +26,7 @@ pub struct Options {
 }
 
 /// The largest source file the projection's LexLean project admits.
-const MAX_FILE_BYTES: usize = 4_194_304;
+pub(crate) const MAX_FILE_BYTES: usize = 4_194_304;
 
 const ARCH: &str = "Architecture";
 const IFACE: &str = "Interface";
@@ -3961,7 +3961,7 @@ fn in_dependency_order(aux: BTreeMap<String, Decl>) -> Vec<Decl> {
 
 /// A translation's residue: a type the lift does not name is a MIR type
 /// residue too.
-fn mir_residue(reason: Residue) -> Residue {
+pub(crate) fn mir_residue(reason: Residue) -> Residue {
     match reason {
         Residue::Mir(_) => reason,
         Residue::Type(t) => Residue::Mir(format!("Ty: {t}")),

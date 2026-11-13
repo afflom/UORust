@@ -801,7 +801,7 @@ fn unify(pattern: &str, actual: &str, generics: &mut BTreeMap<String, String>) -
 
 /// Replace each generic parameter, as a whole word that is not a path's
 /// segment, by its binding.
-fn substitute(line: &str, generics: &BTreeMap<String, String>) -> String {
+pub(crate) fn substitute(line: &str, generics: &BTreeMap<String, String>) -> String {
     let mut out = String::new();
     let chars: Vec<char> = line.chars().collect();
     let mut i = 0;

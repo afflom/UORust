@@ -1,0 +1,195 @@
+[[fn]]
+path = "core::LOOKUP"
+kappa = "434a1157d95b5b1eccb9c4faebb795bd79f39f2d44821591439621f0ffc41289"
+status = "residue"
+cause = "mir::Rvalue::Repeat"
+
+[[fn]]
+path = "core::escape::<impl at library/core/src/escape.rs:161:10: 161:15>::clone"
+kappa = "faca01aeeec4ff94ebf59a61107453e85f1c836f5ea9fd0b436afd55891295fe"
+at = "N=u32"
+status = "residue"
+cause = "mir::Ty: escape::MaybeEscapedCharacter<u32>"
+
+[[fn]]
+path = "core::escape::<impl at library/core/src/escape.rs:169:10: 169:15>::clone"
+kappa = "761e1d834bdea1b1012b08a07dd2a2d149c70cc2d841110b11d0fb08423d79c3"
+status = "residue"
+cause = "mir::Ty: escape::AlwaysEscaped"
+
+[[fn]]
+path = "core::escape::<impl at library/core/src/escape.rs:175:10: 175:15>::clone"
+kappa = "6b5bcb48fc1e9d216843c6b8ad380843b2ce017135193afd7f4b899c2874acaa"
+status = "residue"
+cause = "mir::Ty: escape::MaybeEscaped"
+
+[[fn]]
+path = "core::escape::<impl at library/core/src/escape.rs:180:10: 180:15>::clone"
+kappa = "c55e8d0160e0c7d4ff7728c1fb3808e3b11e944d7210c43cc7f7bd8784060e66"
+at = "ESCAPING=u32, N=u32"
+status = "residue"
+cause = "mir::Ty: escape::EscapeIterInner<u32, u32>"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::advance_back_by"
+kappa = "83cefbbcf6f4c4aad20643b39ee5c35fa9dd56825d15d1a1cd2f4ef9fe350410"
+status = "residue"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::advance_by"
+kappa = "2274218ad36e6f38feb61f8898ce4e15e1935034c699a117cc2671cd26224ade"
+status = "residue"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::ascii"
+kappa = "77061c25562557b33b8f0a9fa32b9c5bb3104df2d6269d5c9eecc43e287f6bf0"
+at = "ESCAPING=u32, N=u32"
+status = "residue"
+cause = "mir::Ty: escape::EscapeIterInner<u32, u32>"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::backslash"
+kappa = "782d4d8030e3f679e7f8ae355fa7db3dbdfa671b4336bfb2f38b4f4f91d15e0c"
+at = "ESCAPING=u32, N=u32"
+status = "residue"
+cause = "mir::Ty: escape::EscapeIterInner<u32, u32>"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::empty"
+kappa = "15240ec5f79f42589e1218740a6e6611843337769f48b4d572b0c2db67572588"
+at = "ESCAPING=u32, N=u32"
+status = "residue"
+cause = "mir::Ty: escape::EscapeIterInner<u32, u32>"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::fmt"
+kappa = "720a379be75531ac9a289dcc4584c900ff9167b0ef5f6fa3567e08910ee44b57"
+at = "N=u32"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::fmt#2"
+kappa = "9833090f57c472187778b82fe8891781368e847052fc94472c23a3c04b6d2db2"
+at = "N=u32"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::fmt#3"
+kappa = "1ae0efefba190557af117366ab3e8e222444431fa3c94e62cb352d811af8b32c"
+at = "N=u32"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::fmt#4"
+kappa = "288c7f73e78b2d32ef85035e3a9aabf6b3d025ad45e8a7e38806e1c5227220af"
+at = "N=u32"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::len"
+kappa = "2fdddfcb78a05b31939831c282b2ceb00b8a51f95b8b76689e8d515bfa384f55"
+status = "residue"
+cause = "mir::Ty: N"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::new"
+kappa = "23838c123b5b8f30b1953fb579396eca095b477959c9634063b8703e54ab7c03"
+at = "ESCAPING=u32, N=u32"
+status = "residue"
+cause = "mir::Ty: escape::EscapeIterInner<u32, u32>"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::next"
+kappa = "d31540e1350497c23a7d62468d9da456005616c63501fbeeeadd9be71566b4dd"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::next#2"
+kappa = "0bf9e2e7e392d073684b15ae0a4f5aa10a64ca7b813b91aede8e12de24bfb945"
+at = "N=u32"
+status = "residue"
+cause = "mir::Ty: MaybeEscaped"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::next_back"
+kappa = "ffac04e6718c742642e9f2544f420635b8eeea99883e3c98f8cd44a7af70954e"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::printable"
+kappa = "0f02aa1e22c066163850f1fbbf5496748b0af15736c089a676186c0b57970f6a"
+at = "N=u32"
+status = "residue"
+cause = "mir::Ty: escape::MaybeEscaped"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::to_char"
+kappa = "a0c3224595a7d21906d11e59064908006236dac282347c511af9e2ae715c3aa5"
+status = "residue"
+cause = "mir::Ty: N"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::to_str_unchecked"
+kappa = "d6eb31620bec65307506e71fc0ce2a40f9703a4e12deb9c13c63aa022fa34c2e"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::escape::EscapeIterInner::unicode"
+kappa = "600ebd4d2dee5dfc13506756c4a7812776093dca7f28ec4a05d503c154fe69e4"
+at = "ESCAPING=u32, N=u32"
+status = "residue"
+cause = "mir::Ty: escape::EscapeIterInner<u32, u32>"
+
+[[fn]]
+path = "core::escape::HEX_DIGITS"
+kappa = "5763ac87f906f819ff4f0d8b39cfb730c273b88e823e526c858640ffb299f293"
+status = "residue"
+cause = "mir::Ty: ascii::ascii_char::AsciiChar"
+
+[[fn]]
+path = "core::escape::backslash"
+kappa = "a1127aa71e9ae6bfe8b98eb2c449773f351fda5e8c33a74d0bc3fd2f4cbcb8f5"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::escape_ascii"
+kappa = "6c7fe83d8d3c95c3ba2fa3fca10f35835b5d786feba0e748cc099051b833abde"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::escape_unicode"
+kappa = "a3c85b380a713fad4c8eecdd4bcdd7e2fbf61cd0da202094a2f2a09c8ff7aa9a"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::hex_escape"
+kappa = "a2ad2dd98939b0434ba004487a15f37642a0c189baaac0f81f457be01a811fe0"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::verbatim"
+kappa = "0aac6c3e21ca7075ce955815841ba0512406f5bf8d5ea2a7e81b57164cfa37df"
+at = "N=#"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+

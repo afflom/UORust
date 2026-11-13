@@ -1,0 +1,57 @@
+// MIR for `bool::<impl at library/core/src/bool.rs:5:1: 5:10>::ok_or` before ElaborateBoxDerefs
+
+fn bool::<impl at library/core/src/bool.rs:5:1: 5:10>::ok_or(_1: bool, _2: E) -> result::Result<(), E> {
+    debug self => _1;
+    debug err => _2;
+    let mut _0: result::Result<(), E>;
+    let mut _3: bool;
+    let mut _4: ();
+    let mut _5: E;
+    let mut _6: bool;
+
+    bb0: {
+        _6 = const false;
+        _6 = const true;
+        StorageLive(_3);
+        _3 = copy _1;
+        switchInt(move _3) -> [0: bb2, otherwise: bb1];
+    }
+
+    bb1: {
+        StorageLive(_4);
+        _4 = ();
+        _0 = result::Result::<(), E>::Ok(move _4);
+        StorageDead(_4);
+        goto -> bb3;
+    }
+
+    bb2: {
+        StorageLive(_5);
+        _6 = const false;
+        _5 = move _2;
+        _0 = result::Result::<(), E>::Err(move _5);
+        StorageDead(_5);
+        goto -> bb3;
+    }
+
+    bb3: {
+        StorageDead(_3);
+        goto -> bb7;
+    }
+
+    bb4: {
+        return;
+    }
+
+    bb5 (cleanup): {
+        resume;
+    }
+
+    bb6: {
+        drop(_2) -> [return: bb4, unwind: bb5];
+    }
+
+    bb7: {
+        switchInt(copy _6) -> [0: bb4, otherwise: bb6];
+    }
+}

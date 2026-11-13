@@ -93,6 +93,14 @@ prove:
     cargo run -q --locked -p uorust -- mir . --out target/mir
     cargo run -q --locked -p uorust -- prove . --out target/uorust-prove --scratch target/mir-prove --name uorust --last-modified 2026-11-11T00:00:00Z {{mir}}
 
+# Rewrite the core register, crates/uorust/core: every body of core's MIR at
+# the pinned toolchain's rust-src, dumped one module shard at a time, then
+# translated by the MIR path; refused when a body it records as translated is
+# now residue.
+core:
+    scripts/mir/dump-core.sh target/core-mir
+    cargo run -q --locked -p uorust -- core --mir target/core-mir --library target/rust-src-`sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml`/library --register crates/uorust/core
+
 # Only the meta-gate, while iterating on a scenario. `test` already runs it.
 bdd:
     cargo test --locked -p repo-conformance

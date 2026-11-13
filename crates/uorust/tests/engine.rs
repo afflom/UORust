@@ -1384,3 +1384,60 @@ fn the_prover_keeps_a_decided_register_ue_17() {
         committed
     );
 }
+
+/// Core's register: each body of a module shard translated at the canonical
+/// instantiation and recorded by κ; a body recorded as translated that is
+/// residue later is a regression the register refuses.
+#[test]
+fn core_bodies_are_translated_into_a_monotone_register() {
+    use uorust::mir::core;
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/core");
+    let shards = core::core_census(&fixture.join("library"), &fixture.join("mir")).expect("census");
+    assert_eq!(shards.len(), 1);
+    let bool_shard = &shards[0];
+    assert_eq!(bool_shard.module, "bool");
+    let status = |path: &str| {
+        bool_shard
+            .rows
+            .iter()
+            .find(|r| r.path == path)
+            .map(|r| r.digest.is_some())
+    };
+    // The impl is named by the type its source implements; a generic body
+    // is translated with its parameters at the canonical type.
+    assert_eq!(status("core::bool::bool::then_some"), Some(true));
+    assert_eq!(status("core::bool::bool::ok_or"), Some(true));
+    // `then` calls its closure parameter, which the canonical type is not.
+    assert_eq!(status("core::bool::bool::then"), Some(false));
+    let row = bool_shard
+        .rows
+        .iter()
+        .find(|r| r.path == "core::bool::bool::then_some")
+        .expect("then_some");
+    assert_eq!(row.at, format!("T={}", core::CANONICAL));
+
+    let dir = std::env::temp_dir().join(format!("uorust-core-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    core::write_core_register(&dir, &shards).expect("writes");
+    let summary = std::fs::read_to_string(dir.join("frontier.toml")).expect("summary");
+    assert!(summary.contains("[module.bool]\nbodies = 4\ntranslated = 2\nresidue = 2"));
+    assert!(core::core_regressions(&dir, &shards).is_empty());
+    // A register that records `then` as translated refuses the census that
+    // leaves it residue.
+    let rows = std::fs::read_to_string(dir.join("bool.toml")).expect("rows");
+    let then = rows
+        .split("\n\n")
+        .find(|r| r.contains("path = \"core::bool::bool::then\""))
+        .expect("then's row");
+    let forged = then
+        .lines()
+        .take_while(|l| !l.starts_with("status"))
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\nstatus = \"translated\"\ndigest = \"0\"";
+    std::fs::write(dir.join("bool.toml"), rows.replace(then, &forged)).expect("forges");
+    let regressed = core::core_regressions(&dir, &shards);
+    assert_eq!(regressed.len(), 1, "{regressed:?}");
+    assert!(regressed[0].starts_with("core::bool::bool::then:"));
+    let _ = std::fs::remove_dir_all(&dir);
+}

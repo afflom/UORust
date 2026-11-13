@@ -1,0 +1,147 @@
+[[fn]]
+path = "core::assert_unchecked"
+kappa = "2fa246576ce80f244c617d377ceae61c607f608a757106ae2f59fdf74327b7ff"
+status = "residue"
+cause = "mir::TerminatorKind::Call: check_language_ub"
+
+[[fn]]
+path = "core::assert_unchecked::precondition_check"
+kappa = "725a6adc87283b020aa3704d7f4414826880711bfac529c94efc706c5bfa8dd8"
+status = "residue"
+cause = "mir::Ty: fmt::Arguments<'_>"
+
+[[fn]]
+path = "core::hint::<impl at library/core/src/hint.rs:893:10: 893:15>::fmt"
+kappa = "867d626089ab9ce02920faf66889193525eef71747204488116a31107270ca63"
+status = "residue"
+cause = "mir::Ty: fmt::Error"
+
+[[fn]]
+path = "core::hint::<impl at library/core/src/hint.rs:893:17: 893:22>::clone"
+kappa = "ec6e0e79715aec0cf6c29e52364408d6a1d18a8475b156f6263bc88b984258f2"
+status = "residue"
+cause = "mir::Ty: hint::Locality"
+
+[[fn]]
+path = "core::hint::<impl at library/core/src/hint.rs:893:30: 893:39>::eq"
+kappa = "50b09dee91404bcd36b99a5f9f10d2e4b801211dcb6d1192f1f84a14f8e0067d"
+status = "residue"
+cause = "mir::Ty: Locality"
+
+[[fn]]
+path = "core::hint::<impl at library/core/src/hint.rs:893:41: 893:43>::assert_fields_are_eq"
+kappa = "37cdbc22a64bb43435dc950700b685c440941933a3488d2dbff58cb5c6647f3f"
+status = "residue"
+cause = "mir::Ty: Locality"
+
+[[fn]]
+path = "core::hint::<impl at library/core/src/hint.rs:893:45: 893:49>::hash"
+kappa = "0901f2adc066520bb358d1bafda8ede6c9f5559151f485a5e9213bdd9054a519"
+status = "residue"
+cause = "mir::Ty: Locality"
+
+[[fn]]
+path = "core::hint::Locality::to_llvm"
+kappa = "de1bde982982ddd5994e300dbde2012e2de1edff85422547d7e2b1dc4f73a547"
+status = "residue"
+cause = "mir::Ty: i32"
+
+[[fn]]
+path = "core::hint::black_box"
+kappa = "2794e6d1dc1822751e4d7e168dff95d829014a697f9588eff5cdc64de0c29006"
+at = "T=u32"
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::black_box"
+
+[[fn]]
+path = "core::hint::cold_path"
+kappa = "29087160a657ba30ad5b11bd5373a0d92a75f73f393f017b9746cf8bdfc76baa"
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::cold_path"
+
+[[fn]]
+path = "core::hint::likely"
+kappa = "358ac1c317f60c458d377b1a5cdc67f5f005bb6e3846374f3cbb328475ef3bb6"
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::likely"
+
+[[fn]]
+path = "core::hint::prefetch_read_instruction"
+kappa = "e34f300dbe33f33952c8fedf94e6d70dd0b4676e0413e73139d156ad56254a50"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: *const u32"
+
+[[fn]]
+path = "core::hint::select_unpredictable"
+kappa = "6e12d985e68399390b469e57825d590c5c918b4147e19eac3698b2ba507e5a61"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: mem::maybe_uninit::MaybeUninit<u32>"
+
+[[fn]]
+path = "core::hint::select_unpredictable::DropOnPanic::drop"
+kappa = "62dd028f0ac3942fdf21b15144aa18ad6a89e7491aa8ca10b102741012e04aa8"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: DropOnPanic<u32>"
+
+[[fn]]
+path = "core::hint::unlikely"
+kappa = "b55508b139cf12c0f5c94130133f40ffa452268c10d37ef7da2aadb09047df27"
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::unlikely"
+
+[[fn]]
+path = "core::must_use"
+kappa = "2e9be4a585acfd8cad4287497aeb679be67c1d69e1f465f531de2a0f0968fa8f"
+at = "T=u32"
+status = "translated"
+digest = "dfba2e8ffc101e9821e55daac4659df6e464739422755f129b023d08307994b0"
+
+[[fn]]
+path = "core::prefetch_read"
+kappa = "2f75942d9008464e3e7fabc2beae7bc86985210b9e3bb72bb6f19bfaaf64c1d4"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: *const u32"
+
+[[fn]]
+path = "core::prefetch_read_non_temporal"
+kappa = "01e18b700d8629b815daf315d4462cf18dc40d298efd46439831825ac18981b3"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: *const u32"
+
+[[fn]]
+path = "core::prefetch_write"
+kappa = "619e1fa7881468a8b9da1c9df36ee1eeb8ae5522815553bc5c147a1d49bb3ccf"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: *mut u32"
+
+[[fn]]
+path = "core::prefetch_write_non_temporal"
+kappa = "3a04ea32e99d316aea605b79404e1d232b95af6dac589aa6fe4d0eae5e9dd825"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: *const u32"
+
+[[fn]]
+path = "core::spin_loop"
+kappa = "05aa76ee154a1c84ca9536e077e80b20fdcfe6e7ddf4b76c8b06347b8421328e"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core_arch::x86::sse2::_mm_pause"
+
+[[fn]]
+path = "core::unreachable_unchecked"
+kappa = "e20a9226b64b35440d26eeb699dfa6c6a9bd7cac9d9455887583149b539cbb62"
+status = "residue"
+cause = "mir::Ty: !"
+
+[[fn]]
+path = "core::unreachable_unchecked::precondition_check"
+kappa = "e44b535c13617ae1f906b56b1b40cc820920f947927b4d182fb9a5f6da568c13"
+status = "residue"
+cause = "mir::Ty: fmt::Arguments<'_>"
+

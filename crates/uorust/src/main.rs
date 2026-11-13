@@ -29,6 +29,9 @@ enum Command {
     /// Decide every translation of the MIR path with `lexlean verify` and
     /// write the verdict register (`--verdicts`).
     Prove(ProveArgs),
+    /// Translate every body of core's MIR, as `scripts/mir/dump-core.sh`
+    /// dumps it one module at a time, and write the core register.
+    Core(CoreArgs),
     /// Print the route table.
     Routes,
 }
@@ -40,6 +43,19 @@ struct MirArgs {
     /// The directory the dumps are written to.
     #[arg(long)]
     out: PathBuf,
+}
+
+#[derive(clap::Args)]
+struct CoreArgs {
+    /// The module shards: one directory of core's dumps per module.
+    #[arg(long)]
+    mir: PathBuf,
+    /// The rust-src `library` directory the dumps were built from.
+    #[arg(long)]
+    library: PathBuf,
+    /// The register directory: `frontier.toml` and one file per module.
+    #[arg(long)]
+    register: PathBuf,
 }
 
 #[derive(clap::Args)]
@@ -164,6 +180,26 @@ fn run(cli: Cli) -> Result<(), UorustError> {
                 summary.refused,
                 summary.runs,
                 verdicts.display()
+            );
+            Ok(())
+        }
+        Command::Core(args) => {
+            let shards = uorust::mir::core::core_census(&args.library, &args.mir)?;
+            let regressed = uorust::mir::core::core_regressions(&args.register, &shards);
+            if !regressed.is_empty() {
+                return Err(UorustError::Tool(format!(
+                    "a body the core register records as translated is now residue: {}",
+                    regressed.join("; ")
+                )));
+            }
+            uorust::mir::core::write_core_register(&args.register, &shards)?;
+            let (all, done) = shards.iter().fold((0, 0), |(a, d), s| {
+                (a + s.rows.len(), d + s.translated_count())
+            });
+            println!(
+                "core: {done} of {all} bodies translated in {} modules; register in {}",
+                shards.len(),
+                args.register.display()
             );
             Ok(())
         }

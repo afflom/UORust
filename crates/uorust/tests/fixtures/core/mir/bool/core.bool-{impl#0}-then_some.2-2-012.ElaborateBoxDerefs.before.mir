@@ -1,0 +1,53 @@
+// MIR for `bool::<impl at library/core/src/bool.rs:5:1: 5:10>::then_some` before ElaborateBoxDerefs
+
+fn bool::<impl at library/core/src/bool.rs:5:1: 5:10>::then_some(_1: bool, _2: T) -> Option<T> {
+    debug self => _1;
+    debug t => _2;
+    let mut _0: option::Option<T>;
+    let mut _3: bool;
+    let mut _4: T;
+    let mut _5: bool;
+
+    bb0: {
+        _5 = const false;
+        _5 = const true;
+        StorageLive(_3);
+        _3 = copy _1;
+        switchInt(move _3) -> [0: bb2, otherwise: bb1];
+    }
+
+    bb1: {
+        StorageLive(_4);
+        _5 = const false;
+        _4 = move _2;
+        _0 = Option::<T>::Some(move _4);
+        StorageDead(_4);
+        goto -> bb3;
+    }
+
+    bb2: {
+        _0 = Option::<T>::None;
+        goto -> bb3;
+    }
+
+    bb3: {
+        StorageDead(_3);
+        goto -> bb7;
+    }
+
+    bb4: {
+        return;
+    }
+
+    bb5 (cleanup): {
+        resume;
+    }
+
+    bb6: {
+        drop(_2) -> [return: bb4, unwind: bb5];
+    }
+
+    bb7: {
+        switchInt(copy _5) -> [0: bb4, otherwise: bb6];
+    }
+}
