@@ -1436,6 +1436,12 @@ fn opaque_projections(line: &str, params: &BTreeMap<String, String>) -> String {
             if !ty || matches!(next, Some('(' | ':')) {
                 continue;
             }
+            // A pointee's `Metadata` is fixed by core for every type (the
+            // unit for a sized one, a slice's length), never opaque: the
+            // lowering reads it (see `lower::ty`).
+            if name == "Metadata" && out[at..close].ends_with("Pointee") {
+                continue;
+            }
             let end = close + 1 + "::".len() + name.len();
             out.replace_range(at..end, &word);
             continue 'again;
