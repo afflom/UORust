@@ -1768,11 +1768,11 @@ cause = "mir::AggregateKind::Closure: context::with::{closure#0}: type outside t
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer"
+cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: type outside the lift: sys::thread_local::native::eager::Storage<u32>"
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer"
+cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: type outside the lift: sys::thread_local::native::lazy::Storage<u32"
 bodies = 1
 
 [[cause]]

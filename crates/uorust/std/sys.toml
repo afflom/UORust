@@ -1696,7 +1696,7 @@ cause = "mir::Ty: sys::thread_local::native::eager::Storage<u32>"
 path = "std::eager::destroy"
 kappa = "f880546172743b00e56f9fdb6f60c6a7cca3987ea3a93940de9b90bbe8952ae7"
 status = "residue"
-cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
+cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: type outside the lift: sys::thread_local::native::eager::Storage<u32>"
 
 [[fn]]
 path = "std::eh::<impl at library/std/src/sys/personality/dwarf/eh.rs:39:16: 39:21>::clone"
@@ -2375,7 +2375,7 @@ cause = "mir::Ty: sys::thread_local::native::lazy::Storage<u32, u32>"
 path = "std::lazy::destroy"
 kappa = "4f9e151160958d01e4c20af5585c1e5f5fa0bf9ffe6e3354cf7b708f029538b5"
 status = "residue"
-cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
+cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: type outside the lift: sys::thread_local::native::lazy::Storage<u32, ()>"
 
 [[fn]]
 path = "std::linux_child_ext::Child::into_pidfd"
