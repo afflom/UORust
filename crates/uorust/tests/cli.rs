@@ -1,5 +1,6 @@
 //! The `uorust` binary end to end: `project`, `check`, `routes`, `mir`,
-//! `prove`, `core`, `std`, `merge`, `crate` and `certify agree`.
+//! `prove`, `core`, `std`, `merge`, `crate` and `certify` `production`,
+//! `sync` and `agree`.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -290,5 +291,64 @@ fn the_cli_writes_and_merges_library_registers() {
     let refused = uorust(&["crate", "serde"]);
     assert!(!refused.status.success());
     assert!(String::from_utf8_lossy(&refused.stderr).contains("is not <name>@<version>"));
+    let _ = std::fs::remove_dir_all(tmp);
+}
+
+/// `certify production` refuses a targets file with no `rust-std`
+/// descriptor before it writes the production project or runs `lexlean`;
+/// `certify sync` refuses a kept bundle with no `result.json` before it
+/// writes the certified crate or its adapters.
+#[test]
+fn the_cli_refuses_a_bundle_it_cannot_export_or_take_in() {
+    let tmp = std::env::temp_dir().join(format!("uorust-certify-cli-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(&tmp).expect("scratch");
+    let path = |name: &str| tmp.join(name).to_string_lossy().to_string();
+    let targets = tmp.join("targets.json");
+    std::fs::write(&targets, r#"{"targets":[{"id":"other","digest":"00"}]}"#).expect("targets");
+    let (out, kept, dir, adapters) = (
+        path("production"),
+        path("kept"),
+        path("certified"),
+        path("certified.rs"),
+    );
+    let refused = uorust(&[
+        "certify",
+        "production",
+        "--projection",
+        "tests/fixtures/thermostat-prism",
+        "--register",
+        "tests/fixtures/thermostat-prism/frontier.toml",
+        "--targets",
+        &targets.to_string_lossy(),
+        "--out",
+        out.as_str(),
+        "--kept",
+        kept.as_str(),
+    ]);
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("no rust-std descriptor"));
+    assert!(!tmp.join("production").exists());
+
+    std::fs::create_dir_all(&kept).expect("kept");
+    let refused = uorust(&[
+        "certify",
+        "sync",
+        "--kept",
+        kept.as_str(),
+        "--register",
+        "tests/fixtures/thermostat-prism/frontier.toml",
+        "--mir",
+        path("mir").as_str(),
+        "--workspace",
+        "tests/fixtures/thermostat",
+        "--dir",
+        dir.as_str(),
+        "--adapters",
+        adapters.as_str(),
+    ]);
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("result.json"));
+    assert!(!tmp.join("certified").exists() && !tmp.join("certified.rs").exists());
     let _ = std::fs::remove_dir_all(tmp);
 }
