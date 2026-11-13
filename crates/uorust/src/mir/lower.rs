@@ -359,6 +359,36 @@ pub(crate) fn threaded_result(ret: &Ty, rest: &[Ty], types: &Types) -> Ty {
     types.tuple(ts)
 }
 
+/// A type as printed with its lifetime arguments left out:
+/// `CharSearcher<'_>` is `CharSearcher`, `Foo<'a, u8>` is `Foo<u8>`.
+pub(crate) fn without_lifetimes(text: &str) -> String {
+    let mut out = String::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        let after_open = matches!(out.chars().last(), Some('<'));
+        let after_comma = out.ends_with(", ");
+        if c == '\'' && (after_open || after_comma) {
+            while chars
+                .peek()
+                .is_some_and(|d| d.is_ascii_alphanumeric() || *d == '_')
+            {
+                chars.next();
+            }
+            if chars.peek() == Some(&',') {
+                chars.next();
+                if chars.peek() == Some(&' ') {
+                    chars.next();
+                }
+            } else if after_comma {
+                out.truncate(out.len() - 2);
+            }
+            continue;
+        }
+        out.push(c);
+    }
+    out.replace("<>", "")
+}
+
 /// The type a `&mut T` (or `&'a mut T`) points to, as printed.
 pub(crate) fn mut_target(text: &str) -> Option<&str> {
     let rest = text.trim().strip_prefix('&')?;
@@ -3453,6 +3483,40 @@ impl Fun<'_, '_> {
                     Ty::Named(POINTER.to_string()),
                 ))
             }
+            // `[c; n]` of a constant: the list of `n` copies of it, as long as
+            // the projection's file can hold it.
+            IrRvalue::Other(spec::MirRvalue::Repeat, text) => {
+                let k = spec::MirRvalue::Repeat.path();
+                let inner = text
+                    .trim()
+                    .strip_prefix('[')
+                    .and_then(|r| r.strip_suffix(']'))
+                    .unwrap_or("");
+                let (Some(IrOperand::Constant(c)), Some(n)) = (
+                    super::parse::split_top(inner, ';')
+                        .first()
+                        .and_then(|o| super::parse::operand(o)),
+                    super::parse::split_top(inner, ';').get(1).and_then(|n| {
+                        let n = n.trim().trim_start_matches("const ");
+                        n.split('_').next().and_then(|d| d.parse::<usize>().ok())
+                    }),
+                ) else {
+                    return Err(kind(k, "of a value that is not a constant"));
+                };
+                let (v, _) = self.constant(&c)?;
+                let Ty::List(e) = self.local_ty(dest.local, &dest.projection)? else {
+                    return Err(kind(k, "into a place that holds no list"));
+                };
+                if n.saturating_mul(v.len() + "(cons  )".len()) > self.cx.limit {
+                    return Err(kind(k, "longer than the projection's file can hold"));
+                }
+                let mut out = format!("(nil {})", e.render());
+                for _ in 0..n {
+                    out = format!("(cons {v} {out})");
+                }
+                self.grow(&out)?;
+                Ok(Val::V(out, Ty::List(e)))
+            }
             IrRvalue::Other(k, _) => Err(kind(k.path(), "")),
         }
     }
@@ -5860,6 +5924,24 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     // is its length, a `usize`; a sized type's is the unit. A trait
     // object's, a vtable, is residue.
     if let Some(rest) = t.strip_prefix('<') {
+        // An associated type an impl sets to a struct of core's, by the
+        // projection's type, trait and name, arguments and paths dropped.
+        let key = rest.split_once(" as ").and_then(|(x, r)| {
+            let (tr, assoc) = r.rsplit_once(">::")?;
+            let tr = tr.split('<').next().unwrap_or(tr);
+            Some(format!(
+                "<{x} as {}>::{}",
+                tr.rsplit("::").next().unwrap_or(tr),
+                assoc.split('<').next().unwrap_or(assoc)
+            ))
+        });
+        if let Some(n) = key.and_then(|k| types.aliases.get(&k)).filter(|n| {
+            types.structs.contains_key(*n)
+                || types.datas.contains_key(*n)
+                || types.enums.contains_key(*n)
+        }) {
+            return Ok(Ty::Named(n.clone()));
+        }
         if let Some((pointee_text, assoc)) = rest.rsplit_once(" as ") {
             let assoc = assoc.trim_start_matches("core::");
             if matches!(
@@ -5992,11 +6074,17 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     }
     // An instance of a struct of core's own, in core's scope.
     if types.core {
-        if let Some(n) = types.aliases.get(t).filter(|n| {
-            types.structs.contains_key(*n)
-                || types.enums.contains_key(*n)
-                || types.datas.contains_key(*n)
-        }) {
+        let erased = without_lifetimes(t);
+        if let Some(n) = types
+            .aliases
+            .get(t)
+            .or_else(|| types.aliases.get(&erased))
+            .filter(|n| {
+                types.structs.contains_key(*n)
+                    || types.enums.contains_key(*n)
+                    || types.datas.contains_key(*n)
+            })
+        {
             return Ok(Ty::Named(n.clone()));
         }
     }
@@ -6858,6 +6946,18 @@ mod tests {
         for (f, _) in pointer_fields() {
             assert!(v.contains(&format!("{f} := ")), "{v} lacks {f}");
         }
+    }
+
+    #[test]
+    fn lifetime_arguments_are_left_out() {
+        assert_eq!(
+            without_lifetimes("str::pattern::CharSearcher<'_>"),
+            "str::pattern::CharSearcher"
+        );
+        assert_eq!(without_lifetimes("DebugStruct<'_, '_>"), "DebugStruct");
+        assert_eq!(without_lifetimes("Foo<'a, u8>"), "Foo<u8>");
+        assert_eq!(without_lifetimes("Foo<u8, 'a>"), "Foo<u8>");
+        assert_eq!(without_lifetimes("Option<&'a str>"), "Option<&'a str>");
     }
 
     #[test]

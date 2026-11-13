@@ -1134,7 +1134,11 @@ impl Instances<'_> {
                     cx.decls
                         .assoc
                         .iter()
-                        .filter(|((ty, _, a), _)| *ty == base && *a == assoc)
+                        // A generic associated type is set by its name:
+                        // `P::Searcher<'a>` is the impl's `type Searcher<'a>`.
+                        .filter(|((ty, _, a), _)| {
+                            *ty == base && a.as_str() == assoc.split('<').next().unwrap_or(&assoc)
+                        })
                         .map(|(_, (m, to))| cx.rooted(m, to, 0))
                         .collect()
                 })
@@ -1233,6 +1237,10 @@ impl Instances<'_> {
                 continue;
             };
             if let Some(n) = self.instance(&declared, &args, types) {
+                types
+                    .aliases
+                    .entry(super::lower::without_lifetimes(&c))
+                    .or_insert_with(|| n.clone());
                 types.aliases.entry(c.clone()).or_insert(n);
             }
         }
@@ -1301,6 +1309,20 @@ fn instantiate_structs(
     );
     for text in mentioned {
         cx.mention(text, types);
+    }
+    // Each associated type an impl sets to a struct of core's, under the
+    // projection that names it, `<X as Trait>::Assoc` (see
+    // `lower::ty`): an instance's locals name `<char as
+    // str::pattern::Pattern>::Searcher<'_>`, `CharSearcher`.
+    for ((x, tr, a), (m, to)) in decls.assoc.clone() {
+        let target = cx.rooted(&m, &to, 0);
+        cx.mention(&target, types);
+        if let Some(n) = types.aliases.get(&target).cloned() {
+            types
+                .aliases
+                .entry(format!("<{x} as {tr}>::{a}"))
+                .or_insert(n);
+        }
     }
     cx.explicit
 }

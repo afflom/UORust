@@ -397,7 +397,10 @@ impl CoreLink {
                     unify(pt, a, &mut generics)?;
                 }
             }
-            unify(ret, dest, &mut generics)?;
+            // A destination the call does not type binds nothing.
+            if !dest.is_empty() {
+                unify(ret, dest, &mut generics)?;
+            }
         }
         // A type the signature names by its own name (`Argument<'_>`,
         // printed `fmt::rt::Argument<'_>` at the call) binds no parameter.
@@ -420,6 +423,13 @@ impl CoreLink {
         dest: &str,
     ) -> Option<Instance> {
         let erased = super::lower::erase(callee);
+        // A destination typed by a projection (`<char as Pattern>::Searcher<'_>`)
+        // names no type the signature's own can be read against.
+        let dest = if dest.trim_start().starts_with('<') && dest.contains(" as ") {
+            ""
+        } else {
+            dest
+        };
         let signature = |text: &str| -> Option<(Vec<String>, String)> {
             let head = text.lines().find_map(|l| l.strip_prefix("fn "))?;
             let open = head.find('(')?;
