@@ -247,16 +247,16 @@ impl CoreLink {
 /// The size in bytes of a value of `t` in the target data layout, on each
 /// pointer width of `widths`: an integer's width in bytes, a `bool` one
 /// byte, a `char` the four of its `u32` scalar, the unit none, and `usize`
-/// the pointer's width. `Err` names a type whose layout rustc chooses.
-pub(crate) fn size_of(t: &Ty, widths: &[(u32, Vec<String>)]) -> Result<Vec<(u32, u128)>, String> {
+/// the pointer's width. `None` for a type whose layout rustc chooses.
+pub(crate) fn size_of(t: &Ty, widths: &[(u32, Vec<String>)]) -> Option<Vec<(u32, u128)>> {
     let bytes = |bits: u32| u128::from(bits / u8::BITS);
-    let each = |n: u128| Ok(widths.iter().map(|(w, _)| (*w, n)).collect());
+    let each = |n: u128| Some(widths.iter().map(|(w, _)| (*w, n)).collect());
     match t {
         Ty::Nat(Some(b)) | Ty::Int(b) => each(bytes(*b)),
-        Ty::Nat(None) => Ok(widths.iter().map(|(w, _)| (*w, bytes(*w))).collect()),
+        Ty::Nat(None) => Some(widths.iter().map(|(w, _)| (*w, bytes(*w))).collect()),
         Ty::Bool => each(1),
         Ty::Char => each(bytes(u32::BITS)),
         Ty::Unit => each(0),
-        _ => Err(t.render()),
+        _ => None,
     }
 }

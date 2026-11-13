@@ -3300,8 +3300,12 @@ impl Fun<'_, '_> {
             // same on every declared target.
             ("size_of", [], [t]) if *dt == Ty::Nat(None) => {
                 let t = ty(t, self.cx.types)?;
-                let sizes = super::link::size_of(&t, self.cx.widths)
-                    .map_err(|t| kind(k, &format!("{path} of {t}, whose layout rustc chooses")))?;
+                let sizes = super::link::size_of(&t, self.cx.widths).ok_or_else(|| {
+                    kind(
+                        k,
+                        &format!("{path} of {}, whose layout rustc chooses", t.render()),
+                    )
+                })?;
                 match sizes.as_slice() {
                     [(_, n), rest @ ..] if rest.iter().all(|(_, m)| m == n) => Ok(n.to_string()),
                     _ => Err(kind(
