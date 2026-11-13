@@ -468,6 +468,7 @@ pub(crate) struct CoreStruct {
     /// has no fields.
     pub(crate) variants: Option<Vec<String>>,
     /// For an enum whose variants hold data, each variant and its fields.
+    #[allow(clippy::type_complexity)]
     data: Option<Vec<(String, Vec<(Option<String>, String)>)>>,
     /// Whether such an enum's variants set their own discriminants.
     pub(crate) explicit: bool,

@@ -213,6 +213,7 @@ struct State {
     /// that function's value at the part's value.
     /// The function is applied to the part's value, and where it gives
     /// the last values of several arguments, its item of this argument's.
+    #[allow(clippy::type_complexity)]
     lends: BTreeMap<IrLocal, Vec<(Vec<IrProjection>, IrPlace, Option<Transform>)>>,
 }
 
@@ -1437,7 +1438,6 @@ impl Fun<'_, '_> {
         };
         self.loops.insert(h, Some(lp.clone()));
         self.measure = Some(measure.clone());
-        let mut st = st;
         for (c, holds) in &invariants {
             st.path.push(MirStep::If(c.clone(), *holds));
         }
