@@ -22,10 +22,13 @@ on:
 permissions:
   contents: read
 
-# Only the newest main matters: an older run's output would be refused anyway.
+# One run at a time, never cancelled: a run in progress finishes and pushes,
+# and only the newest of the pushes that land meanwhile runs next (GitHub
+# keeps one pending run per group). Cancelling in progress meant a steady
+# stream of pushes starved every run and nothing was ever regenerated.
 concurrency:
   group: generate
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   generate:
@@ -68,6 +71,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          REBASE: '1'
         run: |
           scripts/ci/push.sh "Regenerate the generated files" \
             "CONFORMANCE.md README.md app model brand crates xtask frontier.toml lift-verdicts.toml" \
