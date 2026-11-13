@@ -124,6 +124,12 @@ pub fn census(
     only: &[String],
 ) -> Result<Vec<CoreShard>, UorustError> {
     let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
+    // A library's declarations are read from its sources: without them
+    // every type the bodies name is unknown, so the census refuses.
+    if scope.own_std {
+        let src = root.join("library").join(&scope.krate).join("src");
+        std::fs::read_dir(&src).map_err(|e| io(&src, e))?;
+    }
     let mut modules: Vec<PathBuf> = std::fs::read_dir(dumps)
         .map_err(|e| io(dumps, e))?
         .filter_map(Result::ok)

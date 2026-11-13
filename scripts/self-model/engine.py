@@ -269,7 +269,9 @@ jobs:
         run: |
           chmod +x target/bin/uorust
           channel=$(sed -n 's/^channel = "\\(.*\\)"/\\1/p' rust-toolchain.toml)
-          scripts/ci/sdk.sh "target/bin/uorust $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --register crates/uorust/$CRATE"
+          # The sources the declarations are read from: dump-lib.sh fetches
+          # the pinned rust-src (hash-checked) before it lists the modules.
+          scripts/ci/sdk.sh "scripts/mir/dump-lib.sh $CRATE --modules >/dev/null && target/bin/uorust $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --register crates/uorust/$CRATE"
           mkdir -p target/shard
           cp "crates/uorust/$CRATE/$MODULE.toml" target/shard/
       - name: Keep the module's register file
