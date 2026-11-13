@@ -57,5 +57,9 @@ if [ ${#missing[@]} -gt 0 ]; then
   [ -f "$out/target.toml" ] && ci_target=$(cat "$out/target.toml")
   scripts/mir/dump-lib.sh "$krate" "$out" "${missing[@]}"
   # The target the CI dumps were built for stands when there are any.
-  [ -n "$ci_target" ] && printf '%s\n' "$ci_target" >"$out/target.toml"
+  # (An `if`: a bare `&&` would end the script with status 1 where CI has
+  # no dump at all.)
+  if [ -n "$ci_target" ]; then
+    printf '%s\n' "$ci_target" >"$out/target.toml"
+  fi
 fi
