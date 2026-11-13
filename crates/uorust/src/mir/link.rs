@@ -25,8 +25,6 @@ pub(crate) struct CoreLink {
     lasts: BTreeMap<String, Vec<String>>,
 }
 
-
-
 impl CoreLink {
     /// The link of core's dumps `texts` (one body each), with core's
     /// declarations.
@@ -43,7 +41,8 @@ impl CoreLink {
             else {
                 continue;
             };
-            if path.contains("{closure") || path.contains("promoted[") || path.contains("{constant") {
+            if path.contains("{closure") || path.contains("promoted[") || path.contains("{constant")
+            {
                 continue;
             }
             let last = split_path(path).last().copied().unwrap_or(path).to_string();
@@ -78,7 +77,6 @@ impl CoreLink {
             _ => None,
         }
     }
-
 
     /// The generic parameters of `path` bound by a call `callee` with
     /// arguments and destination of the types MIR prints: the call's type
@@ -126,7 +124,6 @@ impl CoreLink {
         Some(generics)
     }
 
-
     /// Core's own body of `callee`, its generic parameters bound by the
     /// call's type arguments and the types of its arguments and
     /// destination; `None` when core has no body for it or a parameter its
@@ -135,7 +132,12 @@ impl CoreLink {
     /// A method MIR names by its impl's type, `<X as Trait>::m` or
     /// `<impl X>::m`, is the one method `m` of an impl whose signature the
     /// call's types instantiate.
-    pub(crate) fn instance(&self, callee: &str, arg_texts: &[Option<String>], dest: &str) -> Option<Instance> {
+    pub(crate) fn instance(
+        &self,
+        callee: &str,
+        arg_texts: &[Option<String>],
+        dest: &str,
+    ) -> Option<Instance> {
         let erased = super::lower::erase(callee);
         let signature = |text: &str| -> Option<(Vec<String>, String)> {
             let head = text.lines().find_map(|l| l.strip_prefix("fn "))?;
@@ -146,12 +148,21 @@ impl CoreLink {
                 .filter(|p| !p.trim().is_empty())
                 .map(str::to_string)
                 .collect();
-            Some((params, head[close + ") -> ".len()..].trim_end_matches(" {").trim().to_string()))
+            Some((
+                params,
+                head[close + ") -> ".len()..]
+                    .trim_end_matches(" {")
+                    .trim()
+                    .to_string(),
+            ))
         };
         let paths: Vec<String> = match self.path(&erased) {
             Some(p) => vec![p],
             None => {
-                let method = erased.starts_with('<').then(|| erased.rsplit_once(">::"))??.1;
+                let method = erased
+                    .starts_with('<')
+                    .then(|| erased.rsplit_once(">::"))??
+                    .1;
                 self.lasts
                     .get(method)?
                     .iter()
@@ -161,15 +172,21 @@ impl CoreLink {
             }
         };
         let mut fits = paths.iter().flat_map(|p| {
-            self.bodies.get(p).into_iter().flatten().filter_map(move |text| {
-                let (params, ret) = signature(text)?;
-                let params: Vec<&str> = params.iter().map(String::as_str).collect();
-                let g = self.bind(p, callee, Some((&params, &ret)), arg_texts, dest)?;
-                // A name the signature binds is a parameter, not a type core
-                // declares.
-                let declared = g.keys().any(|k| self.decls.structs.iter().any(|s| s.name() == k));
-                (!declared).then(|| (p.clone(), text, g))
-            })
+            self.bodies
+                .get(p)
+                .into_iter()
+                .flatten()
+                .filter_map(move |text| {
+                    let (params, ret) = signature(text)?;
+                    let params: Vec<&str> = params.iter().map(String::as_str).collect();
+                    let g = self.bind(p, callee, Some((&params, &ret)), arg_texts, dest)?;
+                    // A name the signature binds is a parameter, not a type core
+                    // declares.
+                    let declared = g
+                        .keys()
+                        .any(|k| self.decls.structs.iter().any(|s| s.name() == k));
+                    (!declared).then(|| (p.clone(), text, g))
+                })
         });
         let (path, text, generics) = match (fits.next(), fits.next()) {
             (Some(one), None) => one,

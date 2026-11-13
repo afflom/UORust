@@ -1465,7 +1465,10 @@ impl Fun<'_, '_> {
         target: IrBlockId,
         st: &mut State,
     ) -> Lift<Option<(String, String, String)>> {
-        if let Some(g) = self.selected(callee, args).filter(|_| destination.projection.is_empty()) {
+        if let Some(g) = self
+            .selected(callee, args)
+            .filter(|_| destination.projection.is_empty())
+        {
             self.select_into(destination, &g, &args[0], st)?;
             return Ok(None);
         }
@@ -1597,12 +1600,16 @@ impl Fun<'_, '_> {
     /// run time: its third argument.
     fn selected(&self, callee: &str, args: &[IrOperand]) -> Option<String> {
         let link = self.cx.core?;
-        let path = link.path(&erase(callee)).filter(|p| link.decls.intrinsics.contains(p))?;
+        let path = link
+            .path(&erase(callee))
+            .filter(|p| link.decls.intrinsics.contains(p))?;
         if split_path(&path).last() != Some(&"const_eval_select") {
             return None;
         }
         match args {
-            [_, _, IrOperand::Constant(IrConstant::Path(g) | IrConstant::Other(g))] => Some(g.clone()),
+            [_, _, IrOperand::Constant(IrConstant::Path(g) | IrConstant::Other(g))] => {
+                Some(g.clone())
+            }
             _ => None,
         }
     }
@@ -1640,13 +1647,21 @@ impl Fun<'_, '_> {
             (n, Ty::Tuple(ts) | Ty::Pair(ts)) if ts.len() == n => (0..n)
                 .map(|j| (lift::tuple_item(&t, &v, j), ts[j].clone()))
                 .collect(),
-            _ => return Err(kind(k, "const_eval_select of a tuple the lift does not split")),
+            _ => {
+                return Err(kind(
+                    k,
+                    "const_eval_select of a tuple the lift does not split",
+                ))
+            }
         };
         let dt = self.local_ty(destination.local, &[])?;
         let dest_text = self.body.locals[destination.local].clone();
         let called = self.call(g, vals, &texts, &dest_text, &dt, st)?;
         if called.guard.is_some() || !called.updates.is_empty() || called.threads.is_some() {
-            return Err(kind(k, &format!("{}, selected with a guard or an update", erase(g))));
+            return Err(kind(
+                k,
+                &format!("{}, selected with a guard or an update", erase(g)),
+            ));
         }
         if let Some(b) = fixed(&dt) {
             self.ranged.insert(called.term.clone(), b);
@@ -1717,7 +1732,9 @@ impl Fun<'_, '_> {
         };
         match t {
             // A switch on a constant takes its one arm.
-            Ty::Bool if c == "true" || c == "false" => self.goto(target(i128::from(c == "true")), st),
+            Ty::Bool if c == "true" || c == "false" => {
+                self.goto(target(i128::from(c == "true")), st)
+            }
             Ty::Bool => {
                 let (on_true, on_false) = (target(1), target(0));
                 let mut yes = st.clone();
@@ -1956,7 +1973,12 @@ impl Fun<'_, '_> {
                     let body = super::parse::bodies(&inst.text)
                         .into_iter()
                         .next()
-                        .ok_or_else(|| kind(k, &format!("the constant item {p}, whose body does not read")))?;
+                        .ok_or_else(|| {
+                            kind(
+                                k,
+                                &format!("the constant item {p}, whose body does not read"),
+                            )
+                        })?;
                     self.const_body(p, &body)
                 }
                 None => match c {
@@ -3254,8 +3276,13 @@ impl Fun<'_, '_> {
         // In a library's scope, an intrinsic's model or the library's own
         // body.
         if let Some(link) = self.cx.core {
-            if let Some(path) = link.path(&erase(callee)).filter(|p| link.decls.intrinsics.contains(p)) {
-                return self.intrinsic(link, &path, callee, &args, dt).map(Called::value);
+            if let Some(path) = link
+                .path(&erase(callee))
+                .filter(|p| link.decls.intrinsics.contains(p))
+            {
+                return self
+                    .intrinsic(link, &path, callee, &args, dt)
+                    .map(Called::value);
             }
             if let Some(inst) = link.instance(callee, texts, dest) {
                 let krate = self.cx.krate.clone();
@@ -3280,18 +3307,20 @@ impl Fun<'_, '_> {
         dt: &Ty,
     ) -> Lift<String> {
         let k = spec::MirTerminatorKind::Call.path();
-        let generics = link
-            .bind(path, callee, None, &[], "")
-            .ok_or_else(|| kind(k, &format!("{path}, an intrinsic its call does not instantiate")))?;
+        let generics = link.bind(path, callee, None, &[], "").ok_or_else(|| {
+            kind(
+                k,
+                &format!("{path}, an intrinsic its call does not instantiate"),
+            )
+        })?;
         let name = split_path(path).last().copied().unwrap_or(path);
         match (name, args, generics.values().collect::<Vec<_>>().as_slice()) {
             // `size_of::<T>() -> usize`: `T`'s size in the data layout, the
             // same on every declared target.
             ("size_of", [], [t]) if *dt == Ty::Nat(None) => {
                 let t = ty(t, self.cx.types)?;
-                let sizes = super::link::size_of(&t, self.cx.widths).map_err(|t| {
-                    kind(k, &format!("{path} of {t}, whose layout rustc chooses"))
-                })?;
+                let sizes = super::link::size_of(&t, self.cx.widths)
+                    .map_err(|t| kind(k, &format!("{path} of {t}, whose layout rustc chooses")))?;
                 match sizes.as_slice() {
                     [(_, n), rest @ ..] if rest.iter().all(|(_, m)| m == n) => Ok(n.to_string()),
                     _ => Err(kind(
@@ -3308,7 +3337,10 @@ impl Fun<'_, '_> {
                     )),
                 }
             }
-            _ => Err(kind(k, &format!("{path}, an intrinsic the table does not model"))),
+            _ => Err(kind(
+                k,
+                &format!("{path}, an intrinsic the table does not model"),
+            )),
         }
     }
 
@@ -3360,7 +3392,10 @@ impl Fun<'_, '_> {
             self.types.extend(lowered.types);
         }
         let Some(Decl::Definition {
-            parameters, result, body: value, ..
+            parameters,
+            result,
+            body: value,
+            ..
         }) = self.aux.get(&name)
         else {
             return Err(kind(

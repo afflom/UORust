@@ -754,7 +754,11 @@ fn plain(text: &str) -> String {
 
 /// Unify a std parameter's type text with a call site's: a bare name that
 /// is no primitive is a generic parameter and binds the call site's text.
-pub(crate) fn unify(pattern: &str, actual: &str, generics: &mut BTreeMap<String, String>) -> Option<()> {
+pub(crate) fn unify(
+    pattern: &str,
+    actual: &str,
+    generics: &mut BTreeMap<String, String>,
+) -> Option<()> {
     let (p, a) = (plain(pattern), plain(actual));
     let bare = !p.is_empty()
         && p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')

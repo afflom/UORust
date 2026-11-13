@@ -166,10 +166,8 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
         read.push((module, texts));
     }
     // Every module's bodies, which each module's calls name.
-    let link = super::link::CoreLink::new(
-        core_decls(root),
-        read.iter().flat_map(|(_, texts)| texts),
-    );
+    let link =
+        super::link::CoreLink::new(core_decls(root), read.iter().flat_map(|(_, texts)| texts));
     Ok(read
         .iter()
         .map(|(module, texts)| shard(scope, root, module, texts, &widths, &link))
@@ -415,7 +413,12 @@ pub(crate) struct CoreDecls {
 /// Each name a `use` tree binds in `module`, with the path from core's root
 /// it names: `crate::`, `core::`, `self::` and `super::` as Rust reads
 /// them, and any other path relative to the module.
-fn use_names(module: &[String], prefix: &[String], tree: &syn::UseTree, out: &mut Vec<(String, String)>) {
+fn use_names(
+    module: &[String],
+    prefix: &[String],
+    tree: &syn::UseTree,
+    out: &mut Vec<(String, String)>,
+) {
     let with = |s: String| {
         let mut p = prefix.to_vec();
         p.push(s);
@@ -544,7 +547,8 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                     });
                 }
                 syn::Item::Fn(f) => {
-                    out.generics.insert(at(f.sig.ident.to_string()), generic_names(&f.sig.generics));
+                    out.generics
+                        .insert(at(f.sig.ident.to_string()), generic_names(&f.sig.generics));
                 }
                 // A function without a body, as core declares an intrinsic.
                 syn::Item::Verbatim(tokens) => {
@@ -676,7 +680,11 @@ fn without_const_traits(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenS
 /// fields of its tuples and the arguments of its paths.
 fn components(text: &str, out: &mut Vec<String>) {
     let mut t = text.trim();
-    while let Some(r) = t.strip_prefix('&').or_else(|| t.strip_prefix("*const ")).or_else(|| t.strip_prefix("*mut ")) {
+    while let Some(r) = t
+        .strip_prefix('&')
+        .or_else(|| t.strip_prefix("*const "))
+        .or_else(|| t.strip_prefix("*mut "))
+    {
         t = r.trim_start();
         if let Some(r) = t.strip_prefix('\'') {
             t = r.split_once(' ').map_or("", |(_, r)| r);
@@ -725,7 +733,10 @@ impl Instances<'_> {
             return Some(path.to_string());
         }
         let (module, name) = path.rsplit_once("::").unwrap_or(("", path));
-        let target = self.decls.uses.get(&(module.to_string(), name.to_string()))?;
+        let target = self
+            .decls
+            .uses
+            .get(&(module.to_string(), name.to_string()))?;
         (depth < 16 && target != path).then(|| self.canonical(target, depth + 1))?
     }
 
@@ -733,7 +744,9 @@ impl Instances<'_> {
     /// module's `use` name for its first segment, else from the module or
     /// from core's root.
     fn resolve(&self, module: &str, path: &str) -> Option<String> {
-        let (head, rest) = path.split_once("::").map_or((path, None), |(h, r)| (h, Some(r)));
+        let (head, rest) = path
+            .split_once("::")
+            .map_or((path, None), |(h, r)| (h, Some(r)));
         if let Some(t) = self.decls.uses.get(&(module.to_string(), head.to_string())) {
             let full = rest.map_or_else(|| t.clone(), |r| format!("{t}::{r}"));
             return self.canonical(&full, 0);
@@ -743,7 +756,8 @@ impl Instances<'_> {
         } else {
             format!("{module}::{path}")
         };
-        self.canonical(&local, 0).or_else(|| self.canonical(path, 0))
+        self.canonical(&local, 0)
+            .or_else(|| self.canonical(path, 0))
     }
 
     /// The declared path a path as MIR prints it names: from core's root,
@@ -773,8 +787,11 @@ impl Instances<'_> {
                 while i < chars.len()
                     && (chars[i].is_ascii_alphanumeric()
                         || chars[i] == '_'
-                        || (chars[i] == ':' && chars.get(i + 1) == Some(&':')
-                            && chars.get(i + 2).is_some_and(|c| c.is_ascii_alphabetic() || *c == '_')))
+                        || (chars[i] == ':'
+                            && chars.get(i + 1) == Some(&':')
+                            && chars
+                                .get(i + 2)
+                                .is_some_and(|c| c.is_ascii_alphabetic() || *c == '_')))
                 {
                     i += if chars[i] == ':' { 2 } else { 1 };
                 }
@@ -800,7 +817,11 @@ impl Instances<'_> {
         // An enum the scope lifts as its own, of the same variants, keeps
         // its lift.
         let own = types.resolve(st.name());
-        if types.enums.get(&own).is_some_and(|vs| Some(vs) == st.variants.as_ref()) {
+        if types
+            .enums
+            .get(&own)
+            .is_some_and(|vs| Some(vs) == st.variants.as_ref())
+        {
             self.done.insert(key, Some(own.clone()));
             return Some(own);
         }
