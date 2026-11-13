@@ -34,7 +34,7 @@ pub(crate) fn ordering_value(v: &str) -> String {
 /// their LexLean type, and an ordered set or map like its sorted list.
 pub(crate) fn normal(ty: &Ty) -> Ty {
     match ty {
-        Ty::Nat(_) => Ty::Nat(None),
+        Ty::Nat(_) | Ty::Scalar => Ty::Nat(None),
         Ty::Char => Ty::Str,
         Ty::Set(t, _) => Ty::List(Box::new(normal(t))),
         Ty::Map(k, v, _) => Ty::List(Box::new(Ty::Tuple(vec![normal(k), normal(v)]))),
@@ -78,7 +78,7 @@ pub(crate) fn derived(ty: &Ty, types: &Types) -> bool {
 /// [`derived`], with the named types already assumed.
 fn derived_in(ty: &Ty, types: &Types, assumed: &BTreeSet<String>) -> bool {
     match ty {
-        Ty::Unit | Ty::Bool | Ty::Nat(_) | Ty::Str | Ty::Char => true,
+        Ty::Unit | Ty::Bool | Ty::Nat(_) | Ty::Str | Ty::Char | Ty::Scalar => true,
         // A float's order is partial, and a signed bit pattern orders as
         // its value, not as the natural: no derived total order holds.
         Ty::Int(_) | Ty::Float(_) | Ty::Signed(_) | Ty::ParseError | Ty::Path | Ty::Fn(..) => false,
@@ -345,7 +345,8 @@ fn body(ty: &Ty, types: &Types) -> Expr {
             ordering_value("Less"),
             ordering_value("Equal")
         )),
-        Ty::Nat(_) => by_tests("(left <? right)", "(left =? right)"),
+        // A scalar value orders as `char` does.
+        Ty::Nat(_) | Ty::Scalar => by_tests("(left <? right)", "(left =? right)"),
         Ty::Str | Ty::Char => by_tests(
             "(prim less_than left right : Bool)",
             "(prim equal left right : Bool)",

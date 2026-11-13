@@ -359,7 +359,7 @@ fn bind(p: &StdPattern, t: &Ty, binds: &mut PatternBinds) -> bool {
     match (p, t) {
         (StdPattern::Bool, Ty::Bool)
         | (StdPattern::Str | StdPattern::Text, Ty::Str)
-        | (StdPattern::Char | StdPattern::Text, Ty::Char)
+        | (StdPattern::Char | StdPattern::Text, Ty::Char | Ty::Scalar)
         | (StdPattern::Usize, Ty::Nat(None))
         | (StdPattern::Nat, Ty::Nat(_))
         | (StdPattern::Unit, Ty::Unit) => true,
@@ -484,6 +484,45 @@ pub(crate) struct Applied {
 /// item it reads where its guard has excluded the case.
 pub(crate) type Defaults<'a> = &'a dyn Fn(&Ty) -> Option<String>;
 
+/// The text of one `char` from its scalar value: its UTF-8 bytes, decoded.
+pub(crate) const SCALAR_TEXT: &str = "mirScalarText";
+
+/// [`SCALAR_TEXT`]'s definition: one to four bytes, by the ranges UTF-8
+/// encodes in each (RFC 3629, section 3).
+pub(crate) fn scalar_text() -> Decl {
+    let byte = |n: String| format!("({}::shaByte {n})", lift::PRELUDE);
+    let q = |d: u32| format!("(prim quotient c {d} 0 : Nat)");
+    let tail = |d: u32| {
+        let part = if d == 1 { "c".to_string() } else { q(d) };
+        byte(format!("(128 + (prim remainder {part} 64 0 : Nat))"))
+    };
+    let cat = |parts: Vec<String>| {
+        parts
+            .into_iter()
+            .reduce(|a, b| format!("(prim append {a} {b} : Bytes)"))
+            .unwrap_or_default()
+    };
+    let bytes = format!(
+        "(if (c <? 128) then {} else (if (c <? 2048) then {} else (if (c <? 65536) then {} else {})))",
+        byte("c".into()),
+        cat(vec![byte(format!("(192 + {})", q(64))), tail(1)]),
+        cat(vec![byte(format!("(224 + {})", q(4096))), tail(64), tail(1)]),
+        cat(vec![byte(format!("(240 + {})", q(262144))), tail(4096), tail(64), tail(1)]),
+    );
+    Decl::Definition {
+        name: SCALAR_TEXT.into(),
+        parameters: vec![("c".into(), "Nat".into())],
+        result: "String".into(),
+        body: Expr::Flat(format!(
+            "(match (prim utf8_decode {bytes} : (Option String)) | Option.none => \"\" | Option.some text => text)"
+        )),
+        axioms: vec!["Classical.choice".into(), "Quot.sound".into(), "propext".into()],
+        recursive: None,
+        termination: None,
+        mutual: None,
+    }
+}
+
 /// The model of the std operation `callee` (generic arguments erased) at
 /// these argument and result types.
 pub(crate) fn apply(
@@ -519,11 +558,31 @@ pub(crate) fn apply(
     if !bind(&model.result, dt, &mut binds) {
         return None;
     }
-    let terms: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
+    // The table models a `char` as its one-character string: a scalar
+    // value goes in as the text it encodes.
     let mut out = Applied {
         mentions: binds.values().cloned().collect(),
         ..Applied::default()
     };
+    let terms: Vec<String> = model
+        .args
+        .iter()
+        .zip(args)
+        .map(|(p, (v, t))| match (p, t) {
+            (StdPattern::Char | StdPattern::Text, Ty::Scalar) => {
+                format!("({SCALAR_TEXT} {v})")
+            }
+            _ => v.clone(),
+        })
+        .collect();
+    if model
+        .args
+        .iter()
+        .zip(args)
+        .any(|(p, (_, t))| matches!(p, StdPattern::Char | StdPattern::Text) && *t == Ty::Scalar)
+    {
+        out.aux.push(scalar_text());
+    }
     let r = Renderer {
         args: &terms,
         binds: &binds,
@@ -650,12 +709,12 @@ impl Renderer<'_> {
                 ["item", i, x] => format!("(project {x} item{})", i.parse::<usize>().ok()?),
                 ["eq", v, a, b] => match ty(v)? {
                     Ty::Str | Ty::Char | Ty::Bool => format!("(prim equal {a} {b} : Bool)"),
-                    Ty::Nat(_) => format!("({a} =? {b})"),
+                    Ty::Nat(_) | Ty::Scalar => format!("({a} =? {b})"),
                     _ => return None,
                 },
                 ["lt", v, a, b] => match ty(v)? {
                     Ty::Str | Ty::Char => format!("(prim less_than {a} {b} : Bool)"),
-                    Ty::Nat(_) => format!("({a} <? {b})"),
+                    Ty::Nat(_) | Ty::Scalar => format!("({a} <? {b})"),
                     _ => return None,
                 },
                 ["aux", n] => self.instantiate(n, aux)?,

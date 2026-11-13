@@ -2673,8 +2673,9 @@ impl Fun<'_, '_> {
                     otherwise: Box::new(otherwise),
                 })
             }
-            // MIR prints a switch's values as their bit patterns.
-            Ty::Nat(_) | Ty::Signed(_) => {
+            // MIR prints a switch's values as their bit patterns, and a
+            // `char`'s as its scalar value.
+            Ty::Nat(_) | Ty::Signed(_) | Ty::Scalar => {
                 // An `if` per value, in order, then `otherwise`.
                 let mut rest = st.clone();
                 let mut branches = Vec::new();
@@ -3129,9 +3130,7 @@ impl Fun<'_, '_> {
             IrConstant::Str(s) => lift::exact_string(s)
                 .map(|s| (s, Ty::Str))
                 .ok_or_else(|| kind(k, "a string LexLean source cannot write")),
-            IrConstant::Char(ch) => lift::exact_string(&ch.to_string())
-                .map(|s| (s, Ty::Char))
-                .ok_or_else(|| kind(k, "a char LexLean source cannot write")),
+            IrConstant::Char(ch) => Ok((u32::from(*ch).to_string(), Ty::Scalar)),
             // A const parameter's value, bound to `#` where the census
             // instantiates the body for every length at once.
             IrConstant::Other(p) if p.starts_with('#') => self
@@ -4596,8 +4595,10 @@ impl Fun<'_, '_> {
         let nat = matches!(xt, Ty::Nat(_)) && matches!(yt, Ty::Nat(_));
         let boolean = xt == Ty::Bool && yt == Ty::Bool;
         let v = |s: String, t: Ty| Ok(Val::V(s, t));
+        // Two `char`s compare as their scalar values.
+        let scalar = xt == Ty::Scalar && yt == Ty::Scalar;
         match op {
-            B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge if nat => {
+            B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge if nat || scalar => {
                 let s = match op {
                     B::Eq => format!("({x} =? {y})"),
                     B::Ne => format!("(not ({x} =? {y}))"),
@@ -4644,7 +4645,7 @@ impl Fun<'_, '_> {
             B::BitAnd if boolean => v(format!("({x} && {y})"), Ty::Bool),
             B::BitOr if boolean => v(format!("({x} || {y})"), Ty::Bool),
             B::BitXor if boolean => v(format!("(if {x} then (not {y}) else {y})"), Ty::Bool),
-            B::Eq | B::Ne if matches!(xt, Ty::Str | Ty::Char) && xt == yt => {
+            B::Eq | B::Ne if xt == Ty::Str && yt == Ty::Str => {
                 let eq = format!("(prim equal {x} {y} : Bool)");
                 v(
                     if op == B::Eq {
@@ -5809,7 +5810,7 @@ impl Fun<'_, '_> {
                 let number = matches!(t, Ty::Nat(_) | Ty::Int(_) | Ty::Signed(_) | Ty::Float(_));
                 let valid = match m {
                     M::Inhabited => true,
-                    M::ZeroValid => number || matches!(t, Ty::Bool | Ty::Unit | Ty::Char),
+                    M::ZeroValid => number || matches!(t, Ty::Bool | Ty::Unit | Ty::Scalar),
                     _ => number || matches!(t, Ty::Bool | Ty::Unit),
                 };
                 if valid {
@@ -5899,7 +5900,14 @@ impl Fun<'_, '_> {
             // holds the bits from `e * i` (little-endian) or from
             // `e * (n - 1 - i)` (big-endian), `e` its width. An array's
             // length is its printed type's; a scalar side's width is both.
-            (Some(M::Transmute), [(v, st)], [ps, pd]) => {
+            //
+            // Into a `char`, the value is a scalar value: core's
+            // precondition, an obligation.
+            (Some(M::Transmute), [(v, src)], [ps, pd]) => {
+                if *dt == Ty::Scalar && *src != Ty::Scalar {
+                    self.obligation(st, &format!("({} = true)", scalar_value(v)), k);
+                }
+                let st = src;
                 let unrelated = || {
                     kind(
                         k,
@@ -6127,8 +6135,13 @@ impl Fun<'_, '_> {
             }
             (at, chain)
         };
+        // A `char` has a `u32`'s layout, and its value is the scalar.
+        let width = |t: &Ty| match t {
+            Ty::Scalar => Some(32),
+            t => fixed(t),
+        };
         let one = |a: &Ty, b: &Ty| {
-            a == b || (a.render() == b.render() && fixed(a).is_some() && fixed(a) == fixed(b))
+            a == b || (a.render() == b.render() && width(a).is_some() && width(a) == width(b))
         };
         let unwrap = |v: &str, chain: &[(String, String)]| {
             chain.iter().fold(v.to_string(), |acc, (n, f)| {
@@ -6631,11 +6644,11 @@ fn std_call(
         }
         ("is_empty", [(v, Ty::List(_))]) => Some(format!("((prim length {v} : Nat) =? 0)")),
         ("is_empty", [(v, Ty::Str)]) => Some(format!("(prim equal {v} \"\" : Bool)")),
-        ("eq" | "ne", [(a, ta), (b, tb)]) if matches!(ta, Ty::Str | Ty::Char) && same(ta, tb) => {
+        ("eq" | "ne", [(a, Ty::Str), (b, Ty::Str)]) => {
             let eq = format!("(prim equal {a} {b} : Bool)");
             Some(if last == "eq" { eq } else { format!("(not {eq})") })
         }
-        ("eq" | "ne", [(a, Ty::Nat(_)), (b, Ty::Nat(_))]) => {
+        ("eq" | "ne", [(a, Ty::Nat(_)), (b, Ty::Nat(_))] | [(a, Ty::Scalar), (b, Ty::Scalar)]) => {
             let eq = format!("({a} =? {b})");
             Some(if last == "eq" { eq } else { format!("(not {eq})") })
         }
@@ -6800,6 +6813,12 @@ fn fixed(t: &Ty) -> Option<u32> {
         Ty::Nat(Some(b)) | Ty::Signed(Some(b)) => Some(*b),
         _ => None,
     }
+}
+
+/// Whether the natural `v` is a Unicode scalar value, a `char`'s: at most
+/// `0x10FFFF` and outside the surrogates `0xD800..=0xDFFF`.
+pub(crate) fn scalar_value(v: &str) -> String {
+    format!("((({v} <? 55296) || (57343 <? {v})) && ({v} <? 1114112))")
 }
 
 /// Whether `text` names `term`: as a whole word when it is a name.
@@ -7276,7 +7295,8 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     Ok(match (name, args.as_slice()) {
         ("bool", []) => Ty::Bool,
         (f, []) if segs.len() == 1 && types.floats.contains_key(f) => Ty::Float(types.floats[f]),
-        ("char", []) => Ty::Char,
+        // Core computes with a `char` as its scalar value (`as u32`).
+        ("char", []) => Ty::Scalar,
         ("str", []) => Ty::Str,
         ("String", []) if std || segs.len() == 1 => Ty::Str,
         ("Option", [a]) => Ty::Option(Box::new(a.clone())),
@@ -7579,7 +7599,7 @@ fn holds_no_pointer(t: &Ty) -> bool {
         | Ty::Nat(_)
         | Ty::Int(_)
         | Ty::Signed(_)
-        | Ty::Char
+        | Ty::Scalar
         | Ty::Float(_)
         | Ty::Str => true,
         Ty::Option(e) | Ty::List(e) => holds_no_pointer(e),

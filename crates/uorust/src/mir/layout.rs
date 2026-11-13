@@ -177,7 +177,7 @@ impl DataLayout {
         match t {
             Ty::Unit => Some(Layout { size: 0, align: 1 }),
             Ty::Bool => int(8),
-            Ty::Char => int(32),
+            Ty::Scalar => int(32),
             Ty::Nat(Some(w)) | Ty::Signed(Some(w)) | Ty::Int(w) => int(*w),
             Ty::Nat(None) | Ty::Signed(None) => {
                 Some(Self::primitive(self.pointer.0, self.pointer.1))

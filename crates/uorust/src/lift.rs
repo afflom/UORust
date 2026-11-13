@@ -123,6 +123,10 @@ pub(crate) enum Ty {
     Str,
     /// A `char`, held as the one-character string it is.
     Char,
+    /// The MIR path's `char`, held as its Unicode scalar value in `Nat`:
+    /// at most `0x10FFFF` and outside the surrogates `0xD800..=0xDFFF`, as
+    /// core's own `char` methods compute with it.
+    Scalar,
     /// The error of an integer `parse`: the prelude's `ParseIntError`.
     ParseError,
     /// A `PathBuf` or `Path`: the prelude's owned path record, its
@@ -155,7 +159,7 @@ impl Ty {
         match self {
             Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
-            Self::Nat(_) | Self::Float(_) | Self::Signed(_) => "Nat".into(),
+            Self::Nat(_) | Self::Float(_) | Self::Signed(_) | Self::Scalar => "Nat".into(),
             Self::Int(_) => "Int64".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => format!("{PRELUDE}::ParseIntError"),
@@ -197,7 +201,7 @@ impl Ty {
         match self {
             Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
-            Self::Nat(_) | Self::Float(_) | Self::Signed(_) => "Nat".into(),
+            Self::Nat(_) | Self::Float(_) | Self::Signed(_) | Self::Scalar => "Nat".into(),
             Self::Int(_) => "Int".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => "ParseIntError".into(),
@@ -4662,7 +4666,7 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
     Some(match ty {
         Ty::Unit => "()".into(),
         Ty::Bool => "false".into(),
-        Ty::Nat(_) | Ty::Float(_) | Ty::Signed(_) => "0".into(),
+        Ty::Nat(_) | Ty::Float(_) | Ty::Signed(_) | Ty::Scalar => "0".into(),
         Ty::Int(_) => "(0 : Int64)".into(),
         Ty::Str | Ty::Char => "\"\"".into(),
         Ty::ParseError => format!("(ctor {PRELUDE}::ParseIntError.InvalidDigit)"),

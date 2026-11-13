@@ -41,6 +41,8 @@ impl Int {
         let (bits, signed) = match t {
             Ty::Nat(b) => (*b, false),
             Ty::Signed(b) => (*b, true),
+            // A `char` as `as` reads it: its scalar value, a `u32`.
+            Ty::Scalar => (Some(32), false),
             _ => return None,
         };
         Some(match bits {
