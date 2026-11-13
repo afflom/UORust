@@ -1,5 +1,5 @@
-//! The `uorust` binary end to end: `project`, `check`, `routes`, `mir` and
-//! `prove`.
+//! The `uorust` binary end to end: `project`, `check`, `routes`, `mir`,
+//! `prove` and `certify agree`.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -190,4 +190,30 @@ fn the_cli_dumps_mir_and_proves_on_the_verdicts_ue_17() {
         committed
     );
     let _ = std::fs::remove_dir_all(tmp);
+}
+
+/// `certify agree` states each pair's κ when the certified and the
+/// hand-written translator wrote the same bytes, and refuses a pair one byte
+/// apart (UE-18).
+#[test]
+fn the_cli_compares_the_two_translators_by_kappa_ue_18() {
+    let dir = std::env::temp_dir().join(format!("uorust-agree-cli-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    for side in ["core-certified", "core-hand"] {
+        std::fs::create_dir_all(dir.join(side)).expect("a side");
+        std::fs::write(dir.join(side).join("frontier.toml"), "same\n").expect("write");
+    }
+    let dir_arg = dir.to_string_lossy().to_string();
+    let agreed = uorust(&["certify", "agree", "--dir", dir_arg.as_str()]);
+    assert!(
+        agreed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&agreed.stderr)
+    );
+    assert!(String::from_utf8_lossy(&agreed.stdout).starts_with("core "));
+    std::fs::write(dir.join("core-hand").join("frontier.toml"), "samf\n").expect("plant");
+    let refused = uorust(&["certify", "agree", "--dir", dir_arg.as_str()]);
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("disagree"));
+    let _ = std::fs::remove_dir_all(dir);
 }

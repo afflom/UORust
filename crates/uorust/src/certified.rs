@@ -75,3 +75,15 @@ pub(crate) fn mir_lower_address<A0: ?Sized, R>(_: &A0) -> Option<R> {
 pub(crate) fn mir_lower_implication<A0: ?Sized, A1: ?Sized, R>(_: &A0, _: &A1) -> Option<R> {
     None
 }
+
+#[cfg(test)]
+mod tests {
+    // The switch the differential runs the hand-written translator through.
+    #[test]
+    fn use_hand_selects_the_hand_written_translator() {
+        super::use_hand(true);
+        assert!(super::hand());
+        super::use_hand(false);
+        assert!(!super::hand());
+    }
+}

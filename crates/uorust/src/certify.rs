@@ -915,6 +915,7 @@ pub(crate) fn adapters_source(
             args.join(", ")
         ));
     }
+    out.push_str(ADAPTERS_TESTS);
     out
 }
 
@@ -1008,6 +1009,20 @@ macro_rules! certified {
     };
 }
 pub(crate) use certified;
+"#;
+
+const ADAPTERS_TESTS: &str = r#"
+#[cfg(test)]
+mod tests {
+    // The switch the differential runs the hand-written translator through.
+    #[test]
+    fn use_hand_selects_the_hand_written_translator() {
+        super::use_hand(true);
+        assert!(super::hand());
+        super::use_hand(false);
+        assert!(!super::hand());
+    }
+}
 "#;
 
 /// The adapter of a certified root over its hand-written function's body:
