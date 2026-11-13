@@ -64,11 +64,11 @@ jobs:
             sed -n '/^# Honesty report/,/^$/p' frontier.toml | sed 's/^# \{0,1\}//'
             echo '```'
           } >>"$GITHUB_STEP_SUMMARY"
-      - name: Push the regenerated files and dispatch the gate and the page
+      - name: Push the regenerated files and dispatch the gate, the page and the certified translator
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           scripts/ci/push.sh "Regenerate the generated files" \
             "CONFORMANCE.md README.md app model brand crates xtask frontier.toml lift-verdicts.toml" \
-            bootstrap.yml pages.yml
+            bootstrap.yml pages.yml certified.yml
