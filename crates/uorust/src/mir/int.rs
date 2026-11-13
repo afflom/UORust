@@ -171,27 +171,33 @@ pub(crate) fn cast(x: &str, from: Int, to: Int, same: bool) -> (String, Option<S
     (value, holds)
 }
 
+/// An associated constant of a primitive integer's, as [`assoc`] finds it.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum Assoc {
+    /// The value held, and its type.
+    Held(String, Ty),
+    /// `BITS`, `MAX` or `MIN` of a pointer-sized type, whose value differs
+    /// between the declared targets.
+    Varies,
+}
+
 /// An associated constant of a primitive integer, `BITS`, `MAX` or `MIN`,
-/// as the value held, from the type's (bits, signed); `Err` names one
-/// whose value differs between the declared targets.
-pub(crate) fn assoc(name: &str, t: &Ty, int: Int) -> Option<Result<(String, Ty), String>> {
+/// from the type's (bits, signed); `None` for any other name.
+pub(crate) fn assoc(name: &str, t: &Ty, int: Int) -> Option<Assoc> {
     let Some(w) = int.width else {
-        return matches!(name, "BITS" | "MAX" | "MIN").then(|| {
-            Err(format!(
-                "{name}, which differs between the declared targets"
-            ))
-        });
+        return matches!(name, "BITS" | "MAX" | "MIN").then_some(Assoc::Varies);
     };
     // `2^k - 1`, for `1 <= k <= 128`.
     let ones = |k: u32| (u128::MAX >> (128 - k)).to_string();
-    Some(Ok(match (name, int.signed) {
+    let (v, t) = match (name, int.signed) {
         ("BITS", _) => (w.to_string(), Ty::Nat(Some(32))),
         ("MAX", false) => (ones(w), t.clone()),
         ("MAX", true) => (ones(w - 1), t.clone()),
         ("MIN", false) => ("0".into(), t.clone()),
         ("MIN", true) => (pow2(w - 1), t.clone()),
         _ => return None,
-    }))
+    };
+    Some(Assoc::Held(v, t))
 }
 
 #[cfg(test)]
@@ -218,7 +224,10 @@ mod tests {
 
     fn get(name: &str, t: &Ty, w: &[(u32, Vec<String>)]) -> String {
         let int = Int::of(t, w).unwrap();
-        assoc(name, t, int).unwrap().unwrap().0
+        match assoc(name, t, int) {
+            Some(Assoc::Held(v, _)) => v,
+            other => panic!("{name}: {other:?}"),
+        }
     }
 
     /// The bounds the rule derives are Rust's own.
@@ -255,7 +264,7 @@ mod tests {
         assert_eq!(p[..p.len() - 1], max[..max.len() - 1]);
         assert_eq!(p.as_bytes()[p.len() - 1], max.as_bytes()[max.len() - 1] + 1);
         let isize = Int::of(&Ty::Signed(None), &many()).unwrap();
-        assert!(assoc("MAX", &Ty::Signed(None), isize).unwrap().is_err());
+        assert_eq!(assoc("MAX", &Ty::Signed(None), isize), Some(Assoc::Varies));
         assert!(assoc("count", &Ty::Signed(None), isize).is_none());
     }
 

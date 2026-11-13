@@ -1850,8 +1850,11 @@ impl Fun<'_, '_> {
                     let t = ty(o, self.cx.types)?;
                     let int = Int::of(&t, self.cx.widths).ok_or_else(|| kind(k, p))?;
                     match super::int::assoc(name, &t, int) {
-                        Some(Ok(v)) => Ok(v),
-                        Some(Err(d)) => Err(kind(k, &format!("{o}::{d}"))),
+                        Some(super::int::Assoc::Held(v, t)) => Ok((v, t)),
+                        Some(super::int::Assoc::Varies) => Err(kind(
+                            k,
+                            &format!("{o}::{name}, which differs between the declared targets"),
+                        )),
                         None => Err(kind(k, &format!("the constant item {p}"))),
                     }
                 }
