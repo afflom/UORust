@@ -174,8 +174,10 @@ impl DataLayout {
             Ty::Unit => Some(Layout { size: 0, align: 1 }),
             Ty::Bool => int(8),
             Ty::Char => int(32),
-            Ty::Nat(Some(w)) | Ty::Int(w) => int(*w),
-            Ty::Nat(None) => Some(Self::primitive(self.pointer.0, self.pointer.1)),
+            Ty::Nat(Some(w)) | Ty::Signed(Some(w)) | Ty::Int(w) => int(*w),
+            Ty::Nat(None) | Ty::Signed(None) => {
+                Some(Self::primitive(self.pointer.0, self.pointer.1))
+            }
             Ty::Float(f) => {
                 let w = 1 + f.exp + f.frac;
                 self.floats.get(&w).map(|a| Self::primitive(w, *a))

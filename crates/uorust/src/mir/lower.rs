@@ -3975,32 +3975,16 @@ impl Fun<'_, '_> {
         let types: Vec<&String> = order.iter().filter_map(|n| generics.get(n)).collect();
         let unmodeled = || kind(k, &format!("{path}, an intrinsic the table does not model"));
         match (model, args, types.as_slice()) {
-            // `size_of::<T>() -> usize`, and `size_of_val` of a sized `T`:
-            // `T`'s size in the data layout, the same on every declared
-            // target.
-            (Some(M::Size), [], [t]) | (Some(M::SizeOfVal), [_], [t]) if *dt == Ty::Nat(None) => {
+            // `size_of::<T>() -> usize`, `size_of_val` of a sized `T`, and
+            // `align_of::<T>() -> usize`: `T`'s size or ABI alignment in the
+            // targets' data layouts, where they agree.
+            (Some(m @ (M::Size | M::SizeOfVal | M::Align)), [] | [_], [t])
+                if *dt == Ty::Nat(None) && (args.len() == 1) == (m == M::SizeOfVal) =>
+            {
                 let t = ty(t, self.cx.types)?;
-                let sizes = super::link::size_of(&t, self.cx.widths).ok_or_else(|| {
-                    kind(
-                        k,
-                        &format!("{path} of {}, whose layout rustc chooses", t.render()),
-                    )
-                })?;
-                match sizes.as_slice() {
-                    [(_, n), rest @ ..] if rest.iter().all(|(_, m)| m == n) => Ok(n.to_string()),
-                    _ => Err(kind(
-                        k,
-                        &format!(
-                            "{path} of {}, whose size differs by target: {}",
-                            t.render(),
-                            sizes
-                                .iter()
-                                .map(|(w, n)| format!("{n} at {w} bits"))
-                                .collect::<Vec<_>>()
-                                .join(", ")
-                        ),
-                    )),
-                }
+                let l = super::layout::agreed(&t, self.cx.layouts)
+                    .map_err(|r| kind(k, &format!("{path} of {r}")))?;
+                Ok(if m == M::Align { l.align } else { l.size }.to_string())
             }
             (Some(M::Identity), [(v, t)], _) if t == dt => Ok(v.clone()),
             (Some(M::Unit), _, _) if *dt == Ty::Unit => Ok("()".into()),

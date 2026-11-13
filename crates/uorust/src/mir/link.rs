@@ -12,7 +12,6 @@ use std::collections::BTreeMap;
 use super::core::CoreDecls;
 use super::parse::{split_path, split_top};
 use super::stdlib::{substitute, unify, Instance};
-use crate::lift::Ty;
 
 /// Core's bodies and declarations, for one census.
 pub(crate) struct CoreLink {
@@ -492,7 +491,6 @@ impl CoreLink {
                 .get(method)
                 .into_iter()
                 .flatten()
-                .filter(|_| arg_texts.iter().all(Option::is_some))
                 .filter(|p| match (impl_of(p), &qualified, &inherent) {
                     (Some((span, (Some(t), ty))), Some((x, tr)), _) => {
                         (t == tr || t == "_") && is_for(&span, ty, &type_head(x))
@@ -709,22 +707,5 @@ impl CoreLink {
             text: out,
             bound: generics.into_iter().collect(),
         })
-    }
-}
-
-/// The size in bytes of a value of `t` in the target data layout, on each
-/// pointer width of `widths`: an integer's width in bytes, a `bool` one
-/// byte, a `char` the four of its `u32` scalar, the unit none, and `usize`
-/// the pointer's width. `None` for a type whose layout rustc chooses.
-pub(crate) fn size_of(t: &Ty, widths: &[(u32, Vec<String>)]) -> Option<Vec<(u32, u128)>> {
-    let bytes = |bits: u32| u128::from(bits / u8::BITS);
-    let each = |n: u128| Some(widths.iter().map(|(w, _)| (*w, n)).collect());
-    match t {
-        Ty::Nat(Some(b)) | Ty::Int(b) => each(bytes(*b)),
-        Ty::Nat(None) => Some(widths.iter().map(|(w, _)| (*w, bytes(*w))).collect()),
-        Ty::Bool => each(1),
-        Ty::Char => each(bytes(u32::BITS)),
-        Ty::Unit => each(0),
-        _ => None,
     }
 }
