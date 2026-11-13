@@ -34,7 +34,7 @@ jobs:
   generate:
     name: run every writer and push what changed
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: write
       actions: write
@@ -44,18 +44,19 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Follow uor.foundation, the brand authority
+      # The brand authority, every writer through the locked SDK, and the
+      # push: when main moved meanwhile, the writers run again on the new
+      # main in this job (decided verdicts carry over), so what lands is
+      # always the output of the tree it lands on and no push is lost.
+      - name: Run every writer on main as it is, and push what changed
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GENERATE_BUDGET: '4200'
         run: |
-          python3 -I scripts/experience/authority.py . --follow
-          # Keep the new pin only when its brand still meets WCAG 2.2.
-          if ! python3 -I scripts/experience/experience.py "$(mktemp -d)" .; then
-            git checkout -- brand
-            echo "::warning::uor.foundation's newest main breaks a WCAG 2.2 contrast; the brand stays pinned"
-          fi
-      - name: Run every writer through the locked SDK
-        shell: bash
-        run: scripts/ci/sdk.sh 'just generate'
+          scripts/ci/generate-loop.sh "Regenerate the generated files" \
+            "CONFORMANCE.md README.md app model brand crates xtask frontier.toml lift-verdicts.toml" \
+            bootstrap.yml pages.yml certified.yml
       - name: Publish the lift's honesty report
         if: always()
         shell: bash
@@ -67,12 +68,3 @@ jobs:
             sed -n '/^# Honesty report/,/^$/p' frontier.toml | sed 's/^# \{0,1\}//'
             echo '```'
           } >>"$GITHUB_STEP_SUMMARY"
-      - name: Push the regenerated files and dispatch the gate, the page and the certified translator
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REBASE: '1'
-        run: |
-          scripts/ci/push.sh "Regenerate the generated files" \
-            "CONFORMANCE.md README.md app model brand crates xtask frontier.toml lift-verdicts.toml" \
-            bootstrap.yml pages.yml certified.yml
