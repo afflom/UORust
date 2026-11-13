@@ -1387,6 +1387,47 @@ fn the_prover_keeps_a_decided_register_ue_17() {
     );
 }
 
+/// A planted defect: a shard whose rust-src is absent. Its census refuses,
+/// so the shard and the run are red, rather than translating every body
+/// against no declarations and recording what it got.
+#[test]
+fn a_census_without_its_library_sources_refuses() {
+    use uorust::mir::core;
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/core");
+    let missing = fixture.join("absent/library");
+    assert!(!missing.exists());
+    assert!(
+        core::core_census(&missing, &fixture.join("mir")).is_err(),
+        "a census with no rust-src must refuse"
+    );
+}
+
+/// Each library workflow's shards read rust-src before translating, and
+/// its merge writes the register only when every shard succeeded.
+#[test]
+fn library_shards_read_their_sources_and_merge_only_whole() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for workflow in ["core.yml", "std.yml"] {
+        let text = std::fs::read_to_string(root.join(".github/workflows").join(workflow))
+            .expect("workflow");
+        let translate = text
+            .lines()
+            .find(|l| l.contains("--only '$MODULE'"))
+            .expect("the shard's census");
+        let fetch = translate
+            .find("scripts/mir/dump-lib.sh")
+            .expect("rust-src fetched");
+        assert!(fetch < translate.find("target/bin/uorust").expect("census"));
+        let merge = &text[text.find("\n  merge:").expect("merge job")..];
+        let refuse = merge
+            .find("Refuse a partial set of shards")
+            .expect("refusal");
+        assert!(merge[refuse..].contains("needs.shard.result != 'success'"));
+        assert!(refuse < merge.find("uorust merge").expect("merge step"));
+        assert!(refuse < merge.find("scripts/ci/push.sh").expect("push step"));
+    }
+}
+
 /// Core's register: each body of a module shard translated at the canonical
 /// instantiation and recorded by κ; a body recorded as translated that is
 /// residue later is a regression the register refuses.

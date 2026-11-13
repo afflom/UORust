@@ -289,7 +289,16 @@ jobs:
     timeout-minutes: {stage(krate, merge)['budget']}
     permissions:
 {writer_permissions()}    steps:
-{checkout()}      - name: Fetch the built uorust
+{checkout()}      # A partial set of shards writes no row: a shard that failed may
+      # have left others translating against what it lacked, so the
+      # register is merged and pushed only when every shard succeeded.
+      - name: Refuse a partial set of shards
+        if: ${{{{ needs.{shard}.result != 'success' }}}}
+        shell: bash
+        run: |
+          echo "a shard of $CRATE did not succeed; the register is left as it records" >&2
+          exit 1
+      - name: Fetch the built uorust
         uses: {USES['actions/download-artifact']}
         with:
           name: uorust-${{{{ env.CRATE }}}}
@@ -326,12 +335,6 @@ jobs:
           GH_TOKEN: ${{{{ github.token }}}}
           REBASE: '1'
         run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE crates/uorust/ledger" generate.yml
-      - name: Fail when a shard failed
-        if: ${{{{ needs.{shard}.result != 'success' }}}}
-        shell: bash
-        run: |
-          echo "a shard of $CRATE failed; its module file was left as the register records it" >&2
-          exit 1
 """
 
 
