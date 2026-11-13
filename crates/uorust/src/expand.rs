@@ -100,7 +100,7 @@ impl Macros {
                                 transcribe(body.clone(), &bound, &[])
                             })
                         })
-                        .and_then(|tokens| read(tokens));
+                        .and_then(read);
                     match expanded {
                         Some(items) => out.extend(self.expand_at(items, read, depth + 1)),
                         None => out.push(syn::Item::Macro(m)),
@@ -178,12 +178,12 @@ fn matchers(tokens: TokenStream) -> Option<Vec<Matcher>> {
                 if let Some(o) = op(tts.get(i + 2)) {
                     out.push(Matcher::Repeat(inner, None, o));
                     i += 3;
-                } else if let Some(o) = op(tts.get(i + 3)) {
+                } else {
+                    // A separator, then the operator.
+                    let o = op(tts.get(i + 3))?;
                     let sep = tts.get(i + 2)?.to_string();
                     out.push(Matcher::Repeat(inner, Some(sep), o));
                     i += 4;
-                } else {
-                    return None;
                 }
             }
             (TokenTree::Group(g), _) => {

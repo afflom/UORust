@@ -201,15 +201,31 @@ pub(crate) fn shard(
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among
         // the bare names of its types.
-        let declared = text
+        let printed = text
             .lines()
             .next()
             .and_then(|l| l.strip_prefix("// MIR for `"))
             .and_then(|l| l.split_once('`'))
-            .and_then(|(p, _)| super::resolve_impls(root, p))
-            .map(|p| link.decls.parameters(&p))
+            .map(|(p, _)| p);
+        let resolved = printed.and_then(|p| super::resolve_impls(root, p));
+        // The const parameters of the impls the path names by their spans.
+        let impl_consts = printed
+            .map(|p| impl_const_types(root, p))
             .unwrap_or_default();
-        let generics = canonical_bindings(text, &|w| declared.contains(w));
+        let declared = resolved
+            .as_deref()
+            .map(|p| link.decls.parameters(p))
+            .unwrap_or_default();
+        let generics = canonical_bindings(text, &|w| declared.contains(w), &|w| {
+            resolved
+                .as_deref()
+                .and_then(|p| link.decls.const_type(p, w))
+                .or_else(|| {
+                    let written = printed.and_then(|p| written_impls(root, p))?;
+                    link.decls.const_type(&written, w)
+                })
+                .or_else(|| impl_consts.get(w).cloned())
+        });
         let at = generics
             .iter()
             .map(|(p, t)| format!("{p}={t}"))
@@ -418,6 +434,10 @@ fn without_def_ids(text: &str) -> String {
     out
 }
 
+/// A struct's or a variant's fields: each one's name, where it has one,
+/// and its type as written.
+type Fields = Vec<(Option<String>, String)>;
+
 /// A struct core's source declares: its path from core's root, its type
 /// parameters and its fields (a tuple struct's by position), each with its
 /// type as written.
@@ -430,7 +450,7 @@ pub(crate) struct CoreStruct {
     /// has no fields.
     variants: Option<Vec<String>>,
     /// For an enum whose variants hold data, each variant and its fields.
-    data: Option<Vec<(String, Vec<(Option<String>, String)>)>>,
+    data: Option<Vec<(String, Fields)>>,
     /// Whether such an enum's variants set their own discriminants.
     pub(crate) explicit: bool,
     /// Such an enum's discriminants, in its variants' order, where each is
@@ -459,21 +479,34 @@ pub(crate) struct CoreDecls {
     pub(crate) intrinsics: std::collections::BTreeSet<String>,
     /// The traits core declares, by path: a field's trait object names one.
     traits: std::collections::BTreeSet<String>,
+    /// Each type alias core declares, by path: the module it is written
+    /// in, its generic parameters in order and the type it names.
+    aliases: BTreeMap<String, (String, Vec<String>, String)>,
     /// The generic parameters in scope in each method of an impl, its
     /// impl's and its own, by the method's path from core's root through
     /// its type's name (several impls of one type's methods of one name
     /// together).
     pub(crate) methods: BTreeMap<String, std::collections::BTreeSet<String>>,
+    /// The type of each const parameter in scope in a function or of a
+    /// struct, by its path, as [`CoreDecls::parameters`] finds them.
+    consts: BTreeMap<String, BTreeMap<String, String>>,
     /// Each associated type an impl of a trait sets, by the type it is for
     /// (as written), the trait's name and the associated type's: the
     /// module the impl is written in and the type it sets.
     assoc: BTreeMap<(String, String, String), (String, String)>,
-    /// Each type alias core declares without parameters, by path: the type
-    /// it names, as written in its module (`fmt::Result`).
-    type_aliases: BTreeMap<String, String>,
 }
 
 impl CoreDecls {
+    /// The type core's source gives the const parameter `name` in scope in
+    /// the function at `path`: its own, its impl's or its type's.
+    pub(crate) fn const_type(&self, path: &str, name: &str) -> Option<String> {
+        let parent = path.rsplit_once("::").map(|(t, _)| t);
+        [Some(path), parent]
+            .into_iter()
+            .flatten()
+            .find_map(|p| self.consts.get(p)?.get(name).cloned())
+    }
+
     /// The generic parameters in scope in the function at `path` from
     /// core's root: a free function's own, or a method's, its impl's and
     /// those of the type it is a method of.
@@ -551,6 +584,64 @@ fn use_names(
     }
 }
 
+/// The const parameters of each impl the dumped path `path` names by its
+/// span (`<impl at file:l:c: l:c>`), with their types, read from the impl's
+/// header in its source.
+fn impl_const_types(root: &Path, path: &str) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    let mut rest = path;
+    while let Some(at) = rest.find("<impl at ") {
+        let after = &rest[at + "<impl at ".len()..];
+        let Some(end) = after.find('>') else {
+            break;
+        };
+        let header = super::impl_header(root, &after[..end]);
+        if let Some(im) =
+            header.and_then(|h| syn::parse_str::<syn::ItemImpl>(&format!("{h} {{}}")).ok())
+        {
+            out.extend(const_types(&im.generics));
+        }
+        rest = &after[end + 1..];
+    }
+    out
+}
+
+/// An impl's type as its source writes it, without spaces: `[T]`.
+fn self_type_text(ty: &syn::Type) -> String {
+    quote::quote!(#ty).to_string().replace(' ', "")
+}
+
+/// The dumped path `path` with each impl it names by its span written as
+/// the impl's type, as [`self_type_text`] writes it: `slice::[T]::as_array`.
+fn written_impls(root: &Path, path: &str) -> Option<String> {
+    let mut out = String::new();
+    let mut rest = path;
+    while let Some(at) = rest.find("<impl at ") {
+        out.push_str(&rest[..at]);
+        let after = &rest[at + "<impl at ".len()..];
+        let end = after.find('>')?;
+        let header = super::impl_header(root, &after[..end])?;
+        let im = syn::parse_str::<syn::ItemImpl>(&format!("{header} {{}}")).ok()?;
+        out.push_str(&self_type_text(&im.self_ty));
+        rest = &after[end + 1..];
+    }
+    out.push_str(rest);
+    Some(out)
+}
+
+/// A signature's const parameters, each with its type as written.
+fn const_types(g: &syn::Generics) -> BTreeMap<String, String> {
+    g.const_params()
+        .map(|c| {
+            let ty = &c.ty;
+            (
+                c.ident.to_string(),
+                quote::quote!(#ty).to_string().replace(' ', ""),
+            )
+        })
+        .collect()
+}
+
 /// A signature's generic parameters, types and constants, in order.
 fn generic_names(g: &syn::Generics) -> Vec<String> {
     g.params
@@ -595,7 +686,8 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                 .replace(" < ", "<")
                 .replace(" >", ">")
                 .replace("& ", "&")
-                .replace(" ,", ",");
+                .replace(" ,", ",")
+                .replace(" ;", ";");
             match t
                 .strip_prefix("pattern_type ! (")
                 .and_then(|r| r.strip_suffix(')'))
@@ -611,6 +703,10 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
             match item {
                 syn::Item::Struct(st) => {
                     let params = generic_names(&st.generics);
+                    out.consts
+                        .entry(at(st.ident.to_string()))
+                        .or_default()
+                        .extend(const_types(&st.generics));
                     let fields = st
                         .fields
                         .iter()
@@ -680,12 +776,14 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         },
                     });
                 }
-                syn::Item::Type(t) if t.generics.params.is_empty() => {
-                    out.type_aliases
-                        .insert(at(t.ident.to_string()), text(&t.ty));
-                }
                 syn::Item::Trait(t) => {
                     out.traits.insert(at(t.ident.to_string()));
+                }
+                syn::Item::Type(t) => {
+                    out.aliases.insert(
+                        at(t.ident.to_string()),
+                        (module.join("::"), generic_names(&t.generics), text(&t.ty)),
+                    );
                 }
                 // An enum whose variants hold data, over its parameters.
                 syn::Item::Enum(e) => {
@@ -718,7 +816,22 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         syn::Type::Path(p) => p.path.segments.last().map(|s| s.ident.to_string()),
                         _ => None,
                     };
+                    // A method's const parameters, by its impl's type as
+                    // written where no path names it (`[T]::as_array`).
+                    let written = self_type_text(&im.self_ty);
                     for it in &im.items {
+                        if let syn::ImplItem::Fn(f) = it {
+                            let consts = out
+                                .consts
+                                .entry(at(format!(
+                                    "{}::{}",
+                                    ty.as_deref().unwrap_or(&written),
+                                    f.sig.ident
+                                )))
+                                .or_default();
+                            consts.extend(const_types(&im.generics));
+                            consts.extend(const_types(&f.sig.generics));
+                        }
                         if let (syn::ImplItem::Fn(f), Some(ty)) = (it, &ty) {
                             let path = at(format!("{ty}::{}", f.sig.ident));
                             // An inherent impl's method, by the impl's type:
@@ -752,6 +865,10 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                     }
                 }
                 syn::Item::Fn(f) => {
+                    out.consts
+                        .entry(at(f.sig.ident.to_string()))
+                        .or_default()
+                        .extend(const_types(&f.sig.generics));
                     out.generics
                         .insert(at(f.sig.ident.to_string()), generic_names(&f.sig.generics));
                 }
@@ -762,6 +879,10 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         if f.attrs.iter().any(|a| a.path().is_ident("rustc_intrinsic")) {
                             out.intrinsics.insert(path.clone());
                         }
+                        out.consts
+                            .entry(path.clone())
+                            .or_default()
+                            .extend(const_types(&f.sig.generics));
                         out.generics.insert(path, generic_names(&f.sig.generics));
                     }
                 }
@@ -950,7 +1071,7 @@ impl Instances<'_> {
     fn canonical(&self, path: &str, depth: usize) -> Option<String> {
         if self.by.contains_key(path)
             || self.decls.traits.contains(path)
-            || self.decls.type_aliases.contains_key(path)
+            || self.decls.aliases.contains_key(path)
         {
             return Some(path.to_string());
         }
@@ -1018,8 +1139,8 @@ impl Instances<'_> {
     }
 
     /// `text`, a type written in `module`, with each path that names a
-    /// declared type written from core's root, and each type alias expanded
-    /// (`depth` aliases deep).
+    /// declared type written from core's root, and each type alias written
+    /// as the type it names at its arguments (`depth` aliases deep).
     fn rooted(&self, module: &str, text: &str, depth: usize) -> String {
         let chars: Vec<char> = text.chars().collect();
         let mut out = String::new();
@@ -1040,15 +1161,47 @@ impl Instances<'_> {
                     i += if chars[i] == ':' { 2 } else { 1 };
                 }
                 let word: String = chars[start..i].iter().collect();
-                let at = self.resolve(module, &word).unwrap_or(word);
-                // A type alias is the type it names, read in its own module.
-                match self.decls.type_aliases.get(&at) {
-                    Some(target) if depth < 16 => {
-                        let home = at.rsplit_once("::").map_or("", |(m, _)| m);
-                        out.push_str(&self.rooted(home, target, depth + 1));
+                let path = self.resolve(module, &word).unwrap_or(word);
+                let Some((at, params, target)) =
+                    self.decls.aliases.get(&path).filter(|_| depth < 16)
+                else {
+                    out.push_str(&path);
+                    continue;
+                };
+                // The alias's arguments, each written from core's root.
+                let mut args = Vec::new();
+                if chars.get(i) == Some(&'<') {
+                    let mut level = 0usize;
+                    let open = i;
+                    while i < chars.len() {
+                        match chars[i] {
+                            '<' => level += 1,
+                            '>' if chars[i - 1] != '-' => {
+                                level -= 1;
+                                if level == 0 {
+                                    break;
+                                }
+                            }
+                            _ => {}
+                        }
+                        i += 1;
                     }
-                    _ => out.push_str(&at),
+                    let inner: String = chars[open + 1..i.min(chars.len())].iter().collect();
+                    i += 1;
+                    args = parse::split_top(&inner, ',')
+                        .into_iter()
+                        .map(str::trim)
+                        .filter(|a| !a.is_empty() && !a.starts_with('\''))
+                        .map(|a| self.rooted(module, a, depth + 1))
+                        .collect();
                 }
+                if args.len() != params.len() {
+                    out.push_str(&path);
+                    continue;
+                }
+                let binds: BTreeMap<String, String> = params.iter().cloned().zip(args).collect();
+                let named = super::stdlib::substitute(target, &binds);
+                out.push_str(&self.rooted(at, &named, depth + 1));
             } else {
                 out.push(c);
                 i += 1;
@@ -1338,6 +1491,7 @@ fn instantiate_structs(
 pub(crate) fn canonical_bindings(
     text: &str,
     declared: &dyn Fn(&str) -> bool,
+    const_type: &dyn Fn(&str) -> Option<String>,
 ) -> BTreeMap<String, String> {
     // Each bare name in the types, with whether one mention is a length.
     let mut names: BTreeMap<String, bool> = BTreeMap::new();
@@ -1393,11 +1547,11 @@ pub(crate) fn canonical_bindings(
         .into_iter()
         .map(|(word, length)| {
             let bound = if length || values.contains(&word) {
-                "#"
+                const_marker(&word, const_type(&word).as_deref())
             } else {
-                CANONICAL
+                CANONICAL.to_string()
             };
-            (word, bound.to_string())
+            (word, bound)
         })
         .collect()
 }
@@ -1470,6 +1624,20 @@ fn opaque_projections(line: &str, params: &BTreeMap<String, String>) -> String {
         }
         return out;
     }
+}
+
+/// The census's binding of the const parameter `name` of type `ty`:
+/// `#usize_N`, which no body takes as a type and a lowered body reads as
+/// a parameter of that type (`#_N` where the source gives no type).
+pub(crate) fn const_marker(name: &str, ty: Option<&str>) -> String {
+    format!("#{}_{name}", ty.unwrap_or(""))
+}
+
+/// The const parameter a marker [`const_marker`] wrote stands for: its
+/// type, where known, and its name.
+pub(crate) fn const_of_marker(marker: &str) -> Option<(Option<&str>, &str)> {
+    let (ty, name) = marker.strip_prefix('#')?.split_once('_')?;
+    Some(((!ty.is_empty()).then_some(ty), name))
 }
 
 /// The texts of a dumped body's types, each with whether its `fn` line
@@ -1709,19 +1877,21 @@ mod tests {
     #[test]
     fn a_bodys_type_parameters_are_its_bare_names() {
         let text = "fn f(_1: Option<T>, _2: F) -> Option<U> {\n    let mut _0: option::Option<U>;\n    let _4: T;\n    let mut _5: F;\n    let _6: &<T as ops::Deref>::Target;\n    let _7: [T; N];\n}\n";
-        let p = canonical_bindings(text, &|_| false);
+        let p = canonical_bindings(text, &|_| false, &|_| None);
         // The signature's own names, and a const parameter the body reads.
         let header = "fn g(_1: V, _2: *const W, _3: &Layout) -> IntoIter<V, M> {\n    let mut _0: IntoIter<V, M>;\n    _3 = Lt(copy _2, const M);\n    _4 = const MAX;\n}\n";
-        let q = canonical_bindings(header, &|w| ["V", "W", "M"].contains(&w));
+        let q = canonical_bindings(header, &|w| ["V", "W", "M"].contains(&w), &|w| {
+            (w == "M").then(|| "usize".to_string())
+        });
         assert!(!q.contains_key("Layout"));
         assert_eq!(q.get("V").map(String::as_str), Some(CANONICAL));
         assert_eq!(q.get("W").map(String::as_str), Some(CANONICAL));
-        assert_eq!(q.get("M").map(String::as_str), Some("#"));
+        assert_eq!(q.get("M").map(String::as_str), Some("#usize_M"));
         assert!(!q.contains_key("MAX") && !q.contains_key("IntoIter"));
         assert_eq!(p.get("T").map(String::as_str), Some(CANONICAL));
         assert_eq!(p.get("U").map(String::as_str), Some(CANONICAL));
         assert_eq!(p.get("F").map(String::as_str), Some(CANONICAL));
-        assert_eq!(p.get("N").map(String::as_str), Some("#"));
+        assert_eq!(p.get("N").map(String::as_str), Some("#_N"));
         assert!(!p.contains_key("Deref") && !p.contains_key("Target"));
     }
 

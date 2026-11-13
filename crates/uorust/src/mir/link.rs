@@ -585,8 +585,8 @@ impl CoreLink {
                         sig.push_str(&format!("let _: {t};\n"));
                     }
                     sig.push_str(&format!("let _: {ret};\n"));
-                    let mut own = super::core::canonical_bindings(text, &|_| false);
-                    own.extend(super::core::canonical_bindings(&sig, &|_| false));
+                    let mut own = super::core::canonical_bindings(text, &|_| false, &|_| None);
+                    own.extend(super::core::canonical_bindings(&sig, &|_| false, &|_| None));
                     let declares = self.decls.generics.get(p.as_str());
                     let param = |k: &String| {
                         own.contains_key(k)

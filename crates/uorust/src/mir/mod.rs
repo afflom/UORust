@@ -352,31 +352,7 @@ pub(super) fn resolve_impls(root: &Path, path: &str) -> Option<String> {
 
 /// The type an impl at `file:l1:c1: l2:c2` implements, read from its source.
 pub(super) fn impl_type(root: &Path, span: &str) -> Option<String> {
-    let (file, range) = span.split_once(':')?;
-    let (from, to) = range.split_once(": ")?;
-    let (l1, c1) = from.split_once(':')?;
-    let (l2, c2) = to.split_once(':')?;
-    let (l1, c1, l2, c2): (usize, usize, usize, usize) = (
-        l1.parse().ok()?,
-        c1.parse().ok()?,
-        l2.parse().ok()?,
-        c2.parse().ok()?,
-    );
-    let text = std::fs::read_to_string(root.join(file)).ok()?;
-    let lines: Vec<&str> = text.lines().collect();
-    let mut src = String::new();
-    for l in l1..=l2 {
-        let line = lines.get(l - 1)?;
-        let chars: Vec<char> = line.chars().collect();
-        let from = if l == l1 { c1 - 1 } else { 0 };
-        let to = if l == l2 {
-            (c2 - 1).min(chars.len())
-        } else {
-            chars.len()
-        };
-        src.extend(chars.get(from..to)?);
-        src.push(' ');
-    }
+    let src = impl_header(root, span)?;
     let head = src.trim().strip_prefix("impl")?;
     // `impl<'a, T: X>`: skip the impl's own generics.
     let head = if head.starts_with('<') {
@@ -405,6 +381,37 @@ pub(super) fn impl_type(root: &Path, span: &str) -> Option<String> {
     let last = ty.rsplit("::").next()?.trim();
     (!last.is_empty() && last.chars().all(|c| c.is_alphanumeric() || c == '_'))
         .then(|| last.to_string())
+}
+
+/// The text of the impl header at `file:l1:c1: l2:c2`, read from its
+/// source.
+pub(super) fn impl_header(root: &Path, span: &str) -> Option<String> {
+    let (file, range) = span.split_once(':')?;
+    let (from, to) = range.split_once(": ")?;
+    let (l1, c1) = from.split_once(':')?;
+    let (l2, c2) = to.split_once(':')?;
+    let (l1, c1, l2, c2): (usize, usize, usize, usize) = (
+        l1.parse().ok()?,
+        c1.parse().ok()?,
+        l2.parse().ok()?,
+        c2.parse().ok()?,
+    );
+    let text = std::fs::read_to_string(root.join(file)).ok()?;
+    let lines: Vec<&str> = text.lines().collect();
+    let mut src = String::new();
+    for l in l1..=l2 {
+        let line = lines.get(l - 1)?;
+        let chars: Vec<char> = line.chars().collect();
+        let from = if l == l1 { c1 - 1 } else { 0 };
+        let to = if l == l2 {
+            (c2 - 1).min(chars.len())
+        } else {
+            chars.len()
+        };
+        src.extend(chars.get(from..to)?);
+        src.push(' ');
+    }
+    Some(src)
 }
 
 #[cfg(test)]

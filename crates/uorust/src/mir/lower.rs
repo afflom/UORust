@@ -251,6 +251,9 @@ struct Fun<'a, 'c> {
     /// Terms read out of a pattern-typed field, with what the pattern
     /// admits of them: `NonZero`'s value is not zero.
     admitted: BTreeMap<String, Vec<String>>,
+    /// Each const parameter the body reads as a value, by the census's
+    /// marker for it: the parameter of the definition that holds it.
+    const_params: BTreeMap<String, (String, Ty)>,
     /// The `&mut` parameters: each holds the borrowed value, which writes
     /// through it replace, and the definition returns its last value.
     mut_params: BTreeSet<IrLocal>,
@@ -389,6 +392,32 @@ pub(crate) fn without_lifetimes(text: &str) -> String {
     out.replace("<>", "")
 }
 
+/// The census's markers of the const parameters `body` reads as values
+/// (`const N`, bound to `#usize_N`), in order.
+fn const_reads(body: &IrBody) -> BTreeSet<String> {
+    // Every operand of the body, as its blocks print.
+    let printed = format!("{:?}", body.blocks);
+    let mut out = BTreeSet::new();
+    let mut rest = printed.as_str();
+    while let Some(at) = rest.find("Other(\"#") {
+        let after = &rest[at + "Other(\"".len()..];
+        let end = after.find('"').unwrap_or(after.len());
+        out.insert(after[..end].to_string());
+        rest = &after[end..];
+    }
+    out
+}
+
+/// Whether a generic argument as MIR prints it is a const parameter's
+/// value (`40`, `-1`, `true`), or `#` where the census binds a const
+/// parameter, not a type.
+fn is_const_argument(a: &str) -> bool {
+    a.starts_with('#')
+        || a == "true"
+        || a == "false"
+        || a.starts_with(|c: char| c.is_ascii_digit() || c == '-')
+}
+
 /// The type a `&mut T` (or `&'a mut T`) points to, as printed.
 pub(crate) fn mut_target(text: &str) -> Option<&str> {
     let rest = text.trim().strip_prefix('&')?;
@@ -441,11 +470,18 @@ fn valid_range(pat: &str, signed: bool, bits: u32) -> Option<(u128, u128)> {
         let (neg, digits) = t
             .strip_prefix('-')
             .map_or((false, t.as_str()), |d| (true, d));
-        let v = match digits.strip_prefix("0x") {
-            Some(hex) => i128::from_str_radix(hex, 16).ok()?,
-            None => digits.parse::<i128>().ok()?,
-        };
-        Some(if neg { -v } else { v })
+        match digits.strip_prefix("0x") {
+            Some(hex) => {
+                let v = i128::from_str_radix(hex, 16).ok()?;
+                if neg {
+                    v.checked_neg()
+                } else {
+                    Some(v)
+                }
+            }
+            // The sign read with the digits, so `i128::MIN` reads.
+            None => t.parse::<i128>().ok(),
+        }
     };
     let pat = pat
         .trim()
@@ -464,7 +500,7 @@ fn valid_range(pat: &str, signed: bool, bits: u32) -> Option<(u128, u128)> {
                 if hi.is_empty() {
                     max
                 } else {
-                    value(hi).map(|h| h - 1)
+                    value(hi).and_then(|h| h.checked_sub(1))
                 },
             ),
             (None, None) => (value(alt), value(alt)),
@@ -473,9 +509,9 @@ fn valid_range(pat: &str, signed: bool, bits: u32) -> Option<(u128, u128)> {
         let lo = lo?;
         let hi_pattern = hi.map_or(mask, |h| (h as u128) & mask);
         let pattern = |v: i128| (v as u128) & mask;
-        if lo >= 0 || !signed {
-            spans.push((pattern(lo), hi_pattern));
-        } else if hi.is_some_and(|h| h < 0) {
+        // A span on one side of zero is one span of patterns; one across
+        // it wraps, from the negatives' patterns up to all ones.
+        if lo >= 0 || !signed || hi.is_some_and(|h| h < 0) {
             spans.push((pattern(lo), hi_pattern));
         } else {
             spans.push((0, hi_pattern));
@@ -641,6 +677,7 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         measure: None,
         ranged: BTreeMap::new(),
         admitted: BTreeMap::new(),
+        const_params: BTreeMap::new(),
         mut_params: BTreeSet::new(),
         memory,
         strides: BTreeSet::new(),
@@ -693,6 +730,21 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         st.env.insert(1, Val::Env(p, et, captures));
     }
     let closure = closure.is_some();
+    // A const parameter the body reads as a value, `const N`, is a
+    // parameter of the definition of the type its source gives it, ahead of
+    // the body's own.
+    for marker in const_reads(body) {
+        let Some((Some(t), name)) = super::core::const_of_marker(&marker) else {
+            return Err(kind(
+                spec::MirOperand::Constant.path(),
+                "a const parameter's value, of a type its source does not give",
+            ));
+        };
+        let t = ty(t, cx.types)?;
+        let p = f.fresh(Some(&name.to_lowercase()), usize::MAX);
+        f.params.push((p.clone(), t.clone()));
+        f.const_params.insert(marker, (p, t));
+    }
     // A `&mut` parameter is read as the value it borrows.
     for l in 1..=body.arity {
         if closure && l == 1 {
@@ -2573,7 +2625,11 @@ impl Fun<'_, '_> {
                 .ok_or_else(|| kind(k, "a char LexLean source cannot write")),
             // A const parameter's value, bound to `#` where the census
             // instantiates the body for every length at once.
-            IrConstant::Other(p) if p == "#" => Err(kind(k, "a const parameter's value")),
+            IrConstant::Other(p) if p.starts_with('#') => self
+                .const_params
+                .get(p)
+                .cloned()
+                .ok_or_else(|| kind(k, "a const parameter's value")),
             // A byte string, as MIR prints it with Rust's escapes: the list
             // of its bytes.
             IrConstant::Other(p) if p.starts_with("b\"") && p.ends_with('"') && p.len() >= 3 => {
@@ -5282,7 +5338,11 @@ impl Fun<'_, '_> {
         // `u64`, whose overflow obligations differ, are two definitions.
         let mut tags = String::new();
         for (_, b) in &bound {
-            ty(b, self.cx.types)?;
+            // A const parameter's value, `40`, names the instance; a type
+            // parameter's type must lift.
+            if !is_const_argument(b) {
+                ty(b, self.cx.types)?;
+            }
             tags.push_str(&crate::lex::pascal(&[b.as_str()]));
         }
         let segs: Vec<&str> = std::iter::once(root).chain(split_path(&path)).collect();
@@ -5416,7 +5476,11 @@ impl Fun<'_, '_> {
         // `u64`, whose overflow obligations differ, are two definitions.
         let mut tags = String::new();
         for (_, b) in &bound {
-            ty(b, self.cx.types)?;
+            // A const parameter's value, `40`, names the instance; a type
+            // parameter's type must lift.
+            if !is_const_argument(b) {
+                ty(b, self.cx.types)?;
+            }
             tags.push_str(&crate::lex::pascal(&[b.as_str()]));
         }
         let segs: Vec<&str> = std::iter::once("std").chain(path.split("::")).collect();
@@ -6054,12 +6118,7 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     // length (`#` where the census binds a const parameter) or a value.
     let raw: Vec<&str> = split_top(args_text, ',')
         .into_iter()
-        .filter(|a| {
-            !a.is_empty()
-                && !a.starts_with('\'')
-                && *a != "#"
-                && !a.starts_with(|c: char| c.is_ascii_digit() || c == '-')
-        })
+        .filter(|a| !a.is_empty() && !a.starts_with('\'') && !is_const_argument(a))
         .collect();
     // A variant whose field is uninhabited never holds a value, so an enum
     // of std is the type of its one inhabited variant: `Result<T, E>` is `T`
@@ -6915,6 +6974,16 @@ mod tests {
         // Every pattern: no niche.
         assert_eq!(niche(0, max32, max32), None);
         assert_eq!(valid_range("1..", false, 128), Some((1, u128::MAX)));
+        // At 128 bits signed, the bounds are `i128`'s own.
+        assert_eq!(
+            valid_range("(i128::MIN..=-1 | 1..)", true, 128),
+            Some((1, u128::MAX))
+        );
+        assert_eq!(
+            valid_range("-170141183460469231731687303715884105728..=-1", true, 128),
+            Some((1 << 127, u128::MAX))
+        );
+        assert_eq!(niche(1, u128::MAX, u128::MAX), Some(0));
     }
 
     #[test]
