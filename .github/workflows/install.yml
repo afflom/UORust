@@ -52,8 +52,11 @@ jobs:
           set -euo pipefail
           rustup show active-toolchain || rustup toolchain install
           cargo metadata --locked --no-deps --format-version 1 | python3 -I scripts/release/crates.py >"$RUNNER_TEMP/order"
+          # One dry run of them all: a crate's workspace dependencies resolve
+          # to the packages just made, as they will once published before it.
+          mapfile -t crates <"$RUNNER_TEMP/order"
+          cargo publish --dry-run --locked "${crates[@]/#/-p=}"
           while read -r crate; do
-            cargo publish --dry-run --locked -p "$crate"
             cargo package --locked -p "$crate" --list >"$RUNNER_TEMP/$crate.files"
             echo "- $crate: $(wc -l <"$RUNNER_TEMP/$crate.files") files packaged" >>"$GITHUB_STEP_SUMMARY"
           done <"$RUNNER_TEMP/order"
