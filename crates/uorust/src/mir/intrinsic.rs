@@ -26,6 +26,10 @@ pub(crate) enum Model {
     /// `size_of_val::<T>(*const T)`: the size of a sized `T`, which no
     /// value of it changes.
     SizeOfVal,
+    /// `align_of_val::<T>(*const T)`: `T`'s alignment where `T` is sized;
+    /// a slice's is its item's, and `str`'s is `u8`'s (the Reference,
+    /// "Type layout": a slice has its item type's layout requirements).
+    AlignOfVal,
     /// The value of its one argument: `black_box` is "an identity function"
     /// whose only effect is on the optimizer.
     Identity,
@@ -51,6 +55,11 @@ pub(crate) enum Model {
     /// `discriminant_value::<T>(&v)`: the discriminant of `v`'s variant,
     /// its index where `T`'s variants set none of their own.
     Discriminant,
+    /// `raw_eq::<T>(&a, &b)`: whether the bytes of `a` and `b` are equal,
+    /// which core calls only where `T` has no padding or uninitialized
+    /// byte (`BytewiseEq`): for an integer, or an array of them, the
+    /// values' bit patterns, element by element.
+    RawEq,
     /// An integer operation, parameterized by (bits, signed): its rule in
     /// `mir::int`, with core's precondition as an obligation.
     Int,
@@ -61,6 +70,7 @@ pub(crate) const TABLE: &[(&str, Model)] = &[
     ("size_of", Model::Size),
     ("align_of", Model::Align),
     ("size_of_val", Model::SizeOfVal),
+    ("align_of_val", Model::AlignOfVal),
     ("black_box", Model::Identity),
     ("forget", Model::Unit),
     ("assert_inhabited", Model::Inhabited),
@@ -70,6 +80,7 @@ pub(crate) const TABLE: &[(&str, Model)] = &[
     ("transmute_unchecked", Model::Transmute),
     ("three_way_compare", Model::Compare),
     ("discriminant_value", Model::Discriminant),
+    ("raw_eq", Model::RawEq),
     ("wrapping_add", Model::Int),
     ("wrapping_sub", Model::Int),
     ("wrapping_mul", Model::Int),

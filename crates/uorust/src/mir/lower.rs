@@ -4951,6 +4951,40 @@ impl Fun<'_, '_> {
                     .map_err(|r| kind(k, &format!("{path} of {r}")))?;
                 Ok(if m == M::Align { l.align } else { l.size }.to_string())
             }
+            (Some(M::RawEq), [(a, at), (b, bt)], [t]) if at == bt && *dt == Ty::Bool => {
+                let n: Option<u32> = t
+                    .strip_prefix('[')
+                    .and_then(|r| r.strip_suffix(']'))
+                    .and_then(|r| r.rsplit_once("; "))
+                    .and_then(|(_, n)| n.parse().ok());
+                match (at, n) {
+                    (Ty::Nat(_) | Ty::Signed(_), _) => Ok(format!("({a} =? {b})")),
+                    (Ty::List(e), Some(n)) if matches!(**e, Ty::Nat(_) | Ty::Signed(_)) => {
+                        let e = e.render();
+                        let held = self.fresh(Some("held"), usize::MAX);
+                        let at = |v: &str, i: u32| {
+                            format!("(match (prim index {v} {i} : (Option {e})) | Option.none => 0 | Option.some {held} => {held})")
+                        };
+                        let mut all = "true".to_string();
+                        for i in (0..n).rev() {
+                            all = format!("(({} =? {}) && {all})", at(a, i), at(b, i));
+                        }
+                        Ok(all)
+                    }
+                    _ => Err(unmodeled()),
+                }
+            }
+            (Some(M::AlignOfVal), [_], [t]) if *dt == Ty::Nat(None) => {
+                let item = match t.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
+                    Some(item) if !item.contains(';') => item,
+                    _ if *t == "str" => "u8",
+                    _ => t,
+                };
+                let t = ty(item, self.cx.types)?;
+                let l = super::layout::agreed(&t, self.cx.layouts)
+                    .map_err(|r| kind(k, &format!("{path} of {r}")))?;
+                Ok(l.align.to_string())
+            }
             (Some(M::Identity), [(v, t)], _) if t == dt => Ok(v.clone()),
             (Some(M::Unit), _, _) if *dt == Ty::Unit => Ok("()".into()),
             // A validity assertion is the unit where `T` passes it: every
