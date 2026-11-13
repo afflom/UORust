@@ -1531,7 +1531,6 @@ fn a_constant_path_rustc_prints_for_two_items_is_refused() {
 /// `cargo test` runs: a retraction whose witness fails is a red run.
 #[test]
 fn every_retraction_is_witnessed() {
-    use uorust::mir::core;
     let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let mut tests = String::new();
     for entry in std::fs::read_dir(crate_dir.join("tests")).expect("tests") {

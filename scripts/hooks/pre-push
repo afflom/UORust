@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Refuse a push to main that bootstrap or core.yml would refuse, before it
-# lands: rustfmt and xtask's R1, R4 and R5 gates (validate's but
+# lands: rustfmt, clippy -D warnings, and xtask's R1, R4 and R5 gates (validate's but
 # audit-bootstrap, which needs the SDK), and,
 # when the push touches the MIR path (crates/uorust/src/mir), the core
 # register's ratchet on CI's own MIR (scripts/mir/core-gate.sh). Runs in the
@@ -19,6 +19,9 @@ while read -r _lref lsha rref rsha; do
   cd "$root"
   . "$root/scripts/hooks/lane-cfg.sh"
   cargo fmt --all -- --check >/dev/null || { echo "pre-push: cargo fmt --check fails; run cargo fmt" >&2; exit 1; }
+  # bootstrap's lint, exactly as `just lint` runs it.
+  cargo clippy --workspace --all-targets --all-features --locked "${cfg[@]}" -q -- -D warnings \
+    || { echo "pre-push: cargo clippy -D warnings refuses this tree (just lint)" >&2; exit 1; }
   # validate's gates but audit-bootstrap, which reads the SDK's inventory
   # and so runs only inside the SDK (bootstrap runs it).
   for gate in check-model audit-limits audit-deferral audit-dependency-updates; do
