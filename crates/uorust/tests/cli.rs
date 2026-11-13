@@ -1,5 +1,5 @@
 //! The `uorust` binary end to end: `project`, `check`, `routes`, `mir`,
-//! `prove` and `certify agree`.
+//! `prove`, `core`, `std`, `merge`, `crate` and `certify agree`.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -216,4 +216,79 @@ fn the_cli_compares_the_two_translators_by_kappa_ue_18() {
     assert!(!refused.status.success());
     assert!(String::from_utf8_lossy(&refused.stderr).contains("disagree"));
     let _ = std::fs::remove_dir_all(dir);
+}
+
+/// `core` and `std` translate a library's module shards into a register,
+/// each keying its bodies by its own crate; `merge` takes a sharded run's
+/// module files into a register and refuses one that turns a translated body
+/// to residue; `crate` refuses a spec that is not `<name>@<version>` before
+/// it fetches anything.
+#[test]
+fn the_cli_writes_and_merges_library_registers() {
+    let tmp = std::env::temp_dir().join(format!("uorust-registers-cli-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    let dir = |name: &str| tmp.join(name).to_string_lossy().to_string();
+    let (core_reg, std_reg, merged, planted) =
+        (dir("core"), dir("std"), dir("merged"), dir("planted"));
+    let run = |args: &[&str]| {
+        let out = uorust(args);
+        assert!(
+            out.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8_lossy(&out.stdout).to_string()
+    };
+    let fixture = [
+        "--mir",
+        "tests/fixtures/core/mir",
+        "--library",
+        "tests/fixtures/core/library",
+    ];
+    for (krate, register) in [("core", &core_reg), ("std", &std_reg)] {
+        let mut args = vec![krate];
+        args.extend(fixture);
+        args.extend(["--register", register.as_str()]);
+        assert!(run(&args).starts_with(&format!("{krate}: ")));
+    }
+    let core_bool = std::fs::read_to_string(tmp.join("core/bool.toml")).expect("core's bool");
+    assert!(core_bool.contains("status = \"translated\""), "{core_bool}");
+    let std_bool = std::fs::read_to_string(tmp.join("std/bool.toml")).expect("std's bool");
+    assert_ne!(core_bool, std_bool, "a std body is keyed apart from core's");
+
+    let merge = |shards: &str| {
+        uorust(&[
+            "merge",
+            "--crate",
+            "core",
+            "--shards",
+            shards,
+            "--register",
+            merged.as_str(),
+        ])
+    };
+    let out = merge(core_reg.as_str());
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(String::from_utf8_lossy(&out.stdout).starts_with("core: merged 1 modules"));
+    std::fs::create_dir_all(&planted).expect("planted shards");
+    std::fs::write(
+        tmp.join("planted/bool.toml"),
+        core_bool.replace(
+            "status = \"translated\"",
+            "status = \"residue\"\ncause = \"planted\"",
+        ),
+    )
+    .expect("plant");
+    let refused = merge(planted.as_str());
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("is now residue"));
+
+    let refused = uorust(&["crate", "serde"]);
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("is not <name>@<version>"));
+    let _ = std::fs::remove_dir_all(tmp);
 }
