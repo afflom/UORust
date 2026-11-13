@@ -1,0 +1,67 @@
+# Follows the gate on a commit the workflow token pushed, and starts what a
+# green gate starts. A bootstrap run dispatched with the workflow token (by
+# scripts/ci/push.sh, for generate's and a release's commits) starts no
+# `workflow_run` workflow, so release-bump.yml and release-tag.yml never saw
+# those verdicts, and those commits are the ones main is green on. push.sh
+# dispatches this beside bootstrap.yml with the commit it pushed; this waits
+# for that commit's bootstrap run and, when it passes, dispatches
+# release-bump.yml (which observes the newest green main) and release-tag.yml
+# for the commit. A bootstrap run of a person's push starts both itself.
+name: gated
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: The main commit whose bootstrap run to follow.
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gated-${{ inputs.sha }}
+  cancel-in-progress: false
+
+jobs:
+  follow:
+    name: start the release workflows when the gate passes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Wait for the commit's bootstrap run and dispatch on green
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          [[ $SHA =~ ^[0-9a-f]{40}$ ]]
+          runs() {
+            gh api "repos/$REPOSITORY/actions/workflows/bootstrap.yml/runs?head_sha=$SHA&per_page=20" \
+              --jq '[.workflow_runs[] | select(.head_branch == "main")]' || echo '[]'
+          }
+          # The dispatched run appears within minutes; one that never does
+          # gated another commit (main moved before the dispatch).
+          for _ in $(seq 1 20); do
+            [[ $(runs | jq length) -gt 0 ]] && break
+            sleep 30
+          done
+          if [[ $(runs | jq length) -eq 0 ]]; then
+            echo "gated: no bootstrap run on $SHA; nothing to do" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          until [[ $(runs | jq '[.[] | select(.status != "completed")] | length') -eq 0 ]]; do
+            sleep 60
+          done
+          if [[ $(runs | jq '[.[] | select(.conclusion == "success")] | length') -eq 0 ]]; then
+            echo "gated: the gate did not pass on $SHA; nothing to do" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh workflow run release-bump.yml --repo "$REPOSITORY" --ref main
+          gh workflow run release-tag.yml --repo "$REPOSITORY" --ref main -f sha="$SHA"
+          echo "gated: the gate passed on \`$SHA\`; dispatched release-bump.yml and release-tag.yml" | tee -a "$GITHUB_STEP_SUMMARY"

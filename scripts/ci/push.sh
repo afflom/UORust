@@ -80,6 +80,11 @@ else
 fi
 for workflow in "$@"; do
   gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref main
+  # A gate dispatched with the workflow token starts no workflow_run, so
+  # gated.yml follows it and starts the release workflows on green.
+  if [[ $workflow == bootstrap.yml ]]; then
+    gh workflow run gated.yml --repo "$GITHUB_REPOSITORY" --ref main -f sha="$(git rev-parse HEAD)"
+  fi
 done
 {
   echo "## $subject"
