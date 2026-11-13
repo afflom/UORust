@@ -70,5 +70,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           scripts/ci/push.sh "Regenerate the generated files" \
-            "CONFORMANCE.md README.md app model brand frontier.toml lift-verdicts.toml crates/uorust/tests/fixtures/thermostat-prism crates/uorust/tests/fixtures/mir-path/lift-verdicts.toml" \
+            "CONFORMANCE.md README.md app model brand crates xtask frontier.toml lift-verdicts.toml" \
             bootstrap.yml pages.yml

@@ -153,13 +153,14 @@ prove-fixture:
     cargo run -q --locked -p uorust -- mir crates/uorust/tests/fixtures/mir-path --out target/mir-fixture
     cargo run -q --locked -p uorust -- prove crates/uorust/tests/fixtures/mir-path --out target/mir-fixture-prove --scratch target/mir-fixture-scratch --name walk --last-modified 2026-11-11T00:00:00Z --mir target/mir-fixture --verdicts crates/uorust/tests/fixtures/mir-path/lift-verdicts.toml
 
-# Every writer, in the order their outputs feed each other: the self model and
+# Every writer, in the order their outputs feed each other: rustfmt first,
+# since the self model records source line numbers, then the self model and
 # the fixture projection from the sources, the MIR path's verdicts (the
 # fixture's and the workspace's) and the lift register from the workspace,
 # then CONFORMANCE.md from the register. `generate.yml` runs this on every
 # push to main and hourly, and commits what changed, so no generated file is
 # stale.
-generate: self-model-write fixtures prove-fixture prove register model-write
+generate: fmt self-model-write fixtures prove-fixture prove register model-write
 
 # The certified translator (loop step 3): the self projection's lifted
 # translator functions (uorust::mir, lift, lex) exported through `lexlean
