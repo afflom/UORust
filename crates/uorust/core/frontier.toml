@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 15584
-translated = 535
-residue = 15049
+translated = 595
+residue = 14989
 
 [module.alloc]
 bodies = 61
@@ -72,13 +72,13 @@ residue = 207
 
 [module.clone]
 bodies = 35
-translated = 10
-residue = 25
+translated = 14
+residue = 21
 
 [module.cmp]
 bodies = 347
-translated = 61
-residue = 286
+translated = 89
+residue = 258
 
 [module.contracts]
 bodies = 1
@@ -92,8 +92,8 @@ residue = 391
 
 [module.default]
 bodies = 20
-translated = 9
-residue = 11
+translated = 13
+residue = 7
 
 [module.error]
 bodies = 38
@@ -182,8 +182,8 @@ residue = 232
 
 [module.num]
 bodies = 5497
-translated = 199
-residue = 5298
+translated = 223
+residue = 5274
 
 [module.ops]
 bodies = 2658
@@ -321,40 +321,32 @@ translated = 0
 residue = 61
 
 [[cause]]
-cause = "mir::Ty: i16"
-bodies = 788
-
-[[cause]]
-cause = "mir::Ty: i8"
-bodies = 786
-
-[[cause]]
-cause = "mir::Ty: i32"
-bodies = 776
-
-[[cause]]
 cause = "mir::Ty: isize"
-bodies = 775
-
-[[cause]]
-cause = "mir::Ty: i64"
-bodies = 771
+bodies = 833
 
 [[cause]]
 cause = "mir::Ty: i128"
-bodies = 741
+bodies = 802
 
 [[cause]]
 cause = "mir::Ty: fmt::Error"
 bodies = 655
 
 [[cause]]
+cause = "mir::CastKind::IntToInt: from Int64 to Nat"
+bodies = 241
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item num::BITS"
+bodies = 207
+
+[[cause]]
 cause = "mir::Instantiation: a const parameter"
 bodies = 187
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item num::BITS"
-bodies = 175
+cause = "mir::StatementKind::Assign: a write into a place of an rvalue other than a value"
+bodies = 165
 
 [[cause]]
 cause = "mir::Ty: *mut u32"
@@ -373,31 +365,39 @@ cause = "mir::Ty: &mut u32"
 bodies = 138
 
 [[cause]]
+cause = "mir::Ty: num::error::TryFromIntError"
+bodies = 124
+
+[[cause]]
 cause = "mir::Ty: <u32 as iter::traits::iterator::Iterator>::Item"
 bodies = 122
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item num::MAX"
+bodies = 120
 
 [[cause]]
 cause = "mir::Ty: &mut [u32]"
 bodies = 114
 
 [[cause]]
-cause = "mir::StatementKind::Assign: a write into a place of an rvalue other than a value"
-bodies = 105
+cause = "mir::Ty: f64"
+bodies = 107
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: mem::size_of"
 bodies = 105
 
 [[cause]]
-cause = "mir::Ty: f64"
-bodies = 102
-
-[[cause]]
 cause = "mir::Ty: f32"
-bodies = 99
+bodies = 103
 
 [[cause]]
 cause = "mir::Ty: *const u32"
+bodies = 96
+
+[[cause]]
+cause = "mir::Ty: f16"
 bodies = 96
 
 [[cause]]
@@ -405,20 +405,12 @@ cause = "mir::Ty: T"
 bodies = 93
 
 [[cause]]
-cause = "mir::Ty: f16"
-bodies = 92
-
-[[cause]]
 cause = "mir::Ty: f128"
-bodies = 89
+bodies = 93
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item num::MAX"
-bodies = 88
-
-[[cause]]
-cause = "mir::Ty: num::error::TryFromIntError"
-bodies = 80
+cause = "mir::TerminatorKind::Call: check_language_ub"
+bodies = 84
 
 [[cause]]
 cause = "mir::Ty: num::nonzero::NonZero<u32>"
@@ -427,6 +419,22 @@ bodies = 78
 [[cause]]
 cause = "mir::Ty: num::wrapping::Wrapping<u32>"
 bodies = 62
+
+[[cause]]
+cause = "mir::Ty: num::wrapping::Wrapping<i16>"
+bodies = 61
+
+[[cause]]
+cause = "mir::Ty: num::wrapping::Wrapping<i32>"
+bodies = 61
+
+[[cause]]
+cause = "mir::Ty: num::wrapping::Wrapping<i64>"
+bodies = 61
+
+[[cause]]
+cause = "mir::Ty: num::wrapping::Wrapping<i8>"
+bodies = 61
 
 [[cause]]
 cause = "mir::Ty: num::wrapping::Wrapping<u128>"
@@ -449,8 +457,8 @@ cause = "mir::Ty: num::wrapping::Wrapping<usize>"
 bodies = 60
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: check_language_ub"
-bodies = 56
+cause = "mir::TerminatorKind::Call: intrinsics::unlikely"
+bodies = 59
 
 [[cause]]
 cause = "mir::Ty: fmt::Arguments<'_>"
@@ -477,7 +485,31 @@ cause = "mir::Ty: num::saturating::Saturating<u32>"
 bodies = 51
 
 [[cause]]
+cause = "mir::BinOp::BitAnd: on Nat and Nat"
+bodies = 50
+
+[[cause]]
+cause = "mir::Rvalue::Aggregate: a Result variant"
+bodies = 49
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+bodies = 49
+
+[[cause]]
+cause = "mir::Ty: num::saturating::Saturating<i16>"
+bodies = 49
+
+[[cause]]
+cause = "mir::Ty: num::saturating::Saturating<i32>"
+bodies = 49
+
+[[cause]]
+cause = "mir::Ty: num::saturating::Saturating<i64>"
+bodies = 49
+
+[[cause]]
+cause = "mir::Ty: num::saturating::Saturating<i8>"
 bodies = 49
 
 [[cause]]
@@ -505,8 +537,40 @@ cause = "mir::Ty: Wrapping<u32>"
 bodies = 45
 
 [[cause]]
+cause = "mir::Ty: num::nonzero::NonZero<i16>"
+bodies = 45
+
+[[cause]]
+cause = "mir::Ty: num::nonzero::NonZero<i32>"
+bodies = 45
+
+[[cause]]
+cause = "mir::Ty: num::nonzero::NonZero<i64>"
+bodies = 45
+
+[[cause]]
+cause = "mir::Ty: num::nonzero::NonZero<i8>"
+bodies = 45
+
+[[cause]]
 cause = "mir::Ty: ops::range::Bound<&u32>"
 bodies = 45
+
+[[cause]]
+cause = "mir::Ty: Wrapping<i16>"
+bodies = 42
+
+[[cause]]
+cause = "mir::Ty: Wrapping<i32>"
+bodies = 42
+
+[[cause]]
+cause = "mir::Ty: Wrapping<i64>"
+bodies = 42
+
+[[cause]]
+cause = "mir::Ty: Wrapping<i8>"
+bodies = 42
 
 [[cause]]
 cause = "mir::UnOp::Not: on Nat"
@@ -537,11 +601,35 @@ cause = "mir::Ty: Wrapping<usize>"
 bodies = 41
 
 [[cause]]
+cause = "mir::Ty: num::error::ParseIntError"
+bodies = 41
+
+[[cause]]
 cause = "mir::Ty: time::Duration"
 bodies = 41
 
 [[cause]]
-cause = "mir::BinOp::BitAnd: on Nat and Nat"
+cause = "mir::CastKind::IntToInt: a cast that may truncate"
+bodies = 40
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item num::MIN"
+bodies = 39
+
+[[cause]]
+cause = "mir::Ty: Saturating<i16>"
+bodies = 38
+
+[[cause]]
+cause = "mir::Ty: Saturating<i32>"
+bodies = 38
+
+[[cause]]
+cause = "mir::Ty: Saturating<i64>"
+bodies = 38
+
+[[cause]]
+cause = "mir::Ty: Saturating<i8>"
 bodies = 38
 
 [[cause]]
@@ -585,20 +673,16 @@ cause = "mir::Ty: ops::range::Range<u32>"
 bodies = 35
 
 [[cause]]
-cause = "mir::CastKind::IntToInt: a cast that may truncate"
+cause = "mir::TerminatorKind::Call: num::overflowing_add"
 bodies = 34
 
 [[cause]]
-cause = "mir::Rvalue::Aggregate: a Result variant"
-bodies = 33
+cause = "mir::TerminatorKind::Call: num::overflowing_sub"
+bodies = 34
 
 [[cause]]
 cause = "mir::Ty: ptr::non_null::NonNull<u32>"
 bodies = 33
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: intrinsics::unlikely"
-bodies = 31
 
 [[cause]]
 cause = "mir::Ty: *mut [u32]"
@@ -611,6 +695,90 @@ bodies = 31
 [[cause]]
 cause = "mir::Ty: ops::range::RangeInclusive<u32>"
 bodies = 31
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u128 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u128 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u16 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u16 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u64 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u64 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u8 as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u8 as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <usize as bit::Shl>::shl"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <usize as bit::Shr>::shr"
+bodies = 30
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_mul"
+bodies = 30
 
 [[cause]]
 cause = "mir::Ty: Ipv6Addr"
@@ -641,8 +809,20 @@ cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
 bodies = 26
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: is_val_statically_known"
+bodies = 26
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: three_way_compare"
+bodies = 26
+
+[[cause]]
 cause = "mir::Ty: NonZero<u32>"
 bodies = 26
+
+[[cause]]
+cause = "mir::CastKind::IntToInt: from Nat to Int64"
+bodies = 25
 
 [[cause]]
 cause = "mir::Ty: ascii::ascii_char::AsciiChar"
@@ -653,11 +833,23 @@ cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
 bodies = 25
 
 [[cause]]
-cause = "mir::Ty: num::error::ParseIntError"
-bodies = 25
+cause = "mir::BinOp::Shl: on Int64 and Nat"
+bodies = 24
+
+[[cause]]
+cause = "mir::BinOp::Shr: on Int64 and Nat"
+bodies = 24
+
+[[cause]]
+cause = "mir::Operand::Constant: num::MIN as i128"
+bodies = 24
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item fmt::num::fmt::DIG_TAB"
+bodies = 24
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_neg"
 bodies = 24
 
 [[cause]]
@@ -681,11 +873,43 @@ cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_lt"
 bodies = 23
 
 [[cause]]
+cause = "mir::CastKind::IntToInt: from Int64 to Int64"
+bodies = 22
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::transmute"
+bodies = 22
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
+bodies = 21
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: accum::sum::{closure#0}: type outside the lift: num::wrapping::Wrapping<usize>"
+bodies = 20
+
+[[cause]]
 cause = "mir::BinOp::Le: on String and String"
 bodies = 20
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: num::from_ne_bytes"
+bodies = 20
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::is_negative"
+bodies = 20
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::swap_bytes"
+bodies = 20
+
+[[cause]]
 cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+bodies = 20
+
+[[cause]]
+cause = "mir::Ty: RangeFull"
 bodies = 20
 
 [[cause]]
@@ -701,10 +925,6 @@ cause = "mir::Ty: slice::iter::IterMut<'_"
 bodies = 20
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item num::MIN"
-bodies = 19
-
-[[cause]]
 cause = "mir::Ty: ByteStr"
 bodies = 19
 
@@ -717,71 +937,7 @@ cause = "mir::Ty: alloc::layout::Layout"
 bodies = 19
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u128 as bit::Shl>::shl"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u128 as bit::Shr>::shr"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u16 as bit::Shl>::shl"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u16 as bit::Shr>::shr"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as bit::Shl>::shl"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as bit::Shr>::shr"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u64 as bit::Shl>::shl"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u64 as bit::Shr>::shr"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u8 as bit::Shl>::shl"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u8 as bit::Shr>::shr"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <usize as bit::Shl>::shl"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <usize as bit::Shr>::shr"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: is_val_statically_known"
-bodies = 18
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: num::one_less_than_next_power_of_two"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::overflowing_add"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::overflowing_mul"
-bodies = 18
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::overflowing_sub"
 bodies = 18
 
 [[cause]]
@@ -805,6 +961,10 @@ cause = "mir::ProjectionElem::Field: a field of Nat"
 bodies = 17
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: num::leading_zeros"
+bodies = 17
+
+[[cause]]
 cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 bodies = 17
 
@@ -821,7 +981,19 @@ cause = "mir::CastKind::IntToInt: from String to Nat"
 bodies = 16
 
 [[cause]]
+cause = "mir::Operand::Constant: 1_i32 as u32"
+bodies = 16
+
+[[cause]]
 cause = "mir::ProjectionElem::ConstantIndex"
+bodies = 16
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: add_with_overflow"
+bodies = 16
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::cast_unsigned"
 bodies = 16
 
 [[cause]]
@@ -830,6 +1002,22 @@ bodies = 16
 
 [[cause]]
 cause = "mir::Ty: &mut bstr::ByteStr"
+bodies = 16
+
+[[cause]]
+cause = "mir::Ty: Atomic<i16>"
+bodies = 16
+
+[[cause]]
+cause = "mir::Ty: Atomic<i32>"
+bodies = 16
+
+[[cause]]
+cause = "mir::Ty: Atomic<i64>"
+bodies = 16
+
+[[cause]]
+cause = "mir::Ty: Atomic<i8>"
 bodies = 16
 
 [[cause]]
@@ -857,12 +1045,12 @@ cause = "mir::Ty: F"
 bodies = 16
 
 [[cause]]
-cause = "mir::Ty: RangeFull"
+cause = "mir::Ty: ops::range::Bound<u32>"
 bodies = 16
 
 [[cause]]
-cause = "mir::Ty: ops::range::Bound<u32>"
-bodies = 16
+cause = "mir::TerminatorKind::Call: num::wrapping_sub"
+bodies = 15
 
 [[cause]]
 cause = "mir::Ty: ascii::EscapeDefault"
@@ -873,11 +1061,11 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 bodies = 15
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: intrinsics::transmute"
-bodies = 14
+cause = "mir::Ty: maybe_uninit::MaybeUninit<u8>"
+bodies = 15
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: three_way_compare"
+cause = "mir::TerminatorKind::Call: num::carrying_mul_add"
 bodies = 14
 
 [[cause]]
@@ -886,10 +1074,6 @@ bodies = 14
 
 [[cause]]
 cause = "mir::Ty: Copied<u32>"
-bodies = 14
-
-[[cause]]
-cause = "mir::Ty: maybe_uninit::MaybeUninit<u8>"
 bodies = 14
 
 [[cause]]
@@ -905,7 +1089,7 @@ cause = "mir::TerminatorKind::Call: <u32 as hash::Hash>::hash"
 bodies = 13
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
+cause = "mir::TerminatorKind::Call: num::to_ne_bytes"
 bodies = 13
 
 [[cause]]
@@ -965,15 +1149,19 @@ cause = "mir::Ty: char::EscapeDebug"
 bodies = 13
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: accum::sum::{closure#0}: type outside the lift: num::wrapping::Wrapping<usize>"
+cause = "mir::Operand::Constant: the constant item i16::MIN"
 bodies = 12
 
 [[cause]]
-cause = "mir::Operand::Constant: 1_i32 as u32"
+cause = "mir::Operand::Constant: the constant item i32::MIN"
 bodies = 12
 
 [[cause]]
-cause = "mir::Operand::Constant: num::MIN as i128"
+cause = "mir::Operand::Constant: the constant item i64::MIN"
+bodies = 12
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item i8::MIN"
 bodies = 12
 
 [[cause]]
@@ -997,23 +1185,11 @@ cause = "mir::TerminatorKind::Call: <u32 as collect::Extend>::extend_one"
 bodies = 12
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: add_with_overflow"
+cause = "mir::TerminatorKind::Call: num::overflowing_div"
 bodies = 12
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: num::from_ne_bytes"
-bodies = 12
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::leading_zeros"
-bodies = 12
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::overflowing_neg"
-bodies = 12
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::swap_bytes"
+cause = "mir::TerminatorKind::Call: num::overflowing_sub_signed"
 bodies = 12
 
 [[cause]]
@@ -1081,6 +1257,10 @@ cause = "mir::TerminatorKind::Call: default_extend"
 bodies = 11
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_sub"
+bodies = 11
+
+[[cause]]
 cause = "mir::TerminatorKind::Goto: a loop nested in a loop"
 bodies = 11
 
@@ -1094,6 +1274,10 @@ bodies = 11
 
 [[cause]]
 cause = "mir::Ty: *const str"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: *const u8"
 bodies = 11
 
 [[cause]]
@@ -1121,6 +1305,14 @@ cause = "mir::Ty: net::ip_addr::IpAddr"
 bodies = 11
 
 [[cause]]
+cause = "mir::AggregateKind::Closure: accum::product::{closure#0}: type outside the lift: num::wrapping::Wrapping<usize>"
+bodies = 10
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: accum::product::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/accum.rs:66:21: 66:27}"
+bodies = 10
+
+[[cause]]
 cause = "mir::Operand::Constant: 2_i32 as u32"
 bodies = 10
 
@@ -1129,7 +1321,95 @@ cause = "mir::Operand::Constant: num::MAX as u128"
 bodies = 10
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u128 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u128 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u16 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u16 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as function::FnMut>::call_mut"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u64 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u64 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u8 as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u8 as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <usize as ShlAssign>::shl_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <usize as ShrAssign>::shr_assign"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: carrying_mul_add"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 bodies = 10
 
 [[cause]]
@@ -1137,15 +1417,75 @@ cause = "mir::TerminatorKind::Call: methods::is_ascii"
 bodies = 10
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: num::carrying_mul_add"
+cause = "mir::TerminatorKind::Call: mul_with_overflow"
 bodies = 10
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: num::to_ne_bytes"
+cause = "mir::TerminatorKind::Call: num::checked_ilog"
 bodies = 10
 
 [[cause]]
-cause = "mir::Ty: *const u8"
+cause = "mir::TerminatorKind::Call: num::checked_ilog10"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_ilog2"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_mul"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_pow"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_rem"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_shl"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_shr"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::to_be"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::to_le"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::trailing_zeros"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::wrapping_neg"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::wrapping_shl"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::wrapping_shr"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sub_with_overflow"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: wrapping_mul"
+bodies = 10
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: wrapping_sub"
 bodies = 10
 
 [[cause]]
@@ -1197,6 +1537,10 @@ cause = "mir::Ty: take::Take<u32>"
 bodies = 10
 
 [[cause]]
+cause = "mir::BinOp::AddWithOverflow: on Int64 and Int64"
+bodies = 9
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: num::carryless_mul"
 bodies = 9
 
@@ -1237,11 +1581,55 @@ cause = "mir::Ty: repeat::Repeat<u32>"
 bodies = 9
 
 [[cause]]
+cause = "mir::BinOp::BitAnd: on Int64 and Int64"
+bodies = 8
+
+[[cause]]
 cause = "mir::BinOp::BitXor: on Nat and Nat"
 bodies = 8
 
 [[cause]]
+cause = "mir::BinOp::MulWithOverflow: on Int64 and Int64"
+bodies = 8
+
+[[cause]]
+cause = "mir::BinOp::SubWithOverflow: on Int64 and Int64"
+bodies = 8
+
+[[cause]]
 cause = "mir::Rvalue::Repeat"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_add_signed"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_add_unsigned"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_div_euclid"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_rem"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_rem_euclid"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::overflowing_sub_unsigned"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::wrapping_abs"
+bodies = 8
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: saturating_sub"
 bodies = 8
 
 [[cause]]
@@ -1266,6 +1654,10 @@ bodies = 8
 
 [[cause]]
 cause = "mir::Ty: ControlFlow<u32"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: Decoded"
 bodies = 8
 
 [[cause]]
@@ -1337,6 +1729,10 @@ cause = "mir::Ty: task::wake::LocalWaker"
 bodies = 8
 
 [[cause]]
+cause = "mir::UnOp::Not: on Int64"
+bodies = 8
+
+[[cause]]
 cause = "mir::BinOp::BitOr: on Nat and Nat"
 bodies = 7
 
@@ -1350,14 +1746,6 @@ bodies = 7
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::size_hint"
-bodies = 7
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::checked_sub"
-bodies = 7
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::wrapping_sub"
 bodies = 7
 
 [[cause]]
@@ -1445,14 +1833,6 @@ cause = "mir::Ty: wtf8::Wtf8"
 bodies = 7
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: accum::product::{closure#0}: type outside the lift: i16"
-bodies = 6
-
-[[cause]]
-cause = "mir::AggregateKind::Closure: accum::product::{closure#0}: type outside the lift: num::wrapping::Wrapping<usize>"
-bodies = 6
-
-[[cause]]
 cause = 'mir::Operand::Constant: b"01"'
 bodies = 6
 
@@ -1469,55 +1849,11 @@ cause = 'mir::Operand::Constant: b"0123456789abcdef"'
 bodies = 6
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u128 as ShlAssign>::shl_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u128 as ShrAssign>::shr_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u16 as ShlAssign>::shl_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u16 as ShrAssign>::shr_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as ShlAssign>::shl_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as ShrAssign>::shr_assign"
+cause = "mir::Operand::Constant: num::MAX as i64"
 bodies = 6
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u64 as ShlAssign>::shl_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u64 as ShrAssign>::shr_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u8 as ShlAssign>::shl_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u8 as ShrAssign>::shr_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <usize as ShlAssign>::shl_assign"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <usize as ShrAssign>::shr_assign"
 bodies = 6
 
 [[cause]]
@@ -1529,11 +1865,11 @@ cause = "mir::TerminatorKind::Call: bswap"
 bodies = 6
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: carrying_mul_add"
+cause = "mir::TerminatorKind::Call: carryless_mul"
 bodies = 6
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: carryless_mul"
+cause = "mir::TerminatorKind::Call: cmp::Ordering::as_raw"
 bodies = 6
 
 [[cause]]
@@ -1553,75 +1889,11 @@ cause = "mir::TerminatorKind::Call: cttz"
 bodies = 6
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: mem::size_of_val"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: mul_with_overflow"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::checked_ilog"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::checked_ilog10"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::checked_ilog2"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::checked_mul"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::checked_pow"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::checked_rem"
-bodies = 6
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: num::count_ones"
 bodies = 6
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: num::overflowing_shl"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::overflowing_shr"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::to_be"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::to_le"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::trailing_zeros"
-bodies = 6
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: num::wrapping_div"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::wrapping_neg"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::wrapping_shl"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: num::wrapping_shr"
 bodies = 6
 
 [[cause]]
@@ -1633,15 +1905,7 @@ cause = "mir::TerminatorKind::Call: rotate_right"
 bodies = 6
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sub_with_overflow"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: wrapping_mul"
-bodies = 6
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: wrapping_sub"
+cause = "mir::TerminatorKind::Call: wrapping_add"
 bodies = 6
 
 [[cause]]
@@ -1678,6 +1942,22 @@ bodies = 6
 
 [[cause]]
 cause = "mir::Ty: Flatten<u32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: NonZero<i16>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: NonZero<i32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: NonZero<i64>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: NonZero<i8>"
 bodies = 6
 
 [[cause]]
@@ -1753,11 +2033,31 @@ cause = "mir::Ty: str::iter::EscapeUnicode<'_>"
 bodies = 6
 
 [[cause]]
+cause = "mir::BinOp::BitXor: on Int64 and Int64"
+bodies = 5
+
+[[cause]]
+cause = "mir::CastKind::IntToInt: from Bool to Int64"
+bodies = 5
+
+[[cause]]
 cause = "mir::Operand::Constant: 29_i32 as u32"
 bodies = 5
 
 [[cause]]
 cause = "mir::Operand::Constant: num::MAX as u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_add_unsigned"
+bodies = 5
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_sub_unsigned"
+bodies = 5
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: saturating_add"
 bodies = 5
 
 [[cause]]
@@ -1797,6 +2097,14 @@ cause = "mir::Ty: Filter<u32"
 bodies = 5
 
 [[cause]]
+cause = "mir::Ty: I32NotAllOnes"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: I64NotAllOnes"
+bodies = 5
+
+[[cause]]
 cause = "mir::Ty: Ipv6MulticastScope"
 bodies = 5
 
@@ -1818,6 +2126,22 @@ bodies = 5
 
 [[cause]]
 cause = "mir::Ty: NonZeroCharInner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroI16Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroI32Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroI64Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroI8Inner"
 bodies = 5
 
 [[cause]]
@@ -1929,6 +2253,10 @@ cause = "mir::Ty: num::imp::dec2flt::common::BiasedFp"
 bodies = 5
 
 [[cause]]
+cause = "mir::Ty: num::imp::diy_float::Fp"
+bodies = 5
+
+[[cause]]
 cause = "mir::Ty: num::imp::fmt::Formatted<'_>"
 bodies = 5
 
@@ -2025,7 +2353,15 @@ cause = "mir::Ty: wtf8::CodePoint"
 bodies = 5
 
 [[cause]]
+cause = "mir::BinOp::BitOr: on Int64 and Int64"
+bodies = 4
+
+[[cause]]
 cause = "mir::BinOp::Lt: on String and String"
+bodies = 4
+
+[[cause]]
+cause = "mir::Operand::Constant: num::MAX as i32"
 bodies = 4
 
 [[cause]]
@@ -2057,6 +2393,22 @@ cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::partial_cmp"
 bodies = 4
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: discriminant_value"
+bodies = 4
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_cast_signed"
+bodies = 4
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_cast_unsigned"
+bodies = 4
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: num::checked_isqrt"
+bodies = 4
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: num::repeat_u8"
 bodies = 4
 
@@ -2066,6 +2418,10 @@ bodies = 4
 
 [[cause]]
 cause = "mir::Ty: &mut error::Request<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: &mut u8"
 bodies = 4
 
 [[cause]]
@@ -2109,14 +2465,6 @@ cause = "mir::Ty: Decimal"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: I32NotAllOnes"
-bodies = 4
-
-[[cause]]
-cause = "mir::Ty: I64NotAllOnes"
-bodies = 4
-
-[[cause]]
 cause = "mir::Ty: Inspect<u32"
 bodies = 4
 
@@ -2125,23 +2473,11 @@ cause = "mir::Ty: Item<u32>"
 bodies = 4
 
 [[cause]]
+cause = "mir::Ty: Locality"
+bodies = 4
+
+[[cause]]
 cause = "mir::Ty: NonZeroI128Inner"
-bodies = 4
-
-[[cause]]
-cause = "mir::Ty: NonZeroI16Inner"
-bodies = 4
-
-[[cause]]
-cause = "mir::Ty: NonZeroI32Inner"
-bodies = 4
-
-[[cause]]
-cause = "mir::Ty: NonZeroI64Inner"
-bodies = 4
-
-[[cause]]
-cause = "mir::Ty: NonZeroI8Inner"
 bodies = 4
 
 [[cause]]
@@ -2289,10 +2625,6 @@ cause = "mir::Ty: num::imp::dec2flt::decimal::Decimal"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: num::imp::diy_float::Fp"
-bodies = 4
-
-[[cause]]
 cause = "mir::Ty: ops::range::RangeTo<usize>"
 bodies = 4
 
@@ -2329,6 +2661,22 @@ cause = "mir::Ty: str::pattern::Utf8Pattern<'_>"
 bodies = 4
 
 [[cause]]
+cause = "mir::Ty: sync::atomic::Atomic<i16>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::atomic::Atomic<i32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::atomic::Atomic<i64>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::atomic::Atomic<i8>"
+bodies = 4
+
+[[cause]]
 cause = "mir::Ty: sync::atomic::Atomic<u16>"
 bodies = 4
 
@@ -2358,6 +2706,10 @@ bodies = 4
 
 [[cause]]
 cause = "mir::BinOp::Gt: on String and String"
+bodies = 3
+
+[[cause]]
+cause = "mir::Operand::Constant: 8_i32 as u32"
 bodies = 3
 
 [[cause]]
@@ -2394,6 +2746,134 @@ bodies = 3
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <bool as bit::BitXor>::bitxor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as arith::Add>::add"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as arith::Div>::div"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as arith::Mul>::mul"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as arith::Rem>::rem"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as arith::Sub>::sub"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as bit::BitAnd>::bitand"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as bit::BitOr>::bitor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as bit::BitXor>::bitxor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as arith::Add>::add"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as arith::Div>::div"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as arith::Mul>::mul"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as arith::Rem>::rem"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as arith::Sub>::sub"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as bit::BitAnd>::bitand"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as bit::BitOr>::bitor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as bit::BitXor>::bitxor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as arith::Add>::add"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as arith::Div>::div"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as arith::Mul>::mul"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as arith::Rem>::rem"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as arith::Sub>::sub"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as bit::BitAnd>::bitand"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as bit::BitOr>::bitor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as bit::BitXor>::bitxor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as arith::Add>::add"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as arith::Div>::div"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as arith::Mul>::mul"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as arith::Rem>::rem"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as arith::Sub>::sub"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as bit::BitAnd>::bitand"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as bit::BitOr>::bitor"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as bit::BitXor>::bitxor"
 bodies = 3
 
 [[cause]]
@@ -2629,10 +3109,6 @@ cause = "mir::Ty: &mut fmt::builders::DebugSet<'_"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: &mut u8"
-bodies = 3
-
-[[cause]]
 cause = "mir::Ty: <u32 as ops::coroutine::Coroutine<u32>>::Yield"
 bodies = 3
 
@@ -2694,10 +3170,6 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: LinesMap"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: Locality"
 bodies = 3
 
 [[cause]]
@@ -3069,11 +3541,15 @@ cause = "mir::BinOp::Le: on Bool and Bool"
 bodies = 2
 
 [[cause]]
+cause = "mir::Operand::Constant: 11_i32 as u32"
+bodies = 2
+
+[[cause]]
 cause = "mir::Operand::Constant: 23_i32 as u32"
 bodies = 2
 
 [[cause]]
-cause = "mir::Operand::Constant: 8_i32 as u32"
+cause = "mir::Operand::Constant: num::MAX as i16"
 bodies = 2
 
 [[cause]]
@@ -3237,11 +3713,11 @@ cause = "mir::TerminatorKind::Call: slice::iter::Iter::as_slice"
 bodies = 2
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: to_low_high"
+cause = "mir::TerminatorKind::Call: slice::split_first"
 bodies = 2
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: wrapping_add"
+cause = "mir::TerminatorKind::Call: to_low_high"
 bodies = 2
 
 [[cause]]
@@ -3282,6 +3758,10 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: &mut u64"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: *mut i8"
 bodies = 2
 
 [[cause]]
@@ -3370,10 +3850,6 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: DebugInner<'_"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: Decoded"
 bodies = 2
 
 [[cause]]
@@ -3638,6 +4114,10 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: fmt::builders::DebugTuple<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: fn"
 bodies = 2
 
 [[cause]]
@@ -4077,10 +4557,6 @@ cause = "mir::CastKind::PointerCoercion: from"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: 11_i32 as u32"
-bodies = 1
-
-[[cause]]
 cause = "mir::Operand::Constant: 16_i32 as u32"
 bodies = 1
 
@@ -4145,6 +4621,18 @@ cause = "mir::Operand::Constant: <&&str as str::pattern::Pattern>::strip_suffix_
 bodies = 1
 
 [[cause]]
+cause = "mir::Operand::Constant: <Self as num::imp::traits::Float>::EXP_BIAS as i32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: <Self as num::imp::traits::Float>::EXP_SAT as i32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: <Self as num::imp::traits::Float>::SIG_TOTAL_BITS as f64"
+bodies = 1
+
+[[cause]]
 cause = "mir::Operand::Constant: <slice::iter::Iter<'_"
 bodies = 1
 
@@ -4174,6 +4662,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: mem::variant_count::{constant#0}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: num::imp::dec2flt::table::SMALLEST_POWER_OF_FIVE as i64"
 bodies = 1
 
 [[cause]]
@@ -4209,7 +4701,15 @@ cause = "mir::Operand::Constant: the constant item <A as iter::adapters::zip::Tr
 bodies = 1
 
 [[cause]]
+cause = "mir::Operand::Constant: the constant item <Self as num::imp::dec2flt::Lemire>::MAX_EXPONENT_FAST_PATH"
+bodies = 1
+
+[[cause]]
 cause = "mir::Operand::Constant: the constant item <Self as num::imp::traits::Float>::BITS"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <Self as num::imp::traits::Float>::EXP_BIAS"
 bodies = 1
 
 [[cause]]
@@ -4222,6 +4722,18 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item <char as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <i16 as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <i32 as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <i64 as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
 bodies = 1
 
 [[cause]]
@@ -4258,6 +4770,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item contract_check_requires::compiletime"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item f64::consts::LOG2_10"
 bodies = 1
 
 [[cause]]
@@ -4346,6 +4862,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item slice::memchr::USIZE_BYTES"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item slice::sort::select::INSERTION_SORT_THRESHOLD"
 bodies = 1
 
 [[cause]]
@@ -4502,6 +5022,262 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <bool as cmp::Ord>::cmp"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as AddAssign>::add_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as BitAndAssign>::bitand_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as BitOrAssign>::bitor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as BitXorAssign>::bitxor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as DivAssign>::div_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as MulAssign>::mul_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as Neg>::neg"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as Not>::not"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as RemAssign>::rem_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as Step>::backward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as Step>::forward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as SubAssign>::sub_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as TruncateTarget>::internal_checked_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as TruncateTarget>::internal_saturating_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as TruncateTarget>::internal_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i16 as WidenTarget>::internal_widen"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as AddAssign>::add_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as BitAndAssign>::bitand_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as BitOrAssign>::bitor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as BitXorAssign>::bitxor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as DivAssign>::div_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as MulAssign>::mul_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as Neg>::neg"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as Not>::not"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as RemAssign>::rem_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as Step>::backward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as Step>::forward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as SubAssign>::sub_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as TruncateTarget>::internal_checked_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as TruncateTarget>::internal_saturating_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as TruncateTarget>::internal_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i32 as WidenTarget>::internal_widen"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as AddAssign>::add_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as BitAndAssign>::bitand_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as BitOrAssign>::bitor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as BitXorAssign>::bitxor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as DivAssign>::div_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as MulAssign>::mul_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as Neg>::neg"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as Not>::not"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as RemAssign>::rem_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as Step>::backward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as Step>::forward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as SubAssign>::sub_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as TruncateTarget>::internal_checked_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as TruncateTarget>::internal_saturating_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as TruncateTarget>::internal_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i64 as WidenTarget>::internal_widen"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as AddAssign>::add_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as BitAndAssign>::bitand_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as BitOrAssign>::bitor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as BitXorAssign>::bitxor_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as DivAssign>::div_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as MulAssign>::mul_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as Neg>::neg"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as Not>::not"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as RemAssign>::rem_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as Step>::backward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as Step>::forward_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as SubAssign>::sub_assign"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as TruncateTarget>::internal_checked_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as TruncateTarget>::internal_saturating_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as TruncateTarget>::internal_truncate"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <i8 as WidenTarget>::internal_widen"
 bodies = 1
 
 [[cause]]
@@ -4778,6 +5554,22 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as exact_size::ExactSizeIterator>::len"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i8"
 bodies = 1
 
 [[cause]]
@@ -5061,6 +5853,22 @@ cause = "mir::TerminatorKind::Call: gcd"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: i16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: i32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: i64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: i8"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: insertion_sort_shift_left"
 bodies = 1
 
@@ -5209,10 +6017,6 @@ cause = "mir::TerminatorKind::Call: num::to_ascii_uppercase"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: saturating_add"
-bodies = 1
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: slice::as_chunks"
 bodies = 1
 
@@ -5234,10 +6038,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: slice::split_at_unchecked"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: slice::split_first"
 bodies = 1
 
 [[cause]]
@@ -5565,10 +6365,6 @@ cause = "mir::Ty: *mut i64"
 bodies = 1
 
 [[cause]]
-cause = "mir::Ty: *mut i8"
-bodies = 1
-
-[[cause]]
 cause = "mir::Ty: *mut isize"
 bodies = 1
 
@@ -5630,6 +6426,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: <u32 as iterator::Iterator>::Item"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: <u32 as num::imp::traits::Float>::Int"
 bodies = 1
 
 [[cause]]
@@ -5849,6 +6649,10 @@ cause = "mir::Ty: Unique<u32>"
 bodies = 1
 
 [[cause]]
+cause = "mir::Ty: UnsafeCell<&i32>"
+bodies = 1
+
+[[cause]]
 cause = "mir::Ty: UnsafePinned<u32>"
 bodies = 1
 
@@ -5977,10 +6781,6 @@ cause = "mir::Ty: fmt::rt::ArgumentType<'_>"
 bodies = 1
 
 [[cause]]
-cause = "mir::Ty: fn"
-bodies = 1
-
-[[cause]]
 cause = "mir::Ty: for<'a"
 bodies = 1
 
@@ -6081,6 +6881,22 @@ cause = "mir::Ty: num::imp::flt2dec::decoder::Decoded"
 bodies = 1
 
 [[cause]]
+cause = "mir::Ty: num_buffer::NumBuffer<i16>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: num_buffer::NumBuffer<i32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: num_buffer::NumBuffer<i64>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: num_buffer::NumBuffer<i8>"
+bodies = 1
+
+[[cause]]
 cause = "mir::Ty: num_buffer::NumBuffer<u128>"
 bodies = 1
 
@@ -6138,6 +6954,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: ptr::non_null::NonNull<"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ptr::non_null::NonNull<i8>"
 bodies = 1
 
 [[cause]]

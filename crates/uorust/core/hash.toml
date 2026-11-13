@@ -146,7 +146,7 @@ cause = "mir::Ty: H"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::fmt"
-kappa = "cf98ee86d8a9e0628a58d004771210254a217467aceaeb698ddde1622ffb8fae"
+kappa = "03fe8db4c9a0e6168f010899143dba9450dbfca2c4f780f462e10378f9315277"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -176,28 +176,28 @@ path = "core::hash::Hasher::write_i16"
 kappa = "c019ea4f59eafa289671c8ab83874823e4378343e84f85e46af847f3fdaf2a35"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: i16"
+cause = "mir::CastKind::IntToInt: from Int64 to Nat"
 
 [[fn]]
 path = "core::hash::Hasher::write_i32"
 kappa = "b126ce162023f0ac006a43cb55055a6cffb9c2e2650a2076d713abbdb1585f12"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: i32"
+cause = "mir::CastKind::IntToInt: from Int64 to Nat"
 
 [[fn]]
 path = "core::hash::Hasher::write_i64"
 kappa = "e03e730208c83d915ac477a8b07a33ca5faa4a0ee469581183c9e6b1b63f5726"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: i64"
+cause = "mir::CastKind::IntToInt: from Int64 to Nat"
 
 [[fn]]
 path = "core::hash::Hasher::write_i8"
 kappa = "5a5f3ee684078d33e9f36e196ad572428561fdfe1b2f4db6261b60a9c83c5aab"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: i8"
+cause = "mir::CastKind::IntToInt: from Int64 to Nat"
 
 [[fn]]
 path = "core::hash::Hasher::write_isize"
@@ -316,28 +316,28 @@ path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>
 kappa = "845a8ce55c07cdef6601c489d6ac36c763bafaf36e49d352c2d9bf9b3009675d"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i8"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i8"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#6"
 kappa = "dd0b16e03a34bdd167a28923f30644e2599d7271a436d13ac0bbab549e738383"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i16"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i16"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#7"
 kappa = "6163f69f950523df1e98b8128e1271f5edd23b4268c7a3ed9d4969e6dbb80667"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i32"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i32"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#8"
 kappa = "8edae3fb3742444c279911d30f24116b83008d58f4bf699dccd14122359a10ff"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i64"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i64"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#9"
@@ -400,28 +400,28 @@ path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>
 kappa = "cc373128dd72c6f46397ccf8efe98b3edb7aaea53843b42277783f525d3b179a"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i8"
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#6"
 kappa = "cb2864f7ec9b76868eb0bece4a191de055eec92de5177dcdd8202eec31a444a1"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i16"
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#7"
 kappa = "5d399a26a7bcea1111d6986e032a912773a27b6eb7a3b97115fd9aba5e16a97d"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i32"
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#8"
 kappa = "0af7c68dde32b0187e5f1312ed84a131f9097030160b80a5335813776e044031"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i64"
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#9"
@@ -584,7 +584,7 @@ cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_str"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:19:10: 19:15>::fmt"
-kappa = "7094b81b7f9c2389d78351b1b2b53c2b4591d1dc6208916d10394d61386634d6"
+kappa = "e7a280b64a438b8f9209690cd962a81687f4fc858d3549cd05534b03f6f084a6"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -602,7 +602,7 @@ cause = "mir::Ty: hash::sip::SipHasher13"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:29:10: 29:15>::fmt"
-kappa = "21f75a87c4ff4f8651c8d790702a192d4de8bb4a2e18399d8834d8b7cdc23ca0"
+kappa = "3b67dc9debe70d9f6901f598d050f1a14d75748cec8f06d06672a232366b5692"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -620,7 +620,7 @@ cause = "mir::Ty: hash::sip::SipHasher24"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:357:10: 357:15>::fmt"
-kappa = "3f6a2df55e4dcbfd319b653ecf59156ab8d7ee26156935e498c016c7e0960f1c"
+kappa = "c0c370590e86866b5a23ed3c296de9ac8efa2c480261a8f3cf3052157751538b"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -638,7 +638,7 @@ cause = "mir::Ty: hash::sip::Sip13Rounds"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:374:10: 374:15>::fmt"
-kappa = "50f1357b158591ae299180c7288136c30ff00094c7532b96361da834a5463f6f"
+kappa = "426158358c63d4a64e52d75fa16695adca912ea000ed15d730299fb141cfcbb9"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -656,7 +656,7 @@ cause = "mir::Ty: hash::sip::Sip24Rounds"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:48:10: 48:15>::fmt"
-kappa = "fccda09cfce907e506fdf25beff33f5304b7bdd6774d0ec584409b467e498964"
+kappa = "5a84ac0d193b7152a1acd9e82dc8607ab67822525a389f06751a42b07cd24e26"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -674,14 +674,14 @@ cause = "mir::Ty: hash::sip::SipHasher"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:51:10: 51:15>::fmt"
-kappa = "a57c13577b4d6ec8d7144f5f9cd120ad92fa7e9eb6ef18f11721751a395aedf8"
+kappa = "4d9f5191805073253c9f96f47d49dd606652413be871c1dc26d8bc50c8f53349"
 at = "S=u32"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:62:10: 62:15>::fmt"
-kappa = "6c5ea44dd2916a6815add346410fd63c834d69af8ab4dd5906bcd1a4c3477499"
+kappa = "06db13be70db8f2e3160963a9ec66b2825fd28c575c74ec4f6b81e4d3ae5c525"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -726,7 +726,7 @@ cause = "mir::Ty: S"
 
 [[fn]]
 path = "core::sip::Hasher::write"
-kappa = "c94607ddff78e5eb6f6c748d8249f87efa9af90903939e659bf8acfd4f99b70d"
+kappa = "0376d560aab85612dd843d054c57fdb581a9b043173bfc63f2f2a89e024e4f10"
 status = "residue"
 cause = "mir::Ty: S"
 
@@ -823,7 +823,7 @@ cause = "mir::Ty: SipHasher"
 
 [[fn]]
 path = "core::u8to64_le"
-kappa = "2a8889af7f27237170efe8ccf94174762b19201291739774e65d8d937c9cdf4a"
+kappa = "91322c5df1b7ec0d3b0189ff6bdabf8d8f8e23d62aeb220ed21d99a7fd143a0b"
 status = "residue"
 cause = "mir::TerminatorKind::Call: mem::size_of"
 

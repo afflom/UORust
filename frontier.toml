@@ -2,7 +2,7 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 230 of 760 functions of product code are lifted; 441
+# Honesty report: 230 of 761 functions of product code are lifted; 442
 # are residue, 34 foreign and 55 effect rows.
 # Residue by cause:
 #   arithmetic: 3
@@ -66,11 +66,11 @@
 #   mir::Rvalue::Aggregate: 5
 #     2 Expr, which is not a struct
 #     3 TypeKind, which is not a struct
-#   mir::Rvalue::Discriminant: 2
-#     2 a discriminant read as a value
+#   mir::Rvalue::Discriminant: 3
+#     3 a discriminant read as a value
 #   mir::Rvalue::RawPtr: 5
 #   mir::Rvalue::Use: 9
-#   mir::TerminatorKind::Call: 94
+#   mir::TerminatorKind::Call: 97
 #     1 <bool as std::string::ToString>::to_string
 #     1 <lift::Ty as std::cmp::PartialEq>::eq
 #     1 <std::collections::BTreeMap as std::convert::From>::from
@@ -86,12 +86,14 @@
 #     5 a call of the function itself, whose measure is not derived
 #     9 cmp::PartialEq::ne: std's MIR stops at mir::TerminatorKind::Call: <lift::Ty as cmp::PartialEq>::eq
 #     2 core::bool::<impl bool>::then
+#     1 core::num::<impl i64>::div_euclid
 #     1 core::num::<impl u128>::checked_add
 #     1 core::slice::<impl [&str]>::split_first
 #     1 core::slice::<impl [(lift::Ty, std::string::String, std::string::String)]>::split_first
 #     1 core::slice::<impl [ast::Stmt]>::split_first
 #     1 core::slice::<impl [lift::Clause]>::split_first
 #     1 core::slice::<impl [lift::Ty]>::contains
+#     2 core::str::<impl str>::as_bytes
 #     1 core::str::<impl str>::rsplit_once
 #     1 core::str::<impl str>::split_once
 #     1 lift::Split::reach
@@ -129,7 +131,7 @@
 #     1 uorust::order::derived_in, whose translation is not admitted
 #   mir::TerminatorKind::Goto: 25
 #     25 a loop nested in a loop, whose helpers would call each other
-#   mir::Ty: 129
+#   mir::Ty: 126
 #     2 &mut project::Notes
 #     1 &mut std::collections::BTreeMap<std::string::String, lift::Ty>
 #     1 &mut std::collections::BTreeMap<std::string::String, std::string::String>
@@ -143,8 +145,6 @@
 #     2 dyn for<'a> std::ops::Fn(&'a str) -> std::option::Option<std::vec::Vec<std::string::String>>
 #     1 dyn quote::ToTokens
 #     1 dyn std::error::Error
-#     1 i32
-#     5 i64
 #     1 impl Into<String>
 #     1 mir::ir::IrAggregate
 #     4 mir::ir::IrBody
@@ -202,9 +202,9 @@
 #     1 std::option::IntoIter<&std::vec::Vec<(std::string::String, std::vec::Vec<(std::option::Option<std::string::String>, lift::Ty)>)>>
 #     1 std::path::Path
 #     1 std::path::PathBuf
-#     1 std::str::CharIndices<'_>
-#     7 std::str::Chars<'_>
-#     2 std::str::Lines<'_>
+#     2 std::str::CharIndices<'_>
+#     8 std::str::Chars<'_>
+#     3 std::str::Lines<'_>
 #     1 std::str::MatchIndices<'_, &str>
 #     1 std::str::Split<'_, &str>
 #     1 std::str::Split<'_, char>
@@ -1860,6 +1860,12 @@ reason = "arithmetic"
 detail = "usize + wraps or panics where its value leaves the pointer width: past 2^32 on wasm32-unknown-unknown and thumbv7em-none-eabihf, past 2^64 on x86_64-unknown-linux-gnu and aarch64-unknown-linux-gnu"
 
 [[residue]]
+kappa = "43eb1b1aedc39473df5c5f56247b84f4ba6dcd8db48fe35465955a2bd037a6a5"
+function = "uorust::mir::core::numbered_allocations"
+reason = "mir"
+detail = "mir::Rvalue::Discriminant: a discriminant read as a value"
+
+[[residue]]
 kappa = "69c796b17d9cfd1078ff251a7c62a58e7a817bc16912e159b5187520bf41c5c1"
 function = "uorust::mir::core::toml_quote"
 reason = "mir"
@@ -1920,7 +1926,7 @@ reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "44e7363c411fbcbc874528a766168e7fa8d5ddd050fe1b00328df4855c280a70"
+kappa = "7052eac6ca4b10c2b575b28b7f6a1b1ba73f2607a1212dd914c9485ab8dcc56d"
 function = "uorust::mir::lower::Fun<'_, '_>::binary"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
@@ -1974,7 +1980,7 @@ reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "556605db9e91defce27b0ab94f527ef9fbe15f58970604831a5fd2b2a57e850d"
+kappa = "7ae93094b4743f8b2769ad77e9c437f5d39a1bbf78a58ea1c8b54c2b8488a756"
 function = "uorust::mir::lower::Fun<'_, '_>::constant"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
@@ -2250,7 +2256,7 @@ reason = "mir"
 detail = "mir::Ty: std::str::MatchIndices<'_, &str>"
 
 [[residue]]
-kappa = "cd1f9447c6bcb0ceec822e52660a59918d276f584f8fdde5370d7097628c8678"
+kappa = "72554d70c79cd9c56d5303f63e8399d89abd97860bb0a4278c046397d3ac7d0c"
 function = "uorust::mir::lower::ty"
 reason = "mir"
 detail = "mir::TerminatorKind::Call: std::option::Option::and_then"
@@ -2343,19 +2349,19 @@ detail = "type outside the lift: IrRvalue"
 kappa = "3c283a5011033a2b1104b7beede7d7c7c103ca62c9117c589177d41c8214777b"
 function = "uorust::mir::parse::split_path"
 reason = "mir"
-detail = "mir::Ty: i64"
+detail = "mir::TerminatorKind::Call: core::str::<impl str>::as_bytes"
 
 [[residue]]
 kappa = "7c0a71a28a0d85b4a7500f24ca91779363cf8656658c7a058991d2ba1a79aa93"
 function = "uorust::mir::parse::split_top"
 reason = "mir"
-detail = "mir::Ty: i64"
+detail = "mir::Ty: std::str::CharIndices<'_>"
 
 [[residue]]
 kappa = "cb2af0839d196cb159e45883bc1823964e82500ee404861f11a01b15de32779f"
 function = "uorust::mir::parse::split_type"
 reason = "mir"
-detail = "mir::Ty: i64"
+detail = "mir::TerminatorKind::Call: core::str::<impl str>::as_bytes"
 
 [[residue]]
 kappa = "81b1034529e663385e13c04b2297b009f2cdb77405c30008b308480a3fee2d36"
@@ -2523,7 +2529,7 @@ detail = "mir::Ty: &mut std::vec::Vec<std::string::String>"
 kappa = "32555f72fff5aeb7a1eac6d366f803dfc4352085d7999e13974b6cc7dfed6b19"
 function = "uorust::mir::stdlib::words"
 reason = "mir"
-detail = "mir::Ty: i64"
+detail = "mir::Ty: std::str::Chars<'_>"
 
 [[residue]]
 kappa = "c739e27951bf399bee66ac0ae4cf581d9737f27d5dfb719d168c7a37bd1c0189"
@@ -2883,7 +2889,7 @@ detail = "mir::Operand::Constant: route::REQUEST_LIMIT: mir::Operand::Constant: 
 kappa = "cb7b2b66014dc5e1c5417e5037e80210767c9eef062c5f3623c70652a990f1a6"
 function = "uorust::utc"
 reason = "mir"
-detail = "mir::Ty: i64"
+detail = "mir::TerminatorKind::Call: core::num::<impl i64>::div_euclid"
 
 [[residue]]
 kappa = "848ccb504bd4a9bc18aba62a535e3153d826af9715c6b3daed843053bc9f6cfa"
@@ -2943,7 +2949,7 @@ detail = "type outside the lift: &mut Vec<Step>"
 kappa = "144be536cd1b2e3e2af8c52d3ee25bd06ceeedf5752a471e096ebd94ecc76aa6"
 function = "xtask::audit::effective_lines"
 reason = "mir"
-detail = "mir::Ty: i32"
+detail = "mir::Ty: std::str::Lines<'_>"
 
 [[residue]]
 kappa = "62aa38b0a165fc315905b35a949d8478ae50eb7150319d6c153bf44ee73d728c"
@@ -3257,7 +3263,7 @@ function = "uorust::mir::core::core_regressions"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "a345148028aead4b983c8690dd0b61b61bf6089de6e55d7299f8b68b3dece7b0"
+kappa = "958790540465b1429a3afc971dd50b3a198daecc84250ba8ba1b0a35f43e0cb7"
 function = "uorust::mir::core::core_shard"
 effect = "calls uorust::mir::resolve_impls, which reaches an effect"
 

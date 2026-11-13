@@ -124,7 +124,9 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
             }
             // An impl a macro writes has no source of its own to name it by.
             let path = super::resolve_impls(root, &body.path).unwrap_or_else(|| body.path.clone());
-            let kappa = crate::project::sha(format!("core::{}\n{text}", original.path).as_bytes());
+            let kappa = crate::project::sha(
+                format!("core::{}\n{}", original.path, numbered_allocations(text)).as_bytes(),
+            );
             let mut body = body;
             body.path = path;
             bodies.push((body, at.clone(), kappa));
@@ -209,6 +211,32 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
         module: module.to_string(),
         rows,
     }
+}
+
+/// A dump's text with its allocations numbered by their first mention:
+/// rustc numbers them in the order the whole build makes them, which varies
+/// from one build of core to the next.
+fn numbered_allocations(text: &str) -> String {
+    let mut seen: BTreeMap<String, usize> = BTreeMap::new();
+    let mut out = String::new();
+    let mut rest = text;
+    while let Some(at) = rest.find("alloc") {
+        out.push_str(&rest[..at]);
+        let after = &rest[at + "alloc".len()..];
+        let digits = after.len() - after.trim_start_matches(|c: char| c.is_ascii_digit()).len();
+        let word_start = !rest[..at].ends_with(|c: char| c.is_ascii_alphanumeric() || c == '_');
+        if digits > 0 && word_start {
+            let n = seen.len();
+            let k = *seen.entry(after[..digits].to_string()).or_insert(n);
+            out.push_str(&format!("alloc#{k}"));
+            rest = &after[digits..];
+        } else {
+            out.push_str("alloc");
+            rest = after;
+        }
+    }
+    out.push_str(rest);
+    out
 }
 
 /// The type parameters of a dumped body, each bound to [`CANONICAL`]: the
@@ -458,6 +486,14 @@ mod tests {
         assert_eq!(p.get("F").map(String::as_str), Some(CANONICAL));
         assert_eq!(p.get("N").map(String::as_str), Some("#"));
         assert!(!p.contains_key("Deref") && !p.contains_key("Target"));
+    }
+
+    #[test]
+    fn allocations_are_numbered_by_first_mention() {
+        assert_eq!(
+            numbered_allocations("a = alloc812; b = alloc77; c = alloc812; reallocate"),
+            "a = alloc#0; b = alloc#1; c = alloc#0; reallocate"
+        );
     }
 
     #[test]

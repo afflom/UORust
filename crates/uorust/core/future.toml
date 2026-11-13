@@ -7,7 +7,7 @@ cause = "mir::Ty: {async fn body of future::async_drop::async_drop_in_place<u32>
 
 [[fn]]
 path = "core::future::<impl at library/core/src/future/mod.rs:50:10: 50:15>::fmt"
-kappa = "9ad9359f28fc7840e1c6628e08881fc51e50557f4d6e694d86f29e8916ff6744"
+kappa = "519360b596417c8afe37d623366a76d27409c58cf01e97d80eefa002e52b3a39"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -33,7 +33,7 @@ cause = "mir::Ty: <<u32 as ops::deref::Deref>::Target as future::future::Future>
 
 [[fn]]
 path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:10: 10:15>::fmt"
-kappa = "c165d1cab7f37913e2852e997489be0a86a63acee6238996944bb92587a41c23"
+kappa = "0d098e04d46b0b565533dd7de8c8b8accfa68e20f34754990b8664cbed6fc166"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
@@ -47,14 +47,14 @@ cause = "mir::Ty: future::ready::Ready<u32>"
 
 [[fn]]
 path = "core::future::ready::Ready::into_inner"
-kappa = "ea13b3091ec23e0466e29ef6b676508016795c1d128debba75f53d82385379b2"
+kappa = "82437f0fff457d4e905c1b708f901a13796a5c0570128496a8bca04e33abb4ce"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: Ready<u32>"
 
 [[fn]]
 path = "core::future::ready::Ready::poll"
-kappa = "bf932431be5a70c741faf38cd0df1c4f3be0a223bec61bd50938c5e1de596954"
+kappa = "1cd32f82629333e7329e1903948ff7207902bcca38597b00140f9ddd5d547c71"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: task::poll::Poll<u32>"
@@ -74,14 +74,14 @@ digest = "c3b76fb391e7f374390b1f51c5b70261f7444bc49055763be8f945f29659d572"
 
 [[fn]]
 path = "core::join::MaybeDone::poll"
-kappa = "2b02d41939b587a150881a4d9f9931ff5cf7f39e2044c2403aeefe66334ba627"
+kappa = "f7bf1e80bdb7aa5375fd7d78c562f18245abb5fb65564492e4b8baea67117315"
 at = "F=u32"
 status = "residue"
 cause = "mir::Ty: task::poll::Poll<()>"
 
 [[fn]]
 path = "core::join::MaybeDone::take_output"
-kappa = "7a30c1298bcc8c9e64999ba702e2f4e22557e42239f3edf9f17aa2b31825b0df"
+kappa = "8b48397d45d3b9c32161e4df2a08383d0cb2b0701eebe6b287a25b78a769cdfd"
 at = "F=u32"
 status = "residue"
 cause = "mir::Ty: <u32 as future::future::Future>::Output"
@@ -102,7 +102,7 @@ cause = "mir::Ty: future::pending::Pending<u32>"
 
 [[fn]]
 path = "core::pending::Pending::fmt"
-kappa = "cd2d1f86ad52e7d4cf5a42e4abf02f55f8af6b6656a2dadb48e91e7547d323aa"
+kappa = "79e561f8369af1df3e97d155175969a0d55262e870ad8aedebd729409741e57b"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 
@@ -122,7 +122,7 @@ cause = "mir::Ty: future::poll_fn::PollFn<u32>"
 
 [[fn]]
 path = "core::poll_fn::PollFn::fmt"
-kappa = "dec7243ea4caa145c25d3e872e5ab0dda77d0372ddd6cc45eb3eafbcfbf96158"
+kappa = "51f640c1cdaa74aa7bc7337c03bfc9bf7433bde164fc1afdbdebf8bc8fbb0b38"
 status = "residue"
 cause = "mir::Ty: fmt::Error"
 

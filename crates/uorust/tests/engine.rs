@@ -1319,6 +1319,8 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
         "walk::second_known",
         // A closure passed to std's `find`.
         "walk::first_named",
+        // Signed integers compared as `Int64`.
+        "walk::first_negative",
     ] {
         assert!(
             lifted_functions(&decided).contains(&f.to_string()),

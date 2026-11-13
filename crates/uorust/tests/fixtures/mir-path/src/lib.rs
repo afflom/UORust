@@ -179,3 +179,16 @@ pub fn first_named<'a>(names: &[&'a str]) -> Option<&'a str> {
     }
     names.iter().find(|n| !n.trim().is_empty()).copied()
 }
+
+/// The position of the first negative value: a `while` loop over signed
+/// integers, which the MIR path compares as `Int64`.
+pub fn first_negative(xs: &[i64]) -> Option<usize> {
+    let mut i = 0;
+    while i < xs.len() {
+        if xs[i] < 0 {
+            return Some(i);
+        }
+        i += 1;
+    }
+    None
+}

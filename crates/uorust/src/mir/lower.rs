@@ -1367,6 +1367,7 @@ impl Fun<'_, '_> {
                 let t = ty(suffix, self.cx.types)?;
                 match t {
                     Ty::Nat(_) if *n >= 0 => Ok((n.to_string(), t)),
+                    Ty::Int(_) => Ok((format!("({n} : Int64)"), t)),
                     _ => Err(kind(k, &format!("a {suffix} literal"))),
                 }
             }
@@ -1826,6 +1827,20 @@ impl Fun<'_, '_> {
                     B::Le => format!("({x} <=? {y})"),
                     B::Gt => format!("({y} <? {x})"),
                     _ => format!("({y} <=? {x})"),
+                };
+                v(s, Ty::Bool)
+            }
+            // Int64's equality and order, decided as the AST path's are.
+            B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge
+                if matches!(xt, Ty::Int(_)) && xt == yt =>
+            {
+                let s = match op {
+                    B::Eq => format!("(prim equal {x} {y} : Bool)"),
+                    B::Ne => format!("(not (prim equal {x} {y} : Bool))"),
+                    B::Lt => format!("(prim less_than {x} {y} : Bool)"),
+                    B::Le => format!("(not (prim less_than {y} {x} : Bool))"),
+                    B::Gt => format!("(prim less_than {y} {x} : Bool)"),
+                    _ => format!("(not (prim less_than {x} {y} : Bool))"),
                 };
                 v(s, Ty::Bool)
             }
@@ -2757,6 +2772,11 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         ("u64", []) => Ty::Nat(Some(64)),
         ("u128", []) => Ty::Nat(Some(128)),
         ("usize", []) => Ty::Nat(None),
+        // A signed integer of at most 64 bits, held as `Int64`.
+        ("i8", []) => Ty::Int(8),
+        ("i16", []) => Ty::Int(16),
+        ("i32", []) => Ty::Int(32),
+        ("i64", []) => Ty::Int(64),
         ("char", []) => Ty::Char,
         ("str", []) => Ty::Str,
         ("String", []) if std || segs.len() == 1 => Ty::Str,
