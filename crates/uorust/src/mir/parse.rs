@@ -501,6 +501,9 @@ fn rvalue(text: &str) -> IrRvalue {
     // `&raw const p` and `&raw mut p`: the address of a place.
     if let Some(rest) = t.strip_prefix("&raw ") {
         let (m, p) = rest.split_once(' ').unwrap_or((rest, ""));
+        if let ("const", Some(q)) = (m, p.strip_prefix("(fake) ")) {
+            return place(q).map_or(other(R::RawPtr), IrRvalue::MetadataPtr);
+        }
         return match (m, place(p)) {
             ("const", Some(p)) => IrRvalue::RawPtr(false, p),
             ("mut", Some(p)) => IrRvalue::RawPtr(true, p),
@@ -1015,6 +1018,10 @@ fn sum(_1: &[u64], _2: (u8, bool)) -> u64 {
         assert!(matches!(
             rvalue("&raw const (*_1)"),
             IrRvalue::RawPtr(false, _)
+        ));
+        assert!(matches!(
+            rvalue("&raw const (fake) (*_1)"),
+            IrRvalue::MetadataPtr(_)
         ));
         assert!(matches!(
             rvalue("&mut _1"),

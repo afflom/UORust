@@ -133,6 +133,9 @@ pub(crate) enum IrRvalue {
     Cast(spec::MirCastKind, IrOperand, String),
     /// `&raw const p` (`false`) or `&raw mut p` (`true`): a place's address.
     RawPtr(bool, IrPlace),
+    /// `&raw const (fake) p`: a pointer made only for its metadata
+    /// (rustc's `RawPtrKind::FakeForPtrMetadata`), never dereferenced.
+    MetadataPtr(IrPlace),
     /// Any other rvalue: its kind and text.
     Other(spec::MirRvalue, String),
 }

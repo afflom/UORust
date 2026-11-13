@@ -200,6 +200,10 @@ struct State {
 struct Loop {
     name: String,
     live: Vec<(IrLocal, String, Ty)>,
+    /// The locals whose values live in memory, by their pointers'
+    /// parameters, and the memory's parameter, after the live locals.
+    carried: Vec<(IrLocal, String)>,
+    memory: Option<String>,
 }
 
 struct Fun<'a, 'c> {
@@ -369,9 +373,13 @@ fn pointer_value(allocation: &str, address: &str, metadata: &str) -> String {
 /// trait object, whose metadata is a vtable.
 fn pointee(text: &str) -> Option<(&str, bool)> {
     let t = text.trim();
+    let wrapped = wrapper(t)
+        .filter(|(n, _)| matches!(*n, "NonNull" | "Unique"))
+        .map(|(_, arg)| arg);
     let rest = t
         .strip_prefix("*const ")
-        .or_else(|| t.strip_prefix("*mut "))?
+        .or_else(|| t.strip_prefix("*mut "))
+        .or(wrapped)?
         .trim();
     if rest.starts_with("dyn ") {
         return None;
@@ -515,9 +523,6 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
     }
     f.result = threaded_result(&f.ret, &threads_ty, cx.types);
     f.find_loops()?;
-    if memory && !f.loops.is_empty() {
-        return Err(kind(MEMORY_KIND, "a loop of a body that reaches memory"));
-    }
     f.scope = f.params.clone();
     // A float intrinsic core declares without a body (it is `unreachable`,
     // the compiler supplying it) is the prelude's model of it, as a call
@@ -831,7 +836,7 @@ impl Fun<'_, '_> {
         if !self.loops.contains_key(&b) {
             return self.block(b, st);
         }
-        let lp = self.helper(b)?;
+        let lp = self.helper(b, &st)?;
         let mut args = Vec::new();
         for (l, _, t) in &lp.live {
             match st.env.get(l) {
@@ -843,6 +848,21 @@ impl Fun<'_, '_> {
                     ))
                 }
             }
+        }
+        // The memory the loop runs in, and where its placed locals are.
+        let same = st.placed.len() == lp.carried.len()
+            && lp.carried.iter().all(|(l, _)| st.placed.contains_key(l));
+        if !same {
+            return Err(kind(
+                MEMORY_KIND,
+                "a loop header reached with other locals in memory",
+            ));
+        }
+        for (l, _) in &lp.carried {
+            args.push(st.placed[l].pointer.clone());
+        }
+        if lp.memory.is_some() {
+            args.push(self.memory_at(&st)?);
         }
         let call = if args.is_empty() {
             lp.name.clone()
@@ -859,11 +879,12 @@ impl Fun<'_, '_> {
     }
 
     /// The helper of the loop at `h`, built on first use.
-    fn helper(&mut self, h: IrBlockId) -> Lift<Loop> {
+    fn helper(&mut self, h: IrBlockId, entry: &State) -> Lift<Loop> {
         if let Some(Some(lp)) = self.loops.get(&h) {
             return Ok(lp.clone());
         }
-        let live = self.live_at(h);
+        let mut live = self.live_at(h);
+        live.retain(|l| !entry.placed.contains_key(l));
         let mut params = Vec::new();
         let base = format!("{}Loop{h}", self.name);
         let name = {
@@ -895,9 +916,32 @@ impl Fun<'_, '_> {
             st.env.insert(l, Val::V(p.clone(), t.clone()));
             params.push((l, p, t));
         }
+        let pt = Ty::Named(POINTER.to_string());
+        let mut carried = Vec::new();
+        for (l, placed) in &entry.placed {
+            let p = self.fresh(Some("pointer"), *l);
+            st.placed.insert(
+                *l,
+                Placed {
+                    pointer: p.clone(),
+                    ..placed.clone()
+                },
+            );
+            carried.push((*l, p));
+        }
+        let memory = match &entry.memory {
+            Some(_) => {
+                let m = self.fresh(Some("memory"), 0);
+                st.memory = Some(m.clone());
+                Some(m)
+            }
+            None => None,
+        };
         let lp = Loop {
             name: name.clone(),
             live: params.clone(),
+            carried: carried.clone(),
+            memory: memory.clone(),
         };
         self.loops.insert(h, Some(lp.clone()));
         let saved = (
@@ -908,6 +952,12 @@ impl Fun<'_, '_> {
         self.scope = params
             .iter()
             .map(|(_, p, t)| (p.clone(), t.clone()))
+            .chain(carried.iter().map(|(_, p)| (p.clone(), pt.clone())))
+            .chain(
+                memory
+                    .iter()
+                    .map(|m| (m.clone(), super::memory::memory_ty())),
+            )
             .collect();
         let measure = self.derive_measure(h, &st)?;
         self.measure = Some(measure.clone());
@@ -1054,6 +1104,8 @@ impl Fun<'_, '_> {
                 next.env.insert(*l, v.clone());
             }
         }
+        next.placed = st.placed.clone();
+        next.memory = st.memory.clone();
         let after = self
             .header_condition(h, next)?
             .and_then(|(c, stay)| comparison(&c).map(|(op, x, y)| (op.to_string(), x, y, stay)));
@@ -1368,7 +1420,7 @@ impl Fun<'_, '_> {
             }
         }
         if let IrProjection::Field(0, fty) = step {
-            if !matches!(t, Ty::Named(_) | Ty::Tuple(_) | Ty::Pair(_))
+            if (is_pointer(t) || !matches!(t, Ty::Named(_) | Ty::Tuple(_) | Ty::Pair(_)))
                 && ty(fty, self.cx.types).ok().as_ref() == Some(t)
             {
                 return self.replace(whole, t, rest, new, st);
@@ -2280,9 +2332,12 @@ impl Fun<'_, '_> {
                     t = Ty::Unit;
                     text = Some(fty.clone());
                 }
-                // `ManuallyDrop`'s field, the value it wraps.
+                // `ManuallyDrop`'s field, the value it wraps; `NonNull`'s and
+                // `Unique`'s, the pointer they are (a raw pointer has no
+                // fields of its own).
                 IrProjection::Field(0, fty)
-                    if !matches!(t, Ty::Named(_) | Ty::Tuple(_) | Ty::Pair(_))
+                    if (is_pointer(&t)
+                        || !matches!(t, Ty::Named(_) | Ty::Tuple(_) | Ty::Pair(_)))
                         && ty(fty, self.cx.types).ok().as_ref() == Some(&t) =>
                 {
                     text = Some(fty.clone());
@@ -2758,6 +2813,27 @@ impl Fun<'_, '_> {
                 }
             }
             IrRvalue::RawPtr(_, p) => self.address_of(p, dest, st),
+            // A pointer only its metadata is read of: the place's length
+            // where it is a slice, without provenance, so that nothing is
+            // read or written through it.
+            IrRvalue::MetadataPtr(p) => {
+                let (v, t) = self.read(p, st)?;
+                let meta = match &t {
+                    Ty::List(_) => format!("(prim length {v} : Nat)"),
+                    Ty::Str => {
+                        return Err(kind(
+                            spec::MirRvalue::RawPtr.path(),
+                            "the metadata of a str's place",
+                        ))
+                    }
+                    _ => "0".into(),
+                };
+                self.mention(&Ty::Named(POINTER.to_string()));
+                Ok(Val::V(
+                    pointer_value("0", "0", &meta),
+                    Ty::Named(POINTER.to_string()),
+                ))
+            }
             IrRvalue::Other(k, _) => Err(kind(k.path(), "")),
         }
     }
@@ -3229,6 +3305,11 @@ impl Fun<'_, '_> {
                     return Ok(format!("(ctor Option.some [{}] {v})", inner.render()))
                 }
                 (Some("ManuallyDrop"), Some("value"), _, [v]) => return Ok(v.clone()),
+                // `NonNull { pointer }` and `Unique { pointer, _marker }`
+                // are the pointer they hold.
+                (Some("NonNull" | "Unique"), Some("pointer"), t, [v, ..]) if is_pointer(t) => {
+                    return Ok(v.clone())
+                }
                 _ => {}
             }
         }
@@ -3859,6 +3940,17 @@ impl Fun<'_, '_> {
             {
                 // An intrinsic that reaches memory: the memory's model.
                 let name = split_path(&path).last().copied().unwrap_or_default();
+                // A pointer's metadata: a slice's length, a thin pointer's
+                // unit.
+                if let ("ptr_metadata", [(p, pt)]) = (name, args.as_slice()) {
+                    if is_pointer(pt) {
+                        return match dt {
+                            Ty::Unit => Ok(Called::value("()".into())),
+                            Ty::Nat(None) => Ok(Called::value(format!("(project {p} metadata)"))),
+                            _ => Err(kind(k, &format!("ptr_metadata at {}", dt.render()))),
+                        };
+                    }
+                }
                 if MEMORY_INTRINSICS.contains(&name) {
                     let mut generics = turbofish(callee);
                     if generics.is_empty() {
@@ -4663,6 +4755,7 @@ fn rvalue_reads(rv: &IrRvalue) -> Vec<IrLocal> {
         IrRvalue::Use(o) | IrRvalue::Unary(_, o) | IrRvalue::Cast(_, o, _) => operand_reads(o),
         IrRvalue::Ref(_, p)
         | IrRvalue::RawPtr(_, p)
+        | IrRvalue::MetadataPtr(p)
         | IrRvalue::CopyForDeref(p)
         | IrRvalue::Discriminant(p) => place_reads(p),
         IrRvalue::Binary(_, a, b) => {
@@ -4786,6 +4879,28 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     // return, and the path to it is proved unreachable).
     if t == "!" {
         return Ok(Ty::Unit);
+    }
+    // A pointee's metadata (`core::ptr::Pointee`): a slice's or a `str`'s
+    // is its length, a `usize`; a sized type's is the unit. A trait
+    // object's, a vtable, is residue.
+    if let Some(rest) = t.strip_prefix('<') {
+        if let Some((pointee_text, assoc)) = rest.rsplit_once(" as ") {
+            let assoc = assoc.trim_start_matches("core::");
+            if matches!(
+                assoc,
+                "ptr::metadata::Pointee>::Metadata" | "Pointee>::Metadata"
+            ) {
+                return match pointee(&format!("*const {pointee_text}")) {
+                    Some((_, true)) => Ok(Ty::Nat(None)),
+                    Some((p, false)) if !p.starts_with("dyn ") && types.core => {
+                        // A type parameter could be unsized; a concrete type
+                        // that lifts is sized.
+                        ty(p, types).map(|_| Ty::Unit)
+                    }
+                    _ => bad(),
+                };
+            }
+        }
     }
     // A raw pointer, where the scope declares the pointer struct: a typed
     // address with its provenance and metadata (see [`POINTER`]). A pointer
@@ -4916,6 +5031,11 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         // uninitialized as a `T` is undefined), so it is an `Option<T>`,
         // `None` where uninitialized.
         ("ManuallyDrop", [t]) if std => return ty(t, types),
+        // `NonNull<T>` and `Unique<T>` are a `*const T` that is not null
+        // (the `NonNull` docs), which their constructors' obligations say.
+        ("NonNull" | "Unique", [p]) if std || types.core => {
+            return ty(&format!("*const {p}"), types)
+        }
         ("MaybeUninit", [t]) if std => return Ok(Ty::Option(Box::new(ty(t, types)?))),
         _ => {}
     }
@@ -5060,7 +5180,12 @@ fn turbofish(callee: &str) -> Vec<String> {
 /// offsets one, or calls a memory intrinsic.
 fn reaches_memory(body: &IrBody) -> bool {
     let raw = |l: IrLocal| body.locals.get(l).is_some_and(|t| pointee(t).is_some());
-    let through = |p: &IrPlace| raw(p.local) && p.projection.first() == Some(&IrProjection::Deref);
+    let through = |p: &IrPlace| {
+        (raw(p.local) && p.projection.first() == Some(&IrProjection::Deref))
+            || p.projection.windows(2).any(|w| {
+                matches!(w, [IrProjection::Field(_, fty), IrProjection::Deref] if pointee(fty).is_some())
+            })
+    };
     let operand =
         |o: &IrOperand| matches!(o, IrOperand::Copy(p) | IrOperand::Move(p) if through(p));
     body.blocks.iter().any(|b| {
@@ -5117,6 +5242,25 @@ enum Access {
     Maybe(String),
     /// A `MaybeUninit`'s `uninit` field, the unit.
     Unit(String),
+}
+
+/// Whether no value of `t` holds a pointer: a value loaded from memory
+/// names the pointer it was loaded through, but is not one.
+fn holds_no_pointer(t: &Ty) -> bool {
+    match t {
+        Ty::Unit
+        | Ty::Bool
+        | Ty::Nat(_)
+        | Ty::Int(_)
+        | Ty::Signed(_)
+        | Ty::Char
+        | Ty::Float(_)
+        | Ty::Str => true,
+        Ty::Option(e) | Ty::List(e) => holds_no_pointer(e),
+        Ty::Tuple(ts) | Ty::Pair(ts) => ts.iter().all(holds_no_pointer),
+        Ty::Outcome(a, b) => holds_no_pointer(a) && holds_no_pointer(b),
+        _ => false,
+    }
 }
 
 /// The type's name and its one argument, where `text` is an instance of a
@@ -5210,6 +5354,29 @@ impl Fun<'_, '_> {
             let term = term.clone();
             let view = self.pointer_view(&term, pointee_text)?;
             return Ok(Some((view, rest.to_vec())));
+        }
+        // A raw pointer held in a field, dereferenced: the field read, then
+        // the memory it points into (the last such step, so that a pointer
+        // read through another is loaded first).
+        let held = p.projection.iter().enumerate().rev().find_map(|(j, step)| {
+            match (step, j.checked_sub(1).map(|i| &p.projection[i])) {
+                (IrProjection::Deref, Some(IrProjection::Field(_, fty))) => {
+                    pointee(fty).map(|(t, _)| (j, t.to_string()))
+                }
+                _ => None,
+            }
+        });
+        if let Some((j, pointee_text)) = held {
+            let prefix = IrPlace {
+                local: p.local,
+                projection: p.projection[..j].to_vec(),
+            };
+            let (term, t) = self.read(&prefix, st)?;
+            if !is_pointer(&t) {
+                return Ok(None);
+            }
+            let view = self.pointer_view(&term, &pointee_text)?;
+            return Ok(Some((view, p.projection[j + 1..].to_vec())));
         }
         Ok(None)
     }
@@ -5468,8 +5635,9 @@ impl Fun<'_, '_> {
     /// pointer it returns may reach.
     fn returned_memory(&mut self, returned: &str, st: &State) -> Lift<String> {
         let mut m = self.memory_at(st)?;
+        let plain = holds_no_pointer(&self.ret);
         for placed in st.placed.values() {
-            if placed.mirror && returned.contains(&placed.pointer) {
+            if placed.mirror && !plain && returned.contains(&placed.pointer) {
                 return Err(kind(
                     MEMORY_KIND,
                     "a pointer to a place the caller lent, returned: the value model gives that place no address",
