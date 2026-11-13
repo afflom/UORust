@@ -389,8 +389,8 @@ fn valid_range(pat: &str, signed: bool, bits: u32) -> Option<(u128, u128)> {
         (1u128 << bits) - 1
     };
     let (min, max): (i128, Option<i128>) = if signed {
-        let half = 1i128.checked_shl(bits - 1)?;
-        (-half, Some(half - 1))
+        let min = (-1i128).checked_shl(bits.checked_sub(1)?)?;
+        (min, Some(!min))
     } else {
         (0, i128::try_from(mask).ok())
     };
@@ -4898,8 +4898,14 @@ impl Fun<'_, '_> {
             // source wraps, rewrapped as the destination wraps it. Into an
             // `Option` of a pattern-typed wrapper, the scalar's niche is
             // `None`; out of one, `None` is the niche.
-            (Some(M::Transmute), [(v, st)], [_, _]) => {
-                self.transmuted(v, st, dt).ok_or_else(|| {
+            //
+            // Between fixed-width integers and arrays of them, the bits are
+            // the elements' in the targets' byte order: element `i` of `n`
+            // holds the bits from `e * i` (little-endian) or from
+            // `e * (n - 1 - i)` (big-endian), `e` its width. An array's
+            // length is its printed type's; a scalar side's width is both.
+            (Some(M::Transmute), [(v, st)], [ps, pd]) => {
+                let unrelated = || {
                     kind(
                         k,
                         &format!(
@@ -4908,7 +4914,83 @@ impl Fun<'_, '_> {
                             dt.render()
                         ),
                     )
-                })
+                };
+                if let Some(t) = self.transmuted(v, st, dt) {
+                    return Ok(t);
+                }
+                // (total bits, the element width of an array side).
+                let shape = |t: &Ty, printed: &str| match t {
+                    Ty::List(e) => {
+                        let e = fixed(e)?;
+                        let n: u32 = printed
+                            .strip_prefix('[')?
+                            .strip_suffix(']')?
+                            .rsplit_once("; ")?
+                            .1
+                            .parse()
+                            .ok()?;
+                        Some((e.checked_mul(n)?, Some(e)))
+                    }
+                    // A scalar's width is its size in every target's layout.
+                    _ => {
+                        let size = super::layout::agreed(t, self.cx.layouts).ok()?.size;
+                        let w = u32::try_from(size.checked_mul(u64::from(u8::BITS))?).ok()?;
+                        (Int::of(t, self.cx.widths)?.held == w).then_some((w, None))
+                    }
+                };
+                let orders: BTreeSet<bool> = self.cx.layouts.iter().map(|l| l.big_endian).collect();
+                let orders: Vec<bool> = orders.into_iter().collect();
+                let (Some((sw, se)), Some((dw, de)), [big]) =
+                    (shape(st, ps), shape(dt, pd), orders.as_slice())
+                else {
+                    return Err(unrelated());
+                };
+                if sw != dw || (se.is_none() && de.is_none()) {
+                    return Err(unrelated());
+                }
+                // The shift of element `i` of the `n` of width `e`.
+                let big = *big;
+                let shift = |i: u32, n: u32, e: u32| if big { e * (n - 1 - i) } else { e * i };
+                let whole = match (se, st) {
+                    (Some(e), Ty::List(et)) => {
+                        let n = sw / e;
+                        let et = et.render();
+                        let held = self.fresh(Some("held"), usize::MAX);
+                        let mut sum = "0".to_string();
+                        for i in 0..n {
+                            sum = format!(
+                                "({sum} + ((match (prim index {v} {i} : (Option {et})) | Option.none => 0 | Option.some {held} => {held}) * {}))",
+                                super::int::pow2(shift(i, n, e))
+                            );
+                        }
+                        sum
+                    }
+                    _ => v.clone(),
+                };
+                match (de, dt) {
+                    (Some(e), Ty::List(et)) => {
+                        let n = dw / e;
+                        // An array source's sum, bound once.
+                        let bits = self.fresh(Some("bits"), usize::MAX);
+                        let (bound, whole) = match se {
+                            Some(_) => (Some(whole), bits.clone()),
+                            None => (None, whole),
+                        };
+                        let mut out = format!("(nil {})", et.render());
+                        for i in (0..n).rev() {
+                            out = format!(
+                                "(cons (prim remainder (prim quotient {whole} {} 0 : Nat) {} 0 : Nat) {out})",
+                                super::int::pow2(shift(i, n, e)),
+                                super::int::pow2(e)
+                            );
+                        }
+                        Ok(match bound {
+                            Some(sum) => format!("(let {bits} : Nat := {sum}; {out})"),
+                            None => out,
+                        })
+                    }
+                    _ => Ok(whole),
+                }
             }
             // `three_way_compare` of two integers: `Less` where `a < b` by
             // the type's order, `Equal` where they are equal.
@@ -5085,6 +5167,11 @@ impl Fun<'_, '_> {
             niches.iter().all(|x| *x == first).then_some(first)
         };
         match (from, to) {
+            // `&str` read as `&[u8]`: a `str` is laid out as its UTF-8
+            // encoding, which the prelude's `textBytes` gives byte by byte.
+            (Ty::Str, Ty::List(b)) if **b == Ty::Nat(Some(u8::BITS)) => {
+                Some(format!("({}::textBytes {v})", lift::PRELUDE))
+            }
             (_, Ty::Option(inner)) => {
                 let (is, ic) = peel(inner);
                 if !one(&fs, &is) || !fc.is_empty() {
