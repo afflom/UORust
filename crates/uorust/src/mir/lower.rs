@@ -3620,12 +3620,7 @@ impl Fun<'_, '_> {
             .map(|(_, m)| *m);
         let order = link.decls.generics.get(path).cloned().unwrap_or_default();
         let types: Vec<&String> = order.iter().filter_map(|n| generics.get(n)).collect();
-        let unmodeled = || {
-            kind(
-                k,
-                &format!("{path}, an intrinsic the table does not model"),
-            )
-        };
+        let unmodeled = || kind(k, &format!("{path}, an intrinsic the table does not model"));
         match (model, args, types.as_slice()) {
             // `size_of::<T>() -> usize`, and `size_of_val` of a sized `T`:
             // `T`'s size in the data layout, the same on every declared
@@ -3661,7 +3656,9 @@ impl Fun<'_, '_> {
             // number, `false`, the unit or `'\0'`; the all-`0x01` pattern
             // of `mem::uninitialized` is a number, `true` or the unit, but
             // no `char` (`0x01010101` is above `char::MAX`).
-            (Some(m @ (M::Inhabited | M::ZeroValid | M::UninitValid)), [], [t]) if *dt == Ty::Unit => {
+            (Some(m @ (M::Inhabited | M::ZeroValid | M::UninitValid)), [], [t])
+                if *dt == Ty::Unit =>
+            {
                 let t = ty(t, self.cx.types)?;
                 let number = matches!(t, Ty::Nat(_) | Ty::Int(_) | Ty::Signed(_) | Ty::Float(_));
                 let valid = match m {

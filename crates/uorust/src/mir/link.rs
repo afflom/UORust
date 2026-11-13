@@ -407,7 +407,8 @@ impl CoreLink {
                     // declares it with.
                     let own = super::core::canonical_bindings(text);
                     let declares = self.decls.generics.get(p.as_str());
-                    let param = |k: &String| own.contains_key(k) || declares.is_some_and(|d| d.contains(k));
+                    let param =
+                        |k: &String| own.contains_key(k) || declares.is_some_and(|d| d.contains(k));
                     // A type rustc prints by its bare name binds itself:
                     // `ByteStr` is `bstr::ByteStr`.
                     let itself = |k: &String, v: &String| {

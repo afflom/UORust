@@ -853,11 +853,26 @@ pub(crate) fn unify(
         }
     }
     for (open, close, sep) in [('[', ']', ';'), ('(', ')', ',')] {
-        let inner = |t: &str| t.strip_prefix(open).and_then(|r| r.strip_suffix(close)).map(str::to_string);
+        let inner = |t: &str| {
+            t.strip_prefix(open)
+                .and_then(|r| r.strip_suffix(close))
+                .map(str::to_string)
+        };
         if let (Some(p), Some(a)) = (inner(&p), inner(&a)) {
-            let (ps, as_) = (super::parse::split_top(&p, sep), super::parse::split_top(&a, sep));
-            let ps: Vec<&str> = ps.iter().map(|x| x.trim()).filter(|x| !x.is_empty()).collect();
-            let as_: Vec<&str> = as_.iter().map(|x| x.trim()).filter(|x| !x.is_empty()).collect();
+            let (ps, as_) = (
+                super::parse::split_top(&p, sep),
+                super::parse::split_top(&a, sep),
+            );
+            let ps: Vec<&str> = ps
+                .iter()
+                .map(|x| x.trim())
+                .filter(|x| !x.is_empty())
+                .collect();
+            let as_: Vec<&str> = as_
+                .iter()
+                .map(|x| x.trim())
+                .filter(|x| !x.is_empty())
+                .collect();
             if ps.len() != as_.len() {
                 return None;
             }
