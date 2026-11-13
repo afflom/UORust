@@ -535,6 +535,10 @@ pub(crate) struct CoreDecls {
     /// (as written), the trait's name and the associated type's: the
     /// module the impl is written in and the type it sets.
     assoc: BTreeMap<(String, String, String), (String, String)>,
+    /// Each constant item's type and expression, as written, by its path
+    /// from core's root: rustc dumps the MIR of only some (`pub` ones), so
+    /// a use of another reads its value from the source.
+    pub(crate) items: BTreeMap<String, (String, String)>,
 }
 
 impl CoreDecls {
@@ -763,6 +767,13 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
         };
         for item in list {
             match item {
+                syn::Item::Const(c) => {
+                    let e = &c.expr;
+                    out.items.insert(
+                        at(c.ident.to_string()),
+                        (text(&c.ty), quote::quote!(#e).to_string()),
+                    );
+                }
                 syn::Item::Struct(st) => {
                     let params = generic_names(&st.generics);
                     out.consts

@@ -3257,6 +3257,125 @@ impl Fun<'_, '_> {
                         })?;
                     self.const_body(p, &body)
                 }
+                // A constant item rustc dumps no body of: its value, folded
+                // from the expression core's source gives it, of integer
+                // literals, other constant items, arithmetic and casts
+                // (which the compiler evaluated, so none overflows), or a
+                // `bool` literal.
+                None if self
+                    .cx
+                    .core
+                    .is_some_and(|l| l.decls.items.contains_key(p.as_str())) =>
+                {
+                    let decls = &self.cx.core.expect("checked").decls;
+                    let (written, expr) = decls.items[p.as_str()].clone();
+                    let t = ty(&written, self.cx.types)?;
+                    let unfolded = || kind(k, &format!("the constant item {p}, of {expr}"));
+                    let parsed: syn::Expr = syn::parse_str(&expr).map_err(|_| unfolded())?;
+                    if t == Ty::Bool {
+                        return match &parsed {
+                            syn::Expr::Lit(syn::ExprLit {
+                                lit: syn::Lit::Bool(b),
+                                ..
+                            }) => Ok((b.value.to_string(), Ty::Bool)),
+                            _ => Err(unfolded()),
+                        };
+                    }
+                    let int = Int::of(&t, self.cx.widths).ok_or_else(unfolded)?;
+                    let module = p.rsplit_once("::").map_or("", |(m, _)| m);
+                    let mut work: Vec<(syn::Expr, bool)> = vec![(parsed, false)];
+                    let mut vals: Vec<i128> = Vec::new();
+                    while let Some((e, done)) = work.pop() {
+                        match (&e, done) {
+                            (
+                                syn::Expr::Lit(syn::ExprLit {
+                                    lit: syn::Lit::Int(n),
+                                    ..
+                                }),
+                                _,
+                            ) => vals.push(n.base10_parse::<i128>().map_err(|_| unfolded())?),
+                            (syn::Expr::Paren(x), _) => work.push(((*x.expr).clone(), false)),
+                            (syn::Expr::Group(x), _) => work.push(((*x.expr).clone(), false)),
+                            (syn::Expr::Path(q), _) => {
+                                let name = q
+                                    .path
+                                    .segments
+                                    .iter()
+                                    .map(|s| s.ident.to_string())
+                                    .collect::<Vec<_>>()
+                                    .join("::");
+                                let (_, other) = decls
+                                    .items
+                                    .get(&format!("{module}::{name}"))
+                                    .or_else(|| decls.items.get(&name))
+                                    .ok_or_else(unfolded)?;
+                                work.push((syn::parse_str(other).map_err(|_| unfolded())?, false));
+                            }
+                            (syn::Expr::Binary(b), false) => {
+                                let (l, r) = ((*b.left).clone(), (*b.right).clone());
+                                work.push((e.clone(), true));
+                                work.push((r, false));
+                                work.push((l, false));
+                            }
+                            (syn::Expr::Binary(b), true) => {
+                                let (Some(r), Some(l)) = (vals.pop(), vals.pop()) else {
+                                    return Err(unfolded());
+                                };
+                                let shift = u32::try_from(r).ok();
+                                let v = match b.op {
+                                    syn::BinOp::Add(_) => l.checked_add(r),
+                                    syn::BinOp::Sub(_) => l.checked_sub(r),
+                                    syn::BinOp::Mul(_) => l.checked_mul(r),
+                                    syn::BinOp::Div(_) => l.checked_div(r),
+                                    syn::BinOp::Rem(_) => l.checked_rem(r),
+                                    syn::BinOp::Shl(_) => shift.and_then(|s| l.checked_shl(s)),
+                                    syn::BinOp::Shr(_) => shift.and_then(|s| l.checked_shr(s)),
+                                    syn::BinOp::BitAnd(_) => Some(l & r),
+                                    syn::BinOp::BitOr(_) => Some(l | r),
+                                    syn::BinOp::BitXor(_) => Some(l ^ r),
+                                    _ => None,
+                                };
+                                vals.push(v.ok_or_else(unfolded)?);
+                            }
+                            (syn::Expr::Unary(u), false) if matches!(u.op, syn::UnOp::Neg(_)) => {
+                                work.push((e.clone(), true));
+                                work.push(((*u.expr).clone(), false));
+                            }
+                            (syn::Expr::Unary(_), true) => {
+                                let v = vals
+                                    .pop()
+                                    .and_then(i128::checked_neg)
+                                    .ok_or_else(unfolded)?;
+                                vals.push(v);
+                            }
+                            (syn::Expr::Cast(c), false) => {
+                                work.push((e.clone(), true));
+                                work.push(((*c.expr).clone(), false));
+                            }
+                            // A cast to an unsigned type keeps the value's
+                            // low bits; to a signed one, a value it holds.
+                            (syn::Expr::Cast(c), true) => {
+                                let to = &c.ty;
+                                let to = ty(&quote::quote!(#to).to_string(), self.cx.types)?;
+                                let ti = Int::of(&to, self.cx.widths).ok_or_else(unfolded)?;
+                                let v = vals.pop().ok_or_else(unfolded)?;
+                                let v = match (ti.signed, ti.width) {
+                                    (false, Some(w)) if w < u128::BITS - 1 => {
+                                        v.rem_euclid(1i128 << w)
+                                    }
+                                    _ => v,
+                                };
+                                vals.push(v);
+                            }
+                            _ => return Err(unfolded()),
+                        }
+                    }
+                    let ([v], true) = (vals.as_slice(), work.is_empty()) else {
+                        return Err(unfolded());
+                    };
+                    let lit = super::int::literal(*v, int).ok_or_else(unfolded)?;
+                    Ok((lit, t))
+                }
                 None => match c {
                     IrConstant::Path(p) => Err(kind(k, &format!("the constant item {p}"))),
                     _ => Err(kind(k, p)),
