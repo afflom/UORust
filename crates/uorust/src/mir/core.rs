@@ -639,6 +639,27 @@ fn const_types(g: &syn::Generics) -> BTreeMap<String, String> {
         .collect()
 }
 
+/// A function's generic parameters in the order MIR prints its type
+/// arguments: those its signature declares, then one for each argument
+/// written `impl Trait`, which rustc adds after them.
+fn signature_generic_names(sig: &syn::Signature) -> Vec<String> {
+    let mut out = generic_names(&sig.generics);
+    for input in &sig.inputs {
+        if let syn::FnArg::Typed(t) = input {
+            let ty = &t.ty;
+            let text = quote::quote!(#ty).to_string();
+            if let Some(at) = text.find("impl ") {
+                out.push(
+                    text[at..]
+                        .trim_end_matches([')', ']', '>', ' '])
+                        .to_string(),
+                );
+            }
+        }
+    }
+    out
+}
+
 /// A signature's generic parameters, types and constants, in order.
 fn generic_names(g: &syn::Generics) -> Vec<String> {
     g.params
@@ -837,7 +858,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                             if im.trait_.is_none() {
                                 out.generics
                                     .entry(path.clone())
-                                    .or_insert_with(|| generic_names(&f.sig.generics));
+                                    .or_insert_with(|| signature_generic_names(&f.sig));
                             }
                             out.methods.entry(path).or_default().extend(
                                 generic_names(&im.generics)
@@ -867,7 +888,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         .or_default()
                         .extend(const_types(&f.sig.generics));
                     out.generics
-                        .insert(at(f.sig.ident.to_string()), generic_names(&f.sig.generics));
+                        .insert(at(f.sig.ident.to_string()), signature_generic_names(&f.sig));
                 }
                 // A function without a body, as core declares an intrinsic.
                 syn::Item::Verbatim(tokens) => {
@@ -880,7 +901,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                             .entry(path.clone())
                             .or_default()
                             .extend(const_types(&f.sig.generics));
-                        out.generics.insert(path, generic_names(&f.sig.generics));
+                        out.generics.insert(path, signature_generic_names(&f.sig));
                     }
                 }
                 syn::Item::Use(u) => {

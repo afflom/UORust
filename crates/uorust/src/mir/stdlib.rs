@@ -859,6 +859,11 @@ pub(crate) fn unify(
     if p.starts_with('<') && p.contains(" as ") {
         return Some(());
     }
+    // An argument-position `impl Trait` is a parameter of its own, which no
+    // name binds: it matches any type.
+    if p.starts_with("impl ") {
+        return Some(());
+    }
     if bare {
         return match generics.get(&p) {
             Some(b) if unpathed(&plain(b)) != unpathed(&a) => None,
