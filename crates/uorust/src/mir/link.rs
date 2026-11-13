@@ -39,6 +39,9 @@ pub(crate) struct CoreLink {
     /// The paths of inherent methods named by their impl's type
     /// (`time::Duration::saturating_sub`): methods, not free functions.
     methods: std::collections::BTreeSet<String>,
+    /// For a macro's impls whose trait is a metavariable, each body's
+    /// trait, where its expansion order tells it.
+    traits: BTreeMap<String, Vec<Option<String>>>,
 }
 
 impl CoreLink {
@@ -47,11 +50,15 @@ impl CoreLink {
     pub(crate) fn new<'t>(
         decls: CoreDecls,
         root: &std::path::Path,
-        texts: impl IntoIterator<Item = &'t String>,
+        texts: impl IntoIterator<Item = (&'t str, &'t String)>,
     ) -> Self {
         let mut bodies: BTreeMap<String, Vec<String>> = BTreeMap::new();
         let mut lasts: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        for text in texts {
+        // Each body's impl's index among its module's impls, `{impl#N}` in
+        // the name of the file rustc dumps it to: the order the impls'
+        // items are made in, a macro's in the order of its expansions.
+        let mut index: BTreeMap<String, Vec<Option<u64>>> = BTreeMap::new();
+        for (name, text) in texts {
             // A dump names its body `// MIR for `path` before ..`.
             let Some(path) = text
                 .lines()
@@ -71,6 +78,11 @@ impl CoreLink {
                 lasts.entry(last).or_default().push(path.to_string());
             }
             same.push(text.clone());
+            let n = name.rfind("{impl#").and_then(|at| {
+                let r = &name[at + "{impl#".len()..];
+                r[..r.find('}')?].parse().ok()
+            });
+            index.entry(path.to_string()).or_default().push(n);
         }
         // A method of an inherent impl, as MIR prints its calls: by the
         // impl's type (`fmt::Formatter::write_str`), where its dump names it
@@ -310,6 +322,171 @@ impl CoreLink {
                     .extend(types.filter(|w| !w.is_empty()).map(str::to_string));
             }
         }
+        // The trait of each of the impls a macro writes with its trait a
+        // metavariable (`impl fmt::$Trait for $Unsigned`), which MIR names
+        // by the one span: the macro's invocations in its file, in order,
+        // bind the metavariable; for one type, its impls' indices, in
+        // order, are those invocations' that are for it.
+        let mut traits: BTreeMap<String, Vec<Option<String>>> = BTreeMap::new();
+        // A text's tokens: a word, a literal, `$name` (its fragment kind
+        // dropped), or one punctuation character.
+        let tokens = |t: &str| -> Vec<String> {
+            let cs: Vec<char> = t.chars().collect();
+            let word = |c: char| c.is_alphanumeric() || c == '_';
+            let mut out = Vec::new();
+            let mut i = 0;
+            while i < cs.len() {
+                let c = cs[i];
+                if c.is_whitespace() {
+                    i += 1;
+                } else if c == '"' || (c == 'b' && cs.get(i + 1) == Some(&'"')) {
+                    let start = i;
+                    i += if c == 'b' { 2 } else { 1 };
+                    while i < cs.len() && cs[i] != '"' {
+                        i += if cs[i] == '\\' { 2 } else { 1 };
+                    }
+                    i += 1;
+                    out.push(cs[start..i.min(cs.len())].iter().collect());
+                } else if word(c) || (c == '$' && cs.get(i + 1).is_some_and(|c| word(*c))) {
+                    let start = i;
+                    i += 1;
+                    while i < cs.len() && word(cs[i]) {
+                        i += 1;
+                    }
+                    out.push(cs[start..i].iter().collect());
+                    // `$name:kind`: the kind is the matcher's, not a token.
+                    if c == '$'
+                        && cs.get(i) == Some(&':')
+                        && cs.get(i + 1).is_some_and(|c| word(*c))
+                    {
+                        i += 1;
+                        while i < cs.len() && word(cs[i]) {
+                            i += 1;
+                        }
+                    }
+                } else {
+                    out.push(c.to_string());
+                    i += 1;
+                }
+            }
+            out
+        };
+        for (path, texts) in &bodies {
+            let Some(at) = path.rfind("<impl at ") else {
+                continue;
+            };
+            let after = &path[at + "<impl at ".len()..];
+            let Some(span) = after.find('>').map(|e| &after[..e]) else {
+                continue;
+            };
+            let (Some((Some(tr), _)), Some(idx)) = (impls.get(span), index.get(path)) else {
+                continue;
+            };
+            if tr != "_" || texts.len() < 2 {
+                continue;
+            }
+            let Some((file, range)) = span.split_once(':') else {
+                continue;
+            };
+            let Some(l1) = range
+                .split(':')
+                .next()
+                .and_then(|n| n.parse::<usize>().ok())
+            else {
+                continue;
+            };
+            let Some(lines) = sources.get(file) else {
+                continue;
+            };
+            let Some(header) = lines.get(l1.saturating_sub(1)) else {
+                continue;
+            };
+            // The impl's trait and type, as metavariables or tokens.
+            let head = tokens(header);
+            let Some(for_at) = head.iter().position(|t| t == "for") else {
+                continue;
+            };
+            let Some(trait_var) = head[..for_at].iter().find(|t| t.starts_with('$')).cloned()
+            else {
+                continue;
+            };
+            let type_var = head.get(for_at + 1).filter(|t| t.starts_with('$')).cloned();
+            // The macro it is in, and the matcher of the arm before it.
+            let Some(def) = (0..l1).rev().find(|n| lines[*n].contains("macro_rules!")) else {
+                continue;
+            };
+            let name = tokens(&lines[def]).get(2).cloned().unwrap_or_default();
+            let Some(arm) = (def..l1)
+                .rev()
+                .find(|n| lines[*n].trim_start().starts_with('(') && lines[*n].contains("=>"))
+            else {
+                continue;
+            };
+            let matcher = tokens(&lines[arm]);
+            let matcher = &matcher[1..matcher.iter().rposition(|t| t == ")").unwrap_or(1)];
+            let Some(ti) = matcher.iter().position(|t| *t == trait_var) else {
+                continue;
+            };
+            let yi = type_var.and_then(|v| matcher.iter().position(|t| *t == v));
+            // Each invocation's trait, and its type where it names one.
+            let mut calls: Vec<(String, Option<String>)> = Vec::new();
+            for (n, line) in lines.iter().enumerate() {
+                let ts = tokens(line);
+                let Some(bang) = ts.windows(2).position(|w| w[0] == name && w[1] == "!") else {
+                    continue;
+                };
+                if n == def
+                    || !matches!(ts.get(bang + 2).map(String::as_str), Some("{" | "(" | "["))
+                {
+                    continue;
+                }
+                let args = &ts[bang + 3..];
+                // The tokens before the trait's are the matcher's literals.
+                let literal = matcher[..ti]
+                    .iter()
+                    .zip(args)
+                    .all(|(m, a)| m.starts_with('$') || m == a);
+                if let (true, Some(t)) = (literal, args.get(ti)) {
+                    let ty = yi.and_then(|i| args.get(i)).filter(|t| !t.starts_with('$'));
+                    calls.push((t.clone(), ty.cloned()));
+                }
+            }
+            // Each body's type: its first parameter's, `&` dropped.
+            let ty_of = |text: &String| -> Option<String> {
+                let head = text.lines().find_map(|l| l.strip_prefix("fn "))?;
+                let first = head[head.find('(')? + 1..].split([',', ')']).next()?;
+                let t = first
+                    .split_once(": ")?
+                    .1
+                    .trim_start_matches('&')
+                    .trim_start_matches("mut ");
+                Some(t.rsplit("::").next().unwrap_or(t).to_string())
+            };
+            let mut tags = vec![None; texts.len()];
+            let types: std::collections::BTreeSet<Option<String>> =
+                texts.iter().map(ty_of).collect();
+            for t in types {
+                let Some(t) = t else { continue };
+                let mut own: Vec<(u64, usize)> = texts
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, x)| ty_of(x).as_deref() == Some(t.as_str()))
+                    .filter_map(|(i, _)| Some((idx.get(i).copied().flatten()?, i)))
+                    .collect();
+                own.sort_unstable();
+                let theirs: Vec<&String> = calls
+                    .iter()
+                    .filter(|(_, ty)| ty.as_ref().is_none_or(|ty| *ty == t))
+                    .map(|(tr, _)| tr)
+                    .collect();
+                if own.len() == theirs.len() {
+                    for ((_, i), tr) in own.iter().zip(theirs) {
+                        tags[*i] = Some(tr.clone());
+                    }
+                }
+            }
+            traits.insert(path.clone(), tags);
+        }
         CoreLink {
             decls,
             bodies,
@@ -318,6 +495,7 @@ impl CoreLink {
             wild,
             defaults,
             methods,
+            traits,
         }
     }
 
@@ -563,11 +741,27 @@ impl CoreLink {
                 found
             }
         };
+        let named_trait = qualified.as_ref().map(|(_, tr)| tr.clone());
         let fits = paths.iter().flat_map(|p| {
+            let tags = self.traits.get(p);
+            let named_trait = named_trait.clone();
             self.bodies
                 .get(p)
                 .into_iter()
                 .flatten()
+                .enumerate()
+                // A body whose trait its expansion tells is the named
+                // trait's only.
+                .filter(move |(i, _)| {
+                    match (
+                        tags.and_then(|t| t.get(*i)).cloned().flatten(),
+                        &named_trait,
+                    ) {
+                        (Some(t), Some(n)) => t == *n,
+                        _ => true,
+                    }
+                })
+                .map(|(_, text)| text)
                 .filter_map(move |text| {
                     let (params, ret) = signature(text)?;
                     let params: Vec<&str> = params.iter().map(String::as_str).collect();

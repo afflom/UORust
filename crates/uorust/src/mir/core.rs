@@ -163,20 +163,29 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
             .collect();
         files.sort();
         let mut texts = Vec::new();
+        let mut names = Vec::new();
         for file in &files {
             texts.push(std::fs::read_to_string(file).map_err(|e| io(file, e))?);
+            names.push(
+                file.file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or_default()
+                    .to_string(),
+            );
         }
-        read.push((module, texts));
+        read.push((module, texts, names));
     }
-    // Every module's bodies, which each module's calls name.
+    // Every module's bodies, which each module's calls name, with the
+    // names of the files they are dumped to.
     let link = super::link::CoreLink::new(
         core_decls(root),
         root,
-        read.iter().flat_map(|(_, texts)| texts),
+        read.iter()
+            .flat_map(|(_, texts, names)| names.iter().map(String::as_str).zip(texts)),
     );
     Ok(read
         .iter()
-        .map(|(module, texts)| shard(scope, root, module, texts, &widths, &layouts, &link))
+        .map(|(module, texts, _)| shard(scope, root, module, texts, &widths, &layouts, &link))
         .collect())
 }
 
