@@ -688,6 +688,50 @@ theorem{{
   proof: decide{{}}
 }}
 """
+# The cause queue: what the MIR path's registers (core's, std's and each
+# crate's of crates.io, under crates/uorust) stop at, ranked by the bodies
+# each cause stops across all of them. The queue holds the causes that stop
+# half of the residue, the fewest that do, most bodies first: a cut the
+# ranking itself sets, so it shortens as the translator grows. Each
+# register's ranked causes are cited with their κ, so a run that moves the
+# residue moves the model.
+import glob, os
+REGISTERS = sorted(
+    [d for d in ("crates/uorust/core", "crates/uorust/std") if os.path.exists(f"{SRC}/{d}/frontier.toml")]
+    + [d[len(SRC) + 1:] for d in glob.glob(f"{SRC}/crates/uorust/crates/*") if os.path.exists(f"{d}/frontier.toml")])
+queue = {}
+residue_bodies = 0
+for reg in REGISTERS:
+    path = f"{reg}/frontier.toml"
+    doc = tomllib.loads(open(f"{SRC}/{path}", encoding="utf-8").read())
+    residue_bodies += doc.get("residue", 0)
+    for c in doc.get("cause", []):
+        queue[c["cause"]] = queue.get(c["cause"], 0) + c["bodies"]
+    lines = lines_of(path)
+    heads = [i + 1 for i, l in enumerate(lines) if l == "[[cause]]"]
+    if heads:
+        cite(Qm, QS + "liftCauses", path, heads[0], len(lines) - (lines[-1] == ""))
+ranked = sorted(queue.items(), key=lambda kv: (-kv[1], kv[0].encode()))
+cut, covered = 0, 0
+while cut < len(ranked) and 2 * covered < residue_bodies:
+    covered += ranked[cut][1]
+    cut += 1
+out += """
+structure{
+  name: LiftCause,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: rank, type: Nat}, {name: cause, type: String}, {name: bodies, type: Nat}]
+}
+
+"""
+causes_term = "(nil Quality::LiftCause)"
+for i in reversed(range(cut)):
+    cause, bodies = ranked[i]
+    causes_term = f"(cons (record Quality::LiftCause {{rank := {i}, cause := {q(cause)}, bodies := {bodies}}}) {causes_term})"
+out += defn("liftCauses", "(List Quality::LiftCause)", causes_term) + "\n"
+out += defn("liftResidueBodies", "Nat", str(residue_bodies)) + "\n"
+out += defn("liftQueueBodies", "Nat", str(covered)) + "\n"
 out += "\n" + defn("sourcesOfMeasures", "(List Architecture::Source)", source_list(Qm))
 out = out.rstrip("\n") + "\n" + FOOT
 open(f"{OUT}/Quality.lex.tex", "w").write(out)
