@@ -192,3 +192,15 @@ pub fn first_negative(xs: &[i64]) -> Option<usize> {
     }
     None
 }
+
+/// A local written and read back through a raw pointer to it: its address
+/// taken places it in memory, laid out by the declared targets' data layout.
+pub fn through_raw(x: u32) -> u32 {
+    let mut y = 0u32;
+    let p = &raw mut y;
+    // SAFETY: `p` points to `y`, which is live and borrowed by nothing else.
+    unsafe {
+        *p = x;
+        *p
+    }
+}

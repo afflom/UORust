@@ -3710,8 +3710,25 @@ fn behavior(
         .cloned()
         .collect();
     let mut emitted: BTreeSet<Ty> = BTreeSet::new();
+    // The raw pointer and the memory, where a translation reaches memory:
+    // the MIR path's own structures (see `mir_lift`'s scopes).
+    let mut with_memory = types.clone();
+    for (name, fields) in [
+        (
+            crate::mir::lower::POINTER.to_string(),
+            crate::mir::lower::pointer_fields(),
+        ),
+        (
+            crate::mir::memory::MEMORY.to_string(),
+            crate::mir::memory::memory_fields(),
+        ),
+    ] {
+        if mentioned.contains(&Ty::Named(name.clone())) {
+            with_memory.structs.entry(name).or_insert(fields);
+        }
+    }
     for ty in &mentioned {
-        type_decls(ty, &types, &compared, &mut emitted, &mut decls);
+        type_decls(ty, &with_memory, &compared, &mut emitted, &mut decls);
     }
     // The derived orders the definitions compare by, after the types.
     if !ordered.is_empty() {
@@ -3815,13 +3832,43 @@ fn mir_lift(
             (t.clone(), captures)
         })
         .collect();
+    // The data layouts memory is laid out by: only where one is recorded
+    // for every declared target, so that a layout used holds on each.
+    let layouts: Vec<crate::mir::layout::DataLayout> = if !ctx.ws.targets.is_empty()
+        && ctx
+            .ws
+            .targets
+            .iter()
+            .all(|t| dumps.layouts.iter().any(|l| &l.target == t))
+    {
+        dumps
+            .layouts
+            .iter()
+            .filter(|l| ctx.ws.targets.contains(&l.target))
+            .cloned()
+            .collect()
+    } else {
+        Vec::new()
+    };
     let scopes: BTreeMap<(usize, usize), Types> = scopes
         .iter()
         .map(|(&at, s)| {
-            let scope = Types {
+            let mut scope = Types {
                 closures: signatures.clone(),
                 ..s.clone()
             };
+            // Where the targets' layouts are known, a raw pointer and the
+            // memory it points into are declared, as in core's scope.
+            if !layouts.is_empty() {
+                scope
+                    .structs
+                    .entry(lower::POINTER.to_string())
+                    .or_insert_with(lower::pointer_fields);
+                scope
+                    .structs
+                    .entry(crate::mir::memory::MEMORY.to_string())
+                    .or_insert_with(crate::mir::memory::memory_fields);
+            }
             (at, scope)
         })
         .collect();
@@ -3949,7 +3996,7 @@ fn mir_lift(
             closures: &closures,
             active: &[],
             core: None,
-            layouts: &[],
+            layouts: &layouts,
             backward: false,
         };
         match lower::lower(&cx, body, &name) {

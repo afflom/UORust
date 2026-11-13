@@ -215,6 +215,8 @@ struct State {
     /// the last values of several arguments, its item of this argument's.
     #[allow(clippy::type_complexity)]
     lends: BTreeMap<IrLocal, Vec<(Vec<IrProjection>, IrPlace, Option<Transform>)>>,
+    /// The place each local holding a shared borrow borrows.
+    shared: BTreeMap<IrLocal, IrPlace>,
 }
 
 /// A backward function applied to a call's arguments, and, where it gives
@@ -295,6 +297,12 @@ struct Fun<'a, 'c> {
     /// Lowered as its backward function (see [`Cx::backward`]): the
     /// parameter that holds the returned borrow's new value, and its type.
     backward: Option<(String, Ty)>,
+    /// The arguments the last callee takes by address (see
+    /// [`address_params`]), by position.
+    wants_address: Vec<usize>,
+    /// The `&mut` parameters passed by address whose values are not
+    /// given back (see [`unthreaded`]).
+    unthreaded: BTreeSet<IrLocal>,
 }
 
 /// A local whose value lives in memory since its address was taken: the
@@ -308,6 +316,9 @@ struct Placed {
     /// The place is the caller's, lent by a borrow: a copy in an
     /// allocation of its own, which the caller does not see.
     mirror: bool,
+    /// The place is the caller's, in the caller's memory, its address
+    /// passed (see [`address_params`]): neither freed nor copied here.
+    lent: bool,
 }
 
 /// How a value's cells are laid out.
@@ -715,14 +726,15 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         mirrored_shared: false,
         observes_address: false,
         backward: None,
+        wants_address: Vec::new(),
+        unthreaded: if memory && cx.core.is_some() {
+            unthreaded(body)
+        } else {
+            BTreeSet::new()
+        },
     };
     f.used.insert(name.to_string());
-    let threads = threaded(
-        &body.locals,
-        body.arity,
-        super::closure_type(body).is_some(),
-        cx.types,
-    );
+    let threads = f.threads();
     // A `&mut` parameter rebound to another borrow no longer reaches the
     // place its caller lent, whose last value the definition returns.
     for block in &body.blocks {
@@ -777,15 +789,46 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         f.params.push((p.clone(), t.clone()));
         f.const_params.insert(marker, (p, t));
     }
+    // A borrow a raw pointer is taken of is passed as the address of the
+    // place it lends, in the caller's memory.
+    let addressed = if memory && cx.core.is_some() {
+        address_params(body)
+    } else {
+        BTreeSet::new()
+    };
+    let mut lent = Vec::new();
     // A `&mut` parameter is read as the value it borrows.
     for l in 1..=body.arity {
         if closure && l == 1 {
             continue;
         }
-        let ty = f.local_ty(l, &[])?;
         let p = f.fresh(body.names.get(l).cloned().flatten().as_deref(), l);
+        if addressed.contains(&l) {
+            let pt = Ty::Named(POINTER.to_string());
+            f.mention(&pt);
+            lent.push((l, p.clone()));
+            f.params.push((p, pt));
+            continue;
+        }
+        let ty = f.local_ty(l, &[])?;
         st.env.insert(l, Val::V(p.clone(), ty.clone()));
         f.params.push((p, ty));
+    }
+    for (l, p) in lent {
+        let referent_text = referent(&body.locals[l])
+            .ok_or_else(|| kind(MEMORY_KIND, "an address parameter that is not a borrow"))?;
+        let (elem, stride, _, shape) = f.cells_of(&referent_text)?;
+        st.placed.insert(
+            l,
+            Placed {
+                pointer: p,
+                elem,
+                stride,
+                shape,
+                mirror: true,
+                lent: true,
+            },
+        );
     }
     let mut threads_ty = Vec::new();
     for &l in &threads {
@@ -891,6 +934,19 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
 }
 
 impl Fun<'_, '_> {
+    /// The `&mut` parameters whose last values the definition gives back.
+    fn threads(&self) -> Vec<usize> {
+        threaded(
+            &self.body.locals,
+            self.body.arity,
+            super::closure_type(self.body).is_some(),
+            self.cx.types,
+        )
+        .into_iter()
+        .filter(|l| !self.unthreaded.contains(l))
+        .collect()
+    }
+
     fn mention(&mut self, t: &Ty) {
         self.types.extend(t.mentions());
         self.types.insert(t.clone());
@@ -1057,12 +1113,7 @@ impl Fun<'_, '_> {
     /// they are written.
     fn live_at(&self, b: IrBlockId) -> BTreeSet<IrLocal> {
         let blocks = &self.body.blocks;
-        let threads = threaded(
-            &self.body.locals,
-            self.body.arity,
-            super::closure_type(self.body).is_some(),
-            self.cx.types,
-        );
+        let threads = self.threads();
         let mut uses: Vec<BTreeSet<IrLocal>> = Vec::new();
         let mut defs: Vec<BTreeSet<IrLocal>> = Vec::new();
         for block in blocks {
@@ -1704,11 +1755,23 @@ impl Fun<'_, '_> {
             .collect();
         parameters.extend(st.binders.iter().map(|(n, t)| (n.clone(), t.render())));
         let _ = what;
+        let statement = implication(&hyps, goal);
+        // A goal about memory is decided by the model's definitions.
+        let unfolded = super::memory::unfolding(&statement);
+        let proof = format!(
+            "linear_arithmetic{{definitions: [{}]}}",
+            unfolded.join(", ")
+        );
+        let proof = if unfolded.is_empty() {
+            "linear_arithmetic{}".into()
+        } else {
+            proof
+        };
         self.decls.push(Decl::Theorem {
             name,
             parameters,
-            statement: implication(&hyps, goal),
-            proof: "linear_arithmetic{}".into(),
+            statement,
+            proof,
             axioms: vec!["Quot.sound".into(), "propext".into()],
         });
     }
@@ -1750,12 +1813,7 @@ impl Fun<'_, '_> {
                             ))
                         }
                     }
-                    let threads = threaded(
-                        &self.body.locals,
-                        self.body.arity,
-                        super::closure_type(self.body).is_some(),
-                        self.cx.types,
-                    );
+                    let threads = self.threads();
                     let mut items = Vec::new();
                     for l in threads {
                         let place = IrPlace {
@@ -1782,12 +1840,7 @@ impl Fun<'_, '_> {
                         ))
                     }
                 };
-                let threads = threaded(
-                    &self.body.locals,
-                    self.body.arity,
-                    super::closure_type(self.body).is_some(),
-                    self.cx.types,
-                );
+                let threads = self.threads();
                 let v = if threads.is_empty() && !self.memory {
                     v
                 } else {
@@ -2203,12 +2256,25 @@ impl Fun<'_, '_> {
         let mut vals = Vec::new();
         let mut texts = Vec::new();
         let mut borrowed: BTreeMap<usize, IrPlace> = BTreeMap::new();
+        // The place each argument that is a borrow lends.
+        let mut lends_place: Vec<Option<IrPlace>> = Vec::new();
         for (i, a) in args.iter().enumerate() {
             let whole = match a {
                 IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => Some(p.local),
                 _ => None,
             };
             texts.push(whole.and_then(|l| self.body.locals.get(l).cloned()));
+            lends_place.push(whole.and_then(|l| match st.env.get(&l) {
+                Some(Val::Mut(q)) => Some(q.clone()),
+                _ => st.shared.get(&l).cloned().or_else(|| {
+                    // A borrow parameter of this body passed on, which
+                    // lends the place it borrows.
+                    st.placed.get(&l).filter(|p| p.lent).map(|_| IrPlace {
+                        local: l,
+                        projection: vec![IrProjection::Deref],
+                    })
+                }),
+            }));
             match whole.and_then(|l| st.env.get(&l)) {
                 Some(Val::Mut(place)) => {
                     let place = place.clone();
@@ -2239,7 +2305,44 @@ impl Fun<'_, '_> {
         } else {
             String::new()
         };
-        let called = self.call(callee, vals.clone(), &texts, &dest_text, &dt, st)?;
+        let called = match self.call(callee, vals.clone(), &texts, &dest_text, &dt, st) {
+            Err(r) if is_needs_address(&r) => {
+                for i in std::mem::take(&mut self.wants_address) {
+                    let Some(q) = lends_place.get(i).cloned().flatten() else {
+                        return Err(kind(
+                            MEMORY_KIND,
+                            "an argument a callee takes the address of, whose place is not known",
+                        ));
+                    };
+                    let wide = texts
+                        .get(i)
+                        .cloned()
+                        .flatten()
+                        .and_then(|t| referent(&t))
+                        .is_some_and(|r| (r.starts_with('[') && !r.contains(';')) || r == "str");
+                    // A place with no cells of its own here (a field of a
+                    // struct the memory does not hold) lends a cell of its
+                    // own: its value, copied in; a `&mut`'s new value comes
+                    // back as the callee's threaded result.
+                    let pointer = match self.address_at(&q, wide, st) {
+                        Ok(pointer) => pointer,
+                        Err(r) if !wide => {
+                            let referent_text = texts
+                                .get(i)
+                                .cloned()
+                                .flatten()
+                                .and_then(|t| referent(&t))
+                                .ok_or_else(|| r.clone())?;
+                            self.lent_cell(&q, &referent_text, st).map_err(|_| r)?
+                        }
+                        Err(r) => return Err(r),
+                    };
+                    vals[i] = (pointer, Ty::Named(POINTER.to_string()));
+                }
+                self.call(callee, vals.clone(), &texts, &dest_text, &dt, st)?
+            }
+            other => other?,
+        };
         let Called {
             term,
             mut updates,
@@ -2751,6 +2854,16 @@ impl Fun<'_, '_> {
                             vec![(Vec::new(), place, Some((prefix, Some((tt, 1)))))],
                         );
                         return Ok(());
+                    }
+                }
+                if p.projection.is_empty() {
+                    match rv {
+                        IrRvalue::Ref(spec::MirBorrowKind::Shared, q) => {
+                            st.shared.insert(p.local, q.clone());
+                        }
+                        _ => {
+                            st.shared.remove(&p.local);
+                        }
                     }
                 }
                 if p.projection.is_empty() && !st.placed.contains_key(&p.local) {
@@ -5943,16 +6056,49 @@ impl Fun<'_, '_> {
         // then the memory.
         let positions: Vec<usize> = threaded(&body.locals, body.arity, false, self.cx.types)
             .into_iter()
+            .filter(|&l| {
+                !(parameters.get(l - 1).is_some_and(|(_, t)| t == POINTER)
+                    && body
+                        .locals
+                        .get(l)
+                        .and_then(|t| referent(t))
+                        .is_some_and(|r| r.starts_with('[') || r == "str"))
+            })
             .map(|l| l - 1)
             .collect();
-        let mut rest: Vec<Ty> = positions
-            .iter()
-            .filter_map(|&i| args.get(i).map(|(_, t)| t.clone()))
+        // A borrow the callee takes the address of: the caller's place's
+        // address, which the call is made again with.
+        let addressed: Vec<usize> = (0..body.arity)
+            .filter(|&i| {
+                parameters.get(i).is_some_and(|(_, t)| t == POINTER)
+                    && body
+                        .locals
+                        .get(i + 1)
+                        .is_some_and(|t| referent(t).is_some())
+            })
             .collect();
+        // A `&mut` argument gives back the value it borrows, also where its
+        // address is passed.
+        let mut rest: Vec<Ty> = Vec::new();
+        for &i in &positions {
+            if addressed.contains(&i) {
+                let text = referent(&body.locals[i + 1]).unwrap_or_default();
+                rest.push(ty(&text, self.cx.types)?);
+            } else if let Some((_, t)) = args.get(i) {
+                rest.push(t.clone());
+            }
+        }
         if takes_memory {
             rest.push(super::memory::memory_ty());
         }
         let full = threaded_result(dt, &rest, self.cx.types);
+        if addressed
+            .iter()
+            .any(|&i| args.get(i).is_some_and(|(_, t)| !is_pointer(t)))
+        {
+            self.wants_address = addressed;
+            return Err(needs_address());
+        }
         if parameters.len() != args.len()
             || parameters
                 .iter()
@@ -6923,6 +7069,57 @@ fn needs_memory() -> Residue {
     kind(MEMORY_KIND, NEEDS_MEMORY)
 }
 
+/// The borrow parameters a raw pointer is taken of (`&raw const (*_1)`):
+/// passed as the address of the place they lend, so that the pointer
+/// reaches the caller's place. Every other parameter is passed by value.
+pub(crate) fn address_params(body: &IrBody) -> BTreeSet<IrLocal> {
+    let mut out = BTreeSet::new();
+    for b in &body.blocks {
+        for s in &b.statements {
+            if let IrStatement::Assign(_, IrRvalue::RawPtr(_, p)) = s {
+                let borrow = body
+                    .locals
+                    .get(p.local)
+                    .is_some_and(|t| referent(t).is_some());
+                if (1..=body.arity).contains(&p.local)
+                    && borrow
+                    && p.projection.first() == Some(&IrProjection::Deref)
+                {
+                    out.insert(p.local);
+                }
+            }
+        }
+    }
+    out
+}
+
+/// The parameters passed by address (see [`address_params`]) that borrow
+/// an array, a slice or a `str`: the memory holds their every write, and
+/// no value of theirs is read whole, so none is given back.
+pub(crate) fn unthreaded(body: &IrBody) -> BTreeSet<IrLocal> {
+    address_params(body)
+        .into_iter()
+        .filter(|&l| {
+            body.locals
+                .get(l)
+                .and_then(|t| referent(t))
+                .is_some_and(|r| r.starts_with('[') || r == "str")
+        })
+        .collect()
+}
+
+/// The residue a call gives when its callee takes the addresses of some
+/// of its arguments: the call is made again with those addresses.
+const NEEDS_ADDRESS: &str = "a callee takes an argument's address";
+
+fn needs_address() -> Residue {
+    kind(MEMORY_KIND, NEEDS_ADDRESS)
+}
+
+fn is_needs_address(r: &Residue) -> bool {
+    matches!(r, Residue::Mir(s) if *s == format!("{MEMORY_KIND}: {NEEDS_ADDRESS}"))
+}
+
 fn is_needs_memory(r: &Residue) -> bool {
     matches!(r, Residue::Mir(s) if *s == format!("{MEMORY_KIND}: {NEEDS_MEMORY}"))
 }
@@ -6938,6 +7135,8 @@ const MEMORY_INTRINSICS: &[&str] = &[
     "offset",
     "arith_offset",
     "aggregate_raw_ptr",
+    "volatile_load",
+    "volatile_store",
 ];
 
 /// The type arguments a callee's last segment states: `["u32"]` of
@@ -7033,6 +7232,44 @@ fn item_of(text: &str) -> Option<String> {
     Some(parts.first()?.trim().to_string())
 }
 
+/// Whether a value of `t` is its cell's number as it is: an integer or a
+/// float's bits.
+fn plain_cell(t: &Ty) -> bool {
+    matches!(t, Ty::Nat(_) | Ty::Signed(_) | Ty::Float(_))
+}
+
+/// How a value of `t` is held in one cell, where it is: as itself (see
+/// [`plain_cell`]), a `bool` as `0` or `1` (its bytes, the Reference's
+/// "bool"), and an `Option` of a plain value as `0` for `None` and the
+/// value plus one for `Some` (a code of the model's own: Rust specifies no
+/// layout for it, so no program observes the difference).
+fn encoding(t: &Ty) -> Option<()> {
+    match t {
+        _ if plain_cell(t) => Some(()),
+        Ty::Bool => Some(()),
+        Ty::Option(inner) if matches!(**inner, Ty::Nat(_)) => Some(()),
+        _ => None,
+    }
+}
+
+/// The cell holding value `v` of type `t` (see [`encoding`]).
+fn encode(t: &Ty, v: &str) -> String {
+    match t {
+        Ty::Bool => format!("(if {v} then 1 else 0)"),
+        Ty::Option(_) => format!("(mirEncodeOption {v})"),
+        _ => v.to_string(),
+    }
+}
+
+/// The value of type `t` cell `c` holds (see [`encoding`]).
+fn decode(t: &Ty, c: &str) -> String {
+    match t {
+        Ty::Bool => format!("({c} =? 1)"),
+        Ty::Option(_) => format!("(mirDecodeOption {c})"),
+        _ => c.to_string(),
+    }
+}
+
 /// Whether no value of `t` holds a pointer: a value loaded from memory
 /// names the pointer it was loaded through, but is not one.
 fn holds_no_pointer(t: &Ty) -> bool {
@@ -7084,7 +7321,8 @@ impl Fun<'_, '_> {
                 }
             };
         let elem = ty(elem_text, self.cx.types)?;
-        if !matches!(elem, Ty::Nat(_) | Ty::Float(_)) {
+        let encoded = encoding(&elem).is_some();
+        if !encoded || (shape != Shape::Scalar && !plain_cell(&elem)) {
             return Err(kind(
                 MEMORY_KIND,
                 &format!(
@@ -7093,8 +7331,21 @@ impl Fun<'_, '_> {
                 ),
             ));
         }
-        let l = super::layout::agreed(&elem, self.cx.layouts)
-            .map_err(|r| kind(MEMORY_KIND, &super::layout::reason(&r)))?;
+        let l = match &elem {
+            // A layout rustc chooses (an `Option`'s): Rust specifies none,
+            // so the model's own is as good as any. It is one cell of
+            // twice the item's size, holding the value's code.
+            Ty::Option(inner) => {
+                let i = super::layout::agreed(inner, self.cx.layouts)
+                    .map_err(|r| kind(MEMORY_KIND, &super::layout::reason(&r)))?;
+                super::layout::Layout {
+                    size: 2 * i.size,
+                    align: i.align,
+                }
+            }
+            _ => super::layout::agreed(&elem, self.cx.layouts)
+                .map_err(|r| kind(MEMORY_KIND, &super::layout::reason(&r)))?,
+        };
         if l.size == 0 {
             return Err(kind(MEMORY_KIND, "a zero-sized value in memory"));
         }
@@ -7244,7 +7495,10 @@ impl Fun<'_, '_> {
                     &format!("((mirReadable {m} {p} {s}) = true)"),
                     "a read through a pointer",
                 );
-                (format!("(mirLoad {m} {p} {s})"), view.elem.clone())
+                (
+                    decode(&view.elem, &format!("(mirLoad {m} {p} {s})")),
+                    view.elem.clone(),
+                )
             }
             Access::Maybe(p) => (
                 format!("(mirLoadMaybe {m} {p} {s})"),
@@ -7271,7 +7525,7 @@ impl Fun<'_, '_> {
                     &format!("((mirWritable {m} {p} {s}) = true)"),
                     "a write through a pointer",
                 );
-                format!("(mirStore {m} {p} {s} {value})")
+                format!("(mirStore {m} {p} {s} {})", encode(&view.elem, &value))
             }
             Access::Maybe(p) => {
                 self.obligation(
@@ -7307,6 +7561,29 @@ impl Fun<'_, '_> {
             through.projection.extend(rest.iter().cloned());
             return self.address_of(&through, dest, st);
         }
+        // A pointer to a slice carries its length.
+        let wide = dest.projection.is_empty()
+            && self
+                .body
+                .locals
+                .get(dest.local)
+                .and_then(|t| pointee(t))
+                .is_some_and(|(_, w)| w);
+        let pointer = self.address_at(p, wide, st)?;
+        self.mention(&pt);
+        Ok(Val::V(pointer, pt))
+    }
+
+    /// The address of place `p`, placed in memory where it is not yet;
+    /// `wide`, a slice's address with its length.
+    fn address_at(&mut self, p: &IrPlace, wide: bool, st: &mut State) -> Lift<String> {
+        if let (Some(Val::Mut(q)), Some((IrProjection::Deref, rest))) =
+            (st.env.get(&p.local).cloned(), p.projection.split_first())
+        {
+            let mut through = q.clone();
+            through.projection.extend(rest.iter().cloned());
+            return self.address_at(&through, wide, st);
+        }
         if self.view_of(p, st)?.is_none() {
             self.place_root(p, st)?;
         }
@@ -7319,14 +7596,6 @@ impl Fun<'_, '_> {
         } else {
             self.access(&view, &steps, st)?
         };
-        // A pointer to a slice carries its length.
-        let wide = dest.projection.is_empty()
-            && self
-                .body
-                .locals
-                .get(dest.local)
-                .and_then(|t| pointee(t))
-                .is_some_and(|(_, w)| w);
         let pointer = if wide && steps.is_empty() && view.shape == Shape::Items {
             match st.placed.get(&p.local) {
                 Some(placed) => format!(
@@ -7338,8 +7607,29 @@ impl Fun<'_, '_> {
         } else {
             pointer
         };
-        self.mention(&pt);
-        Ok(Val::V(pointer, pt))
+        self.mention(&Ty::Named(POINTER.to_string()));
+        Ok(pointer)
+    }
+
+    /// A fresh allocation of one cell holding the value at place `p`, of
+    /// the type printed `text`, for a callee that takes its address: its
+    /// pointer.
+    fn lent_cell(&mut self, p: &IrPlace, text: &str, st: &mut State) -> Lift<String> {
+        let (elem, stride, align, shape) = self.cells_of(text)?;
+        if shape != Shape::Scalar {
+            return Err(kind(MEMORY_KIND, "a lent cell of more than one value"));
+        }
+        let (value, _) = self.read(p, st)?;
+        let m = self.memory_at(st)?;
+        let pointer = format!("(mirAllocated {m} {align} 0)");
+        let memory = format!(
+            "(mirAllocate {m} {stride} {align} 1 (mirCellsOf {}) (mirDefinedAs 1))",
+            encode(&elem, &value)
+        );
+        self.grow(&memory)?;
+        st.memory = Some(memory);
+        self.mention(&Ty::Named(POINTER.to_string()));
+        Ok(pointer)
     }
 
     /// Move the local a place is rooted at into an allocation of its own:
@@ -7380,7 +7670,7 @@ impl Fun<'_, '_> {
         let (length, cells, defined, metadata) = match (&shape, value) {
             (Shape::Scalar, Some(v)) => (
                 "1".to_string(),
-                format!("(mirCellsOf {v})"),
+                format!("(mirCellsOf {})", encode(&elem, &v)),
                 "(mirDefinedAs 1)".to_string(),
                 "0".to_string(),
             ),
@@ -7427,6 +7717,7 @@ impl Fun<'_, '_> {
                 stride,
                 shape,
                 mirror,
+                lent: false,
             },
         );
         Ok(())
@@ -7438,7 +7729,7 @@ impl Fun<'_, '_> {
     fn returned_memory(&mut self, returned: &str, st: &State) -> Lift<String> {
         let mut m = self.memory_at(st)?;
         let plain = holds_no_pointer(&self.ret);
-        for placed in st.placed.values() {
+        for placed in st.placed.values().filter(|p| !p.lent) {
             if placed.mirror && !plain && returned.contains(&placed.pointer) {
                 return Err(kind(
                     MEMORY_KIND,
@@ -7491,11 +7782,13 @@ impl Fun<'_, '_> {
     ) -> Lift<Option<String>> {
         let one = |i: usize| generics.get(i).cloned().unwrap_or_default();
         match (name, args) {
-            ("read_via_copy", [(p, _)]) => {
+            // A volatile access is an ordinary one in the model: the model
+            // has no other observer of memory.
+            ("read_via_copy" | "volatile_load", [(p, _)]) => {
                 let view = self.pointer_view(p, &one(0))?;
                 Ok(Some(self.load(&view, &[], st)?.0))
             }
-            ("write_via_move", [(p, _), (v, t)]) => {
+            ("write_via_move" | "volatile_store", [(p, _), (v, t)]) => {
                 let view = self.pointer_view(p, &one(0))?;
                 self.store(&view, &[], Val::V(v.clone(), t.clone()), st)?;
                 Ok(Some("()".into()))
@@ -7519,6 +7812,79 @@ impl Fun<'_, '_> {
                 let vd = self.pointer_view(dst, &one(0))?;
                 let (v, t) = self.load(&vs, &[], st)?;
                 self.store(&vd, &[], Val::V(v, t), st)?;
+                Ok(Some("()".into()))
+            }
+            // `count` items: both ranges live and in bounds, which their
+            // first and last items being so gives (an allocation is one
+            // range), and apart for `copy_nonoverlapping`; the target's
+            // cells then hold the source's, read before any is written.
+            ("copy_nonoverlapping" | "copy", [(src, _), (dst, _), (count, ct)]) => {
+                if !matches!(ct, Ty::Nat(_)) {
+                    return Err(kind(
+                        MEMORY_KIND,
+                        &format!("a copy of {} items", ct.render()),
+                    ));
+                }
+                let vs = self.pointer_view(src, &one(0))?;
+                let vd = self.pointer_view(dst, &one(0))?;
+                if vs.shape == Shape::Items || vd.shape == Shape::Items || vs.stride != vd.stride {
+                    return Err(kind(MEMORY_KIND, "a copy between cells of other sizes"));
+                }
+                let m = self.memory_at(st)?;
+                let s = vs.stride;
+                // A copy of bytes (`copy::<u8>`, the bytes of a value of
+                // any type): whole cells of two allocations of one cell
+                // size, which their cells' copy is.
+                if s == 1 {
+                    self.obligation(
+                        st,
+                        &format!(
+                            "(((mirWholeCells {m} {src} {count}) && ((mirWholeCells {m} {dst} {count}) && ((apply (project {m} stride) (project {src} allocation)) =? (apply (project {m} stride) (project {dst} allocation))))) = true)"
+                        ),
+                        "a copy of bytes, as whole cells of one size",
+                    );
+                    if name == "copy_nonoverlapping" {
+                        self.obligation(
+                            st,
+                            &format!(
+                                "(((not ((project {src} allocation) =? (project {dst} allocation))) || ((((project {src} address) + {count}) <=? (project {dst} address)) || (((project {dst} address) + {count}) <=? (project {src} address)))) = true)"
+                            ),
+                            "a copy's ranges that do not overlap",
+                        );
+                    }
+                    let new = format!("(mirCopy {m} {src} {dst} 1 {count})");
+                    self.grow(&new)?;
+                    st.memory = Some(new);
+                    return Ok(Some("()".into()));
+                }
+                let last = |p: &str| {
+                    format!(
+                        "(mirAdvance {p} (prim multiply (prim subtract {count} 1 : Nat) {s} : Nat))"
+                    )
+                };
+                for (p, what) in [(src, "a copy's source"), (dst, "a copy's target")] {
+                    self.obligation(
+                        st,
+                        &format!(
+                            "((({count} =? 0) || ((mirWritable {m} {p} {s}) && (mirWritable {m} {} {s}))) = true)",
+                            last(p)
+                        ),
+                        &format!("{what}, valid for its items"),
+                    );
+                }
+                if name == "copy_nonoverlapping" {
+                    let span = format!("(prim multiply {count} {s} : Nat)");
+                    self.obligation(
+                        st,
+                        &format!(
+                            "(((not ((project {src} allocation) =? (project {dst} allocation))) || ((((project {src} address) + {span}) <=? (project {dst} address)) || (((project {dst} address) + {span}) <=? (project {src} address)))) = true)"
+                        ),
+                        "a copy's ranges that do not overlap",
+                    );
+                }
+                let new = format!("(mirCopy {m} {src} {dst} {s} {count})");
+                self.grow(&new)?;
+                st.memory = Some(new);
                 Ok(Some("()".into()))
             }
             ("offset" | "arith_offset", [(p, _), (n, nt)]) => {

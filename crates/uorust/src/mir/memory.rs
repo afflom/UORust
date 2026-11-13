@@ -86,7 +86,10 @@ fn theorem(name: String, parameters: &[(&str, &str)], statement: String, uses: &
     // A disjunction is decided classically, and so is a fresh allocation's
     // writability, whose rounded address splits on a decided `if`.
     let mut observed = axioms();
-    if statement.contains("||") || name.starts_with("mirAllocatedIsWritable") {
+    if statement.contains("||")
+        || name.starts_with("mirAllocatedIsWritable")
+        || name.starts_with("mirLoadAfterCopy")
+    {
         observed.insert(0, "Classical.choice".into());
     }
     let mut uses: Vec<&str> = uses.to_vec();
@@ -323,6 +326,58 @@ pub(crate) fn definitions() -> Vec<Decl> {
         "(Fn (Nat) Nat)",
         "(fun [flag] (j : Nat) => flag)".into(),
     ));
+    // `count` cells of `stride` bytes from `source` copied to `target`,
+    // read before any is written (`ptr::copy`, which may overlap). The
+    // first cell's source offset is written as itself, which is what the
+    // offset arithmetic gives there, so that the law of the first cell is
+    // linear.
+    let copied = |field: &str| {
+        format!("(fun [count, d, memory, s, source, stride, target] (k : Nat) (j : Nat) => (if ((k =? (project target allocation)) && ((d <=? j) && (j <? (d + (prim multiply count stride : Nat))))) then (apply (project memory {field}) (project source allocation) (if (j =? d) then s else ((prim subtract j d : Nat) + s))) else (apply (project memory {field}) k j)))")
+    };
+    out.push(definition(
+        "mirCopy",
+        &[
+            m,
+            ("source", super::lower::POINTER),
+            ("target", super::lower::POINTER),
+            nat("stride"),
+            nat("count"),
+        ],
+        MEMORY,
+        format!(
+            "(let s : Nat := (mirOffset memory source); (let d : Nat := (mirOffset memory target); {}))",
+            memory_with(&[("cells", copied("cells")), ("defined", copied("defined"))])
+        ),
+    ));
+    // `count` bytes from `pointer`, as whole cells: a live allocation's,
+    // from a cell's start, a whole number of its cells, within it. A copy
+    // of bytes between allocations of one cell size copies their cells.
+    out.push(definition(
+        "mirWholeCells",
+        &[m, p, nat("count")],
+        "Bool",
+        format!(
+            "((not ((project pointer allocation) =? 0)) && (((project pointer allocation) <=? (project memory count)) && (({live} =? 1) && (({base} <=? (project pointer address)) && (((prim remainder (mirOffset memory pointer) {stride} 0 : Nat) =? 0) && (((prim remainder count {stride} 0 : Nat) =? 0) && (((mirOffset memory pointer) + count) <=? (prim multiply {length} {stride} : Nat))))))))",
+            live = of("live"),
+            base = of("base"),
+            stride = of("stride"),
+            length = of("length"),
+        ),
+    ));
+    // An `Option`'s cell, a code of the model's own (Rust specifies no
+    // layout for it): `0` for `None`, the value plus one for `Some`.
+    out.push(definition(
+        "mirEncodeOption",
+        &[("value", "(Option Nat)")],
+        "Nat",
+        "(match value | Option.none => 0 | Option.some held => (held + 1))".into(),
+    ));
+    out.push(definition(
+        "mirDecodeOption",
+        &[nat("code")],
+        "(Option Nat)",
+        "(if (code =? 0) then (ctor Option.none [Nat]) else (ctor Option.some [Nat] (prim subtract code 1 : Nat)))".into(),
+    ));
     // A `MaybeUninit`'s cell: its value where it holds one.
     out.push(definition(
         "mirCellsOfMaybe",
@@ -423,13 +478,89 @@ pub(crate) fn laws(s: u64) -> Vec<Decl> {
         format!("(((mirWritable (mirFree memory (project pointer allocation)) pointer {s}) = true) -> (0 = 1))"),
         &with(&["mirFree"]),
     ));
+    let copy = [
+        m,
+        ("source", super::lower::POINTER),
+        ("target", super::lower::POINTER),
+        ("count", "Nat"),
+    ];
+    out.push(theorem(
+        format!("mirLoadAfterCopy{s}"),
+        &copy,
+        format!("((0 < count) -> ((mirLoad (mirCopy memory source target {s} count) target {s}) = (mirLoad memory source {s})))"),
+        &with(&["mirCopy"]),
+    ));
+    let mut params = copy.to_vec();
+    params.push(o);
+    out.push(theorem(
+        format!("mirCopyKeepsOtherAllocations{s}"),
+        &params,
+        format!("((((project other allocation) =? (project target allocation)) = false) -> ((mirLoad (mirCopy memory source target {s} count) other {s}) = (mirLoad memory other {s})))"),
+        &with(&["mirCopy"]),
+    ));
     out
+}
+
+/// Whether `text` names `name` as a whole word.
+fn names(text: &str, name: &str) -> bool {
+    let word = |c: char| c.is_alphanumeric() || c == '_';
+    text.match_indices(name).any(|(at, _)| {
+        !text[..at].chars().next_back().is_some_and(word)
+            && !text[at + name.len()..].chars().next().is_some_and(word)
+    })
+}
+
+/// The model's definitions a goal over `text` unfolds: those it names and
+/// those they name in turn, sorted. Empty when it names none.
+pub(crate) fn unfolding(text: &str) -> Vec<String> {
+    let defs: Vec<(String, String)> = definitions()
+        .iter()
+        .map(|d| match d {
+            Decl::Definition {
+                name,
+                body: Expr::Flat(b),
+                ..
+            } => (name.clone(), b.clone()),
+            other => (other.name().to_string(), String::new()),
+        })
+        .collect();
+    let mut found: BTreeSet<String> = BTreeSet::new();
+    let mut texts = vec![text.to_string()];
+    while let Some(t) = texts.pop() {
+        for (n, b) in &defs {
+            if !found.contains(n) && names(&t, n) {
+                found.insert(n.clone());
+                texts.push(b.clone());
+            }
+        }
+    }
+    found.into_iter().collect()
 }
 
 /// The model's declarations for a translation that uses cells of these
 /// sizes: its definitions, then its laws at each size.
 pub(crate) fn declarations(strides: &BTreeSet<u64>) -> Vec<Decl> {
     let mut out = definitions();
+    // The code is a representation: a value read back is the value written.
+    // Rust leaves an `Option`'s layout to rustc, so any injective code is a
+    // sound stand-in for its bytes; these laws, one for each constructor,
+    // are that injectivity. Each holds by reduction.
+    out.push(Decl::Theorem {
+        name: "mirOptionCodeRoundTripNone".into(),
+        parameters: Vec::new(),
+        statement: "((mirDecodeOption (mirEncodeOption (ctor Option.none [Nat]))) = (ctor Option.none [Nat]))"
+            .into(),
+        proof: "reflexivity{}".into(),
+        axioms: Vec::new(),
+    });
+    out.push(Decl::Theorem {
+        name: "mirOptionCodeRoundTripSome".into(),
+        parameters: vec![("held".into(), "Nat".into())],
+        statement: "((mirDecodeOption (mirEncodeOption (ctor Option.some [Nat] held))) = (ctor Option.some [Nat] held))"
+            .into(),
+        proof: "reflexivity{}".into(),
+        axioms: Vec::new(),
+    });
     for s in strides {
         out.extend(laws(*s));
     }
@@ -446,6 +577,6 @@ mod tests {
         assert!(names.contains(&"mirLoadAfterStore4".to_string()));
         assert!(names.iter().all(|n| n.ends_with('4')));
         let all = declarations(&BTreeSet::from([1, 4]));
-        assert_eq!(all.len(), definitions().len() + 2 * laws(1).len());
+        assert_eq!(all.len(), definitions().len() + 2 + 2 * laws(1).len());
     }
 }

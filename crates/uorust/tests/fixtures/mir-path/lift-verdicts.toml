@@ -9,7 +9,7 @@ spec = "uorust/verdicts/1"
 [[verdict]]
 kappa = "0520ec10db16e929cd8004aa5c36ee538d88b254d9e98a13f776a9fee2fc83e8"
 function = "walk::capped_sum"
-digest = "b712a2c3ada35c8d1e3dd268504520b2c248427a478db1675e773d1f738d97aa"
+digest = "cd4aa953eb08adb0ce61996da50f241261f1a1805d52f0409220b6b59df03a75"
 status = "proved"
 axioms = { holds_walkCappedSum_0 = ["propext"], walkCappedSum = ["Quot.sound", "propext"] }
 
@@ -23,42 +23,49 @@ axioms = { secondKnown = ["Quot.sound", "propext"] }
 [[verdict]]
 kappa = "23ecb9f545055ae9c2ea1b8a779173dae935bbdb90a90c4ddcf79c5a4d8eb32f"
 function = "walk::any_above"
-digest = "ae44c2b340b797c0eff55108eba934de92365e2f994ed5427fdbf73da36da174"
+digest = "e176175b97efbe72b3efe52454cc648f5c529d510281139d53f919b1baa40adc"
 status = "refused"
 cause = "LLV7002: Lean rejected `Walk.Behavior` (error lean.unknownIdentifier): Unknown identifier `limit`"
 
 [[verdict]]
+kappa = "38a061380e7872cbfcbfb89fb14f8b7cb176bedc7a1bd30a6fa957848ca98ebb"
+function = "walk::through_raw"
+digest = "138ed9a8910bdce0bdd13c0adc074cdabed697a0c990c3a9fac5592d4389b4d5"
+status = "proved"
+axioms = { holds_walkThroughRaw_0 = ["Classical.choice", "Quot.sound", "propext"], holds_walkThroughRaw_1 = ["Classical.choice", "Quot.sound", "propext"] }
+
+[[verdict]]
 kappa = "594db3015dad06f3b27fdd5213540c6a8f8d55ce86d6fd985e76139f7ef4b6ef"
 function = "walk::first_blank"
-digest = "02f13efe3cad7005c524259abbea06e417287e308df28ab8eaf03b20a7684bed"
+digest = "a02f6cdd3ffaf673c6a05d395ace235a7c392429fc14952158ba61e5db228d3f"
 status = "proved"
 axioms = { decreases_walkFirstBlankLoop1_0 = ["Classical.choice", "Quot.sound", "propext"], holds_walkFirstBlank_0 = ["propext"], holds_walkFirstBlank_1 = ["Classical.choice", "Quot.sound", "propext"], walkFirstBlank = ["Classical.choice", "Quot.sound", "propext"], walkFirstBlankLoop1 = ["Classical.choice", "Quot.sound", "propext"] }
 
 [[verdict]]
 kappa = "6783f5d021c2a4f1192e0b3979ca4ca082085b84380e1c2d2abaa545cc4019e0"
 function = "walk::first_named"
-digest = "1f9246bd9d0056f4670472c3ed872a6754d2f0859a81a00fafe00df4dd307748"
+digest = "61b8286dab18f813a98000db042b1a5f1d54339eabeabe74f2e2e06012dc13cc"
 status = "proved"
 axioms = { closureFirstNamed0 = ["Classical.choice", "Quot.sound", "propext"], decreases_stdSliceIterIterFindClosureSrcLibRs1802318026StrLoop1_0 = ["Classical.choice", "Quot.sound", "propext"], holds_walkFirstNamed_0 = ["propext"], stdSliceIterIterFindClosureSrcLibRs1802318026Str = ["Classical.choice", "Quot.sound", "propext"], stdSliceIterIterFindClosureSrcLibRs1802318026StrLoop1 = ["Classical.choice", "Quot.sound", "propext"], walkFirstNamed = ["Classical.choice", "Quot.sound", "propext"], walkFirstNamedLoop1 = ["Classical.choice", "Quot.sound", "propext"] }
 
 [[verdict]]
 kappa = "86a512a81a9f13f1618129aeeb8ad5502a5b5f5b34f80e7386896b29b26f3ce7"
 function = "walk::first_negative"
-digest = "2e5ef3f73a47934ae77011a413dc5b9af9ab2ecc619cc7f5edb7bee36495d076"
+digest = "23da158860cf460b98c1d76bfcb1c3644d63d30ca6bc6d5a5d27e26558bb09c3"
 status = "proved"
 axioms = { holds_walkFirstNegative_0 = ["propext"], walkFirstNegative = ["Quot.sound", "propext"] }
 
 [[verdict]]
 kappa = "8ae97d071c314712f0ba17c7bf819fffc13f176a947d64f0e0240081af0d8bfd"
 function = "walk::above"
-digest = "44a7da123187ee91fcf7d43f570878e37331ce46a14454489462bf0bb6f3a0dd"
+digest = "a802667bd2db665da3cadf40fc772cac9be968cd519079e4aa70d7b80bf96800"
 status = "proved"
 axioms = { holds_walkAbove_0 = ["propext"], walkAbove = ["Quot.sound", "propext"] }
 
 [[verdict]]
 kappa = "92f29729e59db6f0ba761fd066a311b0e1e7a7ee3974ce2a343a7651623672b0"
 function = "walk::count"
-digest = "7377cd8167315984b15df8f4781ac84a243f909393a4ccbd4afbbf59fd8d3f8d"
+digest = "c8d374a9cfbdbf671618829ef6916cc74bd54eb2b984b3c2dfa103fc1df83d35"
 status = "refused"
 cause = "LLV7002: Lean rejected `Walk.Behavior` (error): omega could not prove the goal:"
 

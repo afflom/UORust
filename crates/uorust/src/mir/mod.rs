@@ -227,7 +227,68 @@ pub fn dump(root: &Path, out: &Path) -> Result<(), UorustError> {
             }
         }
     }
-    Ok(())
+    record_layouts(root, out)
+}
+
+/// The file beside the dumps that records each declared target's data
+/// layout, as rustc's target specification states it.
+pub(crate) const LAYOUTS: &str = "layouts.toml";
+
+/// Record, in [`LAYOUTS`] under `out`, the data layout of each target the
+/// workspace's `rust-toolchain.toml` declares (`rustc --print
+/// target-spec-json`, its `data-layout`). A workspace that declares none
+/// records none, and its memory is then refused.
+fn record_layouts(root: &Path, out: &Path) -> Result<(), UorustError> {
+    let tool = |what: &str, reason: String| UorustError::Tool(format!("{what}: {reason}"));
+    let toolchain = root.join("rust-toolchain.toml");
+    let targets: Vec<String> = match std::fs::read_to_string(&toolchain) {
+        Ok(text) => text
+            .parse::<toml::Table>()
+            .ok()
+            .and_then(|t| t.get("toolchain")?.get("targets")?.as_array().cloned())
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|t| t.as_str().map(str::to_string))
+            .collect(),
+        Err(_) => Vec::new(),
+    };
+    let mut text =
+        String::from("# Each declared target's data layout, from rustc's target specification.\n");
+    for target in targets {
+        let run = Command::new("rustc")
+            .args([
+                "-Zunstable-options",
+                "--print",
+                "target-spec-json",
+                "--target",
+            ])
+            .arg(&target)
+            .current_dir(root)
+            .env("RUSTC_BOOTSTRAP", "1")
+            .output()
+            .map_err(|e| tool("rustc --print target-spec-json", e.to_string()))?;
+        if !run.status.success() {
+            return Err(tool(
+                &format!("rustc --print target-spec-json --target {target}"),
+                String::from_utf8_lossy(&run.stderr).into_owned(),
+            ));
+        }
+        let spec: serde_json::Value = serde_json::from_slice(&run.stdout)
+            .map_err(|e| tool("rustc --print target-spec-json", e.to_string()))?;
+        let Some(layout) = spec.get("data-layout").and_then(serde_json::Value::as_str) else {
+            return Err(tool(
+                "rustc --print target-spec-json",
+                format!("no data-layout for {target}"),
+            ));
+        };
+        text.push_str(&format!(
+            "\n[[target]]\ntriple = {}\ndata_layout = {}\n",
+            toml::Value::String(target.clone()),
+            toml::Value::String(layout.to_string())
+        ));
+    }
+    let path = out.join(LAYOUTS);
+    std::fs::write(&path, text).map_err(|e| io(&path, e))
 }
 
 /// The dumped bodies of a workspace, by crate identifier, each keyed by its
@@ -241,6 +302,8 @@ pub(crate) struct Dumps {
     /// The closures' bodies, by crate and the closure's type as MIR prints
     /// it, `{closure@file:l:c: l:c}`.
     pub(crate) closures: BTreeMap<String, BTreeMap<String, IrBody>>,
+    /// The declared targets' data layouts, as [`LAYOUTS`] records them.
+    pub(crate) layouts: Vec<layout::DataLayout>,
 }
 
 /// The type of the closure whose body this is: its environment `_1`'s type,
@@ -262,6 +325,30 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
     let mut ambiguous: Vec<(String, String)> = Vec::new();
     if !dir.is_dir() {
         return Ok(dumps);
+    }
+    let recorded = dir.join(LAYOUTS);
+    if recorded.is_file() {
+        let text = std::fs::read_to_string(&recorded).map_err(|e| io(&recorded, e))?;
+        let bad = |reason: String| UorustError::Malformed {
+            path: recorded.clone(),
+            reason,
+        };
+        let doc: toml::Table = text
+            .parse()
+            .map_err(|e: toml::de::Error| bad(e.to_string()))?;
+        for t in doc
+            .get("target")
+            .and_then(toml::Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            let Some(t) = t.as_table() else {
+                return Err(bad("a target that is not a table".into()));
+            };
+            dumps
+                .layouts
+                .extend(layout::from_target_toml(t).map_err(|r| bad(layout::reason(&r)))?);
+        }
     }
     let mut targets: Vec<PathBuf> = std::fs::read_dir(dir)
         .map_err(|e| io(dir, e))?
