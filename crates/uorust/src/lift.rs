@@ -104,6 +104,10 @@ pub(crate) enum Ty {
     Nat(Option<u32>),
     /// A signed integer of this many bits, held as `Int64`.
     Int(u32),
+    /// An IEEE 754 binary floating-point number, held as its bit pattern
+    /// (a `Nat`): the format's exponent and fraction widths, as core's own
+    /// constants give them (see `mir::float`).
+    Float(crate::mir::float::Format),
     Str,
     /// A `char`, held as the one-character string it is.
     Char,
@@ -139,7 +143,7 @@ impl Ty {
         match self {
             Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
-            Self::Nat(_) => "Nat".into(),
+            Self::Nat(_) | Self::Float(_) => "Nat".into(),
             Self::Int(_) => "Int64".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => format!("{PRELUDE}::ParseIntError"),
@@ -181,7 +185,7 @@ impl Ty {
         match self {
             Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
-            Self::Nat(_) => "Nat".into(),
+            Self::Nat(_) | Self::Float(_) => "Nat".into(),
             Self::Int(_) => "Int".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => "ParseIntError".into(),
@@ -320,6 +324,9 @@ pub(crate) struct Types {
     /// Whether this is core's own scope, where MIR prints core's paths
     /// without the crate: `ops::ControlFlow` is `core::ops::ControlFlow`.
     pub(crate) core: bool,
+    /// The floating-point types the scope reads, by name (`f32`), each the
+    /// format core's own constants define for it.
+    pub(crate) floats: BTreeMap<String, crate::mir::float::Format>,
 }
 
 /// The strongly connected components of a graph, each one set.
@@ -610,6 +617,7 @@ impl Types {
                 derives: BTreeMap::new(),
                 closures: BTreeMap::new(),
                 core: false,
+                floats: BTreeMap::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -635,6 +643,7 @@ impl Types {
                     derives: BTreeMap::new(),
                     closures: BTreeMap::new(),
                     core: false,
+                    floats: BTreeMap::new(),
                 };
             }
             names = lifted.into_keys().collect();
@@ -4622,7 +4631,7 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
     Some(match ty {
         Ty::Unit => "()".into(),
         Ty::Bool => "false".into(),
-        Ty::Nat(_) => "0".into(),
+        Ty::Nat(_) | Ty::Float(_) => "0".into(),
         Ty::Int(_) => "(0 : Int64)".into(),
         Ty::Str | Ty::Char => "\"\"".into(),
         Ty::ParseError => format!("(ctor {PRELUDE}::ParseIntError.InvalidDigit)"),

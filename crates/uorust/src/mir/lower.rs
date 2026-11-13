@@ -25,6 +25,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use super::float;
 use super::ir::{
     IrAggregate, IrBlockId, IrBody, IrConstant, IrLocal, IrOperand, IrPlace, IrProjection,
     IrRvalue, IrStatement, IrTerminator,
@@ -297,7 +298,10 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
     }
     f.find_loops()?;
     f.scope = f.params.clone();
-    let value = f.block(0, st)?;
+    let value = match f.float_intrinsic_body() {
+        Some(v) => v,
+        None => f.block(0, st)?,
+    };
     let result = f.result.clone();
     f.mention(&result);
     for (_, t) in f.params.clone() {
@@ -327,6 +331,163 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
 }
 
 impl Fun<'_, '_> {
+    /// The model's definitions a float term needs, held as auxiliaries;
+    /// the term itself.
+    fn float_use(&mut self, u: float::Use) -> String {
+        for d in u.defs {
+            self.calls.insert(d.name.clone());
+            self.aux.entry(d.name.clone()).or_insert_with(|| d.decl());
+        }
+        u.term
+    }
+
+    fn float_model(&self, f: float::Format) -> float::Model {
+        float::Model::of(f, &self.cx.types.floats)
+    }
+
+    /// A call of one of core's float intrinsics, by the name MIR prints:
+    /// the model's operation, where the arguments are the intrinsic's
+    /// format.
+    fn float_intrinsic(&mut self, callee: &str, args: &[(String, Ty)], dt: &Ty) -> Option<String> {
+        let path = erase(callee);
+        let segs = split_path(&path);
+        // Core's own bodies call an intrinsic they import by its bare name.
+        let bare = segs.len() == 1 && self.cx.types.core;
+        if !bare
+            && !matches!(
+                segs.as_slice(),
+                ["intrinsics", _] | ["core" | "std", "intrinsics", _]
+            )
+        {
+            return None;
+        }
+        // `float_to_int_unchecked`: its result where it is defined, a value
+        // in the target's range, is the truncation `as` gives.
+        if segs.last() == Some(&"float_to_int_unchecked") {
+            let ([(v, Ty::Float(f))], Ty::Nat(Some(w))) = (args, dt) else {
+                return None;
+            };
+            let u = self.float_model(*f).to_nat(*w, v);
+            return Some(self.float_use(u));
+        }
+        let (base, f) = float::split_intrinsic(segs.last()?, &self.cx.types.floats)?;
+        let (op, arity) = float::intrinsic(base)?;
+        let typed = args.len() == arity
+            && args.iter().all(|(_, t)| *t == Ty::Float(f))
+            && *dt == Ty::Float(f);
+        if !typed {
+            return None;
+        }
+        let terms: Vec<&str> = args.iter().map(|(v, _)| v.as_str()).collect();
+        let u = self.float_model(f).apply(op, &terms);
+        Some(self.float_use(u))
+    }
+
+    /// A method of a float type, or one of its operator impls, which core
+    /// writes as the operator itself: the model's meaning of it.
+    fn float_method(&mut self, callee: &str, args: &[(String, Ty)], dt: &Ty) -> Option<Called> {
+        let path = erase(callee);
+        // `<f32 as ops::arith::Add>::add`, or `f32::<impl f32>::is_nan`.
+        let (on, trait_name, name) = match path.strip_prefix('<') {
+            Some(rest) => {
+                let (q, m) = rest.rsplit_once(">::")?;
+                let (on, tr) = q.split_once(" as ")?;
+                (
+                    on.to_string(),
+                    split_path(tr).last().map(|t| t.to_string()),
+                    m.to_string(),
+                )
+            }
+            None => {
+                let segs = split_path(&path);
+                let (name, head) = segs.split_last()?;
+                let on = head.first()?.to_string();
+                let inherent =
+                    head.len() == 1 || (head.len() == 2 && head[1] == format!("<impl {on}>"));
+                if !inherent {
+                    return None;
+                }
+                (on, None, name.to_string())
+            }
+        };
+        let f = *self.cx.types.floats.get(&on)?;
+        let (m, arity) = float::method(trait_name.as_deref(), &name)?;
+        if args.len() != arity {
+            return None;
+        }
+        let model = self.float_model(f);
+        let float = Ty::Float(f);
+        let terms: Vec<&str> = args.iter().map(|(v, _)| v.as_str()).collect();
+        let floats = |n: usize| args.iter().take(n).all(|(_, t)| *t == float);
+        match m {
+            float::Method::Op(op) if floats(arity) && *dt == float => {
+                let u = model.apply(op, &terms);
+                Some(Called::value(self.float_use(u)))
+            }
+            float::Method::Test(op) if floats(arity) && *dt == Ty::Bool => {
+                let u = model.test(op, &terms)?;
+                Some(Called::value(self.float_use(u)))
+            }
+            float::Method::Bits => {
+                let bits = Ty::Nat(Some(f.width()));
+                let (a, at) = &args[0];
+                ((*at == float && *dt == bits) || (*at == bits && *dt == float))
+                    .then(|| Called::value(a.clone()))
+            }
+            float::Method::Assign(op) if floats(arity) && *dt == Ty::Unit => {
+                let u = model.apply(op, &terms);
+                let new = self.float_use(u);
+                Some(Called {
+                    term: "()".into(),
+                    updates: BTreeMap::from([(0, new)]),
+                    guard: None,
+                })
+            }
+            _ => None,
+        }
+    }
+
+    /// The body of a float intrinsic core declares without one (it is
+    /// `unreachable`, the compiler supplying it): the model's operation on
+    /// its parameters.
+    fn float_intrinsic_body(&mut self) -> Option<Expr> {
+        let b = self.body;
+        let bodiless = b.blocks.len() == 1
+            && b.blocks[0].statements.is_empty()
+            && b.blocks[0].terminator == IrTerminator::Unreachable;
+        if !bodiless {
+            return None;
+        }
+        let args = self.params.clone();
+        let dt = self.result.clone();
+        let callee = format!("intrinsics::{}", split_path(&b.path).last()?);
+        self.float_intrinsic(&callee, &args, &dt).map(Expr::Flat)
+    }
+
+    /// A float literal as MIR prints it (`0f32`, `-0f64`, `1.0E+4f16`), or
+    /// one of the constants IEEE 754 fixes, by core's name for it
+    /// (`f32::<impl f32>::NAN`).
+    fn float_constant(&self, text: &str) -> Option<(String, Ty)> {
+        let floats = &self.cx.types.floats;
+        for (t, f) in floats {
+            // `1f32`, and `+Inf_f16`, as rustc prints a value with no
+            // decimal form.
+            let lit = text.strip_suffix(t.as_str());
+            if let Some(lit) = lit.map(|l| l.strip_suffix('_').unwrap_or(l)) {
+                if let Some(bits) = float::literal(*f, lit, float::widest(floats)) {
+                    return Some((bits.decimal(), Ty::Float(*f)));
+                }
+            }
+            let named = text
+                .strip_prefix(&format!("{t}::<impl {t}>::"))
+                .or_else(|| text.strip_prefix(&format!("core::{t}::<impl {t}>::")));
+            if let Some(bits) = named.and_then(|n| self.float_model(*f).named(n)) {
+                return Some((bits.decimal(), Ty::Float(*f)));
+            }
+        }
+        None
+    }
+
     fn mention(&mut self, t: &Ty) {
         self.types.extend(t.mentions());
         self.types.insert(t.clone());
@@ -1377,6 +1538,9 @@ impl Fun<'_, '_> {
             IrConstant::Char(ch) => lift::exact_string(&ch.to_string())
                 .map(|s| (s, Ty::Char))
                 .ok_or_else(|| kind(k, "a char LexLean source cannot write")),
+            IrConstant::Path(p) | IrConstant::Other(p) if self.float_constant(p).is_some() => {
+                self.float_constant(p).ok_or_else(|| kind(k, p))
+            }
             IrConstant::Path(p) | IrConstant::Other(p) => match self.cx.consts.get(p) {
                 Some(body) => self.const_body(p, body),
                 None => match c {
@@ -1725,6 +1889,10 @@ impl Fun<'_, '_> {
                 let (v, t) = self.operand(o, st)?;
                 match (op, &t) {
                     (spec::MirUnOp::Not, Ty::Bool) => Ok(Val::V(format!("(not {v})"), Ty::Bool)),
+                    (spec::MirUnOp::Neg, Ty::Float(f)) => {
+                        let u = self.float_model(*f).apply("Neg", &[&v]);
+                        Ok(Val::V(self.float_use(u), t.clone()))
+                    }
                     (spec::MirUnOp::PtrMetadata, Ty::List(elem)) => {
                         let len = format!("(prim length {v} : Nat)");
                         self.length_fact(&len, elem, st);
@@ -1758,6 +1926,29 @@ impl Fun<'_, '_> {
                         } else {
                             Err(kind(k.path(), "a cast that may truncate"))
                         }
+                    }
+                    // `as` on floats: IEEE 754's conversions, rounded to
+                    // nearest, and toward zero with saturation into an
+                    // integer (the Reference, "Numeric cast").
+                    (spec::MirCastKind::IntToFloat, Ty::Nat(_), Ty::Float(f)) => {
+                        let u = self.float_model(*f).of_nat(&v);
+                        Ok(Val::V(self.float_use(u), to))
+                    }
+                    (spec::MirCastKind::FloatToInt, Ty::Float(f), Ty::Nat(Some(w))) => {
+                        let u = self.float_model(*f).to_nat(*w, &v);
+                        Ok(Val::V(self.float_use(u), to))
+                    }
+                    (spec::MirCastKind::FloatToFloat, Ty::Float(f), Ty::Float(g)) => {
+                        let u = self.float_model(*g).of_float(*f, &v);
+                        Ok(Val::V(self.float_use(u), to))
+                    }
+                    // A float is its bit pattern: `transmute` to or from the
+                    // unsigned integer of its width is the value itself.
+                    (spec::MirCastKind::Transmute, Ty::Float(f), Ty::Nat(Some(w)))
+                    | (spec::MirCastKind::Transmute, Ty::Nat(Some(w)), Ty::Float(f))
+                        if f.width() == *w =>
+                    {
+                        Ok(Val::V(v, to))
                     }
                     _ => Err(kind(
                         k.path(),
@@ -1815,6 +2006,30 @@ impl Fun<'_, '_> {
                 &format!("on {} and {}", xt.render(), yt.render()),
             )
         };
+        if let (Ty::Float(f), true) = (&xt, xt == yt) {
+            let (name, args) = match op {
+                B::Add => ("Add", [&x, &y]),
+                B::Sub => ("Sub", [&x, &y]),
+                B::Mul => ("Mul", [&x, &y]),
+                B::Div => ("Div", [&x, &y]),
+                B::Rem => ("Rem", [&x, &y]),
+                B::Eq | B::Ne => ("Eq", [&x, &y]),
+                B::Lt => ("Lt", [&x, &y]),
+                B::Le => ("Le", [&x, &y]),
+                B::Gt => ("Lt", [&y, &x]),
+                B::Ge => ("Le", [&y, &x]),
+                _ => return Err(bad()),
+            };
+            let u = self
+                .float_model(*f)
+                .apply(name, &[args[0].as_str(), args[1].as_str()]);
+            let term = self.float_use(u);
+            return Ok(match op {
+                B::Ne => Val::V(format!("(not {term})"), Ty::Bool),
+                B::Add | B::Sub | B::Mul | B::Div | B::Rem => Val::V(term, xt.clone()),
+                _ => Val::V(term, Ty::Bool),
+            });
+        }
         let nat = matches!(xt, Ty::Nat(_)) && matches!(yt, Ty::Nat(_));
         let boolean = xt == Ty::Bool && yt == Ty::Bool;
         let v = |s: String, t: Ty| Ok(Val::V(s, t));
@@ -2164,6 +2379,12 @@ impl Fun<'_, '_> {
             }
             let a: Vec<String> = args.into_iter().map(|(v, _)| v).collect();
             return Ok(Called::value(format!("({} {})", c.name, a.join(" "))));
+        }
+        if let Some(v) = self.float_intrinsic(callee, &args, dt) {
+            return Ok(Called::value(v));
+        }
+        if let Some(c) = self.float_method(callee, &args, dt) {
+            return Ok(c);
         }
         if let Some(v) = std_call(callee, &args, dt, self, st) {
             return Ok(Called::value(v));
@@ -2792,6 +3013,7 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         ("i16", []) => Ty::Int(16),
         ("i32", []) => Ty::Int(32),
         ("i64", []) => Ty::Int(64),
+        (f, []) if segs.len() == 1 && types.floats.contains_key(f) => Ty::Float(types.floats[f]),
         ("char", []) => Ty::Char,
         ("str", []) => Ty::Str,
         ("String", []) if std || segs.len() == 1 => Ty::Str,

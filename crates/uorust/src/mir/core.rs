@@ -185,6 +185,9 @@ pub(crate) fn shard(scope: &Scope, root: &Path, module: &str, texts: &[String]) 
     // Core's own scope, with `cmp::Ordering` the lift's ordering.
     let mut types = Types {
         core: scope.own_std,
+        // Each float type at the format core's own constants define, where
+        // the root holds core's sources (rust-src).
+        floats: super::float::formats(&root.join("library")),
         ..Types::default()
     };
     types.enums.insert(
