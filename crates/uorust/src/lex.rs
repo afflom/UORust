@@ -426,6 +426,16 @@ pub(crate) fn render_decl(decl: &Decl) -> String {
             termination,
             mutual,
         } => {
+            // A body held as text whose term is a match is laid out as one,
+            // as `lexlean fmt` lays it out, whichever writer held it as text.
+            let read;
+            let body = match body {
+                Expr::Flat(text) => {
+                    read = Expr::read(text);
+                    &read
+                }
+                other => other,
+            };
             let ps = params(parameters);
             let mut flat = vec![
                 format!("name: {name}"),
