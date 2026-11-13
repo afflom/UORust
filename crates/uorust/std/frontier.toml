@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 4067
-translated = 69
-residue = 3998
+translated = 82
+residue = 3985
 
 [module.alloc]
 bodies = 20
@@ -62,8 +62,8 @@ residue = 14
 
 [module.io]
 bodies = 662
-translated = 20
-residue = 642
+translated = 32
+residue = 630
 
 [module.keyword_docs]
 bodies = 0
@@ -137,8 +137,8 @@ residue = 507
 
 [module.sys]
 bodies = 1004
-translated = 35
-residue = 969
+translated = 36
+residue = 968
 
 [module.test_helpers]
 bodies = 0
@@ -276,6 +276,10 @@ cause = "mir::Ty: bytes::Buf"
 bodies = 15
 
 [[cause]]
+cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
+bodies = 15
+
+[[cause]]
 cause = "mir::Ty: net::tcp::TcpStream"
 bodies = 15
 
@@ -304,10 +308,6 @@ cause = "mir::Ty: Components<'_>"
 bodies = 14
 
 [[cause]]
-cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
-bodies = 14
-
-[[cause]]
 cause = "mir::Ty: process::ExitCode"
 bodies = 14
 
@@ -322,10 +322,6 @@ bodies = 14
 [[cause]]
 cause = "mir::Ty: fs::FileType"
 bodies = 13
-
-[[cause]]
-cause = "mir::Rvalue::Repeat: of a value that is not a constant"
-bodies = 12
 
 [[cause]]
 cause = "mir::Ty: sys::fs::unix::FileType"
@@ -608,6 +604,10 @@ cause = "mir::Ty: sys::sync::once::futex::Once"
 bodies = 6
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
+bodies = 5
+
+[[cause]]
 cause = "mir::Ty: Component<'_>"
 bodies = 5
 
@@ -773,10 +773,6 @@ bodies = 4
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: core::mem::size_of"
-bodies = 4
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
 bodies = 4
 
 [[cause]]
@@ -1029,10 +1025,6 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Rvalue::Ref"
-bodies = 3
-
-[[cause]]
-cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 bodies = 3
 
 [[cause]]
@@ -1516,10 +1508,6 @@ cause = "mir::Ty: fs::ReadDir"
 bodies = 2
 
 [[cause]]
-cause = "mir::Ty: impl FnOnce"
-bodies = 2
-
-[[cause]]
 cause = "mir::Ty: io::Bytes<u32>"
 bodies = 2
 
@@ -1804,7 +1792,7 @@ cause = "mir::Operand::Constant: alloc::__default_lib_allocator::__rdl_dealloc::
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: os::unix::net::addr::SUN_PATH_OFFSET::{constant#0}"
+cause = "mir::Operand::Constant: os::unix::net::addr::SUN_PATH_OFFSET::{constant#0}: mir::TerminatorKind::Call: intrinsics::offset_of"
 bodies = 1
 
 [[cause]]
@@ -1837,10 +1825,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS: mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]"
-bodies = 1
-
-[[cause]]
-cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::CastKind::IntToInt: from Nat to String"
 bodies = 1
 
 [[cause]]
@@ -1889,10 +1873,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item sync::mpmc::list::LAP"
-bodies = 1
-
-[[cause]]
-cause = "mir::Operand::Constant: the constant item sys::io::DEFAULT_BUF_SIZE"
 bodies = 1
 
 [[cause]]
@@ -1973,6 +1953,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: {alloc669: &LazyKey}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 bodies = 1
 
 [[cause]]
@@ -2064,6 +2048,10 @@ cause = "mir::TerminatorKind::Call: core::ptr::mut_ptr::is_null"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: core::slice::as_mut_ptr"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: core::slice::ascii::eq_ignore_ascii_case"
 bodies = 1
 
@@ -2132,7 +2120,7 @@ cause = "mir::TerminatorKind::Call: panicking::panic_count::set_always_abort: st
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: panicking::panicking"
+cause = "mir::TerminatorKind::Call: panicking::panicking: std's MIR stops at mir::TerminatorKind::Call: panicking::panic_count::count_is_zero: std's MIR stops at mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 bodies = 1
 
 [[cause]]
@@ -2184,7 +2172,7 @@ cause = "mir::TerminatorKind::Call: sys::process::unix::common::getppid: std's M
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id"
+cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id: std's MIR stops at mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid: std's MIR stops at mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe extern "C" fn"""
 bodies = 1
 
 [[cause]]
@@ -2192,11 +2180,11 @@ cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid: 
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::thread::unix::sleep"
+cause = "mir::TerminatorKind::Call: sys::thread::unix::sleep: std's MIR stops at mir::TerminatorKind::Call: Duration::as_secs"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now"
+cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now: std's MIR stops at mir::TerminatorKind::Call: sched_yield"
 bodies = 1
 
 [[cause]]
@@ -2568,6 +2556,10 @@ cause = "mir::Ty: impl Distribution<u32>"
 bodies = 1
 
 [[cause]]
+cause = "mir::Ty: impl FnOnce"
+bodies = 1
+
+[[cause]]
 cause = "mir::Ty: io::Guard<'_>"
 bodies = 1
 
@@ -2741,6 +2733,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: panicking::Hook"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: panicking::catch_unwind::Data<u32"
 bodies = 1
 
 [[cause]]

@@ -4463,7 +4463,7 @@ cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
 path = "std::sys::io::error::unix::error_string"
 kappa = "508cd986a498389a47002f2c932c428475f3dfffb23221eb04a25fba5e619ffc"
 status = "residue"
-cause = "mir::Rvalue::Repeat: of a value that is not a constant"
+cause = "mir::TerminatorKind::Call: core::slice::<impl [i8]>::as_mut_ptr"
 
 [[fn]]
 path = "std::sys::io::error::unix::is_interrupted"
@@ -4486,8 +4486,8 @@ cause = "mir::Ty: ffi::os_str::OsString"
 [[fn]]
 path = "std::sys::path::unix::SEPARATORS"
 kappa = "f75f05ce3afa1e2888d9582f1fc5624452266406566490f78310c26be62ce050"
-status = "residue"
-cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::CastKind::IntToInt: from Nat to String"
+status = "translated"
+digest = "4e9e7908ef7677419dde48ecf549cdccde0b3a23bbe7b8a1bbfc52e3aeeee7d0"
 
 [[fn]]
 path = "std::sys::path::unix::SEPARATORS_STR"
@@ -6075,7 +6075,7 @@ path = "std::with_current_info"
 kappa = "ee46cad89606255d1946f428f0c0835b44ab52f35d24561104f8f6dd007803ed"
 at = "R=u32, ThreadInfo=u32"
 status = "residue"
-cause = "mir::Ty: impl FnOnce(Option<&u32>) -> u32"
+cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
 
 [[fn]]
 path = "std::wstr::WStrUnits::advance_while"

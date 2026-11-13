@@ -11,12 +11,6 @@ status = "residue"
 cause = "mir::Ty: panic::BacktraceStyle"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:199:1: 199:40>::fmt"
-kappa = "7e254187ea8452308f83a06afa7811aa4ad68c38225a7805e205e4ecf1ad6bcf"
-status = "residue"
-cause = "mir::Ty: core::fmt::Error"
-
-[[fn]]
 path = "std::panic::<impl at library/std/src/panic.rs:41:10: 41:15>::fmt"
 kappa = "dac38d457e5e673eb889eeebfd41739b10099673a5ebfb4086a6527b541c6509"
 status = "residue"
@@ -47,55 +41,61 @@ status = "residue"
 cause = "mir::Ty: BacktraceStyle"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:445:1: 445:20>::as_u8"
+path = "std::panic::BacktraceStyle::as_u8"
 kappa = "2f3406c4d7dd45b9d691420d839c0f80a1983ba36d6320a8fb2df6c69d3bb664"
 status = "residue"
 cause = "mir::Ty: BacktraceStyle"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:445:1: 445:20>::from_u8"
+path = "std::panic::BacktraceStyle::from_u8"
 kappa = "96fdfd876e04b490b19e75e30d2555de850a58f5e21f24540be6ffb67156e345"
 status = "residue"
 cause = "mir::Ty: panic::BacktraceStyle"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:445:1: 445:20>::full"
+path = "std::panic::BacktraceStyle::full"
 kappa = "13e2d27fde6bbae1b0172cc846cdb2a841765ecb0c7c465eef06ee2a643e983d"
 status = "residue"
 cause = "mir::Ty: panic::BacktraceStyle"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:49:1: 49:27>::can_unwind"
+path = "std::panic::PanicHookInfo::can_unwind"
 kappa = "bcbb7225a67f048ff07dae41ac99570c13a4b973095753b6daf6f3981d702693"
 status = "residue"
 cause = "mir::Ty: PanicHookInfo<'_>"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:49:1: 49:27>::force_no_backtrace"
+path = "std::panic::PanicHookInfo::fmt"
+kappa = "7e254187ea8452308f83a06afa7811aa4ad68c38225a7805e205e4ecf1ad6bcf"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::panic::PanicHookInfo::force_no_backtrace"
 kappa = "c0ff797376b28c96e0f3c6af063ca68c5fdf907af585f6fa304a7d50aff3115a"
 status = "residue"
 cause = "mir::Ty: PanicHookInfo<'_>"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:49:1: 49:27>::location"
+path = "std::panic::PanicHookInfo::location"
 kappa = "6d4f3a53adee507aff279e9d027fbbb6a917338345e3b17df6c2e832a730bdf4"
 status = "residue"
 cause = "mir::Ty: core::panic::Location<'_>"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:49:1: 49:27>::new"
+path = "std::panic::PanicHookInfo::new"
 kappa = "3ca9d19baf8e8d9971770ce399b25adce666a11d57fd200d80efc7005a45f670"
 status = "residue"
 cause = "mir::Ty: panic::PanicHookInfo<'_>"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:49:1: 49:27>::payload"
+path = "std::panic::PanicHookInfo::payload"
 kappa = "8d9ed5717a11da68b317c7632214fb4c2cbb8d2938da77bd34da6d71d9203ff6"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
-path = "std::panic::<impl at library/std/src/panic.rs:49:1: 49:27>::payload_as_str"
+path = "std::panic::PanicHookInfo::payload_as_str"
 kappa = "c32d4461197d3ac161141b7bc411baf55eaeb2869d900eba5a6e58c12af20384"
 status = "residue"
 cause = "mir::Ty: PanicHookInfo<'_>"

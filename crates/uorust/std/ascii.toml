@@ -1,76 +1,4 @@
 [[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:182:1: 182:21>::eq_ignore_ascii_case"
-kappa = "d5bcaa400de7fe3914982bf51bf5f49b14f7c10875dca1a2cce5c66a5f11f417"
-status = "residue"
-cause = "mir::TerminatorKind::Call: core::num::<impl u8>::eq_ignore_ascii_case"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:182:1: 182:21>::is_ascii"
-kappa = "ad8e9f695c8f2a817ef6b7391f03699be832d3f954eeb02e14162a74dd50d2d9"
-status = "residue"
-cause = "mir::TerminatorKind::Call: core::num::<impl u8>::is_ascii"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:182:1: 182:21>::make_ascii_lowercase"
-kappa = "8c9f24fbba77723c7e787a4ddcae92e416fea4207647ef86a3b9f54f8bf4b9aa"
-status = "residue"
-cause = "mir::TerminatorKind::Call: core::num::<impl u8>::make_ascii_lowercase"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:182:1: 182:21>::make_ascii_uppercase"
-kappa = "61215721080d14cc5bb21c0c5d8dbcd82dda417ec081d992154fd1fcc32e0b1e"
-status = "residue"
-cause = "mir::TerminatorKind::Call: core::num::<impl u8>::make_ascii_uppercase"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:182:1: 182:21>::to_ascii_lowercase"
-kappa = "e2cea9d5ee1499bc569cc59faeed8af28a11184bf860adb29c0dd8a7875eed4b"
-status = "residue"
-cause = "mir::TerminatorKind::Call: core::num::<impl u8>::to_ascii_lowercase"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:182:1: 182:21>::to_ascii_uppercase"
-kappa = "2c4bb67fcad7279a16a76243bd804146c45bf98f90bf7c2dd09e176328ea3bea"
-status = "residue"
-cause = "mir::TerminatorKind::Call: core::num::<impl u8>::to_ascii_uppercase"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:190:1: 190:23>::eq_ignore_ascii_case"
-kappa = "f9e41cbb5b9c53943a127b0c31ad3c00c01bef400c5f50e4d3401f58c4d95a74"
-status = "residue"
-cause = "mir::TerminatorKind::Call: char::methods::<impl char>::eq_ignore_ascii_case"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:190:1: 190:23>::is_ascii"
-kappa = "fdac7d4b46138f542b75e80058d879749e0947b5a2bbdf0982e2c6fdbfdb6d00"
-status = "residue"
-cause = "mir::TerminatorKind::Call: char::methods::<impl char>::is_ascii"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:190:1: 190:23>::make_ascii_lowercase"
-kappa = "67adfe86343640aa3bbe508842c5505623e19e5af9eda91a2658130cca1148f8"
-status = "residue"
-cause = "mir::TerminatorKind::Call: char::methods::<impl char>::make_ascii_lowercase"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:190:1: 190:23>::make_ascii_uppercase"
-kappa = "1cab4d6c2a88216bb0f69feb0c2f6432daf5f158966f8cebcb9f6c59549ed7ed"
-status = "residue"
-cause = "mir::TerminatorKind::Call: char::methods::<impl char>::make_ascii_uppercase"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:190:1: 190:23>::to_ascii_lowercase"
-kappa = "7f557a8e1ebae6c8f3325e5bf58972dba6eddc482ee81e5f52c86dd06b791d32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: char::methods::<impl char>::to_ascii_lowercase"
-
-[[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:190:1: 190:23>::to_ascii_uppercase"
-kappa = "e77fb68ca488407b9e4fac1c25e115fcb2aed89cdde0a4fee7f6c657d6fd0141"
-status = "residue"
-cause = "mir::TerminatorKind::Call: char::methods::<impl char>::to_ascii_uppercase"
-
-[[fn]]
 path = "std::ascii::<impl at library/std/src/ascii.rs:198:1: 198:23>::eq_ignore_ascii_case"
 kappa = "114da954b103ca63c12c4009c43f6959dfa86bdf024b54a44bab8bcb3f3716e5"
 status = "residue"
@@ -107,38 +35,110 @@ status = "residue"
 cause = "mir::TerminatorKind::Call: alloc_crate::slice::<impl [u8]>::to_ascii_uppercase"
 
 [[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:206:1: 206:22>::eq_ignore_ascii_case"
+path = "std::ascii::char::eq_ignore_ascii_case"
+kappa = "f9e41cbb5b9c53943a127b0c31ad3c00c01bef400c5f50e4d3401f58c4d95a74"
+status = "residue"
+cause = "mir::TerminatorKind::Call: char::methods::<impl char>::eq_ignore_ascii_case"
+
+[[fn]]
+path = "std::ascii::char::is_ascii"
+kappa = "fdac7d4b46138f542b75e80058d879749e0947b5a2bbdf0982e2c6fdbfdb6d00"
+status = "residue"
+cause = "mir::TerminatorKind::Call: char::methods::<impl char>::is_ascii"
+
+[[fn]]
+path = "std::ascii::char::make_ascii_lowercase"
+kappa = "67adfe86343640aa3bbe508842c5505623e19e5af9eda91a2658130cca1148f8"
+status = "residue"
+cause = "mir::TerminatorKind::Call: char::methods::<impl char>::make_ascii_lowercase"
+
+[[fn]]
+path = "std::ascii::char::make_ascii_uppercase"
+kappa = "1cab4d6c2a88216bb0f69feb0c2f6432daf5f158966f8cebcb9f6c59549ed7ed"
+status = "residue"
+cause = "mir::TerminatorKind::Call: char::methods::<impl char>::make_ascii_uppercase"
+
+[[fn]]
+path = "std::ascii::char::to_ascii_lowercase"
+kappa = "7f557a8e1ebae6c8f3325e5bf58972dba6eddc482ee81e5f52c86dd06b791d32"
+status = "residue"
+cause = "mir::TerminatorKind::Call: char::methods::<impl char>::to_ascii_lowercase"
+
+[[fn]]
+path = "std::ascii::char::to_ascii_uppercase"
+kappa = "e77fb68ca488407b9e4fac1c25e115fcb2aed89cdde0a4fee7f6c657d6fd0141"
+status = "residue"
+cause = "mir::TerminatorKind::Call: char::methods::<impl char>::to_ascii_uppercase"
+
+[[fn]]
+path = "std::ascii::str::eq_ignore_ascii_case"
 kappa = "a24de01100f884af2af6df1d83940dc328355ccd5b5f8293df7e05fc4b223a37"
 status = "residue"
 cause = "mir::TerminatorKind::Call: core::str::<impl str>::eq_ignore_ascii_case"
 
 [[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:206:1: 206:22>::is_ascii"
+path = "std::ascii::str::is_ascii"
 kappa = "f0dfb30a2f20dbf1113d13f816aef380c0bf183b8d66bb8e2d4dd910f5d16c9e"
 status = "residue"
 cause = "mir::TerminatorKind::Call: core::str::<impl str>::is_ascii"
 
 [[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:206:1: 206:22>::make_ascii_lowercase"
+path = "std::ascii::str::make_ascii_lowercase"
 kappa = "a2b531c9ffaf6d30b3650dbbdcc129aad65684e2159eea2c1f34091128940e2c"
 status = "residue"
 cause = "mir::TerminatorKind::Call: core::str::<impl str>::make_ascii_lowercase"
 
 [[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:206:1: 206:22>::make_ascii_uppercase"
+path = "std::ascii::str::make_ascii_uppercase"
 kappa = "9384e77746de9dd8d34418fecbf7bf1595b9869829abb0800918cd1cecbc4561"
 status = "residue"
 cause = "mir::TerminatorKind::Call: core::str::<impl str>::make_ascii_uppercase"
 
 [[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:206:1: 206:22>::to_ascii_lowercase"
+path = "std::ascii::str::to_ascii_lowercase"
 kappa = "fe2670af7950f83efa780385f493d691c040b4dc9dfba9cf9d29c0d4d2f74f48"
 status = "residue"
 cause = "mir::TerminatorKind::Call: alloc_crate::str::<impl str>::to_ascii_lowercase"
 
 [[fn]]
-path = "std::ascii::<impl at library/std/src/ascii.rs:206:1: 206:22>::to_ascii_uppercase"
+path = "std::ascii::str::to_ascii_uppercase"
 kappa = "4c3e23a488f9a50d6451584a4926f9a63aeb0fac60fb04f2e64599d8a104f0cb"
 status = "residue"
 cause = "mir::TerminatorKind::Call: alloc_crate::str::<impl str>::to_ascii_uppercase"
+
+[[fn]]
+path = "std::ascii::u8::eq_ignore_ascii_case"
+kappa = "d5bcaa400de7fe3914982bf51bf5f49b14f7c10875dca1a2cce5c66a5f11f417"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::num::<impl u8>::eq_ignore_ascii_case"
+
+[[fn]]
+path = "std::ascii::u8::is_ascii"
+kappa = "ad8e9f695c8f2a817ef6b7391f03699be832d3f954eeb02e14162a74dd50d2d9"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::num::<impl u8>::is_ascii"
+
+[[fn]]
+path = "std::ascii::u8::make_ascii_lowercase"
+kappa = "8c9f24fbba77723c7e787a4ddcae92e416fea4207647ef86a3b9f54f8bf4b9aa"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::num::<impl u8>::make_ascii_lowercase"
+
+[[fn]]
+path = "std::ascii::u8::make_ascii_uppercase"
+kappa = "61215721080d14cc5bb21c0c5d8dbcd82dda417ec081d992154fd1fcc32e0b1e"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::num::<impl u8>::make_ascii_uppercase"
+
+[[fn]]
+path = "std::ascii::u8::to_ascii_lowercase"
+kappa = "e2cea9d5ee1499bc569cc59faeed8af28a11184bf860adb29c0dd8a7875eed4b"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::num::<impl u8>::to_ascii_lowercase"
+
+[[fn]]
+path = "std::ascii::u8::to_ascii_uppercase"
+kappa = "2c4bb67fcad7279a16a76243bd804146c45bf98f90bf7c2dd09e176328ea3bea"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::num::<impl u8>::to_ascii_uppercase"
 

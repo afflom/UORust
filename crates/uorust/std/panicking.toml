@@ -49,7 +49,7 @@ status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 
 [[fn]]
-path = "std::begin_panic::<impl at library/std/src/panicking.rs:751:5: 751:49>::fmt"
+path = "std::begin_panic::Payload::fmt"
 kappa = "88fc103f45b4fec08b48c480c88bb820288f8b2011b251823d8d5658371f1c43"
 at = "A=u32"
 status = "residue"
@@ -78,14 +78,14 @@ path = "std::do_call"
 kappa = "c078d0ea4b08178e20065eb95ddd6d8507718d244576038b52111d15aba01670"
 at = "F=u32, R=u32"
 status = "residue"
-cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
+cause = "mir::Ty: panicking::catch_unwind::Data<u32, u32>"
 
 [[fn]]
 path = "std::do_catch"
 kappa = "88a8684b2464d57118b94032067ddaebaac80ebe31c5f45bcc38b93f7152c3fd"
 at = "F=u32, R=u32"
 status = "residue"
-cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
+cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::finished_panic_hook"
@@ -124,12 +124,6 @@ status = "residue"
 cause = "mir::Ty: core::panic::PanicInfo<'_>"
 
 [[fn]]
-path = "std::panic_handler::<impl at library/std/src/panicking.rs:628:5: 628:33>::fill"
-kappa = "bff980cdaaf2deb7f6d9b3af9393ca4d34d3d4ff6369932d2d1ce665ca4501db"
-status = "residue"
-cause = "mir::Ty: FormatStringPayload<'_>"
-
-[[fn]]
 path = "std::panic_handler::<impl at library/std/src/panicking.rs:641:5: 641:57>::get"
 kappa = "bcf38acdf85130338e436cf0c1065ca4b6bf9fe33cdbf5e123ab39f800cffd4e"
 status = "residue"
@@ -140,12 +134,6 @@ path = "std::panic_handler::<impl at library/std/src/panicking.rs:641:5: 641:57>
 kappa = "6db777423cef11b4b95234dea8d6cd6d368902140bf4d6f90e8ced5cd6f747be"
 status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
-
-[[fn]]
-path = "std::panic_handler::<impl at library/std/src/panicking.rs:655:5: 655:50>::fmt"
-kappa = "d770e242f43234341377e056bd0876c73229b0a35b2410b116946626b5594dd3"
-status = "residue"
-cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::panic_handler::<impl at library/std/src/panicking.rs:667:5: 667:50>::as_str"
@@ -166,7 +154,19 @@ status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 
 [[fn]]
-path = "std::panic_handler::<impl at library/std/src/panicking.rs:681:5: 681:43>::fmt"
+path = "std::panic_handler::FormatStringPayload::fill"
+kappa = "bff980cdaaf2deb7f6d9b3af9393ca4d34d3d4ff6369932d2d1ce665ca4501db"
+status = "residue"
+cause = "mir::Ty: FormatStringPayload<'_>"
+
+[[fn]]
+path = "std::panic_handler::FormatStringPayload::fmt"
+kappa = "d770e242f43234341377e056bd0876c73229b0a35b2410b116946626b5594dd3"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::panic_handler::StaticStrPayload::fmt"
 kappa = "372ca36f43b0e650523576e4b18040cb8023bd07610e250131ae92df73ba8c34"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
@@ -184,7 +184,7 @@ status = "residue"
 cause = "mir::Ty: panicking::Hook"
 
 [[fn]]
-path = "std::panicking::<impl at library/std/src/panicking.rs:93:1: 93:10>::into_box"
+path = "std::panicking::Hook::into_box"
 kappa = "1340ee3b62ee1ac1c05c125bbb9d9ddef9fdf9ad392f5265da66f935ce10a90c"
 status = "residue"
 cause = "mir::Ty: dyn for<'a, 'b> core::ops::Fn(&'a panic::PanicHookInfo<'b>) + core::marker::Send + core::marker::Sync"
@@ -227,7 +227,7 @@ status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 
 [[fn]]
-path = "std::panicking::resume_unwind::<impl at library/std/src/panicking.rs:871:5: 871:36>::fmt"
+path = "std::panicking::resume_unwind::RewrapBox::fmt"
 kappa = "f48c0a9a2fe7a801392c6b81ba5ae910466c61a264fbec1b490aa1e02079a99d"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"

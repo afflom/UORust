@@ -100,7 +100,7 @@ cause = "mir::Ty: thread::thread::Thread"
 path = "std::current::current_os_id"
 kappa = "029446b5d9930b2d14f6f7385a933b01131e63db5e2de4541755fe356bb29878"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id"
+cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id: std's MIR stops at mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid: std's MIR stops at mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe extern "C" fn() -> i32>}"""
 
 [[fn]]
 path = "std::current::id::get"
@@ -154,13 +154,13 @@ cause = "mir::Ty: core::num::NonZero<usize>"
 path = "std::functions::panicking"
 kappa = "5004f0098a698864832bf3d97dc93b4c520c823a5f66ee86e4ae84340f750c5c"
 status = "residue"
-cause = "mir::TerminatorKind::Call: panicking::panicking"
+cause = "mir::TerminatorKind::Call: panicking::panicking: std's MIR stops at mir::TerminatorKind::Call: panicking::panic_count::count_is_zero: std's MIR stops at mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 
 [[fn]]
 path = "std::functions::sleep"
 kappa = "1383a8ac7873e190f3b0962febf197da1267fa6c9b5c8846171092d958168557"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sys::thread::unix::sleep"
+cause = "mir::TerminatorKind::Call: sys::thread::unix::sleep: std's MIR stops at mir::TerminatorKind::Call: Duration::as_secs"
 
 [[fn]]
 path = "std::functions::sleep_until"
@@ -172,7 +172,7 @@ cause = "mir::Ty: time::Instant"
 path = "std::functions::yield_now"
 kappa = "33ae6092ccffd785c9f10dbf5ce17fb1975c8c708788044ec796acb7b50107d9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now"
+cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now: std's MIR stops at mir::TerminatorKind::Call: sched_yield"
 
 [[fn]]
 path = "std::get_or_init"
