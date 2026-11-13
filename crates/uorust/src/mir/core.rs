@@ -266,7 +266,14 @@ pub(crate) fn shard(
             .into_iter()
             .zip(parse::bodies(text))
         {
-            if body.arity == 0 && (body.path.contains("promoted[") || !body.path.contains('{')) {
+            // A constant: a promoted one, a constant item, or an anonymous
+            // constant (`u16::{constant#0}`, an expression in a const
+            // context of its function's body, which its uses name).
+            if body.arity == 0
+                && (body.path.contains("promoted[")
+                    || body.path.contains("{constant#")
+                    || !body.path.contains('{'))
+            {
                 consts.insert(body.path.clone(), body.clone());
                 // A constant item's dump names it by its full path (`//
                 // MIR for `fmt::flags::WIDTH_FLAG``), which its uses print,

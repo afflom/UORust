@@ -42,6 +42,9 @@ pub(crate) struct CoreLink {
     /// For a macro's impls whose trait is a metavariable, each body's
     /// trait, where its expansion order tells it.
     traits: BTreeMap<String, Vec<Option<String>>>,
+    /// Each body's impl's index (`{impl#N}`) for each of its texts, in
+    /// the order `bodies` holds them.
+    index: BTreeMap<String, Vec<Option<u64>>>,
 }
 
 impl CoreLink {
@@ -496,6 +499,7 @@ impl CoreLink {
             defaults,
             methods,
             traits,
+            index,
         }
     }
 
@@ -897,8 +901,66 @@ impl CoreLink {
     pub(crate) fn constant(&self, printed: &str) -> Option<Instance> {
         // A constant item of another module, by the path its dump names.
         if !printed.starts_with('<') {
-            let [text] = self.bodies.get(printed)?.as_slice() else {
-                return None;
+            // A primitive's inherent impl MIR prints `<impl char>`, where
+            // the link names its items by the impl's type alone.
+            let alias = || {
+                let (head, rest) = printed.split_once("<impl ")?;
+                let (x, tail) = rest.split_once('>')?;
+                self.bodies.get(&format!("{head}{x}{tail}"))
+            };
+            let text = match self.bodies.get(printed).or_else(alias).map(Vec::as_slice) {
+                Some([text]) => text,
+                // A constant of the impls a macro writes for `X<A>`
+                // (`NonZero::<u8>::BITS`), which share the path of the
+                // macro's impl in `X`'s module: the text of the impl, by
+                // its index (`{impl#N}`), whose methods' signatures take
+                // `X<A>` as `self`.
+                _ => {
+                    let (rest, name) = printed.rsplit_once("::")?;
+                    let (path, args) = rest.strip_suffix('>')?.rsplit_once("::<")?;
+                    let head = split_path(path).last().copied()?;
+                    // Taken as `self`, its first argument: the macro's
+                    // other types are in its signatures too.
+                    let selfs = [
+                        format!("(_1: {head}<{args}>)"),
+                        format!("(_1: {head}<{args}>, "),
+                    ];
+                    let module = path.strip_suffix(head)?;
+                    let mut found = self.bodies.iter().filter_map(|(p, texts)| {
+                        let span = p.strip_prefix(module)?.strip_prefix("<impl at ")?;
+                        let span = &span[..span.find('>')?];
+                        let (_, ty) = self.impls.get(span)?;
+                        let own = format!("{module}<impl at {span}>::");
+                        (ty.split('<').next() == Some(head) && p.strip_prefix(&own) == Some(name))
+                            .then_some((own, p, texts))
+                    });
+                    let (own, path, texts) = match (found.next(), found.next()) {
+                        (Some(f), None) => f,
+                        _ => return None,
+                    };
+                    let idx = self.index.get(path)?;
+                    let takes = |n: &Option<u64>| {
+                        n.is_some()
+                            && self.bodies.iter().any(|(q, ts)| {
+                                q.starts_with(&own)
+                                    && self.index.get(q).is_some_and(|qi| {
+                                        ts.iter().zip(qi).any(|(t, m)| {
+                                            m == n
+                                                && t.lines()
+                                                    .find(|l| l.starts_with("fn "))
+                                                    .is_some_and(|l| {
+                                                        selfs.iter().any(|t| l.contains(t))
+                                                    })
+                                        })
+                                    })
+                            })
+                    };
+                    let mut fit = texts.iter().zip(idx).filter(|(_, n)| takes(n));
+                    match (fit.next(), fit.next()) {
+                        (Some((t, _)), None) => t,
+                        _ => return None,
+                    }
+                }
             };
             return text
                 .lines()

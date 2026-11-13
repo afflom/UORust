@@ -24,6 +24,13 @@ pub(crate) fn bodies(text: &str) -> Vec<IrBody> {
                 Some(b) => b,
                 None => continue,
             }
+        } else if line.contains("::{constant#") && !line.starts_with(char::is_whitespace) {
+            // An anonymous constant MIR prints with no keyword:
+            // `int_log10::u16::{constant#0}: u32 = {`.
+            match const_header(line) {
+                Some(b) => b,
+                None => continue,
+            }
         } else {
             continue;
         };
