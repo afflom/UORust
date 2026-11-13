@@ -9883,6 +9883,14 @@ pub(crate) struct Candidate<'a> {
     /// How its file reads the names two of its crate's types share: each
     /// such name -> the LexLean name of the one the file means.
     pub(crate) aliases: BTreeMap<String, String>,
+    /// How its file reads the keys two of its crate's functions share
+    /// (`toml_string` in two modules): each such key, as a call writes it
+    /// -> the module-qualified `rust` key of the one the file means, or
+    /// none where the file means neither.
+    pub(crate) homonyms: BTreeMap<String, Option<String>>,
+    /// The key its own body calls it by: `rust`, or for a function whose
+    /// key the crate shares, the key a call writes.
+    pub(crate) called: String,
     /// The formatter parameter of a `Display` impl's `fmt`, which lifts as
     /// the function from the value to the text it writes.
     pub(crate) formatter: Option<String>,
@@ -9945,7 +9953,7 @@ pub(crate) fn lift_all(
             .collect();
         let mut env = Env {
             types: types.clone(),
-            fns,
+            fns: fns.clone(),
             widths: widths.to_vec(),
             names: names.clone(),
         };
@@ -9963,7 +9971,7 @@ pub(crate) fn lift_all(
             }
             let names: Vec<String> = c.params.iter().map(|(_, n, _)| n.clone()).collect();
             let ctx = Ctx {
-                current: c.rust.clone(),
+                current: c.called.clone(),
                 params: names.clone(),
                 result: c.result.clone(),
                 locals: c
@@ -9990,6 +9998,14 @@ pub(crate) fn lift_all(
             env.types
                 .aliases
                 .extend(c.aliases.iter().map(|(n, t)| (n.clone(), t.clone())));
+            // Each key the crate's functions share reads as the function
+            // its file means, or as no function.
+            for (key, meant) in &c.homonyms {
+                match meant.as_ref().and_then(|m| fns.get(m)) {
+                    Some(sig) => env.fns.insert(key.clone(), sig.clone()),
+                    None => env.fns.remove(key),
+                };
+            }
             let lifted = block(&c.block.stmts, &env, &ctx, Acc::default(), Some(&c.result));
             let outcome = match lifted {
                 Ok(((body, ty), acc)) if ty.same(&c.result) => {
@@ -10033,7 +10049,15 @@ pub(crate) fn lift_all(
                         }
                         decls.push((format!("#{}", t.name()), t));
                     }
-                    graph.insert(c.rust.clone(), acc.calls);
+                    let calls = acc
+                        .calls
+                        .into_iter()
+                        .map(|k| match c.homonyms.get(&k) {
+                            Some(Some(meant)) => meant.clone(),
+                            _ => k,
+                        })
+                        .collect();
+                    graph.insert(c.rust.clone(), calls);
                     let mut seen = acc.seen;
                     for (_, _, t) in &c.params {
                         seen.extend(t.mentions());
@@ -10858,6 +10882,8 @@ mod tests {
             block: &block,
             imports: BTreeMap::from([("Sha256".to_string(), "sha2::Sha256".to_string())]),
             aliases: BTreeMap::new(),
+            homonyms: BTreeMap::new(),
+            called: sig.ident.clone(),
             formatter: None,
         };
         let out = lift_all(&[c], types, &pointer_widths(&[]), &BTreeSet::new());

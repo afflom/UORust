@@ -2086,15 +2086,23 @@ impl Fun<'_, '_> {
                 }
             },
         };
+        // The Rust type of the place read so far, where MIR names it: a
+        // tuple of one item lifts as the item, so its field is the value.
+        let mut text: Option<String> = self.body.locals.get(p.local).cloned();
         while let Some(step) = steps.next() {
             match step {
                 // A shared reference or a box is the value it points to.
                 IrProjection::Deref if is_pointer(&t) => return Err(through_pointer("read")),
-                IrProjection::Deref => {}
+                IrProjection::Deref => text = text.as_deref().and_then(referent),
+                IrProjection::Field(0, fty) if text.as_deref().is_some_and(one_tuple) => {
+                    t = ty(fty, self.cx.types)?;
+                    text = Some(fty.clone());
+                }
                 IrProjection::Field(i, fty) => {
                     let ft = ty(fty, self.cx.types)?;
                     v = self.field(&v, &t, *i)?;
                     t = ft;
+                    text = Some(fty.clone());
                 }
                 IrProjection::Downcast(variant) => {
                     // `ControlFlow`'s variants are `Result`'s.
@@ -4248,6 +4256,47 @@ struct Inhabited {
 }
 
 /// The inhabited variant of `text`, when exactly one of its variants is.
+/// Whether a Rust type MIR prints is a tuple of one item, `(T,)`.
+fn one_tuple(text: &str) -> bool {
+    let Some(inner) = text
+        .trim()
+        .strip_prefix('(')
+        .and_then(|t| t.strip_suffix(",)"))
+    else {
+        return false;
+    };
+    // `(A, B,)` is never printed; a top-level comma means more than one item.
+    let mut depth = 0i32;
+    for c in inner.replace("->", "").chars() {
+        match c {
+            '(' | '<' | '[' => depth += 1,
+            ')' | '>' | ']' => depth -= 1,
+            ',' if depth == 0 => return false,
+            _ => {}
+        }
+    }
+    true
+}
+
+/// The type a reference or box MIR prints points to: `T` of `&T`,
+/// `&mut T` or `Box<T>`.
+fn referent(text: &str) -> Option<String> {
+    let t = text.trim();
+    if let Some(rest) = t.strip_prefix('&') {
+        let rest = rest.trim_start();
+        // A lifetime, `&'a T`, names no type.
+        let rest = match rest.strip_prefix('\'') {
+            Some(r) => r.split_once(' ').map_or("", |(_, r)| r),
+            None => rest,
+        };
+        return Some(rest.strip_prefix("mut ").unwrap_or(rest).to_string());
+    }
+    t.strip_prefix("std::boxed::Box<")
+        .or_else(|| t.strip_prefix("Box<"))
+        .and_then(|r| r.strip_suffix('>'))
+        .map(str::to_string)
+}
+
 fn inhabited_variant(text: &str) -> Option<Inhabited> {
     let segs = split_path(text.trim());
     if !matches!(segs.first(), Some(&("std" | "core"))) {
@@ -4506,6 +4555,22 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_tuple_of_one_item_is_told_from_a_wider_one() {
+        assert!(one_tuple("(&&std::string::String,)"));
+        assert!(one_tuple("(std::collections::BTreeMap<u8, u8>,)"));
+        assert!(one_tuple("(fn(u8, u8) -> u8,)"));
+        assert!(!one_tuple("(u8, u8)"));
+        assert!(!one_tuple("(u8, u8,)"));
+        assert!(!one_tuple("std::string::String"));
+        assert_eq!(
+            referent("&&std::string::String").as_deref(),
+            Some("&std::string::String")
+        );
+        assert_eq!(referent("&'a mut (u8,)").as_deref(), Some("(u8,)"));
+        assert_eq!(referent("u8"), None);
+    }
 
     #[test]
     fn generic_arguments_are_erased_from_callees() {

@@ -3368,6 +3368,9 @@ fn behavior(
     }
     // Each crate lifts on its own: its types, and calls among its functions.
     // A function name two crates share lifts qualified by the crate's name.
+    // A free function's name two modules of a crate share lifts qualified
+    // by its module.
+    let homonyms = homonym_fns(ctx);
     let mut scoped: Vec<(Vec<Candidate<'_>>, BTreeMap<String, FnRef>)> = ws
         .packages
         .iter()
@@ -3458,12 +3461,23 @@ fn behavior(
         let Some(block) = &fn_syntax.block else {
             continue;
         };
-        let (rust, name) = match &method {
-            Some(o) => (
+        let site = (
+            r.pkg,
+            ctx.file(r).target,
+            ctx.file(r).module.clone(),
+            f.name.clone(),
+        );
+        let (rust, name) = match (&method, homonyms.get(&site)) {
+            (Some(o), _) => (
                 format!("{o}::{}", f.name),
                 lift::local_name(&format!("{o}_{}", f.name)),
             ),
-            None => (f.name.clone(), lift::local_name(&f.name)),
+            (None, Some((rust, lex))) => (rust.clone(), lex.clone()),
+            (None, None) => (f.name.clone(), lift::local_name(&f.name)),
+        };
+        let called = match &method {
+            Some(_) => rust.clone(),
+            None => f.name.clone(),
         };
         let (candidates, names) = &mut scoped[r.pkg];
         let signature = match (&formatter, &method) {
@@ -3502,6 +3516,8 @@ fn behavior(
                     block,
                     imports: ctx.file(r).imports.clone(),
                     aliases: overlays[&(r.pkg, r.file)].clone(),
+                    homonyms: homonym_reading(ctx, &homonyms, r.pkg, r.file),
+                    called,
                     formatter,
                 });
             }
@@ -3546,6 +3562,8 @@ fn behavior(
                     block,
                     imports: file.imports.clone(),
                     aliases: overlays[&(pkg, fi)].clone(),
+                    homonyms: homonym_reading(ctx, &homonyms, pkg, fi),
+                    called: rust.clone(),
                     formatter: None,
                 });
             }
@@ -3781,6 +3799,7 @@ fn mir_lift(
 ) -> MirOut {
     use crate::mir::lower;
     use crate::mir::verdict::Decision;
+    let homonyms = homonym_fns(ctx);
     // Every crate's closures, by the type MIR prints for each: a closure's
     // type is the struct of the values it captures.
     let closures: BTreeMap<String, crate::mir::IrBody> = dumps
@@ -3847,9 +3866,16 @@ fn mir_lift(
             continue;
         };
         let f = ctx.func(r);
-        let base = match &f.owner {
-            Some(o) => lift::local_name(&format!("{o}_{}", f.name)),
-            None => lift::local_name(&f.name),
+        let site = (
+            r.pkg,
+            ctx.file(r).target,
+            ctx.file(r).module.clone(),
+            f.name.clone(),
+        );
+        let base = match (&f.owner, homonyms.get(&site)) {
+            (Some(o), _) => lift::local_name(&format!("{o}_{}", f.name)),
+            (None, Some((_, lex))) => lex.clone(),
+            (None, None) => lift::local_name(&f.name),
         };
         let name = if names.contains(&base) {
             lift::local_name(&format!("{}_{base}", ctx.package(r).name))
@@ -4604,6 +4630,113 @@ fn toml_string(text: &str) -> String {
         }
     }
     out.push('"');
+    out
+}
+
+/// A free function of product code by where it is declared: package,
+/// target, module and name.
+type FnSite = (usize, usize, String, String);
+
+/// The free functions of product code whose name two modules (or two
+/// targets) of one crate share, `toml_string` in `project` and in
+/// `certify`, each -> its `rust` key and the LexLean name it lifts under:
+/// qualified by its module, and by its target where that is not the
+/// library, so that no two of them can meet. A name only one module
+/// declares keeps its own, and so its definition and every κ's verdict.
+fn homonym_fns(ctx: &Model) -> BTreeMap<FnSite, (String, String)> {
+    let mut sites: BTreeMap<(usize, String), BTreeSet<FnSite>> = BTreeMap::new();
+    for r in ctx.all_fns() {
+        let f = ctx.func(r);
+        if f.owner.is_some() || !ctx.product(r) {
+            continue;
+        }
+        let file = ctx.file(r);
+        let site = (r.pkg, file.target, file.module.clone(), f.name.clone());
+        sites
+            .entry((r.pkg, f.name.clone()))
+            .or_default()
+            .insert(site);
+    }
+    let mut out = BTreeMap::new();
+    for ((pkg, name), at) in sites {
+        if at.len() < 2 {
+            continue;
+        }
+        let package = &ctx.ws.packages[pkg];
+        for site in at {
+            let target = &package.targets[site.1];
+            let mut parts: Vec<String> = Vec::new();
+            if !matches!(target.kind, TargetKind::Lib) {
+                parts.push(target.name.replace('-', "_"));
+            }
+            parts.extend(
+                site.2
+                    .split("::")
+                    .filter(|m| !m.is_empty())
+                    .map(str::to_string),
+            );
+            if parts.is_empty() {
+                parts.push(package.name.replace('-', "_"));
+            }
+            parts.push(name.clone());
+            let rust = format!("{}#{}", site.1, parts.join("::"));
+            let lex = lift::local_name(&parts.join("_"));
+            out.insert(site, (rust, lex));
+        }
+    }
+    out
+}
+
+/// How a file reads each name its crate's free functions share: the
+/// function its module declares, else the one its `use` names, else none.
+fn homonym_reading(
+    ctx: &Model,
+    homonyms: &BTreeMap<FnSite, (String, String)>,
+    pkg: usize,
+    fi: usize,
+) -> BTreeMap<String, Option<String>> {
+    let file = &ctx.ws.packages[pkg].files[fi];
+    let mut out = BTreeMap::new();
+    for ((p, target, module, name), (rust, _)) in homonyms {
+        if *p != pkg {
+            continue;
+        }
+        let entry = out.entry(name.clone()).or_insert(None);
+        if *target != file.target {
+            continue;
+        }
+        if *module == file.module {
+            *entry = Some(rust.clone());
+            continue;
+        }
+        let Some(path) = file.imports.get(name) else {
+            continue;
+        };
+        // `crate::`, `self::` and `super::` as Rust reads them, any other
+        // path from the file's module.
+        let mut at: Vec<&str> = file.module.split("::").filter(|s| !s.is_empty()).collect();
+        let mut segs: Vec<&str> = path.split("::").collect();
+        match segs.first() {
+            Some(&"crate") => {
+                at.clear();
+                segs.remove(0);
+            }
+            Some(&"self") => {
+                segs.remove(0);
+            }
+            _ => {}
+        }
+        while segs.first() == Some(&"super") {
+            at.pop();
+            segs.remove(0);
+        }
+        if let Some((last, prefix)) = segs.split_last() {
+            at.extend(prefix);
+            if *last == name.as_str() && at.join("::") == *module && entry.is_none() {
+                *entry = Some(rust.clone());
+            }
+        }
+    }
     out
 }
 
