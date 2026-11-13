@@ -725,11 +725,11 @@ structure{
 }
 
 """
-causes_term = "(nil Quality::LiftCause)"
+causes_term = "(nil LiftCause)"
 for i in reversed(range(cut)):
     cause, bodies = ranked[i]
-    causes_term = f"(cons (record Quality::LiftCause {{rank := {i}, cause := {q(cause)}, bodies := {bodies}}}) {causes_term})"
-out += defn("liftCauses", "(List Quality::LiftCause)", causes_term) + "\n"
+    causes_term = f"(cons (record LiftCause {{rank := {i}, cause := {q(cause)}, bodies := {bodies}}}) {causes_term})"
+out += defn("liftCauses", "(List LiftCause)", causes_term) + "\n"
 out += defn("liftResidueBodies", "Nat", str(residue_bodies)) + "\n"
 out += defn("liftQueueBodies", "Nat", str(covered)) + "\n"
 out += "\n" + defn("sourcesOfMeasures", "(List Architecture::Source)", source_list(Qm))
