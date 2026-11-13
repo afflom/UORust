@@ -3627,7 +3627,7 @@ impl Fun<'_, '_> {
                         method,
                         vec![(x.clone(), xt.clone()), (fv, formatter.clone())],
                         &arg_texts,
-                        "",
+                        "result::Result<(), fmt::Error>",
                         result,
                         st,
                     )?;
