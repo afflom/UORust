@@ -4660,7 +4660,17 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
         Ty::Str | Ty::Char => "\"\"".into(),
         Ty::ParseError => format!("(ctor {PRELUDE}::ParseIntError.InvalidDigit)"),
         Ty::Option(t) => format!("(ctor Option.none [{}])", t.render()),
-        Ty::Outcome(..) | Ty::Path => return None,
+        // `Ok` of the success type's default, or `Err` of the error's.
+        Ty::Outcome(ok, err) => match default_in(ok, types, depth + 1) {
+            Some(v) => format!("(ctor Result.ok [{}, {}] {v})", ok.render(), err.render()),
+            None => format!(
+                "(ctor Result.error [{}, {}] {})",
+                ok.render(),
+                err.render(),
+                default_in(err, types, depth + 1)?
+            ),
+        },
+        Ty::Path => return None,
         // A function: the one that gives every input its result's default.
         Ty::Fn(ins, out) => {
             let params: Vec<String> = ins
