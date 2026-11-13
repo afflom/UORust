@@ -79,8 +79,9 @@ pub(crate) fn derived(ty: &Ty, types: &Types) -> bool {
 fn derived_in(ty: &Ty, types: &Types, assumed: &BTreeSet<String>) -> bool {
     match ty {
         Ty::Unit | Ty::Bool | Ty::Nat(_) | Ty::Str | Ty::Char => true,
-        // A float's order is partial: no derived total order holds of it.
-        Ty::Int(_) | Ty::Float(_) | Ty::ParseError | Ty::Path | Ty::Fn(..) => false,
+        // A float's order is partial, and a signed bit pattern orders as
+        // its value, not as the natural: no derived total order holds.
+        Ty::Int(_) | Ty::Float(_) | Ty::Signed(_) | Ty::ParseError | Ty::Path | Ty::Fn(..) => false,
         Ty::Option(t) | Ty::List(t) | Ty::Set(t, true) => derived_in(t, types, assumed),
         Ty::Set(_, false) | Ty::Map(_, _, false) => false,
         Ty::Map(k, v, true) | Ty::Outcome(k, v) => {
@@ -414,6 +415,7 @@ fn body(ty: &Ty, types: &Types) -> Expr {
         },
         Ty::Int(_)
         | Ty::Float(_)
+        | Ty::Signed(_)
         | Ty::ParseError
         | Ty::Path
         | Ty::Set(..)

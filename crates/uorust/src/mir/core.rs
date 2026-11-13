@@ -121,6 +121,31 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
         .filter(|p| p.is_dir())
         .collect();
     modules.sort();
+    // The pointer width the dumps were built for, from the `target.toml`
+    // that `scripts/mir/dump-lib.sh` writes beside them (the target triple
+    // and its `target_pointer_width` as rustc prints it); every width a
+    // target may have when there is none.
+    let file = dumps.join("target.toml");
+    let widths = match std::fs::read_to_string(&file) {
+        Err(_) => lift::pointer_widths(&[]),
+        Ok(text) => {
+            let bad = |reason: String| UorustError::Malformed {
+                path: file.clone(),
+                reason,
+            };
+            let doc: toml::Table = text.parse().map_err(|e| bad(format!("{e}")))?;
+            let triple = doc
+                .get("triple")
+                .and_then(toml::Value::as_str)
+                .ok_or_else(|| bad("no triple".into()))?;
+            let width = doc
+                .get("pointer_width")
+                .and_then(toml::Value::as_integer)
+                .and_then(|w| u32::try_from(w).ok())
+                .ok_or_else(|| bad("no pointer_width".into()))?;
+            vec![(width, vec![triple.to_string()])]
+        }
+    };
     let mut shards = Vec::new();
     for dir in modules {
         let module = dir
@@ -138,14 +163,20 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
         for file in &files {
             texts.push(std::fs::read_to_string(file).map_err(|e| io(file, e))?);
         }
-        shards.push(shard(scope, root, &module, &texts));
+        shards.push(shard(scope, root, &module, &texts, &widths));
     }
     Ok(shards)
 }
 
 /// One module's census of the crate `scope` names from the texts of its
-/// dumps.
-pub(crate) fn shard(scope: &Scope, root: &Path, module: &str, texts: &[String]) -> CoreShard {
+/// dumps, at the pointer widths they were built for.
+pub(crate) fn shard(
+    scope: &Scope,
+    root: &Path,
+    module: &str,
+    texts: &[String],
+    widths: &[(u32, Vec<String>)],
+) -> CoreShard {
     let krate = scope.krate.as_str();
     // Each body at its instantiation, with the bindings and its own text.
     let mut bodies: Vec<(IrBody, String, String)> = Vec::new();
@@ -212,7 +243,6 @@ pub(crate) fn shard(scope: &Scope, root: &Path, module: &str, texts: &[String]) 
     types
         .structs
         .insert(lower::POINTER.to_string(), lower::pointer_fields());
-    let widths = lift::pointer_widths(&[]);
     let callees = BTreeMap::new();
     let none = std::collections::BTreeSet::new();
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
@@ -231,7 +261,7 @@ pub(crate) fn shard(scope: &Scope, root: &Path, module: &str, texts: &[String]) 
         let active = [name.clone()];
         let cx = lower::Cx {
             types: &types,
-            widths: &widths,
+            widths,
             callees: &callees,
             krate: krate.to_string(),
             taken: &none,

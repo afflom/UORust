@@ -26,6 +26,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::float;
+use super::int::Int;
 use super::ir::{
     IrAggregate, IrBlockId, IrBody, IrConstant, IrLocal, IrOperand, IrPlace, IrProjection,
     IrRvalue, IrStatement, IrTerminator,
@@ -319,7 +320,10 @@ fn pointer_value(allocation: &str, address: &str, metadata: &str) -> String {
 /// trait object, whose metadata is a vtable.
 fn pointee(text: &str) -> Option<(&str, bool)> {
     let t = text.trim();
-    let rest = t.strip_prefix("*const ").or_else(|| t.strip_prefix("*mut "))?.trim();
+    let rest = t
+        .strip_prefix("*const ")
+        .or_else(|| t.strip_prefix("*mut "))?
+        .trim();
     if rest.starts_with("dyn ") {
         return None;
     }
@@ -371,7 +375,11 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         mut_params: BTreeSet::new(),
     };
     f.used.insert(name.to_string());
-    let threads = threaded(&body.locals, body.arity, super::closure_type(body).is_some());
+    let threads = threaded(
+        &body.locals,
+        body.arity,
+        super::closure_type(body).is_some(),
+    );
     // A `&mut` parameter rebound to another borrow no longer reaches the
     // place its caller lent, whose last value the definition returns.
     for block in &body.blocks {
@@ -1026,7 +1034,10 @@ impl Fun<'_, '_> {
                 } if destination.projection.is_empty() && !self.loops.contains_key(n) => {
                     // A threading call's tuple is bound in the body, not in
                     // a measure.
-                    if self.call_into(destination, callee, args, *n, &mut st)?.is_some() {
+                    if self
+                        .call_into(destination, callee, args, *n, &mut st)?
+                        .is_some()
+                    {
                         return Ok(None);
                     }
                     b = *n;
@@ -1184,10 +1195,10 @@ impl Fun<'_, '_> {
                     }
                 };
                 let threads = threaded(
-            &self.body.locals,
-            self.body.arity,
-            super::closure_type(self.body).is_some(),
-        );
+                    &self.body.locals,
+                    self.body.arity,
+                    super::closure_type(self.body).is_some(),
+                );
                 let v = if threads.is_empty() {
                     v
                 } else {
@@ -1649,7 +1660,8 @@ impl Fun<'_, '_> {
                     otherwise: Box::new(otherwise),
                 })
             }
-            Ty::Nat(_) => {
+            // MIR prints a switch's values as their bit patterns.
+            Ty::Nat(_) | Ty::Signed(_) => {
                 // An `if` per value, in order, then `otherwise`.
                 let mut rest = st.clone();
                 let mut branches = Vec::new();
@@ -1825,9 +1837,11 @@ impl Fun<'_, '_> {
             IrConstant::Int(n, suffix) => {
                 let t = ty(suffix, self.cx.types)?;
                 match t {
-                    Ty::Nat(_) if *n >= 0 => Ok((n.to_string(), t)),
                     Ty::Int(_) => Ok((format!("({n} : Int64)"), t)),
-                    _ => Err(kind(k, &format!("a {suffix} literal"))),
+                    _ => Int::of(&t, self.cx.widths)
+                        .and_then(|i| super::int::literal(*n, i))
+                        .map(|v| (v, t.clone()))
+                        .ok_or_else(|| kind(k, &format!("a {suffix} literal"))),
                 }
             }
             IrConstant::Str(s) => lift::exact_string(s)
@@ -1840,6 +1854,29 @@ impl Fun<'_, '_> {
                 self.float_constant(p).ok_or_else(|| kind(k, p))
             }
             IrConstant::Path(p) | IrConstant::Other(p) => match self.cx.consts.get(p) {
+                // A primitive integer's `BITS`, `MAX` or `MIN`: `num::<impl
+                // u32>::MAX`, or a module's `i8::MIN`, from its own rule.
+                None if p.rsplit_once("::").is_some_and(|(o, _)| {
+                    let o = o
+                        .strip_prefix("num::<impl ")
+                        .and_then(|o| o.strip_suffix('>'))
+                        .unwrap_or(o);
+                    ty(o, self.cx.types).is_ok_and(|t| Int::of(&t, self.cx.widths).is_some())
+                }) =>
+                {
+                    let (o, name) = p.rsplit_once("::").unwrap_or_default();
+                    let o = o
+                        .strip_prefix("num::<impl ")
+                        .and_then(|o| o.strip_suffix('>'))
+                        .unwrap_or(o);
+                    let t = ty(o, self.cx.types)?;
+                    let int = Int::of(&t, self.cx.widths).ok_or_else(|| kind(k, p))?;
+                    match super::int::assoc(name, &t, int) {
+                        Some(Ok(v)) => Ok(v),
+                        Some(Err(d)) => Err(kind(k, &format!("{o}::{d}"))),
+                        None => Err(kind(k, &format!("the constant item {p}"))),
+                    }
+                }
                 Some(body) => self.const_body(p, body),
                 None => match c {
                     IrConstant::Path(p) => Err(kind(k, &format!("the constant item {p}"))),
@@ -2246,7 +2283,8 @@ impl Fun<'_, '_> {
         // A `&mut` read out of a place into a `&mut` local (`deref_copy
         // (*_1)` of a `&mut &mut T`) is a reborrow of the place it points
         // to, where the translation knows that place.
-        if let IrRvalue::Use(IrOperand::Copy(q) | IrOperand::Move(q)) | IrRvalue::CopyForDeref(q) = rv
+        if let IrRvalue::Use(IrOperand::Copy(q) | IrOperand::Move(q)) | IrRvalue::CopyForDeref(q) =
+            rv
         {
             let into_mut = dest.projection.is_empty()
                 && self
@@ -2266,8 +2304,7 @@ impl Fun<'_, '_> {
         match rv {
             // A mutable borrow moved or copied whole is the same borrow.
             IrRvalue::Use(IrOperand::Copy(q) | IrOperand::Move(q))
-                if q.projection.is_empty()
-                    && matches!(st.env.get(&q.local), Some(Val::Mut(_))) =>
+                if q.projection.is_empty() && matches!(st.env.get(&q.local), Some(Val::Mut(_))) =>
             {
                 Ok(st.env[&q.local].clone())
             }
@@ -2327,7 +2364,8 @@ impl Fun<'_, '_> {
                 let to = self.local_ty(dest.local, &dest.projection)?;
                 // A cast to a thin pointer drops the metadata; one from a
                 // thin pointer to a wide one does not type in Rust.
-                if matches!(k, spec::MirCastKind::PtrToPtr) && is_pointer(&from) && is_pointer(&to) {
+                if matches!(k, spec::MirCastKind::PtrToPtr) && is_pointer(&from) && is_pointer(&to)
+                {
                     let source = match o {
                         IrOperand::Copy(q) | IrOperand::Move(q) if q.projection.is_empty() => {
                             self.body.locals.get(q.local).and_then(|t| pointee(t))
@@ -2344,15 +2382,29 @@ impl Fun<'_, '_> {
                     };
                 }
                 match (k, &from, &to) {
-                    (spec::MirCastKind::IntToInt, Ty::Nat(_), Ty::Nat(_)) => {
-                        // Widening keeps the value on every target; any other
-                        // cast truncates by a width that may vary.
-                        let (fb, tb) = (self.max_bits(&from), self.min_bits(&to));
-                        if fb <= tb {
-                            Ok(Val::V(v, to))
-                        } else {
-                            Err(kind(k.path(), "a cast that may truncate"))
+                    // Wrap or sign-extend, by the two types' widths and
+                    // signedness; where the target's width differs between
+                    // targets, a theorem that the value is in its range on
+                    // all of them.
+                    (spec::MirCastKind::IntToInt, _, _)
+                        if Int::of(&from, self.cx.widths).is_some()
+                            && Int::of(&to, self.cx.widths).is_some() =>
+                    {
+                        let w = self.cx.widths;
+                        let (Some(fi), Some(ti)) = (Int::of(&from, w), Int::of(&to, w)) else {
+                            return Err(kind(k.path(), "between integers"));
+                        };
+                        let (value, holds) = super::int::cast(&v, fi, ti, from == to);
+                        if let Some(h) = &holds {
+                            self.obligation(st, &format!("({h} = true)"), k.path());
                         }
+                        Ok(Val::V(value, to))
+                    }
+                    // A `bool` as an integer: `1` for `true`.
+                    (spec::MirCastKind::IntToInt, Ty::Bool, _)
+                        if Int::of(&to, self.cx.widths).is_some() =>
+                    {
+                        Ok(Val::V(format!("(if {v} then 1 else 0)"), to))
                     }
                     // `as` on floats: IEEE 754's conversions, rounded to
                     // nearest, and toward zero with saturation into an
@@ -2450,7 +2502,10 @@ impl Fun<'_, '_> {
             && matches!(op, B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge)
         {
             let (ax, ay) = (address(&x), address(&y));
-            let (mx, my) = (format!("(project {x} metadata)"), format!("(project {y} metadata)"));
+            let (mx, my) = (
+                format!("(project {x} metadata)"),
+                format!("(project {y} metadata)"),
+            );
             let eq = format!("(({ax} =? {ay}) && ({mx} =? {my}))");
             let lt = |a: &str, b: &str, ma: &str, mb: &str, strict: bool| {
                 let tie = if strict { "<?" } else { "<=?" };
@@ -2472,11 +2527,15 @@ impl Fun<'_, '_> {
                 "an offset of a raw pointer, whose bounds are its allocation's, which the value model does not hold",
             ));
         }
+        // A signed integer by its Rust name, which the `Nat` it is held as
+        // would not say.
         let bad = || {
-            kind(
-                op.path(),
-                &format!("on {} and {}", xt.render(), yt.render()),
-            )
+            let name = |t: &Ty| match t {
+                Ty::Signed(Some(b)) => format!("i{b}"),
+                Ty::Signed(None) => "isize".into(),
+                _ => t.render(),
+            };
+            kind(op.path(), &format!("on {} and {}", name(&xt), name(&yt)))
         };
         if let (Ty::Float(f), true) = (&xt, xt == yt) {
             let (name, args) = match op {
@@ -2514,6 +2573,23 @@ impl Fun<'_, '_> {
                     B::Le => format!("({x} <=? {y})"),
                     B::Gt => format!("({y} <? {x})"),
                     _ => format!("({y} <=? {x})"),
+                };
+                v(s, Ty::Bool)
+            }
+            // A signed bit pattern's equality is the natural's; its order is
+            // its order key's.
+            B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge
+                if matches!(xt, Ty::Signed(_)) && xt == yt =>
+            {
+                let i = Int::of(&xt, self.cx.widths).ok_or_else(bad)?;
+                let less = super::int::less;
+                let s = match op {
+                    B::Eq => format!("({x} =? {y})"),
+                    B::Ne => format!("(not ({x} =? {y}))"),
+                    B::Lt => less(&x, &y, i),
+                    B::Le => format!("(not {})", less(&y, &x, i)),
+                    B::Gt => less(&y, &x, i),
+                    _ => format!("(not {})", less(&x, &y, i)),
                 };
                 v(s, Ty::Bool)
             }
@@ -3198,7 +3274,8 @@ fn comparison(cond: &str) -> Option<(&'static str, String, String)> {
 /// differs between targets, so no theorem may assume the narrowest one.
 fn fixed(t: &Ty) -> Option<u32> {
     match t {
-        Ty::Nat(Some(b)) => Some(*b),
+        // A signed value's bit pattern is below `2^b` as well.
+        Ty::Nat(Some(b)) | Ty::Signed(Some(b)) => Some(*b),
         _ => None,
     }
 }
@@ -3515,23 +3592,32 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         }
         _ => {}
     }
+    // Every primitive integer, its signedness and width from its name: `u`
+    // or `i`, then its bits (a power of two of whole bytes) or `size`.
+    if let (1, true, Some(sign @ ('u' | 'i'))) = (segs.len(), raw.is_empty(), name.chars().next()) {
+        let bits = match &name[1..] {
+            "size" => Some(None),
+            b if !b.starts_with('0') => b
+                .parse::<u32>()
+                .ok()
+                .filter(|b| *b >= 8 && b.is_power_of_two())
+                .map(Some),
+            _ => None,
+        };
+        if let Some(bits) = bits {
+            return Ok(if sign == 'i' {
+                Ty::Signed(bits)
+            } else {
+                Ty::Nat(bits)
+            });
+        }
+    }
     let mut args = Vec::new();
     for a in raw {
         args.push(ty(a, types)?);
     }
     Ok(match (name, args.as_slice()) {
         ("bool", []) => Ty::Bool,
-        ("u8", []) => Ty::Nat(Some(8)),
-        ("u16", []) => Ty::Nat(Some(16)),
-        ("u32", []) => Ty::Nat(Some(32)),
-        ("u64", []) => Ty::Nat(Some(64)),
-        ("u128", []) => Ty::Nat(Some(128)),
-        ("usize", []) => Ty::Nat(None),
-        // A signed integer of at most 64 bits, held as `Int64`.
-        ("i8", []) => Ty::Int(8),
-        ("i16", []) => Ty::Int(16),
-        ("i32", []) => Ty::Int(32),
-        ("i64", []) => Ty::Int(64),
         (f, []) if segs.len() == 1 && types.floats.contains_key(f) => Ty::Float(types.floats[f]),
         ("char", []) => Ty::Char,
         ("str", []) => Ty::Str,
@@ -3625,7 +3711,10 @@ mod tests {
         );
         // A mutable borrow holds the value it borrows; `!` stands as the unit.
         assert_eq!(ty("&mut u8", &types), Ok(Ty::Nat(Some(8))));
-        assert_eq!(ty("&'a mut [u8]", &types), Ok(Ty::List(Box::new(Ty::Nat(Some(8))))));
+        assert_eq!(
+            ty("&'a mut [u8]", &types),
+            Ok(Ty::List(Box::new(Ty::Nat(Some(8)))))
+        );
         assert_eq!(ty("!", &types), Ok(Ty::Unit));
         assert!(ty("*const u8", &types).is_err());
         assert_eq!(ty("std::boxed::Box<bool>", &types), Ok(Ty::Bool));

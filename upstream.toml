@@ -44,3 +44,14 @@ repository = "UOR-Foundation/template"
 pull = 62
 release = { kind = "branch" }
 repin = "frame"
+
+# Gaps: an upstream limit that residue stops at and that no patch carries
+# yet, with the plan for the patch. upstream.py reads only [[patch]], and a
+# gap becomes a [[patch]] row when its upstream PR opens.
+
+[[gap]]
+id = "lexlean-nat-to-signed"
+repository = "UOR-Foundation/LexLean"
+what = "LexLean 0.4.0 converts no Nat to another integer family: checked_convert takes Int and the fixed-width families but not Nat, to_int takes only the fixed widths, and Int64 has no arithmetic beyond the checked_* primitives (src/ir/semantic.rs, infer_primitive). So the MIR path holds every Rust integer as Nat, with signed ones as their two's-complement bit patterns (crates/uorust/src/mir/int.rs). An AST-lifted Int64 value can flow into Nat (to_int, then emod, then UInt64 limbs, then to_nat), but a Nat can never flow back: a MIR-path call to an AST-lifted function with an Int64 parameter, or a struct with an Int64 field, stays residue."
+plan = "Admit Nat as checked_convert's input (Option of any fixed width, none outside its range) and as to_int's (exact), with both elaborating in linking as to_nat does. Then the AST path's Int64 and the MIR path's bit patterns meet in a cast, and the boundary residue closes."
+residue = "mir::TerminatorKind::Call and mir::Rvalue::Aggregate rows that pass a signed value to an AST-lifted Int64 parameter or field"

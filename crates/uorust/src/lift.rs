@@ -108,6 +108,11 @@ pub(crate) enum Ty {
     /// (a `Nat`): the format's exponent and fraction widths, as core's own
     /// constants give them (see `mir::float`).
     Float(crate::mir::float::Format),
+    /// The MIR path's signed integer of this many bits (`None` for
+    /// `isize`), held as its two's-complement bit pattern in `Nat`: LexLean
+    /// converts no `Nat` to a signed family, so a cast between the two
+    /// closes only where both are `Nat`.
+    Signed(Option<u32>),
     Str,
     /// A `char`, held as the one-character string it is.
     Char,
@@ -143,7 +148,7 @@ impl Ty {
         match self {
             Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
-            Self::Nat(_) | Self::Float(_) => "Nat".into(),
+            Self::Nat(_) | Self::Float(_) | Self::Signed(_) => "Nat".into(),
             Self::Int(_) => "Int64".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => format!("{PRELUDE}::ParseIntError"),
@@ -185,7 +190,7 @@ impl Ty {
         match self {
             Self::Unit => "Unit".into(),
             Self::Bool => "Bool".into(),
-            Self::Nat(_) | Self::Float(_) => "Nat".into(),
+            Self::Nat(_) | Self::Float(_) | Self::Signed(_) => "Nat".into(),
             Self::Int(_) => "Int".into(),
             Self::Str | Self::Char => "String".into(),
             Self::ParseError => "ParseIntError".into(),
@@ -4631,7 +4636,7 @@ fn default_in(ty: &Ty, types: &Types, depth: usize) -> Option<String> {
     Some(match ty {
         Ty::Unit => "()".into(),
         Ty::Bool => "false".into(),
-        Ty::Nat(_) | Ty::Float(_) => "0".into(),
+        Ty::Nat(_) | Ty::Float(_) | Ty::Signed(_) => "0".into(),
         Ty::Int(_) => "(0 : Int64)".into(),
         Ty::Str | Ty::Char => "\"\"".into(),
         Ty::ParseError => format!("(ctor {PRELUDE}::ParseIntError.InvalidDigit)"),

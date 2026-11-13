@@ -47,6 +47,11 @@ if [ $# -eq 0 ]; then
   set -- $(modules)
 fi
 host=$(rustc +"$channel" -vV | sed -n 's/^host: //p')
+# The target the bodies are built for, with its pointer width as rustc's
+# own data layout states it: `usize` in these bodies is that wide.
+mkdir -p "$out"
+width=$(rustc +"$channel" --print cfg --target "$host" | sed -n 's/^target_pointer_width="\(.*\)"/\1/p')
+printf 'triple = "%s"\npointer_width = %s\n' "$host" "$width" >"$out/target.toml"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/probe/src"
