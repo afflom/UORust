@@ -16,7 +16,7 @@ path = "core::dangling"
 kappa = "f7b5d39a0a854b53aaa9341b49aa6632430ad6cbeb22019c1e5d51a869bb5926"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: dangling_mut"
+cause = "mir::TerminatorKind::Call: ptr::dangling_mut: core's MIR stops at type outside the lift: ptr::non_null::NonNull<u32>"
 
 [[fn]]
 path = "core::dangling_mut"
@@ -43,20 +43,20 @@ path = "core::fn_addr_eq"
 kappa = "45cf5f1013cb7a85da6cae616f0e4defb8bbffd01c290ea07055478b8e495d4c"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as marker::FnPtr>::addr"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnPtr, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash"
 kappa = "a8f8a7f9919b1884b22b62b90e07c16ce6fdaccd54dbc9fa7bd7419bf1315f22"
 at = "S=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <*const u32 as hash::Hash>::hash"
+cause = "mir::TerminatorKind::Call: hash::impls::<impl at library/core/src/hash/mod.rs:956:5: 956:61>::hash: core's MIR stops at mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
 
 [[fn]]
 path = "core::mod_inv"
 kappa = "4e99e70334820f6ba74e0bbaa21b055da2ff9ca94a1cb02cee952e71fa5857e0"
 status = "residue"
-cause = "mir::TerminatorKind::Call: unchecked_sub"
+cause = "mir::Operand::Constant: the constant item ptr::align_offset::mod_inv::INV_TABLE_MOD"
 
 [[fn]]
 path = "core::non_null::NonNull::add"
@@ -405,7 +405,7 @@ cause = "mir::Ty: ptr::non_null::NonNull<u32>"
 path = "core::non_null::NonNull::new_unchecked::precondition_check"
 kappa = "7aa2904faa244b0a7c2aed131ccbdefde4cd76b213ec18708c996e8a7ed92bf6"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut ()>::is_null"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_null::runtime"
 
 [[fn]]
 path = "core::non_null::NonNull::offset"
@@ -552,63 +552,63 @@ path = "core::null"
 kappa = "5463f3f863a3f57d421f793af7dcc796605c7ab9b52256bb86f8d391362ae9ea"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: without_provenance"
+cause = "mir::TerminatorKind::Call: ptr::metadata::from_raw_parts"
 
 [[fn]]
 path = "core::ptr::F::cmp"
 kappa = "4b7b37480510f0f017a345ecbc8155e1ca3b6d4d68e80857addd0246250a7c05"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as marker::FnPtr>::addr"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnPtr, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::F::eq"
 kappa = "8a62b885cb955b0f14e2e2cf5b7f40c687626b8136c166f08fb2723b6900aa07"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as marker::FnPtr>::addr"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnPtr, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::F::fmt"
 kappa = "2c4442968a686b6a1577c0365924dd05e5618398852c0307118bacd54f9e8fc2"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnPtr, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::F::fmt#2"
 kappa = "09dd1ffa84461c47b6e55f7d2b79bec6a6aa48a577bb98f705247fa291e2cf41"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnPtr, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::F::hash"
 kappa = "611afdfe622b9976f7380be6293b31d25bc15c6d363b857240c2fecfe55d3e26"
 at = "F=u32, HH=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as marker::FnPtr>::addr"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnPtr, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::F::partial_cmp"
 kappa = "a99528b8cbeabf220e79f7bc75257f6fb551e7256b782effd6f3a3044993cd7c"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as marker::FnPtr>::addr"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnPtr, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::align_offset"
 kappa = "a007a42052f07777b1eb0a6dce4c04b892736f3d11cd56dae2385d2d11f77efa"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of"
+cause = "mir::TerminatorKind::Call: ptr::align_offset::mod_inv: core's MIR stops at mir::Operand::Constant: the constant item ptr::align_offset::mod_inv::INV_TABLE_MOD"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1381:1: 1381:17>::cast_slice"
 kappa = "82eb7e88000658b009f1c3fe5fa61c25542b63467caf09493c887fbe97f0698b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::slice_from_raw_parts"
+cause = "mir::TerminatorKind::Call: ptr::slice_from_raw_parts: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1381:1: 1381:17>::cast_uninit"
@@ -650,14 +650,14 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1440:1:
 kappa = "35b22e1944bc522338a8b8e3b5339d63033dbd832915bdeaaa92f0bf88985bc5"
 at = "I=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as SliceIndex>::get_unchecked"
+cause = "mir::Instantiation: u32 for a parameter bounded by SliceIndex, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1440:1: 1440:19>::is_empty"
 kappa = "572f5d61275e527b1150308f6729904d0d20bf11119dff08501d9f1cae7a5462"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const [u32]>::len"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1440:1: 1440:19>::len: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::metadata"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1440:1: 1440:19>::len"
@@ -741,35 +741,35 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1686:1:
 kappa = "47a756eb627d705eb69dba02f509e07c466f5e04ac3516878055e960eef941de"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: null"
+cause = "mir::TerminatorKind::Call: ptr::null: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::add"
 kappa = "dac935d9aff89d71510988849a4930327a24d83966ce0dd00d5c746518547d27"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: offset"
+cause = "mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::addr"
 kappa = "be978907f84f6cb2f3636b4dc6ad8b7e44c5973d51bd132a8b377f0cc1755196"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+status = "translated"
+digest = "81d446f2bcb619ad0ebe834606def0dbd3212312bbcaf83e5a5c2c4a054bd051"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::align_offset"
 kappa = "725f6d6a97b3aeda0a52ddf5523218cfeebc37f8638a84af6353b01527a165c2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
+cause = "mir::TerminatorKind::Call: ptr::align_offset: core's MIR stops at mir::TerminatorKind::Call: ptr::align_offset::mod_inv: core's MIR stops at mir::Operand::Constant: the constant item ptr::align_offset::mod_inv::INV_TABLE_MOD"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::as_ref"
 kappa = "236755fb04d74c16217312cbc8da77d5012a9901fcd6a5dc2f5994c1ed665285"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::is_null"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::as_ref_unchecked"
@@ -790,35 +790,35 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "ba9f986c3fe90094b3861e189d0e0ea4118f3a1272c84929be704a5f56db7fd7"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::add: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::byte_offset"
 kappa = "a7da6a68e43d94fc8dc36f3b080144b4a4d3c68b4132f57b450b0f8dab366a13"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::byte_offset_from"
 kappa = "bc06d9b8450584e270f32954c33da2e9103c75604af1fb58e124595c29ca116f"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from: core's MIR stops at mir::TerminatorKind::Call: intrinsics::ptr_offset_from, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::byte_offset_from_unsigned"
 kappa = "3d5e8510ca3ef6ebf784d146bc204fc87ac5b61b03a161df491cdd60f987692d"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned: core's MIR stops at mir::TerminatorKind::Call: intrinsics::ptr_offset_from_unsigned, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::byte_sub"
 kappa = "333ccc76db1738395ff08093130600e1975586f48e7d26069bf937bd3229d03a"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::sub: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::cast"
@@ -839,68 +839,68 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "e6e2e65bce8941862c2eeadf02cb23393f7b72000ba40c807900eec4da36d556"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::copy"
+cause = "mir::TerminatorKind::Call: ptr::copy: core's MIR stops at mir::TerminatorKind::Call: intrinsics::copy, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::copy_to_nonoverlapping"
 kappa = "328dfe28df8839b67410bd431c733f47f7294dfbfaa52375ca50fd7cf5e084eb"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::copy_nonoverlapping"
+cause = "mir::TerminatorKind::Call: ptr::copy_nonoverlapping: core's MIR stops at mir::TerminatorKind::Call: intrinsics::copy_nonoverlapping, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::expose_provenance"
 kappa = "76c596a08b142af5e6bd42b2ed1f7c82b62d70a1a57086279c3abe010ba8030e"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+status = "translated"
+digest = "e080522657bd5611519f4075e50b537bba48f134bb24da322673c1d88da9adfe"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::guaranteed_eq"
 kappa = "365587dfa48ed8ef7780a7e9c5abfe32c72fdb49713ef75dc02ca058355b7db4"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr_guaranteed_cmp"
+status = "translated"
+digest = "68e057cb1bd23774d79135eed76565e984fe92484f77709244a171bedeb7a5f8"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::guaranteed_ne"
 kappa = "c33b046232d7ba5f519db2d592525194820116ff6ab75a017eff35625a5e411a"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::guaranteed_eq"
+status = "translated"
+digest = "3c3cac28fad864a8c5e71b158aab0da6d26c25254e3dec1b5d08f5b4c47266e7"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_aligned"
 kappa = "713a58d40fbd511ac33c306b6c8bf5f44caedd6160ee48b22b5776157ed0f33a"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::align_of"
+cause = "mir::TerminatorKind::Call: mem::align_of: core's MIR stops at mir::Operand::Constant: <u32 as mem::SizedTypeProperties>::ALIGN: mir::TerminatorKind::Call: intrinsics::align_of, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_aligned_to"
 kappa = "251c3759ecf135fa875bd034726655ed17c8a6e037ee8b16db08bf18696f29c0"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
+status = "translated"
+digest = "77cacd99580dd7d3695b9f3b414a8adfcbd414d4c632b9f48a3bf1f0459d14b6"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null"
 kappa = "6af5079e2f8698d5047de7113c1313a160e6bce91ea7bc22809764796409cd3c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item ptr::const_ptr::<impl *const u32>::is_null::compiletime"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null::compiletime"
 kappa = "8a29218f705c5cb6b24ee1504326e2068fc06370e197b31d15fb49b3a1d57d6f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::null_mut"
+cause = "mir::TerminatorKind::Call: ptr::null_mut: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts_mut"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null::runtime"
 kappa = "1077bc68031a504c27614abaf10d443da40ec3c2be31b363a6a5cfaaff7ce337"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u8>::addr"
+status = "translated"
+digest = "b12c5613c7a81825ebe27041e82eb64d3bae444c19077b77e7592fad3ffaaa36"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::map_addr"
@@ -914,14 +914,14 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "0b37bc385f90826a7812f8ff70f731620a8184752f3606b3110d32226220c472"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: intrinsics::ptr_mask, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset"
 kappa = "33e2029ab0e7061e661a15f372e79aa7393f2d4b03dea6e1c8a36f7a19586508"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::precondition_check"
@@ -933,7 +933,7 @@ cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const T>::offset::run
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap"
 kappa = "ac95604f3aa44e58c77ba32aa599716e2d0f2f546e8d88eb156a91a5d2bd65cd"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item ptr::const_ptr::<impl *const T>::offset::runtime_offset_nowrap::compiletime"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const T>::offset::runtime_offset_nowrap::runtime"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap::compiletime"
@@ -944,56 +944,56 @@ digest = "8706180f36fab839e3bb060067abfc8c7b764c5f0ebaab28aecce62224ed2da5"
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap::runtime"
 kappa = "d30a3fc4ca987a7f33745cbcdff081dad5da621d1747ad438ac02efd2f73d261"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl isize>::checked_mul"
+status = "translated"
+digest = "0d30fb6e3bd57b3b4fd452e6a7563f865e3053384fd7c34c9ff3e316d4c18ec5"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from"
 kappa = "31dcd149cc53afd912f68d2e7fd4a761e3bc6156d4615a1b9d312f642e9a5416"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of"
+cause = "mir::TerminatorKind::Call: intrinsics::ptr_offset_from, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned"
 kappa = "d1f5939bdc9df64a0ba5c2d0ce24141163fd70fa79be62020f4255eefff01931"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::ptr_offset_from_unsigned, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned::precondition_check"
 kappa = "ae39de60a08d71e801bfaafa3443eefa9fb6d152ce7b90d767f96d51c1e74954"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned::runtime_ptr_ge: core's MIR stops at mir::Operand::Constant: the constant item runtime_ptr_ge::compiletime"
+status = "translated"
+digest = "34a4d80a503c0bf5d0797da0f19a4375e26532c4266bd51312cb92de4eb3f752"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::read"
 kappa = "63733b57e0dbcca04bf423669fde6179d565318b5c4ac8372814e5921cd623f8"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::read"
+cause = "mir::TerminatorKind::Call: ptr::read: core's MIR stops at mir::TerminatorKind::Call: intrinsics::read_via_copy, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::read_unaligned"
 kappa = "338c9889de878a6741c988b5ae225ded36d22beba823b933374bee1a506786d0"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::read_unaligned"
+cause = "mir::TerminatorKind::Call: ptr::read_unaligned: core's MIR stops at type outside the lift: mem::maybe_uninit::MaybeUninit<u32>"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::read_volatile"
 kappa = "45107eaab903db11ad3d10717446e577bb2d32109beee708175276b4a14915af"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::read_volatile"
+cause = "mir::TerminatorKind::Call: ptr::read_volatile: core's MIR stops at mir::TerminatorKind::Call: intrinsics::volatile_load, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::sub"
 kappa = "691b85be93126b16dd9a2a1c3eebae63128620eeb3b46a645f9d79322b49d3a8"
 at = "T=u32"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item <u32 as mem::SizedTypeProperties>::IS_ZST"
+cause = "mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::to_raw_parts"
@@ -1007,14 +1007,14 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "85971c694632a7d2b7e0fb288c099d5283d8f603b0e778a639647903f956599c"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::align_of"
+cause = "mir::TerminatorKind::Call: mem::align_of: core's MIR stops at mir::Operand::Constant: <u32 as mem::SizedTypeProperties>::ALIGN: mir::TerminatorKind::Call: intrinsics::align_of, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::with_addr"
 kappa = "36f0be14f31ef79d124577d515336d15817e9d7c0d4d06552d85cb9609a5f81f"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::addr"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_byte_offset: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::with_metadata_of"
@@ -1028,68 +1028,68 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "d88d9b379e173d171764646292f93306e124fb7d00f276ef42c7c2fd6602ab7a"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::wrapping_offset"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_byte_add"
 kappa = "b11f0c7971b0ad11012205033350258929cb4f0920a871a5b400425d0836efd2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_add: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_byte_offset"
 kappa = "2af7efdb02ad5232115709bda7696c953dae8c9cd7636bd35f1441187e38c030"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_byte_sub"
 kappa = "d8c2a64a3dffbb56b90aa09760220de7f5d6c8977c714d97a0e622e349cbe4a2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_sub: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_offset"
 kappa = "8b5eb72a33b44f4de85d1bebc8bcceb5b4a6d1db24ba18e15bb2559efa40ff3e"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: arith_offset"
+cause = "mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_sub"
 kappa = "a469c1c15c4a8fc9f850eedc166ff2af40bf7fbb5fde920ab24e6c6273c770cf"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl isize>::wrapping_neg"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::copy"
 kappa = "61612ae2c4fae4921a9b6ecf5df51269242c21c446d416ed883a0cbd5b6c2e7d"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::copy, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::copy::precondition_check"
 kappa = "aba24e3f1e1cc87997c54d35dc0c77638a1dddfcf5e45cebcabc0dc0698dfc85"
 status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned_and_not_null"
+cause = "mir::TerminatorKind::Call: ub_checks::maybe_is_aligned_and_not_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::copy_nonoverlapping"
 kappa = "6e7446d269e631309a45cafbcde250a3b541dd30820227b46368a1910cfd51db"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::copy_nonoverlapping, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::copy_nonoverlapping::precondition_check"
 kappa = "49318e5d955a49743c8d7b6d93a10187d5d56ee3f2e21ed14214bd4705584a42"
 status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned_and_not_null"
+cause = "mir::TerminatorKind::Call: ub_checks::maybe_is_aligned_and_not_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::drop_in_place"
@@ -1208,7 +1208,7 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1647:1: 164
 kappa = "0cb69aa8709f6570674aacc5f125aa3acbc0d796b707cea997a7c60c5cc93eae"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::slice_from_raw_parts_mut"
+cause = "mir::TerminatorKind::Call: ptr::slice_from_raw_parts_mut: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts_mut"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1647:1: 1647:15>::cast_uninit"
@@ -1257,14 +1257,14 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 171
 kappa = "f192639b0fbe79cfa9b03c45c37b8d0f6691d6cf9e2fe669c62191cb846ba090"
 at = "I=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as SliceIndex>::get_unchecked_mut"
+cause = "mir::Instantiation: u32 for a parameter bounded by SliceIndex, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 1717:17>::is_empty"
 kappa = "256d94dbb0b16152d88019aa28c1c1b2b4801d334064f3a032bb7b64fe1b6c60"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u32]>::len"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 1717:17>::len: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::metadata"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 1717:17>::len"
@@ -1278,14 +1278,14 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 171
 kappa = "50578a7c85e52fd138e4738cbf1aaf6a7595c94c8e92d87973f5c8fbdd0ba4b2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u32]>::len"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 1717:17>::len: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::metadata"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 1717:17>::split_at_mut_unchecked"
 kappa = "32ff969695cb83a248a1db5f482078e20dce6e0cce4eeab161d8157ea9b3e532"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u32]>::len"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1717:1: 1717:17>::len: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::metadata"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:1995:1: 1995:15>::cast_array"
@@ -1362,35 +1362,35 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:2126:1: 212
 kappa = "953654bbb6be1438bf8a340a4e4ad6a2cce2274d8cdd8b7fb20eb39345883379"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::null_mut"
+cause = "mir::TerminatorKind::Call: ptr::null_mut: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts_mut"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::add"
 kappa = "2ce5255b7a541ede419ab18155a9d4868335dc5b95bbf5fe760e6ee97717d7ab"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: offset"
+cause = "mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::addr"
 kappa = "d53e18724a652bf6a0ec2b7ea9e3a66031289b929a9dce7df3b988103db6c2cb"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+status = "translated"
+digest = "fe05725db32462168a022b81c35a4c3b10a0aef2e62fb1f49bce78bb86d92c63"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::align_offset"
 kappa = "9b5f8385a75d11ee6d9eb8034961242d13a70514065415f678242683ba19f330"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
+cause = "mir::TerminatorKind::Call: ptr::align_offset: core's MIR stops at mir::TerminatorKind::Call: ptr::align_offset::mod_inv: core's MIR stops at mir::Operand::Constant: the constant item ptr::align_offset::mod_inv::INV_TABLE_MOD"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::as_mut"
 kappa = "5cdc040df1aa205074637249bcf7ee748a217295c5baf529e91a53d7d44a0ef5"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::is_null"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::as_mut_unchecked"
@@ -1404,7 +1404,7 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "f44d486b24125bf7b3d25b684886a499b808fe67c99df97d8334437b9a7c5f6d"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::is_null"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::as_ref_unchecked"
@@ -1432,35 +1432,35 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "0628ba0dea689635672dba4886aba101a65733fb68254d0b9bd862c359ab176b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::add: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::byte_offset"
 kappa = "11733b01e414fb9d199dcd67d64207b342a920e0daaff78f27a86347dfd923e2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::byte_offset_from"
 kappa = "eb5e3df0c7806924990841e870cb9ca47b3bf90431a669a232a1948e1fec8c49"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset_from: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from: core's MIR stops at mir::TerminatorKind::Call: intrinsics::ptr_offset_from, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::byte_offset_from_unsigned"
 kappa = "c3e8f9c0d9b5fbdcc0b465a70876dcb75fafb044f0afe793d21eae23cfb6bbbb"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::byte_offset_from_unsigned"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::byte_offset_from_unsigned: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned: core's MIR stops at mir::TerminatorKind::Call: intrinsics::ptr_offset_from_unsigned, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::byte_sub"
 kappa = "20d75a3562812252bd166809cf377bb4150e70b77dbd2d0680b85fd541c70749"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::sub: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::cast"
@@ -1481,77 +1481,77 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "7795ecf813ee762a1429d91f8b878fd25acd5a71c98706df3b024d42183a6bda"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::copy"
+cause = "mir::TerminatorKind::Call: ptr::copy: core's MIR stops at mir::TerminatorKind::Call: intrinsics::copy, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::copy_from_nonoverlapping"
 kappa = "8c2da763febd79d88c5614c7beb5c42349f4bc0ce82cd833ba5de798aa964e19"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::copy_nonoverlapping"
+cause = "mir::TerminatorKind::Call: ptr::copy_nonoverlapping: core's MIR stops at mir::TerminatorKind::Call: intrinsics::copy_nonoverlapping, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::copy_to"
 kappa = "f5cf3ae9fb2c25e0c780032ed3f884dfbd9262199d3e6913469320bae58f53a2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::copy"
+cause = "mir::TerminatorKind::Call: ptr::copy: core's MIR stops at mir::TerminatorKind::Call: intrinsics::copy, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::copy_to_nonoverlapping"
 kappa = "49c29c8243e6661d6d7e5cbdfc787d93ee5dac4cf9113a5ff5f7ddae383acfc7"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::copy_nonoverlapping"
+cause = "mir::TerminatorKind::Call: ptr::copy_nonoverlapping: core's MIR stops at mir::TerminatorKind::Call: intrinsics::copy_nonoverlapping, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::drop_in_place"
 kappa = "3cab5d9e8cbd4ed0c8c6f2ba040af5ea2816c97afbdd55e000639526c7a1e908"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::drop_in_place"
+cause = "mir::TerminatorKind::Call: ptr::drop_in_place: core's MIR stops at mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::expose_provenance"
 kappa = "74bb4165c011c035934b689a66a7c2b426df530b818823f079ec5a401f28e1ff"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+status = "translated"
+digest = "886ccad11eb3dee0a8588cec2c83b0a16d82a9a6dde7663b8e2aed1745e58b5a"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::guaranteed_eq"
 kappa = "3404108dcaafc5c4d1e2025a8f90273bf3d650aface7a76ab3bf53df3cf79335"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::guaranteed_eq"
+status = "translated"
+digest = "420484ab0045558f5ff9e20eaf34769e69f1b82cd68e7bc2c5ef706877423536"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::guaranteed_ne"
 kappa = "f9d4d9e20847515345d595ee735b6c94d382c3d6d52e43818368273e0148fae9"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::guaranteed_ne"
+status = "translated"
+digest = "a8bab0373edbd723f3f04d79d749be33d0494f4e9395d5b32abc23094759dd0b"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::is_aligned"
 kappa = "f8fa4291962d98e5001a5b771cff6c9e78cc5d89ecfe77109dfdf569122f3be9"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::align_of"
+cause = "mir::TerminatorKind::Call: mem::align_of: core's MIR stops at mir::Operand::Constant: <u32 as mem::SizedTypeProperties>::ALIGN: mir::TerminatorKind::Call: intrinsics::align_of, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::is_aligned_to"
 kappa = "506e17b2f540769ad7e07317fa504149f0ca17ab59dcb1f5de256959c813695e"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
+status = "translated"
+digest = "333430381839b93a1dd2f74b73d0c4a091d649b6d8dc90f4148c7ced1a00dbf0"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::is_null"
 kappa = "a3140ecc51014531d4d4291313c0b2bcda9c85ac980eedb4a102a8a7af2002fa"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast_const"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::map_addr"
@@ -1565,14 +1565,14 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "93a850e0bd414413ff363c839d9860f9fe21d9088e139b6a66945e77268d248c"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: intrinsics::ptr_mask, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset"
 kappa = "51f20d5d2dd8cc6f4d7c961f3834c14430de8fed37d9e1fb9ec1cdd5a77dcb1d"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::precondition_check"
@@ -1584,7 +1584,7 @@ cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut T>::offset::runtime
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap"
 kappa = "246a4e139765a0a2f0c415e5fefcd99a8be9a825895f63cec53b96e9abfef3e5"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item ptr::mut_ptr::<impl *mut T>::offset::runtime_offset_nowrap::compiletime"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut T>::offset::runtime_offset_nowrap::runtime"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap::compiletime"
@@ -1595,64 +1595,64 @@ digest = "de594d2f8aff85dad771175c6a57d040f7e58ce4b134dfbdff3b25d1ba67b255"
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap::runtime"
 kappa = "ece77a69f53dea4d64055e33084479917a7b81b20e232f64b305b5cfddab6310"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl isize>::checked_mul"
+status = "translated"
+digest = "e352c3e71dadb7a1944e817bd625efaee3f22ca1a6e8be0a6c1e52433350d633"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset_from"
 kappa = "79f5aab0911888fde543a1a6cbcc913e763d4d292cf04c589cc7534ec9189f04"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::offset_from"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from: core's MIR stops at mir::TerminatorKind::Call: intrinsics::ptr_offset_from, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset_from_unsigned"
 kappa = "68bba9e0674068a867304611103a9351b65f70e7fa8f59ebe44d2ce02d8c0aaf"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::offset_from_unsigned"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned: core's MIR stops at mir::TerminatorKind::Call: intrinsics::ptr_offset_from_unsigned, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::read"
 kappa = "c5c62d8a1e650f1768056e30a1f032615a1beed1e6a498f88b26182367f52fce"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::read"
+cause = "mir::TerminatorKind::Call: ptr::read: core's MIR stops at mir::TerminatorKind::Call: intrinsics::read_via_copy, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::read_unaligned"
 kappa = "ef8aad68aceb4ce8dcca5e55d9050bd76fc0acfcbdd6b715067017cee1ade7b8"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::read_unaligned"
+cause = "mir::TerminatorKind::Call: ptr::read_unaligned: core's MIR stops at type outside the lift: mem::maybe_uninit::MaybeUninit<u32>"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::read_volatile"
 kappa = "c54bf30452359e6dede8dcfb4b384243a2aa83158e444511a6143fab409f374e"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::read_volatile"
+cause = "mir::TerminatorKind::Call: ptr::read_volatile: core's MIR stops at mir::TerminatorKind::Call: intrinsics::volatile_load, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::replace"
 kappa = "c6c4a6d7255c0014d6a4c36b8b16654f9a6a8fc3b606954e6105b8a66a6eb12f"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::replace"
+cause = "mir::TerminatorKind::Call: ptr::replace: core's MIR stops at mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::sub"
 kappa = "703093ae0cffac56c882e00c37824a0cf5cefaaf0fc1029bf0782950100ca8e8"
 at = "T=u32"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item <u32 as mem::SizedTypeProperties>::IS_ZST"
+cause = "mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::swap"
 kappa = "d5dfcddeb5f989fefbf22127f606a6f68df4e639d7974b5baa7452c6b56c8d93"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::swap"
+cause = "mir::TerminatorKind::Call: ptr::swap: core's MIR stops at type outside the lift: mem::maybe_uninit::MaybeUninit<u32>"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::to_raw_parts"
@@ -1666,14 +1666,14 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "509277e55d4792848ee5985a6b4ad23cae4aa528b53a13c59ca9b4d6fcd2e3c1"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::align_of"
+cause = "mir::TerminatorKind::Call: mem::align_of: core's MIR stops at mir::Operand::Constant: <u32 as mem::SizedTypeProperties>::ALIGN: mir::TerminatorKind::Call: intrinsics::align_of, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::with_addr"
 kappa = "b181b10ba04c123443073e2d68fa36d80fd55d58096d89eefb3763603f3645fd"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::addr"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_byte_offset: core's MIR stops at mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::with_metadata_of"
@@ -1687,84 +1687,84 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "d5d7a2b482c7e3255bf753c0ab612bd439de97c53c13cbd6ee9877d07a97fd91"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::wrapping_offset"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_byte_add"
 kappa = "58365f6baa52004d4c9493a20f69ecbdb89ff09e509c7d57702b0407d585dff8"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_add: core's MIR stops at mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_byte_offset"
 kappa = "35a323c96f3d91cf5142de6315fee1b53bf01434dde5904be45001023b5f0b41"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_byte_sub"
 kappa = "295873bdc2d38c64070e64f634e36aafaccd7ec18834d9de39e2e908ec550f10"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_sub: core's MIR stops at mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_offset"
 kappa = "ed4b0197ca289f1f7b5b1bc2ed696e739d94d3f0c2d16c275ea63e0dc98a06d0"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: arith_offset"
+cause = "mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_sub"
 kappa = "4b2b310b1ccd548c1370367bb729b57979a23ae1edd7e802c1e9830d0469f06b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl isize>::wrapping_neg"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_offset: core's MIR stops at mir::TerminatorKind::Call: intrinsics::arith_offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::write"
 kappa = "3fa8014a9772bde370f416dde63dd58123032bbfe78c72c4ef68f017a55acce5"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::write"
+cause = "mir::TerminatorKind::Call: ptr::write: core's MIR stops at mir::ProjectionElem::Deref: a write through a raw pointer, into memory the value model does not hold"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::write_bytes"
 kappa = "3d6882342ace3302a91a983d308b54eec809ff6b13c874967a430e8aece93c31"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::write_bytes"
+cause = "mir::TerminatorKind::Call: ptr::write_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::write_bytes, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::write_unaligned"
 kappa = "9412a1683b9227e08248ffa71c6ce8b76f9b6c2422ff245f30ee3d12f0bdb2f2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::write_unaligned"
+cause = "mir::TerminatorKind::Call: ptr::write_unaligned: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::write_volatile"
 kappa = "29c14ce7d06f324b302bbb78c094c1de2d8d71350ab727ee0096a68402f6cd29"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::write_volatile"
+cause = "mir::TerminatorKind::Call: ptr::write_volatile: core's MIR stops at mir::TerminatorKind::Call: intrinsics::volatile_store, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::null_mut"
 kappa = "32027d6209ae463eb10ef06497965326d093ea23dc4f9ba2ceb5d3ae163556fc"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: without_provenance_mut"
+cause = "mir::TerminatorKind::Call: ptr::metadata::from_raw_parts_mut"
 
 [[fn]]
 path = "core::ptr::read"
 kappa = "4b89ab8413c48cb5db2b69bcc106953da0de5871a66504524fa2b77740149410"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: read_via_copy"
+cause = "mir::TerminatorKind::Call: intrinsics::read_via_copy, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::read_unaligned"
@@ -1778,26 +1778,26 @@ path = "core::ptr::read_volatile"
 kappa = "43f9e35a8bc9ada7acbe0e1141bbd40b2aac4ad26735b4937753feb65432ecdd"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::volatile_load, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::read_volatile::precondition_check"
 kappa = "1d6a73b81bb3b07d030602a639abfa97104d2bd63ced83820c99c5967109b3f3"
-status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned"
+status = "translated"
+digest = "d868a60c7ab94ea9cb62aa5093bce903c3665e020f8f6b67c9cbd0356cf019fd"
 
 [[fn]]
 path = "core::ptr::replace"
 kappa = "9e6e7fe649ad71d0e60bbf3c60af60f0255179a932a85a50823633a4051fef2f"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::ptr::replace::precondition_check"
 kappa = "d56dda310ac8eb7a2e3f219685c2673c8bbc9ac7db81f8c082b039f9fe42f144"
 status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned_and_not_null"
+cause = "mir::TerminatorKind::Call: ub_checks::maybe_is_aligned_and_not_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::slice_from_raw_parts"
@@ -1832,13 +1832,13 @@ path = "core::ptr::write_bytes"
 kappa = "4473db51ab0a6a8810338371c10e0f2efa7a6575a08837492d4296261d8fe1c9"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::write_bytes, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::write_bytes::precondition_check"
 kappa = "c164cd4b5910f99a3d2b74f8671e528057338c8399d7ab508a0f6d36d6db798a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned_and_not_null"
+cause = "mir::TerminatorKind::Call: ub_checks::maybe_is_aligned_and_not_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_null::runtime"
 
 [[fn]]
 path = "core::ptr::write_unaligned"
@@ -1852,19 +1852,19 @@ path = "core::ptr::write_volatile"
 kappa = "bd9dd1f344513f4417eeea5721d51d3ddee98deea89a521c7959912195d3e930"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::volatile_store, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ptr::write_volatile::precondition_check"
 kappa = "c56a255bd11923f7ef933180432aae353df0075d5fa5faf12daab42e622f85da"
-status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned"
+status = "translated"
+digest = "48d69fbb28561c337373b60ba92fb09f524eb98d72c7f09cc5979e85786013da"
 
 [[fn]]
 path = "core::runtime_ptr_ge"
 kappa = "fec1221f548c3a582d6ba409f0eb33861e9a8de9e9aaf68db0063278baa1ce09"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item runtime_ptr_ge::compiletime"
+status = "translated"
+digest = "453dad892336b3b01780fd357bb20a7b7a8e5ffd447114b9b00de4b27a38c016"
 
 [[fn]]
 path = "core::runtime_ptr_ge::compiletime"
@@ -1890,27 +1890,27 @@ path = "core::swap_nonoverlapping"
 kappa = "8800dea3a3f569d50899705745700552cc584e201091fc537d4c1fc43962d18b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
+cause = "mir::TerminatorKind::Call: ptr::swap_nonoverlapping::runtime: core's MIR stops at mir::TerminatorKind::Call: ptr::slice_from_raw_parts_mut: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts_mut"
 
 [[fn]]
 path = "core::swap_nonoverlapping::compiletime"
 kappa = "34dfa071277bcf58ea4b0469e28e3788de29c788c726c3a726b213e7e59d19d7"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: swap_nonoverlapping_const"
+cause = "mir::TerminatorKind::Call: ptr::swap_nonoverlapping_const: core's MIR stops at mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::add: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::swap_nonoverlapping::precondition_check"
 kappa = "1e8edb35fcb7963b307b8c7a914b5282206d292a7ff29a999fe989f7cbf14e89"
 status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned_and_not_null"
+cause = "mir::TerminatorKind::Call: ub_checks::maybe_is_aligned_and_not_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_null::runtime"
 
 [[fn]]
 path = "core::swap_nonoverlapping::runtime"
 kappa = "a955691fe6a73d4eb360f6e3b2631be420bd06a17a4ed7d80a4585fef3355937"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::slice_from_raw_parts_mut"
+cause = "mir::TerminatorKind::Call: ptr::slice_from_raw_parts_mut: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts_mut"
 
 [[fn]]
 path = "core::swap_nonoverlapping_bytes"
@@ -1922,7 +1922,7 @@ cause = "mir::Ty: NonZero<usize>"
 path = "core::swap_nonoverlapping_bytes::CHUNK_SIZE"
 kappa = "381d399ea85d1a588cf77a9e9cfac8ac985a50ea95f25d8d4cb32365e1db6352"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of"
+cause = "mir::TerminatorKind::Call: mem::size_of: core's MIR stops at mir::Operand::Constant: <*const () as mem::SizedTypeProperties>::SIZE: mir::TerminatorKind::Call: intrinsics::size_of of RawPointer, whose layout rustc chooses"
 
 [[fn]]
 path = "core::swap_nonoverlapping_chunks"
@@ -1936,7 +1936,7 @@ path = "core::swap_nonoverlapping_const"
 kappa = "1075d68eaf8d26c213f78e6a9c7d11ac77d00b4d975cce9eed65b7ffb5280e8a"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::add"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::add: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::swap_nonoverlapping_short"
@@ -2060,8 +2060,8 @@ cause = "mir::CastKind::PointerWithExposedProvenance: from Nat to RawPointer"
 path = "core::without_provenance"
 kappa = "17fc5bc710a111522b4e5927a95e090db8094b22fc0d0cb6dcca3b4fd504b0e6"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: without_provenance_mut"
+status = "translated"
+digest = "0adde2d0444fc4c81ac099d50c3d2eabb5cf82c159a596f1fd52946001ee67a3"
 
 [[fn]]
 path = "core::without_provenance_mut"

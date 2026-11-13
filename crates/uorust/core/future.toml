@@ -36,7 +36,7 @@ path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:10: 10
 kappa = "0d098e04d46b0b565533dd7de8c8b8accfa68e20f34754990b8664cbed6fc166"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:17: 10:22>::clone"
@@ -50,7 +50,7 @@ path = "core::future::ready::Ready::into_inner"
 kappa = "82437f0fff457d4e905c1b708f901a13796a5c0570128496a8bca04e33abb4ce"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::expect"
+cause = "mir::TerminatorKind::Call: option::Option::expect: core's MIR stops at mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::future::ready::Ready::poll"
@@ -104,7 +104,7 @@ cause = "mir::TerminatorKind::Call: future::pending::pending: core's MIR stops a
 path = "core::pending::Pending::fmt"
 kappa = "79e561f8369af1df3e97d155175969a0d55262e870ad8aedebd729409741e57b"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: fmt::builders::DebugStruct<'_, '_>"
 
 [[fn]]
 path = "core::pending::Pending::poll"

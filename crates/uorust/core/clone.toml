@@ -3,7 +3,7 @@ path = "core::clone::<impl at library/core/src/clone.rs:547:1: 547:42>::clone_to
 kappa = "a545ff8873c4ae03fcf42dee0a258fa4c36539ed5889b9748e94e27b4005df6c"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u8>::cast"
+cause = "mir::TerminatorKind::Call: <u32 as CopySpec>::clone_one"
 
 [[fn]]
 path = "core::clone::<impl at library/core/src/clone.rs:556:1: 556:44>::clone_to_uninit"
@@ -16,7 +16,7 @@ cause = "mir::Rvalue::RawPtr"
 path = "core::clone::<impl at library/core/src/clone.rs:567:1: 567:34>::clone_to_uninit"
 kappa = "1ac768242ac73c5e4d85d6a4b70be46b059dff45c6ee490f9ef93d8e5b8d5af4"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::clone::<impl at library/core/src/clone.rs:577:1: 577:47>::clone_to_uninit"
@@ -28,7 +28,7 @@ cause = "mir::Ty: CStr"
 path = "core::clone::<impl at library/core/src/clone.rs:589:1: 589:51>::clone_to_uninit"
 kappa = "0439659a2747252db259a786a6fc210144966e6489682ac525b6ae11141553e8"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+cause = "mir::TerminatorKind::Call: clone::<impl at library/core/src/clone.rs:556:1: 556:44>::clone_to_uninit: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::clone::Clone::clone_from"
@@ -177,7 +177,7 @@ path = "core::uninit::<impl at library/core/src/clone/uninit.rs:12:1: 12:37>::cl
 kappa = "2b2272b2f7d1db6aa1bb190b6362e98504580592e42d8cbf45f3882deb9682d5"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::write"
+cause = "mir::TerminatorKind::Call: ptr::write: core's MIR stops at mir::ProjectionElem::Deref: a write through a raw pointer, into memory the value model does not hold"
 
 [[fn]]
 path = "core::uninit::<impl at library/core/src/clone/uninit.rs:12:1: 12:37>::clone_slice"
@@ -198,7 +198,7 @@ path = "core::uninit::<impl at library/core/src/clone/uninit.rs:55:1: 55:44>::cl
 kappa = "b9739d65cc94dbe2ce7b672a2a5ab6271322929fc9096011471ebaef321d1f18"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::<impl [u32]>::as_ptr"
+cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::uninit::InitializingSlice::drop"

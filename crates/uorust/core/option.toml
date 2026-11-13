@@ -8,15 +8,15 @@ digest = "1aa274ae002b85252c308612afa1f2aa844e47e04f4a2fb573b0f220ba1d1da0"
 path = "core::option::<impl at library/core/src/option.rs:2340:1: 2340:43>::into_iter"
 kappa = "b751e384fcbb7321bd59ee1a13983224801378431d3f43d299859237050cbd27"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: Option::iter"
+status = "translated"
+digest = "bcaf38dccd7682dce5f97e65c8846067e69416e2292625f9be0cf34d7bb05fb9"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2350:1: 2350:47>::into_iter"
 kappa = "e929c17efae6d29d2b5ecfc26d8bff051516fc21bf7861c05ceb1d09d9fd15a9"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::iter_mut"
+cause = "mir::TerminatorKind::Call: option::Option::iter_mut: core's MIR stops at mir::TerminatorKind::Call: option::Option::as_mut: core's MIR stops at mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2483:10: 2483:15>::clone"
@@ -30,21 +30,21 @@ path = "core::option::<impl at library/core/src/option.rs:2483:17: 2483:22>::fmt
 kappa = "ccea4af991a6adf43104f9f200cedc0f4e85a0e1e1d628b7085a2ec02ad30d74"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2526:10: 2526:15>::fmt"
 kappa = "aa7e21b1ba33761a9bee89e6876a416f63bbe0fb41c2985237b56aa5ab4d2cf8"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2576:10: 2576:15>::fmt"
 kappa = "636c577fe409ba100b650b64dcaa0e6960a567cc8e5ab4c87d0b82bd1b2ee084"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2616:10: 2616:15>::clone"
@@ -58,7 +58,7 @@ path = "core::option::<impl at library/core/src/option.rs:2616:17: 2616:22>::fmt
 kappa = "a58384b08b4d248869e2a469c34211a45ddc89b5db5360f51880a04eb543be92"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2655:10: 2655:15>::clone"
@@ -72,7 +72,7 @@ path = "core::option::<impl at library/core/src/option.rs:2655:17: 2655:22>::fmt
 kappa = "e60dd13366dd9cb47d797b3a77fd0bc0d1a687475e7a5242dd2345148e199146"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2938:1: 2938:39>::transpose"
@@ -86,7 +86,7 @@ path = "core::option::<impl at library/core/src/option.rs:591:16: 591:21>::fmt"
 kappa = "f594de47f9bd940ffae5ec28d403453ad90652a102f58b445536d0756af535d4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:591:23: 591:27>::hash"
@@ -106,49 +106,49 @@ path = "core::option::IntoIter::next"
 kappa = "bd8ef36815c6c10b9df209265d374b6255715c2a9fde25ddcc30b81ee2f29028"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:2489:1: 2489:35>::next: core's MIR stops at mir::TerminatorKind::Call: Option::take"
+cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:2489:1: 2489:35>::next: core's MIR stops at mir::TerminatorKind::Call: option::Option::take: core's MIR stops at mir::TerminatorKind::Call: mem::replace"
 
 [[fn]]
 path = "core::option::IntoIter::next_back"
 kappa = "27c609517efbde32070b7e446e0340271caa9add6af67737203ec36d2f46763d"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:2504:1: 2504:40>::next_back: core's MIR stops at mir::TerminatorKind::Call: Option::take"
+cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:2504:1: 2504:40>::next_back: core's MIR stops at mir::TerminatorKind::Call: option::Option::take: core's MIR stops at mir::TerminatorKind::Call: mem::replace"
 
 [[fn]]
 path = "core::option::IntoIter::size_hint"
 kappa = "628f7c8d77fe70492df8984adfffa709fb12480e0a5aca41ac04382659566e11"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <Item as iterator::Iterator>::size_hint"
+cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:2489:1: 2489:35>::size_hint: core's MIR stops at mir::TerminatorKind::Call: option::Option::len: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::option::Item::len"
 kappa = "1ab0c53f52c9cb9a2f9474620ccf66d6945345d13a6df63049ed59d000349994"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::len"
+cause = "mir::TerminatorKind::Call: option::Option::len: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::option::Item::next"
 kappa = "253b1c378553129535926f034d40e67883cb07cc189488bcaf57c26382d7e9f2"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::take"
+cause = "mir::TerminatorKind::Call: option::Option::take: core's MIR stops at mir::TerminatorKind::Call: mem::replace"
 
 [[fn]]
 path = "core::option::Item::next_back"
 kappa = "e97a059c6c6c8c0144ff123fbf4645b54c720f3690e030ab9acd901e983e84ba"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::take"
+cause = "mir::TerminatorKind::Call: option::Option::take: core's MIR stops at mir::TerminatorKind::Call: mem::replace"
 
 [[fn]]
 path = "core::option::Item::size_hint"
 kappa = "57d98b7f1496986a1ff87c1e0625346b9b93fa9f1fe63d5746ad20e51f105438"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::len"
+cause = "mir::TerminatorKind::Call: option::Option::len: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::option::Iter::clone"
@@ -176,7 +176,7 @@ path = "core::option::Iter::size_hint"
 kappa = "51d47401d144463a6990795f7838f4bda4a61b7e47e4c4135310ea8ff2297407"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <Item as iterator::Iterator>::size_hint"
+cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:2489:1: 2489:35>::size_hint: core's MIR stops at type outside the lift: Item<&u32>"
 
 [[fn]]
 path = "core::option::IterMut::next"
@@ -197,7 +197,7 @@ path = "core::option::IterMut::size_hint"
 kappa = "f28ff5c8f50e2965682a4d27d22f3c55bba026f13acb0b8a38e67808370d00a0"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <Item as iterator::Iterator>::size_hint"
+cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:2489:1: 2489:35>::size_hint: core's MIR stops at type outside the lift: Item<&mut u32>"
 
 [[fn]]
 path = "core::option::Option::and"
@@ -211,7 +211,7 @@ path = "core::option::Option::and_then"
 kappa = "8fef4a4e6823c4d2eac29779d62960d896703d03847a0212f68055167407439c"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::as_deref"
@@ -246,14 +246,14 @@ path = "core::option::Option::as_pin_mut"
 kappa = "13857c449e6e245f1d73482937b30de9a9e541013cac534403b6a19ec26124cb"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Pin::get_unchecked_mut"
+cause = "mir::TerminatorKind::Call: pin::Pin::get_unchecked_mut: core's MIR stops at type outside the lift: Pin<&mut option::Option<u32>>"
 
 [[fn]]
 path = "core::option::Option::as_pin_ref"
 kappa = "f60b151608b16e13f0c07f0a39f36dac3f64e537bc33836ac91db59f0b3e2ecb"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Pin::get_ref"
+cause = "mir::TerminatorKind::Call: pin::Pin::get_ref: core's MIR stops at type outside the lift: Pin<&option::Option<u32>>"
 
 [[fn]]
 path = "core::option::Option::as_ref"
@@ -351,7 +351,7 @@ path = "core::option::Option::filter"
 kappa = "aea79c295aa44b95d9b94603a79cafef31765255ff2fccdd1bc11f5caea9fd8d"
 at = "P=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::flatten"
@@ -400,7 +400,7 @@ path = "core::option::Option::from#3"
 kappa = "c206300bac42cc7e3319b28b3797c7ca8220ee79c9dbb99663c003b95c033310"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::as_mut"
+cause = "mir::TerminatorKind::Call: option::Option::as_mut: core's MIR stops at mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::Option::from_iter"
@@ -449,7 +449,7 @@ path = "core::option::Option::get_or_insert_with"
 kappa = "321621fbd32a4924f48d42674ec551980356606a5e017d4d7790685fc4c71c09"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::get_or_try_insert_with"
@@ -463,14 +463,14 @@ path = "core::option::Option::insert"
 kappa = "03e5660bd0aefe2244e00fae425165576c49aa2a8255cf52e4a9f02581c62adb"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::as_mut"
+cause = "mir::TerminatorKind::Call: option::Option::as_mut: core's MIR stops at mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::Option::inspect"
 kappa = "a6b11f82778117e16e8115504b98c5a29cb136e4426ebeb5a1ce9a0f692bb84d"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::into_flat_iter"
@@ -525,42 +525,42 @@ path = "core::option::Option::iter_mut"
 kappa = "d57ecdb8a7c5f6cec05c00a127ffe6a7438638c136d01ac90746f252f4e1e3d5"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::as_mut"
+cause = "mir::TerminatorKind::Call: option::Option::as_mut: core's MIR stops at mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::Option::len"
 kappa = "593f740cc66733a548a555f8f154e62e1c0d0d59debef5c0ebc94d86d1bfc1c9"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::option::Option::map"
 kappa = "92bc1affbd2b2593702eab6b08b65f5054b794f86a1d2399595b5b27addebaa0"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::map_or"
 kappa = "60cd9d4fadb43dc742aa1501378ef3f4caecd958b4518640bdce77327dd44778"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::map_or_default"
 kappa = "37e60e67fad76a604600235afa98ae9e08cd2bc0c2649680d9ffe5e218a1e9f0"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::map_or_else"
 kappa = "ca234e8511cca814ab05c4400ecf35d4e9c2c2d163244a238773f16f00923ea2"
 at = "D=u32, F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::ok_or"
@@ -574,7 +574,7 @@ path = "core::option::Option::ok_or_else"
 kappa = "8097a32e7a26d1d2c814dcbb144a4dfb56e64b90be3d42b2be8ff41d6735881e"
 at = "E=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::or"
@@ -588,7 +588,7 @@ path = "core::option::Option::or_else"
 kappa = "f2f0087a61be1ec7e9d69c7a018c77c31d5859ccf162426e6238137134da9430"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::partial_cmp"
@@ -602,7 +602,7 @@ path = "core::option::Option::reduce"
 kappa = "48fb308802ff72abea5083e3cfa1c75e5a66e170e04e75d982407a9550396493"
 at = "F=u32, R=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::replace"
@@ -623,7 +623,7 @@ path = "core::option::Option::take_if"
 kappa = "3ab4eb38e17c17de6aa7ff1cbc6775b4457c4b7f64ec4acf0670d868fbee7075"
 at = "P=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Option::as_mut"
+cause = "mir::TerminatorKind::Call: option::Option::as_mut: core's MIR stops at mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::Option::transpose"
@@ -650,22 +650,22 @@ digest = "c05facaf3ac681acf7b491bff064a1cc4bb7db721aa907a6d67fba21f516b37a"
 path = "core::option::Option::unwrap_or_default"
 kappa = "4d34673093fd0473843cd1e52850657234ea27c7cc0432ec29093a11cf361b7b"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+status = "translated"
+digest = "145daf57484e32fcdf6207624af2d73c2b5f31907368b8f7d939aa778c79ca07"
 
 [[fn]]
 path = "core::option::Option::unwrap_or_else"
 kappa = "5e0495884f9b09058fbdbce6d06fee07e0736158aa5d77bc51e4a661ff770e2c"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::Option::unwrap_unchecked"
 kappa = "556eaf65cefd67c42214819e98254d57956be7987330d4b0bd21f9305aeed3bf"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: unreachable_unchecked"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::option::Option::unzip"
@@ -693,7 +693,7 @@ path = "core::option::Option::zip_with"
 kappa = "a2d624bf0d0adfc5fffde4a52cb864dee9c179e767acb697be6ba511637a89fb"
 at = "F=u32, R=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::option::OptionFlatten::next"

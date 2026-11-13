@@ -146,19 +146,19 @@ digest = "ef17cdf7f1cc6d1eab2fd49c32451fcf4f432631557b33b2371508744a1fa44b"
 path = "core::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:58:27: 58:36>::eq"
 kappa = "71d1b43457e9acbf229a974bac357ce96207dfd39428441f9e688d6572cfd837"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:58:38: 58:41>::cmp"
 kappa = "584e53dac855d3c608ac68ad51a469ec1e53400915d376f19f73aa1c097668e7"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:58:43: 58:53>::partial_cmp"
 kappa = "7ff5eff1062d8b80c7fe55ee9f1ef7e725cd1a21f8826113705394c23b2dd3cb"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::MAX"
@@ -182,25 +182,25 @@ cause = "mir::TerminatorKind::Call: raw::from_ref"
 path = "core::ascii_char::AsciiChar::digit"
 kappa = "787f5b47d1aa1b3116edd7c6e6f6bf99bb465362c7c9c6e4e5b99903bb6424da"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::digit_unchecked"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::digit_unchecked: core's MIR stops at mir::TerminatorKind::Call: num::<impl u8>::unchecked_add"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::digit_unchecked"
 kappa = "ef3f768134ed8536ca7313a504a3823d0ae5e87d62873b2945c3007cc4b76018"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
+cause = "mir::TerminatorKind::Call: num::<impl u8>::unchecked_add"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::digit_unchecked::precondition_check"
 kappa = "d648707be7968fdcb278e703642c1ad5d7678feb4b58edcfe62aa28dafd81f61"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "73996e32a0f610d7d1491a73e19f1e32430ab7ec73f3bdb0ffd4eb1876877029"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::eq_ignore_case"
 kappa = "ccdec6c9c533fd7fd3105edefa15db6c5ebce1816046d436b6fed90200fbb6a9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::escape_ascii"
@@ -212,19 +212,19 @@ cause = "mir::Ty: ascii::EscapeDefault"
 path = "core::ascii_char::AsciiChar::fmt"
 kappa = "466fc4b5607be28792019e541f7943eeceb0040bd82753fe3b407c55a48a4a68"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::AsciiChar::as_str: core's MIR stops at mir::TerminatorKind::Call: raw::from_ref"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::fmt#2"
 kappa = "bb33c635761dac0a8b4342ac66e30a33f43acae0804b20b6d9500a9a73d775bc"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Rvalue::Discriminant: CoreAsciiAsciiCharAsciiChar, whose variants set their discriminants"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::fmt::HEX_DIGITS"
 kappa = "4e50cab8600963f0587d309f6e451483dcdd0e8ee53ae24332b5cd0208e7d336"
 status = "residue"
-cause = 'mir::Operand::Constant: b"0123456789abcdef"'
+cause = "mir::Ty: 16"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::fmt::backslash"
@@ -236,7 +236,7 @@ digest = "0a9963eb07a5cf6ff66f0ebaeabf2b3fc6a82a6f05dca5141543c9b8954e1947"
 path = "core::ascii_char::AsciiChar::from_u8"
 kappa = "8d1796f36efe1fae1666ccda4449ae8901bfa40fc704538d1d0771fd390d5ea5"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::from_u8_unchecked"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::from_u8_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::from_u8_unchecked"
@@ -248,79 +248,79 @@ cause = "mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the tabl
 path = "core::ascii_char::AsciiChar::is_alphabetic"
 kappa = "5dbaf290caa3bb4e808317821d7ef37620d929bfefa1ae1a10c8aae7384ba5ca"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_alphanumeric"
 kappa = "2675c354f2f401845807aad1cd6596e2a9d475bd7d4d718593ce35a5af25db98"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_control"
 kappa = "a4798a858cc7e4b199c506e3db6568178e172370217d504f78b47bd2f56c454f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_digit"
 kappa = "1fc418495ec8d892f80a3d5b3c3ec0927a8ada85e476168c2c276a37b4221089"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_graphic"
 kappa = "40a4e7c37fc5a739b441dd44294486359eaca253578a16c7f56c37dbe8de9471"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_hexdigit"
 kappa = "92d68d2c5deac5b8373e06fd26850d0b70e4277e57ce3e2373b61ca73350a9d1"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_lowercase"
 kappa = "bdbc3754ddd68392291a1677c4a411d085a8fed8099f15e109cb9ceaa314f607"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_octdigit"
 kappa = "d4a446cb743850c0d2bbf5aeece85fcace1c4ed7f7ece86f3f69e396c9f2eafe"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_punctuation"
 kappa = "a24aa16b6a4850d7c3019bc78fcc5aeeed569e47ccf5655a18df685e204f58d9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_uppercase"
 kappa = "91d9de9de011e0ae4b461a6ae626407cc89950cfec2dab5aa8c9fe1c47ea4d49"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::is_whitespace"
 kappa = "9ef51cf2413dff3bc9d64d8d1fc816e2ef14f7f63a57137d7dcba82cf72ba181"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::make_lowercase"
 kappa = "090e02829d1dbb0388be82a81969483ef771bdd0e30d7700bd2b394fb714d89c"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_lowercase"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::AsciiChar::to_lowercase: core's MIR stops at mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::make_uppercase"
 kappa = "518b49b9e9e12cc323e1e825adbdbe8183022154c18a9bf3e48bccefe7b2a791"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_uppercase"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::AsciiChar::to_uppercase: core's MIR stops at mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::to_char"
@@ -332,7 +332,7 @@ cause = "mir::Rvalue::Discriminant: a discriminant read as a value"
 path = "core::ascii_char::AsciiChar::to_lowercase"
 kappa = "fd3a6e195a898831f4451fddad212d80d5318c7de3484dcd1977e024af2fdf7d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::ascii_char::AsciiChar::to_u8"
@@ -344,7 +344,7 @@ cause = "mir::Rvalue::Discriminant: a discriminant read as a value"
 path = "core::ascii_char::AsciiChar::to_uppercase"
 kappa = "f2a41862bca4a8d6f1053d0c15a25a7575c8ae7bc777ac77344b01f109787a09"
 status = "residue"
-cause = "mir::TerminatorKind::Call: AsciiChar::to_u8"
+cause = "mir::TerminatorKind::Call: ascii::ascii_char::<impl at library/core/src/ascii/ascii_char.rs:448:1: 448:15>::to_u8: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::escape_default"

@@ -1,20 +1,20 @@
 [[fn]]
 path = "core::assert_unchecked"
 kappa = "2fa246576ce80f244c617d377ceae61c607f608a757106ae2f59fdf74327b7ff"
-status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+status = "translated"
+digest = "c94011d20a2e754f5d05a6b82b399d5131ec9b7c7fb8cae8fb6913d39518c2cc"
 
 [[fn]]
 path = "core::assert_unchecked::precondition_check"
 kappa = "f1c6415124714435d6f91059cdecb8a780a33cdebfcdc0a6312e251ea0d4d171"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "6d299e3826b5124025e2295a957edb7b318dc83ee04e050d5369c4d8218a8aea"
 
 [[fn]]
 path = "core::hint::<impl at library/core/src/hint.rs:893:10: 893:15>::fmt"
 kappa = "ea4f4163138b3e0a67059542fe1637a2350ba03e63eead7ab48657cdd1cf455e"
-status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+status = "translated"
+digest = "698df7cb14e4787afcc35e7a0196139b4be890a58cd78286e5ccad08d4a3f928"
 
 [[fn]]
 path = "core::hint::<impl at library/core/src/hint.rs:893:17: 893:22>::clone"
@@ -26,7 +26,7 @@ digest = "72a70b005becf62ebd671c553cffeddd097f9e93ba1f9858c299afa9beff5b34"
 path = "core::hint::<impl at library/core/src/hint.rs:893:30: 893:39>::eq"
 kappa = "50b09dee91404bcd36b99a5f9f10d2e4b801211dcb6d1192f1f84a14f8e0067d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::hint::<impl at library/core/src/hint.rs:893:41: 893:43>::assert_fields_are_eq"
@@ -50,27 +50,27 @@ digest = "7e961259589457d6abe967c174876cf6edd57a905b47d989761d06c034fa3686"
 path = "core::hint::black_box"
 kappa = "2794e6d1dc1822751e4d7e168dff95d829014a697f9588eff5cdc64de0c29006"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::black_box, an intrinsic the table does not model"
+status = "translated"
+digest = "d99eeaed35cc73b2552056901d21db5edf52b24c020cfa315050bde091ce017a"
 
 [[fn]]
 path = "core::hint::cold_path"
 kappa = "29087160a657ba30ad5b11bd5373a0d92a75f73f393f017b9746cf8bdfc76baa"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::cold_path"
+status = "translated"
+digest = "d742b32d8539436a9d14dcb274f3374254f8a93790c6ae341613c6dacac278b5"
 
 [[fn]]
 path = "core::hint::likely"
 kappa = "358ac1c317f60c458d377b1a5cdc67f5f005bb6e3846374f3cbb328475ef3bb6"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::likely"
+status = "translated"
+digest = "a53610d9705d778c67deb09e7a416e25db0d43a9c175af03ae79b34bf2ac302f"
 
 [[fn]]
 path = "core::hint::prefetch_read_instruction"
 kappa = "e34f300dbe33f33952c8fedf94e6d70dd0b4676e0413e73139d156ad56254a50"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::prefetch_read_instruction"
+cause = "mir::Ty: 1"
 
 [[fn]]
 path = "core::hint::select_unpredictable"
@@ -89,8 +89,8 @@ cause = "mir::Ty: DropOnPanic<u32>"
 [[fn]]
 path = "core::hint::unlikely"
 kappa = "b55508b139cf12c0f5c94130133f40ffa452268c10d37ef7da2aadb09047df27"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::unlikely"
+status = "translated"
+digest = "f595e8bfe698854f74537ca7d0f3a569c33dc56cbcdcc30d6de9682668991e8e"
 
 [[fn]]
 path = "core::must_use"
@@ -104,28 +104,28 @@ path = "core::prefetch_read"
 kappa = "2f75942d9008464e3e7fabc2beae7bc86985210b9e3bb72bb6f19bfaaf64c1d4"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: prefetch_read_data"
+cause = "mir::Ty: 1"
 
 [[fn]]
 path = "core::prefetch_read_non_temporal"
 kappa = "01e18b700d8629b815daf315d4462cf18dc40d298efd46439831825ac18981b3"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: prefetch_read_data"
+cause = "mir::Ty: 0"
 
 [[fn]]
 path = "core::prefetch_write"
 kappa = "619e1fa7881468a8b9da1c9df36ee1eeb8ae5522815553bc5c147a1d49bb3ccf"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: prefetch_write_data"
+cause = "mir::Ty: 1"
 
 [[fn]]
 path = "core::prefetch_write_non_temporal"
 kappa = "3a04ea32e99d316aea605b79404e1d232b95af6dac589aa6fe4d0eae5e9dd825"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: prefetch_write_data"
+cause = "mir::Ty: 0"
 
 [[fn]]
 path = "core::spin_loop"
@@ -136,12 +136,12 @@ cause = "mir::TerminatorKind::Call: core_arch::x86::sse2::_mm_pause"
 [[fn]]
 path = "core::unreachable_unchecked"
 kappa = "e20a9226b64b35440d26eeb699dfa6c6a9bd7cac9d9455887583149b539cbb62"
-status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+status = "translated"
+digest = "2129578a3afc639adc3c2da342c4333ce3744f33b63a6b25a272c4226327f90e"
 
 [[fn]]
 path = "core::unreachable_unchecked::precondition_check"
 kappa = "3f0978566f112984d54f949031296975c5cf1d1a416c3eb77b6e473b7c0b14a7"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "ab765819261119ca2e470c34acf6660c9a70c47dffa1abe96036a515e6f6f0af"
 

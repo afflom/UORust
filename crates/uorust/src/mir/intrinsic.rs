@@ -48,6 +48,9 @@ pub(crate) enum Model {
     /// `three_way_compare::<T>(a, b) -> Ordering`: `Less`, `Equal` or
     /// `Greater` by `T`'s order.
     Compare,
+    /// An integer operation, parameterized by (bits, signed): its rule in
+    /// `mir::int`, with core's precondition as an obligation.
+    Int,
 }
 
 /// Each modeled intrinsic by the name core declares it with.
@@ -62,4 +65,30 @@ pub(crate) const TABLE: &[(&str, Model)] = &[
     ("assert_mem_uninitialized_valid", Model::UninitValid),
     ("transmute", Model::Transmute),
     ("three_way_compare", Model::Compare),
+    ("wrapping_add", Model::Int),
+    ("wrapping_sub", Model::Int),
+    ("wrapping_mul", Model::Int),
+    ("add_with_overflow", Model::Int),
+    ("sub_with_overflow", Model::Int),
+    ("mul_with_overflow", Model::Int),
+    ("saturating_add", Model::Int),
+    ("saturating_sub", Model::Int),
+    ("rotate_left", Model::Int),
+    ("rotate_right", Model::Int),
+    ("ctpop", Model::Int),
+    ("ctlz", Model::Int),
+    ("ctlz_nonzero", Model::Int),
+    ("cttz", Model::Int),
+    ("cttz_nonzero", Model::Int),
+    ("bswap", Model::Int),
+    ("bitreverse", Model::Int),
+    ("disjoint_bitor", Model::Int),
+    ("unchecked_add", Model::Int),
+    ("unchecked_sub", Model::Int),
+    ("unchecked_mul", Model::Int),
+    ("unchecked_div", Model::Int),
+    ("unchecked_rem", Model::Int),
+    ("unchecked_shl", Model::Int),
+    ("unchecked_shr", Model::Int),
+    ("exact_div", Model::Int),
 ];

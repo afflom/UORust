@@ -10,14 +10,14 @@ path = "core::bool::bool::ok_or_else"
 kappa = "e20341a5a4099d3a455849bc675641fe262d67db1aa5ef425fe186f8d49cafa4"
 at = "E=u32, F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::bool::bool::then"
 kappa = "e425c1f7a6dc71e9a0b4e0c088e83df9486f85842f215c89c8f52f33e35b9196"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::bool::bool::then_some"

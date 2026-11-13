@@ -37,8 +37,8 @@ digest = "0b19865d0269d404bcf188090da3c1517d155ae3681c85a67060f42873bec285"
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:23: 158:32>::eq"
 kappa = "262007f11b5aff582d6168d1818a5db06ffec90e32b982ddd052bd7bbe68c726"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ffi::c_str::<impl at library/core/src/ffi/c_str.rs:125:23: 125:32>::eq: core's MIR stops at mir::TerminatorKind::Call: discriminant_value"
+status = "translated"
+digest = "c870a1e902b5a36d239205adcb41f6c4861d47dcfc7f9b41ba3038ba53a07ede"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:34: 158:36>::assert_fields_are_eq"
@@ -50,7 +50,7 @@ digest = "414936e3c380470448e087fa314dc5aa0b042946118e308099510766b17fc788"
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:38: 158:43>::fmt"
 kappa = "f12bfc07b0cb55b98068c72703f434297f14f5cd4864c0290ffdacbf16f30ce6"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:180:1: 180:29>::default"
@@ -266,7 +266,7 @@ cause = "mir::Ty: CStr"
 path = "core::c_str::FromBytesUntilNulError::fmt"
 kappa = "e249819e129f36fcaed2d877b65cfbdb36b00af49811bbc40bf27d8741c952bc"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::TerminatorKind::Call: fmt::Formatter::write_fmt: core's MIR stops at type outside the lift: Arguments<'_>"
 
 [[fn]]
 path = "core::c_str::FromBytesWithNulError::fmt"
@@ -278,19 +278,19 @@ cause = "mir::Ty: FromBytesWithNulError"
 path = "core::ffi::c_void::fmt"
 kappa = "56a3862697e302a089ebd8d4ac49c6cda8b44ed3a5235a915cbaf06a7d193313"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: fmt::builders::DebugStruct<'_, '_>"
 
 [[fn]]
 path = "core::strlen"
 kappa = "c6592680373c27b8e6b9d654d633d0f854d775b23ab2ebb71e224489612c8fc6"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item strlen::compiletime"
+cause = "mir::TerminatorKind::Call: ffi::c_str::strlen::runtime: core's MIR stops at mir::TerminatorKind::Call: strlen::runtime::strlen"
 
 [[fn]]
 path = "core::strlen::compiletime"
 kappa = "7cdd9ce9ffa6b67e1a7b2f396dd863b56c66bad9cc6a8595bed17d4781d20ccf"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const i8>::add"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::add: core's MIR stops at mir::TerminatorKind::Call: intrinsics::offset, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::strlen::runtime"
@@ -356,6 +356,6 @@ cause = "mir::Ty: ffi::va_list::_::Type"
 [[fn]]
 path = "core::va_list::_#2"
 kappa = "7f87cbddc7d21b7989649b1f8cd53ac53b3b7d949f7d57e999a53fd817530289"
-status = "residue"
-cause = "mir::TerminatorKind::Call: va_arg_safe_check"
+status = "translated"
+digest = "e6cd1e8c351f5c6940bf6d6618a52b13311867458828ddf4bcd5aecc04fb48e5"
 

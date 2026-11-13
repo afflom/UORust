@@ -34,7 +34,7 @@ cause = "mir::Ty: Arguments<'_>"
 path = "core::panic_bounds_check"
 kappa = "5d06d5ce585e21630f13d8b21f61296d15cd3431dffa479ca365f236379ce923"
 status = "residue"
-cause = "mir::Ty: fmt::rt::Argument<'_>"
+cause = "mir::TerminatorKind::Call: <usize as fmt::Display>::fmt"
 
 [[fn]]
 path = "core::panic_cannot_unwind"
@@ -45,141 +45,141 @@ digest = "7074baf2308e011cfab9422d8db100e78ac0405d3119fed896338dfc6940048a"
 [[fn]]
 path = "core::panic_const_add_overflow"
 kappa = "951d96322e7ec77870086375c307a6e85984224b0808e118d24dd9e1fcdc4aa3"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "7829bb534cc8ef445f95281ce9c499c8563cd5767171a708462d60f102b47bcf"
 
 [[fn]]
 path = "core::panic_const_async_fn_resumed"
 kappa = "26812a6aff60be005392a5965da402d7a3aa481cc8640e7aa5803bab67cea22e"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "a1f7e60f4332ba32c76db2c90146e1307fc8196c4973674843bd5df62e73cfa4"
 
 [[fn]]
 path = "core::panic_const_async_fn_resumed_drop"
 kappa = "3537c3fab27ebb6163d8116399a91804dab2e0ffd957f29031eccac6d545727d"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "b1c95734d5134902c5d0dcfe9ce299bb26e87edbc136bcced5db95b064e861a1"
 
 [[fn]]
 path = "core::panic_const_async_fn_resumed_panic"
 kappa = "7d70f5a13fa144821fc14f01a730c1b3b0025e11b4e57d9dd2a6196cb4b02fb0"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "694a9cdff34a7b1b8de014583117839da4fc598c0ca4f059b12ec0da7dfc327a"
 
 [[fn]]
 path = "core::panic_const_async_gen_fn_resumed"
 kappa = "309a444d9936e179d4985dac6b6d57458e6a2ac0a1070d998471cf623375b32d"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "c3fb75db06bfd9e6bd2882bbe44c17bb767b636704f2697c60a6e31969e53617"
 
 [[fn]]
 path = "core::panic_const_async_gen_fn_resumed_drop"
 kappa = "37690e4a4d3858e6c4fdc7af0b5e413f0a846e57834708f0e8dfec8cc5c60b07"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "59468e86e82e4a69e81fa7beae6273c08a201e1eed066cccad46b04142f2a87b"
 
 [[fn]]
 path = "core::panic_const_async_gen_fn_resumed_panic"
 kappa = "bc08dfde54cb0e3d6e1339f5cbd1f620269377eedf25bdb5edd047dbcbf98ff7"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "809e4c2fb90b779dc8de13b137889f4815558972cb5811575c03cfc495b2d2fb"
 
 [[fn]]
 path = "core::panic_const_coroutine_resumed"
 kappa = "ae7e0d68e0247d5d6802707b6287c0ccd4a7186fe87b9b443116dc8eac065c51"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "cee7216d8836f149ae416ccb95e7b7bdc77c87a099b5a6094557372ee186b851"
 
 [[fn]]
 path = "core::panic_const_coroutine_resumed_drop"
 kappa = "f68c1169937a246f3037dc1cfb57570ab70444c9baccb1b50f1f7cfcc17e0cea"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "5359eda575b72a38dc6d2939c2896cdaec4ac621cecbffabe061e687ec6b293a"
 
 [[fn]]
 path = "core::panic_const_coroutine_resumed_panic"
 kappa = "31da9b3249698f1afcfa9921e964c7fc1816b41636fb3b7d19d5de4c4615e543"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "63afbd3b50d7531a12a0e8e6ec0fa52863cd5853ade4de5ae0877caeaba3849e"
 
 [[fn]]
 path = "core::panic_const_div_by_zero"
 kappa = "41d3789b0ad133728f109b5d3b34957d4739f571bb52106faeb082f27e304b60"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "a124904c3f2fb4eddcfcac6f7ffc01ddcf730967481f5756da0fbd01737ac7d4"
 
 [[fn]]
 path = "core::panic_const_div_overflow"
 kappa = "922c46dbc0a98fb9e172beecd15151220935b6933d101b6860d4db1fd1bc26bd"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "1eaf74e0b4674f02f824ac5711e7b278b43d7d6306e36fd4a29a43d9aefd62d0"
 
 [[fn]]
 path = "core::panic_const_gen_fn_none"
 kappa = "33509935e04e5e4261a32fb0c8082745c6f6eaac814a2ed589a5f13da0a1c255"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "e7959204ef61645ef82e3e35af54be6d003f11c12066b22169a5cda2f2390b13"
 
 [[fn]]
 path = "core::panic_const_gen_fn_none_drop"
 kappa = "a2790fb6e98a5f83200d0419a05242062cdb44dce5725f868829dd1379ed236a"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "52c95c1f853848571b315db6512ffa12e3fbc0c58c2c5b23d2f4335e34efda03"
 
 [[fn]]
 path = "core::panic_const_gen_fn_none_panic"
 kappa = "8bf0d3a5624bb021d49b7f651c7329e8c71c9fcfd8adc97f9630bfb41fd7be17"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "4f0b1952e7262f194edfea0966bf93bd7fc8665c6bbf80f13a6ea1b483d6b2b9"
 
 [[fn]]
 path = "core::panic_const_mul_overflow"
 kappa = "134006c7af6d5e9996628cdea7d69ee3d9f885cdffe9283dc85a244079585861"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "575470d59feb41dcdbf847c37d99c316dff22d0527cabfa1a1ca44e9fe1526fd"
 
 [[fn]]
 path = "core::panic_const_neg_overflow"
 kappa = "424a1af60fb2c36e2848ac15c33f244693d360359cfffe604130e8b0abc748e1"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "f71e1ee6edcee408b315c50397647226aa997d88d38aa156b6bd014e38a8ffe6"
 
 [[fn]]
 path = "core::panic_const_rem_by_zero"
 kappa = "3e28ab0b18c23574bc3c0dc0defe2e6b2577685fcf83e6ad63bbb515b2cba66c"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "91896d2a92ff6646c30f7d47f3b2215b6811bf56ccdfb3bc2ce9a47f5a5102f1"
 
 [[fn]]
 path = "core::panic_const_rem_overflow"
 kappa = "d0c81cfcd2700779a965e4df4e1931abd52724b3531c0d5ff2eccea4c10fef84"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "7400729dc99449096bcd7b99f4c7c2559640ede5be8752ce43670579e6b24320"
 
 [[fn]]
 path = "core::panic_const_shl_overflow"
 kappa = "82267e24186947b1e2f30f3369f1c680d0f4c3855ffc3c43f23737ec886344d1"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "0e9f6bc603f35a7af9f901594bdb08bc17cf587f6572481d6f840b7920d5b2e7"
 
 [[fn]]
 path = "core::panic_const_shr_overflow"
 kappa = "81723f40398feb42c92b8bd2743a8f21295b426f4d89744f5228198c2146de1a"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "9951d657604890c752a11afaeb85f763967970ae2e3fb0db3f80c81c1a303628"
 
 [[fn]]
 path = "core::panic_const_sub_overflow"
 kappa = "244eb9991846e21d3aadeb5c17c77f78e3040b022cd1aca46a790faaaa4199fa"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "f121bcd61259cdff672bac3a5bb71beca2a1f5ee7dd8f5ae05d36d81ed95e441"
 
 [[fn]]
 path = "core::panic_display"
 kappa = "e61b6e3e2177cf75df53f05a55f5c17b4b78df1a6146da533057286d1988e1c0"
 at = "T=u32"
 status = "residue"
-cause = "mir::ProjectionElem::Field: a field of Nat"
+cause = "mir::TerminatorKind::Call: <u32 as fmt::Display>::fmt"
 
 [[fn]]
 path = "core::panic_in_cleanup"
@@ -191,19 +191,19 @@ digest = "c424b6d2290c9536cd8ef83a2b49e31984862e8a8e6489fbb1b591152225a9ba"
 path = "core::panic_invalid_enum_construction"
 kappa = "5375d4efe36fa3d1293087affef0d57f8d862d5289e643e0b52e20c81bd70c83"
 status = "residue"
-cause = "mir::ProjectionElem::Field: a field of Nat"
+cause = "mir::TerminatorKind::Call: <u128 as fmt::LowerHex>::fmt"
 
 [[fn]]
 path = "core::panic_misaligned_pointer_dereference"
 kappa = "76499be98af36cfa5bcc7b51aee663187d5197e37c33503484ad29326f48718b"
 status = "residue"
-cause = "mir::Ty: fmt::rt::Argument<'_>"
+cause = "mir::TerminatorKind::Call: <usize as fmt::LowerHex>::fmt"
 
 [[fn]]
 path = "core::panic_nounwind"
 kappa = "992aca74f7fbe921272a71e05d53e82ac5024ce118cab7076ad26445a8beacc2"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "42d2867087328a4e6ee1dbe9e7806dbfeedac4696da3a006707844b00ae3b7df"
 
 [[fn]]
 path = "core::panic_nounwind_fmt"
@@ -226,14 +226,14 @@ cause = "mir::Ty: Arguments<'_>"
 [[fn]]
 path = "core::panic_nounwind_nobacktrace"
 kappa = "d8b638a59155c4a2d4458d6bd9afdf9fa102be6bda75b42424d33c0ddaef8a11"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "554070e44d271f27dac20edef4d6d5d83aae55abf9336d45cd23f36ef6ef3fd3"
 
 [[fn]]
 path = "core::panic_null_pointer_dereference"
 kappa = "18ed85c68b566193e79bbbbadf3e423564a3b8a44fb7f91a806837aeb88eed23"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "dc5602f4cbd685da885dfa1fa5073e4709c9c6e9194a96c8f9af89e10fd50b7d"
 
 [[fn]]
 path = "core::panic_str_2015"
@@ -244,14 +244,14 @@ digest = "39a3dfeec3cceb890a803ff3bc2ac9c4fb9c79adf44d1dfed00c05dc0099df9a"
 [[fn]]
 path = "core::panicking::<impl at library/core/src/panicking.rs:371:10: 371:15>::fmt"
 kappa = "1fb5789db232b14e34b1090a83d131fac5aaec03ea86d3400ef4af345b35e83f"
-status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+status = "translated"
+digest = "23d5fb8e130b9767f51144c1eecbca5107463e547c9f7a69319a1ecbad12ea5e"
 
 [[fn]]
 path = "core::panicking::panic"
 kappa = "85356ceff2ebdee3494be1ec52c02f321ee046ef5761a7ad49b6b5e00983cf74"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "97bb7ea2305a95b449f894d4144dcdfbbd3ea6d15c21761b21474c3026bc451b"
 
 [[fn]]
 path = "core::panicking::panic_fmt"
@@ -264,5 +264,5 @@ path = "core::unreachable_display"
 kappa = "2a4298a5eb1550d3184612a44575a52d60b8a7e521f406590776ccbb59320124"
 at = "T=u32"
 status = "residue"
-cause = "mir::ProjectionElem::Field: a field of Nat"
+cause = "mir::TerminatorKind::Call: <u32 as fmt::Display>::fmt"
 

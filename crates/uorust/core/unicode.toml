@@ -2,37 +2,37 @@
 path = "core::NORMAL0"
 kappa = "a2ec16f558866a21655dabdcf3f66c82e13c8a04b0a47a0b8c1778803e04a131"
 status = "residue"
-cause = "mir::Operand::Constant: unicode::printable::NORMAL0::promoted[0]"
+cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
 
 [[fn]]
 path = "core::NORMAL1"
 kappa = "21072aa3067b96109c480a2bf98ccb56e0574236b27b9cfe33c7761841653603"
 status = "residue"
-cause = "mir::Operand::Constant: unicode::printable::NORMAL1::promoted[0]"
+cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
 
 [[fn]]
 path = "core::SINGLETONS0L"
 kappa = "45eb176d868faeaae91e9b7f3120dabe0c5f022e7a2f1b3923f4b9339a1eec66"
 status = "residue"
-cause = "mir::Operand::Constant: unicode::printable::SINGLETONS0L::promoted[0]"
+cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
 
 [[fn]]
 path = "core::SINGLETONS0U"
 kappa = "b4b6d5265a043ac06bab75c0f507e4770533db6392398433ab89b09314367a49"
 status = "residue"
-cause = "mir::Operand::Constant: unicode::printable::SINGLETONS0U::promoted[0]"
+cause = "mir::CastKind::PointerCoercion: from (List TupleNatNat) to (List TupleNatNat)"
 
 [[fn]]
 path = "core::SINGLETONS1L"
 kappa = "8063ace897fb0b65213bf8338049a40779e6c853c055f37f1df639408bae3b39"
 status = "residue"
-cause = "mir::Operand::Constant: unicode::printable::SINGLETONS1L::promoted[0]"
+cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
 
 [[fn]]
 path = "core::SINGLETONS1U"
 kappa = "d755fbc31179f50d59ac0d9d27d7de84f359ee6821181f7726ba35db730d018d"
 status = "residue"
-cause = "mir::Operand::Constant: unicode::printable::SINGLETONS1U::promoted[0]"
+cause = "mir::CastKind::PointerCoercion: from (List TupleNatNat) to (List TupleNatNat)"
 
 [[fn]]
 path = "core::alphabetic::lookup"
@@ -80,14 +80,14 @@ digest = "ac4c9829c7602d1194784f1b66e05071ed2fedf3a984abdd321970392463478e"
 [[fn]]
 path = "core::conversions::Range::new"
 kappa = "2900553e2bea851f85e5c9caec70ee9acfc08a5bb6c692230a4948eb82625ffa"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::start"
+status = "translated"
+digest = "c27e6f8b3142a388a8f9e9b829c0675576b4ef6af65b9b1f7ec1145af0b71ff5"
 
 [[fn]]
 path = "core::conversions::Range::singleton"
 kappa = "6ae2f06bdf765175e4d27811cd2be431fa370e9985d53218401cff0774485daa"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
+cause = "mir::TerminatorKind::Call: conversions::Range::new"
 
 [[fn]]
 path = "core::conversions::Range::start"
@@ -177,7 +177,7 @@ cause = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would
 path = "core::reconstruct"
 kappa = "15470772406e00c9f2906a8bf51c16d4f4fe2d0aa5772dd68ae225974fede688"
 status = "residue"
-cause = "mir::Operand::Constant: 16_i32 as u32 (IntToInt)"
+cause = "mir::TerminatorKind::Call: char::methods::<impl at library/core/src/char/methods.rs:11:1: 11:10>::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::skip_search"
@@ -207,26 +207,26 @@ cause = "mir::BinOp::Lt: on String and String"
 [[fn]]
 path = "core::unicode::UNICODE_VERSION"
 kappa = "ef69a8cc8ba37e5baaca46a67f34c4172bba1089032c7d416182a5cfa4ad9f7b"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item unicode::unicode_data::UNICODE_VERSION"
+status = "translated"
+digest = "9434c19baeeba1b5288e7d365d35eeedf5835dbf7ccc7649da50beefe45ce164"
 
 [[fn]]
 path = "core::unicode_data::ShortOffsetRunHeader::new"
 kappa = "5246c57f488fe785697d5fda3f80dcca52ac71979f83e6cc1f76d154cec9a878"
-status = "residue"
-cause = "mir::Operand::Constant: 11_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "fa8104ae4b5ce034f1762853be936291bc4919f66eabb58d4ca414377f5cfadd"
 
 [[fn]]
 path = "core::unicode_data::ShortOffsetRunHeader::prefix_sum"
 kappa = "abf0b0c1989ac3b8a36c3ebdf2aa7f3a9d6d7280973cb9e0e356aef669587ec9"
-status = "residue"
-cause = "mir::Operand::Constant: 21_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "2de9fd02e6476a204c0b973a8067e366636046e6db909bf76542d18983fc69cb"
 
 [[fn]]
 path = "core::unicode_data::ShortOffsetRunHeader::start_index"
 kappa = "6da7cd24ec443e1541f37bbe5b6ae209813478148a8f97b1888111a6281a0df5"
-status = "residue"
-cause = "mir::Operand::Constant: 21_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "1f7ffd6b977bca6cc4daa94451e15ec5d560969e18af0a5c787c2904e0f38ce6"
 
 [[fn]]
 path = "core::unicode_data::UNICODE_VERSION"

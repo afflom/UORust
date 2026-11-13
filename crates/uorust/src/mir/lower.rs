@@ -1841,6 +1841,37 @@ impl Fun<'_, '_> {
                 }
                 Ok((out, Ty::List(Box::new(Ty::Nat(Some(8))))))
             }
+            // A constant cast between integers, `const u32::MAX as u128
+            // (IntToInt)` or `const 1_i32 as u32 (IntToInt)`: the constant,
+            // by its own rule, cast by the cast's.
+            IrConstant::Path(p) | IrConstant::Other(p)
+                if p.strip_suffix(" (IntToInt)")
+                    .is_some_and(|q| q.contains(" as ")) =>
+            {
+                let (inner, to) = p
+                    .strip_suffix(" (IntToInt)")
+                    .and_then(|q| q.rsplit_once(" as "))
+                    .ok_or_else(|| kind(k, p))?;
+                let inner = match inner.rsplit_once('_') {
+                    Some((n, suffix)) if n.parse::<i128>().is_ok() => {
+                        IrConstant::Int(n.parse().unwrap_or_default(), suffix.to_string())
+                    }
+                    _ => IrConstant::Path(inner.to_string()),
+                };
+                let (v, from) = self.constant(&inner)?;
+                let to = ty(to, self.cx.types)?;
+                let w = self.cx.widths;
+                let (Some(fi), Some(ti)) = (Int::of(&from, w), Int::of(&to, w)) else {
+                    return Err(kind(k, p));
+                };
+                match super::int::cast(&v, fi, ti, from == to) {
+                    (value, None) => Ok((value, to)),
+                    (_, Some(_)) => Err(kind(
+                        k,
+                        &format!("{p}, a cast whose range differs between the declared targets"),
+                    )),
+                }
+            }
             // A float literal as MIR prints it (`0f32`, `-0f64`, `1.0E+4f16`,
             // `+Inf_f16`), or a constant IEEE 754 fixes, by core's name for
             // it (`f32::<impl f32>::NAN`).
@@ -2600,6 +2631,57 @@ impl Fun<'_, '_> {
         }
     }
 
+    /// Declares the integer helper `name` (see [`super::int::HELPERS`]) and
+    /// the helpers it calls, with each one's decreasing measure, and
+    /// returns its name.
+    fn use_helper(&mut self, name: &str) -> String {
+        let Some(h) = super::int::helper(name) else {
+            return name.to_string();
+        };
+        self.calls.insert(name.to_string());
+        if self.aux.contains_key(name) {
+            return name.to_string();
+        }
+        for u in h.uses {
+            self.use_helper(u);
+        }
+        let parameters: Vec<(String, String)> = h
+            .params
+            .iter()
+            .map(|p| (p.to_string(), "Nat".to_string()))
+            .collect();
+        let measure = h.params[0];
+        let evidence = format!("decreases_{name}_0");
+        let axioms = vec!["Quot.sound".to_string(), "propext".to_string()];
+        self.aux.insert(
+            evidence.clone(),
+            Decl::Theorem {
+                name: evidence.clone(),
+                parameters: parameters.clone(),
+                statement: implication(
+                    &[format!("(({measure} =? 0) = false)")],
+                    &format!("({} < {measure})", h.step),
+                ),
+                proof: "linear_arithmetic{}".into(),
+                axioms: axioms.clone(),
+            },
+        );
+        self.aux.insert(
+            name.to_string(),
+            Decl::Definition {
+                name: name.to_string(),
+                parameters,
+                result: "Nat".into(),
+                body: Expr::Flat(h.body.to_string()),
+                axioms,
+                recursive: None,
+                termination: Some((measure.to_string(), vec![evidence])),
+                mutual: None,
+            },
+        );
+        name.to_string()
+    }
+
     fn binary(
         &mut self,
         op: spec::MirBinOp,
@@ -2607,9 +2689,22 @@ impl Fun<'_, '_> {
         b: &IrOperand,
         st: &mut State,
     ) -> Lift<Val> {
-        use spec::MirBinOp as B;
         let (x, xt) = self.operand(a, st)?;
         let (y, yt) = self.operand(b, st)?;
+        self.binary_on(op, x, xt, y, yt, st)
+    }
+
+    /// The binary operator `op` on two terms of their types.
+    fn binary_on(
+        &mut self,
+        op: spec::MirBinOp,
+        x: String,
+        xt: Ty,
+        y: String,
+        yt: Ty,
+        st: &mut State,
+    ) -> Lift<Val> {
+        use spec::MirBinOp as B;
         // Raw pointers compare by their addresses: `core::ptr` compares thin
         // pointers as addresses, provenance aside.
         // A wide pointer's metadata breaks a tie, as rustc's comparison of
@@ -2882,39 +2977,7 @@ impl Fun<'_, '_> {
                     Ok(k) if k < int.held => (pow2(k), pow2(int.held - k)),
                     Ok(_) => return Err(bad()),
                     Err(_) => {
-                        let name = "mirPowTwo".to_string();
-                        if !self.aux.contains_key(&name) {
-                            let evidence = format!("decreases_{name}_0");
-                            self.aux.insert(
-                                evidence.clone(),
-                                Decl::Theorem {
-                                    name: evidence.clone(),
-                                    parameters: vec![("k".into(), "Nat".into())],
-                                    statement: implication(
-                                        &["((k =? 0) = false)".to_string()],
-                                        "((prim subtract k 1 : Nat) < k)",
-                                    ),
-                                    proof: "linear_arithmetic{}".into(),
-                                    axioms: vec!["Quot.sound".into(), "propext".into()],
-                                },
-                            );
-                            self.aux.insert(
-                                name.clone(),
-                                Decl::Definition {
-                                    name: name.clone(),
-                                    parameters: vec![("k".into(), "Nat".into())],
-                                    result: "Nat".into(),
-                                    body: Expr::Flat(format!(
-                                        "(if (k =? 0) then 1 else (prim multiply 2 ({name} (prim subtract k 1 : Nat)) : Nat))"
-                                    )),
-                                    axioms: vec!["Quot.sound".into(), "propext".into()],
-                                    recursive: None,
-                                    termination: Some(("k".into(), vec![evidence])),
-                                    mutual: None,
-                                },
-                            );
-                        }
-                        self.calls.insert(name.clone());
+                        let name = self.use_helper("mirPowTwo");
                         let pk = format!("({name} {y})");
                         (pk.clone(), format!("(prim quotient {m} {pk} 0 : Nat)"))
                     }
@@ -2950,6 +3013,19 @@ impl Fun<'_, '_> {
                     _ => (y.parse::<u128>().map_err(|_| bad())?, &x),
                 };
                 v(format!("(prim remainder {other} {} 0 : Nat)", c + 1), xt)
+            }
+            // AND, OR and XOR of two values bit by bit, by their recursion
+            // on the low bit (LexLean's bit operations take no `Nat`, see
+            // `upstream.toml`): a signed value's on its pattern.
+            B::BitAnd | B::BitOr | B::BitXor
+                if xt == yt && Int::of(&xt, self.cx.widths).is_some() =>
+            {
+                let name = self.use_helper(match op {
+                    B::BitAnd => "mirBitAnd",
+                    B::BitOr => "mirBitOr",
+                    _ => "mirBitXor",
+                });
+                v(format!("({name} {x} {y})"), xt)
             }
             _ => Err(bad()),
         }
@@ -3586,7 +3662,7 @@ impl Fun<'_, '_> {
                 .filter(|p| link.decls.intrinsics.contains(p))
             {
                 return self
-                    .intrinsic(link, &path, callee, &args, dt)
+                    .intrinsic(link, &path, callee, &args, dt, st)
                     .map(Called::value);
             }
             if let Some(inst) = link.instance(callee, texts, dest) {
@@ -3663,6 +3739,7 @@ impl Fun<'_, '_> {
         callee: &str,
         args: &[(String, Ty)],
         dt: &Ty,
+        st: &mut State,
     ) -> Lift<String> {
         let k = spec::MirTerminatorKind::Call.path();
         let generics = link.bind(path, callee, None, &[], "").ok_or_else(|| {
@@ -3750,8 +3827,110 @@ impl Fun<'_, '_> {
                     v("Greater")
                 ))
             }
+            // An integer operation, by its rule in (bits, signed).
+            (Some(M::Int), [(_, t), ..], _) if Int::of(t, self.cx.widths).is_some() => {
+                self.int_intrinsic(path, name, args, st)
+            }
             _ => Err(unmodeled()),
         }
+    }
+
+    /// One of core's integer intrinsics on integer values: the rule
+    /// `int::intrinsic` gives in (bits, signed), or for `unchecked_*` and
+    /// `exact_div` the MIR operator's own, each with core's precondition as
+    /// an obligation.
+    fn int_intrinsic(
+        &mut self,
+        path: &str,
+        name: &str,
+        args: &[(String, Ty)],
+        st: &mut State,
+    ) -> Lift<String> {
+        use spec::MirBinOp as B;
+        let k = spec::MirTerminatorKind::Call.path();
+        let bad = || {
+            let ts: Vec<String> = args.iter().map(|(_, t)| t.render()).collect();
+            kind(k, &format!("{path} on {}", ts.join(" and ")))
+        };
+        let t0 = args.first().map(|(_, t)| t.clone()).ok_or_else(bad)?;
+        let int = Int::of(&t0, self.cx.widths).ok_or_else(bad)?;
+        let pow2 = super::int::pow2;
+        let op = match name {
+            "unchecked_add" => Some(B::AddUnchecked),
+            "unchecked_sub" => Some(B::SubUnchecked),
+            "unchecked_mul" => Some(B::MulUnchecked),
+            "unchecked_div" | "exact_div" => Some(B::Div),
+            "unchecked_rem" => Some(B::Rem),
+            "unchecked_shl" => Some(B::ShlUnchecked),
+            "unchecked_shr" => Some(B::ShrUnchecked),
+            _ => None,
+        };
+        if let Some(op) = op {
+            let [(x, xt), (y, yt)] = args else {
+                return Err(bad());
+            };
+            match op {
+                B::Div | B::Rem => {
+                    self.obligation(st, &format!("(({y} =? 0) = false)"), k);
+                    if int.signed {
+                        let (h, m) = (pow2(int.held - 1), pow2(int.held));
+                        self.obligation(
+                            st,
+                            &format!(
+                                "((({x} =? {h}) && ({y} =? (prim subtract {m} 1 : Nat))) = false)"
+                            ),
+                            k,
+                        );
+                    }
+                }
+                B::ShlUnchecked | B::ShrUnchecked => {
+                    self.obligation(st, &format!("(({y} <? {}) = true)", int.check), k);
+                }
+                _ => {}
+            }
+            let Val::V(value, _) =
+                self.binary_on(op, x.clone(), xt.clone(), y.clone(), yt.clone(), st)?
+            else {
+                return Err(bad());
+            };
+            if name == "exact_div" {
+                let Val::V(r, _) =
+                    self.binary_on(B::Rem, x.clone(), xt.clone(), y.clone(), yt.clone(), st)?
+                else {
+                    return Err(bad());
+                };
+                self.obligation(st, &format!("({r} = 0)"), k);
+            }
+            return Ok(value);
+        }
+        // Two operands of one type, but for a rotation's amount.
+        if args.len() == 2 && !name.starts_with("rotate_") && args[1].1 != t0 {
+            return Err(bad());
+        }
+        let terms: Vec<&str> = args.iter().map(|(v, _)| v.as_str()).collect();
+        let applied = super::int::intrinsic(name, &terms, int).ok_or_else(|| {
+            kind(
+                k,
+                &format!(
+                    "{path} on {}, whose width differs between the declared targets",
+                    t0.render()
+                ),
+            )
+        })?;
+        for u in &applied.uses {
+            self.use_helper(u);
+        }
+        for r in &applied.requires {
+            self.obligation(st, r, k);
+        }
+        Ok(match applied.overflow {
+            None => applied.value,
+            Some(over) => {
+                let pair = self.cx.types.tuple(vec![t0, Ty::Bool]);
+                self.mention(&pair);
+                lift::tuple_value(&pair, &[applied.value, over])
+            }
+        })
     }
 
     /// The definition an instance of a library body is lowered to, shared

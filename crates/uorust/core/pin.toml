@@ -66,21 +66,21 @@ path = "core::pin::Pin::fmt"
 kappa = "de060e64fd2c169e51920e466d1bb34b8b77c451674f6ce1713d27f7dd6a0a6a"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::pin::Pin::fmt#2"
 kappa = "a5f5544b490f1ce68c8ebf531ca63654f8160c47cf6a6ec8a52e91062f91cd0a"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::TerminatorKind::Call: <u32 as fmt::Display>::fmt"
 
 [[fn]]
 path = "core::pin::Pin::fmt#3"
 kappa = "3886015906603011cf8872113e3255aea582476d92e75fd047f4aa43a51deb44"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::TerminatorKind::Call: <u32 as fmt::Pointer>::fmt"
 
 [[fn]]
 path = "core::pin::Pin::ge"
@@ -164,14 +164,14 @@ path = "core::pin::Pin::map_unchecked"
 kappa = "8fbb70e6592b1b2900323c71d64b08a1b322568530f2da83bb6d46fbea805d89"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::pin::Pin::map_unchecked_mut"
 kappa = "a68c5b381d10f671651e9a806c5c9b8e66eb4b2468e6ab952a65141bc3a25cc7"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Pin::get_unchecked_mut"
+cause = "mir::TerminatorKind::Call: pin::Pin::get_unchecked_mut: core's MIR stops at mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::pin::Pin::ne"
@@ -184,8 +184,8 @@ cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
 path = "core::pin::Pin::new"
 kappa = "9247bcc493f83a11ad9c84a128d6c69d5e26ec5d0dd99c2154fd23aa78d1d881"
 at = "Ptr=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: Pin::new_unchecked"
+status = "translated"
+digest = "06d7a395a8e46f4d78f3e9e66061944febed1a89b76098846eb04a4d0169a748"
 
 [[fn]]
 path = "core::pin::Pin::new_unchecked"
@@ -212,29 +212,29 @@ cause = "mir::Ty: <u32 as Deref>::Target"
 path = "core::pin::Pin::static_mut"
 kappa = "004a43ac289d3e720b1e7e64c619444e26f1168997b4ae7599129e0b1c510dee"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: Pin::new_unchecked"
+status = "translated"
+digest = "daad622f07f3dad8b51a966f911a3df0459126df37ae41f4c0924fc49620ea08"
 
 [[fn]]
 path = "core::pin::Pin::static_ref"
 kappa = "98915b95a32ff5924043025a04408ab0f1498a599156fffcb32188da9024d651"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: Pin::new_unchecked"
+status = "translated"
+digest = "dd05a50fb6f8907ba52c2192cb6adbc8b40ab54f058d7a6feb17f05cad251c57"
 
 [[fn]]
 path = "core::unreachable_pin_macro_type_constraint"
 kappa = "9d914224656006581338c2227eaf15febb5e25ccb5f5158b66882435edf3e307"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: panicking::panic"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::default"
 kappa = "98e54111992e3dce27b7e66fadd31f8a45b562945d6e2ca17c39e5968dfeaf28"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+status = "translated"
+digest = "17c629e05c5957e1f7843853dbec17e687dfda445339cbe11850dcc844c13b85"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::fmt"
@@ -246,22 +246,22 @@ cause = "mir::Ty: T"
 path = "core::unsafe_pinned::UnsafePinned::from"
 kappa = "cba4a964226aa079753c8f065c95a58dbf7f2dadf420a9e01e6b5a55b9c1f115"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafePinned::new"
+status = "translated"
+digest = "eef39c62338ba82b5be9e73d27fc5257572ec625f90fba0897978900fab77a63"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::get"
 kappa = "1ff2ea50c129c7526f7529136f935991547cb08496157c7c8ba3e23a8f75e0d5"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<u32>"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::get_mut_pinned"
 kappa = "794bbbffa0ddf0d2f225b92193e172fbbef9b0fd72366172158e7ad736079b33"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Pin::get_unchecked_mut"
+cause = "mir::TerminatorKind::Call: pin::Pin::get_unchecked_mut: core's MIR stops at type outside the lift: Pin<&mut pin::unsafe_pinned::UnsafePinned<u32>>"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::get_mut_unchecked"
@@ -275,14 +275,14 @@ path = "core::unsafe_pinned::UnsafePinned::into_inner"
 kappa = "812b04a33f7a2d306d826dfeacefb781aeb9237204bc702edc845894f7681702"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::into_inner"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::into_inner: core's MIR stops at type outside the lift: UnsafeCell<u32>"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::new"
 kappa = "871dd90a620db68623b8995601189bfe88c055ad3e5078abd6496ed4935b808e"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::new"
+status = "translated"
+digest = "ca2922c074640c4cee68f57b841f9c346bed87eed8229da25dad0e182e48d48f"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::raw_get"

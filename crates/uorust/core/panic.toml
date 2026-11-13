@@ -9,7 +9,7 @@ path = "core::abort_unwind"
 kappa = "6821a9147aba327d422a11664674e0704deaa79097fdf684b405f1321f64ae6a"
 at = "F=u32, R=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::location::<impl at library/core/src/panic/location.rs:37:16: 37:21>::clone"
@@ -155,14 +155,14 @@ path = "core::unwind_safe::AssertUnwindSafe::call_once"
 kappa = "2a0eccb9e823e1a5c561bfab17d794e8ef3fb0f5024f407cc5c262978479b2db"
 at = "F=u32, R=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::default"
 kappa = "979422a83c1b34f81c12d0a4b60ed5b55bce268deb76d4ef863a8a6396dd1758"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+status = "translated"
+digest = "415497af0bfeb7d50143a3731c859a58172c836b5d86ecf1bcfcdcf29406d30d"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::deref"
@@ -183,7 +183,7 @@ path = "core::unwind_safe::AssertUnwindSafe::fmt"
 kappa = "c6bf778a2964c970ea21597225dce0a205e749e8e520675707836fa7d497925e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: fmt::builders::DebugTuple<'_, '_>"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::from"
@@ -210,6 +210,6 @@ cause = "mir::Ty: <u32 as async_iter::async_iter::AsyncIterator>::Item"
 path = "core::unwind_safe::AssertUnwindSafe::size_hint"
 kappa = "ba1d0bc768085f1c059cb5e45e00d1e9526b0def313ee34a2a0e8d4af371720a"
 at = "S=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as AsyncIterator>::size_hint"
+status = "translated"
+digest = "70e974df86690899fc5426306c3a6229a4894e0e60bbfa9d048ea7b0dade7fcc"
 

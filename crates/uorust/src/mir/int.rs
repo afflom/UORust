@@ -200,6 +200,319 @@ pub(crate) fn assoc(name: &str, t: &Ty, int: Int) -> Option<Assoc> {
     Some(Assoc::Held(v, t))
 }
 
+/// A recursive helper on `Nat` that the integer rules call where a bit
+/// operation has no closed form in LexLean's primitives: each recurses once,
+/// on its first parameter `step`ped down from a nonzero value, which a
+/// `linear_arithmetic` theorem shows decreases it.
+pub(crate) struct Helper {
+    pub(crate) name: &'static str,
+    pub(crate) params: &'static [&'static str],
+    /// The first parameter at the recursive call.
+    pub(crate) step: &'static str,
+    pub(crate) body: &'static str,
+    /// The other helpers the body calls.
+    pub(crate) uses: &'static [&'static str],
+}
+
+/// `x / 2`, `x % 2` and `y / 2`, `y % 2` as the bodies write them.
+macro_rules! halve {
+    ($v:literal) => {
+        concat!("(prim quotient ", $v, " 2 0 : Nat)")
+    };
+}
+macro_rules! low {
+    ($v:literal) => {
+        concat!("(prim remainder ", $v, " 2 0 : Nat)")
+    };
+}
+
+/// Every helper: `2^k`, AND, OR and XOR bit by bit from the low bit, the
+/// count of one bits, the bit length, the trailing zeros of a nonzero
+/// value, and the low `n` bits reversed.
+pub(crate) const HELPERS: &[Helper] = &[
+    Helper {
+        name: "mirPowTwo",
+        params: &["k"],
+        step: "(prim subtract k 1 : Nat)",
+        body: "(if (k =? 0) then 1 else (prim multiply 2 (mirPowTwo (prim subtract k 1 : Nat)) : Nat))",
+        uses: &[],
+    },
+    Helper {
+        name: "mirBitAnd",
+        params: &["x", "y"],
+        step: halve!("x"),
+        body: concat!(
+            "(if (x =? 0) then 0 else ((prim multiply 2 (mirBitAnd ", halve!("x"), " ", halve!("y"),
+            ") : Nat) + (prim multiply ", low!("x"), " ", low!("y"), " : Nat)))"
+        ),
+        uses: &[],
+    },
+    Helper {
+        name: "mirBitOr",
+        params: &["x", "y"],
+        step: halve!("x"),
+        body: concat!(
+            "(if (x =? 0) then y else ((prim multiply 2 (mirBitOr ", halve!("x"), " ", halve!("y"),
+            ") : Nat) + (prim subtract (", low!("x"), " + ", low!("y"), ") (prim multiply ",
+            low!("x"), " ", low!("y"), " : Nat) : Nat)))"
+        ),
+        uses: &[],
+    },
+    Helper {
+        name: "mirBitXor",
+        params: &["x", "y"],
+        step: halve!("x"),
+        body: concat!(
+            "(if (x =? 0) then y else ((prim multiply 2 (mirBitXor ", halve!("x"), " ", halve!("y"),
+            ") : Nat) + (prim remainder (", low!("x"), " + ", low!("y"), ") 2 0 : Nat)))"
+        ),
+        uses: &[],
+    },
+    Helper {
+        name: "mirCountOnes",
+        params: &["x"],
+        step: halve!("x"),
+        body: concat!(
+            "(if (x =? 0) then 0 else (", low!("x"), " + (mirCountOnes ", halve!("x"), ")))"
+        ),
+        uses: &[],
+    },
+    Helper {
+        name: "mirBitLength",
+        params: &["x"],
+        step: halve!("x"),
+        body: concat!("(if (x =? 0) then 0 else (1 + (mirBitLength ", halve!("x"), ")))"),
+        uses: &[],
+    },
+    Helper {
+        name: "mirTrailingZeros",
+        params: &["x"],
+        step: halve!("x"),
+        body: concat!(
+            "(if (x =? 0) then 0 else (prim multiply (prim subtract 1 ", low!("x"),
+            " : Nat) (1 + (mirTrailingZeros ", halve!("x"), ")) : Nat))"
+        ),
+        uses: &[],
+    },
+    Helper {
+        name: "mirReverseBits",
+        params: &["n", "x"],
+        step: "(prim subtract n 1 : Nat)",
+        body: concat!(
+            "(if (n =? 0) then 0 else ((prim multiply ", low!("x"),
+            " (mirPowTwo (prim subtract n 1 : Nat)) : Nat) + (mirReverseBits (prim subtract n 1 : Nat) ",
+            halve!("x"), ")))"
+        ),
+        uses: &["mirPowTwo"],
+    },
+];
+
+/// The helper of this name.
+pub(crate) fn helper(name: &str) -> Option<&'static Helper> {
+    HELPERS.iter().find(|h| h.name == name)
+}
+
+/// `2^e` for an exponent term: a literal for a literal, else `mirPowTwo`
+/// (whose use the caller records).
+pub(crate) fn pow2_of(e: &str) -> (String, bool) {
+    match e.parse::<u32>() {
+        Ok(k) => (pow2(k), false),
+        Err(_) => (format!("(mirPowTwo {e})"), true),
+    }
+}
+
+/// An integer intrinsic of core's, by its name, on values of the integer
+/// type `int` (an operation on two of them where it takes two): its value,
+/// what must hold for it to be defined (core's precondition, an obligation),
+/// the helpers it calls and, for an overflowing one, whether it overflowed.
+/// Every one is a rule in (bits, signed); one whose result depends on a
+/// width the declared targets differ on is `None`.
+pub(crate) struct Applied {
+    pub(crate) value: String,
+    pub(crate) overflow: Option<String>,
+    pub(crate) requires: Vec<String>,
+    pub(crate) uses: Vec<&'static str>,
+}
+
+/// The order key of a signed pattern, `x + 2^(w-1)` mod `2^w`, and the
+/// signed pattern of `MIN` and `MAX`: `2^(w-1)` and `2^(w-1) - 1`.
+fn key(x: &str, int: Int) -> String {
+    let (m, h) = (pow2(int.held), pow2(int.held - 1));
+    format!("(prim remainder ({x} + {h}) {m} 0 : Nat)")
+}
+
+/// The integer intrinsics whose rule is here, by name.
+pub(crate) const INTRINSICS: &[&str] = &[
+    "wrapping_add",
+    "wrapping_sub",
+    "wrapping_mul",
+    "add_with_overflow",
+    "sub_with_overflow",
+    "mul_with_overflow",
+    "saturating_add",
+    "saturating_sub",
+    "rotate_left",
+    "rotate_right",
+    "ctpop",
+    "ctlz",
+    "ctlz_nonzero",
+    "cttz",
+    "cttz_nonzero",
+    "bswap",
+    "bitreverse",
+    "disjoint_bitor",
+];
+
+/// The rule of the intrinsic `name` at `int`, on the argument terms `a`.
+/// (`unchecked_*` and `exact_div` are the MIR operators' own rules, see
+/// `lower`, with core's precondition as an obligation.)
+pub(crate) fn intrinsic(name: &str, a: &[&str], int: Int) -> Option<Applied> {
+    let w = int.width?;
+    let (m, h) = (pow2(w), pow2(w - 1));
+    let max = if int.signed {
+        format!("(prim subtract {h} 1 : Nat)")
+    } else {
+        format!("(prim subtract {m} 1 : Nat)")
+    };
+    let wrap = |s: String| format!("(prim remainder {s} {m} 0 : Nat)");
+    let plain = |value: String| Applied {
+        value,
+        overflow: None,
+        requires: Vec::new(),
+        uses: Vec::new(),
+    };
+    let add = |x: &str, y: &str| wrap(format!("({x} + {y})"));
+    let sub = |x: &str, y: &str| wrap(format!("(prim subtract ({x} + {m}) {y} : Nat)"));
+    let mul = |x: &str, y: &str| wrap(format!("(prim multiply {x} {y} : Nat)"));
+    let (kx, ky) = match a {
+        [x, y, ..] if int.signed => (key(x, int), key(y, int)),
+        [x, y, ..] => (x.to_string(), y.to_string()),
+        _ => (String::new(), String::new()),
+    };
+    Some(match (name, a) {
+        ("wrapping_add", [x, y]) => plain(add(x, y)),
+        ("wrapping_sub", [x, y]) => plain(sub(x, y)),
+        ("wrapping_mul", [x, y]) => plain(mul(x, y)),
+        // Overflow is the exact result's leaving the range: of the keys,
+        // offset by `2^(w-1)`, for a signed value.
+        ("add_with_overflow" | "sub_with_overflow" | "mul_with_overflow", [x, y]) => {
+            let (value, over) = match (name, int.signed) {
+                ("add_with_overflow", false) => (add(x, y), format!("({max} <? ({x} + {y}))")),
+                ("sub_with_overflow", false) => (sub(x, y), format!("({x} <? {y})")),
+                ("mul_with_overflow", false) => (
+                    mul(x, y),
+                    format!("({max} <? (prim multiply {x} {y} : Nat))"),
+                ),
+                ("add_with_overflow", true) => (
+                    add(x, y),
+                    format!("((({kx} + {ky}) <? {h}) || ((prim subtract {m} 1 : Nat) <? (prim subtract ({kx} + {ky}) {h} : Nat)))"),
+                ),
+                ("sub_with_overflow", true) => (
+                    sub(x, y),
+                    format!("((({kx} + {h}) <? {ky}) || (({ky} + {m}) <=? ({kx} + {h})))"),
+                ),
+                _ => {
+                    // The product of the values, `(kx - h)(ky - h)`, is in
+                    // range when `kx*ky + h^2` lies within `h` of `h(kx + ky)`.
+                    let p = format!("((prim multiply {kx} {ky} : Nat) + {})", pow2(2 * w - 2));
+                    let q = format!("(prim multiply {h} ({kx} + {ky}) : Nat)");
+                    (mul(x, y), format!("(not (({q} <=? ({p} + {h})) && ({p} <? ({q} + {h}))))"))
+                }
+            };
+            Applied {
+                overflow: Some(over),
+                ..plain(value)
+            }
+        }
+        ("saturating_add", [x, y]) if !int.signed => plain(format!(
+            "(if (({x} + {y}) <=? {max}) then ({x} + {y}) else {max})"
+        )),
+        ("saturating_sub", [x, y]) if !int.signed => {
+            plain(format!("(prim subtract {x} {y} : Nat)"))
+        }
+        ("saturating_add", [x, y]) => plain(format!(
+            "(if (({kx} + {ky}) <? {h}) then {h} else (if (({m} + {h}) <=? ({kx} + {ky})) then {max} else {}))",
+            add(x, y)
+        )),
+        ("saturating_sub", [x, y]) => plain(format!(
+            "(if (({kx} + {h}) <? {ky}) then {h} else (if (({ky} + {m}) <=? ({kx} + {h})) then {max} else {}))",
+            sub(x, y)
+        )),
+        // `x` rotated left by `k mod w`: its low bits moved up and its high
+        // bits moved down.
+        ("rotate_left" | "rotate_right", [x, k]) => {
+            let r = match k.parse::<u32>() {
+                Ok(k) if name == "rotate_left" => (k % w).to_string(),
+                Ok(k) => ((w - k % w) % w).to_string(),
+                Err(_) if name == "rotate_left" => format!("(prim remainder {k} {w} 0 : Nat)"),
+                Err(_) => format!(
+                    "(prim remainder (prim subtract {w} (prim remainder {k} {w} 0 : Nat) : Nat) {w} 0 : Nat)"
+                ),
+            };
+            let back = match r.parse::<u32>() {
+                Ok(r) => (w - r).to_string(),
+                Err(_) => format!("(prim subtract {w} {r} : Nat)"),
+            };
+            let (up, u1) = pow2_of(&r);
+            let (down, u2) = pow2_of(&back);
+            Applied {
+                uses: if u1 || u2 { vec!["mirPowTwo"] } else { Vec::new() },
+                ..plain(format!(
+                    "({} + (prim quotient {x} {down} 0 : Nat))",
+                    mul(x, &up)
+                ))
+            }
+        }
+        ("ctpop", [x]) => Applied {
+            uses: vec!["mirCountOnes"],
+            ..plain(format!("(mirCountOnes {x})"))
+        },
+        ("ctlz" | "ctlz_nonzero", [x]) => Applied {
+            uses: vec!["mirBitLength"],
+            requires: (name == "ctlz_nonzero").then(|| format!("(({x} =? 0) = false)")).into_iter().collect(),
+            ..plain(format!("(prim subtract {w} (mirBitLength {x}) : Nat)"))
+        },
+        ("cttz", [x]) => Applied {
+            uses: vec!["mirTrailingZeros"],
+            ..plain(format!("(if ({x} =? 0) then {w} else (mirTrailingZeros {x}))"))
+        },
+        ("cttz_nonzero", [x]) => Applied {
+            uses: vec!["mirTrailingZeros"],
+            requires: vec![format!("(({x} =? 0) = false)")],
+            ..plain(format!("(mirTrailingZeros {x})"))
+        },
+        // Byte `i` of `w / 8` moved to byte `w / 8 - 1 - i`.
+        ("bswap", [x]) if w % 8 == 0 => {
+            let n = w / 8;
+            let bytes: Vec<String> = (0..n)
+                .map(|i| {
+                    let byte = if i == 0 {
+                        format!("(prim remainder {x} 256 0 : Nat)")
+                    } else {
+                        format!("(prim remainder (prim quotient {x} {} 0 : Nat) 256 0 : Nat)", pow2(8 * i))
+                    };
+                    match n - 1 - i {
+                        0 => byte,
+                        j => format!("(prim multiply {byte} {} : Nat)", pow2(8 * j)),
+                    }
+                })
+                .collect();
+            plain(bytes.into_iter().reduce(|s, b| format!("({s} + {b})"))?)
+        }
+        ("bitreverse", [x]) => Applied {
+            uses: vec!["mirReverseBits"],
+            ..plain(format!("(mirReverseBits {w} {x})"))
+        },
+        // Core's precondition: no bit is set in both.
+        ("disjoint_bitor", [x, y]) => Applied {
+            uses: vec!["mirBitOr", "mirBitAnd"],
+            requires: vec![format!("((mirBitAnd {x} {y}) = 0)")],
+            ..plain(format!("(mirBitOr {x} {y})"))
+        },
+        _ => return None,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -368,5 +681,67 @@ mod tests {
             Some(u128::MAX.to_string())
         );
         assert_eq!(literal(256, i(Ty::Nat(Some(8)))), None);
+    }
+
+    /// Every helper recurses on its first parameter, which its step
+    /// decreases, and calls only helpers the table has.
+    #[test]
+    fn helpers_are_well_founded_and_closed() {
+        for h in HELPERS {
+            assert!(
+                h.body.contains(&format!("({} {}", h.name, h.step)),
+                "{}",
+                h.name
+            );
+            assert!(
+                h.body.starts_with(&format!("(if ({} =? 0)", h.params[0])),
+                "{}",
+                h.name
+            );
+            for u in h.uses {
+                assert!(helper(u).is_some(), "{} uses {u}", h.name);
+            }
+        }
+    }
+
+    /// Every rule is one in (bits, signed): it holds at every width the
+    /// declared targets agree on, and at none they differ on.
+    #[test]
+    fn rules_take_a_fixed_width() {
+        for t in every() {
+            for w in [one(), many()] {
+                let int = Int::of(&t, &w).unwrap();
+                for n in INTRINSICS {
+                    let a: &[&str] = if n.starts_with("ct") || *n == "bswap" || *n == "bitreverse" {
+                        &["x"]
+                    } else {
+                        &["x", "y"]
+                    };
+                    let applied = intrinsic(n, a, int);
+                    assert_eq!(applied.is_some(), int.width.is_some(), "{n} at {t:?}");
+                    if let Some(r) = applied {
+                        assert_eq!(r.overflow.is_some(), n.ends_with("_with_overflow"), "{n}");
+                    }
+                }
+            }
+        }
+    }
+
+    /// A few values the rules give, as LexLean reads the literals they
+    /// fold: a byte swap, a rotation by a literal amount.
+    #[test]
+    fn literal_folds() {
+        let u16 = Int::of(&Ty::Nat(Some(16)), &one()).unwrap();
+        assert_eq!(
+            intrinsic("bswap", &["x"], u16).unwrap().value,
+            "((prim multiply (prim remainder x 256 0 : Nat) 256 : Nat) + (prim remainder (prim quotient x 256 0 : Nat) 256 0 : Nat))"
+        );
+        let r = intrinsic("rotate_left", &["x", "3"], u16).unwrap();
+        assert!(r.uses.is_empty());
+        assert!(
+            r.value.contains("(prim quotient x 8192 0 : Nat)"),
+            "{}",
+            r.value
+        );
     }
 }

@@ -76,7 +76,7 @@ path = "core::cell::Cell::as_ptr"
 kappa = "1e5511a4ec6c4f005a84843e3990549b1fb5d3f4977792d2c5ef239c268ca44a"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::as_ref"
@@ -97,7 +97,7 @@ path = "core::cell::Cell::as_ref#3"
 kappa = "2873319399ecdddc910468c6e98c71782bd26c4f32a8d01e7795f0dc34409a86"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::as_slice_of_cells"
+cause = "mir::TerminatorKind::Call: cell::<impl at library/core/src/cell.rs:716:1: 716:18>::as_slice_of_cells: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::as_slice_of_cells"
@@ -111,35 +111,35 @@ path = "core::cell::Cell::clone"
 kappa = "f502779ca3f52259fb26fb75c4e7c698e14f63e2db60da202b0751e61aead629"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::cmp"
 kappa = "1e4ab1c2e153670f33ea4498b89e3de64a338671cd7270ef366094c1983aeb66"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::default"
 kappa = "b7006884af848e8c20d362f1b1a96ef9f8dee5e74a01dc1eb8146e0f885e4755"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+status = "translated"
+digest = "9c26e914717452adeda300bb83b758106c9ae4bee1441631f1365d7f5a26b39c"
 
 [[fn]]
 path = "core::cell::Cell::eq"
 kappa = "0ed8df638db9424910a46eabc83849280dfac0557d5bb5e331ee504de4f118c6"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::from"
 kappa = "7dacc4e48f6dfe014517e9297a3e61a0007bb823327f150208c1d9ed3a7104d9"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::new"
+status = "translated"
+digest = "5edc610e27c40940a7af25c07dc4c65fa00fea4c84ce24564d9830e3b6eafffc"
 
 [[fn]]
 path = "core::cell::Cell::from_mut"
@@ -153,84 +153,84 @@ path = "core::cell::Cell::ge"
 kappa = "4138829ddefb0845ed09f66f77ba1cb3b26eedb5fd052e5d13d420022eae63d9"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::get"
 kappa = "b6e8896332e15cc91e2ee7a2aefe95bcae4a9b5849df5596edd19511e6511f66"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::get_cloned"
 kappa = "2bc390df8441edd49b034cd585dc202ca290c65420346b5937dd3fbaae6c2ba5"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::as_ptr"
+cause = "mir::TerminatorKind::Call: cell::Cell::as_ptr: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::get_mut"
 kappa = "30ea204decca5e177947109ee9065eb48998bd4b47a7a4915da8a95e9afb5ff5"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get_mut"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::cell::Cell::gt"
 kappa = "3e4b69c8d7d63c500b4c0a98da4064b3b0d95c3e9082acc885f1273a3da42f9b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::into_inner"
 kappa = "7966a352cb60cad42a9a2e531dcc4365431f11ac8efa6fc3bbd6304d68b2e30c"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::into_inner"
+status = "translated"
+digest = "507b54e658e63b4adea4da6d834d1fa512c53eb79ae85076dbcdb14377ef5071"
 
 [[fn]]
 path = "core::cell::Cell::le"
 kappa = "903c557ff76bf4a219822f339a894d2a69d2ca531bec51b0d803b33e0b7b25b0"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::lt"
 kappa = "3e8f4f2c939e874c20258d7014caffa2e7bd1995dd9d7cd2f35a11110b1bea54"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::new"
 kappa = "b9dcb4dfde18ffce9ab5f8b97b852e7a4e4b5616cabebe79f3fc436a88b491d8"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::new"
+status = "translated"
+digest = "d36dd805dbc342fcd68724184b78579ae73598e6f8efe19158c440040b1776a3"
 
 [[fn]]
 path = "core::cell::Cell::partial_cmp"
 kappa = "41c666b4cc170493c991f091717309f4359d65f7bc48f4349ef14dc38d1ef113"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::get"
+cause = "mir::TerminatorKind::Call: cell::Cell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::replace"
 kappa = "11c11ff2607672e0e1d59eb2b0b3fee070962f48480579820b353dfefc377c8e"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::set"
 kappa = "b030d346548db3e5cf65b11048937a084678130d1e24cc22931aaf505f38e11e"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Cell::replace"
+cause = "mir::TerminatorKind::Call: cell::Cell::replace: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::swap"
@@ -244,7 +244,7 @@ path = "core::cell::Cell::take"
 kappa = "551136c4a96e762962aa3673fa27aecd6431ed19c3dab77a8b3b6403e81b9133"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+cause = "mir::TerminatorKind::Call: cell::Cell::replace: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::Cell::update"
@@ -544,36 +544,36 @@ cause = "mir::Ty: cell::RefMut<'_, u32>"
 path = "core::cell::SyncUnsafeCell::default"
 kappa = "316cf4880f09e08f3911b86a75a7e8950664963d26ba7b272edf011f5bf311aa"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+status = "translated"
+digest = "7414bd68e225c5511e3b2547c714a049678be0cd23e8ec7f2a11484601373c4b"
 
 [[fn]]
 path = "core::cell::SyncUnsafeCell::from"
 kappa = "edfba3849397e830da65fcdb08f44c4555af69215b2fb6e3d3684517fe51f556"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: SyncUnsafeCell::new"
+status = "translated"
+digest = "56e4f8927f65883fbffd2d7907a8b5bf6ab71df43fcbf4352f444c11c945c1d8"
 
 [[fn]]
 path = "core::cell::SyncUnsafeCell::get"
 kappa = "038d25612f1cdc0433bd0d861080a6211a6e0da62ed48c62ebd75a06ea1be49b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::SyncUnsafeCell::get_mut"
 kappa = "5285d7c71d90de0919741fa5f233b07af853eab61dd2a343e4dc8804df9ef209"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get_mut"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::cell::SyncUnsafeCell::into_inner"
 kappa = "d368779a4fd87fe5f1480edb89b607615a23074ffcea09b19213a1fde1f0cfc2"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::into_inner"
+status = "translated"
+digest = "0cc603ae327cbb118a9a0fbfa06296b0c938e76aa054dad8da8452cc6f5106f3"
 
 [[fn]]
 path = "core::cell::SyncUnsafeCell::new"
@@ -594,28 +594,28 @@ path = "core::cell::UnsafeCell::as_mut_unchecked"
 kappa = "1d3cc356b26b367c2240c3edd8513d563c97e85dac97bb1ac7c69940d26cf73f"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::UnsafeCell::as_ref_unchecked"
 kappa = "b76d53f734280e787c5d1c312158bfcdb0bfb107a35d4d73a1af51a14993e626"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::UnsafeCell::default"
 kappa = "7a430dd5b751d146c9f026440b15e9373bb24e33bf44efc81408dc4c1c38c560"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
+status = "translated"
+digest = "cb85e0fedecf0f25ab59e03514b71a251244bedc1961d0a3790218a75da39b0d"
 
 [[fn]]
 path = "core::cell::UnsafeCell::from"
 kappa = "7fea809cc629e97ace91e94d70b5a4db04d200c5ffcad02e2cfdbc32e699ffa9"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::new"
+status = "translated"
+digest = "d1efadd2fc1384222a9740ff990b2c7e31a156ebc82a9202548db96a18388222"
 
 [[fn]]
 path = "core::cell::UnsafeCell::from_mut"
@@ -664,56 +664,56 @@ path = "core::cell::UnsafeCell::replace"
 kappa = "da4483d9d980e7d64c20b3e1e13b3a7ac54f9c9f5f53aefd4273c3a93e35078b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::cell::once::OnceCell::clone"
 kappa = "ea4f0cc54ccec9b4994122f06bb62fa82c7fbc989f7eab528d90cf123b41c574"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: OnceCell::get"
+cause = "mir::TerminatorKind::Call: cell::once::OnceCell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::default"
 kappa = "c36cd41a7316d7c91eada9d3860e803fd3ee58c49d6c8338b229f7409d8c470e"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: OnceCell::new"
+status = "translated"
+digest = "ef2a2a28c3fd0f2c11213b6078b3b2602ca85344ab88dfdbc4d47a71cdf4d0d3"
 
 [[fn]]
 path = "core::cell::once::OnceCell::eq"
 kappa = "e499206d949179f0854e74f1eb47bb455500e4c0d049afa4c28b38599ee668ff"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: OnceCell::get"
+cause = "mir::TerminatorKind::Call: cell::once::OnceCell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::fmt"
 kappa = "2167d59ed50bbafaf42593eee185f9f9f992303ac14ab72738b48e57b428cd1d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: fmt::builders::DebugTuple<'_, '_>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::from"
 kappa = "c80b286ceddc85210a7398011d48dae6accb426b99e156195f63957cd3ffbb38"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::new"
+status = "translated"
+digest = "ae8ccd8cb14cabbb8af5c86b5bfa875832a0ab17af90716df6c93c94696360aa"
 
 [[fn]]
 path = "core::cell::once::OnceCell::get"
 kappa = "ab233718aee550286f285a6a9abb7f1aa1c280fbdbf579e4528db6c2add51772"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::get_mut"
 kappa = "2ca629d7d5c6f69fe612850bd0ee5f17a0f1b368a6ea5c16ddeb601df89fe1f7"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::get_mut"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::get_mut: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::get_mut_or_init"
@@ -727,7 +727,7 @@ path = "core::cell::once::OnceCell::get_mut_or_try_init"
 kappa = "f89ce88c2a1706359b54158362695aa7550cb0dced59724581d2bc2db9e75da1"
 at = "E=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: OnceCell::get"
+cause = "mir::TerminatorKind::Call: cell::once::OnceCell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::get_or_init"
@@ -741,28 +741,28 @@ path = "core::cell::once::OnceCell::get_or_try_init"
 kappa = "04747e91a64b1c3c3c3bb7bf358595644575219a669a4eb9b76b062feb4be0fc"
 at = "E=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: OnceCell::get"
+cause = "mir::TerminatorKind::Call: cell::once::OnceCell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::into_inner"
 kappa = "3080c66a5d9d18565953ee231955b452b8697c3e3dd5a3690e57ddf86d61018e"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::into_inner"
+cause = "mir::TerminatorKind::Call: cell::UnsafeCell::into_inner: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::new"
 kappa = "13ba723675b7e5c0f879c7f94ab8322ec7dc7a067c00072766d85cdd83ce464a"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: UnsafeCell::new"
+status = "translated"
+digest = "32966a0eda39c2eaed6fa4a3d2416c6ca52f5e44eef556f815de81787a335b3f"
 
 [[fn]]
 path = "core::cell::once::OnceCell::set"
 kappa = "7074c425784a919795764e580c90653581b8b9e5b0292ad1d849497960132b84"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: OnceCell::try_insert"
+cause = "mir::TerminatorKind::Call: cell::once::<impl at library/core/src/cell/once.rs:40:1: 40:20>::try_insert: core's MIR stops at mir::TerminatorKind::Call: cell::once::OnceCell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::take"
@@ -776,21 +776,21 @@ path = "core::cell::once::OnceCell::try_init"
 kappa = "d4e45fccc68db25f9abe5770e4144d2bbb92f84632e5da7969b62c83e9070802"
 at = "E=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::cell::once::OnceCell::try_insert"
 kappa = "d95a601fe412dadc7b12553221a7e8b2a0b7dcb3c8eef77fa7653eb987bb0896"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: OnceCell::get"
+cause = "mir::TerminatorKind::Call: cell::once::OnceCell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
 
 [[fn]]
 path = "core::is_nonoverlapping"
 kappa = "4d55910a73fd589eeeee1ca2d9f052417955b07620344956ad2317194e61697c"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::addr"
+status = "translated"
+digest = "e15ab702508a3ad6412b0abfd52cc102566d86475e448e095a9c232bbe24f4c3"
 
 [[fn]]
 path = "core::is_reading"
@@ -939,8 +939,8 @@ cause = "mir::Ty: BorrowError"
 [[fn]]
 path = "core::panic_poisoned"
 kappa = "b8dc8d7261f5d23698828e2ac158cb93c38f3014db2119e024c793031e4d5465"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "a401a938d75f8198ee9b357c71b98e7e788f2cc37f1b630113ed3af77571a9a4"
 
 [[fn]]
 path = "core::really_init_mut"

@@ -63,7 +63,7 @@ causes = []
 [[gap]]
 id = "lexlean-nat-bitwise"
 repository = "UOR-Foundation/LexLean"
-what = "LexLean 0.4.0's bit_and, bit_or, bit_xor, bit_not, shift_left and shift_right take only the fixed-width families, and Nat has no power. The MIR path holds every integer as Nat (gap lexlean-nat-to-signed), so it writes NOT, negation and shifts arithmetically (a shift by a variable amount through mirPowTwo, a power by recursion with a linear_arithmetic measure) and a mask by a literal 2^k - 1 as a remainder, but an AND, OR or XOR of two values stays residue."
-plan = "Admit Nat in bit_and, bit_or and bit_xor (Lean's Nat.land, Nat.lor and Nat.xor), and in shift_left and shift_right with a Nat amount and a Nat result (Nat.shiftLeft and Nat.shiftRight). The MIR path then writes x & y as (prim bit_and x y : Nat), wrapped at the width where the operation can leave it."
-residue = "mir::BinOp::BitAnd, mir::BinOp::BitOr and mir::BinOp::BitXor on two values"
-causes = ["mir::BinOp::BitAnd: on ", "mir::BinOp::BitOr: on ", "mir::BinOp::BitXor: on "]
+what = "LexLean 0.4.0's bit_and, bit_or, bit_xor, bit_not, shift_left and shift_right take only the fixed-width families, and Nat has no power. The MIR path holds every integer as Nat (gap lexlean-nat-to-signed), so it writes its bit operations by recursion on the low bit: mirPowTwo, mirBitAnd, mirBitOr, mirBitXor, mirCountOnes, mirBitLength, mirTrailingZeros and mirReverseBits (crates/uorust/src/mir/int.rs), each well-founded by a linear_arithmetic measure. No body stops at the gap, but a theorem about one of those helpers needs induction where a primitive would decide."
+plan = "Admit Nat in bit_and, bit_or and bit_xor (Lean's Nat.land, Nat.lor and Nat.xor), in shift_left and shift_right with a Nat amount and a Nat result (Nat.shiftLeft and Nat.shiftRight), and a Nat power. The MIR path then writes x & y as (prim bit_and x y : Nat) in place of mirBitAnd, and its obligations over bit operations decide."
+residue = "none: the recursive helpers carry every bit operation"
+causes = []

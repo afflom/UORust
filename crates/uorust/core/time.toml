@@ -2,13 +2,13 @@
 path = "core::fmt_decimal"
 kappa = "7c0bfc70bc077408ef40b7b820dbc3a3365fd957752ecdb549378bad6782f39d"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Rvalue::Repeat"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:10: 1605:15>::fmt"
 kappa = "b5600949d7e733a26dc204ab20e1bc3b16aa947a5508d3ada8f3c0a4f4ec3d8c"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:17: 1605:22>::clone"
@@ -20,7 +20,7 @@ digest = "df1c47d89fc9f096bf06935e7e9b5bf61bd385a7e800b091328d750268606bd3"
 path = "core::time::<impl at library/core/src/time.rs:1605:24: 1605:33>::eq"
 kappa = "36e7bbd31c6a22539e8c50906e847f5943cf9588c7eb50bc416400719f4d38b3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <TryFromFloatSecsErrorKind as cmp::PartialEq>::eq"
+cause = "mir::TerminatorKind::Call: time::<impl at library/core/src/time.rs:1626:24: 1626:33>::eq: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:35: 1605:37>::assert_fields_are_eq"
@@ -31,8 +31,8 @@ digest = "9412d9f50c19dcad0bba6c8054d24ba9b4ced725e705c1855c54bc89e9b98824"
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:10: 1626:15>::fmt"
 kappa = "c6a91ea68299317a4a062c30341b78a316e673da2a3edc99483d1f51c90fb62e"
-status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+status = "translated"
+digest = "5f95579f9c7c9cae4fda33fa66987f51124ed402ab1a4a6dc5cd848eede1c2f3"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:17: 1626:22>::clone"
@@ -44,7 +44,7 @@ digest = "5195c5127e463b3e749f61df428ef2002c82c78dff327a25034a46baf6cf4d93"
 path = "core::time::<impl at library/core/src/time.rs:1626:24: 1626:33>::eq"
 kappa = "178fe6a03d3c9bde5beadd727079f3c3fe3870f2ad35c38caadeafdb02c53018"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:35: 1626:37>::assert_fields_are_eq"
@@ -314,7 +314,7 @@ cause = "mir::Ty: time::Duration"
 path = "core::time::Duration::from_nanos::NANOS_PER_SEC"
 kappa = "91125ac57433b8df9bacdb3513f1df8a1bfc73a18b4b31400f9a0d8f14e9ebdb"
 status = "residue"
-cause = "mir::Operand::Constant: time::NANOS_PER_SEC as u64 (IntToInt)"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_nanos_u128"
@@ -326,7 +326,7 @@ cause = "mir::Ty: time::Duration"
 path = "core::time::Duration::from_nanos_u128::NANOS_PER_SEC"
 kappa = "5d6296f12abfabe689657788e338ea031b5104106d0aceaf8d7fcd2db4666c17"
 status = "residue"
-cause = "mir::Operand::Constant: time::NANOS_PER_SEC as u128 (IntToInt)"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_secs"
@@ -459,20 +459,20 @@ cause = "mir::Ty: time::Duration"
 [[fn]]
 path = "core::time::Duration::try_from_secs_f32::EXP_MASK"
 kappa = "b93660d95c7fe8f1e84d9204712aea2defadecd76f889aee99d63c15bb3ead39"
-status = "residue"
-cause = "mir::Operand::Constant: 8_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "907e36ed2f68a1bb1a3a48d61b3e8cbd6ca2b070f936e89622a28f40628d6e86"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f32::MANT_MASK"
 kappa = "146783aa75ad6ab63418d2a433a58343364a6344120282b19c5bf6afc1024b1b"
-status = "residue"
-cause = "mir::Operand::Constant: 23_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "43cf4525a2dd026f5f2a3611c76d4ad6aaf28be71f43e492874fdb735129f3e3"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f32::MIN_EXP"
 kappa = "397acac00388b309cb0aa0917f2dd5549a09c211e75df5a5c5da788de243fbfe"
-status = "residue"
-cause = "mir::Operand::Constant: 8_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "24ae2ba764fa6c0a964505f8ae4df2462fb357589065d441fcf7eb68f910fd17"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f64"
@@ -483,26 +483,26 @@ cause = "mir::Ty: time::Duration"
 [[fn]]
 path = "core::time::Duration::try_from_secs_f64::EXP_MASK"
 kappa = "70c3d24e44e2a153610e0b799c7bafa93f9ed93de09c33ba65b49a75c941688f"
-status = "residue"
-cause = "mir::Operand::Constant: 11_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "7691462d9321c85897d57cb28c5634b23fa3b73d4df703cbddeba1b265fc5a00"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f64::MANT_MASK"
 kappa = "828829ab56ed1f28e95fa0b632f817ab017214448d1ba579d00d09c9f2b62444"
-status = "residue"
-cause = "mir::Operand::Constant: 52_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "4e98e1f1aded857d32dfa986335060598935e5baeb06199963f39667fd04cadc"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f64::MIN_EXP"
 kappa = "e5ea3a3025b9664174156d0295a332099ef89bc4618223316369c8559e169692"
-status = "residue"
-cause = "mir::Operand::Constant: 11_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "b630793b15142c2e89113d4b7694d39144d70c0af60f4aad797f164ad95c8bd8"
 
 [[fn]]
 path = "core::time::TryFromFloatSecsError::fmt"
 kappa = "2721d9b0f7407dd1a5788dc2887f13dcfd073ac576f8d5ad61994b3556b675c7"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:332:1: 332:23>::get_precision: core's MIR stops at type outside the lift: FormattingOptions"
 
 [[fn]]
 path = "core::time::u32::mul"

@@ -39,7 +39,7 @@ path = "core::TransmuteFrom::transmute"
 kappa = "55f8b275083a0385808addbaed669b1971e23d27165faa27265ba4b8c8edb3d2"
 at = "Self=u32, Src=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ManuallyDrop::new"
+cause = "mir::Ty: mem::transmutability::TransmuteFrom::transmute::Transmute<u32, u32>"
 
 [[fn]]
 path = "core::_alignment_can_be_structurally_matched"
@@ -64,7 +64,7 @@ digest = "ae9b6066c2882c4ffb16a30433fc609e689dfeebd4404f6c7bd9a6d0f5378217"
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:15:23: 15:32>::eq"
 kappa = "389163c0b5b05cbaf151a9e41a9620cc36ef2b674b402436b3d6eca06027993f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <AlignmentEnum as cmp::PartialEq>::eq"
+cause = "mir::TerminatorKind::Call: mem::alignment::<impl at library/core/src/mem/alignment.rs:405:23: 405:32>::eq: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:15:34: 15:36>::assert_fields_are_eq"
@@ -82,7 +82,7 @@ digest = "064e111b8512bf3dca8d7ad78e92479d44e16f258d89befe341dd2a0535c67ce"
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:405:23: 405:32>::eq"
 kappa = "045af1d9f433cd6e744fe7f56aa51cc71ac80f757123b14f2cd30cd35563de0e"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:405:34: 405:36>::assert_fields_are_eq"
@@ -94,7 +94,7 @@ digest = "e82b185251b9d6db4f675191365e57b344cfed0042be7fde5f23725da66a5d2e"
 path = "core::alignment::Alignment::MIN"
 kappa = "59f0f67aa31d38fceff99c534da24d9f9cbf5681166e6bd44f3fa8e457cf67db"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::new"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
 
 [[fn]]
 path = "core::alignment::Alignment::as_nonzero"
@@ -124,13 +124,13 @@ cause = "mir::Ty: num::nonzero::NonZero<usize>"
 path = "core::alignment::Alignment::default"
 kappa = "213977bcbc2c19f750cae59907cebc50496f5cc85cac4a78955c316f42fcd761"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item mem::alignment::Alignment::MIN"
+cause = "mir::Operand::Constant: mem::alignment::Alignment::MIN: mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
 
 [[fn]]
 path = "core::alignment::Alignment::fmt"
 kappa = "795e5fa1d032d799a5b38fe21f210bd3184c5455a47db8c76182332c439c9298"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
 
 [[fn]]
 path = "core::alignment::Alignment::hash"
@@ -161,19 +161,19 @@ cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
 path = "core::alignment::Alignment::new"
 kappa = "37a979b306f315a28561a72206fc3decc75cb433e9734bea9bbbe51734c20048"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
 
 [[fn]]
 path = "core::alignment::Alignment::new_unchecked"
 kappa = "3a6ab5f0fc5649b1daabe017cb42666978d9a142560b23db6bb2b1e6de292530"
 status = "residue"
-cause = "mir::TerminatorKind::Call: check_language_ub"
+cause = "mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::alignment::Alignment::new_unchecked::precondition_check"
 kappa = "bfdfc8f5901d515ae3598e9c4ade272f166929f433a6e8695545db6b8506fdb0"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
+status = "translated"
+digest = "e4d21d5d73e678999a6bf97c03ee3f104b300a0ab2a01e497a60b83fd0ca0276"
 
 [[fn]]
 path = "core::alignment::Alignment::of"
@@ -193,13 +193,13 @@ path = "core::alignment::Alignment::of_val_raw"
 kappa = "31291a79bf07032d0309d02d453378da8bf4e7aa9a0ea315d089a6624c0b063a"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: align_of_val_raw"
+cause = "mir::TerminatorKind::Call: mem::align_of_val_raw: core's MIR stops at mir::TerminatorKind::Call: intrinsics::align_of_val, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::alignment::Alignment::partial_cmp"
 kappa = "b5946e56a39ba1845a133b1c6c51fa28485582e69afa40e4e8ab9f63de726b36"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::alignment::<impl at library/core/src/mem/alignment.rs:308:1: 308:34>::cmp: core's MIR stops at type outside the lift: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: <alignment::Alignment as cmp::Ord>::cmp"
 
 [[fn]]
 path = "core::alignment::Alignment::try_from"
@@ -211,7 +211,7 @@ cause = "mir::Ty: NonZero<usize>"
 path = "core::alignment::Alignment::try_from#2"
 kappa = "a45c44da8d700e475bcaf2fd7b4dbb9f54b9da0351a55e21b540846255834bf7"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::new"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
 
 [[fn]]
 path = "core::alignment::NonZero::from"
@@ -253,14 +253,14 @@ digest = "0881931c212c3f27f6931403cd87b5a0b72c32a56e8bfffbb60f4287441ae4a1"
 [[fn]]
 path = "core::conjure_zst::do_panic::compiletime"
 kappa = "d48183b99d14cebdf8d25bb961f65984974c1c0063f28db03e9db05fe094e1e2"
-status = "residue"
-cause = "mir::Ty: fmt::Arguments<'_>"
+status = "translated"
+digest = "7faf95ad5654fafe712e05739f565da756be7a4637ce908f163b4c1f234004e8"
 
 [[fn]]
 path = "core::conjure_zst::do_panic::runtime"
 kappa = "619fa5f07e46758d3cb426db1812ddcc7a6145e7c2d15ddb7d43a1ff2c0f48b7"
 status = "residue"
-cause = "mir::ProjectionElem::Field: a field of String"
+cause = "mir::TerminatorKind::Call: <&str as fmt::Display>::fmt"
 
 [[fn]]
 path = "core::discriminant"
@@ -294,35 +294,35 @@ path = "core::drop_guard::DropGuard::dismiss"
 kappa = "fe51a8c4563c49d97b18e93cb6e1d4de54f2c29bc7cecb5e91f62f99d98060a8"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ManuallyDrop::new"
+cause = "mir::TerminatorKind::Call: mem::manually_drop::<impl at library/core/src/mem/manually_drop.rs:283:1: 283:51>::deref_mut: core's MIR stops at type outside the lift: ManuallyDrop<mem::drop_guard::DropGuard<u32, u32>>"
 
 [[fn]]
 path = "core::drop_guard::DropGuard::drop"
 kappa = "e61ad21c653d0240ff2e177865cc233da04303d572e75571a13b02cb3ebeffbc"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ManuallyDrop::take"
+cause = "mir::TerminatorKind::Call: mem::manually_drop::ManuallyDrop::take: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::drop_guard::DropGuard::fmt"
 kappa = "0ab3466209bb5abf8eee061940fddbdad43239422efcbe1fc7ef5aec179b4386"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::TerminatorKind::Call: <DropGuard as Deref>::deref"
 
 [[fn]]
 path = "core::drop_guard::DropGuard::new"
 kappa = "e1ddefb87aae78039274e365df25a6e8008d90185e01215b4663e6cd9faeabde"
 at = "F=u32, T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ManuallyDrop::new"
+status = "translated"
+digest = "ad14366075f33e7582025236a4d813cc50df320c2279c3accbf496d97dbc6564"
 
 [[fn]]
 path = "core::forget_unsized"
 kappa = "5b034d7ae0cffe02e0ed3ee847758d28ae200f9036a8a5ee3ef0c85b03ea21f9"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::forget, an intrinsic the table does not model"
+status = "translated"
+digest = "5e6f5e617fca95d86186c7102585d0012c8674859b330f1ddff712ff3b12ebd8"
 
 [[fn]]
 path = "core::manually_drop::<impl at library/core/src/mem/manually_drop.rs:158:16: 158:21>::clone"
@@ -336,56 +336,56 @@ path = "core::manually_drop::<impl at library/core/src/mem/manually_drop.rs:158:
 kappa = "b63480fd56ac6d997e7964cfdfe4aab77126aa6f5dbe3a88a02c319de68f5141"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::manually_drop::<impl at library/core/src/mem/manually_drop.rs:158:30: 158:37>::default"
 kappa = "f66c399de63e6e30d3b5fe374473a7259f84e2889b77f67b7bd648046d56a837"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <MaybeDangling as default::Default>::default"
+status = "translated"
+digest = "f784841ea903804f76a6bc0be5c45d7066fd106658f74f198eca8f9a75fd5ebf"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::cmp"
 kappa = "d6cdfcb55045952a29fdd35f637a88845b954387cf20e62eea7f0bdb97f34623"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_ref"
+status = "translated"
+digest = "5581520287a2069c484872cf3eb30cd70d9412147084686f867b4d002cf63996"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::deref"
 kappa = "5016c5c5abebece29ef1c1b19f1deabe6570de8e0ae52918d1c076d8ff9a25d7"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_ref"
+status = "translated"
+digest = "4fcc79b291de8216c7426a3252bc4353019693403ce5e7a654ea4ebc905d4b18"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::deref_mut"
 kappa = "bf2493649eae5e786e02bae3d132d54199bc5613b4fe25ce18df710c7519f883"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_mut"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::drop"
 kappa = "1144863dcbbacee603b7212e23b3ab8b8e07b145f29cfd8179a555c1d41c09d2"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_mut"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::eq"
 kappa = "ee59704cfe41a677d793863ae82da75a82abaefad2b5afcb9ca940680a8380f2"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_ref"
+status = "translated"
+digest = "ddcdc431f2be20a8043fe008a265fcd7065114a276bc7d60ba581940def15296"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::hash"
 kappa = "6b5f3e7104700ebc32b4647b51b4e66d2744d1dc7e1f7d454f8c913f5c965cc2"
 at = "H=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_ref"
+cause = "mir::Ty: mut u32"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::into_inner"
@@ -398,29 +398,29 @@ cause = "mir::Rvalue::RawPtr"
 path = "core::manually_drop::ManuallyDrop::new"
 kappa = "5ebb5fa4a2e833534b5960e65ae8c7c59b8b4833f20dc815d9ccad36cb07ae29"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::new"
+status = "translated"
+digest = "edb6cbfa6dc63f575ab40f119ced9a0f92f29d4414dc4994fc452e939d5b9e2f"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::partial_cmp"
 kappa = "0de7dd90f7376277b001299c62ecd8bf40ea19e8197ba2704ab0a647d51b1200"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_ref"
+status = "translated"
+digest = "c2ab282c3fe51e0fb99aa3c4a11f91947a7fbd0a67b7c3c9f89797ea6c0740bb"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::take"
 kappa = "d8cebcfb6458eb012857264d202d67a20e9f23a1eb5df7b0afef309502c7db46"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: MaybeDangling::as_ref"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::maybe_dangling::<impl at library/core/src/mem/maybe_dangling.rs:72:10: 72:15>::fmt"
 kappa = "42d0f28bfbd4b9620e79b8adee203d66f0f889366b1275da14f3277894544da5"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::maybe_dangling::<impl at library/core/src/mem/maybe_dangling.rs:72:23: 72:28>::clone"
@@ -433,8 +433,8 @@ digest = "de7d56340ed5632b88fda7ca57588913ef4d5ed02d61925b1855b2ecbc0e2a4f"
 path = "core::maybe_dangling::<impl at library/core/src/mem/maybe_dangling.rs:72:30: 72:37>::default"
 kappa = "0488bc83ba68c6cf023315d2137be2632ecd14aac3a5e481b60a96eae543b567"
 at = "P=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: mem::type_info::<impl at library/core/src/mem/type_info.rs:346:17: 346:24>::default: core's MIR stops at type outside the lift: mem::type_info::Abi"
+status = "translated"
+digest = "b92454a26801f41cff24a761e1b5d527e54f4ca4a539404a4cc7ab9036a317ba"
 
 [[fn]]
 path = "core::maybe_dangling::MaybeDangling::as_mut"
@@ -774,8 +774,8 @@ digest = "471c9f8189c43b50e64418d6eac248fc4eccdf5ad7a3c79aa99705e5adda1d0e"
 path = "core::mem::forget"
 kappa = "f19759da208d8e3bd4a8304bb7fbabe36834c73e5ac2b8487e24603f37c87796"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ManuallyDrop::new"
+status = "translated"
+digest = "7454baf57e753b2f91c3abd97546f830a4745adc70d34e6c301621cb7b3184a8"
 
 [[fn]]
 path = "core::mem::needs_drop"
@@ -815,7 +815,7 @@ path = "core::mem::take"
 kappa = "7ae978fa01c04b96b2a6a14ca53c0f16465c4fccea7524893cd071a57ba63ffc"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::type_info::<impl at library/core/src/mem/type_info.rs:346:17: 346:24>::default: core's MIR stops at type outside the lift: mem::type_info::Abi"
+cause = "mir::TerminatorKind::Call: mem::replace: core's MIR stops at mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::mem::variant_count"
@@ -840,8 +840,8 @@ cause = "mir::Rvalue::RawPtr"
 path = "core::size_of_val_raw"
 kappa = "e54d9009e20d857ff8aa02da9ac9e160d1f4a28f046ab356b50ee88bd923bcf4"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::size_of_val, an intrinsic the table does not model"
+status = "translated"
+digest = "bc27c1b1862a845451f0a11569adc6d588f109d41be7b5e56783626ef869a0fa"
 
 [[fn]]
 path = "core::transmutability::<impl at library/core/src/mem/transmutability.rs:150:10: 150:19>::eq"
@@ -865,19 +865,19 @@ digest = "de82572b530571a8c725852c2e165c08490178b429a399683b5a43e459290b5d"
 path = "core::transmutability::<impl at library/core/src/mem/transmutability.rs:150:38: 150:43>::fmt"
 kappa = "ae352975344e92c9b81ccc4895ebae562e8e1242c1ed1b34370a0f15e31b6c45"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::transmutability::Assume::ALIGNMENT"
 kappa = "0f96431d3c5aa66f5597358ed41b94d887ede9197285ca1ab83f09b6e87ee2ac"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
+status = "translated"
+digest = "9b66d4cc362f0e4a73ffb6a23853a5871e4e3ef98dc2e6c914d2384777cfb852"
 
 [[fn]]
 path = "core::transmutability::Assume::LIFETIMES"
 kappa = "aaa7317bf3550c043d2689e2a3d26195648f9f640763ff670087c924e6330103"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
+status = "translated"
+digest = "dd04d6931d4a0f13dc9ba10c782179edc688df1c77028ac199351cddbf8d850f"
 
 [[fn]]
 path = "core::transmutability::Assume::NOTHING"
@@ -888,20 +888,20 @@ digest = "0c672638c268b38b44302bb55c478909667fd605c9eaf0c8bf49ce86a6cc7195"
 [[fn]]
 path = "core::transmutability::Assume::SAFETY"
 kappa = "d830bd11580ea5b2098787487109c96942406e9a3c5c7d2d3157ab524fa8540e"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
+status = "translated"
+digest = "63d6ba21a3fa848cf717bbbd4dea89695785bddb2c922e78cf3d209c8fc32901"
 
 [[fn]]
 path = "core::transmutability::Assume::VALIDITY"
 kappa = "859b9c29b80002cb0e4cf53a18c67840cd2043375037e00e877519f9309d0fb9"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
+status = "translated"
+digest = "ed61115f8a8a79dd8c9335992908ddf1849281b664b23a49419eb03e016d92d5"
 
 [[fn]]
 path = "core::transmutability::Assume::add"
 kappa = "2c411f3b25d8f75263a0309e987ba2fc1c94c8f5f246c5e501975467e3bc22c9"
-status = "residue"
-cause = "mir::TerminatorKind::Call: Assume::and"
+status = "translated"
+digest = "cd9bfd7156ad488ed5c950a219ebf7693ff413978a708505c504e2abdadf7007"
 
 [[fn]]
 path = "core::transmutability::Assume::and"
@@ -918,8 +918,8 @@ digest = "a64734b107dccd8d77f2d52832f9861c4dc4a9a3601008c40db32edbdee5baff"
 [[fn]]
 path = "core::transmutability::Assume::sub"
 kappa = "94311a26ea3103a3e62b87e9dccde8027998f08a7f5587aaeb265220679de8b8"
-status = "residue"
-cause = "mir::TerminatorKind::Call: Assume::but_not"
+status = "translated"
+digest = "6777f9efd375095cba59d52d084d70baafb0b0fb5b94bc6ffff85d9dae23f45d"
 
 [[fn]]
 path = "core::transmute_copy"
@@ -1043,8 +1043,8 @@ cause = "mir::Ty: Generic"
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:235:10: 235:15>::fmt"
 kappa = "c90c5d8fe1fe0e1e047847ecdba2f7ec285dd56281b8b303820dbfb0ca754c9c"
-status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+status = "translated"
+digest = "ad37b1f3a933038f4bfbfd2a6ee8265fa4d7acff6bda90984857dc3cd174cb77"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:243:10: 243:15>::fmt"
@@ -1061,32 +1061,32 @@ cause = "mir::Ty: Const"
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:261:10: 261:15>::fmt"
 kappa = "745642eb839159ac05293b65df9d92e34c3d7ce5396946bec2e2e651454cbdd0"
-status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+status = "translated"
+digest = "2751b03daa7d1d5ca13396ad209d04d9d36db0569853ab2429fd9874abec10e8"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:269:10: 269:15>::fmt"
 kappa = "495ae208abe8952a0344bd679ab9585ee0640956ed9d4bcad09143ba5682ee1d"
-status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+status = "translated"
+digest = "5ebc6059e5045d53c0c552de76121d60b244a02d776d103fff5325b9f11580ae"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:277:10: 277:15>::fmt"
 kappa = "410eba8415e349c57487091174e6fc58faabf8af4b347413f7d88a824158c8b1"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:288:10: 288:15>::fmt"
 kappa = "b51d905738700cfd5cbcae4b4392ecaceb765fcafa3194037763bc70b288cf62"
 status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:297:10: 297:15>::fmt"
 kappa = "718b6d122f20c79763b6794c7420cafe114fc8797b8cdd3eab30ac50159dd91c"
-status = "residue"
-cause = "mir::Ty: fmt::Formatter<'_>"
+status = "translated"
+digest = "0574aae555f7a93d9ec143c2137050102a4afe7e87e2f0f5debf084c605c8f76"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:305:10: 305:15>::fmt"
@@ -1154,12 +1154,12 @@ path = "core::uninitialized"
 kappa = "bc567155dca1ebd5847330fa78527688bf2b55f960620255238e74815904add3"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assert_mem_uninitialized_valid"
+cause = "mir::Ty: mem::maybe_uninit::MaybeUninit<u32>"
 
 [[fn]]
 path = "core::zeroed"
 kappa = "ce282cd621e980b8fc716251e0fe034dbe3e5d3b5cf1e2d04c765fff90bcdf42"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assert_zero_valid"
+cause = "mir::Ty: mem::maybe_uninit::MaybeUninit<u32>"
 

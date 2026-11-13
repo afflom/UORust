@@ -1,8 +1,8 @@
 [[fn]]
 path = "core::check_language_ub"
 kappa = "7ca3b31bc62d62ff3370b0f247eee35b54df97823b9abc4451e0aa5cde57b353"
-status = "residue"
-cause = "mir::TerminatorKind::Call: const_eval_select"
+status = "translated"
+digest = "72c8b19203c4ced92b33abec2e866ee5b95d7f616c50d15ee44171b009cae105"
 
 [[fn]]
 path = "core::check_language_ub::compiletime"
@@ -19,14 +19,14 @@ digest = "1419a5949fd1d5e270c76d2c4a5b29711fda1f5fbc1ae199b941fd92d88e8576"
 [[fn]]
 path = "core::is_valid_allocation_size"
 kappa = "300f4bfa5e6a6828958995ed7249740d313a048bd6718d46b5417472bb1304d8"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl isize>::MAX as usize (IntToInt)"
+status = "translated"
+digest = "a7e4e8c84541f51ccccc7b2ffc01672ead5fb1af14d72d11489ae3dfc56451a2"
 
 [[fn]]
 path = "core::maybe_is_aligned"
 kappa = "aa29f837098c1d2b0c22890981ce291896478c41e3a27eab5e2c8480ef4f28d5"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item maybe_is_aligned::compiletime"
+status = "translated"
+digest = "020f19e7a77063b33efb2ebca158d050e3daa8813224ffe828b5d7a5f876555e"
 
 [[fn]]
 path = "core::maybe_is_aligned::compiletime"
@@ -37,20 +37,20 @@ digest = "2f1f1fc9fdfddc3a723bb58af0e72ab9fd5ec1fd42f48e17efdea08078404abf"
 [[fn]]
 path = "core::maybe_is_aligned::runtime"
 kappa = "6ac6ec726ad095db5bc8387f91e15d03f038253108ebae8b6002b4f34a3d15ff"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_aligned_to"
+status = "translated"
+digest = "1e39bdfe0d6640a4a517ba897c93d147098eec48eb4cf9410235776682d18b2d"
 
 [[fn]]
 path = "core::maybe_is_aligned_and_not_null"
 kappa = "f2d6ef039f565f5439b7e08f22d55525a0ad863afb2e49da0a97302b9053d043"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ub_checks::maybe_is_aligned: core's MIR stops at mir::Operand::Constant: the constant item maybe_is_aligned::compiletime"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null: core's MIR stops at mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_null::runtime"
 
 [[fn]]
 path = "core::maybe_is_nonoverlapping"
 kappa = "6fe729a9a9801604588a75a51cf5b214f19f3879173820626389ff30e3124dcf"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item maybe_is_nonoverlapping::compiletime"
+status = "translated"
+digest = "a9b2361e6b1c949a233636c9ac331024cb74c0a6d2747ae575e2628dc8dc0cd4"
 
 [[fn]]
 path = "core::maybe_is_nonoverlapping::compiletime"
@@ -61,6 +61,6 @@ digest = "75bec775d82144987e1fd2c04b0d45debbf56ae62c926517b2a9516889698a98"
 [[fn]]
 path = "core::maybe_is_nonoverlapping::runtime"
 kappa = "16762e6762c82736796d085d50363cbb8170ca07e99ba3a23896b3929b1715c6"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::addr"
+status = "translated"
+digest = "b83610e19da3529ba80dd60cdb98b1c53c559863f93cd3d1eabac1fcf5c9f7a4"
 
