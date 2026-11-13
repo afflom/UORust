@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: certified
@@ -86,6 +87,13 @@ jobs:
       - name: The ratchet against the parent commit
         shell: bash
         run: scripts/ci/sdk.sh 'just ratchet HEAD~1'
+      - name: Fetch the core MIR core.yml dumped, by its key
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          scripts/mir/fetch-mir.sh core target/core-mir
       - name: The differential and the fixpoint
         shell: bash
         run: scripts/ci/sdk.sh 'just certified-gate target/certified-gate'
