@@ -18,7 +18,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::lift::Ty;
+use crate::lift::{Residue, Ty};
 
 /// One target's data layout.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -36,7 +36,7 @@ pub(crate) struct DataLayout {
 }
 
 /// Why a data layout, or a layout from it, is not had.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum Refusal {
     /// A field of the string that should be a number of bits is not one.
     NotBits { field: String, text: String },
@@ -100,7 +100,7 @@ pub(crate) struct Layout {
 impl DataLayout {
     /// Parse an LLVM data layout string, the defaults LangRef documents
     /// filled in where it states nothing.
-    pub(crate) fn parse(target: &str, text: &str) -> Result<Self, Refusal> {
+    pub(crate) fn parse(target: &str, text: &str) -> Result<Self, Residue> {
         let mut dl = DataLayout {
             target: target.to_string(),
             big_endian: false,
@@ -108,10 +108,12 @@ impl DataLayout {
             ints: BTreeMap::from([(1, 8), (8, 8), (16, 16), (32, 32), (64, 32)]),
             floats: BTreeMap::from([(16, 16), (32, 32), (64, 64), (128, 128)]),
         };
-        let bits = |s: &str| -> Result<u32, Refusal> {
-            s.parse::<u32>().map_err(|_| Refusal::NotBits {
-                field: s.to_string(),
-                text: text.to_string(),
+        let bits = |s: &str| -> Result<u32, Residue> {
+            s.parse::<u32>().map_err(|_| {
+                Residue::Layout(Refusal::NotBits {
+                    field: s.to_string(),
+                    text: text.to_string(),
+                })
             })
         };
         for spec in text.split('-').filter(|s| !s.is_empty()) {
@@ -124,24 +126,22 @@ impl DataLayout {
                 "p" => {
                     let space = fields[0];
                     if space.is_empty() || space == "0" {
-                        let size =
-                            bits(fields.get(1).ok_or_else(|| Refusal::PointerWithoutSize {
+                        let size = bits(fields.get(1).ok_or_else(|| {
+                            Residue::Layout(Refusal::PointerWithoutSize {
                                 text: text.to_string(),
-                            })?)?;
+                            })
+                        })?)?;
                         let abi = fields.get(2).map_or(Ok(size), |a| bits(a))?;
                         dl.pointer = (size, abi);
                     }
                 }
                 "i" | "f" => {
                     let width = bits(fields[0])?;
-                    let abi =
-                        bits(
-                            fields
-                                .get(1)
-                                .ok_or_else(|| Refusal::WidthWithoutAlignment {
-                                    text: text.to_string(),
-                                })?,
-                        )?;
+                    let abi = bits(fields.get(1).ok_or_else(|| {
+                        Residue::Layout(Refusal::WidthWithoutAlignment {
+                            text: text.to_string(),
+                        })
+                    })?)?;
                     let table = if head == "i" {
                         &mut dl.ints
                     } else {
@@ -192,35 +192,46 @@ impl DataLayout {
 
 /// The layout of `t` on every target of `layouts`, where they agree; the
 /// refusal otherwise, naming `t` and the targets.
-pub(crate) fn agreed(t: &Ty, layouts: &[DataLayout]) -> Result<Layout, Refusal> {
+pub(crate) fn agreed(t: &Ty, layouts: &[DataLayout]) -> Result<Layout, Residue> {
     let ty = || t.render();
     let mut each = Vec::new();
     for dl in layouts {
-        let l = dl.of(t).ok_or_else(|| Refusal::Unstated {
-            ty: ty(),
-            target: dl.target.clone(),
+        let l = dl.of(t).ok_or_else(|| {
+            Residue::Layout(Refusal::Unstated {
+                ty: ty(),
+                target: dl.target.clone(),
+            })
         })?;
         each.push((dl.target.clone(), l));
     }
     let Some((_, l)) = each.first().cloned() else {
-        return Err(Refusal::NoTarget { ty: ty() });
+        return Err(Residue::Layout(Refusal::NoTarget { ty: ty() }));
     };
     if each.iter().any(|(_, m)| *m != l) {
-        return Err(Refusal::Differs { ty: ty(), each });
+        return Err(Residue::Layout(Refusal::Differs { ty: ty(), each }));
     }
     Ok(l)
 }
 
+/// The refusal a residue carries, where it is a layout's; its detail
+/// otherwise.
+pub(crate) fn reason(r: &Residue) -> String {
+    match r {
+        Residue::Layout(refusal) => refusal.to_string(),
+        other => other.detail(),
+    }
+}
+
 /// The data layouts a `target.toml` beside the dumps records: its
 /// `data_layout` for its `triple`, or none when it records none.
-pub(crate) fn from_target_toml(doc: &toml::Table) -> Result<Vec<DataLayout>, Refusal> {
+pub(crate) fn from_target_toml(doc: &toml::Table) -> Result<Vec<DataLayout>, Residue> {
     let Some(text) = doc.get("data_layout").and_then(toml::Value::as_str) else {
         return Ok(Vec::new());
     };
     let triple = doc
         .get("triple")
         .and_then(toml::Value::as_str)
-        .ok_or(Refusal::WithoutTriple)?;
+        .ok_or(Residue::Layout(Refusal::WithoutTriple))?;
     Ok(vec![DataLayout::parse(triple, text)?])
 }
 
@@ -264,15 +275,17 @@ mod tests {
             Ok(Layout { size: 4, align: 4 })
         );
         let differs = agreed(&Ty::Nat(None), &both).unwrap_err();
-        assert!(matches!(&differs, Refusal::Differs { each, .. } if each.len() == 2));
-        assert!(differs.to_string().contains("differs by target"));
+        assert!(
+            matches!(&differs, Residue::Layout(Refusal::Differs { each, .. }) if each.len() == 2)
+        );
+        assert!(reason(&differs).contains("differs by target"));
         assert!(matches!(
             agreed(&Ty::Nat(Some(8)), &[]),
-            Err(Refusal::NoTarget { .. })
+            Err(Residue::Layout(Refusal::NoTarget { .. }))
         ));
         assert!(matches!(
             agreed(&Ty::Nat(Some(128)), &both),
-            Err(Refusal::Unstated { target, .. }) if target == "thumbv7em-none-eabihf"
+            Err(Residue::Layout(Refusal::Unstated { target, .. })) if target == "thumbv7em-none-eabihf"
         ));
     }
 
@@ -280,18 +293,21 @@ mod tests {
     fn a_malformed_data_layout_is_refused() {
         assert!(matches!(
             DataLayout::parse("t", "e-p:x:64"),
-            Err(Refusal::NotBits { field, .. }) if field == "x"
+            Err(Residue::Layout(Refusal::NotBits { field, .. })) if field == "x"
         ));
         assert!(matches!(
             DataLayout::parse("t", "e-p"),
-            Err(Refusal::PointerWithoutSize { .. })
+            Err(Residue::Layout(Refusal::PointerWithoutSize { .. }))
         ));
         assert!(matches!(
             DataLayout::parse("t", "e-i64"),
-            Err(Refusal::WidthWithoutAlignment { .. })
+            Err(Residue::Layout(Refusal::WidthWithoutAlignment { .. }))
         ));
         let doc: toml::Table = toml::from_str("data_layout = \"e\"").unwrap();
-        assert_eq!(from_target_toml(&doc), Err(Refusal::WithoutTriple));
+        assert_eq!(
+            from_target_toml(&doc),
+            Err(Residue::Layout(Refusal::WithoutTriple))
+        );
         let none: toml::Table = toml::from_str("triple = \"t\"").unwrap();
         assert_eq!(from_target_toml(&none), Ok(Vec::new()));
     }

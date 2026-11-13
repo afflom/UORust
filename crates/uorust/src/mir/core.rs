@@ -145,7 +145,8 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
                 .and_then(|w| u32::try_from(w).ok())
                 .ok_or_else(|| bad("no pointer_width".into()))?;
             // Its data layout, which `dump-lib.sh` records beside them.
-            layouts = super::layout::from_target_toml(&doc).map_err(|r| bad(r.to_string()))?;
+            layouts = super::layout::from_target_toml(&doc)
+                .map_err(|r| bad(super::layout::reason(&r)))?;
             vec![(width, vec![triple.to_string()])]
         }
     };

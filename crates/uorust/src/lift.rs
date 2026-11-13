@@ -48,6 +48,9 @@ pub(crate) enum Residue {
     /// A kind of MIR the translator does not lower (`Rvalue::Ref: Mut`), or
     /// an obligation of its translation the verifier did not discharge.
     Mir(String),
+    /// A layout the targets' data layouts do not give (see
+    /// `mir::layout::Refusal`).
+    Layout(crate::mir::layout::Refusal),
 }
 
 impl Residue {
@@ -61,7 +64,7 @@ impl Residue {
             Self::Form(_) => "form",
             Self::Call(_) => "call",
             Self::Collision(_) => "collision",
-            Self::Mir(_) => "mir",
+            Self::Mir(_) | Self::Layout(_) => "mir",
         }
     }
 
@@ -90,6 +93,7 @@ impl Residue {
             Self::Call(c) => format!("calls {c}, which is not lifted"),
             Self::Collision(n) => format!("another function of the crate is also named {n}"),
             Self::Mir(cause) => format!("mir::{cause}"),
+            Self::Layout(refusal) => format!("mir::Memory: {refusal}"),
         }
     }
 }

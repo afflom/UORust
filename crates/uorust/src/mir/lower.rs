@@ -5288,7 +5288,7 @@ impl Fun<'_, '_> {
             {
                 let t = ty(t, self.cx.types)?;
                 let l = super::layout::agreed(&t, self.cx.layouts)
-                    .map_err(|r| kind(k, &format!("{path} of {r}")))?;
+                    .map_err(|r| kind(k, &format!("{path} of {}", super::layout::reason(&r))))?;
                 Ok(if m == M::Align { l.align } else { l.size }.to_string())
             }
             (Some(M::RawEq), [(a, at), (b, bt)], [t]) if at == bt && *dt == Ty::Bool => {
@@ -5322,7 +5322,7 @@ impl Fun<'_, '_> {
                 };
                 let t = ty(item, self.cx.types)?;
                 let l = super::layout::agreed(&t, self.cx.layouts)
-                    .map_err(|r| kind(k, &format!("{path} of {r}")))?;
+                    .map_err(|r| kind(k, &format!("{path} of {}", super::layout::reason(&r))))?;
                 Ok(l.align.to_string())
             }
             (Some(M::Identity), [(v, t)], _) if t == dt => Ok(v.clone()),
@@ -6971,7 +6971,7 @@ impl Fun<'_, '_> {
             ));
         }
         let l = super::layout::agreed(&elem, self.cx.layouts)
-            .map_err(|r| kind(MEMORY_KIND, &r.to_string()))?;
+            .map_err(|r| kind(MEMORY_KIND, &super::layout::reason(&r)))?;
         if l.size == 0 {
             return Err(kind(MEMORY_KIND, "a zero-sized value in memory"));
         }
