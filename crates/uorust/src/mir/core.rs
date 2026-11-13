@@ -15,7 +15,7 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use super::{lower, parse, IrBody};
-use crate::lift::{self, Ty, Types};
+use crate::lift::{self, Types};
 use crate::UorustError;
 
 /// The type each type parameter of a generic body is bound to.
@@ -146,7 +146,7 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
             vec![(width, vec![triple.to_string()])]
         }
     };
-    let mut shards = Vec::new();
+    let mut read = Vec::new();
     for dir in modules {
         let module = dir
             .file_name()
@@ -163,19 +163,29 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
         for file in &files {
             texts.push(std::fs::read_to_string(file).map_err(|e| io(file, e))?);
         }
-        shards.push(shard(scope, root, &module, &texts, &widths));
+        read.push((module, texts));
     }
-    Ok(shards)
+    // Every module's bodies, which each module's calls name.
+    let link = super::link::CoreLink::new(
+        core_decls(root),
+        read.iter().flat_map(|(_, texts)| texts),
+    );
+    Ok(read
+        .iter()
+        .map(|(module, texts)| shard(scope, root, module, texts, &widths, &link))
+        .collect())
 }
 
 /// One module's census of the crate `scope` names from the texts of its
-/// dumps, at the pointer widths they were built for.
+/// dumps, at the pointer widths they were built for, its calls into the
+/// crate those of `link`'s bodies.
 pub(crate) fn shard(
     scope: &Scope,
     root: &Path,
     module: &str,
     texts: &[String],
     widths: &[(u32, Vec<String>)],
+    link: &super::link::CoreLink,
 ) -> CoreShard {
     let krate = scope.krate.as_str();
     // Each body at its instantiation, with the bindings and its own text.
@@ -238,7 +248,7 @@ pub(crate) fn shard(
         crate::order::RUST_ORDERING.to_string(),
         crate::order::ORDERING.to_string(),
     );
-    instantiate_structs(&mut types, &core_structs(root), &bodies);
+    let explicit = instantiate_structs(&mut types, &link.decls, &bodies);
     // A raw pointer: an address, its provenance and its metadata.
     types
         .structs
@@ -265,11 +275,12 @@ pub(crate) fn shard(
             callees: &callees,
             krate: krate.to_string(),
             taken: &none,
-            explicit: &none,
+            explicit: &explicit,
             limit: crate::project::MAX_FILE_BYTES,
             consts: &consts,
             closures: &closures,
             active: &active,
+            core: Some(link),
         };
         let outcome = if at.contains('#') {
             Err("mir::Instantiation: a const parameter".to_string())
@@ -376,11 +387,98 @@ pub(crate) struct CoreStruct {
     /// For an enum whose variants hold no data, its variants; such an enum
     /// has no fields.
     variants: Option<Vec<String>>,
+    /// Whether such an enum's variants set their own discriminants.
+    explicit: bool,
 }
 
-/// Every struct of core's source under `root` (the directory holding
-/// `library/core/src`), by module: a file's module is its path there.
-pub(crate) fn core_structs(root: &Path) -> Vec<CoreStruct> {
+impl CoreStruct {
+    /// Its name, the last segment of its path.
+    pub(crate) fn name(&self) -> &str {
+        self.path.rsplit("::").next().unwrap_or(&self.path)
+    }
+}
+
+/// What core's source declares that names its types: its structs and enums
+/// of unit variants, and each module's `use` names, by module and name, to
+/// the path each names from core's root.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct CoreDecls {
+    pub(crate) structs: Vec<CoreStruct>,
+    uses: BTreeMap<(String, String), String>,
+    /// Each free function's generic parameters, types and constants in the
+    /// order its signature declares them, by its path from core's root.
+    pub(crate) generics: BTreeMap<String, Vec<String>>,
+    /// The intrinsics core declares without a body of their own, by path.
+    pub(crate) intrinsics: std::collections::BTreeSet<String>,
+}
+
+/// Each name a `use` tree binds in `module`, with the path from core's root
+/// it names: `crate::`, `core::`, `self::` and `super::` as Rust reads
+/// them, and any other path relative to the module.
+fn use_names(module: &[String], prefix: &[String], tree: &syn::UseTree, out: &mut Vec<(String, String)>) {
+    let with = |s: String| {
+        let mut p = prefix.to_vec();
+        p.push(s);
+        p
+    };
+    let use_target = |module: &[String], path: &[String]| -> Vec<String> {
+        let mut at: Vec<String> = module.to_vec();
+        let mut rest = path;
+        match rest.first().map(String::as_str) {
+            Some("crate" | "core") => {
+                at.clear();
+                rest = &rest[1..];
+            }
+            Some("self") => rest = &rest[1..],
+            _ => {}
+        }
+        while rest.first().map(String::as_str) == Some("super") {
+            at.pop();
+            rest = &rest[1..];
+        }
+        at.extend(rest.iter().cloned());
+        at
+    };
+    match tree {
+        syn::UseTree::Path(p) => use_names(module, &with(p.ident.to_string()), &p.tree, out),
+        syn::UseTree::Name(n) if n.ident == "self" => {
+            if let Some(last) = prefix.last() {
+                out.push((last.clone(), use_target(module, prefix).join("::")));
+            }
+        }
+        syn::UseTree::Name(n) => out.push((
+            n.ident.to_string(),
+            use_target(module, &with(n.ident.to_string())).join("::"),
+        )),
+        syn::UseTree::Rename(r) => out.push((
+            r.rename.to_string(),
+            use_target(module, &with(r.ident.to_string())).join("::"),
+        )),
+        syn::UseTree::Group(g) => {
+            for t in &g.items {
+                use_names(module, prefix, t, out);
+            }
+        }
+        syn::UseTree::Glob(_) => {}
+    }
+}
+
+/// A signature's generic parameters, types and constants, in order.
+fn generic_names(g: &syn::Generics) -> Vec<String> {
+    g.params
+        .iter()
+        .filter_map(|p| match p {
+            syn::GenericParam::Type(t) => Some(t.ident.to_string()),
+            syn::GenericParam::Const(c) => Some(c.ident.to_string()),
+            syn::GenericParam::Lifetime(_) => None,
+        })
+        .collect()
+}
+
+/// Every struct and enum of unit variants of core's source under `root` (the
+/// directory holding `library/core/src`), and every module's `use` names: a
+/// file's module is its path there.
+pub(crate) fn core_decls(root: &Path) -> CoreDecls {
     fn walk(dir: &Path, files: &mut Vec<PathBuf>) {
         let Ok(entries) = std::fs::read_dir(dir) else {
             return;
@@ -394,7 +492,12 @@ pub(crate) fn core_structs(root: &Path) -> Vec<CoreStruct> {
             }
         }
     }
-    fn items(module: &[String], list: &[syn::Item], out: &mut Vec<CoreStruct>) {
+    fn items(module: &[String], list: &[syn::Item], out: &mut CoreDecls) {
+        let at = |name: String| {
+            let mut path = module.to_vec();
+            path.push(name);
+            path.join("::")
+        };
         for item in list {
             match item {
                 syn::Item::Struct(st) => {
@@ -407,6 +510,8 @@ pub(crate) fn core_structs(root: &Path) -> Vec<CoreStruct> {
                         .fields
                         .iter()
                         .map(|f| {
+                            // The type as MIR prints it: a path's segments
+                            // joined without spaces.
                             let ty = &f.ty;
                             let text = quote::quote!(#ty)
                                 .to_string()
@@ -418,27 +523,45 @@ pub(crate) fn core_structs(root: &Path) -> Vec<CoreStruct> {
                             (f.ident.as_ref().map(ToString::to_string), text)
                         })
                         .collect();
-                    let mut path = module.to_vec();
-                    path.push(st.ident.to_string());
-                    out.push(CoreStruct {
-                        path: path.join("::"),
+                    out.structs.push(CoreStruct {
+                        path: at(st.ident.to_string()),
                         params,
                         fields,
                         variants: None,
+                        explicit: false,
                     });
                 }
                 syn::Item::Enum(e)
                     if e.generics.params.is_empty()
                         && e.variants.iter().all(|v| v.fields.is_empty()) =>
                 {
-                    let mut path = module.to_vec();
-                    path.push(e.ident.to_string());
-                    out.push(CoreStruct {
-                        path: path.join("::"),
+                    out.structs.push(CoreStruct {
+                        path: at(e.ident.to_string()),
                         params: Vec::new(),
                         fields: Vec::new(),
                         variants: Some(e.variants.iter().map(|v| v.ident.to_string()).collect()),
+                        explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
                     });
+                }
+                syn::Item::Fn(f) => {
+                    out.generics.insert(at(f.sig.ident.to_string()), generic_names(&f.sig.generics));
+                }
+                // A function without a body, as core declares an intrinsic.
+                syn::Item::Verbatim(tokens) => {
+                    if let Ok(f) = syn::parse2::<syn::ForeignItemFn>(tokens.clone()) {
+                        let path = at(f.sig.ident.to_string());
+                        if f.attrs.iter().any(|a| a.path().is_ident("rustc_intrinsic")) {
+                            out.intrinsics.insert(path.clone());
+                        }
+                        out.generics.insert(path, generic_names(&f.sig.generics));
+                    }
+                }
+                syn::Item::Use(u) => {
+                    let mut names = Vec::new();
+                    use_names(module, &[], &u.tree, &mut names);
+                    for (name, target) in names {
+                        out.uses.insert((module.join("::"), name), target);
+                    }
                 }
                 syn::Item::Mod(m) => {
                     if let Some((_, inner)) = &m.content {
@@ -455,12 +578,15 @@ pub(crate) fn core_structs(root: &Path) -> Vec<CoreStruct> {
     let mut files = Vec::new();
     walk(&src, &mut files);
     files.sort();
-    let mut out = Vec::new();
+    let mut out = CoreDecls::default();
     for file in files {
         let Ok(text) = std::fs::read_to_string(&file) else {
             continue;
         };
-        let Ok(parsed) = syn::parse_file(&text) else {
+        let Ok(parsed) = syn::parse_file(&text).or_else(|_| {
+            let tokens: proc_macro2::TokenStream = text.parse()?;
+            syn::parse2::<syn::File>(without_const_traits(tokens))
+        }) else {
             continue;
         };
         let rel = file.strip_prefix(&src).unwrap_or(&file).with_extension("");
@@ -476,85 +602,226 @@ pub(crate) fn core_structs(root: &Path) -> Vec<CoreStruct> {
     out
 }
 
-/// Each instance of a core struct the bodies' locals mention, as MIR prints
-/// it, added to core's scope: a struct whose fields are its type parameters,
-/// the unit or primitives is a record of those fields at the instance's
-/// arguments, named by its path and arguments.
-fn instantiate_structs(
-    types: &mut Types,
-    structs: &[CoreStruct],
-    bodies: &[(IrBody, String, String)],
-) {
-    let by: BTreeMap<&str, &CoreStruct> = structs.iter().map(|s| (s.path.as_str(), s)).collect();
-    // A path more than one module declares names no struct.
-    let mut count: BTreeMap<&str, usize> = BTreeMap::new();
-    for s in structs {
-        *count.entry(s.path.as_str()).or_default() += 1;
-    }
-    // The last segment of a path, where one type of core has it: MIR's
-    // headers print a type by it alone.
-    let mut lasts: BTreeMap<&str, usize> = BTreeMap::new();
-    for s in structs {
-        *lasts
-            .entry(s.path.rsplit("::").next().unwrap_or(""))
-            .or_default() += 1;
-    }
-    let trimmed = |path: &str, text: &str| {
-        let last = path.rsplit("::").next().unwrap_or(path);
-        (lasts.get(last) == Some(&1)).then(|| format!("{last}{}", &text[path.len()..]))
-    };
-    // Enums of unit variants first: a struct's field may be one.
-    for st in structs
-        .iter()
-        .filter(|s| s.variants.is_some() && count[s.path.as_str()] == 1)
-    {
-        let mut parts: Vec<&str> = vec!["core"];
-        parts.extend(st.path.split("::"));
-        let name = crate::lex::pascal(&parts);
-        types
-            .enums
-            .insert(name.clone(), st.variants.clone().unwrap_or_default());
-        types.aliases.insert(st.path.clone(), name.clone());
-        if let Some(t) = trimmed(&st.path, &st.path) {
-            types.aliases.entry(t).or_insert(name);
+/// `tokens` without the const-trait syntax core is written in and syn does
+/// not read: the `const` of `impl const Trait` and `impl<..> const Trait`,
+/// and the `const`, `[const]` and `~const` of a bound. What is left declares the
+/// same items.
+fn without_const_traits(tokens: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    use proc_macro2::{Group, TokenTree};
+    let is = |t: &TokenTree, s: &str| matches!(t, TokenTree::Ident(i) if i == s);
+    let punct = |t: &TokenTree, c: char| matches!(t, TokenTree::Punct(p) if p.as_char() == c);
+    let mut out: Vec<TokenTree> = Vec::new();
+    // Within an impl's generics, the depth of their angle brackets.
+    let mut generics: Option<usize> = None;
+    let mut after_impl = false;
+    let mut iter = tokens.into_iter().peekable();
+    while let Some(t) = iter.next() {
+        if after_impl && is(&t, "const") {
+            after_impl = false;
+            continue;
         }
-    }
-    let mut mentioned: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for (body, _, _) in bodies {
-        for l in &body.locals {
-            let mut stack = vec![l.trim().trim_start_matches('&').trim().to_string()];
-            while let Some(t) = stack.pop() {
-                if let Some(open) = t.find('<') {
-                    let inner = t[open + 1..].strip_suffix('>').unwrap_or("");
-                    stack.extend(
-                        parse::split_top(inner, ',')
-                            .into_iter()
-                            .map(|a| a.trim().to_string()),
-                    );
-                }
-                mentioned.insert(t);
+        // A bound `T: const Trait` or `A + const Trait`.
+        if is(&t, "const") && out.last().is_some_and(|l| punct(l, ':') || punct(l, '+')) {
+            continue;
+        }
+        if punct(&t, '~') && iter.peek().is_some_and(|n| is(n, "const")) {
+            iter.next();
+            continue;
+        }
+        if let TokenTree::Group(g) = &t {
+            let inner: Vec<TokenTree> = g.stream().into_iter().collect();
+            if g.delimiter() == proc_macro2::Delimiter::Bracket
+                && inner.len() == 1
+                && is(&inner[0], "const")
+            {
+                continue;
+            }
+            let mut ng = Group::new(g.delimiter(), without_const_traits(g.stream()));
+            ng.set_span(g.span());
+            out.push(TokenTree::Group(ng));
+            after_impl = false;
+            continue;
+        }
+        // The `>` of `->` closes no bracket.
+        let arrow = out.last().is_some_and(|l| punct(l, '-'));
+        match generics {
+            _ if arrow => {}
+            Some(d) if punct(&t, '<') => generics = Some(d + 1),
+            Some(1) if punct(&t, '>') => {
+                generics = None;
+                after_impl = true;
+                out.push(t);
+                continue;
+            }
+            Some(d) if punct(&t, '>') => generics = Some(d - 1),
+            _ => {}
+        }
+        if generics.is_none() {
+            after_impl = is(&t, "impl");
+            if after_impl && iter.peek().is_some_and(|n| punct(n, '<')) {
+                out.push(t);
+                out.push(iter.next().expect("peeked"));
+                generics = Some(1);
+                after_impl = false;
+                continue;
             }
         }
+        out.push(t);
     }
-    for text in mentioned {
-        let (path, args) = match text.find('<') {
-            Some(open) => (
-                text[..open].trim_end_matches("::"),
-                parse::split_top(text[open + 1..].strip_suffix('>').unwrap_or(""), ',')
-                    .into_iter()
-                    .map(str::trim)
-                    .filter(|a| !a.is_empty() && !a.starts_with('\''))
-                    .collect::<Vec<_>>(),
-            ),
-            None => (text.as_str(), Vec::new()),
-        };
-        let Some(st) = by.get(path).filter(|_| count[path] == 1) else {
-            continue;
-        };
-        if st.variants.is_some() || st.params.len() != args.len() {
-            continue;
+    out.into_iter().collect()
+}
+
+/// The types a type as MIR prints it is built of, itself first: the
+/// referents of its references, the elements of its arrays and slices, the
+/// fields of its tuples and the arguments of its paths.
+fn components(text: &str, out: &mut Vec<String>) {
+    let mut t = text.trim();
+    while let Some(r) = t.strip_prefix('&').or_else(|| t.strip_prefix("*const ")).or_else(|| t.strip_prefix("*mut ")) {
+        t = r.trim_start();
+        if let Some(r) = t.strip_prefix('\'') {
+            t = r.split_once(' ').map_or("", |(_, r)| r);
         }
-        let module = st.path.rsplit_once("::").map_or("", |(m, _)| m);
+        t = t.strip_prefix("mut ").unwrap_or(t).trim_start();
+    }
+    if let Some(inner) = t.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
+        components(parse::split_top(inner, ';')[0], out);
+        return;
+    }
+    if let Some(inner) = t.strip_prefix('(').and_then(|r| r.strip_suffix(')')) {
+        for p in parse::split_top(inner, ',') {
+            components(p, out);
+        }
+        return;
+    }
+    if t.is_empty() {
+        return;
+    }
+    out.push(t.to_string());
+    if let Some(open) = t.find('<') {
+        for a in parse::split_top(t[open + 1..].strip_suffix('>').unwrap_or(""), ',') {
+            components(a, out);
+        }
+    }
+}
+
+/// Core's declared types in a body's scope, instantiated as its bodies
+/// mention them.
+struct Instances<'a> {
+    decls: &'a CoreDecls,
+    /// Each declared path, where one declaration (or one enum declared once
+    /// for each configuration) has it.
+    by: BTreeMap<String, CoreStruct>,
+    /// Each instance's lifted name, or `None` where it does not lift, by its
+    /// path from core's root and arguments.
+    done: BTreeMap<String, Option<String>>,
+    explicit: std::collections::BTreeSet<String>,
+}
+
+impl Instances<'_> {
+    /// The declared path `path` names from core's root, through the `use`
+    /// names that re-export it.
+    fn canonical(&self, path: &str, depth: usize) -> Option<String> {
+        if self.by.contains_key(path) {
+            return Some(path.to_string());
+        }
+        let (module, name) = path.rsplit_once("::").unwrap_or(("", path));
+        let target = self.decls.uses.get(&(module.to_string(), name.to_string()))?;
+        (depth < 16 && target != path).then(|| self.canonical(target, depth + 1))?
+    }
+
+    /// The declared path `path`, written in `module`, names: through the
+    /// module's `use` name for its first segment, else from the module or
+    /// from core's root.
+    fn resolve(&self, module: &str, path: &str) -> Option<String> {
+        let (head, rest) = path.split_once("::").map_or((path, None), |(h, r)| (h, Some(r)));
+        if let Some(t) = self.decls.uses.get(&(module.to_string(), head.to_string())) {
+            let full = rest.map_or_else(|| t.clone(), |r| format!("{t}::{r}"));
+            return self.canonical(&full, 0);
+        }
+        let local = if module.is_empty() {
+            path.to_string()
+        } else {
+            format!("{module}::{path}")
+        };
+        self.canonical(&local, 0).or_else(|| self.canonical(path, 0))
+    }
+
+    /// The declared path a path as MIR prints it names: from core's root,
+    /// or the one declared path it ends.
+    fn printed(&self, path: &str) -> Option<String> {
+        if let Some(p) = self.canonical(path, 0) {
+            return Some(p);
+        }
+        let tail = format!("::{path}");
+        let mut ends = self.by.keys().filter(|p| p.ends_with(&tail));
+        match (ends.next(), ends.next()) {
+            (Some(p), None) => Some(p.clone()),
+            _ => None,
+        }
+    }
+
+    /// `text`, a type written in `module`, with each path that names a
+    /// declared type written from core's root.
+    fn rooted(&self, module: &str, text: &str) -> String {
+        let chars: Vec<char> = text.chars().collect();
+        let mut out = String::new();
+        let mut i = 0;
+        while i < chars.len() {
+            let c = chars[i];
+            if (c.is_ascii_alphabetic() || c == '_') && !(i > 0 && chars[i - 1] == '\'') {
+                let start = i;
+                while i < chars.len()
+                    && (chars[i].is_ascii_alphanumeric()
+                        || chars[i] == '_'
+                        || (chars[i] == ':' && chars.get(i + 1) == Some(&':')
+                            && chars.get(i + 2).is_some_and(|c| c.is_ascii_alphabetic() || *c == '_')))
+                {
+                    i += if chars[i] == ':' { 2 } else { 1 };
+                }
+                let word: String = chars[start..i].iter().collect();
+                out.push_str(&self.resolve(module, &word).unwrap_or(word));
+            } else {
+                out.push(c);
+                i += 1;
+            }
+        }
+        out
+    }
+
+    /// The lifted name of the declared type `path` at `args`, each of its
+    /// fields' types lifted first.
+    fn instance(&mut self, path: &str, args: &[&str], types: &mut Types) -> Option<String> {
+        let key = format!("{path}<{}>", args.join(","));
+        if let Some(n) = self.done.get(&key) {
+            return n.clone();
+        }
+        self.done.insert(key.clone(), None);
+        let st = self.by.get(path)?.clone();
+        // An enum the scope lifts as its own, of the same variants, keeps
+        // its lift.
+        let own = types.resolve(st.name());
+        if types.enums.get(&own).is_some_and(|vs| Some(vs) == st.variants.as_ref()) {
+            self.done.insert(key, Some(own.clone()));
+            return Some(own);
+        }
+        let mut parts: Vec<&str> = vec!["core"];
+        parts.extend(path.split("::"));
+        if st.variants.is_some() {
+            let name = crate::lex::pascal(&parts);
+            if st.explicit {
+                self.explicit.insert(name.clone());
+            }
+            types
+                .enums
+                .insert(name.clone(), st.variants.clone().unwrap_or_default());
+            types.aliases.insert(path.to_string(), name.clone());
+            self.done.insert(key, Some(name.clone()));
+            return Some(name);
+        }
+        if st.params.len() != args.len() {
+            return None;
+        }
+        let module = path.rsplit_once("::").map_or("", |(m, _)| m);
         let binds: BTreeMap<String, String> = st
             .params
             .iter()
@@ -562,38 +829,111 @@ fn instantiate_structs(
             .zip(args.iter().map(|a| (*a).to_string()))
             .collect();
         let mut fields = Vec::new();
-        let mut ok = true;
         for (i, (name, t)) in st.fields.iter().enumerate() {
-            let t = super::stdlib::substitute(t, &binds);
-            // A type the struct's module declares, by its path there.
-            let local = format!("{module}::{t}");
-            let t = if types.aliases.contains_key(&local) {
-                local
-            } else {
-                t
-            };
-            match super::lower::ty(&t, types) {
-                Ok(ft) => fields.push((
-                    name.as_deref()
-                        .map_or_else(|| format!("item{i}"), lift::local_name),
-                    ft,
-                )),
-                Err(_) => ok = false,
-            }
+            let t = self.rooted(module, &super::stdlib::substitute(t, &binds));
+            self.mention(&t, types);
+            let ft = super::lower::ty(&t, types).ok()?;
+            fields.push((
+                name.as_deref()
+                    .map_or_else(|| format!("item{i}"), lift::local_name),
+                ft,
+            ));
         }
-        if !ok {
-            continue;
-        }
-        let mut parts: Vec<&str> = vec!["core"];
-        parts.extend(path.split("::"));
         parts.extend(args.iter().copied());
         let name = crate::lex::pascal(&parts);
         types.structs.insert(name.clone(), fields);
-        if let Some(t) = trimmed(path, &text) {
-            types.aliases.entry(t).or_insert(name.clone());
-        }
-        types.aliases.insert(text.clone(), name);
+        let text = if args.is_empty() {
+            path.to_string()
+        } else {
+            format!("{path}<{}>", args.join(", "))
+        };
+        types.aliases.insert(text, name.clone());
+        self.done.insert(key, Some(name.clone()));
+        Some(name)
     }
+
+    /// Each declared type `text` (as MIR prints it) is built of, lifted and
+    /// named as it is printed.
+    fn mention(&mut self, text: &str, types: &mut Types) {
+        let mut parts = Vec::new();
+        components(text, &mut parts);
+        // Arguments before the types they are arguments of.
+        for c in parts.into_iter().rev() {
+            // Its path and its type arguments, lifetimes left out.
+            let (path, args) = match c.find('<') {
+                Some(open) => (
+                    c[..open].trim_end_matches("::"),
+                    parse::split_top(c[open + 1..].strip_suffix('>').unwrap_or(""), ',')
+                        .into_iter()
+                        .map(str::trim)
+                        .filter(|a| !a.is_empty() && !a.starts_with('\''))
+                        .collect(),
+                ),
+                None => (c.as_str(), Vec::new()),
+            };
+            let Some(declared) = self.printed(path) else {
+                continue;
+            };
+            if let Some(n) = self.instance(&declared, &args, types) {
+                types.aliases.entry(c.clone()).or_insert(n);
+            }
+        }
+    }
+}
+
+/// Each instance of a core struct the bodies' locals mention, as MIR prints
+/// it, added to core's scope: a struct whose fields lift is a record of
+/// those fields at the instance's arguments, named by its path and
+/// arguments, each field's type read in the struct's module through its
+/// `use` names. An enum of unit variants core declares once for each
+/// configuration (as it does by pointer width) is one enum of all its
+/// declarations' variants; a path two other declarations have names
+/// neither. The enums whose variants set their own discriminants are
+/// returned: a switch on one is residue.
+fn instantiate_structs(
+    types: &mut Types,
+    decls: &CoreDecls,
+    bodies: &[(IrBody, String, String)],
+) -> std::collections::BTreeSet<String> {
+    let mut groups: BTreeMap<&str, Vec<&CoreStruct>> = BTreeMap::new();
+    for s in &decls.structs {
+        groups.entry(s.path.as_str()).or_default().push(s);
+    }
+    let mut by = BTreeMap::new();
+    for (path, group) in groups {
+        let one = match group.as_slice() {
+            [one] => (*one).clone(),
+            all if all.iter().all(|s| s.variants.is_some()) => {
+                let mut vs: Vec<String> = Vec::new();
+                for v in all.iter().flat_map(|s| s.variants.iter().flatten()) {
+                    if !vs.contains(v) {
+                        vs.push(v.clone());
+                    }
+                }
+                CoreStruct {
+                    variants: Some(vs),
+                    explicit: all.iter().any(|s| s.explicit),
+                    ..all[0].clone()
+                }
+            }
+            _ => continue,
+        };
+        by.insert(path.to_string(), one);
+    }
+    let mut cx = Instances {
+        decls,
+        by,
+        done: BTreeMap::new(),
+        explicit: std::collections::BTreeSet::new(),
+    };
+    let mut mentioned: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+    for (body, _, _) in bodies {
+        mentioned.extend(body.locals.iter().map(String::as_str));
+    }
+    for text in mentioned {
+        cx.mention(text, types);
+    }
+    cx.explicit
 }
 
 /// The type parameters of a dumped body, each bound to [`CANONICAL`]: the

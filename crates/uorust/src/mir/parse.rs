@@ -478,9 +478,14 @@ fn unescape(s: &str) -> Option<String> {
 /// The name a call or rvalue starts with, up to its `(`.
 fn head(text: &str) -> &str {
     let mut depth = 0i64;
+    let mut prev = ' ';
     for (i, c) in text.char_indices() {
+        let arrow = c == '>' && prev == '-';
+        prev = c;
         match c {
             '<' | '{' | '[' => depth += 1,
+            // `->` is an arrow, not a closing bracket.
+            '>' if arrow => {}
             '>' | '}' | ']' => depth -= 1,
             '(' if depth == 0 => return &text[..i],
             _ => {}

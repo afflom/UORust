@@ -19,6 +19,7 @@
 pub mod core;
 pub mod coverage;
 pub(crate) mod float;
+mod link;
 pub(crate) mod lower;
 mod parse;
 // Generated: its layout is the generator's, which the spec test compares.

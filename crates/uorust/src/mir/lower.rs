@@ -72,6 +72,8 @@ pub(crate) struct Cx<'a> {
     /// The std instances being translated, outermost first: one that would
     /// translate itself again is residue.
     pub(crate) active: &'a [String],
+    /// In core's scope, core's own bodies, which its calls name.
+    pub(crate) core: Option<&'a super::link::CoreLink>,
 }
 
 impl<'a> Cx<'a> {
@@ -91,6 +93,7 @@ impl<'a> Cx<'a> {
             consts: self.consts,
             closures: self.closures,
             active,
+            core: self.core,
         }
     }
 }
@@ -1462,6 +1465,10 @@ impl Fun<'_, '_> {
         target: IrBlockId,
         st: &mut State,
     ) -> Lift<Option<(String, String, String)>> {
+        if let Some(g) = self.selected(callee, args).filter(|_| destination.projection.is_empty()) {
+            self.select_into(destination, &g, &args[0], st)?;
+            return Ok(None);
+        }
         let mut vals = Vec::new();
         let mut texts = Vec::new();
         let mut borrowed: BTreeMap<usize, IrPlace> = BTreeMap::new();
@@ -1585,6 +1592,69 @@ impl Fun<'_, '_> {
         Ok(binding)
     }
 
+    /// In core's scope, the function a call of the intrinsic
+    /// `const_eval_select(arg, called_in_const, called_at_rt)` selects at
+    /// run time: its third argument.
+    fn selected(&self, callee: &str, args: &[IrOperand]) -> Option<String> {
+        let link = self.cx.core?;
+        let path = link.path(&erase(callee)).filter(|p| link.decls.intrinsics.contains(p))?;
+        if split_path(&path).last() != Some(&"const_eval_select") {
+            return None;
+        }
+        match args {
+            [_, _, IrOperand::Constant(IrConstant::Path(g) | IrConstant::Other(g))] => Some(g.clone()),
+            _ => None,
+        }
+    }
+
+    /// `g` applied to the items of the tuple `arg`, into `destination`.
+    fn select_into(
+        &mut self,
+        destination: &IrPlace,
+        g: &str,
+        arg: &IrOperand,
+        st: &mut State,
+    ) -> Lift<()> {
+        let k = spec::MirTerminatorKind::Call.path();
+        let (v, t) = self.operand(arg, st)?;
+        let text = match arg {
+            IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => {
+                self.body.locals.get(p.local).cloned()
+            }
+            _ => None,
+        }
+        .ok_or_else(|| kind(k, "const_eval_select of no local's tuple"))?;
+        let inner = text
+            .trim()
+            .strip_prefix('(')
+            .and_then(|r| r.strip_suffix(')'))
+            .ok_or_else(|| kind(k, "const_eval_select of no tuple"))?;
+        let texts: Vec<Option<String>> = split_top(inner, ',')
+            .into_iter()
+            .filter(|p| !p.trim().is_empty())
+            .map(|p| Some(p.trim().to_string()))
+            .collect();
+        let vals: Vec<(String, Ty)> = match (texts.len(), &t) {
+            (0, _) => Vec::new(),
+            (1, _) => vec![(v, t.clone())],
+            (n, Ty::Tuple(ts) | Ty::Pair(ts)) if ts.len() == n => (0..n)
+                .map(|j| (lift::tuple_item(&t, &v, j), ts[j].clone()))
+                .collect(),
+            _ => return Err(kind(k, "const_eval_select of a tuple the lift does not split")),
+        };
+        let dt = self.local_ty(destination.local, &[])?;
+        let dest_text = self.body.locals[destination.local].clone();
+        let called = self.call(g, vals, &texts, &dest_text, &dt, st)?;
+        if called.guard.is_some() || !called.updates.is_empty() || called.threads.is_some() {
+            return Err(kind(k, &format!("{}, selected with a guard or an update", erase(g))));
+        }
+        if let Some(b) = fixed(&dt) {
+            self.ranged.insert(called.term.clone(), b);
+        }
+        st.env.insert(destination.local, Val::V(called.term, dt));
+        Ok(())
+    }
+
     /// The guard, held value and item type of the guarded option whose
     /// discriminant `op` reads.
     fn guarded_disc(&self, op: &IrOperand, st: &State) -> Option<(String, String, Ty)> {
@@ -1646,6 +1716,8 @@ impl Fun<'_, '_> {
                 .map_or(otherwise, |(_, b)| *b)
         };
         match t {
+            // A switch on a constant takes its one arm.
+            Ty::Bool if c == "true" || c == "false" => self.goto(target(i128::from(c == "true")), st),
             Ty::Bool => {
                 let (on_true, on_false) = (target(1), target(0));
                 let mut yes = st.clone();
@@ -1878,6 +1950,15 @@ impl Fun<'_, '_> {
                     }
                 }
                 Some(body) => self.const_body(p, body),
+                // In core's scope, a constant a trait of core provides.
+                None if self.cx.core.and_then(|l| l.constant(p)).is_some() => {
+                    let inst = self.cx.core.and_then(|l| l.constant(p)).expect("checked");
+                    let body = super::parse::bodies(&inst.text)
+                        .into_iter()
+                        .next()
+                        .ok_or_else(|| kind(k, &format!("the constant item {p}, whose body does not read")))?;
+                    self.const_body(p, &body)
+                }
                 None => match c {
                     IrConstant::Path(p) => Err(kind(k, &format!("the constant item {p}"))),
                     _ => Err(kind(k, p)),
@@ -2322,6 +2403,10 @@ impl Fun<'_, '_> {
             IrRvalue::Unary(op, o) => {
                 let (v, t) = self.operand(o, st)?;
                 match (op, &t) {
+                    // A constant's negation is the other constant.
+                    (spec::MirUnOp::Not, Ty::Bool) if v == "true" || v == "false" => {
+                        Ok(Val::V((v == "false").to_string(), Ty::Bool))
+                    }
                     (spec::MirUnOp::Not, Ty::Bool) => Ok(Val::V(format!("(not {v})"), Ty::Bool)),
                     (spec::MirUnOp::Neg, Ty::Float(f)) => {
                         let u = self.float_model(*f).apply("Neg", &[&v]);
@@ -3166,11 +3251,145 @@ impl Fun<'_, '_> {
                 threads: None,
             });
         }
+        // In a library's scope, an intrinsic's model or the library's own
+        // body.
+        if let Some(link) = self.cx.core {
+            if let Some(path) = link.path(&erase(callee)).filter(|p| link.decls.intrinsics.contains(p)) {
+                return self.intrinsic(link, &path, callee, &args, dt).map(Called::value);
+            }
+            if let Some(inst) = link.instance(callee, texts, dest) {
+                let krate = self.cx.krate.clone();
+                return self.shared(inst, &krate, &args, dt).map(Called::value);
+            }
+        }
         // Otherwise std's own MIR, at the call's types.
         match self.std_instance(callee, &args, texts, dest, dt)? {
             Some(called) => Ok(called),
             None => Err(kind(k, &erase(callee))),
         }
+    }
+
+    /// The model of a call of the intrinsic `path`, by the signature core
+    /// declares it with.
+    fn intrinsic(
+        &mut self,
+        link: &super::link::CoreLink,
+        path: &str,
+        callee: &str,
+        args: &[(String, Ty)],
+        dt: &Ty,
+    ) -> Lift<String> {
+        let k = spec::MirTerminatorKind::Call.path();
+        let generics = link
+            .bind(path, callee, None, &[], "")
+            .ok_or_else(|| kind(k, &format!("{path}, an intrinsic its call does not instantiate")))?;
+        let name = split_path(path).last().copied().unwrap_or(path);
+        match (name, args, generics.values().collect::<Vec<_>>().as_slice()) {
+            // `size_of::<T>() -> usize`: `T`'s size in the data layout, the
+            // same on every declared target.
+            ("size_of", [], [t]) if *dt == Ty::Nat(None) => {
+                let t = ty(t, self.cx.types)?;
+                let sizes = super::link::size_of(&t, self.cx.widths).map_err(|t| {
+                    kind(k, &format!("{path} of {t}, whose layout rustc chooses"))
+                })?;
+                match sizes.as_slice() {
+                    [(_, n), rest @ ..] if rest.iter().all(|(_, m)| m == n) => Ok(n.to_string()),
+                    _ => Err(kind(
+                        k,
+                        &format!(
+                            "{path} of {}, whose size differs by target: {}",
+                            t.render(),
+                            sizes
+                                .iter()
+                                .map(|(w, n)| format!("{n} at {w} bits"))
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        ),
+                    )),
+                }
+            }
+            _ => Err(kind(k, &format!("{path}, an intrinsic the table does not model"))),
+        }
+    }
+
+    /// The definition an instance of a library body is lowered to, shared
+    /// by its callers and named by its path and the types it binds, applied
+    /// to the call's arguments; a definition of no parameters whose value
+    /// is a literal is that literal.
+    fn shared(
+        &mut self,
+        inst: stdlib::Instance,
+        root: &str,
+        args: &[(String, Ty)],
+        dt: &Ty,
+    ) -> Lift<String> {
+        let k = spec::MirTerminatorKind::Call.path();
+        let stdlib::Instance { path, text, bound } = inst;
+        // Named by the types as MIR prints them, so instances at `u8` and
+        // `u64`, whose overflow obligations differ, are two definitions.
+        let mut tags = String::new();
+        for (_, b) in &bound {
+            ty(b, self.cx.types)?;
+            tags.push_str(&crate::lex::pascal(&[b.as_str()]));
+        }
+        let segs: Vec<&str> = std::iter::once(root).chain(split_path(&path)).collect();
+        let name = format!("{}{tags}", crate::lex::camel(&segs));
+        if self.cx.active.contains(&name) || name == self.name {
+            return Err(kind(
+                k,
+                &format!("{path}, which {root} defines through itself"),
+            ));
+        }
+        let body = super::parse::bodies(&text)
+            .into_iter()
+            .next()
+            .ok_or_else(|| kind(k, &format!("{path}, whose body does not read")))?;
+        if !self.aux.contains_key(&name) {
+            let mut active = self.cx.active.to_vec();
+            active.push(name.clone());
+            let cx = self.cx.within(&active);
+            let lowered = lower(&cx, &body, &name)
+                .map_err(|r| kind(k, &format!("{path}: {root}'s MIR stops at {}", r.detail())))?;
+            for d in lowered.decls {
+                self.aux.insert(d.name().to_string(), d);
+            }
+            for (n, d) in lowered.aux {
+                self.aux.entry(n).or_insert(d);
+            }
+            self.calls.extend(lowered.calls);
+            self.types.extend(lowered.types);
+        }
+        let Some(Decl::Definition {
+            parameters, result, body: value, ..
+        }) = self.aux.get(&name)
+        else {
+            return Err(kind(
+                k,
+                &format!("{path}, whose translation has no definition"),
+            ));
+        };
+        let at = |t: &Ty| t.render();
+        if parameters.len() != args.len()
+            || parameters
+                .iter()
+                .zip(args)
+                .any(|((_, p), (_, a))| *p != at(a))
+            || *result != at(dt)
+        {
+            return Err(kind(k, &format!("{path}, at other types than the call's")));
+        }
+        if let (true, Expr::Flat(v)) = (parameters.is_empty(), value) {
+            if v == "true" || v == "false" || v.chars().all(|c| c.is_ascii_digit()) {
+                return Ok(v.clone());
+            }
+        }
+        self.calls.insert(name.clone());
+        let a: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
+        Ok(if a.is_empty() {
+            name
+        } else {
+            format!("({name} {})", a.join(" "))
+        })
     }
 
     /// std's own body of `callee`, instantiated at the call's types and
@@ -3423,6 +3642,12 @@ pub(crate) fn erase(path: &str) -> String {
                     out.truncate(out.len() - 2);
                 }
                 if qualified && !erasing {
+                    out.push(c);
+                }
+            }
+            // `->` is an arrow, not a closing bracket.
+            '>' if i > 0 && chars[i - 1] == '-' => {
+                if !erasing {
                     out.push(c);
                 }
             }

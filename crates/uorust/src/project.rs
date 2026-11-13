@@ -3922,6 +3922,7 @@ fn mir_lift(
             consts: dumps.consts.get(&ctx.crate_ident(r)).unwrap_or(&no_consts),
             closures: &closures,
             active: &[],
+            core: None,
         };
         match lower::lower(&cx, body, &name) {
             Ok(lowered) => {
