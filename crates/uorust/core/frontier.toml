@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 15725
-translated = 9140
-residue = 6585
+translated = 9141
+residue = 6584
 
 [module.alloc]
 bodies = 61
@@ -102,8 +102,8 @@ residue = 41
 
 [module.escape]
 bodies = 29
-translated = 2
-residue = 27
+translated = 3
+residue = 26
 
 [module.ffi]
 bodies = 60
@@ -369,16 +369,16 @@ cause = "mir::Ty: #"
 bodies = 43
 
 [[cause]]
-cause = "mir::Rvalue::Repeat"
-bodies = 39
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: num::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to"
 bodies = 39
 
 [[cause]]
 cause = "mir::Translator: panicked"
 bodies = 39
+
+[[cause]]
+cause = "mir::Rvalue::Repeat"
+bodies = 38
 
 [[cause]]
 cause = "mir::ProjectionElem::Deref: a read through a raw pointer"
@@ -1489,7 +1489,7 @@ cause = "mir::Ty: c_str::Bytes<'_>"
 bodies = 5
 
 [[cause]]
-cause = "mir::Ty: escape::EscapeIterInner<#"
+cause = "mir::Ty: escape::EscapeIterInner<#usize_N"
 bodies = 5
 
 [[cause]]
@@ -1665,7 +1665,7 @@ cause = "mir::TerminatorKind::Call: str::traits::index_mut: core's MIR stops at 
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: EscapeIterInner<#"
+cause = "mir::Ty: EscapeIterInner<#usize_N"
 bodies = 4
 
 [[cause]]
