@@ -203,7 +203,8 @@ fn matchers(tokens: TokenStream) -> Option<Vec<Matcher>> {
 fn matched(matcher: &[Matcher], tokens: TokenStream) -> Option<Bindings> {
     let mut bound = Bindings::new();
     let parser = |input: ParseStream| {
-        match_all(input, matcher, &mut bound)?;
+        match_all(input, matcher, &mut bound)
+            .ok_or_else(|| input.error("tokens the matcher does not match"))?;
         if input.is_empty() {
             Ok(())
         } else {
@@ -225,30 +226,31 @@ fn names(matcher: &[Matcher], out: &mut Vec<String>) {
     }
 }
 
-fn match_all(input: ParseStream, matcher: &[Matcher], bound: &mut Bindings) -> syn::Result<()> {
+fn match_all(input: ParseStream, matcher: &[Matcher], bound: &mut Bindings) -> Option<()> {
     for m in matcher {
         match m {
             Matcher::Token(t) => {
-                let tt: TokenTree = input.parse()?;
+                let tt: TokenTree = input.parse().ok()?;
                 if tt.to_string() != *t {
-                    return Err(input.error("another token"));
+                    return None;
                 }
             }
             Matcher::Group(d, inner) => {
-                let g: Group = input.parse()?;
+                let g: Group = input.parse().ok()?;
                 if g.delimiter() != *d {
-                    return Err(input.error("another delimiter"));
+                    return None;
                 }
                 let mut inside = Bindings::new();
                 let parser = |s: ParseStream| {
-                    match_all(s, inner, &mut inside)?;
+                    match_all(s, inner, &mut inside)
+                        .ok_or_else(|| s.error("tokens the group's matcher does not match"))?;
                     if s.is_empty() {
                         Ok(())
                     } else {
                         Err(s.error("tokens past the group's matcher"))
                     }
                 };
-                parser.parse2(g.stream())?;
+                parser.parse2(g.stream()).ok()?;
                 bound.extend(inside);
             }
             Matcher::Fragment(name, frag) => {
@@ -283,14 +285,14 @@ fn match_all(input: ParseStream, matcher: &[Matcher], bound: &mut Bindings) -> s
                     }
                     let mut one = Bindings::new();
                     let before = fork.cursor();
-                    if match_all(&fork, inner, &mut one).is_err() || fork.cursor() == before {
+                    if match_all(&fork, inner, &mut one).is_none() || fork.cursor() == before {
                         break;
                     }
                     input.advance_to(&fork);
                     each.push(one);
                 }
                 if *op == '+' && each.is_empty() {
-                    return Err(input.error("a repetition of none"));
+                    return None;
                 }
                 let mut vars = Vec::new();
                 names(inner, &mut vars);
@@ -304,12 +306,12 @@ fn match_all(input: ParseStream, matcher: &[Matcher], bound: &mut Bindings) -> s
             }
         }
     }
-    Ok(())
+    Some(())
 }
 
 /// Parse one fragment of kind `frag` from `input`.
-fn fragment(input: ParseStream, frag: &str) -> syn::Result<()> {
-    match frag {
+fn fragment(input: ParseStream, frag: &str) -> Option<()> {
+    let read = match frag {
         "ident" => input.call(Ident::parse_any).map(drop),
         "ty" => input.parse::<syn::Type>().map(drop),
         "pat" => syn::Pat::parse_multi_with_leading_vert(input).map(drop),
@@ -324,8 +326,9 @@ fn fragment(input: ParseStream, frag: &str) -> syn::Result<()> {
         "item" => input.parse::<syn::Item>().map(drop),
         "stmt" => input.parse::<syn::Stmt>().map(drop),
         "tt" => input.parse::<TokenTree>().map(drop),
-        _ => Err(input.error("a fragment kind not read")),
-    }
+        _ => return None,
+    };
+    read.ok()
 }
 
 /// The binding of `name` at the repetition indices `at`, or the bindings it
