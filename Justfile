@@ -161,6 +161,89 @@ prove-fixture:
 # stale.
 generate: self-model-write fixtures prove-fixture prove register model-write
 
+# The certified translator (loop step 3): the self projection's lifted
+# translator functions (uorust::mir, lift, lex) exported through `lexlean
+# production` (SPEC §24.7) as kernel-checked Rust, each root the compiler finds
+# ineligible refused with its diagnostic, the bundle replayed with
+# `verify-artifact`, then taken into crates/certified: every package source
+# byte for byte as the bundle records it, and manifest.toml keying each root by
+# the κ of the Rust function it certifies, with the bootstrap's share.
+certified:
+    rm -rf target/uorust-self target/uorust-certify target/uorust-certified
+    cargo run -q --locked -p uorust -- mir . --out target/mir
+    cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml {{mir}}
+    lexlean production targets --diagnostic-format json >crates/certified/targets.json
+    cargo run -q --locked -p uorust -- certify production --projection target/uorust-self --register frontier.toml --targets crates/certified/targets.json --out target/uorust-certify --kept target/uorust-certified
+    cargo run -q --locked -p uorust -- certify sync --kept target/uorust-certified --register frontier.toml --mir target/mir --workspace . --dir crates/certified --adapters crates/uorust/src/certified.rs
+    rustfmt --edition 2021 crates/uorust/src/certified.rs
+
+# The ratchet (loop step 3): the hand-written translator may only shrink.
+# The head's register and the base's are both generated from their sources
+# (the base's in a worktree of `base`), so a stale committed register can
+# neither hide a growth nor fake one; each root is certified by the manifest of
+# its own commit. Refused, naming each new uncertified function and its cause,
+# when more translator functions are uncertified than at the base. No bypass.
+ratchet base="HEAD~1":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rm -rf target/ratchet && mkdir -p target/ratchet
+    git worktree remove --force target/ratchet-base 2>/dev/null || true
+    git worktree add --detach target/ratchet-base {{base}}
+    trap 'git worktree remove --force target/ratchet-base' EXIT
+    cargo run -q --locked -p uorust -- mir . --out target/mir
+    cp frontier.toml target/ratchet/head.toml
+    cargo run -q --locked -p uorust -- project . --out target/ratchet/head --name uorust --last-modified 2026-11-11T00:00:00Z --register target/ratchet/head.toml {{mir}}
+    if [[ -f target/ratchet-base/frontier.toml ]]; then
+      (cd target/ratchet-base && CARGO_TARGET_DIR=../../target cargo run -q --locked -p uorust -- mir . --out ../ratchet/base-mir)
+      cp target/ratchet-base/frontier.toml target/ratchet/base.toml
+      (cd target/ratchet-base && CARGO_TARGET_DIR=../../target cargo run -q --locked -p uorust -- project . --out ../ratchet/base --name uorust --last-modified 2026-11-11T00:00:00Z --register ../ratchet/base.toml --mir ../ratchet/base-mir --verdicts lift-verdicts.toml)
+    else
+      cp target/ratchet/head.toml target/ratchet/base.toml
+    fi
+    base_manifest=target/ratchet-base/crates/certified/manifest.toml
+    cargo run -q --locked -p uorust -- certify ratchet --register target/ratchet/head.toml --manifest crates/certified/manifest.toml --base-register target/ratchet/base.toml --base-manifest "$base_manifest"
+
+# The ratchet before a commit, on what is staged: the index's register and
+# manifest against HEAD's (`scripts/hooks/pre-commit`; `just hooks` installs
+# it). CI's `ratchet` decides on registers generated from both commits.
+ratchet-staged:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p target/ratchet-staged
+    git show :frontier.toml >target/ratchet-staged/head.toml
+    git show HEAD:frontier.toml >target/ratchet-staged/base.toml
+    git show :crates/certified/manifest.toml >target/ratchet-staged/head-manifest.toml 2>/dev/null || rm -f target/ratchet-staged/head-manifest.toml
+    git show HEAD:crates/certified/manifest.toml >target/ratchet-staged/base-manifest.toml 2>/dev/null || rm -f target/ratchet-staged/base-manifest.toml
+    cargo run -q --locked -p uorust -- certify ratchet --register target/ratchet-staged/head.toml --manifest target/ratchet-staged/head-manifest.toml --base-register target/ratchet-staged/base.toml --base-manifest target/ratchet-staged/base-manifest.toml
+
+# The differential and the fixpoint (loop step 4). Every body of core runs
+# through the certified translator and through the hand-written one
+# (`--translator hand`), and the translator translates its own MIR both ways:
+# stage 2 is the self projection and register by the hand-written translator,
+# stage 3 by the certified one. `certify agree` computes each output's κ (over
+# every file's path and bytes) and refuses any pair whose κ differ; the κ it
+# prints land in {{out}}/kappa.txt, which certified.yml compares across runs
+# and architectures. An exit code is never the verdict: the κ are.
+certified-gate out="target/certified-gate":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rm -rf {{out}} && mkdir -p {{out}}
+    [[ -d target/core-mir ]] || scripts/mir/dump-core.sh target/core-mir
+    library=target/rust-src-`sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml`/library
+    cargo run -q --locked -p uorust -- mir . --out target/mir
+    for t in certified hand; do
+      cp -r crates/uorust/core {{out}}/core-$t
+      cargo run -q --locked -p uorust -- --translator $t core --mir target/core-mir --library "$library" --register {{out}}/core-$t
+      mkdir -p {{out}}/register-$t && cp frontier.toml {{out}}/register-$t/frontier.toml
+      cargo run -q --locked -p uorust -- --translator $t project . --out {{out}}/self-$t --name uorust --last-modified 2026-11-11T00:00:00Z --register {{out}}/register-$t/frontier.toml {{mir}}
+    done
+    cargo run -q --locked -p uorust -- certify agree --dir {{out}} >{{out}}/kappa.txt
+    cat {{out}}/kappa.txt
+
+# Install the repository's hooks: the pre-commit ratchet.
+hooks:
+    git config core.hooksPath scripts/hooks
+
 # The content standard (scripts/content/standard.json) on an assembled site.
 content site="site":
     node scripts/content/enrich.mjs {{site}}

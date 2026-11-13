@@ -1,0 +1,132 @@
+# The certified translator (loop steps 3 and 4). On every push to main that
+# changes the translator, its register or the toolchain, the first job rebuilds
+# the certified translator from the generated self register (`just certified`:
+# the lifted translator functions exported through `lexlean production`,
+# kernel-checked, replayed with verify-artifact, taken into crates/certified)
+# and pushes it when it changed. The gate then runs on amd64 and on arm64, each
+# twice: the ratchet against the parent commit on registers generated from both
+# commits (`just ratchet`), and the differential and fixpoint (`just
+# certified-gate`), whose outputs are compared by their κ, never by an exit
+# code. The last job requires both architectures' κ to be equal.
+name: certified
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'crates/uorust/**'
+      - 'crates/certified/**'
+      - 'frontier.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'prismpm.lock'
+      - 'Justfile'
+      - '.github/workflows/certified.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: certified
+  cancel-in-progress: true
+
+jobs:
+  export:
+    name: export the lifted translator through lexlean production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build the certified translator through the locked SDK
+        shell: bash
+        run: scripts/ci/sdk.sh 'just certified'
+      - name: Publish the bootstrap's share
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Certified translator'
+            echo
+            echo '```'
+            sed -n '/^\[share\]/,/^$/p' crates/certified/manifest.toml
+            grep -c '^\[\[root\]\]' crates/certified/manifest.toml | sed 's/^/certified roots: /'
+            grep -c '^\[\[refused\]\]' crates/certified/manifest.toml | sed 's/^/refused roots: /' || true
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+      - name: Push the certified translator and dispatch the gate and the model
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/ci/push.sh "Rebuild the certified translator" "crates/certified crates/uorust/src/certified.rs" certified.yml generate.yml
+
+  gate:
+    name: ratchet, differential and fixpoint / ${{ matrix.runner }} / run ${{ matrix.run }}
+    needs: export
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        run: [1, 2]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The ratchet against the parent commit
+        shell: bash
+        run: scripts/ci/sdk.sh 'just ratchet HEAD~1'
+      - name: The differential and the fixpoint
+        shell: bash
+        run: scripts/ci/sdk.sh 'just certified-gate target/certified-gate'
+      - name: Keep the outputs' κ
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: certified-kappa-${{ matrix.runner }}-${{ matrix.run }}
+          path: target/certified-gate/kappa.txt
+          retention-days: 7
+
+  agree:
+    name: every run on every architecture states the same κ
+    needs: gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: certified-kappa-*
+          path: kappa
+      - name: Compare the κ of the four runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(kappa/*/kappa.txt)
+          if [[ ${#files[@]} -ne 4 ]]; then
+            printf 'expected four runs, found %d\n' "${#files[@]}" >&2
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            if ! cmp -s "$f" "${files[0]}"; then
+              printf '%s differs from %s\n' "$f" "${files[0]}" >&2
+              diff "${files[0]}" "$f" >&2 || true
+              exit 1
+            fi
+          done
+          {
+            echo '## Certified translator κ'
+            echo
+            echo '```'
+            cat "${files[0]}"
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"

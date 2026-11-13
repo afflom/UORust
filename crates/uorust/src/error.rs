@@ -41,6 +41,13 @@ pub enum UorustError {
     /// A tool the engine runs could not be run or failed: `cargo rustc`
     /// dumping MIR, or `lexlean verify` deciding the MIR path's theorems.
     Tool(String),
+    /// The ratchet: more translator functions are uncertified than in the
+    /// parent commit; the first line counts both, each other names a new
+    /// uncertified function and its cause.
+    Grown(Vec<String>),
+    /// The differential: an output of the certified translator differs from
+    /// the hand-written one's, by κ; each names the output and both κ.
+    Disagree(Vec<String>),
 }
 
 impl fmt::Display for UorustError {
@@ -78,6 +85,16 @@ impl fmt::Display for UorustError {
                 rows.join("; ")
             ),
             Self::Tool(reason) => write!(f, "{reason}"),
+            Self::Disagree(rows) => write!(
+                f,
+                "the certified and the hand-written translator disagree: {}",
+                rows.join("; ")
+            ),
+            Self::Grown(rows) => write!(
+                f,
+                "the hand-written translator may only shrink: {}",
+                rows.join("\n  ")
+            ),
         }
     }
 }

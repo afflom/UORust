@@ -24,6 +24,9 @@ repo-conformance = { version = "0.1.1", path = "crates/conformance" }
 
 [workspace.lints.rust]
 missing_docs = "deny"
+# `uorust mir` dumps the translator under `--cfg uorust_lift`, so the self
+# register lifts each hand-written body without its certified dispatch.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(uorust_lift)"] }
 unsafe_op_in_unsafe_fn = "deny"
 
 [workspace.lints.clippy]

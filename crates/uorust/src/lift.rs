@@ -1322,6 +1322,8 @@ pub(crate) struct Helper {
 /// taken name rules out at most one of the first `taken.len() + 1`
 /// numbers, so one of them is free.
 fn first_free(base: &str, taken: &[String]) -> String {
+    #[cfg(not(uorust_lift))]
+    crate::certified::certified!(lift_first_free, base, taken);
     (1..taken.len() + 2)
         .map(|k| format!("{base}{k}"))
         .find(|name| !taken.contains(name))
@@ -1532,6 +1534,8 @@ fn flat_of(
 /// The pointer width of a target, from the architecture its triple names
 /// first, as rustc's target specifications set `target_pointer_width`.
 pub(crate) fn pointer_width(triple: &str) -> Option<u32> {
+    #[cfg(not(uorust_lift))]
+    crate::certified::certified!(lift_pointer_width, triple);
     let arch = triple.split('-').next()?;
     let wide = [
         "x86_64",
@@ -2842,6 +2846,8 @@ fn same_constructor(ty: &Ty, l: &str, r: &str) -> String {
 /// which the projection emits after the enum for every enum a lifted body
 /// compares.
 pub(crate) fn equality_name(enum_name: &str) -> String {
+    #[cfg(not(uorust_lift))]
+    crate::certified::certified!(lift_equality_name, enum_name);
     format!("equal{enum_name}")
 }
 
@@ -4608,6 +4614,8 @@ fn range_bounds(e: &rs::RustExpr) -> Option<(&rs::RustExpr, &rs::RustExpr, bool)
 /// Unicode Character Database, and no table of it is bound in LexLean or
 /// the SDK. The ASCII forms (`is_ascii_alphabetic`, ..) lift.
 fn unicode_property(name: &str) -> Option<String> {
+    #[cfg(not(uorust_lift))]
+    crate::certified::certified!(lift_unicode_property, name);
     let property = match name {
         "is_alphabetic" => "Alphabetic",
         "is_alphanumeric" => "Alphabetic or Numeric",
@@ -5322,6 +5330,8 @@ fn word_char(c: char) -> bool {
 /// Whether `text` holds `word` as a whole word: an occurrence that no word
 /// character continues on either side.
 fn mentions_word(text: &str, word: &str) -> bool {
+    #[cfg(not(uorust_lift))]
+    crate::certified::certified!(lift_mentions_word, text, word);
     !word.is_empty()
         && word.chars().all(word_char)
         && text.contains(word)

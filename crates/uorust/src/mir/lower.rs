@@ -341,6 +341,8 @@ fn is_pointer(t: &Ty) -> bool {
 
 /// The address of a pointer value.
 fn address(v: &str) -> String {
+    #[cfg(not(uorust_lift))]
+    crate::certified::certified!(mir_lower_address, v);
     format!("(project {v} address)")
 }
 
@@ -3760,6 +3762,8 @@ fn hypotheses(path: &[MirStep]) -> Vec<String> {
 
 /// `h1 -> (h2 -> ... goal)`.
 fn implication(hyps: &[String], goal: &str) -> String {
+    #[cfg(not(uorust_lift))]
+    crate::certified::certified!(mir_lower_implication, hyps, goal);
     let mut out = goal.to_string();
     for h in hyps.iter().rev() {
         out = format!("({h} -> {out})");

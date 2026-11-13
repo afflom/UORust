@@ -16,6 +16,10 @@ use crate::facts::{
     Package, SourceFile, Span, StructFact, Syntax, Target, TargetKind, Variant, Workspace,
 };
 
+/// The `package.metadata.uorust.generated` value of a package `lexlean
+/// production` generated.
+pub(crate) const GENERATED: &str = "lexlean production";
+
 /// Read a workspace from its root directory: its facts, and the syntax the
 /// lift reads.
 pub(crate) fn workspace(
@@ -36,7 +40,18 @@ pub(crate) fn workspace(
     for member in members {
         let (package, files) = package(&root, member, &workspace_lints)?;
         packages.push(package);
-        syntax.files.extend(files);
+        // A package `lexlean production` generated is the image of
+        // definitions the model already holds: a component, never lifted
+        // again as product code.
+        let generated = member
+            .get("metadata")
+            .and_then(|m| m.get("uorust"))
+            .and_then(|u| u.get("generated"))
+            .and_then(Value::as_str)
+            == Some(GENERATED);
+        if !generated {
+            syntax.files.extend(files);
+        }
     }
     packages.sort_by(|a, b| a.name.cmp(&b.name));
     let name = root

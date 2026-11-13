@@ -12,8 +12,22 @@ use uorust::{Options, UorustError};
 #[derive(Parser)]
 #[command(name = "uorust", version)]
 struct Cli {
+    /// Which translator runs the functions the certified translator covers:
+    /// the certified one, or the hand-written one, the differential's second
+    /// path.
+    #[arg(long, global = true, value_enum, default_value_t = Translator::Certified)]
+    translator: Translator,
     #[command(subcommand)]
     command: Command,
+}
+
+/// A path of the translator.
+#[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+enum Translator {
+    /// The certified packages crates/certified holds.
+    Certified,
+    /// The hand-written functions they certify.
+    Hand,
 }
 
 /// What to do with the projection.
@@ -44,6 +58,84 @@ enum Command {
     Merge(MergeArgs),
     /// Print the route table.
     Routes,
+    /// The certified translator: export the lifted translator through
+    /// `lexlean production`, take the bundle in, and hold the ratchet.
+    #[command(subcommand)]
+    Certify(Certify),
+}
+
+/// The steps of the certified translator (`just certified`).
+#[derive(Subcommand)]
+enum Certify {
+    /// Export the lifted translator with `lexlean production build`: the
+    /// self projection with every lifted translator definition a production
+    /// root, refusing each the compiler finds ineligible, and the bundle
+    /// replayed with `verify-artifact`.
+    Production {
+        /// The self projection (`uorust project . --out ...`).
+        #[arg(long)]
+        projection: PathBuf,
+        /// The self register, `frontier.toml`.
+        #[arg(long)]
+        register: PathBuf,
+        /// The output of `lexlean production targets`.
+        #[arg(long)]
+        targets: PathBuf,
+        /// The directory the production project is written to.
+        #[arg(long)]
+        out: PathBuf,
+        /// Where the bundle's result, package sources and refusals are kept
+        /// for `certify sync`.
+        #[arg(long)]
+        kept: PathBuf,
+    },
+    /// Take a published bundle into the certified crate and write its
+    /// manifest with the bootstrap's share.
+    Sync {
+        /// What `certify production` kept of the bundle.
+        #[arg(long)]
+        kept: PathBuf,
+        /// The self register, `frontier.toml`.
+        #[arg(long)]
+        register: PathBuf,
+        /// The workspace's MIR dumps (`uorust mir`).
+        #[arg(long)]
+        mir: PathBuf,
+        /// The workspace root.
+        #[arg(long)]
+        workspace: PathBuf,
+        /// The certified crate's directory.
+        #[arg(long)]
+        dir: PathBuf,
+        /// The adapters' module of uorust that is written.
+        #[arg(long)]
+        adapters: PathBuf,
+    },
+    /// The differential and the fixpoint: every output directory under `dir`
+    /// written by the certified translator (`<name>-certified`) has the κ of
+    /// the one the hand-written translator wrote (`<name>-hand`); prints each
+    /// output's κ, and is refused on any disagreement.
+    Agree {
+        /// The directory of the outputs.
+        #[arg(long)]
+        dir: PathBuf,
+    },
+    /// Refuse a head under which more translator functions are uncertified
+    /// than under the base.
+    Ratchet {
+        /// The head's register.
+        #[arg(long)]
+        register: PathBuf,
+        /// The head's manifest.
+        #[arg(long)]
+        manifest: PathBuf,
+        /// The base's register.
+        #[arg(long)]
+        base_register: PathBuf,
+        /// The base's manifest.
+        #[arg(long)]
+        base_manifest: PathBuf,
+    },
 }
 
 #[derive(clap::Args)]
@@ -163,6 +255,7 @@ fn options(args: &Args) -> Result<Options, UorustError> {
 }
 
 fn run(cli: Cli) -> Result<(), UorustError> {
+    uorust::certified::use_hand(cli.translator == Translator::Hand);
     match cli.command {
         Command::Project(args) => {
             let files = uorust::project_workspace(&args.workspace, &options(&args)?)?;
@@ -246,6 +339,7 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             );
             Ok(())
         }
+        Command::Certify(step) => certify(step),
         Command::Routes => {
             for route in uorust::ROUTES {
                 println!(
@@ -281,6 +375,87 @@ fn library(krate: &str, args: &CoreArgs) -> Result<(), UorustError> {
         shards.len(),
         args.register.display()
     );
+    Ok(())
+}
+
+fn read_register(path: &std::path::Path) -> Result<uorust::register::Register, UorustError> {
+    let text = std::fs::read_to_string(path).map_err(|e| UorustError::Io {
+        path: path.to_path_buf(),
+        reason: e.to_string(),
+    })?;
+    uorust::register::Register::parse(path, &text)
+}
+
+fn certify(step: Certify) -> Result<(), UorustError> {
+    use uorust::certify;
+    match step {
+        Certify::Production {
+            projection,
+            register,
+            targets,
+            out,
+            kept,
+        } => {
+            let targets = std::fs::read_to_string(&targets).map_err(|e| UorustError::Io {
+                path: targets.clone(),
+                reason: e.to_string(),
+            })?;
+            certify::build(
+                &projection,
+                &out,
+                &read_register(&register)?,
+                &targets,
+                &kept,
+            )?;
+            println!("certified bundle kept in {}", kept.display());
+        }
+        Certify::Sync {
+            kept,
+            register,
+            mir,
+            workspace,
+            dir,
+            adapters,
+        } => {
+            let m = certify::sync_paths(
+                &kept,
+                &dir,
+                &adapters,
+                &read_register(&register)?,
+                &workspace,
+                &mir,
+            )?;
+            let s = &m.share;
+            println!(
+                "{} certified roots; {} of {} translator functions certified, {} of {} reachable from {}",
+                m.roots.len(),
+                s.certified,
+                s.translator,
+                s.reachable_certified,
+                s.reachable,
+                certify::ENTRY
+            );
+        }
+        Certify::Agree { dir } => {
+            for line in certify::agree(&dir)? {
+                println!("{line}");
+            }
+        }
+        Certify::Ratchet {
+            register,
+            manifest,
+            base_register,
+            base_manifest,
+        } => {
+            let n = certify::ratchet(
+                &read_register(&register)?,
+                &certify::Manifest::read(&manifest)?,
+                &read_register(&base_register)?,
+                &certify::Manifest::read(&base_manifest)?,
+            )?;
+            println!("{n} translator functions uncertified, none more than in the base");
+        }
+    }
     Ok(())
 }
 

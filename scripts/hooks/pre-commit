@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# The ratchet on what is staged: the hand-written translator may only shrink
+# (Justfile `ratchet-staged`). It has no bypass; CI decides the same on
+# registers generated from both commits (`just ratchet`).
+set -euo pipefail
+exec just ratchet-staged

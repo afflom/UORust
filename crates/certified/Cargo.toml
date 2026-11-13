@@ -1,0 +1,19 @@
+[package]
+name = "uorust-certified"
+description = "The certified translator of uorust: the Rust that lexlean production exports from the lifted translator's LexLean definitions, kernel-checked, one module per production root."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+include = ["/src/**/*.rs", "/roots/*.rs", "/manifest.toml", "/targets.json"]
+
+# The image of LexLean definitions the self model already holds: never lifted
+# again as product code (`uorust` reads this marker).
+[package.metadata.uorust]
+generated = "lexlean production"
+
+[lib]
+path = "src/lib.rs"

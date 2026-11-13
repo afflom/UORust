@@ -32,6 +32,10 @@ without the other two.
 | `self-model-check` | a hand edit of a generated module (a stakeholder renamed in `app/src/Architecture.lex.tex`) | rejected |
 | `self_model_sm_01` | a route dropped from `app/src/Routes.lex.tex`, or a vector of `model/routes.toml` missing from the application | both rejected |
 | `prismpm verify` | an acceptance vector set without the exact guest-allocation boundary | rejected (PP2009) |
+| UE-18 ratchet (`the_hand_written_translator_only_shrinks_ue_18`, `just ratchet`, the pre-commit hook) | a register with one more uncertified translator function than its parent's (`a_grown_translator_is_refused_ue_18`; in `certify`, a new residue function and a certified function whose κ changed) | rejected, naming `uorust::mir::lower::planted: residue (mir): mir::Rvalue::Use` |
+| UE-18 differential and fixpoint (`certify agree`, `just certified-gate`) | a hand-written output one byte apart from the certified one's (`the_differential_refuses_one_byte_apart`) | rejected, naming both κ |
+| UE-18 certified sources (`certify sync`) | a package source whose SHA-256 is not the one the bundle's result records | rejected |
+| UE-18 certified dispatch (`certified!`, `--cfg=uorust_lift`) | a hand-written body whose certified dispatch the lift reads (`the_lift_reads_no_certified_dispatch`) | rejected: the dispatch statement is left out of the lifted syntax |
 | `audit-bootstrap` | a floating/copied action, mutable SDK tag, changed universal file, narrowed boundary, shallow/credential-retaining checkout, copied project renderer, omitted standards lock, acceptance bypass, deploy-job signing privilege, incomplete release lifecycle, or a bootstrap that drops a native architecture from main or tags, cancels or replaces a main run, or skips runs by path, condition or matrix exclusion | all rejected |
 
 `audit-deferral` reads every crate and `xtask`, including itself. Its token

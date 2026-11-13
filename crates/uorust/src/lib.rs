@@ -14,6 +14,8 @@
 mod admit;
 mod assets;
 mod ast;
+pub mod certified;
+pub mod certify;
 mod convert;
 mod error;
 mod facts;

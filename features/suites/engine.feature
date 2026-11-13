@@ -108,3 +108,9 @@ Feature: engine
     Given the mir-path fixture, its committed verdict register and the vendored MIR definition of the pinned toolchain
     When the suite exercises UE-17
     Then every MIR kind has a coverage row, the trial projection lists a loop helper with its measure and decrease theorems and a theorem per obligation, std's own MIR instantiated at a call's types, a std model from the table with a mutable borrow returned by its backward function, and a promoted constant lowered from its own body, the mutable borrow of a parameter is a residue row naming its MIR cause, the proved translation lifts, the refused one is residue naming the verifier's diagnostic, and a verdict of another digest admits nothing
+
+  @UE-18 @build
+  Scenario: The translator certifies itself and only shrinks by hand
+    Given this workspace's lift register and the certified translator's manifest, and the parent commit's
+    When the suite exercises UE-18
+    Then each lifted translator function is a production root, a root the compiler finds ineligible is refused with its diagnostic, every certified source matches the SHA-256 its bundle records, the share counts the translator functions reachable from the translate entry and those certified, and a commit with more uncertified translator functions than its parent is refused naming each new one and its cause

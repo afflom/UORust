@@ -29,7 +29,7 @@ pub(crate) mod spec;
 #[cfg(test)]
 mod generate;
 mod int;
-mod ir;
+pub(crate) mod ir;
 mod prove;
 // Generated: its layout is the generator's, which the std test compares.
 #[cfg(test)]
@@ -89,8 +89,11 @@ impl Trial {
     }
 }
 
-/// The flags `cargo rustc` passes the compiler for a dump.
+/// The flags `cargo rustc` passes the compiler for a dump. `uorust_lift`
+/// leaves out what the lift must not read: a hand-written function's
+/// dispatch to its certified realization (`crate::certified::certified!`).
 pub const FLAGS: &[&str] = &[
+    "--cfg=uorust_lift",
     "-Ztrim-diagnostic-paths=no",
     "-Zdump-mir=ElaborateBoxDerefs",
     "-Coverflow-checks=on",

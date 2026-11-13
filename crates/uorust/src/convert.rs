@@ -170,10 +170,36 @@ pub(crate) fn block(b: &syn::Block) -> Block {
                     syn::visit_mut::VisitMut::visit_stmt_mut(&mut written, s);
                 }
             }
+            other if lift_omits(other) => {}
             other => stmts.push(stmt(other)),
         }
     }
     Block { stmts }
+}
+
+/// Whether a statement is compiled out of the lift's dump: it carries
+/// `#[cfg(not(uorust_lift))]`, which `mir::FLAGS` sets. The syntax the lift
+/// reads is the dump's configuration, so it leaves the statement out too.
+fn lift_omits(s: &syn::Stmt) -> bool {
+    let attrs: &[syn::Attribute] = match s {
+        syn::Stmt::Local(l) => &l.attrs,
+        syn::Stmt::Macro(m) => &m.attrs,
+        syn::Stmt::Expr(e, _) => match e {
+            syn::Expr::If(i) => &i.attrs,
+            syn::Expr::Call(c) => &c.attrs,
+            syn::Expr::Macro(m) => &m.attrs,
+            syn::Expr::Block(b) => &b.attrs,
+            _ => &[],
+        },
+        syn::Stmt::Item(_) => &[],
+    };
+    attrs.iter().any(|a| match &a.meta {
+        syn::Meta::List(l) if l.path.is_ident("cfg") => {
+            let tokens: String = l.tokens.to_string().split_whitespace().collect();
+            tokens == "not(uorust_lift)"
+        }
+        _ => false,
+    })
 }
 
 /// The names a `use` tree binds, each with the path it names, or `false`
@@ -595,5 +621,19 @@ pub(crate) fn signature(sig: &syn::Signature) -> Signature {
             syn::ReturnType::Default => None,
             syn::ReturnType::Type(_, t) => Some(ty(t)),
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // The planted defect of the dispatch: a certified dispatch the lift read
+    // would make every dispatching function a residue.
+    #[test]
+    fn the_lift_reads_no_certified_dispatch() {
+        let b: syn::Block = syn::parse_str(
+            "{ #[cfg(not(uorust_lift))] crate::certified::certified!(f, a); #[cfg(test)] g(); a }",
+        )
+        .expect("a block");
+        assert_eq!(super::block(&b).stmts.len(), 2);
     }
 }

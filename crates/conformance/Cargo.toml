@@ -12,3 +12,8 @@ repo-model = { workspace = true }
 
 [lints]
 workspace = true
+
+# The ratchet test reads the registers with uorust's own parser and decides
+# with its ratchet, so the gate and the engine cannot disagree.
+[dev-dependencies]
+uorust = { version = "0.1.1", path = "../uorust" }

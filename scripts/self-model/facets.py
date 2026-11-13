@@ -745,6 +745,44 @@ for k in reversed(range(len(starts) - 1)):
 out += defn("liftCauses", "(List LiftCause)", causes_term) + "\n"
 out += defn("liftResidueBodies", "Nat", str(residue_bodies)) + "\n"
 out += defn("liftQueueBodies", "Nat", str(covered)) + "\n"
+# The bootstrap of the certified translator: how much of the translator runs
+# as the Rust `lexlean production` exported from its own lifted definitions.
+# crates/certified/manifest.toml (written by `just certified`) counts the
+# translator's functions (uorust::mir, lift, lex) in the self register, those
+# certified, those the translate entry reaches over the MIR call graph, and
+# those of them certified; the share is cited by κ, so a run that certifies
+# more moves the model, and the counts' order is a theorem the kernel decides.
+CERTIFIED = "crates/certified/manifest.toml"
+if os.path.exists(f"{SRC}/{CERTIFIED}"):
+    certified = tomllib.loads(open(f"{SRC}/{CERTIFIED}", encoding="utf-8").read())
+    share = certified["share"]
+    lines = lines_of(CERTIFIED)
+    at = lines.index("[share]") + 1
+    cite(Qm, QS + "certifiedShare", CERTIFIED, at, at + 4)
+    out += """
+structure{
+  name: CertifiedShare,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: translator, type: Nat}, {name: certified, type: Nat}, {name: reachable, type: Nat}, {name: reachableCertified, type: Nat}]
+}
+
+"""
+    out += defn("certifiedShare", "Quality::CertifiedShare",
+                f"(record Quality::CertifiedShare {{translator := {share['translator']}, certified := {share['certified']}, "
+                f"reachable := {share['reachable']}, reachableCertified := {share['reachable_certified']}}})") + "\n"
+    out += defn("certifiedEntry", "String", q(certified["entry"])) + "\n"
+    for name, small, large in [("certifiedWithinTranslator", "certified", "translator"),
+                               ("reachableCertifiedWithinReachable", "reachableCertified", "reachable"),
+                               ("reachableWithinTranslator", "reachable", "translator")]:
+        out += f"""
+theorem{{
+  name: {name},
+  parameters: [],
+  statement: ((project (certifiedShare) {small}) <= (project (certifiedShare) {large})),
+  proof: decide{{}}
+}}
+"""
 out += "\n" + defn("sourcesOfMeasures", "(List Architecture::Source)", source_list(Qm))
 out = out.rstrip("\n") + "\n" + FOOT
 open(f"{OUT}/Quality.lex.tex", "w").write(out)
