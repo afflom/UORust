@@ -34,6 +34,14 @@ fn std_agrees_with_every_vector_of_its_models() {
     assert_eq!({ let mut v = vec![1u8]; v.push(2u8); v }, vec![1u8, 2], "std::vec::Vec::push");
     assert_eq!({ let mut s = String::from("ab"); s.push_str("cd"); s }, "abcd", "std::string::String::push_str");
     assert_eq!({ let mut s = String::from("ab"); s.push('é'); s }, "abé", "std::string::String::push");
+    assert_eq!({ let mut s = String::from("ab"); let r = core::fmt::Write::write_str(&mut s as &mut dyn core::fmt::Write, "cd"); (r, s) }, (Ok(()), String::from("abcd")), "<dyn core::fmt::Write as core::fmt::Write>::write_str");
+    assert_eq!({ let mut s = String::from(""); let r = core::fmt::Write::write_str(&mut s as &mut dyn core::fmt::Write, ""); (r, s) }, (Ok(()), String::new()), "<dyn core::fmt::Write as core::fmt::Write>::write_str");
+    assert_eq!({ let mut s = String::from("ab"); let r = core::fmt::Write::write_char(&mut s as &mut dyn core::fmt::Write, 'é'); (r, s) }, (Ok(()), String::from("abé")), "<dyn core::fmt::Write as core::fmt::Write>::write_char");
+    assert_eq!(format_args!("ab").as_str(), Some("ab"), "core::fmt::Arguments::from_str");
+    assert_eq!(format_args!("").as_str(), Some(""), "core::fmt::Arguments::from_str_nonconst");
+    assert_eq!(format_args!("lit").as_str(), Some("lit"), "core::fmt::Arguments::as_str");
+    assert_eq!({ let mut s = String::from("<"); let r = core::fmt::write(&mut s, format_args!("{}-{:>3}|{:#x}", 7u8, "ab", 255u32)); (r, s) }, (Ok(()), String::from("<7- ab|0xff")), "core::fmt::write");
+    assert_eq!({ let mut s = String::from(""); let r = core::fmt::write(&mut s, format_args!("lit")); (r, s) }, (Ok(()), String::from("lit")), "core::fmt::write");
     assert!(std::collections::BTreeSet::from(["a", "b"]).contains(&"b"), "std::collections::BTreeSet::contains");
     assert!(!std::collections::BTreeSet::from(["a"]).contains(&"c"), "std::collections::BTreeSet::contains");
     assert_eq!({ let mut s = std::collections::BTreeSet::from(["a", "c"]); let new = s.insert("b"); (new, s.into_iter().collect::<Vec<_>>()) }, (true, vec!["a", "b", "c"]), "std::collections::BTreeSet::insert");

@@ -408,6 +408,8 @@ pub(crate) struct CoreDecls {
     pub(crate) generics: BTreeMap<String, Vec<String>>,
     /// The intrinsics core declares without a body of their own, by path.
     pub(crate) intrinsics: std::collections::BTreeSet<String>,
+    /// The traits core declares, by path: a field's trait object names one.
+    traits: std::collections::BTreeSet<String>,
 }
 
 /// Each name a `use` tree binds in `module`, with the path from core's root
@@ -545,6 +547,9 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         variants: Some(e.variants.iter().map(|v| v.ident.to_string()).collect()),
                         explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
                     });
+                }
+                syn::Item::Trait(t) => {
+                    out.traits.insert(at(t.ident.to_string()));
                 }
                 syn::Item::Fn(f) => {
                     out.generics
@@ -729,7 +734,7 @@ impl Instances<'_> {
     /// The declared path `path` names from core's root, through the `use`
     /// names that re-export it.
     fn canonical(&self, path: &str, depth: usize) -> Option<String> {
-        if self.by.contains_key(path) {
+        if self.by.contains_key(path) || self.decls.traits.contains(path) {
             return Some(path.to_string());
         }
         let (module, name) = path.rsplit_once("::").unwrap_or(("", path));
@@ -813,6 +818,11 @@ impl Instances<'_> {
             return n.clone();
         }
         self.done.insert(key.clone(), None);
+        // A type the std table models (a lang item core builds of raw
+        // pointers, as `fmt::Arguments`) is the table's.
+        if super::stdlib::model_type(&format!("core::{path}"), &[]).is_some() {
+            return None;
+        }
         let st = self.by.get(path)?.clone();
         // An enum the scope lifts as its own, of the same variants, keeps
         // its lift.
@@ -951,6 +961,8 @@ fn instantiate_structs(
     for (body, _, _) in bodies {
         mentioned.extend(body.locals.iter().map(String::as_str));
     }
+    // The types the std table's models build values of.
+    mentioned.extend(super::stdlib::table().instantiate.iter().map(String::as_str));
     for text in mentioned {
         cx.mention(text, types);
     }

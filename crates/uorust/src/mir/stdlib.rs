@@ -37,6 +37,15 @@ enum StdPattern {
     Option(Box<StdPattern>),
     Set(Box<StdPattern>),
     Map(Box<StdPattern>, Box<StdPattern>),
+    /// `result<P, Q>`: a `Result` of a `P` or a `Q`.
+    Outcome(Box<StdPattern>, Box<StdPattern>),
+    /// `u8`, `u16`, ..: an unsigned integer of that width.
+    Fixed(u32),
+    /// `named<fmt::Error>`: a struct the crate's scope declares, by its
+    /// path from the crate's root, under the name the scope lifts it as.
+    Named(String),
+    /// `fn<P.., R>`: a pure function of the `P`s to an `R`.
+    Function(Vec<StdPattern>, Box<StdPattern>),
     /// A tuple of these, `tuple<P, Q, ..>`; `cursor<P>` is a list of `P`
     /// and the two positions an iterator over it has reached from its
     /// front and its back, `tuple<list<P>, usize, usize>`: a slice
@@ -78,6 +87,9 @@ struct StdAux {
 /// The parsed table.
 pub(crate) struct StdTable {
     pub(crate) lift: Vec<String>,
+    /// The crate's own types the models build values of, as MIR prints
+    /// them: a library's scope instantiates each.
+    pub(crate) instantiate: Vec<String>,
     types: Vec<(String, StdPattern)>,
     pub(crate) models: Vec<StdModel>,
     aux: BTreeMap<String, StdAux>,
@@ -94,6 +106,10 @@ fn parse_pat(text: &str) -> Option<StdPattern> {
         Some(at) => (&t[..at], Some(t[at + 1..].strip_suffix('>')?)),
         None => (t, None),
     };
+    if let ("named", Some(path)) = (head, inner) {
+        let parts: Vec<&str> = std::iter::once("core").chain(path.split("::")).collect();
+        return Some(StdPattern::Named(crate::lex::pascal(&parts)));
+    }
     let args: Vec<StdPattern> = match inner {
         Some(i) => super::parse::split_top(i, ',')
             .into_iter()
@@ -113,10 +129,17 @@ fn parse_pat(text: &str) -> Option<StdPattern> {
         ("nat", []) => StdPattern::Nat,
         ("text", []) => StdPattern::Text,
         ("unit", []) => StdPattern::Unit,
+        ("u8", []) => StdPattern::Fixed(8),
+        ("u16", []) => StdPattern::Fixed(16),
+        ("u32", []) => StdPattern::Fixed(32),
+        ("u64", []) => StdPattern::Fixed(64),
+        ("u128", []) => StdPattern::Fixed(128),
+        ("fn", [ins @ .., out]) => StdPattern::Function(ins.to_vec(), Box::new(out.clone())),
         ("list", _) => StdPattern::List(one(&args)?),
         ("option", _) => StdPattern::Option(one(&args)?),
         ("set", _) => StdPattern::Set(one(&args)?),
         ("map", [k, v]) => StdPattern::Map(Box::new(k.clone()), Box::new(v.clone())),
+        ("result", [t, e]) => StdPattern::Outcome(Box::new(t.clone()), Box::new(e.clone())),
         ("tuple", [_, _, ..]) => StdPattern::Tuple(args),
         ("cursor", [p]) => StdPattern::Tuple(vec![
             StdPattern::List(Box::new(p.clone())),
@@ -134,6 +157,7 @@ pub(crate) fn table() -> &'static StdTable {
     T.get_or_init(|| {
         parse_table(TABLE, BODIES).unwrap_or_else(|| StdTable {
             lift: Vec::new(),
+            instantiate: Vec::new(),
             types: Vec::new(),
             models: Vec::new(),
             aux: BTreeMap::new(),
@@ -225,6 +249,7 @@ fn parse_table(text: &str, bodies: &str) -> Option<StdTable> {
     }
     Some(StdTable {
         lift: strs(doc.get("lift")),
+        instantiate: strs(doc.get("instantiate")),
         types,
         models,
         aux,
@@ -309,6 +334,12 @@ pub(crate) fn canon(path: &str) -> String {
         Some(b) => (format!("{}mut ", &t[..t.len() - bare.len()]), b),
         None => (t[..t.len() - bare.len()].to_string(), bare),
     };
+    // A trait object keys by its trait: `dyn core::fmt::Write` and `dyn
+    // fmt::Write` alike.
+    let (refs, bare) = match bare.strip_prefix("dyn ") {
+        Some(b) => (format!("{refs}dyn "), b),
+        None => (refs, bare),
+    };
     if bare.starts_with('[') {
         return format!("{refs}[]");
     }
@@ -343,6 +374,12 @@ fn bind(p: &StdPattern, t: &Ty, binds: &mut PatternBinds) -> bool {
         | (StdPattern::Option(p), Ty::Option(t))
         | (StdPattern::Set(p), Ty::Set(t, true)) => bind(p, t, binds),
         (StdPattern::Map(pk, pv), Ty::Map(k, v, true)) => bind(pk, k, binds) && bind(pv, v, binds),
+        (StdPattern::Outcome(pt, pe), Ty::Outcome(t, e)) => bind(pt, t, binds) && bind(pe, e, binds),
+        (StdPattern::Fixed(b), Ty::Nat(Some(w))) => b == w,
+        (StdPattern::Named(n), Ty::Named(m)) => n == m,
+        (StdPattern::Function(ps, pr), Ty::Fn(ts, r)) if ps.len() == ts.len() => {
+            ps.iter().zip(ts).all(|(p, t)| bind(p, t, binds)) && bind(pr, r, binds)
+        }
         (StdPattern::Tuple(ps), Ty::Tuple(ts)) if ps.len() == ts.len() => {
             ps.iter().zip(ts).all(|(p, t)| bind(p, t, binds))
         }
@@ -366,6 +403,13 @@ fn build(p: &StdPattern, binds: &PatternBinds) -> Option<Ty> {
         StdPattern::Map(k, v) => {
             Ty::Map(Box::new(build(k, binds)?), Box::new(build(v, binds)?), true)
         }
+        StdPattern::Outcome(t, e) => Ty::Outcome(Box::new(build(t, binds)?), Box::new(build(e, binds)?)),
+        StdPattern::Fixed(b) => Ty::Nat(Some(*b)),
+        StdPattern::Named(n) => Ty::Named(n.clone()),
+        StdPattern::Function(ps, r) => Ty::Fn(
+            ps.iter().map(|p| build(p, binds)).collect::<Option<_>>()?,
+            Box::new(build(r, binds)?),
+        ),
         StdPattern::Tuple(ps) => {
             Ty::Tuple(ps.iter().map(|p| build(p, binds)).collect::<Option<_>>()?)
         }
@@ -377,7 +421,7 @@ fn vars(p: &StdPattern, out: &mut Vec<String>) {
     match p {
         StdPattern::Var(v) if !out.contains(v) => out.push(v.clone()),
         StdPattern::List(p) | StdPattern::Option(p) | StdPattern::Set(p) => vars(p, out),
-        StdPattern::Map(k, v) => {
+        StdPattern::Map(k, v) | StdPattern::Outcome(k, v) => {
             vars(k, out);
             vars(v, out);
         }
@@ -385,6 +429,12 @@ fn vars(p: &StdPattern, out: &mut Vec<String>) {
             for p in ps {
                 vars(p, out);
             }
+        }
+        StdPattern::Function(ps, r) => {
+            for p in ps {
+                vars(p, out);
+            }
+            vars(r, out);
         }
         _ => {}
     }
@@ -432,7 +482,17 @@ pub(crate) fn apply(
     defaults: Defaults<'_>,
 ) -> Option<Applied> {
     let k = key(callee);
-    let model = table().models.iter().find(|m| key(&m.path) == k)?;
+    // Core prints its own items by their shortest path in scope
+    // (`Arguments::from_str`): the one model whose path ends it.
+    let tail = format!("::{k}");
+    let mut ends = table().models.iter().filter(|m| key(&m.path).ends_with(&tail));
+    let model = match table().models.iter().find(|m| key(&m.path) == k) {
+        Some(m) => m,
+        None => match (ends.next(), ends.next()) {
+            (Some(m), None) if k.contains("::") && !k.starts_with('<') => m,
+            _ => return None,
+        },
+    };
     if model.args.len() != args.len() {
         return None;
     }

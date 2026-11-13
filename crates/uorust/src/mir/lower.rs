@@ -1806,6 +1806,43 @@ impl Fun<'_, '_> {
             IrConstant::Char(ch) => lift::exact_string(&ch.to_string())
                 .map(|s| (s, Ty::Char))
                 .ok_or_else(|| kind(k, "a char LexLean source cannot write")),
+            // A byte string, as MIR prints it with Rust's escapes: the list
+            // of its bytes.
+            IrConstant::Other(p) if p.starts_with("b\"") && p.ends_with('"') && p.len() >= 3 => {
+                let inner = &p[2..p.len() - 1];
+                let mut bytes: Vec<u8> = Vec::new();
+                let mut chars = inner.chars();
+                while let Some(c) = chars.next() {
+                    if c != '\\' {
+                        let mut buf = [0u8; 4];
+                        bytes.extend_from_slice(c.encode_utf8(&mut buf).as_bytes());
+                        continue;
+                    }
+                    let b = match chars.next() {
+                        Some('n') => b'\n',
+                        Some('t') => b'\t',
+                        Some('r') => b'\r',
+                        Some('0') => 0,
+                        Some('\\') => b'\\',
+                        Some('"') => b'"',
+                        Some('\'') => b'\'',
+                        Some('x') => {
+                            let hex: String = chars.by_ref().take(2).collect();
+                            u8::from_str_radix(&hex, 16)
+                                .map_err(|_| kind(k, &format!("a byte string escape \\x{hex}")))?
+                        }
+                        other => {
+                            return Err(kind(k, &format!("a byte string escape \\{other:?}")))
+                        }
+                    };
+                    bytes.push(b);
+                }
+                let mut out = "(nil Nat)".to_string();
+                for b in bytes.iter().rev() {
+                    out = format!("(cons {b} {out})");
+                }
+                Ok((out, Ty::List(Box::new(Ty::Nat(Some(8))))))
+            }
             // A float literal as MIR prints it (`0f32`, `-0f64`, `1.0E+4f16`,
             // `+Inf_f16`), or a constant IEEE 754 fixes, by core's name for
             // it (`f32::<impl f32>::NAN`).
@@ -2297,9 +2334,22 @@ impl Fun<'_, '_> {
             }
         }
         match rv {
-            // A mutable borrow moved or copied whole is the same borrow.
+            // A mutable borrow moved or copied whole is the same borrow, and
+            // so is one coerced to a type the lift holds alike (`&mut
+            // String` to `&mut dyn fmt::Write`, an unsizing coercion).
             IrRvalue::Use(IrOperand::Copy(q) | IrOperand::Move(q))
                 if q.projection.is_empty() && matches!(st.env.get(&q.local), Some(Val::Mut(_))) =>
+            {
+                Ok(st.env[&q.local].clone())
+            }
+            IrRvalue::Cast(
+                spec::MirCastKind::PointerCoercion,
+                IrOperand::Copy(q) | IrOperand::Move(q),
+                _,
+            ) if q.projection.is_empty()
+                && matches!(st.env.get(&q.local), Some(Val::Mut(_)))
+                && self.local_ty(q.local, &[])?.render()
+                    == self.local_ty(dest.local, &dest.projection)?.render() =>
             {
                 Ok(st.env[&q.local].clone())
             }
@@ -3257,6 +3307,211 @@ impl Fun<'_, '_> {
                 threads: None,
             });
         }
+        // `Arguments::new(template, args)` of `format_args!`, where the
+        // table models Arguments as its pieces: the template is the
+        // constant `format_args!` writes, read here in core's own encoding
+        // (core/src/fmt/mod.rs, at `Arguments`): a literal piece is its
+        // length (one byte below 0x80, or 0x80 and 16 bits) and its bytes;
+        // a placeholder is a byte of the top two bits set, whose low bits
+        // say which of its flags (32 bits), width, precision and argument
+        // index (16 bits each, little-endian) follow; a zero byte ends it.
+        // Each piece is its literal text and, for a placeholder, its
+        // options (core's `FormattingOptions::new()` where the template
+        // gives none) and the index of the argument it formats.
+        if let (Some(link), Ty::Tuple(parts), [(template, Ty::List(_)), (list, Ty::List(_))]) =
+            (self.cx.core, dt, args.as_slice())
+        {
+            let piece_ty = match parts.as_slice() {
+                [Ty::Option(lit), Ty::List(p), Ty::List(_)] if **lit == Ty::Str => Some((**p).clone()),
+                _ => None,
+            };
+            let is_new = link
+                .instance(callee, texts, dest)
+                .is_some_and(|i| i.text.contains("fn ") && i.path.ends_with("::new"));
+            let bytes: Option<Vec<u32>> = {
+                let mut rest = template.trim();
+                let mut out = Some(Vec::new());
+                while let Some(r) = rest.strip_prefix("(cons ") {
+                    let (n, r) = r.split_once(' ').unwrap_or(("", ""));
+                    match (out.as_mut(), n.parse::<u32>()) {
+                        (Some(o), Ok(b)) => o.push(b),
+                        _ => out = None,
+                    }
+                    rest = r;
+                }
+                out.filter(|_| rest.starts_with("(nil "))
+            };
+            if let (true, Some(Ty::Tuple(pt)), Some(bytes)) = (is_new, &piece_ty, bytes) {
+                let [Ty::Str, Ty::Option(ph)] = pt.as_slice() else {
+                    return Err(kind(k, "a template piece of another shape"));
+                };
+                let Ty::Tuple(pht) = &**ph else {
+                    return Err(kind(k, "a placeholder of another shape"));
+                };
+                let opts_ty = pht.first().cloned().unwrap_or(Ty::Unit);
+                let Ty::Named(opts_name) = &opts_ty else {
+                    return Err(kind(k, "placeholder options that are no struct"));
+                };
+                let fields = self.cx.types.structs.get(opts_name).cloned().unwrap_or_default();
+                let defaults = self.call("FormattingOptions::new", Vec::new(), &[], "fmt::FormattingOptions", &opts_ty, st)?;
+                let le = |b: &[u32]| b.iter().rev().fold(0u64, |acc, x| acc * 256 + u64::from(*x));
+                let bad = |what: &str| kind(k, &format!("a format_args! template {what}"));
+                let mut pieces: Vec<String> = Vec::new();
+                let mut at = 0usize;
+                let mut next = 0u64;
+                loop {
+                    let n = *bytes.get(at).ok_or_else(|| bad("without its end"))?;
+                    at += 1;
+                    if n == 0 {
+                        break;
+                    }
+                    let literal = |at: &mut usize, len: usize| -> Lift<String> {
+                        let raw: Vec<u8> = bytes
+                            .get(*at..*at + len)
+                            .ok_or_else(|| bad("past its end"))?
+                            .iter()
+                            .map(|b| u8::try_from(*b).unwrap_or(0))
+                            .collect();
+                        *at += len;
+                        let s = String::from_utf8(raw).map_err(|_| bad("piece that is not UTF-8"))?;
+                        lift::exact_string(&s).ok_or_else(|| bad("piece LexLean source cannot write"))
+                    };
+                    let none = format!("(ctor Option.none [{}])", ph.render());
+                    if n < 0x80 {
+                        let s = literal(&mut at, n as usize)?;
+                        pieces.push(lift::tuple_value(&piece_ty.clone().unwrap_or(Ty::Unit), &[s, none]));
+                        continue;
+                    }
+                    if n == 0x80 {
+                        let len = le(bytes.get(at..at + 2).ok_or_else(|| bad("past its end"))?);
+                        at += 2;
+                        let s = literal(&mut at, len as usize)?;
+                        pieces.push(lift::tuple_value(&piece_ty.clone().unwrap_or(Ty::Unit), &[s, none]));
+                        continue;
+                    }
+                    if n < 0xC0 {
+                        return Err(bad("byte core does not write"));
+                    }
+                    if n & 0x30 != 0 {
+                        return Err(bad("whose width or precision is an argument"));
+                    }
+                    let mut values: Vec<String> = Vec::new();
+                    for (i, w) in [(1u32, 4usize), (2, 2), (4, 2)] {
+                        let j = values.len();
+                        if n & i != 0 {
+                            let v = le(bytes.get(at..at + w).ok_or_else(|| bad("past its end"))?);
+                            at += w;
+                            values.push(v.to_string());
+                        } else {
+                            values.push(self.field(&defaults.term, &opts_ty, j)?);
+                        }
+                    }
+                    if n & 8 != 0 {
+                        next = le(bytes.get(at..at + 2).ok_or_else(|| bad("past its end"))?);
+                        at += 2;
+                    }
+                    if fields.len() != values.len() {
+                        return Err(kind(k, "options of other fields than the template's"));
+                    }
+                    let named: Vec<(&String, String)> =
+                        fields.iter().map(|(f, _)| f).zip(values).collect();
+                    let opts = lift::struct_value(opts_name, &named, self.cx.types);
+                    let ph_value = lift::tuple_value(ph, &[opts, next.to_string()]);
+                    next += 1;
+                    pieces.push(lift::tuple_value(
+                        &piece_ty.clone().unwrap_or(Ty::Unit),
+                        &[
+                            "\"\"".to_string(),
+                            format!("(ctor Option.some [{}] {ph_value})", ph.render()),
+                        ],
+                    ));
+                }
+                let pt_ty = piece_ty.clone().unwrap_or(Ty::Unit);
+                let mut items = format!("(nil {})", pt_ty.render());
+                for p in pieces.iter().rev() {
+                    items = format!("(cons {p} {items})");
+                }
+                self.mention(dt);
+                self.mention(&pt_ty);
+                self.mention(ph);
+                let term = lift::tuple_value(
+                    dt,
+                    &["(ctor Option.none [String])".to_string(), items, list.clone()],
+                );
+                return Ok(Called::value(term));
+            }
+        }
+        // An `Argument` of `format_args!`, where the table models it as a
+        // function (`fmt::rt::Argument`): core's body reifies the method
+        // that formats the value into a function pointer whose types it
+        // erases. The lift's Argument is that method applied to the value,
+        // a function of the options a placeholder gives and the text
+        // written so far, to the method's result and the text after.
+        if let (Some(link), Ty::Fn(ins, out), [(x, xt)]) = (self.cx.core, dt, args.as_slice()) {
+            if let (Some(inst), [opts, Ty::Str], Ty::Tuple(outs)) =
+                (link.instance(callee, texts, dest), ins.as_slice(), &**out)
+            {
+                let reified: Vec<String> = inst
+                    .text
+                    .lines()
+                    .filter(|l| l.contains("ReifyFnPointer"))
+                    .filter_map(|l| {
+                        let rhs = l.split_once(" = ")?.1;
+                        let end = rhs.find(" as for<").or_else(|| rhs.find(" as fn("))?;
+                        Some(rhs[..end].trim().to_string())
+                    })
+                    .collect();
+                let formatter = ty("fmt::Formatter<'_>", self.cx.types)?;
+                let fields = match &formatter {
+                    Ty::Named(n) => self.cx.types.structs.get(n).cloned().unwrap_or_default(),
+                    _ => Vec::new(),
+                };
+                if let ([method], [(of, ot), (bf, Ty::Str)], [result, Ty::Str]) =
+                    (reified.as_slice(), fields.as_slice(), outs.as_slice())
+                {
+                    if ot.render() != opts.render() {
+                        return Err(kind(k, "an Argument whose formatter holds other options"));
+                    }
+                    let o = self.fresh(Some("options"), usize::MAX);
+                    let b = self.fresh(Some("written"), usize::MAX);
+                    let Ty::Named(fname) = &formatter else {
+                        return Err(kind(k, "a Formatter that is no struct"));
+                    };
+                    let fv = lift::struct_value(
+                        fname,
+                        &[(of, o.clone()), (bf, b.clone())],
+                        self.cx.types,
+                    );
+                    let arg_texts = [texts.first().cloned().flatten(), Some("&mut fmt::Formatter<'_>".to_string())];
+                    let applied = self.call(
+                        method,
+                        vec![(x.clone(), xt.clone()), (fv, formatter.clone())],
+                        &arg_texts,
+                        "",
+                        result,
+                        st,
+                    )?;
+                    let (res, after) = match &applied.threads {
+                        Some((rt, positions)) if positions.as_slice() == [1] => {
+                            let f = lift::tuple_item(rt, &applied.term, 1);
+                            (
+                                lift::tuple_item(rt, &applied.term, 0),
+                                self.field(&f, &formatter, 1)?,
+                            )
+                        }
+                        Some(_) => return Err(kind(k, &format!("{method}, which threads its value"))),
+                        None => (applied.term.clone(), b.clone()),
+                    };
+                    self.mention(out);
+                    self.mention(&formatter);
+                    let body = lift::tuple_value(out, &[res, after]);
+                    return Ok(Called::value(format!(
+                        "(fun ({o} : {}) ({b} : String) => {body})",
+                        opts.render()
+                    )));
+                }
+            }
+        }
         // In a library's scope, an intrinsic's model or the library's own
         // body.
         if let Some(link) = self.cx.core {
@@ -3270,7 +3525,7 @@ impl Fun<'_, '_> {
             }
             if let Some(inst) = link.instance(callee, texts, dest) {
                 let krate = self.cx.krate.clone();
-                return self.shared(inst, &krate, &args, dt).map(Called::value);
+                return self.shared(inst, &krate, &args, dt);
             }
         }
         // Otherwise std's own MIR, at the call's types.
@@ -3342,7 +3597,7 @@ impl Fun<'_, '_> {
         root: &str,
         args: &[(String, Ty)],
         dt: &Ty,
-    ) -> Lift<String> {
+    ) -> Lift<Called> {
         let k = spec::MirTerminatorKind::Call.path();
         let stdlib::Instance { path, text, bound } = inst;
         // Named by the types as MIR prints them, so instances at `u8` and
@@ -3392,26 +3647,40 @@ impl Fun<'_, '_> {
             ));
         };
         let at = |t: &Ty| t.render();
+        // A body that threads `&mut` parameters returns them after `_0`.
+        let positions: Vec<usize> = threaded(&body.locals, body.arity, false)
+            .into_iter()
+            .map(|l| l - 1)
+            .collect();
+        let rest: Vec<Ty> = positions
+            .iter()
+            .filter_map(|&i| args.get(i).map(|(_, t)| t.clone()))
+            .collect();
+        let full = threaded_result(dt, &rest, self.cx.types);
         if parameters.len() != args.len()
             || parameters
                 .iter()
                 .zip(args)
                 .any(|((_, p), (_, a))| *p != at(a))
-            || *result != at(dt)
+            || *result != at(&full)
         {
             return Err(kind(k, &format!("{path}, at other types than the call's")));
         }
         if let (true, Expr::Flat(v)) = (parameters.is_empty(), value) {
             if v == "true" || v == "false" || v.chars().all(|c| c.is_ascii_digit()) {
-                return Ok(v.clone());
+                return Ok(Called::value(v.clone()));
             }
         }
         self.calls.insert(name.clone());
         let a: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
-        Ok(if a.is_empty() {
+        let term = if a.is_empty() {
             name
         } else {
             format!("({name} {})", a.join(" "))
+        };
+        Ok(Called {
+            threads: (!positions.is_empty()).then_some((full, positions)),
+            ..Called::value(term)
         })
     }
 
@@ -3930,7 +4199,20 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     if pointee(t).is_some() && types.structs.contains_key(POINTER) {
         return Ok(Ty::Named(POINTER.to_string()));
     }
-    if t.starts_with('*') || t.starts_with("dyn ") || t.starts_with("impl ") {
+    // A trait object of a trait the table models as a sink (`dyn
+    // fmt::Write`): the value its writes build, its lifetimes and auto
+    // traits dropped.
+    if let Some(object) = t.strip_prefix("dyn ") {
+        let trait_path = split_top(object, '+')
+            .into_iter()
+            .map(str::trim)
+            .find(|b| !b.starts_with('\'') && !matches!(*b, "Send" | "Sync" | "Unpin"));
+        if let Some(model) = trait_path.and_then(|p| stdlib::model_type(&format!("dyn {p}"), &[])) {
+            return Ok(model);
+        }
+        return bad();
+    }
+    if t.starts_with('*') || t.starts_with("impl ") {
         return bad();
     }
     if let Some(rest) = t.strip_prefix('&') {
@@ -4080,7 +4362,16 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         _ if std => {
             let head: Vec<&str> = segs[..segs.len() - 1].to_vec();
             let path = format!("{}::{name}", head.join("::"));
-            return stdlib::model_type(&path, &args).ok_or_else(|| Residue::Type(t.to_string()));
+            // A model that names a struct of the crate's needs the scope
+            // to declare it.
+            return stdlib::model_type(&path, &args)
+                .filter(|m| {
+                    m.mentions().iter().all(|n| match n {
+                        Ty::Named(n) => types.structs.contains_key(n) || types.enums.contains_key(n),
+                        _ => true,
+                    })
+                })
+                .ok_or_else(|| Residue::Type(t.to_string()));
         }
         (n, []) => {
             // A type of the crate by the full path MIR prints, then by name.

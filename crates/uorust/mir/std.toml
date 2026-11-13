@@ -53,6 +53,10 @@ lift = [
   "core::slice::iter::<impl Iter>::find",
 ]
 
+# Core's own types the models below build values of, as core's MIR prints
+# them: core's scope instantiates each from its declaration in every module.
+instantiate = ["fmt::Formatter<'_>", "fmt::FormattingOptions", "fmt::Error"]
+
 # Types whose representation bottoms out in raw pointers, as the lift's
 # value types.
 [[type]]
@@ -283,6 +287,103 @@ update = { 0 = '(prim join (cons {0} (cons {1} (nil String))) "" : String)' }
 floor = "the char is encoded into the buffer with encode_utf8_raw"
 rust = "{{ let mut s = String::from({0}); s.push({1}); s }}"
 vectors = [['"ab"', "'é'", '"abé"']]
+
+# fmt: a `&mut dyn fmt::Write` is reached through a vtable, so the trait
+# object is the text its writes build (a `Formatter`'s `buf`), and each
+# write through it appends to that text and succeeds, as `String`'s impl
+# does (alloc/src/string.rs). Core's own Display and Debug bodies then lift
+# as functions of the value, the options and the buffer.
+[[type]]
+path = "dyn core::fmt::Write"
+model = "str"
+floor = "a trait object: a data pointer and a vtable of the implementor's methods"
+
+[[model]]
+path = "<dyn core::fmt::Write as core::fmt::Write>::write_str"
+args = ["str", "str"]
+result = "result<unit, $e>"
+term = "(ctor Result.ok [Unit, {ty $e}] ())"
+update = { 0 = '(prim join (cons {0} (cons {1} (nil String))) "" : String)' }
+floor = "the call goes through the trait object's vtable"
+rust = "{{ let mut s = String::from({0}); let r = core::fmt::Write::write_str(&mut s as &mut dyn core::fmt::Write, {1}); (r, s) }}"
+vectors = [['"ab"', '"cd"', '(Ok(()), String::from("abcd"))'], ['""', '""', '(Ok(()), String::new())']]
+
+[[model]]
+path = "<dyn core::fmt::Write as core::fmt::Write>::write_char"
+args = ["str", "char"]
+result = "result<unit, $e>"
+term = "(ctor Result.ok [Unit, {ty $e}] ())"
+update = { 0 = '(prim join (cons {0} (cons {1} (nil String))) "" : String)' }
+floor = "the call goes through the trait object's vtable"
+rust = "{{ let mut s = String::from({0}); let r = core::fmt::Write::write_char(&mut s as &mut dyn core::fmt::Write, {1}); (r, s) }}"
+vectors = [['"ab"', "'é'", '(Ok(()), String::from("abé"))']]
+
+# fmt::Arguments and fmt::rt::Argument, the lang items format_args!
+# lowers to: core holds them as raw pointers (a template pointer, and an
+# argument array pointer or a tagged length) and erases each argument's
+# type behind a function pointer (core/src/fmt/mod.rs, core/src/fmt/rt.rs).
+# The lift holds Arguments as core's two representations: the literal
+# `from_str` stores, or the template's pieces and the argument list `new`
+# stores. The translator reads the template `format_args!` writes, a
+# constant, in core's own encoding into pieces: each its literal text and,
+# for a placeholder, its options and the index of its argument. An Argument
+# is its value applied to its formatter: a function of the options a
+# placeholder gives and the text written so far, to the result and the
+# text after, as each Display or Debug body lifts.
+[[type]]
+path = "core::fmt::rt::Argument"
+model = "fn<named<fmt::FormattingOptions>,str,tuple<result<unit,named<fmt::Error>>,str>>"
+floor = "a value pointer and a formatter function pointer whose types are erased (rt::ArgumentType)"
+
+[[type]]
+path = "core::fmt::Arguments"
+model = "tuple<option<str>,list<tuple<str,option<tuple<named<fmt::FormattingOptions>,usize>>>>,list<fn<named<fmt::FormattingOptions>,str,tuple<result<unit,named<fmt::Error>>,str>>>>"
+floor = "a template pointer and an argument array pointer or a tagged length (NonNull<u8>, NonNull<rt::Argument>)"
+
+[[model]]
+path = "core::fmt::Arguments::from_str"
+args = ["str"]
+result = "tuple<option<str>,list<$p>,list<$f>>"
+term = "{make tuple<option<str>,list<$p>,list<$f>> (ctor Option.some [String] {0}) (nil {ty $p}) (nil {ty $f})}"
+floor = "the str's pointer transmuted to NonNull<u8>, its length tagged into the args pointer"
+rust = "format_args!({0}).as_str()"
+vectors = [['"ab"', 'Some("ab")']]
+
+[[model]]
+path = "core::fmt::Arguments::from_str_nonconst"
+args = ["str"]
+result = "tuple<option<str>,list<$p>,list<$f>>"
+term = "{make tuple<option<str>,list<$p>,list<$f>> (ctor Option.some [String] {0}) (nil {ty $p}) (nil {ty $f})}"
+floor = "Arguments::from_str"
+rust = "format_args!({0}).as_str()"
+vectors = [['""', 'Some("")']]
+
+[[model]]
+path = "core::fmt::Arguments::as_str"
+args = ["tuple<option<str>,list<$p>,list<$f>>"]
+result = "option<str>"
+term = "{item 0 {0}}"
+floor = "the args pointer's tag bit read with a pointer-to-integer transmute"
+rust = "format_args!({0}).as_str()"
+vectors = [['"lit"', 'Some("lit")']]
+
+# fmt::write runs the template on the output: a literal from_str stored is
+# written whole; otherwise each piece's text is written, and each
+# placeholder's argument applied to its options and the text so far, until
+# one fails. (An index past the arguments, which format_args! never
+# writes, writes nothing.)
+[[model]]
+path = "core::fmt::write"
+args = ["str", "tuple<option<str>,list<$p>,list<fn<$o,str,$r>>>"]
+result = "result<unit,$e>"
+term = "(match {item 0 {1}} | Option.some literal => (ctor Result.ok [Unit, {ty $e}] ()) | Option.none => {item 0 ({aux fmt_write} {item 1 {1}} {item 2 {1}} {0})})"
+update = { 0 = '(match {item 0 {1}} | Option.some literal => (prim join (cons {0} (cons literal (nil String))) "" : String) | Option.none => {item 1 ({aux fmt_write} {item 1 {1}} {item 2 {1}} {0})})' }
+floor = "the template is read through NonNull<u8> and each argument called through its erased function pointer"
+rust = "{{ let mut s = String::from({0}); let r = core::fmt::write(&mut s, {1}); (r, s) }}"
+vectors = [
+  ['"<"', 'format_args!("{}-{:>3}|{:#x}", 7u8, "ab", 255u32)', '(Ok(()), String::from("<7- ab|0xff"))'],
+  ['""', 'format_args!("lit")', '(Ok(()), String::from("lit"))'],
+]
 
 [[model]]
 path = "std::collections::BTreeSet::contains"
@@ -576,3 +677,9 @@ body = "(match entries | List.nil => (cons {pair key value} (nil {entry})) | Lis
 params = ["items : (List {ty $t})", "index : Nat"]
 result = "{ty $t}"
 body = "(match (prim index items index : (Option {ty $t})) | Option.none => {default $t} | Option.some item => item)"
+
+[aux.fmt_write]
+params = ["pieces : (List {ty $p})", "args : (List (Fn ({ty $o} String) {ty $r}))", "out : String"]
+result = "{ty $r}"
+recursive = "pieces"
+body = "(match pieces | List.nil => {make $r (ctor Result.ok [Unit, {ty $e}] ()) out} | List.cons piece rest => (match {item 1 piece} | Option.none => ({self} rest args (prim join (cons out (cons {item 0 piece} (nil String))) \"\" : String)) | Option.some placeholder => (match (prim index args {item 1 placeholder} : (Option (Fn ({ty $o} String) {ty $r}))) | Option.none => ({self} rest args out) | Option.some argument => (match {item 0 (argument {item 0 placeholder} out)} | Result.ok done => ({self} rest args {item 1 (argument {item 0 placeholder} out)}) | Result.error failed => (argument {item 0 placeholder} out)))))"
