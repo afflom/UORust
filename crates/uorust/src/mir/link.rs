@@ -45,6 +45,9 @@ pub(crate) struct CoreLink {
     /// Each body's impl's index (`{impl#N}`) for each of its texts, in
     /// the order `bodies` holds them.
     index: BTreeMap<String, Vec<Option<u64>>>,
+    /// The root of core's sources (rust-src), whose `library/core/src`
+    /// declares the constant items no dump holds.
+    root: std::path::PathBuf,
 }
 
 impl CoreLink {
@@ -500,6 +503,7 @@ impl CoreLink {
             methods,
             traits,
             index,
+            root: root.to_path_buf(),
         }
     }
 
@@ -908,59 +912,128 @@ impl CoreLink {
                 let (x, tail) = rest.split_once('>')?;
                 self.bodies.get(&format!("{head}{x}{tail}"))
             };
+            // A constant item no dump holds (rustc evaluates it where
+            // it is used): its declaration in core's source, where that
+            // is a literal of a primitive type (`const TAG_CONT: u8 =
+            // 0b1000_0000;`), as the body MIR would print for it. Its
+            // module's file is the one the path's longest module
+            // prefix names; an item of the module is declared at its
+            // top level, one of a function or an impl (`<impl char>::
+            // MAX`) inside, the file's one such declaration.
+            let from_source = || -> Option<Instance> {
+                let segs = split_path(printed);
+                let (name, module) = segs.split_last()?;
+                let src = self.root.join("library/core/src");
+                let (k, file) = (1..=module.len()).rev().find_map(|k| {
+                    let dir = src.join(module[..k].join("/"));
+                    [dir.with_extension("rs"), dir.join("mod.rs")]
+                        .into_iter()
+                        .find(|f| f.is_file())
+                        .map(|f| (k, f))
+                })?;
+                let top = k == module.len();
+                let source = std::fs::read_to_string(file).ok()?;
+                let prefix = format!("const {name}: ");
+                let mut decls = source.lines().filter_map(|l| {
+                    let indented = l.starts_with(char::is_whitespace);
+                    let t = l.trim();
+                    let t = match t.strip_prefix("pub") {
+                        Some(r) if r.starts_with('(') => r[r.find(')')? + 1..].trim_start(),
+                        Some(r) => r.trim_start(),
+                        None => t,
+                    };
+                    let (ty, value) = t.strip_prefix(&prefix)?.split_once(" = ")?;
+                    let value = value.strip_suffix(';')?.trim();
+                    (indented != top).then_some((ty.trim(), value))
+                });
+                let (ty, value) = match (decls.next(), decls.next()) {
+                    (Some(d), None) => d,
+                    _ => return None,
+                };
+                let int = ty.strip_prefix(['u', 'i']).is_some_and(|w| {
+                    w == "size" || matches!(w.parse::<u32>(), Ok(8 | 16 | 32 | 64 | 128))
+                });
+                let literal = if int {
+                    let digits: String = value.chars().filter(|c| *c != '_').collect();
+                    let digits = digits.strip_suffix(ty).unwrap_or(&digits);
+                    let (radix, digits) = match digits.get(..2) {
+                        Some("0x") => (16, &digits[2..]),
+                        Some("0o") => (8, &digits[2..]),
+                        Some("0b") => (2, &digits[2..]),
+                        _ => (10, digits),
+                    };
+                    format!("{}_{ty}", i128::from_str_radix(digits, radix).ok()?)
+                } else if ty == "bool" && (value == "true" || value == "false")
+                    || ty == "char" && value.starts_with('\'') && value.ends_with('\'')
+                {
+                    value.to_string()
+                } else {
+                    return None;
+                };
+                Some(Instance {
+                    path: printed.to_string(),
+                    text: format!(
+                        "const {printed}: {ty} = {{\n    let mut _0: {ty};\n\n    bb0: {{\n        _0 = const {literal};\n        return;\n    }}\n}}\n"
+                    ),
+                    bound: Vec::new(),
+                })
+            };
+            // A constant of the impls a macro writes for `X<A>`
+            // (`NonZero::<u8>::BITS`), which share the path of the
+            // macro's impl in `X`'s module: the text of the impl, by
+            // its index (`{impl#N}`), whose methods' signatures take
+            // `X<A>` as `self`.
+            let from_macro = || -> Option<&String> {
+                let (rest, name) = printed.rsplit_once("::")?;
+                let (path, args) = rest.strip_suffix('>')?.rsplit_once("::<")?;
+                let head = split_path(path).last().copied()?;
+                // Taken as `self`, its first argument: the macro's
+                // other types are in its signatures too.
+                let selfs = [
+                    format!("(_1: {head}<{args}>)"),
+                    format!("(_1: {head}<{args}>, "),
+                ];
+                let module = path.strip_suffix(head)?;
+                let mut found = self.bodies.iter().filter_map(|(p, texts)| {
+                    let span = p.strip_prefix(module)?.strip_prefix("<impl at ")?;
+                    let span = &span[..span.find('>')?];
+                    let (_, ty) = self.impls.get(span)?;
+                    let own = format!("{module}<impl at {span}>::");
+                    (ty.split('<').next() == Some(head) && p.strip_prefix(&own) == Some(name))
+                        .then_some((own, p, texts))
+                });
+                let (own, path, texts) = match (found.next(), found.next()) {
+                    (Some(f), None) => f,
+                    _ => return None,
+                };
+                let idx = self.index.get(path)?;
+                let takes = |n: &Option<u64>| {
+                    n.is_some()
+                        && self.bodies.iter().any(|(q, ts)| {
+                            q.starts_with(&own)
+                                && self.index.get(q).is_some_and(|qi| {
+                                    ts.iter().zip(qi).any(|(t, m)| {
+                                        m == n
+                                            && t.lines().find(|l| l.starts_with("fn ")).is_some_and(
+                                                |l| selfs.iter().any(|t| l.contains(t)),
+                                            )
+                                    })
+                                })
+                        })
+                };
+                let mut fit = texts.iter().zip(idx).filter(|(_, n)| takes(n));
+                match (fit.next(), fit.next()) {
+                    (Some((t, _)), None) => Some(t),
+                    _ => None,
+                }
+            };
             let text = match self.bodies.get(printed).or_else(alias).map(Vec::as_slice) {
                 Some([text]) => text,
-                // A constant of the impls a macro writes for `X<A>`
-                // (`NonZero::<u8>::BITS`), which share the path of the
-                // macro's impl in `X`'s module: the text of the impl, by
-                // its index (`{impl#N}`), whose methods' signatures take
-                // `X<A>` as `self`.
-                _ => {
-                    let (rest, name) = printed.rsplit_once("::")?;
-                    let (path, args) = rest.strip_suffix('>')?.rsplit_once("::<")?;
-                    let head = split_path(path).last().copied()?;
-                    // Taken as `self`, its first argument: the macro's
-                    // other types are in its signatures too.
-                    let selfs = [
-                        format!("(_1: {head}<{args}>)"),
-                        format!("(_1: {head}<{args}>, "),
-                    ];
-                    let module = path.strip_suffix(head)?;
-                    let mut found = self.bodies.iter().filter_map(|(p, texts)| {
-                        let span = p.strip_prefix(module)?.strip_prefix("<impl at ")?;
-                        let span = &span[..span.find('>')?];
-                        let (_, ty) = self.impls.get(span)?;
-                        let own = format!("{module}<impl at {span}>::");
-                        (ty.split('<').next() == Some(head) && p.strip_prefix(&own) == Some(name))
-                            .then_some((own, p, texts))
-                    });
-                    let (own, path, texts) = match (found.next(), found.next()) {
-                        (Some(f), None) => f,
-                        _ => return None,
-                    };
-                    let idx = self.index.get(path)?;
-                    let takes = |n: &Option<u64>| {
-                        n.is_some()
-                            && self.bodies.iter().any(|(q, ts)| {
-                                q.starts_with(&own)
-                                    && self.index.get(q).is_some_and(|qi| {
-                                        ts.iter().zip(qi).any(|(t, m)| {
-                                            m == n
-                                                && t.lines()
-                                                    .find(|l| l.starts_with("fn "))
-                                                    .is_some_and(|l| {
-                                                        selfs.iter().any(|t| l.contains(t))
-                                                    })
-                                        })
-                                    })
-                            })
-                    };
-                    let mut fit = texts.iter().zip(idx).filter(|(_, n)| takes(n));
-                    match (fit.next(), fit.next()) {
-                        (Some((t, _)), None) => t,
-                        _ => return None,
-                    }
-                }
+                None => match from_source() {
+                    Some(i) => return Some(i),
+                    None => from_macro()?,
+                },
+                _ => from_macro()?,
             };
             return text
                 .lines()
