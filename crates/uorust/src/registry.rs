@@ -239,7 +239,9 @@ pub fn lift_crate(name: &str, version: &str, register: &Path) -> Result<Lifted, 
             {
                 let p = entry.path();
                 let stem = p.file_stem().and_then(|n| n.to_str()).unwrap_or_default();
-                let kept = stem == "frontier" || census.iter().any(|s| s.module == stem);
+                let kept = stem == "frontier"
+                    || stem == crate::queue::RETRACTED
+                    || census.iter().any(|s| s.module == stem);
                 if p.extension().is_some_and(|x| x == "toml") && !kept {
                     std::fs::remove_file(&p).map_err(|e| tool("register", e))?;
                 }

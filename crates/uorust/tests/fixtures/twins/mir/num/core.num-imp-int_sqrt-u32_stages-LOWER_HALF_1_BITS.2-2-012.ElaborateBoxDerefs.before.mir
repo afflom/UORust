@@ -1,0 +1,26 @@
+// MIR for `num::imp::int_sqrt::u32_stages::LOWER_HALF_1_BITS` before ElaborateBoxDerefs
+
+const u32_stages::LOWER_HALF_1_BITS: u16 = {
+    let mut _0: u16;
+    let mut _1: u16;
+    let mut _2: bool;
+    let mut _3: (u16, bool);
+
+    bb0: {
+        StorageLive(_1);
+        _2 = Lt(const num::imp::int_sqrt::u32_stages::HALF_BITS, const 16_u32);
+        assert(move _2, "attempt to shift left by `{}`, which would overflow", const num::imp::int_sqrt::u32_stages::HALF_BITS) -> [success: bb1, unwind continue];
+    }
+
+    bb1: {
+        _1 = Shl(const 1_u16, const num::imp::int_sqrt::u32_stages::HALF_BITS);
+        _3 = SubWithOverflow(copy _1, const 1_u16);
+        assert(!move (_3.1: bool), "attempt to compute `{} - {}`, which would overflow", move _1, const 1_u16) -> [success: bb2, unwind continue];
+    }
+
+    bb2: {
+        _0 = move (_3.0: u16);
+        StorageDead(_1);
+        return;
+    }
+}

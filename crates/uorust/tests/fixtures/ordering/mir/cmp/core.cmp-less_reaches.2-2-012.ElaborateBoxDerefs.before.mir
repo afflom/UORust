@@ -1,0 +1,26 @@
+// MIR for `cmp::less_reaches` before ElaborateBoxDerefs
+
+fn cmp::less_reaches(_1: cmp::Ordering) -> bool {
+    debug o => _1;
+    let mut _0: bool;
+    let mut _2: i8;
+
+    bb0: {
+        PlaceMention(_1);
+        _2 = discriminant(_1);
+        switchInt(move _2) -> [255: bb1, otherwise: bb2];
+    }
+
+    bb1: {
+        _0 = cmp::absent() -> [return: bb3, unwind continue];
+    }
+
+    bb2: {
+        _0 = const false;
+        goto -> bb3;
+    }
+
+    bb3: {
+        return;
+    }
+}

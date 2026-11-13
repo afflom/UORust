@@ -2784,11 +2784,65 @@ impl Fun<'_, '_> {
             return self.goto(target, arm);
         }
         let ctors = constructors(&t, self.cx.types, self.cx.explicit)?;
+        // The discriminants core's source sets for an enum the lift holds
+        // under a name of its own (`cmp::Ordering`'s -1, 0 and 1, as the
+        // lift's `CmpOrdering`): each variant's, where the declarations
+        // whose variants the lift's enum holds agree on them; else its
+        // index.
+        let set: Option<Vec<i128>> = match (&t, self.cx.core) {
+            (Ty::Named(n), Some(link)) => {
+                let vs = self.cx.types.enums.get(n);
+                let mut found = link
+                    .decls
+                    .structs
+                    .iter()
+                    .filter(|s| s.explicit && vs.is_some() && s.variants.as_ref() == vs)
+                    .map(|s| {
+                        s.values
+                            .as_ref()
+                            .map(|v| v.iter().map(|x| i128::from(*x)).collect::<Vec<i128>>())
+                    });
+                match found.next() {
+                    None => None,
+                    Some(first) => {
+                        if found.any(|v| v != first) {
+                            return Err(kind(
+                                spec::MirRvalue::Discriminant.path(),
+                                &format!("{n}, whose declarations set other discriminants"),
+                            ));
+                        }
+                        Some(first.ok_or_else(|| {
+                            kind(
+                                spec::MirRvalue::Discriminant.path(),
+                                &format!("{n}, whose discriminants are no literals"),
+                            )
+                        })?)
+                    }
+                }
+            }
+            _ => None,
+        };
+        if set.as_ref().is_some_and(|v| v.len() != ctors.len()) {
+            return Err(kind(
+                spec::MirRvalue::Discriminant.path(),
+                "of an enum whose variants its source declares by target",
+            ));
+        }
+        // A switch prints a negative discriminant as its bit pattern at the
+        // discriminant's width.
+        let same = |a: i128, v: i128| {
+            a == v
+                || (v < 0
+                    && [8u32, 16, 32, 64]
+                        .iter()
+                        .any(|w| (1i128 << w).checked_add(v) == Some(a)))
+        };
         let mut out = Vec::new();
         for (i, (variant, ctor, fields)) in ctors.iter().enumerate() {
+            let value = set.as_ref().map_or(i as i128, |v| v[i]);
             let target = arms
                 .iter()
-                .find(|(a, _)| *a == i as i128)
+                .find(|(a, _)| same(*a, value))
                 .map_or(otherwise, |(_, b)| *b);
             let mut arm = st.clone();
             let mut names = Vec::new();
@@ -3255,6 +3309,23 @@ impl Fun<'_, '_> {
                         )),
                         None => Err(kind(k, &format!("the constant item {p}"))),
                     }
+                }
+                // A path rustc prints for constant items of other bodies:
+                // two macro expansions' items of one name in one function,
+                // which its dumps tell apart (`HALF_BITS#1`) and a use of
+                // either does not.
+                Some(_)
+                    if !p.contains("promoted[")
+                        && self.cx.core.is_some_and(|l| {
+                            l.bodies
+                                .get(p)
+                                .is_some_and(|ts| ts.iter().any(|t| *t != ts[0]))
+                        }) =>
+                {
+                    Err(kind(
+                        k,
+                        &format!("{p}, which rustc prints for more than one constant item"),
+                    ))
                 }
                 Some(body) => self.const_body(p, body),
                 // In core's scope, a constant a trait of core provides.
@@ -5078,6 +5149,28 @@ impl Fun<'_, '_> {
                         .to_string()
                 })
             });
+        // A function a parameter's `Fn` or `FnOnce` bound states: applied
+        // to the arguments' tuple's items, or to the unit where it is empty.
+        if let (Some(_), [(f, Ty::Fn(ins, out)), (a, at)]) = (
+            through_fn.as_ref().filter(|c| c.starts_with("impl Fn")),
+            args.as_slice(),
+        ) {
+            if **out != *dt {
+                return Err(kind(
+                    k,
+                    "a function parameter applied at another result type",
+                ));
+            }
+            let items: Vec<String> = match at {
+                Ty::Tuple(ts) | Ty::Pair(ts) if ts.len() == ins.len() => {
+                    (0..ts.len()).map(|j| lift::tuple_item(at, a, j)).collect()
+                }
+                Ty::Unit if ins.as_slice() == [Ty::Unit] => vec!["()".to_string()],
+                t if ins.len() == 1 && ins[0] == *t => vec![a.clone()],
+                _ => return Err(kind(k, "a function parameter applied to another arity")),
+            };
+            return Ok(Called::value(format!("(apply {f} {})", items.join(" "))));
+        }
         if let Some(closure) = through_fn.filter(|c| c.starts_with("{closure@")) {
             let (name, captured) = self.closure_def(&closure)?;
             let [(env, et), (a, at)] = args.as_slice() else {
@@ -7148,6 +7241,25 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             return Ok(model);
         }
         return bad();
+    }
+    // A parameter a function's `Fn` or `FnOnce` bound states (see
+    // `core::shard`): the function, of at least one input (LexLean's
+    // function types have one), the unit where it takes none.
+    if let Some(f) = t
+        .strip_prefix("impl FnOnce(")
+        .or_else(|| t.strip_prefix("impl Fn("))
+    {
+        let (inputs, output) = f
+            .rsplit_once(") -> ")
+            .ok_or_else(|| Residue::Type(t.to_string()))?;
+        let mut ins = Vec::new();
+        for i in split_top(inputs, ',').into_iter().filter(|i| !i.is_empty()) {
+            ins.push(ty(i, types)?);
+        }
+        if ins.is_empty() {
+            ins.push(Ty::Unit);
+        }
+        return Ok(Ty::Fn(ins, Box::new(ty(output, types)?)));
     }
     if t.starts_with('*') || t.starts_with("impl ") {
         return bad();

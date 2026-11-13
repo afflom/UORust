@@ -1428,6 +1428,138 @@ fn library_shards_read_their_sources_and_merge_only_whole() {
     }
 }
 
+/// The witness of `crates/uorust/core/retracted.toml`'s row: a switch on
+/// `cmp::Ordering`'s discriminant reads the discriminants core declares
+/// (-1, 0, 1; a switch prints -1 as its `i8` bits, 255), not the variants'
+/// indices. Read by index, the arm on 255 matched no variant and its call
+/// was never lowered, so the body translated as if `Less` took the
+/// otherwise arm (and `then_with`'s arm on 0 ran its closure on `Less`).
+#[test]
+fn a_switch_on_ordering_reads_its_declared_discriminants() {
+    use uorust::mir::core;
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/ordering");
+    let shards = core::core_census(&fixture.join("library"), &fixture.join("mir")).expect("census");
+    let row = shards
+        .iter()
+        .flat_map(|s| &s.rows)
+        .find(|r| r.path == "core::cmp::less_reaches")
+        .expect("less_reaches");
+    // `Less` reaches the call this fixture leaves undefined.
+    assert!(row.digest.is_none(), "{row:?}");
+    let cause = row.cause.as_deref().unwrap_or_default();
+    assert!(cause.contains("absent"), "{cause}");
+    let row = |path: &str| {
+        shards
+            .iter()
+            .flat_map(|s| &s.rows)
+            .find(|r| r.path == path)
+            .unwrap_or_else(|| panic!("{path}"))
+    };
+    // An arm on each declared discriminant leaves the otherwise arm
+    // unreached; read by index, `Greater` (2) fell to it.
+    let every = row("core::cmp::every_arm");
+    assert!(every.digest.is_some(), "{every:?}");
+    // `Less`, the first variant, takes the otherwise arm, not the arm on 0.
+    let equal = row("core::cmp::equal_arm");
+    let cause = equal.cause.as_deref().unwrap_or_default();
+    assert!(cause.contains("on_other"), "{cause}");
+}
+
+/// The witness of `crates/uorust/core/retracted.toml`'s `int_sqrt` rows:
+/// rustc prints two constant items of `u32_stages`, `middle_stage!`'s
+/// `HALF_BITS` (`u16::BITS >> 1`) and `last_stage!`'s (`u32::BITS >> 1`),
+/// and every use of either, under one path; only the dumps' file names
+/// tell them apart (`HALF_BITS#1`). The census took the first dump it read
+/// for the path, `last_stage!`'s, so `middle_stage!`'s `u16`
+/// `LOWER_HALF_1_BITS` read 16 where its own item is 8. A use of such a
+/// path is now residue.
+#[test]
+fn a_constant_path_rustc_prints_for_two_items_is_refused() {
+    use uorust::mir::core;
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/twins");
+    // The two items have other values: `u32`'s `BITS` and `u16`'s.
+    let mut names: Vec<PathBuf> = std::fs::read_dir(fixture.join("mir/num"))
+        .expect("dumps")
+        .map(|e| e.expect("dump").path())
+        .filter(|p| p.to_string_lossy().contains("-HALF_BITS"))
+        .collect();
+    names.sort();
+    let texts: Vec<String> = names
+        .iter()
+        .map(|p| std::fs::read_to_string(p).expect("dump"))
+        .collect();
+    assert_eq!(texts.len(), 2);
+    // The first read, the one the old census took, is `u32`'s; the `u16`
+    // constant that uses it is `middle_stage!`'s, whose own is `u16`'s.
+    assert!(
+        texts[0].contains("const num::<impl u32>::BITS"),
+        "{}",
+        texts[0]
+    );
+    assert!(
+        texts[1].contains("const num::<impl u16>::BITS"),
+        "{}",
+        texts[1]
+    );
+    let lower = std::fs::read_to_string(
+        fixture.join("mir/num/core.num-imp-int_sqrt-u32_stages-LOWER_HALF_1_BITS.2-2-012.ElaborateBoxDerefs.before.mir"),
+    )
+    .expect("lower");
+    assert!(lower.contains("const u32_stages::LOWER_HALF_1_BITS: u16"));
+    let shards = core::core_census(&fixture.join("library"), &fixture.join("mir")).expect("census");
+    let rows: Vec<&core::CoreRow> = shards.iter().flat_map(|s| &s.rows).collect();
+    let half: Vec<&&core::CoreRow> = rows
+        .iter()
+        .filter(|r| r.path.contains("::HALF_BITS"))
+        .collect();
+    assert_eq!(half.len(), 2, "{rows:?}");
+    assert!(half.iter().all(|r| r.digest.is_some()), "{half:?}");
+    assert_ne!(
+        half[0].digest, half[1].digest,
+        "the two items' values differ"
+    );
+    let user = rows
+        .iter()
+        .find(|r| r.path.ends_with("::LOWER_HALF_1_BITS"))
+        .expect("LOWER_HALF_1_BITS");
+    let cause = user.cause.as_deref().unwrap_or_default();
+    assert!(cause.contains("more than one constant item"), "{user:?}");
+}
+
+/// Every retraction of a library register names its body by a κ and path
+/// the register holds, and its witness is a test of these tests, which
+/// `cargo test` runs: a retraction whose witness fails is a red run.
+#[test]
+fn every_retraction_is_witnessed() {
+    use uorust::mir::core;
+    let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let mut tests = String::new();
+    for entry in std::fs::read_dir(crate_dir.join("tests")).expect("tests") {
+        let p = entry.expect("entry").path();
+        if p.extension().is_some_and(|x| x == "rs") {
+            tests.push_str(&std::fs::read_to_string(&p).expect("test source"));
+        }
+    }
+    for register in ["core", "std"] {
+        let dir = crate_dir.join(register);
+        for r in uorust::queue::retractions(&dir).expect("retractions") {
+            let test = format!("#[test]\nfn {}() {{", r.witness);
+            assert!(tests.contains(&test), "{}: no test {}", r.path, r.witness);
+            let held = std::fs::read_dir(&dir)
+                .expect("register")
+                .filter_map(Result::ok)
+                .filter(|e| {
+                    e.path()
+                        .file_stem()
+                        .is_some_and(|n| n != uorust::queue::RETRACTED)
+                })
+                .filter_map(|e| std::fs::read_to_string(e.path()).ok())
+                .any(|t| t.contains(&format!("path = {:?}\nkappa = \"{}\"", r.path, r.kappa)));
+            assert!(held, "{} is no row of the {register} register", r.path);
+        }
+    }
+}
+
 /// Core's register: each body of a module shard translated at the canonical
 /// instantiation and recorded by κ; a body recorded as translated that is
 /// residue later is a regression the register refuses.
@@ -1482,5 +1614,22 @@ fn core_bodies_are_translated_into_a_monotone_register() {
     let regressed = core::core_regressions(&dir, &shards);
     assert_eq!(regressed.len(), 1, "{regressed:?}");
     assert!(regressed[0].starts_with("core::bool::bool::then:"));
+    // Retracted by its κ and path, it may be residue; under another path,
+    // or with no witness, it still refuses.
+    let kappa = then
+        .lines()
+        .find_map(|l| l.strip_prefix("kappa = "))
+        .expect("then's kappa");
+    let retract = |path: &str, witness: &str| {
+        std::fs::write(
+            dir.join("retracted.toml"),
+            format!("[[retracted]]\npath = {path:?}\nkappa = {kappa}\nreason = \"r\"\nwitness = {witness:?}\n"),
+        )
+        .expect("retracts");
+        core::core_regressions(&dir, &shards)
+    };
+    assert!(retract("core::bool::bool::then", "w").is_empty());
+    assert_eq!(retract("core::bool::bool::then_some", "w").len(), 1);
+    assert_eq!(retract("core::bool::bool::then", "").len(), 1);
     let _ = std::fs::remove_dir_all(&dir);
 }

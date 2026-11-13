@@ -1,0 +1,100 @@
+# Bodies this register recorded as translated whose translation was wrong.
+# A census may leave a body listed here as residue, and only such a body:
+# every other row is monotone. Each row names its witness, a #[test] of
+# uorust's own tests that shows the old translation wrong.
+
+[[retracted]]
+path = "core::pattern::<impl at library/core/src/str/pattern.rs:973:1: 973:29>::is_contained_in"
+kappa = "1f689f6600bb8e76acd3c4466fc4703e52f28deca382d50e116897d09a7f94aa"
+reason = "Its switch on cmp::Ordering's discriminant takes Less on 255 (-1 as i8). The lowering read arms by variant index, so it never reached the Less arm that calls simd_contains, and it translated the body without it."
+witness = "a_switch_on_ordering_reads_its_declared_discriminants"
+
+[[retracted]]
+path = "core::u128_stages::LOWER_HALF_1_BITS"
+kappa = "c0895a6c2702d70d8c5ca4032d3fd75f96061e419e463638d62d8a28f8219d37"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u128_stages::LOWER_HALF_1_BITS#2"
+kappa = "46d9e25f4b8c3712b2b5cbb5289b044ff42bc946ec2eeeb73829fc4e1744fc72"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u128_stages::LOWER_HALF_1_BITS#3"
+kappa = "0d6fbbc9f254755dceb925050ec1a0bda882d4128e61afb2fae7c781458190c6"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u128_stages::LOWER_HALF_1_BITS#4"
+kappa = "5d296ed6dc05394d69490602fc35a11c5e54ee0689a3e3c93bc594dbb7be4c4c"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u128_stages::LOWEST_QUARTER_1_BITS"
+kappa = "20e9d72f2c0e662a57a20a7e806e46fc1badb1ff470496ba70118e3a2bb18c26"
+reason = "It reads QUARTER_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u128_stages::LOWEST_QUARTER_1_BITS#2"
+kappa = "68218c396f377e9cfb4f01518018602ffc70070649f620c949453fd02c870e00"
+reason = "It reads QUARTER_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u128_stages::LOWEST_QUARTER_1_BITS#3"
+kappa = "3abf99d80d4407ef6b343fd8a6197e613f394853d7bf8201f34a1b64bb2b5e3b"
+reason = "It reads QUARTER_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u32_stages::LOWER_HALF_1_BITS"
+kappa = "ddd7905339763bc1958678d8d99f86a11a14980b720a27778ad85c4b765a0536"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u32_stages::LOWER_HALF_1_BITS#2"
+kappa = "f4fbe20ea60ffb7d6d1b43628e9874bdc54ab9a6e7c372f274e0b21e53ca35c1"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u32_stages::LOWEST_QUARTER_1_BITS"
+kappa = "cdddc79da393f8dcd72ea21d817dca1b43d276ef2aad1d1d17495969d6fdf9dd"
+reason = "It reads QUARTER_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u64_stages::LOWER_HALF_1_BITS"
+kappa = "2269f1e19e96bc9f606c89eaabbde8d2cc1047c1491e018e9df8da7b954c611c"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u64_stages::LOWER_HALF_1_BITS#2"
+kappa = "0e8633e4b83223d59a64797b68c3dd282ad77c9f0647b0b9b6a2b357df18ff34"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u64_stages::LOWER_HALF_1_BITS#3"
+kappa = "2353dd0871565db162a3f28b9a9e4f128ae228155171ef025463012768197389"
+reason = "It reads HALF_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u64_stages::LOWEST_QUARTER_1_BITS"
+kappa = "70c0df5c1a1bbc9c62389dac729cc176579664acae04589cf2f6ba4cc81290e9"
+reason = "It reads QUARTER_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"
+
+[[retracted]]
+path = "core::u64_stages::LOWEST_QUARTER_1_BITS#2"
+kappa = "1c7ec0367735fa330dfb4f63f44a300bdd62d2e54857c3cb353129cc993c9d1c"
+reason = "It reads QUARTER_BITS, which rustc prints under one path for the items of each int_sqrt stage. The census took the first dump it read for that path, so its value may be another stage's."
+witness = "a_constant_path_rustc_prints_for_two_items_is_refused"

@@ -1,0 +1,25 @@
+// MIR for `cmp::equal_arm` before ElaborateBoxDerefs
+
+fn cmp::equal_arm(_1: cmp::Ordering) -> bool {
+    debug o => _1;
+    let mut _0: bool;
+    let mut _2: i8;
+
+    bb0: {
+        PlaceMention(_1);
+        _2 = discriminant(_1);
+        switchInt(move _2) -> [0: bb1, otherwise: bb2];
+    }
+
+    bb1: {
+        _0 = cmp::on_equal() -> [return: bb3, unwind continue];
+    }
+
+    bb2: {
+        _0 = cmp::on_other() -> [return: bb3, unwind continue];
+    }
+
+    bb3: {
+        return;
+    }
+}

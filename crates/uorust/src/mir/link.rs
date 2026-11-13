@@ -18,7 +18,7 @@ pub(crate) struct CoreLink {
     pub(crate) decls: CoreDecls,
     /// Each body's MIR text, by the path its dump names it by: a macro's
     /// impls share the path of the macro's text.
-    bodies: BTreeMap<String, Vec<String>>,
+    pub(crate) bodies: BTreeMap<String, Vec<String>>,
     /// For each last segment of a body's path, the paths that have it: MIR
     /// prints a path by its last segment where no other item has it.
     pub(crate) lasts: BTreeMap<String, Vec<String>>,

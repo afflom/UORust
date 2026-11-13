@@ -1,0 +1,18 @@
+// MIR for `num::imp::int_sqrt::u32_stages::HALF_BITS` before ElaborateBoxDerefs
+
+const u32_stages::HALF_BITS: u32 = {
+    let mut _0: u32;
+    let mut _1: u32;
+    let mut _2: bool;
+
+    bb0: {
+        _1 = const 1_i32 as u32 (IntToInt);
+        _2 = Lt(move _1, const 32_u32);
+        assert(move _2, "attempt to shift right by `{}`, which would overflow", const 1_i32) -> [success: bb1, unwind continue];
+    }
+
+    bb1: {
+        _0 = Shr(const num::<impl u16>::BITS, const 1_i32);
+        return;
+    }
+}

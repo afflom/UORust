@@ -222,6 +222,10 @@ pub(crate) fn shard(
     let krate = scope.krate.as_str();
     // Each body at its instantiation, with the bindings and its own text.
     let mut bodies: Vec<(IrBody, String, String)> = Vec::new();
+    // Each body's instance at its `Fn`-bounded parameters' functions, where
+    // it has any: lowered first, the canonical instance where it does not
+    // lower.
+    let mut variants: Vec<Option<(IrBody, String)>> = Vec::new();
     let mut consts: BTreeMap<String, IrBody> = BTreeMap::new();
     let mut closures: BTreeMap<String, IrBody> = BTreeMap::new();
     for text in texts {
@@ -253,6 +257,26 @@ pub(crate) fn shard(
                 })
                 .or_else(|| impl_consts.get(w).cloned())
         });
+        // A parameter bounded by `Fn` or `FnOnce` is the function its bound
+        // states, at the other parameters' bindings: the body lifts for
+        // every function of that type, and `<F as FnOnce<A>>::Output` is
+        // the bound's result.
+        let mut fn_generics = generics.clone();
+        let mut outputs: Vec<(String, String)> = Vec::new();
+        if let Some(fns) = resolved
+            .as_deref()
+            .and_then(|p| link.decls.fn_bounds.get(p))
+        {
+            for (p, bound) in fns {
+                if generics.get(p).map(String::as_str) == Some(CANONICAL) {
+                    let bound = super::stdlib::substitute(bound, &generics);
+                    if let Some((_, out)) = bound.rsplit_once(" -> ") {
+                        outputs.push((p.clone(), out.to_string()));
+                    }
+                    fn_generics.insert(p.clone(), bound);
+                }
+            }
+        }
         let at = generics
             .iter()
             .map(|(p, t)| format!("{p}={t}"))
@@ -262,10 +286,60 @@ pub(crate) fn shard(
             .lines()
             .map(|l| super::stdlib::substitute(&opaque_projections(l, &generics), &generics) + "\n")
             .collect();
+        // The body at its `Fn`-bounded parameters' functions, where it has
+        // any, which is lowered first.
+        let fn_at = fn_generics
+            .iter()
+            .map(|(p, t)| format!("{p}={t}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let fn_instance: Option<String> = (!outputs.is_empty()).then(|| {
+            text.lines()
+                .map(|l| {
+                    // `<F as FnOnce<A>>::Output` of a function parameter:
+                    // its bound's result.
+                    let mut l = l.to_string();
+                    for (p, out) in &outputs {
+                        let open = format!("<{p} as ");
+                        while let Some(at) = l.find(&open) {
+                            let mut depth = 0i64;
+                            let mut end = None;
+                            let cs: Vec<(usize, char)> = l[at..].char_indices().collect();
+                            for (j, (i, c)) in cs.iter().enumerate() {
+                                match c {
+                                    '<' => depth += 1,
+                                    '>' if j > 0 && cs[j - 1].1 == '-' => {}
+                                    '>' => {
+                                        depth -= 1;
+                                        if depth == 0 {
+                                            end = Some(at + i + 1);
+                                            break;
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            match end.filter(|e| l[*e..].starts_with("::Output")) {
+                                Some(e) => l.replace_range(at..e + "::Output".len(), out),
+                                None => break,
+                            }
+                        }
+                    }
+                    super::stdlib::substitute(&opaque_projections(&l, &fn_generics), &fn_generics)
+                        + "\n"
+                })
+                .collect()
+        });
+        let mut fn_bodies = fn_instance
+            .as_deref()
+            .map(parse::bodies)
+            .unwrap_or_default()
+            .into_iter();
         for (body, original) in parse::bodies(&instance)
             .into_iter()
             .zip(parse::bodies(text))
         {
+            let fn_body = fn_bodies.next();
             // A constant: a promoted one, a constant item, or an anonymous
             // constant (`u16::{constant#0}`, an expression in a const
             // context of its function's body, which its uses name).
@@ -305,7 +379,11 @@ pub(crate) fn shard(
                 format!("{krate}::{}\n{}", original.path, numbered_allocations(text)).as_bytes(),
             );
             let mut body = body;
-            body.path = path;
+            body.path = path.clone();
+            variants.push(fn_body.map(|mut b| {
+                b.path = path;
+                (b, fn_at.clone())
+            }));
             bodies.push((body, at.clone(), kappa));
         }
     }
@@ -352,7 +430,7 @@ pub(crate) fn shard(
     let none = std::collections::BTreeSet::new();
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     let mut rows = Vec::new();
-    for (body, at, kappa) in bodies {
+    for ((body, at, kappa), variant) in bodies.into_iter().zip(variants) {
         let mut path = format!("{krate}::{}", body.path);
         let n = seen.entry(path.clone()).or_default();
         *n += 1;
@@ -379,11 +457,21 @@ pub(crate) fn shard(
             layouts,
             backward: false,
         };
-        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            lower::lower(&cx, &body, &name)
-        }))
-        .map_err(|_| "mir::Translator: panicked".to_string())
-        .and_then(|r| r.map_err(|e| crate::project::mir_residue(e).detail()));
+        let lowered = |b: &IrBody| {
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| lower::lower(&cx, b, &name)))
+                .map_err(|_| "mir::Translator: panicked".to_string())
+                .and_then(|r| r.map_err(|e| crate::project::mir_residue(e).detail()))
+        };
+        // The instance at its parameters' functions where it lowers, else
+        // the canonical one.
+        let mut at = at;
+        let outcome = match variant.map(|(b, a)| (lowered(&b), a)) {
+            Some((Ok(l), a)) => {
+                at = a;
+                Ok(l)
+            }
+            _ => lowered(&body),
+        };
         let (digest, cause) = match outcome {
             Ok(lowered) => {
                 let text: String = lowered
@@ -546,6 +634,10 @@ pub(crate) struct CoreDecls {
     /// from core's root: rustc dumps the MIR of only some (`pub` ones), so
     /// a use of another reads its value from the source.
     pub(crate) items: BTreeMap<String, (String, String)>,
+    /// Each type parameter a function's generics bound by `Fn` or `FnOnce`,
+    /// by the function's path as [`CoreDecls::parameters`] takes it: the
+    /// bound as a type, `impl FnOnce(A) -> R`.
+    pub(crate) fn_bounds: BTreeMap<String, BTreeMap<String, String>>,
 }
 
 impl CoreDecls {
@@ -806,6 +898,53 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                 None => t,
             }
         };
+        // Each type parameter bounded by `Fn` or `FnOnce` of the generics
+        // in scope, and the bound, `impl FnOnce(A) -> R`: the parameter is
+        // a function, its one method the function itself. (`FnMut`'s
+        // `call_mut` changes its environment, which a function does not
+        // hold.)
+        let fn_bounds = |scopes: &[&syn::Generics]| -> BTreeMap<String, String> {
+            let mut found = BTreeMap::new();
+            let mut bound = |p: String, b: &syn::TypeParamBound| {
+                let syn::TypeParamBound::Trait(tb) = b else {
+                    return;
+                };
+                let Some(last) = tb.path.segments.last() else {
+                    return;
+                };
+                let name = last.ident.to_string();
+                let syn::PathArguments::Parenthesized(args) = &last.arguments else {
+                    return;
+                };
+                if name != "Fn" && name != "FnOnce" {
+                    return;
+                }
+                let inputs: Vec<String> = args.inputs.iter().map(|a| text(&a.ty)).collect();
+                let output = match &args.output {
+                    syn::ReturnType::Default => "()".to_string(),
+                    syn::ReturnType::Type(_, t) => text(t),
+                };
+                found.insert(p, format!("impl {name}({}) -> {output}", inputs.join(", ")));
+            };
+            for g in scopes {
+                for param in &g.params {
+                    if let syn::GenericParam::Type(t) = param {
+                        for b in &t.bounds {
+                            bound(t.ident.to_string(), b);
+                        }
+                    }
+                }
+                for pred in g.where_clause.iter().flat_map(|w| &w.predicates) {
+                    if let syn::WherePredicate::Type(pt) = pred {
+                        let p = text(&pt.bounded_ty);
+                        for b in &pt.bounds {
+                            bound(p.clone(), b);
+                        }
+                    }
+                }
+            }
+            found
+        };
         for item in list {
             match item {
                 syn::Item::Const(c) => {
@@ -967,6 +1106,10 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                                     .entry(path.clone())
                                     .or_insert_with(|| signature_generic_names(&f.sig));
                             }
+                            let fns = fn_bounds(&[&im.generics, &f.sig.generics]);
+                            if !fns.is_empty() {
+                                out.fn_bounds.entry(path.clone()).or_default().extend(fns);
+                            }
                             out.methods.entry(path).or_default().extend(
                                 generic_names(&im.generics)
                                     .into_iter()
@@ -994,6 +1137,10 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         .entry(at(f.sig.ident.to_string()))
                         .or_default()
                         .extend(const_types(&f.sig.generics));
+                    let fns = fn_bounds(&[&f.sig.generics]);
+                    if !fns.is_empty() {
+                        out.fn_bounds.insert(at(f.sig.ident.to_string()), fns);
+                    }
                     out.generics
                         .insert(at(f.sig.ident.to_string()), signature_generic_names(&f.sig));
                 }
@@ -1863,7 +2010,8 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
         .map(|e| e.path())
         .filter(|p| {
             p.extension().is_some_and(|x| x == "toml")
-                && p.file_stem().is_some_and(|n| n != "frontier")
+                && p.file_stem()
+                    .is_some_and(|n| n != "frontier" && n != crate::queue::RETRACTED)
         })
         .collect();
     files.sort();
@@ -1926,9 +2074,14 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
 }
 
 /// The bodies a register at `dir` records as translated that `shards` now
-/// leave as residue, by κ: the register is monotone.
+/// leave as residue, by κ: the register is monotone but for a body its
+/// `retracted.toml` lists by κ and path.
 pub fn core_regressions(dir: &Path, shards: &[CoreShard]) -> Vec<String> {
     let mut out = Vec::new();
+    let retracted = match crate::queue::retractions(dir) {
+        Ok(r) => r,
+        Err(e) => return vec![e.to_string()],
+    };
     for s in shards {
         let file = dir.join(format!("{}.toml", s.module));
         let Ok(text) = std::fs::read_to_string(&file) else {
@@ -1949,7 +2102,10 @@ pub fn core_regressions(dir: &Path, shards: &[CoreShard]) -> Vec<String> {
                 continue;
             }
             if let Some(r) = now.get(field("kappa")) {
-                if r.digest.is_none() {
+                let listed = retracted
+                    .iter()
+                    .any(|x| x.kappa == r.kappa && x.path == field("path"));
+                if r.digest.is_none() && !listed {
                     out.push(format!(
                         "{}: {}",
                         r.path,

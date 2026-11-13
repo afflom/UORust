@@ -1,0 +1,36 @@
+// MIR for `cmp::every_arm` before ElaborateBoxDerefs
+
+fn cmp::every_arm(_1: cmp::Ordering) -> bool {
+    debug o => _1;
+    let mut _0: bool;
+    let mut _2: i8;
+
+    bb0: {
+        PlaceMention(_1);
+        _2 = discriminant(_1);
+        switchInt(move _2) -> [255: bb1, 0: bb2, 1: bb3, otherwise: bb4];
+    }
+
+    bb1: {
+        _0 = const true;
+        goto -> bb5;
+    }
+
+    bb2: {
+        _0 = const false;
+        goto -> bb5;
+    }
+
+    bb3: {
+        _0 = const false;
+        goto -> bb5;
+    }
+
+    bb4: {
+        _0 = cmp::absent() -> [return: bb5, unwind continue];
+    }
+
+    bb5: {
+        return;
+    }
+}
