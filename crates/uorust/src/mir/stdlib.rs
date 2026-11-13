@@ -703,7 +703,8 @@ impl Renderer<'_> {
             name: name.clone(),
             parameters: params,
             result,
-            body: Expr::Flat(body),
+            // A match its body is laid out as `lexlean fmt` lays one out.
+            body: Expr::read(&body),
             axioms: Vec::new(),
             recursive: a.recursive.clone(),
             termination: None,

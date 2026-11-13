@@ -39,6 +39,72 @@ pub(crate) struct Arm {
     pub(crate) body: Expr,
 }
 
+impl Expr {
+    /// The structured form of a term held as text: a top-level `(match
+    /// scrutinee | pattern => body ...)` as a [`Expr::Match`] (its arms'
+    /// bodies read the same way), so the printer lays it out as `lexlean
+    /// fmt` does; any other term flat.
+    pub(crate) fn read(text: &str) -> Self {
+        let flat = || Self::Flat(text.to_string());
+        let Some(inner) = text
+            .strip_prefix("(match ")
+            .and_then(|t| t.strip_suffix(')'))
+        else {
+            return flat();
+        };
+        // The pieces of `inner` between its ` | ` at depth 0, outside strings;
+        // `None` when its parentheses do not close inside it.
+        let mut pieces = Vec::new();
+        let (mut depth, mut start, mut quoted, mut escaped) = (0i32, 0, false, false);
+        let bytes = inner.as_bytes();
+        for (i, &b) in bytes.iter().enumerate() {
+            if quoted {
+                match b {
+                    _ if escaped => escaped = false,
+                    b'\\' => escaped = true,
+                    b'"' => quoted = false,
+                    _ => {}
+                }
+                continue;
+            }
+            match b {
+                b'"' => quoted = true,
+                b'(' | b'[' | b'{' => depth += 1,
+                b')' | b']' | b'}' => {
+                    depth -= 1;
+                    if depth < 0 {
+                        return flat();
+                    }
+                }
+                b'|' if depth == 0
+                    && inner[..i].ends_with(' ')
+                    && inner[i + 1..].starts_with(' ') =>
+                {
+                    pieces.push(&inner[start..i - 1]);
+                    start = i + 2;
+                }
+                _ => {}
+            }
+        }
+        if depth != 0 || quoted || pieces.is_empty() {
+            return flat();
+        }
+        pieces.push(&inner[start..]);
+        let scrutinee = pieces[0].to_string();
+        let mut arms = Vec::new();
+        for piece in &pieces[1..] {
+            let Some((pattern, body)) = piece.split_once(" => ") else {
+                return flat();
+            };
+            arms.push(Arm {
+                pattern: pattern.to_string(),
+                body: Self::read(body),
+            });
+        }
+        Self::Match { scrutinee, arms }
+    }
+}
+
 /// A piece of a compound expression: fixed text or a sub-expression.
 enum Piece<'a> {
     Text(String),
@@ -556,6 +622,21 @@ mod tests {
     #[test]
     fn strings_are_escaped_and_collapsed() {
         assert_eq!(string("a \"b\"\n\tc\\"), "\"a \\\"b\\\" c\\\\\"");
+    }
+
+    #[test]
+    fn a_match_held_as_text_is_read_into_its_arms() {
+        let text = "(match (prim index xs i : (Option T)) | Option.none => (record T {a := \"|\"}) | Option.some x => (match x | T.mk y => y))";
+        let Expr::Match { scrutinee, arms } = Expr::read(text) else {
+            panic!("not read as a match");
+        };
+        assert_eq!(scrutinee, "(prim index xs i : (Option T))");
+        assert_eq!(arms.len(), 2);
+        assert_eq!(arms[0].pattern, "Option.none");
+        assert_eq!(arms[0].body, Expr::Flat("(record T {a := \"|\"})".into()));
+        assert!(matches!(arms[1].body, Expr::Match { .. }));
+        assert_eq!(Expr::read(text).flat(), text);
+        assert_eq!(Expr::read("(f x)"), Expr::Flat("(f x)".into()));
     }
 
     #[test]
