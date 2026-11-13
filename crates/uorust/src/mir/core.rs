@@ -462,9 +462,20 @@ pub(crate) struct CoreStruct {
     pub(crate) explicit: bool,
     /// Such an enum's discriminants, in its variants' order, where each is
     /// a literal or follows one.
-    /// (A discriminant past `i64`'s range is no literal here: the
-    /// workspace's own lift holds no wider signed integer.)
+    /// Each is held as its low 64 bits, two's complement, as `discriminant`
+    /// reads it back: the workspace's own lift holds no wider signed
+    /// integer, and `1 << 63` of a `usize` enum is past `i64`'s range.
     pub(crate) values: Option<Vec<i64>>,
+}
+
+/// A discriminant `CoreStruct::values` holds, read at an integer type of
+/// the given signedness.
+pub(crate) fn discriminant(held: i64, signed: bool) -> i128 {
+    if signed {
+        i128::from(held)
+    } else {
+        i128::from(held.cast_unsigned())
+    }
 }
 
 impl CoreStruct {
@@ -803,7 +814,13 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                                 next = value.and_then(|n| n.checked_add(1));
                             }
                             out.into_iter()
-                                .map(|v| v.and_then(|n| i64::try_from(n).ok()))
+                                .map(|v| {
+                                    v.and_then(|n| {
+                                        i64::try_from(n)
+                                            .ok()
+                                            .or_else(|| u64::try_from(n).ok().map(u64::cast_signed))
+                                    })
+                                })
                                 .collect::<Option<Vec<i64>>>()
                         },
                     });

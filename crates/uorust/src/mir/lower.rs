@@ -5401,7 +5401,7 @@ impl Fun<'_, '_> {
                 let mut arms = Vec::new();
                 for (i, (variant, ctor, fields)) in ctors.iter().enumerate() {
                     let n = match &values {
-                        Some(vs) => Some(i128::from(vs[i])),
+                        Some(vs) => Some(super::core::discriminant(vs[i], int.signed)),
                         None => i128::try_from(i).ok(),
                     };
                     let value = n
@@ -5697,7 +5697,7 @@ impl Fun<'_, '_> {
         // variants the lift's enum holds, of the declarations `cfg` picks
         // between; an integer no variant has is no value of the enum, and
         // takes the last.
-        let discriminants = |t: &Ty| -> Option<(String, Vec<(String, i128)>)> {
+        let discriminants = |t: &Ty, signed: bool| -> Option<(String, Vec<(String, i128)>)> {
             let Ty::Named(n) = t else { return None };
             let variants = types.enums.get(n)?;
             let decl = self.cx.core?.decls.structs.iter().find(|s| {
@@ -5713,11 +5713,13 @@ impl Fun<'_, '_> {
                 variants
                     .iter()
                     .cloned()
-                    .zip(values.iter().map(|v| i128::from(*v)))
+                    .zip(values.iter().map(|v| super::core::discriminant(*v, signed)))
                     .collect(),
             ))
         };
-        if let (Some((n, table)), Some(int)) = (discriminants(&fs), Int::of(&ts, self.cx.widths)) {
+        if let Some((int, (n, table))) = Int::of(&ts, self.cx.widths)
+            .and_then(|int| Some((int, discriminants(&fs, int.signed)?)))
+        {
             let held = unwrap(v, &fc);
             let mut arms = Vec::new();
             for (variant, value) in &table {
@@ -5728,7 +5730,9 @@ impl Fun<'_, '_> {
             }
             return Some(wrap(&format!("(match {held} {})", arms.join(" ")), &tc));
         }
-        if let (Some(int), Some((n, table))) = (Int::of(&fs, self.cx.widths), discriminants(&ts)) {
+        if let Some((int, (n, table))) = Int::of(&fs, self.cx.widths)
+            .and_then(|int| Some((int, discriminants(&ts, int.signed)?)))
+        {
             let held = unwrap(v, &fc);
             let ((last, _), rest) = table.split_last()?;
             let mut out = format!("{n}.{last}");
