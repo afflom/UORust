@@ -360,6 +360,13 @@ pub(crate) fn definitions() -> Vec<Decl> {
         "(Fn (Nat) Nat)",
         "(fun [stride, values] (j : Nat) => (match (prim index values (prim quotient j stride 0 : Nat) : (Option Nat)) | Option.none => 0 | Option.some item => item))".into(),
     ));
+    // A list of options laid in cells, each as its code.
+    out.push(definition(
+        "mirCellsOfCodes",
+        &[("values", "(List (Option Nat))"), nat("stride")],
+        "(Fn (Nat) Nat)",
+        "(fun [stride, values] (j : Nat) => (match (prim index values (prim quotient j stride 0 : Nat) : (Option (Option Nat))) | Option.none => 0 | Option.some item => (mirEncodeOption item)))".into(),
+    ));
     out.push(definition(
         "mirDefinedAs",
         &[nat("flag")],
@@ -419,6 +426,20 @@ pub(crate) fn definitions() -> Vec<Decl> {
         "(if (code =? 0) then (ctor Option.none [Nat]) else (ctor Option.some [Nat] (prim subtract code 1 : Nat)))".into(),
     ));
     // A `MaybeUninit`'s cell: its value where it holds one.
+    // Codes read back as the options they code.
+    out.push(Decl::Definition {
+        name: "mirDecodeOptions".into(),
+        parameters: vec![("codes".into(), "(List Nat)".into())],
+        result: "(List (Option Nat))".into(),
+        body: Expr::Flat(
+            "(match codes | List.nil => (nil (Option Nat)) | List.cons head rest => (cons (mirDecodeOption head) (mirDecodeOptions rest)))"
+                .into(),
+        ),
+        axioms: Vec::new(),
+        recursive: Some("codes".into()),
+        termination: None,
+        mutual: None,
+    });
     out.push(definition(
         "mirCellsOfMaybe",
         &[("value", "(Option Nat)")],

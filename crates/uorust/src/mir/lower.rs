@@ -7691,7 +7691,11 @@ impl Fun<'_, '_> {
             };
         let elem = ty(elem_text, self.cx.types)?;
         let encoded = encoding(&elem, self.cx.types).is_some();
-        if !encoded || (shape != Shape::Scalar && !plain_cell(&elem)) {
+        let coded = matches!(&elem, Ty::Option(i) if matches!(**i, Ty::Nat(_)));
+        if !encoded
+            || (shape == Shape::Maybe && !plain_cell(&elem))
+            || (shape == Shape::Items && !plain_cell(&elem) && !coded)
+        {
             return Err(kind(
                 MEMORY_KIND,
                 &format!(
@@ -7875,7 +7879,11 @@ impl Fun<'_, '_> {
         // An array or slice read whole. Every cell of a placement is
         // defined when it is made, and a store keeps it so; through any
         // other pointer, each item must be readable.
-        if steps.is_empty() && view.shape == Shape::Items && matches!(view.elem, Ty::Nat(_)) {
+        let coded = matches!(&view.elem, Ty::Option(i) if matches!(**i, Ty::Nat(_)));
+        if steps.is_empty()
+            && view.shape == Shape::Items
+            && (matches!(view.elem, Ty::Nat(_)) || coded)
+        {
             let p = &view.pointer;
             let count = format!("(project {p} metadata)");
             if !st.placed.values().any(|q| q.pointer == view.pointer) {
@@ -7886,6 +7894,11 @@ impl Fun<'_, '_> {
                 );
             }
             let out = format!("(mirLoadItems {m} {p} {s} {count})");
+            let out = if coded {
+                format!("(mirDecodeOptions {out})")
+            } else {
+                out
+            };
             self.grow(&out)?;
             return Ok((out, Ty::List(Box::new(view.elem.clone()))));
         }
@@ -8097,7 +8110,11 @@ impl Fun<'_, '_> {
                 let len = format!("(prim length {v} : Nat)");
                 (
                     len.clone(),
-                    format!("(mirCellsOfList {v} {stride})"),
+                    if matches!(elem, Ty::Option(_)) {
+                        format!("(mirCellsOfCodes {v} {stride})")
+                    } else {
+                        format!("(mirCellsOfList {v} {stride})")
+                    },
                     "(mirDefinedAs 1)".to_string(),
                     len,
                 )
