@@ -9,7 +9,7 @@
 #   call: 1
 #   collision: 11
 #   form: 2
-#   mir::AggregateKind::Closure: 31
+#   mir::AggregateKind::Closure: 30
 #     1 ast::<impl at crates/uorust/src/ast.rs:1235:1: 1235:14>::scan::{closure#0}: type outside the lift: std::vec::IntoIter<&ast::RustExpr>
 #     1 ast::<impl at crates/uorust/src/ast.rs:352:1: 352:10>::localized::{closure#0}: type outside the lift: std::slice::Iter<'_, ast::GenericArgument>
 #     1 ast::arm_paths::{closure#0}: type outside the lift: std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/ast.rs:1183:53: 1183:56}>
@@ -37,7 +37,6 @@
 #     1 mir::float::format_of::{closure#0}: type outside the lift: std::str::Lines<'_>
 #     1 mir::link::size_of::{closure#0}: mir::Operand::Constant: the constant item core::num::<impl u8>::BITS
 #     1 mir::lower::ctor_term::{closure#0}: mir::ProjectionElem::Field: a field of String
-#     1 mir::stdlib::unify::{closure#2}: type outside the lift: std::ops::RangeTo<usize>
 #     1 order::by_constructors::{closure#0}: type outside the lift: std::ops::Range<usize>
 #     1 order::derived_in::{closure#1}: mir::CastKind::PointerCoercion: from (List String) to (List String)
 #     1 project::enum_equality::{closure#0}: mir::AggregateKind::Closure: project::enum_equality::{closure#0}::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
@@ -132,7 +131,8 @@
 #     1 uorust::order::derived_in, whose translation is not admitted
 #   mir::TerminatorKind::Goto: 29
 #     29 a loop nested in a loop, whose helpers would call each other
-#   mir::Ty: 200
+#   mir::Ty: 201
+#     1 2
 #     7 A0
 #     3 T
 #     18 core::fmt::rt::Argument<'_>
@@ -2218,13 +2218,13 @@ reason = "mir"
 detail = "mir::Ty: mir::link::CoreLink"
 
 [[residue]]
-kappa = "b962bb1044c186682f72e825d6981e1c49575ece8f22542fa36ed8e88a501809"
+kappa = "39c03ec8738b7215712a5417116c57d02e3083ebf72ffea4679195ad2d88a576"
 function = "uorust::mir::link::CoreLink::instance"
 reason = "mir"
 detail = "mir::Ty: mir::link::CoreLink"
 
 [[residue]]
-kappa = "f69fb7c059f0db4193ff3a0ae624a09e53bf27fb49d26f46d2d002fe98626850"
+kappa = "23c7d281cd7cf00c2968239af3b0b79a7aab0d337e6575ea94f369b1fa71e8a1"
 function = "uorust::mir::link::CoreLink::path"
 reason = "mir"
 detail = "mir::Ty: mir::link::CoreLink"
@@ -2386,7 +2386,7 @@ reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "a9999c0c687677ada2149bcbda2e6649dd3a14a36e7e8f614a70f9d7b22ca2f3"
+kappa = "89a6dfb6adc8d9a987a611dbd8ca1e647bce48fdd2df8e820b03e33e150d01e6"
 function = "uorust::mir::lower::Fun<'_, '_>::intrinsic"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
@@ -2866,10 +2866,10 @@ reason = "collision"
 detail = "another function of the crate is also named uorustTable"
 
 [[residue]]
-kappa = "055d0f1953ea0660632b58591ed840d4902f7e5bcb47d4a9c17aeaec3d1b090b"
+kappa = "acc8bc2860f5b164dce8d3f25d14670fda377bb351f8a5f86d5dd313adef21b4"
 function = "uorust::mir::stdlib::unify"
 reason = "mir"
-detail = "mir::AggregateKind::Closure: mir::stdlib::unify::{closure#2}: type outside the lift: std::ops::RangeTo<usize>"
+detail = "mir::Ty: 2"
 
 [[residue]]
 kappa = "5c86e6ba98fd950115c6d20447b35decf3e4b9829fe112f1efcd1435c989de0f"
@@ -3832,7 +3832,7 @@ function = "uorust::mir::impl_type"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "228c0b92d1ef280ef649f0e95939d2c035ad61aa630207d31f751e06b0a9bb61"
+kappa = "e2d1b79574c954a0b3a12a0cf2a8fd49a212722598b9cb80b0edd025ce497c31"
 function = "uorust::mir::link::CoreLink::new"
 effect = "Fs effect: std::fs::read_to_string"
 
@@ -4984,52 +4984,52 @@ definition = "Behavior::orderingValue"
 [[lifted]]
 kappa = "fb4b5731ff303fd10e0f9871358f7305c5c8d2044aa42a0da3760e00e64ff66d"
 function = "uorust::project::Model::all_fns"
-definition = "Behavior::uorustModelAllFns"
+definition = "Behavior::uorustProjectModelAllFns"
 
 [[lifted]]
 kappa = "b89259491998469fe6111037c2752847ad8ce7d789e5c6e648d233c16c6eaa51"
 function = "uorust::project::Model::component_of"
-definition = "Behavior::uorustModelComponentOf"
+definition = "Behavior::uorustProjectModelComponentOf"
 
 [[lifted]]
 kappa = "dc6c8e8a0b622655c4070c889fe2eb2e27e07e2fcdc01a91c0b4a3be438f7823"
 function = "uorust::project::Model::component_suffix"
-definition = "Behavior::uorustModelComponentSuffix"
+definition = "Behavior::uorustProjectModelComponentSuffix"
 
 [[lifted]]
 kappa = "a93c37215c3bd38065a5b13774af307dfd45ccf1b84d8d9edc8aba331b2493a2"
 function = "uorust::project::Model::crate_ident"
-definition = "Behavior::uorustModelCrateIdent"
+definition = "Behavior::uorustProjectModelCrateIdent"
 
 [[lifted]]
 kappa = "9f99aecb480ca530edc67276589237201a1b680dd7dbaf45c3187841ac9e1ee9"
 function = "uorust::project::Model::file"
-definition = "Behavior::uorustModelFile"
+definition = "Behavior::uorustProjectModelFile"
 
 [[lifted]]
 kappa = "b007d3de709a609ba643792862ffff2a30d15615d882e9205781abe2f563eaf8"
 function = "uorust::project::Model::func"
-definition = "Behavior::uorustModelFunc"
+definition = "Behavior::uorustProjectModelFunc"
 
 [[lifted]]
 kappa = "f33cf6dc7faa9b9ed317b8ac41dd99e752938a93dda87ec7afed2e1e943451e2"
 function = "uorust::project::Model::kind"
-definition = "Behavior::uorustModelKind"
+definition = "Behavior::uorustProjectModelKind"
 
 [[lifted]]
 kappa = "b4803dbe76f2f314ec86f773a208018949f97ffb6823ae5494d6dff1486aa54d"
 function = "uorust::project::Model::package"
-definition = "Behavior::uorustModelPackage"
+definition = "Behavior::uorustProjectModelPackage"
 
 [[lifted]]
 kappa = "d48bb86adc499cb113c619af32f746306062ed0bbd17b8a05317eacbe2ccb120"
 function = "uorust::project::Model::path"
-definition = "Behavior::uorustModelPath"
+definition = "Behavior::uorustProjectModelPath"
 
 [[lifted]]
 kappa = "07eb6bb6abfa8a1cbf59270bfc8a18bc5c86713872a253d69e3e7ed9b1ab6bae"
 function = "uorust::project::Model::product"
-definition = "Behavior::uorustModelProduct"
+definition = "Behavior::uorustProjectModelProduct"
 
 [[lifted]]
 kappa = "5b5c25b1e3427a5cb1dd15adc772c8239d1c8b1d5513d140bca80b6456cc5dd1"
