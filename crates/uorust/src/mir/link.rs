@@ -510,13 +510,6 @@ impl CoreLink {
             Some(p) if qualified.is_none() => vec![p],
             _ => {
                 let mut found = candidates();
-                // An impl for `X`'s own type is chosen over a blanket impl,
-                // whose bounds the link does not check (`impl<F: FnPtr> Ord
-                // for F` is not `bool`'s).
-                let blanket = |p: &String| impl_of(p).is_some_and(|(_, (_, ty))| ty == "*");
-                if found.iter().any(|p| !blanket(p)) {
-                    found.retain(|p| !blanket(p));
-                }
                 // An impl of the trait the call names is chosen over one of
                 // a trait a macro names by a metavariable.
                 let named =
@@ -558,7 +551,7 @@ impl CoreLink {
                 found
             }
         };
-        let mut fits = paths.iter().flat_map(|p| {
+        let fits = paths.iter().flat_map(|p| {
             self.bodies
                 .get(p)
                 .into_iter()
@@ -650,8 +643,19 @@ impl CoreLink {
                     (!declared && !differ).then(|| (p.clone(), text, g))
                 })
         });
-        let (path, text, generics) = match (fits.next(), fits.next()) {
-            (Some(one), None) => one,
+        let mut fits: Vec<_> = fits.collect();
+        // Of the impls whose signatures take the call's arguments, one for
+        // `X`'s own type is chosen over a blanket impl, whose bounds the
+        // link does not check (`impl<F: FnPtr> Ord for F` is not `bool`'s).
+        // A blanket impl the call's arguments alone fit is the impl: the
+        // trait's arguments, which the printed callee erases, rule out the
+        // others (`impl<T> From<T> for T` where `X: From<!>` is no fit).
+        let blanket = |p: &String| impl_of(p).is_some_and(|(_, (_, ty))| ty == "*");
+        if fits.iter().any(|(p, _, _)| !blanket(p)) {
+            fits.retain(|(p, _, _)| !blanket(p));
+        }
+        let (path, text, generics) = match fits.len() {
+            1 => fits.remove(0),
             _ => return None,
         };
         // Every parameter the signature declares is bound.
