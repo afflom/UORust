@@ -3,20 +3,20 @@ path = "core::clone::<impl at library/core/src/clone.rs:547:1: 547:42>::clone_to
 kappa = "a545ff8873c4ae03fcf42dee0a258fa4c36539ed5889b9748e94e27b4005df6c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u8>::cast"
 
 [[fn]]
 path = "core::clone::<impl at library/core/src/clone.rs:556:1: 556:44>::clone_to_uninit"
 kappa = "a7e3be2532d5e5641c9fbde0109237a4b052a70343225dd21f2584a968664aa7"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::clone::<impl at library/core/src/clone.rs:567:1: 567:34>::clone_to_uninit"
 kappa = "1ac768242ac73c5e4d85d6a4b70be46b059dff45c6ee490f9ef93d8e5b8d5af4"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::clone::<impl at library/core/src/clone.rs:577:1: 577:47>::clone_to_uninit"
@@ -35,7 +35,7 @@ path = "core::clone::Clone::clone_from"
 kappa = "e896235b5334e5ea6d65ea5977e85065d7962c4fa50f61b8d311fc3f6f407b77"
 at = "Self=u32"
 status = "translated"
-digest = "8a1866345f35423202817914486169c481594dbfdea11def3b9d0af0f4978082"
+digest = "18119984d7858e3ceb4e497ab90e834df8f720ddd45abd271c2b7c1c40930ef2"
 
 [[fn]]
 path = "core::clone::impls::<impl at library/core/src/clone.rs:612:17: 612:40>::clone"
@@ -148,22 +148,22 @@ digest = "c08aaae558d4b437080cb63df4caf02ab86896558d937171aa8b6c985faab461"
 [[fn]]
 path = "core::clone::impls::<impl at library/core/src/clone.rs:636:5: 636:27>::clone"
 kappa = "9a200ba3f8dfbdcc64fc0cd036dceb16c868dcfefc499784d6f0c9bb9012a9f5"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "456c44b4609bc606b2c0c6289d1b8a31dd5f6b8a54bd350b73ccbde0d5572d94"
 
 [[fn]]
 path = "core::clone::impls::<impl at library/core/src/clone.rs:650:5: 650:51>::clone"
 kappa = "3a6ea76ec594d66d0c5aa50e4d7aca8b5ac0c93aaa4848df09f31c8019530bb1"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
 
 [[fn]]
 path = "core::clone::impls::<impl at library/core/src/clone.rs:664:5: 664:49>::clone"
 kappa = "58da4dce436d49cbaf1095a1102568d3148e914b6e6b7b09ed78b68aa239c093"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
 
 [[fn]]
 path = "core::clone::impls::<impl at library/core/src/clone.rs:679:5: 679:45>::clone"
@@ -177,28 +177,28 @@ path = "core::uninit::<impl at library/core/src/clone/uninit.rs:12:1: 12:37>::cl
 kappa = "2b2272b2f7d1db6aa1bb190b6362e98504580592e42d8cbf45f3882deb9682d5"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::TerminatorKind::Call: ptr::write"
 
 [[fn]]
 path = "core::uninit::<impl at library/core/src/clone/uninit.rs:12:1: 12:37>::clone_slice"
 kappa = "bf2486a22104496d28177661d976d23dbe337a8afe5a370406d46d005fb43db0"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut [u32]"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u32]>::len"
 
 [[fn]]
 path = "core::uninit::<impl at library/core/src/clone/uninit.rs:55:1: 55:44>::clone_one"
 kappa = "cb8bf50f17a171e4ddada241aca67894fcc4245c3be3a42a76876656fb39a7e2"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::uninit::<impl at library/core/src/clone/uninit.rs:55:1: 55:44>::clone_slice"
 kappa = "b9739d65cc94dbe2ce7b672a2a5ab6271322929fc9096011471ebaef321d1f18"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut [u32]"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u32]>::len"
 
 [[fn]]
 path = "core::uninit::InitializingSlice::drop"

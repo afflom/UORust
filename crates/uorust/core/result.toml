@@ -135,14 +135,14 @@ path = "core::result::IterMut::next"
 kappa = "555a700684b32093116b2431f316e3f864f02daac2fbbc8dcbb14fdc58b69d4e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: result::IterMut<'_, u32>"
 
 [[fn]]
 path = "core::result::IterMut::next_back"
 kappa = "eddd7cf4a4de5dbdb90cb3fd6e2d932861284c263fa8d0c53df79c43d3ad0fb1"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: result::IterMut<'_, u32>"
 
 [[fn]]
 path = "core::result::IterMut::size_hint"
@@ -170,7 +170,7 @@ path = "core::result::Result::as_mut"
 kappa = "745a59bfb475c546e58bfa0db50a3fcabde8fab2a97ad1ef1b9defb67ddaa79a"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::result::Result::as_ref"
@@ -198,7 +198,7 @@ path = "core::result::Result::clone_from"
 kappa = "2168cb9654012d975ad5f1fdb45e1e9ab057cf055c514d91f02416af540ab0b1"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: &mut result::Result<u32, u32>"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::result::Result::cloned"
@@ -212,7 +212,7 @@ path = "core::result::Result::cloned#2"
 kappa = "1ff370002e60f7a19cb4203ae9d77e81f4c3a58d2632421537b991a0938edf10"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::AggregateKind::Closure: result::<impl at library/core/src/result.rs:1745:1: 1745:29>::cloned::{closure#0}: type outside the lift: {closure@library/core/src/result.rs:1792:18: 1792:21}"
 
 [[fn]]
 path = "core::result::Result::copied"
@@ -225,8 +225,8 @@ digest = "db441cc10e9f4645cd492fe9b7f74d871c75b3b53b5fc4f44310a010483dfbce"
 path = "core::result::Result::copied#2"
 kappa = "b334a436a86e84cdfce36ceff432666c3600b1dd7ff76fee0b5b086124f12adc"
 at = "E=u32, T=u32"
-status = "residue"
-cause = "mir::Ty: &mut u32"
+status = "translated"
+digest = "db441cc10e9f4645cd492fe9b7f74d871c75b3b53b5fc4f44310a010483dfbce"
 
 [[fn]]
 path = "core::result::Result::err"
@@ -303,7 +303,7 @@ path = "core::result::Result::into_err"
 kappa = "17ab693761496d70a6da55967c2402a52a5211d4417eae34a72fc46eb77f0811"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: <u32 as convert::Into>::into"
 
 [[fn]]
 path = "core::result::Result::into_iter"
@@ -317,7 +317,7 @@ path = "core::result::Result::into_ok"
 kappa = "49f1dcf11a7d8c75599a7bdf373eec9cdcfe83a3e773f85a6b6d998d2f04366f"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: <u32 as convert::Into>::into"
 
 [[fn]]
 path = "core::result::Result::is_err"
@@ -476,5 +476,5 @@ cause = "mir::TerminatorKind::Call: mem::forget"
 path = "core::result::unwrap_failed"
 kappa = "0793f1160b113f99ae8f75102855b95e3bd79831626b9294e76b781f13d02743"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: dyn fmt::Debug"
 

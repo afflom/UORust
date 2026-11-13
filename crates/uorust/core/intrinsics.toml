@@ -36,7 +36,7 @@ path = "core::Checked"
 kappa = "0d0514803bc4bdbdcac432845d980dd2595f362f482d29f73320583387e77cec"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: panicking::panic"
 
 [[fn]]
 path = "core::Discriminant"
@@ -63,7 +63,7 @@ path = "core::Move"
 kappa = "bc22f3a171f6290dc39241d07ed627aa8332f5d5c104043356bc31c8b0372900"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: panicking::panic"
 
 [[fn]]
 path = "core::Offset"
@@ -102,14 +102,14 @@ path = "core::Static"
 kappa = "8f17e8de76e1ecd32e21f697b54c7572267ff6e7314064355e7a5aed5f97daf4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: panicking::panic"
 
 [[fn]]
 path = "core::StaticMut"
 kappa = "a096bf0c847b9c71e5efc9332d4b39de30884e31ed160d3094d9bb4908685d8a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::TerminatorKind::Call: panicking::panic"
 
 [[fn]]
 path = "core::StorageDead"
@@ -182,13 +182,13 @@ path = "core::__internal_make_place"
 kappa = "f7d93eee2101f163d0202e55b5e57e5e657a5c5b82e7991f0a1f0b4fd18d0eba"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::TerminatorKind::Call: panicking::panic"
 
 [[fn]]
 path = "core::abort"
 kappa = "38db9a8b6e3d20c78d267d66b987aa717fa926574d0e898727598cf7e44e80c2"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "df20569b68de0a8de9adeddcf321a3ace4a27cdfc12a32570e3dbff76a447d93"
 
 [[fn]]
 path = "core::add_with_overflow"
@@ -209,7 +209,7 @@ path = "core::arith_offset"
 kappa = "3869e64693742e797706967a42f0765efb184249b06be9e0f3574bb87535644c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::assert_inhabited"
@@ -239,15 +239,15 @@ digest = "03efc8d4fad94d31a9eeb9ba65b56e805043f2c8266ad2ae7a5647e714054682"
 path = "core::atomic_cxchg"
 kappa = "f00e62615a54c876f708ea735d285e30c929affb7b71f5322c52b7b9e3b45032"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *mut u32"
+status = "translated"
+digest = "55dff11bee1c2261ba4465c78e26b69477718cba12316a4cdb0236d45da3d426"
 
 [[fn]]
 path = "core::atomic_cxchgweak"
 kappa = "f2d6762160c00fc6bd5121af43654c165d9cecdeaabdf85ea4e02e13cc61f829"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *mut u32"
+status = "translated"
+digest = "1bbf28c2e65e1a9a0a9197b3536eacc1a92bd92942a60e47d58aa8be137d6c74"
 
 [[fn]]
 path = "core::atomic_fence"
@@ -266,21 +266,21 @@ path = "core::atomic_xadd"
 kappa = "b4f250d4ff86bf1b1bb5da6e52704e866b6f462297953bb2eac8bb669d06eee7"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::Ty: U"
 
 [[fn]]
 path = "core::atomic_xchg"
 kappa = "dc969952864ae4d0c481827db3bef4d00ded3c630dd0a782ab2c939840b1f8be"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *mut u32"
+status = "translated"
+digest = "6bfb918745e6b331c556a09b8d320ff175d6567d42eeb7fb75eab6f7cc854f4c"
 
 [[fn]]
 path = "core::atomic_xsub"
 kappa = "22f8ccc475be65e37d85f6a4d6937737b7cc453e6ab3f75738140851bd2efa42"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::Ty: U"
 
 [[fn]]
 path = "core::autodiff"
@@ -356,20 +356,20 @@ digest = "14061b3790f7aac6f2f6bfabf31e9432fec410f701a616013cb9c5dc670971ad"
 [[fn]]
 path = "core::compare_bytes"
 kappa = "9dffa823027622297e0848e7a569dab7ecf02238dd2bb4e575587578fd17e023"
-status = "residue"
-cause = "mir::Ty: *const u8"
+status = "translated"
+digest = "d3f107a6a1884f2cdb4f26175d3c0dee330311573afd948a22d5cd9d6ae1ce70"
 
 [[fn]]
 path = "core::const_allocate"
 kappa = "14da5a9c918cde7278685bb4d08404c0f0966af828a99e2648f0184db8d15785"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::TerminatorKind::Call: ptr::null_mut"
 
 [[fn]]
 path = "core::const_deallocate"
 kappa = "e4b32504996a9733b286ff9ae0938e36bd766a413e39b023f3fa4aca2fdd25ed"
-status = "residue"
-cause = "mir::Ty: *mut u8"
+status = "translated"
+digest = "f3af8acac022c4b3f3c480e8411fabe6eb27ff6106d1e69124b10db648525fb1"
 
 [[fn]]
 path = "core::const_eval_select"
@@ -381,8 +381,8 @@ cause = "mir::Ty: ARG"
 [[fn]]
 path = "core::const_make_global"
 kappa = "3b52b2ff7a82389612b3307f812cc274f0546e640bb3bca3a402d4f19d96c607"
-status = "residue"
-cause = "mir::Ty: *const u8"
+status = "translated"
+digest = "276da2ff1a24657140476949247bc6c656c0e62334546321f86711187313d8d7"
 
 [[fn]]
 path = "core::contract_check_ensures"
@@ -1025,77 +1025,77 @@ digest = "ed422ec7246c0f4b29a426ac7bbc6232c369aaebb055e1564dacb15a0f4465b6"
 [[fn]]
 path = "core::intrinsics::align_of_val"
 kappa = "ee41ec4b9e2597372c760a331884a5f224cce8761b61e47ca8f94f43287598b2"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "e8f48c270f246217400997cc1f13c019d0c08b8bbc1495795b031fbd7a70a6ab"
 
 [[fn]]
 path = "core::intrinsics::atomic_and"
 kappa = "3b3c16df6ef4823a4c8c0624360845b035be7442a7af81a80fbb8c08d5b6c1d2"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::Ty: U"
 
 [[fn]]
 path = "core::intrinsics::atomic_load"
 kappa = "9966993615069589ee200b0b24ea76e68f11afde4c52ca96e6acda2bcd950f9a"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *const u32"
+status = "translated"
+digest = "db5672f0774f41df578b2baa616e8d5a0f39b3b07dbd9b3b5cdd1baf312d8093"
 
 [[fn]]
 path = "core::intrinsics::atomic_max"
 kappa = "9e198bcca87583aec8f91fb175b5d8f137be62a87a406b862c0509bdc974f003"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *mut u32"
+status = "translated"
+digest = "76b5a0137e3e0f8e41f507059dfed44c01efa3a83eece2df03d943750d29372a"
 
 [[fn]]
 path = "core::intrinsics::atomic_min"
 kappa = "6b08f138287c8f227ccc71aa30ac4ecdf07433628735274a2758347cd61f1701"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *mut u32"
+status = "translated"
+digest = "f3ddff42d266e4c4bb49d709d21830f6babe11085dfc31e216d43cde8124a19a"
 
 [[fn]]
 path = "core::intrinsics::atomic_nand"
 kappa = "e6a3f4b9ea6434044447cb9ca84cf39f3d37e69543af7919dc323cdabb449870"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::Ty: U"
 
 [[fn]]
 path = "core::intrinsics::atomic_or"
 kappa = "17628d0eee835c1c2bc6fa39c2eca58e746b6c56e21bc7d8260045383cc3e228"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::Ty: U"
 
 [[fn]]
 path = "core::intrinsics::atomic_store"
 kappa = "91cc4558bf7decc66140815a75f4a3524d0da99cec7e204534a71193ea8be3a5"
 status = "residue"
-cause = "mir::Ty: *mut T"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::intrinsics::atomic_umax"
 kappa = "c67a3d93d8fbc627bdca79d7ce7d5886d12b4cc791d6d80d18f77744c3fe2554"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *mut u32"
+status = "translated"
+digest = "a6cceb9c06e91aa8eed468a06cd3c8e7f60164b26670153dbb6b44a07ed2383e"
 
 [[fn]]
 path = "core::intrinsics::atomic_umin"
 kappa = "a0c5b2d3b59e605b9ea3a7a45a9d3eae923ac10a6ea593126f481614740b530d"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *mut u32"
+status = "translated"
+digest = "666e4ffb462507f13bb657b8d7805d05545d48eaac3bb92157d5bd81b6879a82"
 
 [[fn]]
 path = "core::intrinsics::atomic_xor"
 kappa = "a5c387a07697cdfee801163c3883bfa1a85a5d466cd42daabfaa2d2a3e7aa5a9"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::Ty: U"
 
 [[fn]]
 path = "core::intrinsics::black_box"
@@ -1119,14 +1119,14 @@ digest = "d457b5f94d4c7ae7882dd1c828990a6e7d6be551ac0d0ec55a2df9a665a98ab0"
 [[fn]]
 path = "core::intrinsics::copy"
 kappa = "f52030041a0b170d792d8b5a188c2c8418089977e737eea5b49ce8181a72774a"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "de7bcc04a2c742b15065899cb2cbbd38fc3fcf4c8f0b8d4e3e4489425c8bf4d7"
 
 [[fn]]
 path = "core::intrinsics::copy_nonoverlapping"
 kappa = "db26901f76aa5724b13493b3460e3feba95dc5a23edd0f0282dc09d48324d7b3"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "2e7a0d9759cf42c9d168ebfd174816fafe02a3ad90b0fa90f086b8ebb94adc9e"
 
 [[fn]]
 path = "core::intrinsics::forget"
@@ -1149,8 +1149,8 @@ digest = "3bd17fb6dcc32c3686292413ba94d1ff74c44763d32b0b4725db20cd889de24f"
 [[fn]]
 path = "core::intrinsics::prefetch_read_instruction"
 kappa = "2f1b12aa82932849a05dd35eb5b3a52005d87ce0df5862360a9be1d7610c83db"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "423898e0a423cc64834bfe9082d4c027a9afa4730b9de1dd055a59b52be1ced9"
 
 [[fn]]
 path = "core::intrinsics::select_unpredictable"
@@ -1452,8 +1452,8 @@ digest = "00b445fb014cc0b32865eaebd6c580f475682b1c728e930e0c777827fb7e8f4b"
 [[fn]]
 path = "core::intrinsics::size_of_val"
 kappa = "e16eb4698ad1524fa368b682f1d2ce32491a3170432ef615577284c03c40ca6b"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "a4b25870bc6cfcf11280408fe96eaf853dbf2611330117abd41b6fc21f5096dc"
 
 [[fn]]
 path = "core::intrinsics::transmute"
@@ -1489,8 +1489,8 @@ digest = "5c386fda6e8f8644d28ec62c0ebb25fcb5f70010a52eca5529dae1fd64dcbdf2"
 [[fn]]
 path = "core::intrinsics::write_bytes"
 kappa = "39c08c6929f08705a40a6f9a14cb69c65a70deced1a7561e89a7abbfbb065893"
-status = "residue"
-cause = "mir::Ty: *mut T"
+status = "translated"
+digest = "dd05470504d0275f722e6039b00d8471dc892bc1cf218da86f2fc8e733718351"
 
 [[fn]]
 path = "core::is_val_statically_known"
@@ -1683,7 +1683,7 @@ digest = "74f940b52f6770b125c5e90f236042e469dc8a2ff75a79dd629b08fe1250b0e3"
 path = "core::nontemporal_store"
 kappa = "0189b130ee06c490b086d295e2c09c6c49924aeb2c75f207423ae142adea54c3"
 status = "residue"
-cause = "mir::Ty: *mut T"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::offload"
@@ -1762,41 +1762,41 @@ digest = "61482cea4b4251b01a1b5ec05becf87ac71ff741bfa0e31b05ef7111cd8284e7"
 [[fn]]
 path = "core::prefetch_read_data"
 kappa = "a6d0b305c3bafc03f8ba661caae8eaca1cd27dccd06f1faf4d7e82dc175a9270"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "80bc32135865f4a68fc36db15c914b47fc14450c769dce23056d1b977e9297bd"
 
 [[fn]]
 path = "core::prefetch_write_data"
 kappa = "5044ef1c744de9518165f096a61d8d4b12719d60ca86049c59cc6c25f2cdae36"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "54cbadfb8137ddfd36d6aac7f99fd799994627d3b0742cb181e87fda7491d6bc"
 
 [[fn]]
 path = "core::prefetch_write_instruction"
 kappa = "2327cb19cdf1e495bc06721c33b58c56f99a2aa999a034bc7a9e4691bb248412"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "b2e1795960bef323a2cd73a6bbb19c8d28725bac93f7dc6a09c29efd0c90f1fe"
 
 [[fn]]
 path = "core::ptr_guaranteed_cmp"
 kappa = "65cf95c16e4d2ad11de9002114ce5d3881c191e5c2701940cac95f780a838fcd"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::CastKind::IntToInt: from Bool to Nat"
 
 [[fn]]
 path = "core::ptr_mask"
 kappa = "316ef2dac829e57f8f8af0196a1d93ad36ed069dde0cd357aecc798b84ace8cf"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *const u32"
+status = "translated"
+digest = "fd66f90ab4b2d5033a8a0175d1098cfc12f7e0e54454e29c6900a1715ccf798d"
 
 [[fn]]
 path = "core::ptr_metadata"
 kappa = "14922234f3023309013ee5e77bde3471f64402c6a3b363664cfaf7a6537cf4ae"
 at = "M=u32"
-status = "residue"
-cause = "mir::Ty: *const P"
+status = "translated"
+digest = "fffdd65aae6fa1a8eca0c09a1e7af2b54263d682f17156248b83db8643d6afc8"
 
 [[fn]]
 path = "core::ptr_offset_from"
@@ -1807,8 +1807,8 @@ cause = "mir::Ty: isize"
 [[fn]]
 path = "core::ptr_offset_from_unsigned"
 kappa = "ce3912979d1cbfb2d4794273e53899146f4a12a77beaa535912d4c80b234c052"
-status = "residue"
-cause = "mir::Ty: *const T"
+status = "translated"
+digest = "c37197933778cb7bf8dce068e74c866dcf97f09bf0691bb7a61e6e3ac5658a3e"
 
 [[fn]]
 path = "core::raw_eq"
@@ -1820,14 +1820,14 @@ cause = "mir::Ty: T"
 path = "core::read_via_copy"
 kappa = "37c29cd1db2b48934ac7610e082eb50b8801a777cf80284036a45cc1c9a0c70f"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *const u32"
+status = "translated"
+digest = "7bd6c9e7128dc407d88357bf26c2c01b4b6dd668408658370e613d4cb823383e"
 
 [[fn]]
 path = "core::return_address"
 kappa = "77c70e15a97943f0e24bb0274d5ce962ce664a49efde5162864cda9376798411"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::TerminatorKind::Call: null"
 
 [[fn]]
 path = "core::rotate_left"
@@ -2341,7 +2341,7 @@ cause = "mir::Ty: TypeId"
 path = "core::type_id_vtable"
 kappa = "895c754d397923d1c585006b1a4ce300a8bea037483e1259cba16cbd1a98471c"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::Ty: ptr::metadata::DynMetadata<*const ()>"
 
 [[fn]]
 path = "core::type_of"
@@ -2354,20 +2354,20 @@ path = "core::typed_swap_nonoverlapping"
 kappa = "b73ba74e06660810a0de49c4f308b6854ca2b3b91408cd94220bf65f5a2157c4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::TerminatorKind::Call: swap_nonoverlapping"
 
 [[fn]]
 path = "core::unaligned_volatile_load"
 kappa = "1b0bca5378a04965d1e1afd8c7328d68e7b93101c7225503840563e6dcf7cc61"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *const u32"
+status = "translated"
+digest = "cb65cd77ca80dbd0bcfdbb965361942c5ccbd3bfc1cbbab5ca01d7dc276099b0"
 
 [[fn]]
 path = "core::unaligned_volatile_store"
 kappa = "70db21d08ed0bf4f1e8728388e2c73986589452ad5cc86ab48c45fc411559505"
 status = "residue"
-cause = "mir::Ty: *mut T"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::unchecked_add"
@@ -2435,8 +2435,8 @@ digest = "1b789080c8155e9982b496846ea09357c1ac32c57f62dc947f5c5089a6894cde"
 [[fn]]
 path = "core::unreachable"
 kappa = "3333b422cf96df43e97a40b1eb6b11cd98a1fc10e392bf9379615a1424a3e379"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "4345c53ed40a3ecb0260f4c37ca8f9e2b46e7c2d5003433b048d49e3fb1a118a"
 
 [[fn]]
 path = "core::va_arg"
@@ -2460,45 +2460,45 @@ cause = "mir::Ty: VaList<'_>"
 [[fn]]
 path = "core::volatile_copy_memory"
 kappa = "c0502c50e5267ac7827f37304c1ebce69efda436ae8223810bd3065bfc03eda2"
-status = "residue"
-cause = "mir::Ty: *mut T"
+status = "translated"
+digest = "8e766fd215ca8f0aaee852aca477d8a23b5ee0ff51fc3ffe83c8f0cbdcd1d282"
 
 [[fn]]
 path = "core::volatile_copy_nonoverlapping_memory"
 kappa = "19c6470be453e73a6c9bee6816e9e30150bad8a2bfc16a0d82e31ee0688fb9d1"
-status = "residue"
-cause = "mir::Ty: *mut T"
+status = "translated"
+digest = "50c178b342550f634884d16cecb93e3cb2bd14ecc055e78522608a5f0cc7491a"
 
 [[fn]]
 path = "core::volatile_load"
 kappa = "a3ffbe1dace67fe7a710f4f51c3ddc4ced03afd03e9d0312eedbc8ea8edf7410"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: *const u32"
+status = "translated"
+digest = "34821613428abd0786b4efdb9accf59a81bf1bb8e27fbcc7e8c58956005a423f"
 
 [[fn]]
 path = "core::volatile_set_memory"
 kappa = "584c2f170d7cf1993a50aae242997886ce599ac7cf59536b1eb5ac0cc61623bf"
-status = "residue"
-cause = "mir::Ty: *mut T"
+status = "translated"
+digest = "9c9b2d2e678709dc3b51549cefdf8b0eadd054613fc4e3766b60aa5103f3cbed"
 
 [[fn]]
 path = "core::volatile_store"
 kappa = "27a5716ec54796ad2ffde6ab9749a8cc527893c872aff734144fa702d728c4f2"
 status = "residue"
-cause = "mir::Ty: *mut T"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::vtable_align"
 kappa = "a9d535ffc6804948869d96cfaafbf69e1f71ee9af4c1f1662f4a0e8f792846de"
-status = "residue"
-cause = "mir::Ty: *const ()"
+status = "translated"
+digest = "fdfd42f476c2b87599f914bb9356823399a274468ca931eae3aec3a5fb3850bf"
 
 [[fn]]
 path = "core::vtable_size"
 kappa = "7e683a0ee3e7b18ba105fa1cf394a5a363c46398955c93cf983189fd1d4d2c86"
-status = "residue"
-cause = "mir::Ty: *const ()"
+status = "translated"
+digest = "9e31c555cbf4db9fe6b11f760cc4c48678987a49cd63eb1e43ffff970cc5b674"
 
 [[fn]]
 path = "core::wide_mul_u128"
@@ -2531,5 +2531,5 @@ digest = "6439ad1416a57ce732d03f6d113d5fb159814854631cb17c3f610c5c19c750f2"
 path = "core::write_via_move"
 kappa = "ca66d7f12a9301b1ab5f8d6a99e8f277ffd760ea1c7327ee95e4e225a576c886"
 status = "residue"
-cause = "mir::Ty: *mut T"
+cause = "mir::Ty: T"
 

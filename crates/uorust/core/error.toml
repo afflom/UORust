@@ -36,7 +36,7 @@ path = "core::error::<impl at library/core/src/error.rs:275:1: 275:25>::downcast
 kappa = "ee5ff8e64ac0f8e17620cd5c3ea56e2ef7aabfd4159645f875d1603a15d2f119"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn error::Error"
 
 [[fn]]
 path = "core::error::<impl at library/core/src/error.rs:275:1: 275:25>::downcast_ref"
@@ -56,7 +56,7 @@ path = "core::error::<impl at library/core/src/error.rs:317:1: 317:32>::downcast
 kappa = "0581eeb1f36c037bfc76cabd72a5824bd45cc7be7f5e27672790d290bb9197bc"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn error::Error + marker::Send"
 
 [[fn]]
 path = "core::error::<impl at library/core/src/error.rs:317:1: 317:32>::downcast_ref"
@@ -76,7 +76,7 @@ path = "core::error::<impl at library/core/src/error.rs:340:1: 340:39>::downcast
 kappa = "ae9c0caa4b4e068d26af213770650965fec4c4cdb0c2227a095564b1d7eab878"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn error::Error + marker::Send + marker::Sync"
 
 [[fn]]
 path = "core::error::<impl at library/core/src/error.rs:340:1: 340:39>::downcast_ref"
@@ -139,21 +139,21 @@ path = "core::error::Request::provide"
 kappa = "685c368a68ba3b02982095da0b5010e474f7e385837be05b055a2e3acbc7c481"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut error::Request<'_>"
+cause = "mir::Ty: error::Request<'_>"
 
 [[fn]]
 path = "core::error::Request::provide_ref"
 kappa = "7b91daa7e3ba5c3415eeadcc780a669ee0835ec8c33d41f69dfec8ce8e05ad51"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut error::Request<'_>"
+cause = "mir::Ty: error::Request<'_>"
 
 [[fn]]
 path = "core::error::Request::provide_value"
 kappa = "18fec80cd112a4cac778935a3cc844eb986718052dfc7fc05e968adbaf0ac59f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut error::Request<'_>"
+cause = "mir::Ty: error::Request<'_>"
 
 [[fn]]
 path = "core::error::Request::would_be_satisfied_by"
@@ -185,7 +185,7 @@ path = "core::error::Tagged::as_request"
 kappa = "785efd2c5ba7ff748ea5f34dd2fe36ef8b19ca74ef78e84b0ff943a62560c0b7"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut error::Request<'_>"
+cause = "mir::Ty: error::Request<'_>"
 
 [[fn]]
 path = "core::error::Tagged::downcast"
@@ -199,7 +199,7 @@ path = "core::error::Tagged::downcast_mut"
 kappa = "7f93dc83c321e0a810f7f96ce490fbd2f96e80bfe64cab9f777f08620f2b73b6"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut error::TaggedOption<'_, u32>"
+cause = "mir::Ty: error::TaggedOption<'_, u32>"
 
 [[fn]]
 path = "core::error::private::<impl at library/core/src/error.rs:267:14: 267:19>::fmt"

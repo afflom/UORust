@@ -3,20 +3,20 @@ path = "core::assert_failed"
 kappa = "754a346b046033f7fc9a4381c220668fcba8730c6e323417cbb3678e2266d466"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::assert_failed_inner"
 kappa = "ef81737ae82a03547ee448836d22d542a40cddfdb60b9b5737b5e6801516bbe6"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: dyn fmt::Debug"
 
 [[fn]]
 path = "core::assert_matches_failed"
 kappa = "11ef87e23f2003b25ee733b651f6fffa4cb5e7761491a26749d742b61bbfe6f4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::assert_matches_failed::Pattern::fmt"
@@ -28,218 +28,218 @@ cause = "mir::Ty: assert_matches_failed::Pattern<'_>"
 path = "core::const_panic_fmt"
 kappa = "fea88de07149a20831609d2a806e6037c73bab139c3c9fc03c20d68ba6e06f3f"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::panic_bounds_check"
 kappa = "5d06d5ce585e21630f13d8b21f61296d15cd3431dffa479ca365f236379ce923"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::rt::Argument<'_>"
 
 [[fn]]
 path = "core::panic_cannot_unwind"
 kappa = "8e16708eebd8ca61dcb8a605c56ef2121f45de5393c00eb39ac1aecf45c1636b"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "7074baf2308e011cfab9422d8db100e78ac0405d3119fed896338dfc6940048a"
 
 [[fn]]
 path = "core::panic_const_add_overflow"
 kappa = "951d96322e7ec77870086375c307a6e85984224b0808e118d24dd9e1fcdc4aa3"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_async_fn_resumed"
 kappa = "26812a6aff60be005392a5965da402d7a3aa481cc8640e7aa5803bab67cea22e"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_async_fn_resumed_drop"
 kappa = "3537c3fab27ebb6163d8116399a91804dab2e0ffd957f29031eccac6d545727d"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_async_fn_resumed_panic"
 kappa = "7d70f5a13fa144821fc14f01a730c1b3b0025e11b4e57d9dd2a6196cb4b02fb0"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_async_gen_fn_resumed"
 kappa = "309a444d9936e179d4985dac6b6d57458e6a2ac0a1070d998471cf623375b32d"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_async_gen_fn_resumed_drop"
 kappa = "37690e4a4d3858e6c4fdc7af0b5e413f0a846e57834708f0e8dfec8cc5c60b07"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_async_gen_fn_resumed_panic"
 kappa = "bc08dfde54cb0e3d6e1339f5cbd1f620269377eedf25bdb5edd047dbcbf98ff7"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_coroutine_resumed"
 kappa = "ae7e0d68e0247d5d6802707b6287c0ccd4a7186fe87b9b443116dc8eac065c51"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_coroutine_resumed_drop"
 kappa = "f68c1169937a246f3037dc1cfb57570ab70444c9baccb1b50f1f7cfcc17e0cea"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_coroutine_resumed_panic"
 kappa = "31da9b3249698f1afcfa9921e964c7fc1816b41636fb3b7d19d5de4c4615e543"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_div_by_zero"
 kappa = "41d3789b0ad133728f109b5d3b34957d4739f571bb52106faeb082f27e304b60"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_div_overflow"
 kappa = "922c46dbc0a98fb9e172beecd15151220935b6933d101b6860d4db1fd1bc26bd"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_gen_fn_none"
 kappa = "33509935e04e5e4261a32fb0c8082745c6f6eaac814a2ed589a5f13da0a1c255"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_gen_fn_none_drop"
 kappa = "a2790fb6e98a5f83200d0419a05242062cdb44dce5725f868829dd1379ed236a"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_gen_fn_none_panic"
 kappa = "8bf0d3a5624bb021d49b7f651c7329e8c71c9fcfd8adc97f9630bfb41fd7be17"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_mul_overflow"
 kappa = "134006c7af6d5e9996628cdea7d69ee3d9f885cdffe9283dc85a244079585861"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_neg_overflow"
 kappa = "424a1af60fb2c36e2848ac15c33f244693d360359cfffe604130e8b0abc748e1"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_rem_by_zero"
 kappa = "3e28ab0b18c23574bc3c0dc0defe2e6b2577685fcf83e6ad63bbb515b2cba66c"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_rem_overflow"
 kappa = "d0c81cfcd2700779a965e4df4e1931abd52724b3531c0d5ff2eccea4c10fef84"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_shl_overflow"
 kappa = "82267e24186947b1e2f30f3369f1c680d0f4c3855ffc3c43f23737ec886344d1"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_shr_overflow"
 kappa = "81723f40398feb42c92b8bd2743a8f21295b426f4d89744f5228198c2146de1a"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_const_sub_overflow"
 kappa = "244eb9991846e21d3aadeb5c17c77f78e3040b022cd1aca46a790faaaa4199fa"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_display"
 kappa = "e61b6e3e2177cf75df53f05a55f5c17b4b78df1a6146da533057286d1988e1c0"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::ProjectionElem::Field: a field of Nat"
 
 [[fn]]
 path = "core::panic_in_cleanup"
 kappa = "4d4ca6db8d5483bc0be52b2ae79baabf1a7520a34639a77e577e7dbcbefb309b"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "c424b6d2290c9536cd8ef83a2b49e31984862e8a8e6489fbb1b591152225a9ba"
 
 [[fn]]
 path = "core::panic_invalid_enum_construction"
 kappa = "5375d4efe36fa3d1293087affef0d57f8d862d5289e643e0b52e20c81bd70c83"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::ProjectionElem::Field: a field of Nat"
 
 [[fn]]
 path = "core::panic_misaligned_pointer_dereference"
 kappa = "76499be98af36cfa5bcc7b51aee663187d5197e37c33503484ad29326f48718b"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::rt::Argument<'_>"
 
 [[fn]]
 path = "core::panic_nounwind"
 kappa = "992aca74f7fbe921272a71e05d53e82ac5024ce118cab7076ad26445a8beacc2"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_nounwind_fmt"
 kappa = "4591f49dd4c57cd4a0c483b3450bccc45a8bb866d6b4ba400f4786198d043b5f"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::panic_nounwind_fmt::compiletime"
 kappa = "e900e01bdeeebd69c471597874e1efad2b5efd24d47e7b37436564b8b32b0639"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::panic_nounwind_fmt::runtime"
 kappa = "b2554cbcd231c3e5ef690fd593f5e2039b7840417e462ce593072fd102e953ab"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::panic_nounwind_nobacktrace"
 kappa = "d8b638a59155c4a2d4458d6bd9afdf9fa102be6bda75b42424d33c0ddaef8a11"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_null_pointer_dereference"
 kappa = "18ed85c68b566193e79bbbbadf3e423564a3b8a44fb7f91a806837aeb88eed23"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_str_2015"
 kappa = "f796bbce4322bcd27caa31ff035de5e140da25e449d975d0df81cea082a13183"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "39a3dfeec3cceb890a803ff3bc2ac9c4fb9c79adf44d1dfed00c05dc0099df9a"
 
 [[fn]]
 path = "core::panicking::<impl at library/core/src/panicking.rs:371:10: 371:15>::fmt"
@@ -251,18 +251,18 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::panicking::panic"
 kappa = "85356ceff2ebdee3494be1ec52c02f321ee046ef5761a7ad49b6b5e00983cf74"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panicking::panic_fmt"
 kappa = "4ae03d6e6ed134a24a4ff3894255f2aa81c0ce4fbc24a24ad9d3365cc15c08dd"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::unreachable_display"
 kappa = "2a4298a5eb1550d3184612a44575a52d60b8a7e521f406590776ccbb59320124"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::ProjectionElem::Field: a field of Nat"
 

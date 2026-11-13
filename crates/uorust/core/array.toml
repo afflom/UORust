@@ -538,7 +538,7 @@ path = "core::array::from_mut"
 kappa = "9c0d3ec2852f589fc70fc77dcfbfef923465ffca8a60317cff46117ebfb4928e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut [u32; 1]"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::array::from_ref"
@@ -587,7 +587,7 @@ path = "core::array::iter::IntoIter::as_mut_slice"
 kappa = "41af2fb7ca6c79a794b393bd6c3af376008d42658392ce656167a39104795f48"
 at = "N=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: &mut [u32]"
+cause = "mir::Ty: array::iter::IntoIter<u32, u32>"
 
 [[fn]]
 path = "core::array::iter::IntoIter::as_slice"
@@ -769,7 +769,7 @@ path = "core::drain::<impl at library/core/src/array/drain.rs:68:1: 70:30>::call
 kappa = "70e55cd3c32f0ea30cfb48eb9c6a6ebe439bf01f2293b9a312607e609761af5f"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: &mut Drain<'_, '_, u32, u32>"
+cause = "mir::Ty: Drain<'_, '_, u32, u32>"
 
 [[fn]]
 path = "core::drain::Drain::drop"
@@ -937,7 +937,7 @@ path = "core::iter_inner::PolymorphicIter::as_mut_slice"
 kappa = "981917f0c7522531cce826ccf908a3129a082d73fe5a6a894d79a6a0d4f9590a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut [u32]"
+cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
 
 [[fn]]
 path = "core::iter_inner::PolymorphicIter::as_slice"

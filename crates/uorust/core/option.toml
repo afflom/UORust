@@ -1,8 +1,8 @@
 [[fn]]
 path = "core::expect_failed"
 kappa = "8d5465b2410e6970a363df45ddde54f03a2d1e0b8cd442504cd648a4cb36e42d"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "1aa274ae002b85252c308612afa1f2aa844e47e04f4a2fb573b0f220ba1d1da0"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2340:1: 2340:43>::into_iter"
@@ -176,14 +176,14 @@ path = "core::option::IterMut::next"
 kappa = "e5e95afaf8c2e7446b5da0700f124131d8646b932888cbcebca77ce22669bb5e"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: option::IterMut<'_, u32>"
 
 [[fn]]
 path = "core::option::IterMut::next_back"
 kappa = "90d7018ef94d9c815e9069df11976c1ffb866af84b75e4df1255a8ce350a3a9b"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: option::IterMut<'_, u32>"
 
 [[fn]]
 path = "core::option::IterMut::size_hint"
@@ -211,21 +211,21 @@ path = "core::option::Option::as_mut"
 kappa = "428f1498867b951482d74def16883bdd5ca9ebc3e9b883f3f7cf7df19f345ecb"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::Option::as_mut_slice"
 kappa = "961377753ff56887821ca361f9f13415ed83cb57abc2555c89b9ed848ac44d4e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut [u32]"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::option::Option::as_pin_mut"
 kappa = "13857c449e6e245f1d73482937b30de9a9e541013cac534403b6a19ec26124cb"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: pin::Pin<&mut u32>"
 
 [[fn]]
 path = "core::option::Option::as_pin_ref"
@@ -267,7 +267,7 @@ path = "core::option::Option::clone_from"
 kappa = "a1cc60eb5f9a2779a7ddb4798580d0f8cf3745ee3ae12c15a67b2a0520782a73"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut option::Option<u32>"
+cause = "mir::StatementKind::Assign: a write through ProjectionElem::Deref"
 
 [[fn]]
 path = "core::option::Option::cmp"
@@ -287,8 +287,8 @@ digest = "88572e2f8dc8bd6a95be3c7ad12f05a0afd7dff880a0271c4d44ca0b5749f4dd"
 path = "core::option::Option::copied#2"
 kappa = "59acbf00877ad6121c56030c5bb0eac6b4d198d24bc33f726a5cf53043a07c3d"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: &mut u32"
+status = "translated"
+digest = "88572e2f8dc8bd6a95be3c7ad12f05a0afd7dff880a0271c4d44ca0b5749f4dd"
 
 [[fn]]
 path = "core::option::Option::default"
@@ -309,7 +309,7 @@ path = "core::option::Option::expect"
 kappa = "b3aacfbc6cdadb288889afd3f40d183ad37691323e1d349c484a15690708e9c0"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: expect_failed"
 
 [[fn]]
 path = "core::option::Option::filter"
@@ -330,7 +330,7 @@ path = "core::option::Option::flatten_mut"
 kappa = "f52934269633c34d7ca689164c8f6947af126595ddc54cfa034e4a89c0df79b6"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::option::Option::flatten_ref"
@@ -343,8 +343,8 @@ digest = "1e46de57072b36d5d0868676396f41dbca5422387399ee618bfb90c4a7c5d4a7"
 path = "core::option::Option::flatten_ref#2"
 kappa = "654f5ae26fad4b04a3fe6c6f1d77444a530a617918e1fb0f28d93f1a7a8c515c"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: &mut Option<u32>"
+status = "translated"
+digest = "1e46de57072b36d5d0868676396f41dbca5422387399ee618bfb90c4a7c5d4a7"
 
 [[fn]]
 path = "core::option::Option::from"
@@ -365,7 +365,7 @@ path = "core::option::Option::from#3"
 kappa = "c206300bac42cc7e3319b28b3797c7ca8220ee79c9dbb99663c003b95c033310"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: Option::as_mut"
 
 [[fn]]
 path = "core::option::Option::from_iter"
@@ -400,14 +400,14 @@ path = "core::option::Option::get_or_insert"
 kappa = "794fb7d9559d2c9983ea9524e55801a705cd8c3f5d1bc20df9e91d9c8876c71d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::AggregateKind::Closure: option::<impl at library/core/src/option.rs:612:1: 612:18>::get_or_insert::{closure#0}: type outside the lift: {closure@library/core/src/option.rs:1752:33: 1752:35}"
 
 [[fn]]
 path = "core::option::Option::get_or_insert_with"
 kappa = "321621fbd32a4924f48d42674ec551980356606a5e017d4d7790685fc4c71c09"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
 
 [[fn]]
 path = "core::option::Option::get_or_try_insert_with"
@@ -421,7 +421,7 @@ path = "core::option::Option::insert"
 kappa = "03e5660bd0aefe2244e00fae425165576c49aa2a8255cf52e4a9f02581c62adb"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: Option::as_mut"
 
 [[fn]]
 path = "core::option::Option::inspect"
@@ -560,7 +560,7 @@ path = "core::option::Option::take_if"
 kappa = "3ab4eb38e17c17de6aa7ff1cbc6775b4457c4b7f64ec4acf0670d868fbee7075"
 at = "P=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: Option::as_mut"
 
 [[fn]]
 path = "core::option::Option::transpose"
@@ -574,7 +574,7 @@ path = "core::option::Option::unwrap"
 kappa = "baa761285d65641ba13fd2fdcb55a37d84d795d0f3c4d344c75ac7e8e4f0aae3"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: option::unwrap_failed"
 
 [[fn]]
 path = "core::option::Option::unwrap_or"
@@ -602,7 +602,7 @@ path = "core::option::Option::unwrap_unchecked"
 kappa = "556eaf65cefd67c42214819e98254d57956be7987330d4b0bd21f9305aeed3bf"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: unreachable_unchecked"
 
 [[fn]]
 path = "core::option::Option::unzip"
@@ -656,6 +656,6 @@ cause = "mir::Ty: OptionFlatten<u32>"
 [[fn]]
 path = "core::option::unwrap_failed"
 kappa = "6b163f656f9ad98eb5fddf89b08f12b0eb24289955d8eb0ddae6bd1976bc19d7"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "903a5ef294ccf2c2c7f1cfb15cade3ed80a9d19810943440cfead999818e88c3"
 

@@ -70,7 +70,7 @@ path = "core::hint::prefetch_read_instruction"
 kappa = "e34f300dbe33f33952c8fedf94e6d70dd0b4676e0413e73139d156ad56254a50"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::TerminatorKind::Call: intrinsics::prefetch_read_instruction"
 
 [[fn]]
 path = "core::hint::select_unpredictable"
@@ -104,28 +104,28 @@ path = "core::prefetch_read"
 kappa = "2f75942d9008464e3e7fabc2beae7bc86985210b9e3bb72bb6f19bfaaf64c1d4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::TerminatorKind::Call: prefetch_read_data"
 
 [[fn]]
 path = "core::prefetch_read_non_temporal"
 kappa = "01e18b700d8629b815daf315d4462cf18dc40d298efd46439831825ac18981b3"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::TerminatorKind::Call: prefetch_read_data"
 
 [[fn]]
 path = "core::prefetch_write"
 kappa = "619e1fa7881468a8b9da1c9df36ee1eeb8ae5522815553bc5c147a1d49bb3ccf"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *mut u32"
+cause = "mir::TerminatorKind::Call: prefetch_write_data"
 
 [[fn]]
 path = "core::prefetch_write_non_temporal"
 kappa = "3a04ea32e99d316aea605b79404e1d232b95af6dac589aa6fe4d0eae5e9dd825"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::TerminatorKind::Call: prefetch_write_data"
 
 [[fn]]
 path = "core::spin_loop"
@@ -137,7 +137,7 @@ cause = "mir::TerminatorKind::Call: core_arch::x86::sse2::_mm_pause"
 path = "core::unreachable_unchecked"
 kappa = "e20a9226b64b35440d26eeb699dfa6c6a9bd7cac9d9455887583149b539cbb62"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: check_language_ub"
 
 [[fn]]
 path = "core::unreachable_unchecked::precondition_check"

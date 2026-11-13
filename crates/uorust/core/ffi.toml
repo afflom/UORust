@@ -134,7 +134,7 @@ cause = "mir::Ty: ptr::non_null::NonNull<i8>"
 path = "core::c_str::CStr::as_ptr"
 kappa = "a08df3fb552b7fc352ad156dc5e4a19ec79bda6d887056cee2de27fc4a0eb09f"
 status = "residue"
-cause = "mir::Ty: *const i8"
+cause = "mir::Ty: CStr"
 
 [[fn]]
 path = "core::c_str::CStr::as_ref"
@@ -284,19 +284,19 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::strlen"
 kappa = "c6592680373c27b8e6b9d654d633d0f854d775b23ab2ebb71e224489612c8fc6"
 status = "residue"
-cause = "mir::Ty: *const i8"
+cause = "mir::Operand::Constant: the constant item *const i8) -> usize {strlen::runtime}, usize>(move _2, strlen::compiletime, strlen::runtime"
 
 [[fn]]
 path = "core::strlen::compiletime"
 kappa = "7cdd9ce9ffa6b67e1a7b2f396dd863b56c66bad9cc6a8595bed17d4781d20ccf"
 status = "residue"
-cause = "mir::Ty: *const i8"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const i8>::add"
 
 [[fn]]
 path = "core::strlen::runtime"
 kappa = "6b44850964836bbd408347e15f5058e8de9ef56122ab27321873a2e5e308a7ea"
 status = "residue"
-cause = "mir::Ty: *const i8"
+cause = "mir::TerminatorKind::Call: strlen::runtime::strlen"
 
 [[fn]]
 path = "core::va_arg_safe_check"

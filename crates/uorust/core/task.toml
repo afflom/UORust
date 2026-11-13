@@ -182,7 +182,7 @@ cause = "mir::Ty: ContextBuilder<'_>"
 path = "core::wake::Context::ext"
 kappa = "546b1e1c8484f523be49b3503f21a131fa1ecd1f6761f4a072c8ab52330f2b62"
 status = "residue"
-cause = "mir::Ty: &mut dyn any::Any"
+cause = "mir::Ty: dyn any::Any"
 
 [[fn]]
 path = "core::wake::Context::fmt"
@@ -260,7 +260,7 @@ cause = "mir::Ty: LocalWaker"
 path = "core::wake::LocalWaker::data"
 kappa = "4c352e09554c3b047f1c56d869fbf5833c6bec37cf13af58bdc6157a5982c513"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::Ty: LocalWaker"
 
 [[fn]]
 path = "core::wake::LocalWaker::drop"
@@ -374,7 +374,7 @@ cause = "mir::Ty: Waker"
 path = "core::wake::Waker::data"
 kappa = "728bb6d720738362a4126536b273594c13747afb7833bcd94691aadd9a7cf4e3"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::Ty: Waker"
 
 [[fn]]
 path = "core::wake::Waker::drop"

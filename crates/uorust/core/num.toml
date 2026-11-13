@@ -93,7 +93,7 @@ cause = "mir::Rvalue::Repeat"
 path = "core::add"
 kappa = "20220c1be92508053ebdba839c6048d2bf20ec295dab8bd4d32a95ef6af6ea45"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::biased_fp_to_float"
@@ -184,13 +184,13 @@ cause = "mir::TerminatorKind::Call: num::<impl u64>::carrying_mul_add"
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::add"
 kappa = "8d73b1ddcc5283c478f447083ae8ed341d05781e75a55bf3ed320aec9a05bbb0"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::add_small"
 kappa = "9e6cffc9484612d77ad435c0b35813677e2afffb8d02d5df26353da879ab3d37"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::bit_length"
@@ -208,7 +208,7 @@ cause = "mir::Ty: Big32x40"
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::div_rem_small"
 kappa = "e0a465c0b2b23c63a2a8ac80fd0f710f412ce27b0b79573e6a0d8ed059cbc341"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::from_small"
@@ -238,7 +238,7 @@ cause = "mir::Ty: Big32x40"
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_digits"
 kappa = "68d387786af023bc71f2dcc876db403c46f1f2e6ec3f07d4313b635aee00dc12"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_digits::mul_inner"
@@ -250,25 +250,25 @@ cause = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_pow2"
 kappa = "3284c0ee35eeab110b50008dcb54ac6ae64f849f7cc49797e50b75cafc5931c1"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_pow5"
 kappa = "1d1c4b98325454ce759e9cf94abcdc26ba61d662a1722d8a42199aff9ec60b1e"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_small"
 kappa = "22946cf19d11d3118c97370514bf2cb5e97dedbc043b68cd51c7dd7eeb90eb3e"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::bignum::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::sub"
 kappa = "9d6edf24633231a134c5903fcf1a3518ed9169f8ce43ac077e0306e8aefd6e76"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::cached_power"
@@ -286,7 +286,7 @@ cause = "mir::TerminatorKind::Call: mem::size_of"
 path = "core::cast_integer"
 kappa = "3212f4ddd7c440bba618d7c20458d4ef215d215a4399ec35c7df5aba84cb48e6"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::common::<impl at library/core/src/num/imp/dec2flt/common.rs:20:1: 20:24>::offset_from"
@@ -613,19 +613,19 @@ cause = "mir::Ty: num::imp::fmt::Part<'_>"
 path = "core::div"
 kappa = "28efb08fceb62a3c0995e9a4b8d28c560079797010051a9ea13b9c6074ee0e1b"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::div_2pow10"
 kappa = "86d38cd40900a156f971ca5819b1b41736df67fcff6e4b1e8e81ff6e22ebc100"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::div_rem_upto_16"
 kappa = "d8516235bd631d33ab30065617d14dd24399207e9cb0904b3bc7fdbdf614d677"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::diy_float::<impl at library/core/src/num/imp/diy_float.rs:13:16: 13:21>::clone"
@@ -792,26 +792,26 @@ cause = "mir::Ty: maybe_uninit::MaybeUninit<u8>"
 [[fn]]
 path = "core::from_ascii_radix_panic"
 kappa = "2ce2295013955c9ee0a3195e7b7cfd07a2ae1f7307621f39427b5b2c8acaf269"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "548c83500702bba3663632e3e788f9be3d1c07462ad95fe6ff46eb4f00e22035"
 
 [[fn]]
 path = "core::from_ascii_radix_panic::do_panic"
 kappa = "2919581737e55fe76aefe98e9e11c20f633601abf1183b15f0268249e36f2e34"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "8862f2a3060ba96b26bdada46959063ecccb992614c47263e066910133161e16"
 
 [[fn]]
 path = "core::from_ascii_radix_panic::do_panic::compiletime"
 kappa = "e5ea36164e9e085d3f0dd8ec0fb61a95300843fa4b62072b2316d44d68df2fb2"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::from_ascii_radix_panic::do_panic::runtime"
 kappa = "7eea5261bbe92a1e9f7cff7f10b29054c1b280c43f9c44354f165450232bb861"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::ProjectionElem::Field: a field of Nat"
 
 [[fn]]
 path = "core::full_multiplication"
@@ -1099,19 +1099,19 @@ cause = "mir::Operand::Constant: the constant item num::imp::flt2dec::strategy::
 path = "core::mul"
 kappa = "1a0515f512bcf149b84c37a7999008b20cbdb6777b11b2ea4d76c394868bfb35"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::mul_pow10"
 kappa = "6b0ccf20c5ef84d09d2b51b828885909a151a78037b1bd3987f21f2861fbe914"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::Big32x40"
+cause = "mir::Ty: num::imp::bignum::Big32x40"
 
 [[fn]]
 path = "core::neg"
 kappa = "a53366a3bc6df9fb8587efae1ef4385288e69aa00e11a54dd23516e0ffc26627"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::niche_types::<impl at library/core/src/num/niche_types.rs:17:18: 17:23>::clone"
@@ -3578,14 +3578,14 @@ path = "core::nonzero::NonZero::from_mut"
 kappa = "580824aae8f1fb81cf53c827b78391d5ffa0a12b525954dc3ba37e88e503d370"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut num::nonzero::NonZero<u32>"
+cause = "mir::Ty: num::nonzero::NonZero<u32>"
 
 [[fn]]
 path = "core::nonzero::NonZero::from_mut_unchecked"
 kappa = "77122645d15170fca61dc24ace534e39ff05caff9a1d5a0d01cc7bc82fc36917"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut num::nonzero::NonZero<u32>"
+cause = "mir::Ty: num::nonzero::NonZero<u32>"
 
 [[fn]]
 path = "core::nonzero::NonZero::from_mut_unchecked::precondition_check"
@@ -19019,13 +19019,13 @@ digest = "7e3ec91087dc8896d60409d4bf920bada92a243404477feaadafce396e24093c"
 path = "core::panic_for_negative_argument"
 kappa = "f558cda9a2c0c1959e74ff57449997d18db5383fadec71cccb6ccfeb2fe5b6f2"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::panic_for_nonpositive_argument"
 kappa = "9d9d88f5be80f2eefa03152ba68eb44b4b8e06969b67b918dea3a562c23628dc"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::parse_8digits"
@@ -19104,13 +19104,13 @@ cause = "mir::BinOp::AddWithOverflow: on Int64 and Int64"
 path = "core::rem"
 kappa = "69d027eb1f86b14a802e789a1cde936b08645ab4587cb6012e22e233e78361ae"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::round_and_weed"
 kappa = "295b0bb2f7f096289b4f2a49deaefe8781cd81fe5279e762fad575e796e2df08"
 status = "residue"
-cause = "mir::Ty: &mut u8"
+cause = "mir::TerminatorKind::Call: slice::<impl [u8]>::last_mut"
 
 [[fn]]
 path = "core::round_up"
@@ -25374,19 +25374,19 @@ digest = "e8fb034f6cd6e1e4a825048c2ae802ff24c397fe2edc369511a19ff4e50bb81f"
 path = "core::shl"
 kappa = "9f73da06517053c1da618d948eecbcf3eb096f5d5d24a16eee4d5fef25298857"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::shr"
 kappa = "975ed99151879f4a074abb4d3481cfda947cce5d27daeaf9c9f9e442ef90dcfe"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::sub"
 kappa = "e5bc2f4658412e4ec5687560f9420c83211adc678b5c9501f14f104e3a816d9c"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:338:9: 338:45>::eq"
@@ -25422,13 +25422,13 @@ cause = "mir::Ty: Big8x3"
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::add"
 kappa = "e6357e95bd7983be43d12c5434e8a2a3d7fc5e6a0012bfd5cfd3484ea003fd95"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::add_small"
 kappa = "85d851c5ac0f635d9c06fa0adebe47ced9002fe3cc7245dfad1ed5724313f3c5"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::bit_length"
@@ -25446,7 +25446,7 @@ cause = "mir::Ty: Big8x3"
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::div_rem_small"
 kappa = "05ced1a7550d8a66e23e003b4cafe9dfac1e767db730d291beeadc8a9039a441"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::from_small"
@@ -25476,7 +25476,7 @@ cause = "mir::Ty: Big8x3"
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_digits"
 kappa = "a7a6f542656f91a391ed0c3c28c1ecfdc74575652556bb28deedff71752af8db"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_digits::mul_inner"
@@ -25488,25 +25488,25 @@ cause = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_pow2"
 kappa = "53052615026a87539bca2f00eb49b65027c5523e42ee4d9a7c82f7c29ab4649b"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_pow5"
 kappa = "2fefd2b56ce0d1e6632744bd72efeed35172cb752523d01d93ff2aaaf7088e0b"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::mul_small"
 kappa = "6169df31e224c717d9069b327db17c16a7eb1db4e467b8b239eb2e426d10593e"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::tests::<impl at library/core/src/num/imp/bignum.rs:89:9: 89:19>::sub"
 kappa = "678876cc2f342f22ecfb3c67716a4bd0c05960d849cbc70ebb341cbbb612bef8"
 status = "residue"
-cause = "mir::Ty: &mut num::imp::bignum::tests::Big8x3"
+cause = "mir::Ty: num::imp::bignum::tests::Big8x3"
 
 [[fn]]
 path = "core::to_exact_exp_str"

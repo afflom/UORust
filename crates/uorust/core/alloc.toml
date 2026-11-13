@@ -38,14 +38,14 @@ path = "core::GlobalAlloc::alloc_zeroed"
 kappa = "7db3f72c70d7fea0e95c1f367ff5a76fcc3e98020bddd72adb57aef95f1a197e"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::TerminatorKind::Call: Layout::size"
 
 [[fn]]
 path = "core::GlobalAlloc::realloc"
 kappa = "aadd176fca280ccf3277cfc0f791fca75acb467bae361e0cf44c6ca00821bb2c"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::TerminatorKind::Call: Layout::alignment"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:31:16: 31:21>::clone"
@@ -132,7 +132,7 @@ path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::deal
 kappa = "c04475c6b344d5533f0d257414c0b1bd2b564b1d2c9a1d5e7b92c2b3faabefe6"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: NonNull<u8>"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::grow"
@@ -281,7 +281,7 @@ path = "core::layout::Layout::for_value_raw"
 kappa = "9e38b8a2eac1cb3587500b7b5e4b317a4cd5d6d42582504d54eecf9592f3ea01"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: *const u32"
+cause = "mir::TerminatorKind::Call: size_of_val_raw"
 
 [[fn]]
 path = "core::layout::Layout::from_size_align"

@@ -14,7 +14,7 @@ cause = "mir::Ty: BorrowedBuf<'_>"
 path = "core::borrowed_buf::BorrowedBuf::clear"
 kappa = "776d9f970d4c4bf929ce2435ff3ef82464b9d30acebe55ec9b73e9a774747ea5"
 status = "residue"
-cause = "mir::Ty: &mut io::borrowed_buf::BorrowedBuf<'_>"
+cause = "mir::Ty: io::borrowed_buf::BorrowedBuf<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedBuf::filled"
@@ -26,7 +26,7 @@ cause = "mir::Ty: BorrowedBuf<'_>"
 path = "core::borrowed_buf::BorrowedBuf::filled_mut"
 kappa = "740f761b871f80a9deb41171c3ff34cd816f602d578e7ff25c7b2e3d8485ba87"
 status = "residue"
-cause = "mir::Ty: &mut [u8]"
+cause = "mir::Ty: BorrowedBuf<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedBuf::fmt"
@@ -62,7 +62,7 @@ cause = "mir::Ty: BorrowedBuf<'_>"
 path = "core::borrowed_buf::BorrowedBuf::into_filled_mut"
 kappa = "bcd15193ce974f19a3003fed4e7b3770802721d0587db0414e9dc017c62ef925"
 status = "residue"
-cause = "mir::Ty: &mut [u8]"
+cause = "mir::Ty: BorrowedBuf<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedBuf::is_init"
@@ -80,7 +80,7 @@ cause = "mir::Ty: BorrowedBuf<'_>"
 path = "core::borrowed_buf::BorrowedBuf::set_init"
 kappa = "37f24d1b6c0a7ad3430274379c8f20e4e8ac4dfd24ba9fb829680807b07b8c41"
 status = "residue"
-cause = "mir::Ty: &mut io::borrowed_buf::BorrowedBuf<'_>"
+cause = "mir::Ty: io::borrowed_buf::BorrowedBuf<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedBuf::unfilled"
@@ -92,13 +92,13 @@ cause = "mir::Ty: io::borrowed_buf::BorrowedCursor<'_>"
 path = "core::borrowed_buf::BorrowedCursor::advance"
 kappa = "e1263178a26a3a85ec6a15a45e4b665ebf4ffcd36f4824ef3de22204e626a2ab"
 status = "residue"
-cause = "mir::Ty: &mut io::borrowed_buf::BorrowedCursor<'_>"
+cause = "mir::Ty: io::borrowed_buf::BorrowedCursor<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedCursor::advance_checked"
 kappa = "fa5cd19758773f9ae39ed296d2372b2e7181429ed562303eec711f821a893f59"
 status = "residue"
-cause = "mir::Ty: &mut io::borrowed_buf::BorrowedCursor<'_>"
+cause = "mir::Ty: io::borrowed_buf::BorrowedCursor<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedCursor::append"
@@ -110,7 +110,7 @@ cause = "mir::Ty: BorrowedCursor<'_>"
 path = "core::borrowed_buf::BorrowedCursor::as_mut"
 kappa = "501e38e7150ccec82414729593e8721fc23458a03f7804f54ba850ce930fb6c9"
 status = "residue"
-cause = "mir::Ty: &mut [mem::maybe_uninit::MaybeUninit<u8>]"
+cause = "mir::Ty: mem::maybe_uninit::MaybeUninit<u8>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedCursor::capacity"
@@ -122,7 +122,7 @@ cause = "mir::Ty: BorrowedCursor<'_>"
 path = "core::borrowed_buf::BorrowedCursor::ensure_init"
 kappa = "2be688fd3e16e1e05f3f5911812259a20db378d2ca8234f889ec26fd6f2e87ac"
 status = "residue"
-cause = "mir::Ty: &mut [u8]"
+cause = "mir::Ty: BorrowedCursor<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedCursor::is_init"
@@ -193,8 +193,8 @@ cause = "mir::TerminatorKind::Call: <u32 as clone::Clone>::clone_from"
 path = "core::cursor::Cursor::get_mut"
 kappa = "a7ebcd44f8017754d1f2d7019a626bbf4a6e6613758fae9730fce23feddbd395"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: &mut u32"
+status = "translated"
+digest = "9b5f93f972247b4e4a3904203969c6e15a83c4976f5770c71a73092266523da1"
 
 [[fn]]
 path = "core::cursor::Cursor::get_ref"
@@ -214,8 +214,8 @@ digest = "f57f790398bc886333ecef74f1220d9b2ac8ce39b75616e40dee8b14e7528c98"
 path = "core::cursor::Cursor::into_parts_mut"
 kappa = "56ec3d0656cbbf85d996417c622f85f8bcebdde602ed3660b091413569ea170b"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: &mut u64"
+status = "translated"
+digest = "ffc914a0ef0b6bb9825dfa7be24b6f84138a430ada4f36c4ec0efef7aba44c6e"
 
 [[fn]]
 path = "core::cursor::Cursor::new"
@@ -248,7 +248,7 @@ path = "core::cursor::Cursor::split_mut"
 kappa = "75182540d73da207e6678031b7002c0e42195d7de4e8d924e4d437ca06b52efa"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut [u8]"
+cause = "mir::TerminatorKind::Call: <u32 as convert::AsMut>::as_mut"
 
 [[fn]]
 path = "core::io::error::<impl at library/core/src/io/error.rs:40:10: 40:15>::clone"
@@ -377,7 +377,7 @@ path = "core::util::Chain::get_mut"
 kappa = "3373d5d8bc770a7db40b88fa1d6b55ca199ac40b35e39f93cc90d1027bab613e"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: util::Chain<u32, u32>"
 
 [[fn]]
 path = "core::util::Chain::get_ref"
@@ -404,7 +404,7 @@ path = "core::util::Take::get_mut"
 kappa = "e75d9642ef45367098474a6e90fb7c09a0e01c13e1d129e9e993d1c374280735"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: util::Take<u32>"
 
 [[fn]]
 path = "core::util::Take::get_ref"

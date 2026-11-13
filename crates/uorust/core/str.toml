@@ -72,13 +72,13 @@ cause = "mir::Operand::Constant: the constant item str::validations::NONASCII_MA
 path = "core::converts::from_raw_parts"
 kappa = "ae5c15cc5103094a244dc4a6e924658df799ae340c2e59ece5e1b8f946fda4ac"
 status = "residue"
-cause = "mir::Ty: *const u8"
+cause = "mir::TerminatorKind::Call: ptr::metadata::from_raw_parts"
 
 [[fn]]
 path = "core::converts::from_raw_parts_mut"
 kappa = "0713aa8975c043d1018fedb5ca8b662cd8b4127ca3dc23668e3398be3ded8595"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::TerminatorKind::Call: ptr::metadata::from_raw_parts_mut"
 
 [[fn]]
 path = "core::count::USIZE_SIZE"
@@ -120,7 +120,7 @@ cause = "mir::TerminatorKind::Call: run_utf8_validation"
 path = "core::from_utf8_mut"
 kappa = "a1617cea91426fdbb8a65797217dc23040115c9efe1d1c037a2b6879ad67c2e5"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::TerminatorKind::Call: run_utf8_validation"
 
 [[fn]]
 path = "core::from_utf8_unchecked"
@@ -132,7 +132,7 @@ cause = "mir::TerminatorKind::Call: intrinsics::transmute"
 path = "core::from_utf8_unchecked_mut"
 kappa = "93fd0fc1d6c58b0ac9b75c7f0ba3b98fc00d6a5974b0c27dcbb850b94eabc14a"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::lossy::<impl at library/core/src/str/lossy.rs:185:10: 185:15>::clone"
@@ -406,7 +406,7 @@ cause = "mir::Instantiation: a const parameter"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:659:1: 659:29>::matches"
 kappa = "33aa437d2161ce09e7425a9b39495660afe8ef423dfa62c4501c98fe1e5e40fc"
 status = "translated"
-digest = "63fe6e2b3d9805c82f3a580e4671fe6d471f75d635cfbe15d216638985ab19f0"
+digest = "7cfb4729bc6992a93d43eebf97746fc18e5b932e11d387783a0d8e5a29861c66"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:668:10: 668:15>::clone"
@@ -1135,7 +1135,7 @@ cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
 path = "core::run_utf8_validation::runtime"
 kappa = "5abe0450bcbd769236a46429f9add2be0aae190a3cfd97083f9a9d3c787138fa"
 status = "residue"
-cause = "mir::Ty: *const u8"
+cause = "mir::TerminatorKind::Call: slice::<impl [u8]>::as_ptr"
 
 [[fn]]
 path = "core::safe_get"
@@ -1153,13 +1153,13 @@ cause = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would
 path = "core::slice_error_fail_ct"
 kappa = "224a5b473fda321aeba727aa46f436b1b8bab7c68be55669ad6f8dd38eee02e3"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::slice_error_fail_rt"
 kappa = "93e03faa5cd164c318df554fac67b113d638d2afd0666565aaf444506b3e5ead"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::Ty: fmt::rt::Argument<'_>"
 
 [[fn]]
 path = "core::small_slice_eq"
@@ -1339,7 +1339,7 @@ digest = "807703cf3c6a21c8df178c5641454dd34dcc057bc6b5f630737322b809392122"
 path = "core::str::<impl at library/core/src/str/mod.rs:3177:1: 3177:32>::default"
 kappa = "15861d44269754b106336b50591bae797790f621480ccdd1df169cec1beb42e2"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Operand::Constant: str::<impl default::Default for &mut str>::default::promoted[0]"
 
 [[fn]]
 path = "core::str::<impl at library/core/src/str/mod.rs:3188:14: 3188:19>::clone"
@@ -2494,8 +2494,8 @@ cause = "mir::Ty: SplitWhitespace<'_>"
 [[fn]]
 path = "core::str::slice_error_fail"
 kappa = "89d976dc986bc923dad43882087c87851a2ba9a44ac0283608cdc6c73c89ab2b"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "851f6b1e49ba4a9855e27949ee24000debe9d72e6eb618268f9a5a7afca8129e"
 
 [[fn]]
 path = "core::str::str::as_ascii"
@@ -2525,19 +2525,19 @@ cause = "mir::TerminatorKind::Call: intrinsics::transmute"
 path = "core::str::str::as_bytes_mut"
 kappa = "d363160aa08522ce7d1b8c30aba53cf8d8d509553bfade4b75500afdc545971f"
 status = "residue"
-cause = "mir::Ty: &mut [u8]"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::str::str::as_mut_ptr"
 kappa = "64fcb592aae5c021dac31059cdb90398395fbf6ec1e337825d1898344cddffe8"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::str::str::as_ptr"
 kappa = "dc36a8594628b602447ef4b4bef6fd68d142ac73cef5984cc985ed0789fe55fa"
 status = "residue"
-cause = "mir::Ty: *const u8"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::str::str::as_ref"
@@ -2642,7 +2642,7 @@ cause = "mir::TerminatorKind::Call: from_utf8"
 path = "core::str::str::from_utf8_mut"
 kappa = "c6e84d5769117721a1887ec1598744c5a0a134b56339aacd253e2880a2eb9310"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::TerminatorKind::Call: from_utf8_mut"
 
 [[fn]]
 path = "core::str::str::from_utf8_unchecked"
@@ -2654,7 +2654,7 @@ cause = "mir::TerminatorKind::Call: from_utf8_unchecked"
 path = "core::str::str::from_utf8_unchecked_mut"
 kappa = "ebabb18a58896786c6be3664e325d850619522c58bfadbce04feb5d6e1bb3583"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::TerminatorKind::Call: from_utf8_unchecked_mut"
 
 [[fn]]
 path = "core::str::str::get"
@@ -2668,7 +2668,7 @@ path = "core::str::str::get_mut"
 kappa = "5a3176aed1c6b88b31b6f47747ce0f67c65be06829ca9312fb67fad12cb04899"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as slice::index::SliceIndex<str>>::Output"
+cause = "mir::Ty: <u32 as slice::index::SliceIndex<str>>::Output"
 
 [[fn]]
 path = "core::str::str::get_unchecked"
@@ -2682,7 +2682,7 @@ path = "core::str::str::get_unchecked_mut"
 kappa = "a2ce373f582279efda8a1f2565e3c16944f488f1ef107cf50b2c28864f3e592f"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as slice::index::SliceIndex<str>>::Output"
+cause = "mir::Ty: <u32 as slice::index::SliceIndex<str>>::Output"
 
 [[fn]]
 path = "core::str::str::is_ascii"
@@ -2724,13 +2724,13 @@ cause = "mir::Ty: str::iter::LinesAny<'_>"
 path = "core::str::str::make_ascii_lowercase"
 kappa = "7385f51bfd68f2dcc0821d02530e113c54c1396c5b69f437dbddddc5b686b53c"
 status = "residue"
-cause = "mir::Ty: &mut [u8]"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes_mut"
 
 [[fn]]
 path = "core::str::str::make_ascii_uppercase"
 kappa = "a3655c9c01608f7634ecc78855a76079d5b111ba72f29f36f2466ca0548d7727"
 status = "residue"
-cause = "mir::Ty: &mut [u8]"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes_mut"
 
 [[fn]]
 path = "core::str::str::match_indices"
@@ -2806,7 +2806,7 @@ cause = "mir::Ty: str::iter::RSplitN<'_, u32>"
 path = "core::str::str::slice_mut_unchecked"
 kappa = "2773b930955e9ac740292aa3da4be57a750f2748df39d6491829afd694a9befa"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::Range<usize>"
 
 [[fn]]
 path = "core::str::str::slice_unchecked"
@@ -2843,25 +2843,25 @@ cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 path = "core::str::str::split_at_mut"
 kappa = "0bab423382041284d674d91390bad8af6c6f38712f35446427eb230d87a0d201"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::str::split_at_mut_checked"
 kappa = "2e8d11b4d6f798977bbb16fbd88f7f3fd3ed2ac390491d1ffbec0b9caaf72cfa"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::str::split_at_mut_unchecked"
 kappa = "d5abcb5692fa0e8fd6931fc9b5ecda7c3618aab0bb6de69c397794ba275130f4"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_mut_ptr"
 
 [[fn]]
 path = "core::str::str::split_at_unchecked"
 kappa = "41f9a775fd9e8afc86aabde562090741927bdca835c4991f8ddd335b6b642920"
 status = "residue"
-cause = "mir::Ty: *const u8"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_ptr"
 
 [[fn]]
 path = "core::str::str::split_inclusive"
@@ -3020,13 +3020,13 @@ cause = "mir::Ty: ops::range::Range<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_mut"
 kappa = "d8d4498110d1a834835cd9020f310d2c679d107b191d9a094526d82770f44a46"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked"
 kappa = "dc36aa2afb8e480dc50531bd6bb6f5d080e88e20b013bdcfcdcbca90bb487330"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: ops::range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked::precondition_check"
@@ -3038,7 +3038,7 @@ cause = "mir::Ty: fmt::Arguments<'_>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked_mut"
 kappa = "a8d8382a58ba8016cbaabf5617ebd3d177e18dfb24c1237997cc90e8314494b7"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: ops::range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked_mut::precondition_check"
@@ -3056,7 +3056,7 @@ cause = "mir::Ty: ops::range::Range<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::index_mut"
 kappa = "c35ec435ba9475b40c743d90f040bfaa409c692fdcdacdbbf8d1bd5eca98b8fe"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get"
@@ -3068,13 +3068,13 @@ cause = "mir::Ty: range::Range<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_mut"
 kappa = "b1dae0b936fd1418100600a0c58c7847c5a0e1b6be9b4ae50c19600b0671c45b"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked"
 kappa = "1dd52f6ab065585e6af00e8208d40f9a054fa1dd586ee32ff2f7a03207855d13"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked::precondition_check"
@@ -3086,7 +3086,7 @@ cause = "mir::Ty: fmt::Arguments<'_>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked_mut"
 kappa = "f9fd83203ca4000744be9420956c636dcf4dd278b79f2a4fe72fae1899c09056"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked_mut::precondition_check"
@@ -3104,7 +3104,7 @@ cause = "mir::Ty: range::Range<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::index_mut"
 kappa = "0c81a9fb8aaa0ad89d01792bb4ce79eaee8a6fa9b55c9db769bb59c31b5f8c7f"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::Range<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:380:1: 380:71>::get"
@@ -3116,19 +3116,19 @@ cause = "mir::Ty: Bound<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:380:1: 380:71>::get_mut"
 kappa = "26baae33d26319cef35add123be81702ec4a7644d79d8ce11f7a065234ba21a4"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: Bound<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:380:1: 380:71>::get_unchecked"
 kappa = "30a508f85b70b09505a9c59d2b4dc1a56c13b222529a4f81edfb3893e98bf8c2"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: Bound<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:380:1: 380:71>::get_unchecked_mut"
 kappa = "09779bd6cead75445a23551351803355934e4719d57eab61975960f397d82f9f"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: Bound<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:380:1: 380:71>::index"
@@ -3140,7 +3140,7 @@ cause = "mir::Ty: Bound<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:380:1: 380:71>::index_mut"
 kappa = "e0d49e1f7c19554328965016d201a7d16bc28e16dc5d8205990f8e243d7afa08"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: Bound<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get"
@@ -3152,19 +3152,19 @@ cause = "mir::Ty: RangeTo<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get_mut"
 kappa = "3628b6bbf83cbcdb726afded9ee339c1b93db24d1b381a54ae597d0b082c2d7e"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: RangeTo<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get_unchecked"
 kappa = "7d14d77ca686dc9113cc05ca9506fa5c77b98e704d2694d60e2c50ec6e1d9833"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: RangeTo<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get_unchecked_mut"
 kappa = "7e2cdab6aab39733bcdd359defa177f03b76f6b1d7db599625dbf97d9da65bbe"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: RangeTo<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::index"
@@ -3176,7 +3176,7 @@ cause = "mir::Ty: RangeTo<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::index_mut"
 kappa = "2d87ce3342c84de95bde0870f90995e1673d42f0e4c8f12e9dd972f754155dbc"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: RangeTo<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get"
@@ -3188,19 +3188,19 @@ cause = "mir::Ty: ops::range::RangeFrom<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get_mut"
 kappa = "348dd6d350c7d0ed61a6945ddf057a6bdeeca929e5aecf90eda9a9c7033ea88f"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get_unchecked"
 kappa = "e7130b4728e891ec5500fcdcd199e22cb1eb863ba9533c1004908f5ba435693e"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: ops::range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get_unchecked_mut"
 kappa = "05511157e498506b60100478f319dd3ab5c90079bbe8a6200aed8f4c29de2737"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: ops::range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::index"
@@ -3212,7 +3212,7 @@ cause = "mir::Ty: ops::range::RangeFrom<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::index_mut"
 kappa = "6178d53e209a7e57c665c7629f34bd9700ffc2d4aeb5854ffcb38cfcedca2537"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get"
@@ -3224,19 +3224,19 @@ cause = "mir::Ty: range::RangeFrom<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get_mut"
 kappa = "c1dc215b1060e511c283c9423e3aa3428aea65ae83311990e4d3f48378b12eee"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get_unchecked"
 kappa = "5520a5fd266ec7fda1cb83cf6716223701fa8739f68aba515873864332400dbe"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get_unchecked_mut"
 kappa = "44cd2c45549426a16d4a7f56de8e527f237ca35ead7de9adddade6bc6ffd08d1"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::index"
@@ -3248,7 +3248,7 @@ cause = "mir::Ty: range::RangeFrom<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::index_mut"
 kappa = "cafc8953c45bfbfb6694f2b77c35b291fc73e5528314b44bfd9fbc8fff5dd658"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::RangeFrom<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get"
@@ -3260,19 +3260,19 @@ cause = "mir::Ty: ops::range::RangeInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get_mut"
 kappa = "9cacab54a39bb352e70ca27ffac1252bb6465f01526eec1268590cebe35ebacb"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get_unchecked"
 kappa = "770ea28589b0b0778ed2a885bca0f6360157bed1b72d25e3f7a33c675088b713"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: ops::range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get_unchecked_mut"
 kappa = "05cd2fbdc37e6c52b60110c4203f4e4f780a15e7317a1302e61ccf21e6dafcdc"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: ops::range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::index"
@@ -3284,7 +3284,7 @@ cause = "mir::Ty: ops::range::RangeInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::index_mut"
 kappa = "7b1ccffde9741f1d0ee9c76259896a5471e0e89bf951663802c1deb324817cd3"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get"
@@ -3296,19 +3296,19 @@ cause = "mir::Ty: range::RangeInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get_mut"
 kappa = "2b841896e4c886418e7e55f7382666ba421e204317c796095c34b9c8a13a159d"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get_unchecked"
 kappa = "b7f5cc7c9b8321d060778a262a04323489859c958f95fcc7938119940da0d745"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get_unchecked_mut"
 kappa = "60f8b3eae8d6fc94ebb818ae04765fa23ede18cd5ce53dbb67c0491c2939616b"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::index"
@@ -3320,7 +3320,7 @@ cause = "mir::Ty: range::RangeInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::index_mut"
 kappa = "bfab2ae7306303226a988de28d1545a0c820989d2393308f7fba5eb25051bbc8"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::RangeInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get"
@@ -3332,19 +3332,19 @@ cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get_mut"
 kappa = "31dae7d54cce1785cea0f4405099fbb573e94467ace8d04c6b06b2726e1a7cd3"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get_unchecked"
 kappa = "83aef3e639252ce6eb17d886c7463c0563a5acb833d05163cdd0cf80b0feec98"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get_unchecked_mut"
 kappa = "6503f5df30c5470c825cf174bca4d9c8f4c9ee1fe0f33e88d087ae80d59f7c81"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::index"
@@ -3356,7 +3356,7 @@ cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::index_mut"
 kappa = "1c70fabf9ce9dcc810cce67704b03294867b2ba76655522700249bfecbe8cf90"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get"
@@ -3368,19 +3368,19 @@ cause = "mir::Ty: range::RangeToInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get_mut"
 kappa = "68b72b812e25ec016012a4ea078d4c90704b1af09baa636bc8ef56da154da4e7"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get_unchecked"
 kappa = "b54d5ebcd6f274762bea81c7df27662203dfb9a9efc62d3b97697185d0e13ea2"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get_unchecked_mut"
 kappa = "54f0ed6af57bf24bb19e1fb63f45bfa62552e91fe332b8184f71a08a80a3ee0f"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::index"
@@ -3392,7 +3392,7 @@ cause = "mir::Ty: range::RangeToInclusive<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::index_mut"
 kappa = "b2d1ec60871995002ce7cf9f5fa5a675dd3b26dc12b5c46f90b590e2ebb317fb"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: range::RangeToInclusive<usize>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get"
@@ -3404,19 +3404,19 @@ cause = "mir::Ty: RangeFull"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get_mut"
 kappa = "82acaffc8e66db01cb92355978d6affbac289dab019f99b7af397b6b6c31eac6"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: RangeFull"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get_unchecked"
 kappa = "8dfdcc086c649737519ad3ba841ae9f0b32cd4bb643c4096729bb3a1cf978784"
 status = "residue"
-cause = "mir::Ty: *const str"
+cause = "mir::Ty: RangeFull"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get_unchecked_mut"
 kappa = "887d261c2ef217c00d693931f91db59acd821df6b9d14518c3286f90d520900e"
 status = "residue"
-cause = "mir::Ty: *mut str"
+cause = "mir::Ty: RangeFull"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::index"
@@ -3428,7 +3428,7 @@ cause = "mir::Ty: RangeFull"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::index_mut"
 kappa = "6c4330329eaca4c88aba151e053fd8305e78c145687bb79f41e9b28467b7be61"
 status = "residue"
-cause = "mir::Ty: &mut str"
+cause = "mir::Ty: RangeFull"
 
 [[fn]]
 path = "core::str::traits::bool::from_str"
@@ -3460,7 +3460,7 @@ path = "core::str::traits::str::index_mut"
 kappa = "1b639cc1b85748f32e755e8b79b2c184a3cdcd63196cf77969293cee29bef92d"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as slice::index::SliceIndex<str>>::Output"
+cause = "mir::Ty: <u32 as slice::index::SliceIndex<str>>::Output"
 
 [[fn]]
 path = "core::str::traits::str::partial_cmp"

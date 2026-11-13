@@ -9,15 +9,15 @@ digest = "d633e6a4bfd38c73ac89c0e490e7f0072ab26375c5c73754f3ef443a27e500b5"
 path = "core::convert::<impl at library/core/src/convert/mod.rs:726:1: 728:25>::as_ref"
 kappa = "84ff170d7f5e8140d87e0cda27746407326c91320a4722d3fcc4d05a0311637b"
 at = "T=u32, U=u32"
-status = "residue"
-cause = "mir::Ty: &mut u32"
+status = "translated"
+digest = "65c1157fd63c12dc25268dbbf3dfea73c9610ec568080576e54a6ac4e4eeea00"
 
 [[fn]]
 path = "core::convert::<impl at library/core/src/convert/mod.rs:747:1: 749:25>::as_mut"
 kappa = "1da30525cf56545239e99bb42d763c96d426c2a7d7a4e83d45d63a9d40ad229b"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as convert::AsMut>::as_mut"
 
 [[fn]]
 path = "core::convert::<impl at library/core/src/convert/mod.rs:846:1: 846:33>::as_ref"
@@ -30,8 +30,8 @@ digest = "03d233f7f8bace989bf9b916c44342a36767c71f2aa28083cb70dba8ea2f2c92"
 path = "core::convert::<impl at library/core/src/convert/mod.rs:855:1: 855:33>::as_mut"
 kappa = "f2dde6949c2a40300adf4b98e279ae3e5a0dba29a70a1f78ac3d3ec992661c07"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: &mut [u32]"
+status = "translated"
+digest = "064bd39728089a2f01ea7dc2e768c6a29718f0cc42cf065ef045f2ef854f8886"
 
 [[fn]]
 path = "core::convert::Infallible::clone"
@@ -92,8 +92,8 @@ digest = "46cbd0d59c2a1284052b4046a0e9f5e4b9d126f26c180697e453e35cdb6d3b81"
 path = "core::convert::T::from#2"
 kappa = "3b1c25897b87901f838e66db39d002a5b665b9a6ccaa8d738d2cf309897ff44c"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: !"
+status = "translated"
+digest = "e7f18e85a884e76c5d6c4e274e65bfb66d0bacc75c9258f932de62b0a990d11a"
 
 [[fn]]
 path = "core::convert::T::into"
@@ -2172,8 +2172,8 @@ cause = "mir::Ty: num::error::TryFromIntError"
 [[fn]]
 path = "core::convert::str::as_mut"
 kappa = "ed8a74620fc18f69511f6b3dc2292e4a75f3a7299eb6ca583cc84ba84dcf4fa2"
-status = "residue"
-cause = "mir::Ty: &mut str"
+status = "translated"
+digest = "84624c472c53d101ee32b725f7472c761d9b6fe5aa9052e8a3e6c9e8a74d8491"
 
 [[fn]]
 path = "core::convert::str::as_ref"

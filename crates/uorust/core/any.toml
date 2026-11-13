@@ -21,7 +21,7 @@ path = "core::any::<impl at library/core/src/any.rs:175:1: 175:13>::downcast_mut
 kappa = "0745ee8e9d1332b16601cad3e5c1bff299d20b86f0dedf9133989fd4bb0f7112"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn Any"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:175:1: 175:13>::downcast_ref"
@@ -35,7 +35,7 @@ path = "core::any::<impl at library/core/src/any.rs:175:1: 175:13>::downcast_unc
 kappa = "39d744eea636035bd3bc49d45c270e751e28878231c96f0a2af8c2935449ad15"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn Any"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:175:1: 175:13>::downcast_unchecked_ref"
@@ -55,7 +55,7 @@ path = "core::any::<impl at library/core/src/any.rs:334:1: 334:20>::downcast_mut
 kappa = "490221cc32115d593de6bec93d427b10b51ef9484f097d98c95bc7d882a25923"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn Any + marker::Send"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:334:1: 334:20>::downcast_ref"
@@ -69,7 +69,7 @@ path = "core::any::<impl at library/core/src/any.rs:334:1: 334:20>::downcast_unc
 kappa = "38652a2789b7f7ca8da54d3895b3f269f7184138fe30b0388a8465d267ea2674"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn Any + marker::Send"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:334:1: 334:20>::downcast_unchecked_ref"
@@ -89,7 +89,7 @@ path = "core::any::<impl at library/core/src/any.rs:468:1: 468:27>::downcast_mut
 kappa = "5fb583801f3cf137dccda048d86151a372f4ab99e5a9b2c5c7df2d321c5eaa28"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn Any + marker::Send + marker::Sync"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:468:1: 468:27>::downcast_ref"
@@ -103,7 +103,7 @@ path = "core::any::<impl at library/core/src/any.rs:468:1: 468:27>::downcast_unc
 kappa = "dce381e351393019740ce5714d370bcac5e194bffce611194f1d4b822846431d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: dyn Any + marker::Send + marker::Sync"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:468:1: 468:27>::downcast_unchecked_ref"
@@ -202,7 +202,7 @@ cause = "mir::Ty: mem::type_info::TraitImpl<u32>"
 path = "core::any::TypeId::trait_info_of_trait_type_id"
 kappa = "cc330d6d05039b6d7ea593f818f5dc8d651ab9d541c26715a801d51250759ffc"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::Ty: mem::type_info::TraitImpl<*const ()>"
 
 [[fn]]
 path = "core::any::type_name"
@@ -222,7 +222,7 @@ path = "core::try_as_dyn_mut"
 kappa = "0b9f392c690763d2403d67cb4804de08423c245e99d97d72fc52192ee847f8d5"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Operand::Constant: any::try_as_dyn_mut::<u32, u32>::{constant#0}"
 
 [[fn]]
 path = "core::type_name_of_val"

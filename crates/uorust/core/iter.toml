@@ -1017,7 +1017,7 @@ path = "core::adapters::<impl at library/core/src/iter/adapters/mod.rs:209:1: 21
 kappa = "17f834652aa97a23798fc45a7b474d342131e30dff1fd0709891854fc6fce6b5"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::adapters::<impl at library/core/src/iter/adapters/mod.rs:226:1: 228:24>::EXPAND_BY"
@@ -1036,21 +1036,21 @@ path = "core::adapters::GenericShunt::fold"
 kappa = "69a0e66ab98f6458eb8942339e32b548f73f652831961e1bd41a6e635e8e150f"
 at = "AAA=u32, FFF=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: GenericShunt<'_, u32, u32>"
+cause = "mir::Ty: {closure@library/core/src/ops/try_trait.rs:420:9: 420:20}"
 
 [[fn]]
 path = "core::adapters::GenericShunt::size_hint"
 kappa = "6bb0ffd036ce998bc9097bfd877849026ebc76d86c6baa60c0fce8e483857395"
 at = "I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: GenericShunt<'_, u32, u32>"
+cause = "mir::TerminatorKind::Call: Option::is_some"
 
 [[fn]]
 path = "core::adapters::GenericShunt::try_fold"
 kappa = "48b13bb0aa517a421cbf5250832d38db7c6972707de3df434a690c7aeeecae7d"
 at = "B=u32, F=u32, I=u32, R=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: GenericShunt<'_, u32, u32>"
+cause = "mir::AggregateKind::Closure: adapters::<impl at library/core/src/iter/adapters/mod.rs:170:1: 172:42>::try_fold::{closure#0}: type outside the lift: {closure@library/core/src/iter/adapters/mod.rs:195:29: 195:37}"
 
 [[fn]]
 path = "core::advance_by_one"
@@ -1078,7 +1078,7 @@ path = "core::array_chunks::<impl at library/core/src/iter/adapters/array_chunks
 kappa = "c331f70b6e275b0a1fc88cf4ac7cf8c3fb300218cf1290f68708a147494ae0aa"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::array_chunks::<impl at library/core/src/iter/adapters/array_chunks.rs:268:1: 268:97>::EXPAND_BY"
@@ -1195,7 +1195,7 @@ path = "core::by_ref_sized::<impl at library/core/src/iter/adapters/by_ref_sized
 kappa = "b325f06629ded6e32288ab91c8fc271faf9b2036d07f3b7cc7230a13b8a58b9b"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: ByRefSized<'_, u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::by_ref_sized::ByRefSized::advance_back_by"
@@ -1216,7 +1216,7 @@ path = "core::by_ref_sized::ByRefSized::fold"
 kappa = "fe0ee1000131b7e16e70257c633ec6add4f8058ddd73a34051053c32f90ccdbd"
 at = "B=u32, F=u32, I=u32"
 status = "residue"
-cause = "mir::Ty: ByRefSized<'_, u32>"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::by_ref_sized::ByRefSized::next"
@@ -1251,28 +1251,28 @@ path = "core::by_ref_sized::ByRefSized::rfold"
 kappa = "c033cc288e9007069764d5f03ac76e0143a521b2337c242075a55c47487032ba"
 at = "B=u32, F=u32, I=u32"
 status = "residue"
-cause = "mir::Ty: ByRefSized<'_, u32>"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::by_ref_sized::ByRefSized::size_hint"
 kappa = "17d8d59b1c55cd1b4f16e8463ce762afed4478f4f9c1f1bcf73d6484886b9c4d"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: ByRefSized<'_, u32>"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::size_hint"
 
 [[fn]]
 path = "core::by_ref_sized::ByRefSized::try_fold"
 kappa = "6cf65e22189d91af0a6c3087ce9ed1a1a4cd3835af8c7f7e5087d874dd7d436f"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: ByRefSized<'_, u32>"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::try_fold"
 
 [[fn]]
 path = "core::by_ref_sized::ByRefSized::try_rfold"
 kappa = "d21b26e70ef004bfb155b2cbb029c75726f2056a154bcc854bba326c68d86325"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: ByRefSized<'_, u32>"
+cause = "mir::TerminatorKind::Call: <u32 as double_ended::DoubleEndedIterator>::try_rfold"
 
 [[fn]]
 path = "core::chain::<impl at library/core/src/iter/adapters/chain.rs:20:10: 20:15>::clone"
@@ -1411,7 +1411,7 @@ path = "core::cloned::<impl at library/core/src/iter/adapters/cloned.rs:160:1: 1
 kappa = "ac7eec75268b0e8f807a7607ec2eadccbb3abab30f344490cb1a8151636ac0a0"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::cloned::<impl at library/core/src/iter/adapters/cloned.rs:174:1: 174:62>::EXPAND_BY"
@@ -1520,7 +1520,7 @@ cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 path = "core::collect::<impl at library/core/src/iter/traits/collect.rs:454:1: 454:23>::extend_one"
 kappa = "387dd56d9ff74f5628cb5a62f8cef837b5dcd5269ac508424e888aa837b5f257"
 status = "translated"
-digest = "994d0a70efcd36de7ca7f72b2ca445f8bc433b2e1ff96d89dfdebd594fdbf952"
+digest = "ba734a9f1cc18f46535466b9ed97c692243bcb06826f02edfc831661e11cb1d1"
 
 [[fn]]
 path = "core::collect::<impl at library/core/src/iter/traits/collect.rs:465:1: 467:24>::extend"
@@ -1994,7 +1994,7 @@ path = "core::copied::<impl at library/core/src/iter/adapters/copied.rs:264:1: 2
 kappa = "bc79f07143239584f984243b9c405dcebbfad14656711fcf27fa1978e154d39f"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::copied::<impl at library/core/src/iter/adapters/copied.rs:278:1: 278:62>::EXPAND_BY"
@@ -2277,7 +2277,7 @@ path = "core::double_ended::<impl at library/core/src/iter/traits/double_ended.r
 kappa = "6e224aefa508e9d9c0ef601e99c3fc8c88b143174b394c75e869e278e6ebaad7"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <&mut u32 as DoubleEndedIteratorRefSpec>::spec_try_rfold"
 
 [[fn]]
 path = "core::double_ended::<impl at library/core/src/iter/traits/double_ended.rs:425:1: 425:76>::spec_rfold"
@@ -2291,7 +2291,7 @@ path = "core::double_ended::<impl at library/core/src/iter/traits/double_ended.r
 kappa = "6b0f5c0a3af6ae3a6475a18ae632ac6bcfe2de7b00b96d07828b4de0f51cbc04"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: <u32 as iter::traits::iterator::Iterator>::Item"
 
 [[fn]]
 path = "core::double_ended::<impl at library/core/src/iter/traits/double_ended.rs:450:1: 450:67>::spec_rfold"
@@ -2305,7 +2305,7 @@ path = "core::double_ended::<impl at library/core/src/iter/traits/double_ended.r
 kappa = "6510923ce38e15281730f48b454660179ee3d4411262d85a7d905f5204dd1f83"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as double_ended::DoubleEndedIterator>::try_rfold"
 
 [[fn]]
 path = "core::double_ended::DoubleEndedIterator::advance_back_by"
@@ -2426,7 +2426,7 @@ path = "core::enumerate::<impl at library/core/src/iter/adapters/enumerate.rs:28
 kappa = "2a987aa4475f7103c3a6f0dc0bfe5964bc3affbc24131ba3353208d3625fdaac"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::enumerate::<impl at library/core/src/iter/adapters/enumerate.rs:300:1: 300:65>::EXPAND_BY"
@@ -2594,14 +2594,14 @@ path = "core::exact_size::<impl at library/core/src/iter/traits/exact_size.rs:15
 kappa = "178e086ed4a20c94e74dae9fc78b8cfa3bec4988669f6a22277708525513f884"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as exact_size::ExactSizeIterator>::is_empty"
 
 [[fn]]
 path = "core::exact_size::<impl at library/core/src/iter/traits/exact_size.rs:154:1: 154:65>::len"
 kappa = "d891d834f5f53301f5f2fff2673f487273c403c17e4a5d5947b6233fe82900f8"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as exact_size::ExactSizeIterator>::len"
 
 [[fn]]
 path = "core::exact_size::ExactSizeIterator::is_empty"
@@ -2634,7 +2634,7 @@ path = "core::filter::<impl at library/core/src/iter/adapters/filter.rs:205:1: 2
 kappa = "0f9a06303603777b67ea146ed1e439f3ae872df9e236238fa89d62f4c30156bd"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::filter::<impl at library/core/src/iter/adapters/filter.rs:20:10: 20:15>::clone"
@@ -2769,7 +2769,7 @@ path = "core::filter_map::<impl at library/core/src/iter/adapters/filter_map.rs:
 kappa = "7a414f60183731002e8a4333c3e2bce9bb240df9499c9cf315e9939b6e347eec"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::filter_map::<impl at library/core/src/iter/adapters/filter_map.rs:210:1: 210:71>::EXPAND_BY"
@@ -2895,7 +2895,7 @@ path = "core::flatten::<impl at library/core/src/iter/adapters/flatten.rs:161:1:
 kappa = "922d9bb50654d1c8ab2efac1dea070052966973b03144f150a03b51748ac50c6"
 at = "F=u32, I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::flatten::<impl at library/core/src/iter/adapters/flatten.rs:189:1: 189:63>::new"
@@ -2916,7 +2916,7 @@ path = "core::flatten::<impl at library/core/src/iter/adapters/flatten.rs:321:1:
 kappa = "a4166fe9b1de5be20d365161d7fbe4092a78c073a419e3dac6584c076be91e82"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::flatten::<impl at library/core/src/iter/adapters/flatten.rs:355:10: 355:15>::clone"
@@ -3418,7 +3418,7 @@ path = "core::fuse::<impl at library/core/src/iter/adapters/fuse.rs:452:1: 454:3
 kappa = "538d5f17f5747e292feec825f250d2f887ffd9e99e803a0f15df05a8e234a529"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::fuse::Fuse::__iterator_get_unchecked"
@@ -3663,7 +3663,7 @@ path = "core::inspect::<impl at library/core/src/iter/adapters/inspect.rs:157:1:
 kappa = "8ab9522d5de175eebe88ad632fe24bb327ae952ace4f81bdd6b9b49740e7cb55"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::inspect::<impl at library/core/src/iter/adapters/inspect.rs:171:1: 171:69>::EXPAND_BY"
@@ -5113,14 +5113,14 @@ path = "core::iterator::<impl at library/core/src/iter/traits/iterator.rs:4237:1
 kappa = "59c4fd614a5630ab1ac8229ae6e9c2bd82a51703bf12239573628af2511f3926"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::size_hint"
 
 [[fn]]
 path = "core::iterator::<impl at library/core/src/iter/traits/iterator.rs:4237:1: 4237:47>::try_fold"
 kappa = "ba31b8be0d036b99d22d549e6b8d1edac105169edf0659776d683242f573b9e6"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <&mut u32 as IteratorRefSpec>::spec_try_fold"
 
 [[fn]]
 path = "core::iterator::<impl at library/core/src/iter/traits/iterator.rs:4279:1: 4279:54>::spec_fold"
@@ -5134,7 +5134,7 @@ path = "core::iterator::<impl at library/core/src/iter/traits/iterator.rs:4279:1
 kappa = "84a5e921ee9a15bb25b523c5b265288de21dd29bd22ad8909b38b41c648fb9f3"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::Ty: <u32 as iter::traits::iterator::Iterator>::Item"
 
 [[fn]]
 path = "core::iterator::<impl at library/core/src/iter/traits/iterator.rs:4304:1: 4304:45>::spec_fold"
@@ -5148,7 +5148,7 @@ path = "core::iterator::<impl at library/core/src/iter/traits/iterator.rs:4304:1
 kappa = "6930b020ae7710fe207c6379b4947dad015d2697b5845eb282e355a171b49a4c"
 at = "B=u32, F=u32, I=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::try_fold"
 
 [[fn]]
 path = "core::iterator::A::spec_iter_eq"
@@ -5229,8 +5229,8 @@ cause = "mir::Ty: iter::adapters::array_chunks::ArrayChunks<u32, u32>"
 path = "core::iterator::Iterator::by_ref"
 kappa = "23bd742b20c221005c4fa1527e6095d140e64278b4380a4326d74c9a0eb6a7e6"
 at = "Self=u32"
-status = "residue"
-cause = "mir::Ty: &mut u32"
+status = "translated"
+digest = "cc31b235536b13deba6e3c1374acd11abf2c7790ce15f8c8ee430a9139121d9b"
 
 [[fn]]
 path = "core::iterator::Iterator::chain"
@@ -5278,7 +5278,7 @@ path = "core::iterator::Iterator::collect_into"
 kappa = "e3415cec489984e4a80be004ddf517db8ca5c90dbce4ad9e22c9b2e2dd7106dd"
 at = "E=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: &mut u32"
+cause = "mir::TerminatorKind::Call: <u32 as collect::Extend>::extend"
 
 [[fn]]
 path = "core::iterator::Iterator::copied"
@@ -5618,7 +5618,7 @@ path = "core::iterator::Iterator::partition_in_place"
 kappa = "9666c3fa2665800d93f5fec28c6c1be55a16cd8396a53f1af0b8256cd08d3b2f"
 at = "P=u32, Self=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Goto: a loop whose live state has a type outside the lift"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::iterator::Iterator::peekable"
@@ -5788,7 +5788,7 @@ path = "core::map::<impl at library/core/src/iter/adapters/map.rs:211:1: 213:19>
 kappa = "b08c3436f593fb072e3c1ae7bf0f89ecbb676c332de83a492e8ecaba2f5a36bb"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::map::<impl at library/core/src/iter/adapters/map.rs:225:1: 225:65>::EXPAND_BY"
@@ -5924,7 +5924,7 @@ path = "core::map_while::<impl at library/core/src/iter/adapters/map_while.rs:73
 kappa = "4d7b78820239878da76b111e118aaaad726f011cd49d406b09096c400a8ffcbe"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::map_while::<impl at library/core/src/iter/adapters/map_while.rs:87:1: 87:70>::EXPAND_BY"
@@ -5978,7 +5978,7 @@ path = "core::map_while::MapWhile::try_fold"
 kappa = "1b5c45e79fe72468c2d247ec079942642cce3a93859bee9150aed6db498da6e8"
 at = "Acc=u32, Fold=u32, I=u32, P=u32, R=u32"
 status = "residue"
-cause = "mir::AggregateKind::Closure: map_while::<impl at library/core/src/iter/adapters/map_while.rs:36:1: 38:36>::try_fold::{closure#0}: type outside the lift: &mut u32"
+cause = "mir::AggregateKind::Closure: map_while::<impl at library/core/src/iter/adapters/map_while.rs:36:1: 38:36>::try_fold::{closure#0}: type outside the lift: {closure@library/core/src/iter/adapters/map_while.rs:62:29: 62:37}"
 
 [[fn]]
 path = "core::map_windows::Buffer::as_array_ref"
@@ -6173,7 +6173,7 @@ path = "core::peekable::<impl at library/core/src/iter/adapters/peekable.rs:465:
 kappa = "965b645d2387299e16295d0182845fa31ab17aafd36fa37a6a900bdd69d9659a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::peekable::Peekable::count"
@@ -6243,7 +6243,7 @@ path = "core::peekable::Peekable::peek_mut"
 kappa = "88fce7ffaed433419fa607c8fd4eab0df24c6f4ae47b0c264795682438d5f3ed"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::traits::iterator::Iterator>::Item"
+cause = "mir::Ty: <u32 as iter::traits::iterator::Iterator>::Item"
 
 [[fn]]
 path = "core::peekable::Peekable::rfold"
@@ -6670,7 +6670,7 @@ path = "core::scan::<impl at library/core/src/iter/adapters/scan.rs:83:1: 85:19>
 kappa = "4780c56ef1a12ecf979ee87a5397c2003e0e7057cb6e1c8966f0550c2a17d4ca"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::scan::<impl at library/core/src/iter/adapters/scan.rs:97:1: 97:74>::EXPAND_BY"
@@ -6745,7 +6745,7 @@ path = "core::skip::<impl at library/core/src/iter/adapters/skip.rs:252:1: 254:1
 kappa = "320e1d55f46633a9677720bc5b13433ab5d0dca2a35f1065980e6a87123d46be"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::skip::<impl at library/core/src/iter/adapters/skip.rs:266:1: 266:60>::EXPAND_BY"
@@ -6881,7 +6881,7 @@ path = "core::skip_while::<impl at library/core/src/iter/adapters/skip_while.rs:
 kappa = "6ef92e366b5cebafcaedaf8270d25a367495e53d2575a3e4690dae33a57fc4d7"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::skip_while::<impl at library/core/src/iter/adapters/skip_while.rs:127:1: 127:71>::EXPAND_BY"
@@ -7578,7 +7578,7 @@ path = "core::take::<impl at library/core/src/iter/adapters/take.rs:131:1: 133:1
 kappa = "d9f4bac7d401a2f330b0efcaaedf13bad9377b69225e554bb8b2df8c70a9d170"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::take::<impl at library/core/src/iter/adapters/take.rs:145:1: 145:60>::EXPAND_BY"
@@ -7789,7 +7789,7 @@ path = "core::take_while::<impl at library/core/src/iter/adapters/take_while.rs:
 kappa = "1196c68beaed0e50f01c1a7260f53c9ef0374de6be5c3bb454081e34de06b0f5"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::take_while::<impl at library/core/src/iter/adapters/take_while.rs:128:1: 128:71>::EXPAND_BY"
@@ -7915,7 +7915,7 @@ path = "core::zip::<impl at library/core/src/iter/adapters/zip.rs:460:1: 462:19>
 kappa = "ecd85a9c6e4164c09a5fb73c2b2ce62d827a79e1cd458f1865f5d412b8ef30ea"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+cause = "mir::Ty: <u32 as iter::adapters::SourceIter>::Source"
 
 [[fn]]
 path = "core::zip::<impl at library/core/src/iter/adapters/zip.rs:475:1: 475:65>::EXPAND_BY"

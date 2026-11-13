@@ -92,7 +92,7 @@ cause = "mir::Ty: wtf8::EncodeWide<'_>"
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:653:1: 653:35>::clone_to_uninit"
 kappa = "0d724590f2cdac95fc0e6afacc26e1836387b7bf51a122f6d3f159d9ae0846dc"
 status = "residue"
-cause = "mir::Ty: *mut u8"
+cause = "mir::TerminatorKind::Call: <[u8] as CloneToUninit>::clone_to_uninit"
 
 [[fn]]
 path = "core::wtf8::CodePoint::fmt"
@@ -249,7 +249,7 @@ cause = "mir::Rvalue::RawPtr"
 path = "core::wtf8::Wtf8::from_mut_bytes_unchecked"
 kappa = "d069a0f5b7f9a73768b39d8389712f60528c26c58066b1884b77ca181b4a5503"
 status = "residue"
-cause = "mir::Ty: &mut wtf8::Wtf8"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::wtf8::Wtf8::from_str"
@@ -364,5 +364,5 @@ cause = "mir::TerminatorKind::Call: num::<impl usize>::saturating_add"
 path = "core::wtf8::slice_error_fail"
 kappa = "d2fea3770e9342bab6529fa80dd44349c6b1d58a9695d2224220b1f34fbc98f2"
 status = "residue"
-cause = "mir::Ty: !"
+cause = "mir::TerminatorKind::Call: Wtf8::len"
 

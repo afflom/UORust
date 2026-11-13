@@ -26,41 +26,41 @@ cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
 path = "core::maybe_is_aligned"
 kappa = "aa29f837098c1d2b0c22890981ce291896478c41e3a27eab5e2c8480ef4f28d5"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::Operand::Constant: the constant item *const ()"
 
 [[fn]]
 path = "core::maybe_is_aligned::compiletime"
 kappa = "8667e4ecd41f99969f4ae4b468f8f0d8f32738ac6fb448399172b1f7e49afed2"
-status = "residue"
-cause = "mir::Ty: *const ()"
+status = "translated"
+digest = "2f1f1fc9fdfddc3a723bb58af0e72ab9fd5ec1fd42f48e17efdea08078404abf"
 
 [[fn]]
 path = "core::maybe_is_aligned::runtime"
 kappa = "6ac6ec726ad095db5bc8387f91e15d03f038253108ebae8b6002b4f34a3d15ff"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_aligned_to"
 
 [[fn]]
 path = "core::maybe_is_aligned_and_not_null"
 kappa = "f2d6ef039f565f5439b7e08f22d55525a0ad863afb2e49da0a97302b9053d043"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::TerminatorKind::Call: maybe_is_aligned"
 
 [[fn]]
 path = "core::maybe_is_nonoverlapping"
 kappa = "6fe729a9a9801604588a75a51cf5b214f19f3879173820626389ff30e3124dcf"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::Operand::Constant: the constant item *const ()"
 
 [[fn]]
 path = "core::maybe_is_nonoverlapping::compiletime"
 kappa = "2aee7e4e7e33008a63c7336b227b28aa3b72f100530ef481a4b52ca1992f0dba"
-status = "residue"
-cause = "mir::Ty: *const ()"
+status = "translated"
+digest = "75bec775d82144987e1fd2c04b0d45debbf56ae62c926517b2a9516889698a98"
 
 [[fn]]
 path = "core::maybe_is_nonoverlapping::runtime"
 kappa = "16762e6762c82736796d085d50363cbb8170ca07e99ba3a23896b3929b1715c6"
 status = "residue"
-cause = "mir::Ty: *const ()"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::addr"
 
