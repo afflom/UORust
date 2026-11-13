@@ -57,29 +57,27 @@ pub(crate) enum Refusal {
     },
 }
 
-impl std::fmt::Display for Refusal {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Refusal {
+    /// What is not had, in words: the text a residue row records.
+    pub(crate) fn text(&self) -> String {
         match self {
             Refusal::NotBits { field, text } => {
-                write!(f, "`{field}` is not a number of bits in `{text}`")
+                format!("`{field}` is not a number of bits in `{text}`")
             }
             Refusal::PointerWithoutSize { text } => {
-                write!(f, "a pointer without a size in `{text}`")
+                format!("a pointer without a size in `{text}`")
             }
             Refusal::WidthWithoutAlignment { text } => {
-                write!(f, "a width without an alignment in `{text}`")
+                format!("a width without an alignment in `{text}`")
             }
-            Refusal::WithoutTriple => write!(f, "a data layout without its triple"),
-            Refusal::NoTarget { ty } => write!(
-                f,
-                "the layout of {ty}, with no data layout recorded for the target"
-            ),
-            Refusal::Unstated { ty, target } => write!(
-                f,
-                "the layout of {ty}, which the data layout of {target} does not state"
-            ),
-            Refusal::Differs { ty, each } => write!(
-                f,
+            Refusal::WithoutTriple => "a data layout without its triple".to_string(),
+            Refusal::NoTarget { ty } => {
+                format!("the layout of {ty}, with no data layout recorded for the target")
+            }
+            Refusal::Unstated { ty, target } => {
+                format!("the layout of {ty}, which the data layout of {target} does not state")
+            }
+            Refusal::Differs { ty, each } => format!(
                 "the layout of {ty}, which differs by target: {}",
                 each.iter()
                     .map(|(target, m)| format!("size {} align {} on {target}", m.size, m.align))
@@ -87,6 +85,12 @@ impl std::fmt::Display for Refusal {
                     .join(", ")
             ),
         }
+    }
+}
+
+impl std::fmt::Display for Refusal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.text())
     }
 }
 
@@ -217,7 +221,7 @@ pub(crate) fn agreed(t: &Ty, layouts: &[DataLayout]) -> Result<Layout, Residue> 
 /// otherwise.
 pub(crate) fn reason(r: &Residue) -> String {
     match r {
-        Residue::Layout(refusal) => refusal.to_string(),
+        Residue::Layout(refusal) => refusal.text(),
         other => other.detail(),
     }
 }

@@ -20,6 +20,9 @@ pub(crate) type Lift<T> = Result<T, Residue>;
 
 use crate::ast as rs;
 use crate::lex::{camel, Arm, Decl, Expr};
+// Imported by name: the lift reads a type two modules name `Refusal` by
+// its file's import, never by a path written out.
+use crate::mir::layout::Refusal;
 use crate::order::ORDERING;
 
 /// Why a function stays in the frontier.
@@ -50,7 +53,7 @@ pub(crate) enum Residue {
     Mir(String),
     /// A layout the targets' data layouts do not give (see
     /// `mir::layout::Refusal`).
-    Layout(crate::mir::layout::Refusal),
+    Layout(Refusal),
 }
 
 impl Residue {
@@ -93,7 +96,7 @@ impl Residue {
             Self::Call(c) => format!("calls {c}, which is not lifted"),
             Self::Collision(n) => format!("another function of the crate is also named {n}"),
             Self::Mir(cause) => format!("mir::{cause}"),
-            Self::Layout(refusal) => format!("mir::Memory: {refusal}"),
+            Self::Layout(refusal) => format!("mir::Memory: {}", refusal.text()),
         }
     }
 }
