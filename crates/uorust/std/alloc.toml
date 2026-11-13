@@ -50,13 +50,13 @@ cause = "mir::Ty: alloc::System"
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::allocate"
 kappa = "d3f905f226164687a13ece9af636bc993c4cd24195efd4223e80b5facd04f8ae"
 status = "residue"
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::allocate_zeroed"
 kappa = "0e896907e9289d530799734dede30b134465fa4c72ba875df23e33e835f81f04"
 status = "residue"
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::deallocate"
@@ -68,31 +68,31 @@ cause = "mir::Ty: System"
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::grow"
 kappa = "778c6e0be399e2e12422725cf7c45814429769946bcd2031116e11fd54f68f6f"
 status = "residue"
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::grow_zeroed"
 kappa = "99587e57cd0b7f10a3bc18b6aea5606159a1aa730c0ac683b4b82f81b81d141f"
 status = "residue"
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::shrink"
 kappa = "f66efda9f185e47d5259ed3169fda5de04cd7492630fbff2379dcddd6c26a111"
 status = "residue"
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::System::alloc_impl"
 kappa = "12e45b7439685d8e0d520694e87add05686e68a0b62f7dadd8b594d802c09525"
 status = "residue"
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::System::grow_impl"
 kappa = "4f8badea82c1e08781fff9db4e3c700ca97e646174279e68ff5c4ed2ca17642e"
 status = "residue"
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::default_alloc_error_hook"

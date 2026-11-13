@@ -1696,7 +1696,7 @@ cause = "mir::Ty: sys::thread_local::native::eager::Storage<u32>"
 path = "std::eager::destroy"
 kappa = "f880546172743b00e56f9fdb6f60c6a7cca3987ea3a93940de9b90bbe8952ae7"
 status = "residue"
-cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: type outside the lift: {closure@library/std/src/sys/thread_local/native/eager.rs:66:26: 66:28}"
+cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
 
 [[fn]]
 path = "std::eh::<impl at library/std/src/sys/personality/dwarf/eh.rs:39:16: 39:21>::clone"
@@ -2375,7 +2375,7 @@ cause = "mir::Ty: sys::thread_local::native::lazy::Storage<u32, u32>"
 path = "std::lazy::destroy"
 kappa = "4f9e151160958d01e4c20af5585c1e5f5fa0bf9ffe6e3354cf7b708f029538b5"
 status = "residue"
-cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: type outside the lift: {closure@library/std/src/sys/thread_local/native/lazy.rs:114:26: 114:28}"
+cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
 
 [[fn]]
 path = "std::linux_child_ext::Child::into_pidfd"
@@ -2607,7 +2607,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::pal::unix::init"
 kappa = "25f7d2f239dfdf99d666db11f2c0e6f5fcc16e4421e082d3416916d551fb95e9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sys::pal::unix::init::sanitize_standard_fds: std's MIR stops at mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: type outside the lift: {closure@library/std/src/sys/pal/unix/mod.rs:58:32: 58:34}"
+cause = "mir::TerminatorKind::Call: sys::pal::unix::init::sanitize_standard_fds: std's MIR stops at mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: mir::TerminatorKind::Call: dup"
 
 [[fn]]
 path = "std::pal::unix::on_broken_pipe_used"
@@ -3066,7 +3066,7 @@ cause = "mir::Ty: FdMeta"
 path = "std::sanitize_standard_fds"
 kappa = "54051911f614a946362aad066366cc5fc62b3296f0670687a2a8d9cb24c8107c"
 status = "residue"
-cause = "mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: type outside the lift: {closure@library/std/src/sys/pal/unix/mod.rs:58:32: 58:34}"
+cause = "mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: mir::TerminatorKind::Call: dup"
 
 [[fn]]
 path = "std::sendfile_splice"
@@ -3102,7 +3102,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::signal_handler"
 kappa = "ee945d14e11b5611586590c1a5c705097cd17418dc169b1db9bfb12daeeac199"
 status = "residue"
-cause = "mir::ProjectionElem::Deref: a read through a raw pointer, into memory the value model does not hold"
+cause = "mir::Ty: siginfo_t"
 
 [[fn]]
 path = "std::signal_string"
@@ -3279,7 +3279,7 @@ path = "std::sys::args::common::Args::next_chunk"
 kappa = "6366e218ca63ee6d3963e016c38e67c6439c2b5c59e3f7e788f2e05cd2ecc022"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Ty: ffi::os_str::OsString"
 
 [[fn]]
 path = "std::sys::args::common::Args::size_hint"
@@ -4493,7 +4493,7 @@ cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::
 path = "std::sys::path::unix::SEPARATORS_STR"
 kappa = "48f8f0a86cdb12c95582d29c9f2e37062fdd5957fcc59a10ca9cc857e0a30973"
 status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::Ty: core::str::Utf8Error"
 
 [[fn]]
 path = "std::sys::path::unix::absolute"
@@ -5740,7 +5740,7 @@ cause = "mir::Ty: CStr"
 path = "std::sys::thread::unix::sleep"
 kappa = "22e0dfed43d4c366ca8f590d88e9feefaf7f90ba9d5031846a09afc77927db5c"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: Duration::as_secs"
 
 [[fn]]
 path = "std::sys::thread::unix::sleep::nanosleep"
@@ -5987,7 +5987,7 @@ path = "std::truncate_cstr"
 kappa = "250fecbae73b6782bab1f33483220a06f3f987669b75785368c4088216c91eb7"
 at = "MAX_WITH_NUL=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Ty: CStr"
 
 [[fn]]
 path = "std::try_statx"
@@ -6047,8 +6047,8 @@ cause = "mir::Ty: CStr"
 [[fn]]
 path = "std::unsupported::sleep"
 kappa = "88afe13eb9bd8d8a8bee1647ea67ef472193f736bcc298167727850ee0f946a4"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "64cc95cb6c2721af2ec899a8102795e77e4b56cb0d6ca3c33a235fb9fcb7931e"
 
 [[fn]]
 path = "std::unsupported::yield_now"

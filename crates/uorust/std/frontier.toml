@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 4067
-translated = 63
-residue = 4004
+translated = 67
+residue = 4000
 
 [module.alloc]
 bodies = 20
@@ -62,8 +62,8 @@ residue = 14
 
 [module.io]
 bodies = 662
-translated = 16
-residue = 646
+translated = 19
+residue = 643
 
 [module.keyword_docs]
 bodies = 0
@@ -137,8 +137,8 @@ residue = 507
 
 [module.sys]
 bodies = 1004
-translated = 34
-residue = 970
+translated = 35
+residue = 969
 
 [module.test_helpers]
 bodies = 0
@@ -157,7 +157,7 @@ residue = 49
 
 [[cause]]
 cause = "mir::Ty: io::error::Error"
-bodies = 803
+bodies = 809
 
 [[cause]]
 cause = "mir::Ty: core::fmt::Error"
@@ -177,7 +177,7 @@ bodies = 58
 
 [[cause]]
 cause = "mir::Ty: ffi::os_str::OsString"
-bodies = 50
+bodies = 52
 
 [[cause]]
 cause = "mir::Ty: path::PathBuf"
@@ -201,7 +201,7 @@ bodies = 44
 
 [[cause]]
 cause = "mir::Ty: T"
-bodies = 40
+bodies = 39
 
 [[cause]]
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
@@ -233,7 +233,7 @@ bodies = 29
 
 [[cause]]
 cause = "mir::Ty: map::HashMap<u32"
-bodies = 25
+bodies = 27
 
 [[cause]]
 cause = "mir::Ty: sys::fd::unix::FileDesc"
@@ -328,10 +328,6 @@ cause = "mir::Ty: fs::FileType"
 bodies = 13
 
 [[cause]]
-cause = "mir::Instantiation: a const parameter"
-bodies = 12
-
-[[cause]]
 cause = "mir::Ty: sys::fs::unix::FileType"
 bodies = 12
 
@@ -376,6 +372,10 @@ cause = "mir::Ty: Prefix<'_>"
 bodies = 10
 
 [[cause]]
+cause = "mir::Ty: collections::hash::map::HashMap<u32"
+bodies = 10
+
+[[cause]]
 cause = "mir::Ty: sys::fs::unix::FileAttr"
 bodies = 10
 
@@ -401,10 +401,6 @@ bodies = 9
 
 [[cause]]
 cause = "mir::Ty: bytes::Slice"
-bodies = 9
-
-[[cause]]
-cause = "mir::Ty: collections::hash::map::HashMap<u32"
 bodies = 9
 
 [[cause]]
@@ -472,6 +468,10 @@ cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 bodies = 7
 
 [[cause]]
+cause = "mir::Ty: core::alloc::AllocError"
+bodies = 7
+
+[[cause]]
 cause = "mir::Ty: core::alloc::Layout"
 bodies = 7
 
@@ -481,10 +481,6 @@ bodies = 7
 
 [[cause]]
 cause = "mir::Ty: core::ops::Range<usize>"
-bodies = 7
-
-[[cause]]
-cause = "mir::Ty: core::ptr::NonNull<[u8]>"
 bodies = 7
 
 [[cause]]
@@ -610,10 +606,6 @@ bodies = 6
 [[cause]]
 cause = "mir::Ty: sys::sync::once::futex::Once"
 bodies = 6
-
-[[cause]]
-cause = "mir::Ty: Arguments<'_>"
-bodies = 5
 
 [[cause]]
 cause = "mir::Ty: Component<'_>"
@@ -808,10 +800,6 @@ cause = "mir::Ty: ChildStdin"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: Duration"
-bodies = 4
-
-[[cause]]
 cause = "mir::Ty: F"
 bodies = 4
 
@@ -869,6 +857,10 @@ bodies = 4
 
 [[cause]]
 cause = "mir::Ty: error::Report<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: fn"
 bodies = 4
 
 [[cause]]
@@ -1060,6 +1052,10 @@ cause = "mir::Ty: Atomic<u32>"
 bodies = 3
 
 [[cause]]
+cause = "mir::Ty: CStr"
+bodies = 3
+
+[[cause]]
 cause = "mir::Ty: CStringIter<'_>"
 bodies = 3
 
@@ -1124,11 +1120,19 @@ cause = "mir::Ty: collections::hash::map::IterMut<'_"
 bodies = 3
 
 [[cause]]
+cause = "mir::Ty: collections::hash::set::HashSet<u32>"
+bodies = 3
+
+[[cause]]
 cause = "mir::Ty: core::io::Repeat"
 bodies = 3
 
 [[cause]]
 cause = "mir::Ty: core::pin::Pin<&u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: core::str::Utf8Error"
 bodies = 3
 
 [[cause]]
@@ -1153,10 +1157,6 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: env::VarError"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: fn"
 bodies = 3
 
 [[cause]]
@@ -1324,11 +1324,11 @@ cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce"
 bodies = 2
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as io::Read>::is_read_vectored"
+cause = "mir::Instantiation: u32 for a parameter bounded by Read"
 bodies = 2
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as io::Write>::is_write_vectored"
+cause = "mir::Instantiation: u32 for a parameter bounded by Write"
 bodies = 2
 
 [[cause]]
@@ -1357,10 +1357,6 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: BacktraceStatus"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: CStr"
 bodies = 2
 
 [[cause]]
@@ -1460,10 +1456,6 @@ cause = "mir::Ty: collections::hash::set::Entry<'_"
 bodies = 2
 
 [[cause]]
-cause = "mir::Ty: collections::hash::set::HashSet<u32>"
-bodies = 2
-
-[[cause]]
 cause = "mir::Ty: collections::hash::set::Intersection<'_"
 bodies = 2
 
@@ -1484,15 +1476,15 @@ cause = "mir::Ty: connection::socket::TcpStream"
 bodies = 2
 
 [[cause]]
+cause = "mir::Ty: core::io::Cursor<u32>"
+bodies = 2
+
+[[cause]]
 cause = "mir::Ty: core::num::NonZero<i32>"
 bodies = 2
 
 [[cause]]
 cause = "mir::Ty: core::num::NonZero<u16>"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: core::str::Utf8Error"
 bodies = 2
 
 [[cause]]
@@ -1744,6 +1736,10 @@ cause = "mir::Ty: sys::sync::once::futex::OnceState"
 bodies = 2
 
 [[cause]]
+cause = "mir::Ty: thread::functions::PanicGuard"
+bodies = 2
+
+[[cause]]
 cause = "mir::Ty: thread::local::AccessError"
 bodies = 2
 
@@ -1768,31 +1764,31 @@ cause = "mir::Ty: zero::Channel<u32>"
 bodies = 2
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: context::with::{closure#0}: type outside the lift: {closure@library/std/src/sync/mpmc/context.rs:47:21: 47:40}"
+cause = "mir::AggregateKind::Closure: context::with::{closure#0}: type outside the lift: context::Context"
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: type outside the lift: {closure@library/std/src/sys/thread_local/native/eager.rs:66:26: 66:28}"
+cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer"
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: type outside the lift: {closure@library/std/src/sys/thread_local/native/lazy.rs:114:26: 114:28}"
+cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: mir::ProjectionElem::Deref: a read through a raw pointer"
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: type outside the lift: {closure@library/std/src/sys/pal/unix/mod.rs:58:32: 58:34}"
+cause = "mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: mir::TerminatorKind::Call: dup"
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: thread_cleanup::{closure#0}: type outside the lift: {closure@library/std/src/rt.rs:130:25: 130:27}"
-bodies = 1
-
-[[cause]]
-cause = "mir::CastKind::PointerCoercion: from"
+cause = "mir::AggregateKind::Closure: thread_cleanup::{closure#0}: mir::TerminatorKind::Call: drop_current"
 bodies = 1
 
 [[cause]]
 cause = "mir::Instantiation: u32 for a parameter bounded by AsRawFd"
+bodies = 1
+
+[[cause]]
+cause = "mir::Instantiation: u32 for a parameter bounded by BufRead"
 bodies = 1
 
 [[cause]]
@@ -1932,6 +1928,10 @@ cause = 'mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe 
 bodies = 1
 
 [[cause]]
+cause = "mir::Operand::Constant: {alloc213: &Atomic<bool>}"
+bodies = 1
+
+[[cause]]
 cause = "mir::Operand::Constant: {alloc231: &OnceLock<ReentrantLock<RefCell<LineWriter<StdoutRaw>>>>}"
 bodies = 1
 
@@ -1968,19 +1968,11 @@ cause = "mir::Operand::Constant: {alloc669: &LazyKey}"
 bodies = 1
 
 [[cause]]
-cause = "mir::ProjectionElem::Deref: a read through a raw pointer"
-bodies = 1
-
-[[cause]]
 cause = "mir::Rvalue::Use"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as io::BufRead>::consume"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: _is_sync_send"
+cause = "mir::TerminatorKind::Call: Duration::as_secs"
 bodies = 1
 
 [[cause]]
@@ -2116,6 +2108,10 @@ cause = "mir::TerminatorKind::Call: glibc_version::gnu_get_libc_version"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: io::stdio::print_to_buffer_if_capture_used: std's MIR stops at mir::Operand::Constant: {alloc213: &Atomic<bool>}"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: libc::getpid"
 bodies = 1
 
@@ -2164,7 +2160,7 @@ cause = "mir::TerminatorKind::Call: sys::pal::unix::conf::glibc_version: std's M
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::pal::unix::init::sanitize_standard_fds: std's MIR stops at mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: type outside the lift: {closure@library/std/src/sys/pal/unix/mod.rs:58:32: 58:34}"
+cause = "mir::TerminatorKind::Call: sys::pal::unix::init::sanitize_standard_fds: std's MIR stops at mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: mir::TerminatorKind::Call: dup"
 bodies = 1
 
 [[cause]]
@@ -2196,15 +2192,15 @@ cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid: 
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: sys::thread::unix::sleep"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now"
 bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: sys::thread_local::destructors::list::run: std's MIR stops at mir::Rvalue::Ref"
-bodies = 1
-
-[[cause]]
-cause = "mir::Ty: <u32 as net::socket_addr::ToSocketAddrs>::Iter"
 bodies = 1
 
 [[cause]]
@@ -2424,6 +2420,10 @@ cause = "mir::Ty: backtrace::BacktraceStatus"
 bodies = 1
 
 [[cause]]
+cause = "mir::Ty: backtrace::Capture"
+bodies = 1
+
+[[cause]]
 cause = "mir::Ty: backtrace::RawFrame"
 bodies = 1
 
@@ -2473,10 +2473,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: core::io::Cursor<[u8; N]>"
-bodies = 1
-
-[[cause]]
-cause = "mir::Ty: core::io::Cursor<u32>"
 bodies = 1
 
 [[cause]]
@@ -2796,6 +2792,10 @@ cause = "mir::Ty: set::IntoIter<&str>"
 bodies = 1
 
 [[cause]]
+cause = "mir::Ty: siginfo_t"
+bodies = 1
+
+[[cause]]
 cause = "mir::Ty: sync::barrier::Barrier"
 bodies = 1
 
@@ -2980,10 +2980,6 @@ cause = "mir::Ty: sys::thread_local::native::lazy::Storage<u32"
 bodies = 1
 
 [[cause]]
-cause = "mir::Ty: thread::functions::PanicGuard"
-bodies = 1
-
-[[cause]]
 cause = "mir::Ty: thread::lifecycle::JoinInner<'_"
 bodies = 1
 
@@ -3009,8 +3005,4 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: unsupported::Thread"
-bodies = 1
-
-[[cause]]
-cause = "mir::Ty: {closure@library/std/src/backtrace.rs:437:9: 437:16}"
 bodies = 1

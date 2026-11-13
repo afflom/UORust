@@ -20,14 +20,14 @@ digest = "9426fc0d02c992e27b1d3864fe107919419ab300a302415f4648a11826f1ec76"
 [[fn]]
 path = "std::_assert_error_is_sync_send"
 kappa = "38aea9b95f92d5e69ad4ccee77cab098ad5251f32170c0a38a171bf0ffcec87f"
-status = "residue"
-cause = "mir::TerminatorKind::Call: _is_sync_send"
+status = "translated"
+digest = "69cdbd062985483b6ebc9cdae402132c71e4e5bcc7e4c5e08297c7785e446bbd"
 
 [[fn]]
 path = "std::_eprint"
 kappa = "a3213bb7f98fd903a5c2099f71086aa7a1710e5a3b0377a10890e838ca8604ab"
-status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+status = "translated"
+digest = "10f119901bd7576a5cb2d3ae6ec016bcff49502833590badc04e8b4140181a07"
 
 [[fn]]
 path = "std::_is_sync_send"
@@ -38,8 +38,8 @@ digest = "817f10f55b92a9f65248542015d62788a24fc03e7322f0036ae82a3469958d1c"
 [[fn]]
 path = "std::_print"
 kappa = "dfa09a1a75575259bf79aa234a5d5f24c5b494ffada33dfba7e7e434b54eef41"
-status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+status = "translated"
+digest = "963e04acd40e6ff0a2ac14e5af9659ad474372a1eb35160806e96c3a391d10d3"
 
 [[fn]]
 path = "std::append_to_string"
@@ -52,7 +52,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::attempt_print_to_stderr"
 kappa = "20b0e38e7d2e330c52a220c413af8158d561477f74aa40c98f8f6a953958e2cf"
 status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+cause = "mir::TerminatorKind::Call: io::stdio::print_to_buffer_if_capture_used: std's MIR stops at mir::Operand::Constant: {alloc213: &Atomic<bool>}"
 
 [[fn]]
 path = "std::buffer::Buffer::backshift"
@@ -755,8 +755,9 @@ cause = "mir::Ty: io::error::Error"
 [[fn]]
 path = "std::cursor::Cursor::is_read_vectored"
 kappa = "94b0c1f019705518aaabaff43fc2a2d0898b74f79ca006f6447d58b9de5a983d"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::Ty: core::io::Cursor<u32>"
 
 [[fn]]
 path = "std::cursor::Cursor::is_write_vectored"
@@ -890,7 +891,7 @@ path = "std::cursor::Cursor::write#5"
 kappa = "9e6dff60c566379bf8c59d0568e8c789f38f8241c49013198b9f0202c1a70741"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::cursor::Cursor::write_all"
@@ -924,7 +925,7 @@ path = "std::cursor::Cursor::write_all#5"
 kappa = "f1040f71bca7edd06fa2e8bc8e7c07cacc83c9c59c5afdd32233c2e9bc9dfa9e"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::cursor::Cursor::write_all_vectored"
@@ -958,7 +959,7 @@ path = "std::cursor::Cursor::write_all_vectored#5"
 kappa = "526ee8dfe334cae887e2f3dbcfae1f176e13ba0d1c3efd70df0932320e774567"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::cursor::Cursor::write_vectored"
@@ -992,7 +993,7 @@ path = "std::cursor::Cursor::write_vectored#5"
 kappa = "9b3a7a425abd8159ea60eeb57854b461db00b6079a390f79c67f3568913017e2"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::decode_repr"
@@ -1083,7 +1084,7 @@ path = "std::impls::<impl at library/std/src/io/impls.rs:120:1: 120:45>::consume
 kappa = "9de7a78ce1c73fa578e14a224631106cd07b55fec92fe5b032db064f78d13001"
 at = "B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as io::BufRead>::consume"
+cause = "mir::Instantiation: u32 for a parameter bounded by BufRead, which u32 does not implement in core"
 
 [[fn]]
 path = "std::impls::<impl at library/std/src/io/impls.rs:120:1: 120:45>::fill_buf"
@@ -1125,7 +1126,7 @@ path = "std::impls::<impl at library/std/src/io/impls.rs:14:1: 14:39>::is_read_v
 kappa = "98fdb0b6e57358884e5ebfecddfb1531b6ead832d9b14ee8cae6ddee632f2e12"
 at = "R=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as io::Read>::is_read_vectored"
+cause = "mir::Instantiation: u32 for a parameter bounded by Read, which u32 does not implement in core"
 
 [[fn]]
 path = "std::impls::<impl at library/std/src/io/impls.rs:14:1: 14:39>::read"
@@ -1284,7 +1285,7 @@ path = "std::impls::<impl at library/std/src/io/impls.rs:56:1: 56:41>::is_write_
 kappa = "61864e30485585412f217f81a3b28f7293357615d3a77b965f7f444ddbebd6c8"
 at = "W=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as io::Write>::is_write_vectored"
+cause = "mir::Instantiation: u32 for a parameter bounded by Write, which u32 does not implement in core"
 
 [[fn]]
 path = "std::impls::<impl at library/std/src/io/impls.rs:56:1: 56:41>::write"
@@ -1565,14 +1566,14 @@ path = "std::impls::Box::is_read_vectored"
 kappa = "fb565717a70994647a6a971ac778ade70610713410648e88778fe3a59c53933d"
 at = "R=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as io::Read>::is_read_vectored"
+cause = "mir::Instantiation: u32 for a parameter bounded by Read, which u32 does not implement in core"
 
 [[fn]]
 path = "std::impls::Box::is_write_vectored"
 kappa = "8434f5179cf3192340015cbf61edf962b64feea281485e7daf629bcb0cfa01cc"
 at = "W=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as io::Write>::is_write_vectored"
+cause = "mir::Instantiation: u32 for a parameter bounded by Write, which u32 does not implement in core"
 
 [[fn]]
 path = "std::impls::Box::read"
@@ -2210,7 +2211,7 @@ path = "std::io::Read::read_array"
 kappa = "022f09ced841700d26a2e77d1dac60c6d52ee9dbdb5ac48617e9d6c00e1937c0"
 at = "N=#, Self=u32"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::io::Read::read_buf"
@@ -3609,13 +3610,13 @@ path = "std::print_to"
 kappa = "79df61dfeb58f0c8efa294d98bb5785244bf2923e2408a5bc2497bcd15ed6210"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+cause = "mir::Ty: fn() -> u32"
 
 [[fn]]
 path = "std::print_to_buffer_if_capture_used"
 kappa = "77fbce2b7b06ed5721168f11037f7f67f7f7f6fe27716d7ddb1fb63c74ed1ba2"
 status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+cause = "mir::Operand::Constant: {alloc213: &Atomic<bool>}"
 
 [[fn]]
 path = "std::read_until"

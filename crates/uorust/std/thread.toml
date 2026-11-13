@@ -160,7 +160,7 @@ cause = "mir::TerminatorKind::Call: panicking::panicking"
 path = "std::functions::sleep"
 kappa = "1383a8ac7873e190f3b0962febf197da1267fa6c9b5c8846171092d958168557"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: sys::thread::unix::sleep"
 
 [[fn]]
 path = "std::functions::sleep_until"
@@ -434,7 +434,7 @@ cause = "mir::Ty: thread::functions::PanicGuard"
 path = "std::park_timeout"
 kappa = "b522faf8681c2ef39587394ff2ec752ee21ac0a42982205ac15d45b6e0239644"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Ty: thread::functions::PanicGuard"
 
 [[fn]]
 path = "std::park_timeout_ms"
