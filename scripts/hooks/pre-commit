@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # The ratchet on what is staged: the hand-written translator may only shrink
-# (Justfile `ratchet-staged`). It has no bypass; CI decides the same on
-# registers generated from both commits (`just ratchet`).
+# (scripts/hooks/ratchet-staged.sh). It has no bypass; CI decides the same on
+# registers generated from both commits (`just ratchet`). Installed by
+# `git config core.hooksPath scripts/hooks` (`just hooks`); needs no `just`.
 set -euo pipefail
-exec just ratchet-staged
+here=$(cd "$(dirname "$0")" && pwd)
+. "$here/lane-cfg.sh"
+exec "$here/ratchet-staged.sh" "${cfg[@]}"

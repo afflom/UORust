@@ -219,17 +219,10 @@ ratchet base="HEAD~1":
     cargo run -q --locked -p uorust -- certify ratchet --register target/ratchet/head.toml --manifest crates/certified/manifest.toml --base-register target/ratchet/base.toml --base-manifest "$base_manifest"
 
 # The ratchet before a commit, on what is staged: the index's register and
-# manifest against HEAD's (`scripts/hooks/pre-commit`; `just hooks` installs
-# it). CI's `ratchet` decides on registers generated from both commits.
-ratchet-staged:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mkdir -p target/ratchet-staged
-    git show :frontier.toml >target/ratchet-staged/head.toml
-    git show HEAD:frontier.toml >target/ratchet-staged/base.toml
-    git show :crates/certified/manifest.toml >target/ratchet-staged/head-manifest.toml 2>/dev/null || rm -f target/ratchet-staged/head-manifest.toml
-    git show HEAD:crates/certified/manifest.toml >target/ratchet-staged/base-manifest.toml 2>/dev/null || rm -f target/ratchet-staged/base-manifest.toml
-    cargo run -q --locked -p uorust -- certify ratchet --register target/ratchet-staged/head.toml --manifest target/ratchet-staged/head-manifest.toml --base-register target/ratchet-staged/base.toml --base-manifest target/ratchet-staged/base-manifest.toml
+# manifest against HEAD's (scripts/hooks/ratchet-staged.sh, which the
+# pre-commit hook runs; `just hooks` installs it). CI's `ratchet` decides on registers generated from both commits.
+ratchet-staged *cargo:
+    scripts/hooks/ratchet-staged.sh {{cargo}}
 
 # The differential and the fixpoint (loop step 4). Every body of core runs
 # through the certified translator and through the hand-written one
