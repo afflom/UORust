@@ -1730,7 +1730,15 @@ impl Fun<'_, '_> {
                 args,
                 target,
             } => {
-                let Some(target) = target else {
+                // A call into a place of type `!` does not return: MIR
+                // prints its one successor, the unwind, as `-> bb`.
+                let never = destination.projection.is_empty()
+                    && self
+                        .body
+                        .locals
+                        .get(destination.local)
+                        .is_some_and(|t| t.trim() == "!");
+                let Some(target) = target.as_ref().filter(|_| !never) else {
                     // A call that does not return panics or diverges: the
                     // path to it must be unreachable, unless the body
                     // itself returns `!`, whose callers carry that theorem.
@@ -2407,8 +2415,16 @@ impl Fun<'_, '_> {
         };
         let mut yes = st.clone();
         yes.path.push(MirStep::If(guard.to_string(), true));
-        yes.bound
-            .insert((place_key(&place), "Some".into()), vec![value.to_string()]);
+        yes.bound.insert(
+            (
+                place_key(
+                    &place,
+                    self.mut_params.contains(&place.local) || st.lends.contains_key(&place.local),
+                ),
+                "Some".into(),
+            ),
+            vec![value.to_string()],
+        );
         let mut no = st;
         no.path.push(MirStep::If(guard.to_string(), false));
         let then = self.goto(target(1), yes)?;
@@ -2430,6 +2446,10 @@ impl Fun<'_, '_> {
         st: State,
     ) -> Lift<Expr> {
         let (scrutinee, t) = self.read(place, &st)?;
+        let key = place_key(
+            place,
+            self.mut_params.contains(&place.local) || st.lends.contains_key(&place.local),
+        );
         // An enum with one inhabited variant is that variant's field: the
         // switch takes that arm, whose field is the value itself.
         let printed = (place.projection.is_empty())
@@ -2442,14 +2462,11 @@ impl Fun<'_, '_> {
                 .find(|(a, _)| *a == only.discriminant)
                 .map_or(otherwise, |(_, b)| *b);
             let mut arm = st;
-            arm.bound.insert(
-                (place_key(place), only.variant.to_string()),
-                vec![scrutinee],
-            );
+            arm.bound
+                .insert((key, only.variant.to_string()), vec![scrutinee]);
             return self.goto(target, arm);
         }
         let ctors = constructors(&t, self.cx.types, self.cx.explicit)?;
-        let key = place_key(place);
         let mut out = Vec::new();
         for (i, (variant, ctor, fields)) in ctors.iter().enumerate() {
             let target = arms
@@ -2846,7 +2863,14 @@ impl Fun<'_, '_> {
             }
             Val::Guarded { item, .. } => match p.projection.first() {
                 Some(IrProjection::Downcast(variant)) => {
-                    let key = (place_key(&prefix), variant.clone());
+                    let key = (
+                        place_key(
+                            &prefix,
+                            self.mut_params.contains(&prefix.local)
+                                || st.lends.contains_key(&prefix.local),
+                        ),
+                        variant.clone(),
+                    );
                     let Some(names) = st.bound.get(&key).cloned() else {
                         return Err(kind(
                             spec::MirProjectionElem::Downcast.path(),
@@ -3013,7 +3037,14 @@ impl Fun<'_, '_> {
                         "Break" if matches!(t, Ty::Outcome(..)) => "Err".to_string(),
                         v => v.to_string(),
                     };
-                    let key = (place_key(&prefix), variant.clone());
+                    let key = (
+                        place_key(
+                            &prefix,
+                            self.mut_params.contains(&prefix.local)
+                                || st.lends.contains_key(&prefix.local),
+                        ),
+                        variant.clone(),
+                    );
                     // The one inhabited variant of an enum is its value,
                     // matched or not.
                     let only = (prefix.projection.is_empty())
@@ -5821,7 +5852,20 @@ fn implication(hyps: &[String], goal: &str) -> String {
     out
 }
 
-fn place_key(p: &IrPlace) -> String {
+/// The key a match binds a variant's fields under, of the place it
+/// switches on. A local that holds the value a `&mut` borrows (a `&mut` parameter, a
+/// lending local) is that value, so `(*_1)` and `_1` are the one place: a
+/// match on `(*_1)` binds the fields a read through the borrow, of `_1`,
+/// finds.
+fn place_key(p: &IrPlace, held: bool) -> String {
+    if held {
+        let steps: Vec<&IrProjection> = p
+            .projection
+            .iter()
+            .filter(|s| !matches!(s, IrProjection::Deref))
+            .collect();
+        return format!("{:?}{steps:?}", p.local);
+    }
     format!("{p:?}")
 }
 
@@ -7067,6 +7111,20 @@ mod tests {
         for (f, _) in pointer_fields() {
             assert!(v.contains(&format!("{f} := ")), "{v} lacks {f}");
         }
+    }
+
+    #[test]
+    fn a_held_borrow_and_its_place_share_a_match_key() {
+        let deref = IrPlace {
+            local: 1,
+            projection: vec![IrProjection::Deref],
+        };
+        let whole = IrPlace {
+            local: 1,
+            projection: Vec::new(),
+        };
+        assert_eq!(place_key(&deref, true), place_key(&whole, true));
+        assert_ne!(place_key(&deref, false), place_key(&whole, false));
     }
 
     #[test]
