@@ -55,7 +55,25 @@ if [ ${#missing[@]} -gt 0 ]; then
   echo "$krate-mir: CI has no dump under $key of ${#missing[*]} modules; dumping them here: ${missing[*]}" >&2
   ci_target=""
   [ -f "$out/target.toml" ] && ci_target=$(cat "$out/target.toml")
-  scripts/mir/dump-lib.sh "$krate" "$out" "${missing[@]}"
+  # A local dump is kept under the key, so the next fetch under it (a
+  # retried push's gate) takes it rather than dumping again; another key's
+  # is removed.
+  local_dumps="target/mir-local/$krate"
+  if [ "$(cat "$local_dumps/key" 2>/dev/null)" != "$key" ]; then
+    rm -rf "$local_dumps"
+  fi
+  dump=()
+  for module in "${missing[@]}"; do
+    [ -d "$local_dumps/$module" ] || dump+=("$module")
+  done
+  if [ ${#dump[@]} -gt 0 ]; then
+    scripts/mir/dump-lib.sh "$krate" "$local_dumps" "${dump[@]}"
+    printf '%s\n' "$key" >"$local_dumps/key"
+  fi
+  for module in "${missing[@]}"; do
+    cp -r "$local_dumps/$module" "$out/$module"
+  done
+  [ -f "$out/target.toml" ] || cp "$local_dumps/target.toml" "$out/target.toml"
   # The target the CI dumps were built for stands when there are any.
   # (An `if`: a bare `&&` would end the script with status 1 where CI has
   # no dump at all.)
