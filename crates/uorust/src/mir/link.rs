@@ -521,11 +521,13 @@ impl CoreLink {
             _ => {
                 let mut found = candidates();
                 // An impl of the trait the call names is chosen over one of
-                // a trait a macro names by a metavariable.
+                // a trait a macro names by a metavariable, both for `X`'s
+                // own type; a blanket impl is weighed after fitting.
                 let named =
                     |p: &String| impl_of(p).is_some_and(|(_, (t, _))| t.as_deref() != Some("_"));
-                if found.iter().any(named) {
-                    found.retain(named);
+                let blanket = |p: &String| impl_of(p).is_some_and(|(_, (_, ty))| ty == "*");
+                if found.iter().any(|p| named(p) && !blanket(p)) {
+                    found.retain(|p| named(p) || blanket(p));
                 }
                 // A specializing impl is chosen over the impl whose
                 // `default fn` it replaces.
