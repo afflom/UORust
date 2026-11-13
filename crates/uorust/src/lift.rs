@@ -335,6 +335,10 @@ pub(crate) struct Types {
     /// Each struct whose one field is a pattern type (`(u32) is 1..`), by
     /// LexLean name: the pattern's base type and the pattern, as written.
     pub(crate) valid: BTreeMap<String, (String, String)>,
+    /// The structs that hold a mutable borrow, by LexLean name: each field
+    /// that is a `&mut`, by position, with its type as printed. The lift
+    /// holds the borrowed value there, threaded as the borrow is.
+    pub(crate) borrowing: BTreeMap<String, Vec<(usize, String)>>,
 }
 
 /// The strongly connected components of a graph, each one set.
@@ -627,6 +631,7 @@ impl Types {
                 core: false,
                 floats: BTreeMap::new(),
                 valid: BTreeMap::new(),
+                borrowing: BTreeMap::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -654,6 +659,7 @@ impl Types {
                     core: false,
                     floats: BTreeMap::new(),
                     valid: BTreeMap::new(),
+                    borrowing: BTreeMap::new(),
                 };
             }
             names = lifted.into_keys().collect();

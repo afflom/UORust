@@ -330,6 +330,19 @@ vectors = [['"ab"', "'é'", '(Ok(()), String::from("abé"))']]
 # is its value applied to its formatter: a function of the options a
 # placeholder gives and the text written so far, to the result and the
 # text after, as each Display or Debug body lifts.
+# A formatting trait's object (`&dyn fmt::Debug`), as an Argument is: its
+# value's method applied to it, a function of the options and the text
+# written so far, to the method's result and the text after.
+[[type]]
+path = "dyn core::fmt::Debug"
+model = "fn<named<fmt::FormattingOptions>,str,tuple<result<unit,named<fmt::Error>>,str>>"
+floor = "a trait object: a data pointer and a vtable of the implementor's methods"
+
+[[type]]
+path = "dyn core::fmt::Display"
+model = "fn<named<fmt::FormattingOptions>,str,tuple<result<unit,named<fmt::Error>>,str>>"
+floor = "a trait object: a data pointer and a vtable of the implementor's methods"
+
 [[type]]
 path = "core::fmt::rt::Argument"
 model = "fn<named<fmt::FormattingOptions>,str,tuple<result<unit,named<fmt::Error>>,str>>"

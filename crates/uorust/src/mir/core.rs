@@ -278,7 +278,17 @@ pub(crate) fn shard(
         crate::order::RUST_ORDERING.to_string(),
         crate::order::ORDERING.to_string(),
     );
-    let explicit = instantiate_structs(&mut types, &link.decls, &bodies);
+    // A closure's type is the struct of the values it captures, as the
+    // crate path reads it.
+    types.closures = closures
+        .iter()
+        .filter(|(_, b)| b.upvars.iter().all(Option::is_some))
+        .map(|(t, b)| {
+            let captures = b.upvars.iter().flatten().map(|(_, t)| t.clone()).collect();
+            (t.clone(), captures)
+        })
+        .collect();
+    let explicit = instantiate_structs(&mut types, &link.decls, &bodies, &closures);
     // A raw pointer: an address, its provenance and its metadata.
     types
         .structs
@@ -458,6 +468,9 @@ pub(crate) struct CoreDecls {
     /// (as written), the trait's name and the associated type's: the
     /// module the impl is written in and the type it sets.
     assoc: BTreeMap<(String, String, String), (String, String)>,
+    /// Each type alias core declares without parameters, by path: the type
+    /// it names, as written in its module (`fmt::Result`).
+    type_aliases: BTreeMap<String, String>,
 }
 
 impl CoreDecls {
@@ -666,6 +679,10 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                             out.into_iter().collect::<Option<Vec<i128>>>()
                         },
                     });
+                }
+                syn::Item::Type(t) if t.generics.params.is_empty() => {
+                    out.type_aliases
+                        .insert(at(t.ident.to_string()), text(&t.ty));
                 }
                 syn::Item::Trait(t) => {
                     out.traits.insert(at(t.ident.to_string()));
@@ -931,7 +948,10 @@ impl Instances<'_> {
     /// The declared path `path` names from core's root, through the `use`
     /// names that re-export it.
     fn canonical(&self, path: &str, depth: usize) -> Option<String> {
-        if self.by.contains_key(path) || self.decls.traits.contains(path) {
+        if self.by.contains_key(path)
+            || self.decls.traits.contains(path)
+            || self.decls.type_aliases.contains_key(path)
+        {
             return Some(path.to_string());
         }
         let (module, name) = path.rsplit_once("::").unwrap_or(("", path));
@@ -998,8 +1018,9 @@ impl Instances<'_> {
     }
 
     /// `text`, a type written in `module`, with each path that names a
-    /// declared type written from core's root.
-    fn rooted(&self, module: &str, text: &str) -> String {
+    /// declared type written from core's root, and each type alias expanded
+    /// (`depth` aliases deep).
+    fn rooted(&self, module: &str, text: &str, depth: usize) -> String {
         let chars: Vec<char> = text.chars().collect();
         let mut out = String::new();
         let mut i = 0;
@@ -1019,7 +1040,15 @@ impl Instances<'_> {
                     i += if chars[i] == ':' { 2 } else { 1 };
                 }
                 let word: String = chars[start..i].iter().collect();
-                out.push_str(&self.resolve(module, &word).unwrap_or(word));
+                let at = self.resolve(module, &word).unwrap_or(word);
+                // A type alias is the type it names, read in its own module.
+                match self.decls.type_aliases.get(&at) {
+                    Some(target) if depth < 16 => {
+                        let home = at.rsplit_once("::").map_or("", |(m, _)| m);
+                        out.push_str(&self.rooted(home, target, depth + 1));
+                    }
+                    _ => out.push_str(&at),
+                }
             } else {
                 out.push(c);
                 i += 1;
@@ -1106,13 +1135,13 @@ impl Instances<'_> {
                         .assoc
                         .iter()
                         .filter(|((ty, _, a), _)| *ty == base && *a == assoc)
-                        .map(|(_, (m, to))| cx.rooted(m, to))
+                        .map(|(_, (m, to))| cx.rooted(m, to, 0))
                         .collect()
                 })
                 .unwrap_or_default();
             let t = match set.as_slice() {
                 [one] => one.clone(),
-                _ => cx.rooted(module, &t),
+                _ => cx.rooted(module, &t, 0),
             };
             cx.mention(&t, types);
             super::lower::ty(&t, types).ok()
@@ -1147,8 +1176,15 @@ impl Instances<'_> {
             return Some(name);
         }
         let mut fields = Vec::new();
+        let mut lent = Vec::new();
         for (i, (fname, t)) in st.fields.iter().enumerate() {
             let ft = field(self, t, types)?;
+            if super::lower::mut_target(t).is_some() {
+                lent.push((
+                    i,
+                    self.rooted(module, &super::stdlib::substitute(t, &binds), 0),
+                ));
+            }
             fields.push((
                 fname
                     .as_deref()
@@ -1166,6 +1202,9 @@ impl Instances<'_> {
             }
         }
         types.structs.insert(name.clone(), fields);
+        if !lent.is_empty() {
+            types.borrowing.insert(name.clone(), lent);
+        }
         types.aliases.insert(text, name.clone());
         self.done.insert(key, Some(name.clone()));
         Some(name)
@@ -1200,7 +1239,7 @@ impl Instances<'_> {
     }
 }
 
-/// Each instance of a core struct the bodies' locals mention, as MIR prints
+/// Each instance of a core struct the bodies' (and closures') locals mention, as MIR prints
 /// it, added to core's scope: a struct whose fields lift is a record of
 /// those fields at the instance's arguments, named by its path and
 /// arguments, each field's type read in the struct's module through its
@@ -1213,6 +1252,7 @@ fn instantiate_structs(
     types: &mut Types,
     decls: &CoreDecls,
     bodies: &[(IrBody, String, String)],
+    closures: &BTreeMap<String, IrBody>,
 ) -> std::collections::BTreeSet<String> {
     let mut groups: BTreeMap<&str, Vec<&CoreStruct>> = BTreeMap::new();
     for s in &decls.structs {
@@ -1247,6 +1287,9 @@ fn instantiate_structs(
     };
     let mut mentioned: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
     for (body, _, _) in bodies {
+        mentioned.extend(body.locals.iter().map(String::as_str));
+    }
+    for body in closures.values() {
         mentioned.extend(body.locals.iter().map(String::as_str));
     }
     // The types the std table's models build values of.

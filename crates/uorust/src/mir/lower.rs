@@ -193,6 +193,12 @@ struct State {
     memory: Option<String>,
     /// The locals whose values live in memory.
     placed: BTreeMap<IrLocal, Placed>,
+    /// The mutable borrows a local's value holds (a struct built of a
+    /// `&mut`, a closure that captures one): the part of the value that
+    /// holds each, and the place it borrows, which takes that part's value
+    /// each time the local is written, as a write through the borrow
+    /// writes the place.
+    lends: BTreeMap<IrLocal, Vec<(Vec<IrProjection>, IrPlace)>>,
 }
 
 /// A loop: its helper's name and parameters (the locals live at its header).
@@ -285,17 +291,52 @@ enum Shape {
 /// as Aeneas's backward functions are. The definition takes the borrowed
 /// `T` and returns, after `_0`'s value, the value each such parameter's
 /// place holds when the body returns; a caller writes it back into the
-/// place it lent. A closure's environment `_1` is the closure's own state,
-/// which its call gives back unchanged.
-pub(crate) fn threaded(locals: &[String], arity: usize, closure: bool) -> Vec<usize> {
+/// place it lent. A value that holds a mutable borrow (a struct with a
+/// `&mut` field, a closure that captures one) is threaded alike: the lift
+/// holds the borrowed value inside it, and the caller writes it back into
+/// the place the held borrow lent. A closure's environment `_1` is the
+/// closure's own state, which its call gives back unchanged unless the
+/// environment, by value or behind a `&mut`, holds such a borrow.
+pub(crate) fn threaded(
+    locals: &[String],
+    arity: usize,
+    closure: bool,
+    types: &Types,
+) -> Vec<usize> {
+    // Whether a value of a type as printed holds a mutable borrow.
+    let holds = |t: &str| {
+        let mut stack = vec![t.trim().to_string()];
+        let mut seen = BTreeSet::new();
+        while let Some(t) = stack.pop() {
+            if mut_target(&t).is_some()
+                || types
+                    .aliases
+                    .get(&t)
+                    .is_some_and(|n| types.borrowing.contains_key(n))
+            {
+                return true;
+            }
+            if seen.insert(t.clone()) {
+                stack.extend(types.closures.get(&t).into_iter().flatten().cloned());
+            }
+        }
+        false
+    };
     let mut out = Vec::new();
     let mut l = 1;
     while l <= arity {
-        if !(closure && l == 1) {
-            if let Some(t) = locals.get(l) {
-                if mut_target(t).is_some() {
-                    out.push(l);
-                }
+        if let Some(t) = locals.get(l) {
+            let threads = if closure && l == 1 {
+                let env = mut_target(t).unwrap_or(t);
+                types
+                    .closures
+                    .get(env.trim())
+                    .is_some_and(|cs| cs.iter().any(|c| holds(c)))
+            } else {
+                holds(t)
+            };
+            if threads {
+                out.push(l);
             }
         }
         l += 1;
@@ -576,6 +617,7 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         &body.locals,
         body.arity,
         super::closure_type(body).is_some(),
+        cx.types,
     );
     // A `&mut` parameter rebound to another borrow no longer reaches the
     // place its caller lent, whose last value the definition returns.
@@ -855,6 +897,7 @@ impl Fun<'_, '_> {
             &self.body.locals,
             self.body.arity,
             super::closure_type(self.body).is_some(),
+            self.cx.types,
         );
         let mut uses: Vec<BTreeSet<IrLocal>> = Vec::new();
         let mut defs: Vec<BTreeSet<IrLocal>> = Vec::new();
@@ -954,6 +997,14 @@ impl Fun<'_, '_> {
     fn goto(&mut self, b: IrBlockId, st: State) -> Lift<Expr> {
         if !self.loops.contains_key(&b) {
             return self.block(b, st);
+        }
+        // A loop's helper takes the live locals' values, not the places
+        // their borrows lend.
+        if !st.lends.is_empty() {
+            return Err(kind(
+                "TerminatorKind::Goto",
+                "a loop header where a live value holds a mutable borrow",
+            ));
         }
         let lp = self.helper(b, &st)?;
         let mut args = Vec::new();
@@ -1334,6 +1385,7 @@ impl Fun<'_, '_> {
                     &self.body.locals,
                     self.body.arity,
                     super::closure_type(self.body).is_some(),
+                    self.cx.types,
                 );
                 let v = if threads.is_empty() && !self.memory {
                     v
@@ -1436,6 +1488,16 @@ impl Fun<'_, '_> {
             {
                 Ok(p.clone())
             }
+            // Through a `&mut` a threaded value or a lending local holds:
+            // the part of the value that holds what it borrows.
+            (Some(Val::V(..) | Val::Env(..)), _)
+                if (self.mut_params.contains(&p.local) || st.lends.contains_key(&p.local))
+                    && p.projection
+                        .iter()
+                        .all(|s| matches!(s, IrProjection::Field(..) | IrProjection::Deref)) =>
+            {
+                Ok(p.clone())
+            }
             _ => Err(kind(
                 spec::MirRvalue::Ref.path(),
                 "BorrowKind::Mut of a place behind a shared reference",
@@ -1458,28 +1520,58 @@ impl Fun<'_, '_> {
             q.projection.extend(rest.iter().cloned());
             return self.write(&q, v, st);
         }
-        let steps: Vec<IrProjection> = p
+        // A `&mut` the local holds (as a parameter, or inside its value)
+        // is the value it borrows, so a write through it writes that part.
+        let held = self.mut_params.contains(&p.local) || st.lends.contains_key(&p.local);
+        let mut steps: Vec<IrProjection> = p
             .projection
             .iter()
-            .filter(|s| !(matches!(s, IrProjection::Deref) && self.mut_params.contains(&p.local)))
+            .filter(|s| !(matches!(s, IrProjection::Deref) && held))
             .cloned()
             .collect();
         if steps.is_empty() {
             st.env.insert(p.local, v);
-            return Ok(());
+        } else {
+            let Val::V(new, _) = v else {
+                return Err(kind(k, "a pair or a borrow written into a part of a value"));
+            };
+            let (whole, wt, env) = match st.env.get(&p.local).cloned() {
+                Some(Val::V(whole, wt)) => (whole, wt, None),
+                // A closure's environment it threads: a capture, the
+                // environment itself where it is the one capture.
+                Some(Val::Env(whole, et, captures)) if held => {
+                    if captures.len() == 1 {
+                        steps.remove(0);
+                    }
+                    (whole, et, Some(captures))
+                }
+                _ => {
+                    return Err(kind(
+                        k,
+                        "a write into a part of a local that holds no value",
+                    ))
+                }
+            };
+            let updated = self.replace(&whole, &wt, &steps, &new, st)?;
+            self.grow(&updated)?;
+            st.env.insert(
+                p.local,
+                match env {
+                    Some(captures) => Val::Env(updated, wt, captures),
+                    None => Val::V(updated, wt),
+                },
+            );
         }
-        let Val::V(new, _) = v else {
-            return Err(kind(k, "a pair or a borrow written into a part of a value"));
-        };
-        let Some(Val::V(whole, wt)) = st.env.get(&p.local).cloned() else {
-            return Err(kind(
-                k,
-                "a write into a part of a local that holds no value",
-            ));
-        };
-        let updated = self.replace(&whole, &wt, &steps, &new, st)?;
-        self.grow(&updated)?;
-        st.env.insert(p.local, Val::V(updated, wt));
+        // Each place a borrow the local holds lends takes the value the
+        // local now holds there.
+        for (path, place) in st.lends.get(&p.local).cloned().unwrap_or_default() {
+            let at = IrPlace {
+                local: p.local,
+                projection: path,
+            };
+            let (v, t) = self.read(&at, st)?;
+            self.write(&place, Val::V(v, t), st)?;
+        }
         Ok(())
     }
 
@@ -1649,8 +1741,11 @@ impl Fun<'_, '_> {
                     borrowed.insert(i, place);
                 }
                 _ => {
-                    // A `&mut` parameter passed on lends the place it holds.
-                    if let Some(l) = whole.filter(|l| self.mut_params.contains(l)) {
+                    // A `&mut` parameter passed on lends the place it holds,
+                    // and a value holding borrows, the local that holds it.
+                    if let Some(l) =
+                        whole.filter(|l| self.mut_params.contains(l) || st.lends.contains_key(l))
+                    {
                         borrowed.insert(
                             i,
                             IrPlace {
@@ -1712,10 +1807,14 @@ impl Fun<'_, '_> {
         }
         // Each mutably borrowed place takes the value the call's backward
         // function gives it.
+        let borrowed_places = borrowed.clone();
         for (i, place) in borrowed {
             let Some(new) = updates.get(&i) else {
-                // A borrowed value no one reads again needs no new value.
-                if !self.live_at(target).contains(&place.local) {
+                // A borrowed value no one reads again needs no new value,
+                // unless it holds a borrow of a place that lives on.
+                if !self.live_at(target).contains(&place.local)
+                    && !st.lends.contains_key(&place.local)
+                {
                     continue;
                 }
                 return Err(kind(
@@ -1754,6 +1853,45 @@ impl Fun<'_, '_> {
         };
         if destination.projection.is_empty() && !st.placed.contains_key(&destination.local) {
             st.env.insert(destination.local, value);
+            st.lends.remove(&destination.local);
+            // A struct returned holding a borrow: each `&mut` field
+            // borrows the one place the call lends at the field's type.
+            let held = self
+                .cx
+                .types
+                .aliases
+                .get(dest_text.trim())
+                .and_then(|n| self.cx.types.borrowing.get(n))
+                .cloned()
+                .unwrap_or_default();
+            let mut lends = Vec::new();
+            for (f, text) in held {
+                let at = ty(&text, self.cx.types)?;
+                let mut lent = borrowed_places.iter().filter(|(i, _)| {
+                    texts
+                        .get(**i)
+                        .and_then(|t| t.as_deref())
+                        .and_then(mut_target)
+                        .is_some_and(|t| ty(t, self.cx.types).is_ok_and(|t| t == at))
+                });
+                match (lent.next(), lent.next()) {
+                    (Some((_, place)), None) => {
+                        lends.push((vec![IrProjection::Field(f, text)], place.clone()));
+                    }
+                    _ => {
+                        return Err(kind(
+                            spec::MirTerminatorKind::Call.path(),
+                            &format!(
+                            "{}, whose value holds a borrow of a place the call does not lend once",
+                            erase(callee)
+                        ),
+                        ))
+                    }
+                }
+            }
+            if !lends.is_empty() {
+                st.lends.insert(destination.local, lends);
+            }
         } else {
             self.write(destination, value, st)?;
         }
@@ -2052,8 +2190,92 @@ impl Fun<'_, '_> {
             IrStatement::Assign(p, rv) => {
                 if p.projection.is_empty() && !st.placed.contains_key(&p.local) {
                     let v = self.rvalue(rv, p, st)?;
-                    st.env.insert(p.local, v);
-                    return Ok(());
+                    // The borrows the new value holds: each mutable borrow
+                    // it is built of (a borrow, a `&mut` parameter, a value
+                    // holding borrows, or a parameter threaded as one), at
+                    // the part of the value that holds it.
+                    let mut lends = Vec::new();
+                    let ops: Vec<(Vec<IrProjection>, &IrOperand)> = match rv {
+                        IrRvalue::Use(o) => vec![(Vec::new(), o)],
+                        IrRvalue::Aggregate(
+                            IrAggregate::Adt(_, None) | IrAggregate::Tuple,
+                            ops,
+                        ) => ops
+                            .iter()
+                            .enumerate()
+                            .map(|(j, (_, o))| {
+                                let text = match o {
+                                    IrOperand::Copy(q) | IrOperand::Move(q) => {
+                                        self.body.locals.get(q.local).cloned().unwrap_or_default()
+                                    }
+                                    IrOperand::Constant(_) | IrOperand::Check(_) => String::new(),
+                                };
+                                (vec![IrProjection::Field(j, text)], o)
+                            })
+                            .collect(),
+                        IrRvalue::Aggregate(IrAggregate::Closure(ct), ops) => {
+                            let upvars = self
+                                .cx
+                                .closures
+                                .get(ct)
+                                .map(|b| b.upvars.clone())
+                                .unwrap_or_default();
+                            let one = upvars.len() == 1;
+                            upvars
+                                .iter()
+                                .enumerate()
+                                .filter_map(|(j, up)| {
+                                    let (n, text) = up.as_ref()?;
+                                    let o = ops
+                                        .iter()
+                                        .find(|(f, _)| f.as_deref() == Some(n.as_str()))
+                                        .or_else(|| ops.get(j))
+                                        .map(|(_, o)| o)?;
+                                    let path = if one {
+                                        Vec::new()
+                                    } else {
+                                        vec![IrProjection::Field(j, text.clone())]
+                                    };
+                                    Some((path, o))
+                                })
+                                .collect()
+                        }
+                        _ => Vec::new(),
+                    };
+                    for (path, o) in ops {
+                        let (IrOperand::Copy(q) | IrOperand::Move(q)) = o else {
+                            continue;
+                        };
+                        if !q.projection.is_empty() {
+                            continue;
+                        }
+                        let whole = IrPlace {
+                            local: q.local,
+                            projection: Vec::new(),
+                        };
+                        match st.env.get(&q.local) {
+                            Some(Val::Mut(place)) => lends.push((path, place.clone())),
+                            _ if self.mut_params.contains(&q.local) => lends.push((path, whole)),
+                            _ => {
+                                for (inner, place) in
+                                    st.lends.get(&q.local).cloned().unwrap_or_default()
+                                {
+                                    let mut at = path.clone();
+                                    at.extend(inner);
+                                    lends.push((at, place));
+                                }
+                            }
+                        }
+                    }
+                    // A borrow moved or copied whole stays the borrow it is.
+                    if matches!(&v, Val::Mut(_)) {
+                        lends.clear();
+                    }
+                    st.lends.remove(&p.local);
+                    if !lends.is_empty() {
+                        st.lends.insert(p.local, lends);
+                    }
+                    return self.write(p, v, st);
                 }
                 // A write into a place: the rvalue at the place's type, as
                 // a functional update of the local that holds the place.
@@ -2372,6 +2594,10 @@ impl Fun<'_, '_> {
             // A capture of a closure's environment: the environment itself
             // where it is the one capture, else that item of it.
             Val::Env(env, et, captures) => {
+                // Read whole, as a threading closure gives it back.
+                if matches!(p.projection.as_slice(), [] | [IrProjection::Deref]) {
+                    return Ok((env, et));
+                }
                 let mut rest = p.projection.as_slice();
                 if let Some((IrProjection::Deref, r)) = rest.split_first() {
                     rest = r;
@@ -2807,20 +3033,28 @@ impl Fun<'_, '_> {
                 // builder of the `&mut Formatter`): the lift holds the
                 // value it borrows, so a write through the held borrow
                 // would not reach the place it borrows.
-                if ops.iter().any(|(_, o)| match o {
-                    IrOperand::Copy(q) | IrOperand::Move(q) => {
-                        q.projection.is_empty()
-                            && (matches!(st.env.get(&q.local), Some(Val::Mut(_)))
-                                || self.mut_params.contains(&q.local))
-                            && self
-                                .body
-                                .locals
-                                .get(q.local)
-                                .and_then(|t| mut_target(t))
-                                .is_some_and(|t| t.contains("dyn ") || t.contains("fmt::Formatter"))
-                    }
-                    _ => false,
-                }) {
+                // A struct or a tuple built whole into a local holds the
+                // borrow, which the local's writes write back.
+                let held = dest.projection.is_empty()
+                    && matches!(agg, IrAggregate::Adt(_, None) | IrAggregate::Tuple);
+                if !held
+                    && ops.iter().any(|(_, o)| match o {
+                        IrOperand::Copy(q) | IrOperand::Move(q) => {
+                            q.projection.is_empty()
+                                && (matches!(st.env.get(&q.local), Some(Val::Mut(_)))
+                                    || self.mut_params.contains(&q.local))
+                                && self
+                                    .body
+                                    .locals
+                                    .get(q.local)
+                                    .and_then(|t| mut_target(t))
+                                    .is_some_and(|t| {
+                                        t.contains("dyn ") || t.contains("fmt::Formatter")
+                                    })
+                        }
+                        _ => false,
+                    })
+                {
                     return Err(kind(
                         spec::MirRvalue::Aggregate.path(),
                         "a mutable borrow held in a value, whose writes would not reach the place it borrows",
@@ -2838,6 +3072,34 @@ impl Fun<'_, '_> {
             IrRvalue::Cast(k, o, target) => {
                 let (v, from) = self.operand(o, st)?;
                 let to = self.local_ty(dest.local, &dest.projection)?;
+                // A reference coerced to a trait object the table models as
+                // a function (`&dyn fmt::Debug`): the trait's method applied
+                // to the value, as an `rt::Argument` is.
+                if let (
+                    spec::MirCastKind::PointerCoercion,
+                    Ty::Fn(..),
+                    Some(object),
+                    Some(source),
+                ) = (
+                    k,
+                    &to,
+                    target
+                        .trim()
+                        .strip_prefix('&')
+                        .and_then(|t| t.trim_start().strip_prefix("dyn ")),
+                    match o {
+                        IrOperand::Copy(q) | IrOperand::Move(q) if q.projection.is_empty() => {
+                            self.body.locals.get(q.local).and_then(|t| referent(t))
+                        }
+                        _ => None,
+                    },
+                ) {
+                    let method = format!("<{source} as {}>::fmt", object.trim());
+                    let text = format!("&{source}");
+                    let called =
+                        self.call(&method, vec![(v, from)], &[Some(text)], target, &to, st)?;
+                    return Ok(Val::V(called.term, to));
+                }
                 // A cast to a thin pointer drops the metadata; one from a
                 // thin pointer to a wide one does not type in Rust.
                 if matches!(k, spec::MirCastKind::PtrToPtr) && is_pointer(&from) && is_pointer(&to)
@@ -3690,7 +3952,7 @@ impl Fun<'_, '_> {
             let [(env, et), (a, at)] = args.as_slice() else {
                 return Err(kind(k, "a closure called without its arguments' tuple"));
             };
-            let _ = (captured, et);
+            let _ = captured;
             let mut items: Vec<String> = vec![env.clone()];
             let inputs = self.cx.closures[&closure].arity.saturating_sub(1);
             match (inputs, at) {
@@ -3703,15 +3965,24 @@ impl Fun<'_, '_> {
             }
             // A closure that writes through a `&mut` argument gives it back
             // inside the arguments' tuple, whose places the call does not
-            // hold apart.
+            // hold apart. One whose environment holds a mutable borrow
+            // gives its environment back, after its value.
             let cb = &self.cx.closures[&closure];
-            if !threaded(&cb.locals, cb.arity, true).is_empty() {
+            let threads = threaded(&cb.locals, cb.arity, true, self.cx.types);
+            if threads.iter().any(|l| *l != 1) {
                 return Err(kind(
                     k,
                     "a closure that writes through a `&mut` argument, passed in the arguments' tuple",
                 ));
             }
             let term = format!("({name} {})", items.join(" "));
+            if !threads.is_empty() {
+                let full = threaded_result(dt, &[et.clone()], self.cx.types);
+                return Ok(Called {
+                    threads: Some((full, vec![0])),
+                    ..Called::value(term)
+                });
+            }
             return Ok(Called {
                 term,
                 updates: BTreeMap::from([(0, env.clone())]),
@@ -4040,6 +4311,42 @@ impl Fun<'_, '_> {
                 return Ok(Called::value(term));
             }
         }
+        // A formatting method called through a trait object the table
+        // models as a function (`<dyn fmt::Debug as fmt::Debug>::fmt`): the
+        // function applied to the formatter's options and text, its result
+        // the call's, and the text after the formatter's new text.
+        if let ([(v, Ty::Fn(ins, out)), (f, Ty::Named(fname))], true) = (
+            args.as_slice(),
+            erase(callee).starts_with("<dyn ") && erase(callee).ends_with(">::fmt"),
+        ) {
+            let fields = self
+                .cx
+                .types
+                .structs
+                .get(fname)
+                .cloned()
+                .unwrap_or_default();
+            if let ([(of, ot), (bf, Ty::Str)], [opts, Ty::Str], Ty::Tuple(outs)) =
+                (fields.as_slice(), ins.as_slice(), &**out)
+            {
+                if ot.render() == opts.render() && outs.len() == 2 && outs[1] == Ty::Str {
+                    let applied = format!("({v} (project {f} {of}) (project {f} {bf}))");
+                    let after = lift::struct_value(
+                        fname,
+                        &[
+                            (of, format!("(project {f} {of})")),
+                            (bf, lift::tuple_item(out, &applied, 1)),
+                        ],
+                        self.cx.types,
+                    );
+                    self.mention(out);
+                    return Ok(Called {
+                        updates: BTreeMap::from([(1, after)]),
+                        ..Called::value(lift::tuple_item(out, &applied, 0))
+                    });
+                }
+            }
+        }
         // An `Argument` of `format_args!`, where the table models it as a
         // function (`fmt::rt::Argument`): core's body reifies the method
         // that formats the value into a function pointer whose types it
@@ -4047,19 +4354,30 @@ impl Fun<'_, '_> {
         // a function of the options a placeholder gives and the text
         // written so far, to the method's result and the text after.
         if let (Some(link), Ty::Fn(ins, out), [(x, xt)]) = (self.cx.core, dt, args.as_slice()) {
-            if let (Some(inst), [opts, Ty::Str], Ty::Tuple(outs)) =
-                (link.instance(callee, texts, dest), ins.as_slice(), &**out)
-            {
-                let reified: Vec<String> = inst
-                    .text
-                    .lines()
-                    .filter(|l| l.contains("ReifyFnPointer"))
-                    .filter_map(|l| {
-                        let rhs = l.split_once(" = ")?.1;
-                        let end = rhs.find(" as for<").or_else(|| rhs.find(" as fn("))?;
-                        Some(rhs[..end].trim().to_string())
+            // A formatting trait's method given the value alone (a
+            // coercion to its trait object) is that method.
+            let partial = erase(callee)
+                .strip_suffix(">::fmt")
+                .and_then(|r| r.rsplit_once(" as "))
+                .is_some_and(|(_, tr)| tr.starts_with("fmt::") || tr.starts_with("core::fmt::"));
+            let reified: Vec<String> = if partial {
+                vec![callee.to_string()]
+            } else {
+                link.instance(callee, texts, dest)
+                    .map(|inst| {
+                        inst.text
+                            .lines()
+                            .filter(|l| l.contains("ReifyFnPointer"))
+                            .filter_map(|l| {
+                                let rhs = l.split_once(" = ")?.1;
+                                let end = rhs.find(" as for<").or_else(|| rhs.find(" as fn("))?;
+                                Some(rhs[..end].trim().to_string())
+                            })
+                            .collect()
                     })
-                    .collect();
+                    .unwrap_or_default()
+            };
+            if let ([opts, Ty::Str], Ty::Tuple(outs)) = (ins.as_slice(), &**out) {
                 let formatter = ty("fmt::Formatter<'_>", self.cx.types)?;
                 let fields = match &formatter {
                     Ty::Named(n) => self.cx.types.structs.get(n).cloned().unwrap_or_default(),
@@ -4672,7 +4990,7 @@ impl Fun<'_, '_> {
         }
         // A body that threads `&mut` parameters returns them after `_0`,
         // then the memory.
-        let positions: Vec<usize> = threaded(&body.locals, body.arity, false)
+        let positions: Vec<usize> = threaded(&body.locals, body.arity, false, self.cx.types)
             .into_iter()
             .map(|l| l - 1)
             .collect();
@@ -6209,8 +6527,9 @@ mod tests {
             .iter()
             .map(|s| s.to_string())
             .collect();
-        assert_eq!(threaded(&locals, 3, false), vec![1, 3]);
-        assert_eq!(threaded(&locals, 3, true), vec![3]);
+        let types = Types::default();
+        assert_eq!(threaded(&locals, 3, false, &types), vec![1, 3]);
+        assert_eq!(threaded(&locals, 3, true, &types), vec![3]);
     }
 
     #[test]

@@ -3900,7 +3900,7 @@ fn mir_lift(
             }
             let ret = lower::ty(&body.locals[0], types)?;
             let closure = crate::mir::closure_type(body).is_some();
-            let positions: Vec<usize> = lower::threaded(&body.locals, body.arity, closure)
+            let positions: Vec<usize> = lower::threaded(&body.locals, body.arity, closure, types)
                 .into_iter()
                 .map(|l| l - 1)
                 .collect();
