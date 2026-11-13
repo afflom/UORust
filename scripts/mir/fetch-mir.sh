@@ -40,7 +40,13 @@ for module in $modules; do
   unzip -q -o "$work/$module.zip" -d "$work/unzip"
   [ -f "$out/target.toml" ] || cp "$work/unzip/target.toml" "$out/target.toml"
   rm -rf "${out:?}/$module"
-  mv "$work/unzip/$module" "$out/$module"
+  # A module with no bodies (internal_macros) dumps an empty directory,
+  # which the artifact's zip does not keep.
+  if [ -d "$work/unzip/$module" ]; then
+    mv "$work/unzip/$module" "$out/$module"
+  else
+    mkdir -p "$out/$module"
+  fi
   fetched=$((fetched + 1))
   rm -f "$work/$module.zip"
 done

@@ -34,6 +34,6 @@ while read -r _lref lsha rref rsha; do
   if [ -n "$(git diff --name-only "$base" "$lsha" -- crates/uorust/src/mir)" ]; then
     echo "pre-push: the push touches crates/uorust/src/mir; running the core register's ratchet on CI's MIR" >&2
     scripts/mir/core-gate.sh "${cfg[@]}" \
-      || { echo "pre-push: core-gate refuses: a body the core register records as translated is now residue" >&2; exit 1; }
+      || { echo "pre-push: core-gate refuses this push; its output above says why" >&2; exit 1; }
   fi
 done <<<"$pushed"

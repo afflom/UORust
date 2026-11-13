@@ -9,7 +9,10 @@
 set -euo pipefail
 root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root"
-scripts/mir/fetch-mir.sh core target/core-mir
+scripts/mir/fetch-mir.sh core target/core-mir || {
+  echo "core-gate: fetching CI's core MIR failed, so nothing was checked" >&2
+  exit 1
+}
 channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
 rm -rf target/core-gate
 cp -r crates/uorust/core target/core-gate
