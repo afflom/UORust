@@ -162,13 +162,28 @@ fn read<T: serde::de::DeserializeOwned>(dir: &Path, name: &str) -> Result<T, Mod
     toml::from_str(&text).map_err(|e| ModelError::Parse(path, e.to_string()))
 }
 
-/// The repository root, resolved from this crate's manifest directory.
+/// The repository root: the nearest ancestor of the running package's
+/// manifest directory (which cargo sets for `cargo run` and `cargo test`)
+/// that holds this crate, else the root this crate was compiled in. A
+/// workspace member's build is shared by every worktree of the repository
+/// (cargo hashes its path relative to the workspace), so the root a reused
+/// build was compiled in can be another worktree's.
 pub fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(2)
-        .expect("crates/model is two levels below the repository root")
-        .to_path_buf()
+    let holds_model = |dir: &Path| dir.join("crates/model/Cargo.toml").is_file();
+    std::env::var_os("CARGO_MANIFEST_DIR")
+        .and_then(|dir| {
+            Path::new(&dir)
+                .ancestors()
+                .find(|d| holds_model(d))
+                .map(Path::to_path_buf)
+        })
+        .unwrap_or_else(|| {
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .ancestors()
+                .nth(2)
+                .expect("crates/model is two levels below the repository root")
+                .to_path_buf()
+        })
 }
 
 #[cfg(test)]
