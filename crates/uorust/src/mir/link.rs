@@ -77,8 +77,7 @@ impl CoreLink {
             else {
                 continue;
             };
-            if path.contains("{closure") || path.contains("promoted[") || path.contains("{constant")
-            {
+            if path.contains("{closure") || path.contains("promoted[") {
                 continue;
             }
             let last = split_path(path).last().copied().unwrap_or(path).to_string();
@@ -1051,7 +1050,9 @@ impl CoreLink {
             };
             return text
                 .lines()
-                .any(|l| l.starts_with("const "))
+                .any(|l| {
+                    l.starts_with("const ") || l.contains("::{constant#") && l.ends_with(" = {")
+                })
                 .then(|| Instance {
                     path: printed.to_string(),
                     text: text.clone(),
