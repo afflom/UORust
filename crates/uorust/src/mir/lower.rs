@@ -7240,10 +7240,24 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     // An instance of a struct of core's own, in core's scope.
     if types.core {
         let erased = without_lifetimes(t);
+        // MIR prints an instance by its name alone where no other type has
+        // it (`NonZero<usize>`): the one alias whose path ends so.
+        let tail = format!("::{erased}");
+        let bare = || {
+            let mut ends = types
+                .aliases
+                .iter()
+                .filter(|(k, _)| !erased.contains("::") && k.ends_with(&tail));
+            match (ends.next(), ends.next()) {
+                (Some((_, v)), None) => Some(v),
+                _ => None,
+            }
+        };
         if let Some(n) = types
             .aliases
             .get(t)
             .or_else(|| types.aliases.get(&erased))
+            .or_else(bare)
             .filter(|n| {
                 types.structs.contains_key(*n)
                     || types.enums.contains_key(*n)

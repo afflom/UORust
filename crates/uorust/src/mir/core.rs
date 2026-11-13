@@ -338,7 +338,7 @@ pub(crate) fn shard(
             (t.clone(), captures)
         })
         .collect();
-    let explicit = instantiate_structs(&mut types, &link.decls, &bodies, &closures);
+    let explicit = instantiate_structs(&mut types, link, &bodies, &closures);
     // A raw pointer: an address, its provenance and its metadata.
     types
         .structs
@@ -1537,10 +1537,11 @@ impl Instances<'_> {
 /// returned: a switch on one is residue.
 fn instantiate_structs(
     types: &mut Types,
-    decls: &CoreDecls,
+    link: &super::link::CoreLink,
     bodies: &[(IrBody, String, String)],
     closures: &BTreeMap<String, IrBody>,
 ) -> std::collections::BTreeSet<String> {
+    let decls = &link.decls;
     let mut groups: BTreeMap<&str, Vec<&CoreStruct>> = BTreeMap::new();
     for s in &decls.structs {
         groups.entry(s.path.as_str()).or_default().push(s);
@@ -1579,6 +1580,9 @@ fn instantiate_structs(
     for body in closures.values() {
         mentioned.extend(body.locals.iter().map(String::as_str));
     }
+    // And those of every body of core's, which a call into another
+    // module's body lowers with.
+    mentioned.extend(link.locals.iter().map(String::as_str));
     // The types the std table's models build values of.
     mentioned.extend(
         super::stdlib::table()

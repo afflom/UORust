@@ -48,6 +48,9 @@ pub(crate) struct CoreLink {
     /// The root of core's sources (rust-src), whose `library/core/src`
     /// declares the constant items no dump holds.
     root: std::path::PathBuf,
+    /// Every type a local of any of core's bodies has, as its dump prints
+    /// it: the instances a call into another module's body needs in scope.
+    pub(crate) locals: std::collections::BTreeSet<String>,
 }
 
 impl CoreLink {
@@ -493,6 +496,16 @@ impl CoreLink {
             }
             traits.insert(path.clone(), tags);
         }
+        let locals = bodies
+            .values()
+            .flatten()
+            .flat_map(|t| t.lines())
+            .filter_map(|l| {
+                let l = l.trim().strip_prefix("let ")?;
+                let l = l.strip_prefix("mut ").unwrap_or(l);
+                Some(l.strip_suffix(';')?.split_once(": ")?.1.to_string())
+            })
+            .collect();
         CoreLink {
             decls,
             bodies,
@@ -504,6 +517,7 @@ impl CoreLink {
             traits,
             index,
             root: root.to_path_buf(),
+            locals,
         }
     }
 
