@@ -237,6 +237,9 @@ struct Fun<'a, 'c> {
     /// Terms of a fixed-width unsigned type, with its width on every
     /// declared target: a value of `u32` is at most `u32::MAX`.
     ranged: BTreeMap<String, u32>,
+    /// Terms read out of a pattern-typed field, with what the pattern
+    /// admits of them: `NonZero`'s value is not zero.
+    admitted: BTreeMap<String, Vec<String>>,
     /// The `&mut` parameters: each holds the borrowed value, which writes
     /// through it replace, and the definition returns its last value.
     mut_params: BTreeSet<IrLocal>,
@@ -327,6 +330,121 @@ fn kind(k: &str, detail: &str) -> Residue {
     } else {
         Residue::Mir(format!("{k}: {detail}"))
     }
+}
+
+/// The bit patterns of a `bits`-bit integer (`signed` for a signed one)
+/// that the pattern `pat` admits, as one wrapping range `start..=end`:
+/// each alternative a range of literals, characters or the type's own
+/// `MIN` and `MAX`, an open end at the type's bound.
+fn valid_range(pat: &str, signed: bool, bits: u32) -> Option<(u128, u128)> {
+    let mask = if bits >= 128 {
+        u128::MAX
+    } else {
+        (1u128 << bits) - 1
+    };
+    let (min, max): (i128, Option<i128>) = if signed {
+        let half = 1i128.checked_shl(bits - 1)?;
+        (-half, Some(half - 1))
+    } else {
+        (0, i128::try_from(mask).ok())
+    };
+    let value = |text: &str| -> Option<i128> {
+        let t = text.replace('_', "");
+        if let Some(c) = t.strip_prefix('\'').and_then(|r| r.strip_suffix('\'')) {
+            return match c.strip_prefix("\\u{").and_then(|r| r.strip_suffix('}')) {
+                Some(hex) => i128::from_str_radix(hex, 16).ok(),
+                None => c.chars().next().map(|ch| i128::from(u32::from(ch))),
+            };
+        }
+        if t.ends_with("::MAX") {
+            return max;
+        }
+        if t.ends_with("::MIN") {
+            return Some(min);
+        }
+        let (neg, digits) = t
+            .strip_prefix('-')
+            .map_or((false, t.as_str()), |d| (true, d));
+        let v = match digits.strip_prefix("0x") {
+            Some(hex) => i128::from_str_radix(hex, 16).ok()?,
+            None => digits.parse::<i128>().ok()?,
+        };
+        Some(if neg { -v } else { v })
+    };
+    let pat = pat
+        .trim()
+        .strip_prefix('(')
+        .and_then(|r| r.strip_suffix(')'))
+        .unwrap_or(pat.trim());
+    let mut spans: Vec<(u128, u128)> = Vec::new();
+    for alt in pat.split('|').map(str::trim) {
+        let (lo, hi) = match (alt.split_once("..="), alt.split_once("..")) {
+            (Some((lo, hi)), _) => (
+                if lo.is_empty() { Some(min) } else { value(lo) },
+                if hi.is_empty() { max } else { value(hi) },
+            ),
+            (None, Some((lo, hi))) => (
+                if lo.is_empty() { Some(min) } else { value(lo) },
+                if hi.is_empty() {
+                    max
+                } else {
+                    value(hi).map(|h| h - 1)
+                },
+            ),
+            (None, None) => (value(alt), value(alt)),
+        };
+        // An unsigned type whose largest value no `i128` holds ends open.
+        let lo = lo?;
+        let hi_pattern = hi.map_or(mask, |h| (h as u128) & mask);
+        let pattern = |v: i128| (v as u128) & mask;
+        if lo >= 0 || !signed {
+            spans.push((pattern(lo), hi_pattern));
+        } else if hi.is_some_and(|h| h < 0) {
+            spans.push((pattern(lo), hi_pattern));
+        } else {
+            spans.push((0, hi_pattern));
+            spans.push((pattern(lo), mask));
+        }
+    }
+    spans.sort_unstable();
+    let mut merged: Vec<(u128, u128)> = Vec::new();
+    for (s, e) in spans {
+        match merged.last_mut() {
+            Some((_, last)) if s <= last.saturating_add(1) => *last = (*last).max(e),
+            _ => merged.push((s, e)),
+        }
+    }
+    match merged.as_slice() {
+        [one] => Some(*one),
+        [(0, first_end), (second_start, last)] if *last == mask => {
+            Some((*second_start, *first_end))
+        }
+        _ => None,
+    }
+}
+
+/// The pattern an `Option` of a value of the valid range `start..=end`
+/// (patterns up to `mask`) holds `None` as: rustc's `Niche::reserve` of one
+/// value, which moves the bound whose next value is nearer zero.
+fn niche(start: u128, end: u128, mask: u128) -> Option<u128> {
+    if end.wrapping_add(1) & mask == start {
+        return None;
+    }
+    let after_end = end.wrapping_add(1) & mask;
+    let before_start = start.wrapping_sub(1) & mask;
+    Some(if start > end {
+        after_end
+    } else if start <= mask - end {
+        if start >= 1 {
+            before_start
+        } else {
+            after_end
+        }
+    } else if (1..=end).contains(&after_end) {
+        before_start
+    } else {
+        after_end
+    })
 }
 
 /// The largest value of an unsigned type of `bits` bits.
@@ -446,6 +564,7 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         evidence: Vec::new(),
         measure: None,
         ranged: BTreeMap::new(),
+        admitted: BTreeMap::new(),
         mut_params: BTreeSet::new(),
         memory,
         strides: BTreeSet::new(),
@@ -1156,6 +1275,11 @@ impl Fun<'_, '_> {
         for (term, bits) in ranged {
             if term_mentions(&text, &term) {
                 hyps.push(format!("({term} <= {})", max_of(bits)));
+            }
+        }
+        for (term, facts) in &self.admitted {
+            if term_mentions(&text, term) {
+                hyps.extend(facts.iter().cloned());
             }
         }
         hyps.extend(path);
@@ -1980,6 +2104,9 @@ impl Fun<'_, '_> {
             IrConstant::Char(ch) => lift::exact_string(&ch.to_string())
                 .map(|s| (s, Ty::Char))
                 .ok_or_else(|| kind(k, "a char LexLean source cannot write")),
+            // A const parameter's value, bound to `#` where the census
+            // instantiates the body for every length at once.
+            IrConstant::Other(p) if p == "#" => Err(kind(k, "a const parameter's value")),
             // A byte string, as MIR prints it with Rust's escapes: the list
             // of its bytes.
             IrConstant::Other(p) if p.starts_with("b\"") && p.ends_with('"') && p.len() >= 3 => {
@@ -2457,11 +2584,16 @@ impl Fun<'_, '_> {
                 let (f, _) = fields
                     .get(i)
                     .ok_or_else(|| kind(k, "a field past the struct's"))?;
-                if self.cx.types.boxed(n) {
-                    Ok(format!("({} {v})", Types::accessor(n, f)))
+                let read = if self.cx.types.boxed(n) {
+                    format!("({} {v})", Types::accessor(n, f))
                 } else {
-                    Ok(format!("(project {v} {f})"))
+                    format!("(project {v} {f})")
+                };
+                // What a pattern-typed field holds is within its pattern.
+                if let Some(facts) = self.valid_facts(n, &read) {
+                    self.admitted.insert(read.clone(), facts);
                 }
+                Ok(read)
             }
             _ => Err(kind(k, &format!("a field of {}", t.render()))),
         }
@@ -2799,6 +2931,12 @@ impl Fun<'_, '_> {
                         self.observes_address = true;
                         Ok(Val::V(address(&v), to))
                     }
+                    // A reference is its referent here: a coercion of one,
+                    // `&[T; N]` to `&[T]`, keeps the value where its lifted
+                    // type is unchanged. A raw pointer's metadata may change.
+                    (spec::MirCastKind::PointerCoercion, f, t) if f == t && !is_pointer(f) => {
+                        Ok(Val::V(v, to))
+                    }
                     (spec::MirCastKind::Transmute, f, Ty::Nat(None)) if is_pointer(f) => {
                         self.observes_address = true;
                         Ok(Val::V(address(&v), to))
@@ -2836,6 +2974,51 @@ impl Fun<'_, '_> {
             }
             IrRvalue::Other(k, _) => Err(kind(k.path(), "")),
         }
+    }
+
+    /// The valid range of the pattern-typed struct `n` at each declared
+    /// pointer width (one width where its base has its own), each a
+    /// wrapping range of bit patterns with the width's largest pattern.
+    fn valid_ranges(&self, n: &str) -> Option<Vec<(u128, u128, u128)>> {
+        let (base, pat) = self.cx.types.valid.get(n)?;
+        let widths: Vec<u32> = match ty(base, self.cx.types).ok()? {
+            Ty::Nat(Some(b)) | Ty::Signed(Some(b)) => vec![b],
+            Ty::Nat(None) | Ty::Signed(None) => self.cx.widths.iter().map(|(w, _)| *w).collect(),
+            _ => return None,
+        };
+        let signed = base.starts_with('i');
+        widths
+            .into_iter()
+            .map(|bits| {
+                let mask = if bits >= 128 {
+                    u128::MAX
+                } else {
+                    (1u128 << bits) - 1
+                };
+                let (s, e) = valid_range(pat, signed, bits)?;
+                Some((s, e, mask))
+            })
+            .collect()
+    }
+
+    /// The facts the pattern of the struct `n` gives the value `read` out
+    /// of it, where its valid range does not wrap: at least its first
+    /// pattern, at most its last.
+    fn valid_facts(&self, n: &str, read: &str) -> Option<Vec<String>> {
+        let ranges = self.valid_ranges(n)?;
+        let mut facts = Vec::new();
+        let (s, _, _) = *ranges.first()?;
+        if ranges.iter().all(|(s2, e, _)| *s2 == s && s <= *e) && s > 0 {
+            facts.push(format!("({s} <= {read})"));
+        }
+        let (_, e, _) = *ranges.first()?;
+        if ranges
+            .iter()
+            .all(|(s2, e2, m)| *e2 == e && *s2 <= e && e < *m)
+        {
+            facts.push(format!("({read} <= {e})"));
+        }
+        Some(facts)
     }
 
     /// The widest a type is on any declared target.
@@ -3335,8 +3518,10 @@ impl Fun<'_, '_> {
             (IrAggregate::Adt(_, Some(variant)), Ty::Outcome(ok, err)) => {
                 let args = format!("[{}, {}]", ok.render(), err.render());
                 match (variant.as_str(), vals.as_slice()) {
-                    ("Ok", [v]) => Ok(format!("(ctor Result.ok {args} {v})")),
-                    ("Err", [v]) => Ok(format!("(ctor Result.error {args} {v})")),
+                    // `ControlFlow` is the `Result` of its continue and its
+                    // break values, `Continue` first as `Ok` is.
+                    ("Ok" | "Continue", [v]) => Ok(format!("(ctor Result.ok {args} {v})")),
+                    ("Err" | "Break", [v]) => Ok(format!("(ctor Result.error {args} {v})")),
                     _ => Err(kind(k, "a Result variant")),
                 }
             }
@@ -4172,6 +4357,22 @@ impl Fun<'_, '_> {
                 self.mention(vt);
                 Ok(format!("(match {v} {})", arms.join(" ")))
             }
+            // A transmute between types of one layout: the scalar the
+            // source wraps, rewrapped as the destination wraps it. Into an
+            // `Option` of a pattern-typed wrapper, the scalar's niche is
+            // `None`; out of one, `None` is the niche.
+            (Some(M::Transmute), [(v, st)], [_, _]) => {
+                self.transmuted(v, st, dt).ok_or_else(|| {
+                    kind(
+                        k,
+                        &format!(
+                            "{path} from {} to {}, of layouts the lift does not relate",
+                            st.render(),
+                            dt.render()
+                        ),
+                    )
+                })
+            }
             // `three_way_compare` of two integers: `Less` where `a < b` by
             // the type's order, `Equal` where they are equal.
             (Some(M::Compare), [(a, at), (b, bt)], [_])
@@ -4291,6 +4492,88 @@ impl Fun<'_, '_> {
                 lift::tuple_value(&pair, &[applied.value, over])
             }
         })
+    }
+
+    /// `v` of type `from` as a value of type `to` of the same layout.
+    fn transmuted(&mut self, v: &str, from: &Ty, to: &Ty) -> Option<String> {
+        let types = self.cx.types;
+        // The scalar inside the single-field structs a type nests, and the
+        // structs and fields, outermost first.
+        let peel = |t: &Ty| {
+            let mut chain: Vec<(String, String)> = Vec::new();
+            let mut at = t.clone();
+            while let Ty::Named(n) = &at {
+                match types.structs.get(n).map(Vec::as_slice) {
+                    Some([(f, inner)]) => {
+                        chain.push((n.clone(), f.clone()));
+                        at = inner.clone();
+                    }
+                    _ => break,
+                }
+            }
+            (at, chain)
+        };
+        let one = |a: &Ty, b: &Ty| {
+            a == b || (a.render() == b.render() && fixed(a).is_some() && fixed(a) == fixed(b))
+        };
+        let unwrap = |v: &str, chain: &[(String, String)]| {
+            chain.iter().fold(v.to_string(), |acc, (n, f)| {
+                if types.boxed(n) {
+                    format!("({} {acc})", Types::accessor(n, f))
+                } else {
+                    format!("(project {acc} {f})")
+                }
+            })
+        };
+        let wrap = |v: &str, chain: &[(String, String)]| {
+            chain.iter().rev().fold(v.to_string(), |acc, (n, f)| {
+                lift::struct_value(n, &[(f, acc)], types)
+            })
+        };
+        let (fs, fc) = peel(from);
+        let (ts, tc) = peel(to);
+        if one(&fs, &ts) {
+            return Some(wrap(&unwrap(v, &fc), &tc));
+        }
+        // The niche of the innermost pattern-typed struct of a chain, the
+        // same on every declared target.
+        let niche_of = |f: &Self, chain: &[(String, String)]| -> Option<u128> {
+            let (n, _) = chain.last()?;
+            let ranges = f.valid_ranges(n)?;
+            let niches: Vec<u128> = ranges
+                .iter()
+                .map(|(s, e, m)| niche(*s, *e, *m))
+                .collect::<Option<_>>()?;
+            let first = *niches.first()?;
+            niches.iter().all(|x| *x == first).then_some(first)
+        };
+        match (from, to) {
+            (_, Ty::Option(inner)) => {
+                let (is, ic) = peel(inner);
+                if !one(&fs, &is) || !fc.is_empty() {
+                    return None;
+                }
+                let n = niche_of(self, &ic)?;
+                let i = inner.render();
+                Some(format!(
+                    "(if (prim equal {v} {n} : Bool) then (ctor Option.none [{i}]) else (ctor Option.some [{i}] {}))",
+                    wrap(v, &ic)
+                ))
+            }
+            (Ty::Option(inner), _) => {
+                let (is, ic) = peel(inner);
+                if !one(&is, &ts) || !tc.is_empty() {
+                    return None;
+                }
+                let n = niche_of(self, &ic)?;
+                let held = self.fresh(Some("held"), usize::MAX);
+                Some(format!(
+                    "(match {v} | Option.none => {n} | Option.some {held} => {})",
+                    unwrap(&held, &ic)
+                ))
+            }
+            _ => None,
+        }
     }
 
     /// The definition an instance of a library body is lowered to, shared
@@ -5009,6 +5292,11 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         }
         return ty(rest, types);
     }
+    // A pattern type, `(u32) is 1..`, holds a value of its base type: the
+    // values its pattern leaves out are its niche, not other values.
+    if let Some((base, _)) = t.strip_prefix('(').and_then(|r| r.split_once(") is ")) {
+        return ty(base, types);
+    }
     if let Some(inner) = t.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
         let parts = split_top(inner, ';');
         return Ok(Ty::List(Box::new(ty(parts[0], types)?)));
@@ -5056,9 +5344,16 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         ),
         None => (last, ""),
     };
+    // Its type arguments: neither a lifetime nor a const argument, a
+    // length (`#` where the census binds a const parameter) or a value.
     let raw: Vec<&str> = split_top(args_text, ',')
         .into_iter()
-        .filter(|a| !a.is_empty() && !a.starts_with('\''))
+        .filter(|a| {
+            !a.is_empty()
+                && !a.starts_with('\'')
+                && *a != "#"
+                && !a.starts_with(|c: char| c.is_ascii_digit() || c == '-')
+        })
         .collect();
     // A variant whose field is uninhabited never holds a value, so an enum
     // of std is the type of its one inhabited variant: `Result<T, E>` is `T`
@@ -5073,11 +5368,11 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     }
     // An instance of a struct of core's own, in core's scope.
     if types.core {
-        if let Some(n) = types
-            .aliases
-            .get(t)
-            .filter(|n| types.structs.contains_key(*n) || types.enums.contains_key(*n))
-        {
+        if let Some(n) = types.aliases.get(t).filter(|n| {
+            types.structs.contains_key(*n)
+                || types.enums.contains_key(*n)
+                || types.datas.contains_key(*n)
+        }) {
             return Ok(Ty::Named(n.clone()));
         }
     }
@@ -5843,6 +6138,38 @@ mod tests {
         );
         assert_eq!(referent("&'a mut (u8,)").as_deref(), Some("(u8,)"));
         assert_eq!(referent("u8"), None);
+    }
+
+    #[test]
+    fn patterns_give_rustcs_valid_ranges_and_niches() {
+        let max32 = u128::from(u32::MAX);
+        // `NonZero`: every pattern but zero, the niche zero, signed too.
+        assert_eq!(valid_range("1..", false, 32), Some((1, max32)));
+        assert_eq!(valid_range("..0|1..", true, 32), Some((1, max32)));
+        assert_eq!(
+            valid_range("(i32::MIN..=-1 | 1..)", true, 32),
+            Some((1, max32))
+        );
+        assert_eq!(niche(1, max32, max32), Some(0));
+        // `Nanoseconds`: its niche the first value past its range.
+        assert_eq!(
+            valid_range("0..=999_999_999", false, 32),
+            Some((0, 999_999_999))
+        );
+        assert_eq!(niche(0, 999_999_999, max32), Some(1_000_000_000));
+        // All ones left out: the niche is all ones.
+        assert_eq!(valid_range("0..u32::MAX", false, 32), Some((0, max32 - 1)));
+        assert_eq!(valid_range("..-1|0..", true, 32), Some((0, max32 - 1)));
+        assert_eq!(niche(0, max32 - 1, max32), Some(max32));
+        // A `char` from one: the niche is zero, below its start.
+        assert_eq!(
+            valid_range("'\\u{1}'..='\\u{10ffff}'", false, 32),
+            Some((1, 0x10ffff))
+        );
+        assert_eq!(niche(1, 0x10ffff, max32), Some(0));
+        // Every pattern: no niche.
+        assert_eq!(niche(0, max32, max32), None);
+        assert_eq!(valid_range("1..", false, 128), Some((1, u128::MAX)));
     }
 
     #[test]

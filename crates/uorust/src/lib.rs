@@ -18,6 +18,7 @@ pub mod certified;
 pub mod certify;
 mod convert;
 mod error;
+mod expand;
 mod facts;
 mod ingest;
 mod lex;

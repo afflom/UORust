@@ -333,7 +333,7 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
 /// `m::<impl at src/x.rs:3:1: 3:9>::f` with the impl named by the type it
 /// implements, `m::X::f`; `None` for a closure, a promoted constant or an
 /// impl whose source does not read.
-fn resolve_impls(root: &Path, path: &str) -> Option<String> {
+pub(super) fn resolve_impls(root: &Path, path: &str) -> Option<String> {
     if path.contains("{closure") || path.contains("promoted[") || path.contains("{constant") {
         return None;
     }

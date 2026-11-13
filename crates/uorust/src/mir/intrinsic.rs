@@ -67,6 +67,7 @@ pub(crate) const TABLE: &[(&str, Model)] = &[
     ("assert_zero_valid", Model::ZeroValid),
     ("assert_mem_uninitialized_valid", Model::UninitValid),
     ("transmute", Model::Transmute),
+    ("transmute_unchecked", Model::Transmute),
     ("three_way_compare", Model::Compare),
     ("discriminant_value", Model::Discriminant),
     ("wrapping_add", Model::Int),

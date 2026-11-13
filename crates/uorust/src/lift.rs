@@ -332,6 +332,9 @@ pub(crate) struct Types {
     /// The floating-point types the scope reads, by name (`f32`), each the
     /// format core's own constants define for it.
     pub(crate) floats: BTreeMap<String, crate::mir::float::Format>,
+    /// Each struct whose one field is a pattern type (`(u32) is 1..`), by
+    /// LexLean name: the pattern's base type and the pattern, as written.
+    pub(crate) valid: BTreeMap<String, (String, String)>,
 }
 
 /// The strongly connected components of a graph, each one set.
@@ -623,6 +626,7 @@ impl Types {
                 closures: BTreeMap::new(),
                 core: false,
                 floats: BTreeMap::new(),
+                valid: BTreeMap::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -649,6 +653,7 @@ impl Types {
                     closures: BTreeMap::new(),
                     core: false,
                     floats: BTreeMap::new(),
+                    valid: BTreeMap::new(),
                 };
             }
             names = lifted.into_keys().collect();

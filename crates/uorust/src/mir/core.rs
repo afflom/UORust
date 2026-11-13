@@ -198,7 +198,18 @@ pub(crate) fn shard(
     let mut consts: BTreeMap<String, IrBody> = BTreeMap::new();
     let mut closures: BTreeMap<String, IrBody> = BTreeMap::new();
     for text in texts {
-        let generics = canonical_bindings(text);
+        // The generic parameters core's source declares for the dump's
+        // function, which its signature prints by their bare names among
+        // the bare names of its types.
+        let declared = text
+            .lines()
+            .next()
+            .and_then(|l| l.strip_prefix("// MIR for `"))
+            .and_then(|l| l.split_once('`'))
+            .and_then(|(p, _)| super::resolve_impls(root, p))
+            .map(|p| link.decls.parameters(&p))
+            .unwrap_or_default();
+        let generics = canonical_bindings(text, &|w| declared.contains(w));
         let at = generics
             .iter()
             .map(|(p, t)| format!("{p}={t}"))
@@ -206,7 +217,7 @@ pub(crate) fn shard(
             .join(", ");
         let instance: String = text
             .lines()
-            .map(|l| super::stdlib::substitute(l, &generics) + "\n")
+            .map(|l| super::stdlib::substitute(&opaque_projections(l, &generics), &generics) + "\n")
             .collect();
         for (body, original) in parse::bodies(&instance)
             .into_iter()
@@ -307,15 +318,11 @@ pub(crate) fn shard(
             core: Some(link),
             layouts,
         };
-        let outcome = if at.contains('#') {
-            Err("mir::Instantiation: a const parameter".to_string())
-        } else {
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                lower::lower(&cx, &body, &name)
-            }))
-            .map_err(|_| "mir::Translator: panicked".to_string())
-            .and_then(|r| r.map_err(|e| crate::project::mir_residue(e).detail()))
-        };
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            lower::lower(&cx, &body, &name)
+        }))
+        .map_err(|_| "mir::Translator: panicked".to_string())
+        .and_then(|r| r.map_err(|e| crate::project::mir_residue(e).detail()));
         let (digest, cause) = match outcome {
             Ok(lowered) => {
                 let text: String = lowered
@@ -412,6 +419,8 @@ pub(crate) struct CoreStruct {
     /// For an enum whose variants hold no data, its variants; such an enum
     /// has no fields.
     variants: Option<Vec<String>>,
+    /// For an enum whose variants hold data, each variant and its fields.
+    data: Option<Vec<(String, Vec<(Option<String>, String)>)>>,
     /// Whether such an enum's variants set their own discriminants.
     pub(crate) explicit: bool,
     /// Such an enum's discriminants, in its variants' order, where each is
@@ -440,6 +449,37 @@ pub(crate) struct CoreDecls {
     pub(crate) intrinsics: std::collections::BTreeSet<String>,
     /// The traits core declares, by path: a field's trait object names one.
     traits: std::collections::BTreeSet<String>,
+    /// The generic parameters in scope in each method of an impl, its
+    /// impl's and its own, by the method's path from core's root through
+    /// its type's name (several impls of one type's methods of one name
+    /// together).
+    pub(crate) methods: BTreeMap<String, std::collections::BTreeSet<String>>,
+    /// Each associated type an impl of a trait sets, by the type it is for
+    /// (as written), the trait's name and the associated type's: the
+    /// module the impl is written in and the type it sets.
+    assoc: BTreeMap<(String, String, String), (String, String)>,
+}
+
+impl CoreDecls {
+    /// The generic parameters in scope in the function at `path` from
+    /// core's root: a free function's own, or a method's, its impl's and
+    /// those of the type it is a method of.
+    pub(crate) fn parameters(&self, path: &str) -> std::collections::BTreeSet<String> {
+        let mut out: std::collections::BTreeSet<String> = self
+            .generics
+            .get(path)
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect();
+        out.extend(self.methods.get(path).into_iter().flatten().cloned());
+        if let Some((ty, _)) = path.rsplit_once("::") {
+            for st in self.structs.iter().filter(|s| s.path == ty) {
+                out.extend(st.params.iter().cloned());
+            }
+        }
+        out
+    }
 }
 
 /// Each name a `use` tree binds in `module`, with the path from core's root
@@ -533,36 +573,42 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
             path.push(name);
             path.join("::")
         };
+        // A type as MIR prints it: a path's segments joined without spaces,
+        // a pattern type as `(T) is P`.
+        let text = |ty: &syn::Type| {
+            let t = quote::quote!(#ty)
+                .to_string()
+                .replace(" :: ", "::")
+                .replace(" < ", "<")
+                .replace(" >", ">")
+                .replace("& ", "&")
+                .replace(" ,", ",");
+            match t
+                .strip_prefix("pattern_type ! (")
+                .and_then(|r| r.strip_suffix(')'))
+            {
+                Some(inner) => match inner.split_once(" is ") {
+                    Some((base, pat)) => format!("({base}) is {}", pat.replace(' ', "")),
+                    None => t,
+                },
+                None => t,
+            }
+        };
         for item in list {
             match item {
                 syn::Item::Struct(st) => {
-                    let params = st
-                        .generics
-                        .type_params()
-                        .map(|p| p.ident.to_string())
-                        .collect();
+                    let params = generic_names(&st.generics);
                     let fields = st
                         .fields
                         .iter()
-                        .map(|f| {
-                            // The type as MIR prints it: a path's segments
-                            // joined without spaces.
-                            let ty = &f.ty;
-                            let text = quote::quote!(#ty)
-                                .to_string()
-                                .replace(" :: ", "::")
-                                .replace(" < ", "<")
-                                .replace(" >", ">")
-                                .replace("& ", "&")
-                                .replace(" ,", ",");
-                            (f.ident.as_ref().map(ToString::to_string), text)
-                        })
+                        .map(|f| (f.ident.as_ref().map(ToString::to_string), text(&f.ty)))
                         .collect();
                     out.structs.push(CoreStruct {
                         path: at(st.ident.to_string()),
                         params,
                         fields,
                         variants: None,
+                        data: None,
                         explicit: false,
                         values: None,
                     });
@@ -576,6 +622,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         params: Vec::new(),
                         fields: Vec::new(),
                         variants: Some(e.variants.iter().map(|v| v.ident.to_string()).collect()),
+                        data: None,
                         explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
                         // Each variant's discriminant, as Rust assigns them:
                         // the literal it sets, or one past the previous.
@@ -620,23 +667,72 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         },
                     });
                 }
-                // An inherent impl's methods, by the impl's type: their
-                // own generic parameters, which a call's turbofish binds.
-                syn::Item::Impl(imp) if imp.trait_.is_none() => {
-                    if let syn::Type::Path(tp) = &*imp.self_ty {
-                        if let Some(seg) = tp.path.segments.last() {
-                            for it in &imp.items {
-                                if let syn::ImplItem::Fn(f) = it {
-                                    out.generics
-                                        .entry(at(format!("{}::{}", seg.ident, f.sig.ident)))
-                                        .or_insert_with(|| generic_names(&f.sig.generics));
-                                }
-                            }
-                        }
-                    }
-                }
                 syn::Item::Trait(t) => {
                     out.traits.insert(at(t.ident.to_string()));
+                }
+                // An enum whose variants hold data, over its parameters.
+                syn::Item::Enum(e) => {
+                    let data = e
+                        .variants
+                        .iter()
+                        .map(|v| {
+                            let fields = v
+                                .fields
+                                .iter()
+                                .map(|f| (f.ident.as_ref().map(ToString::to_string), text(&f.ty)))
+                                .collect();
+                            (v.ident.to_string(), fields)
+                        })
+                        .collect();
+                    out.structs.push(CoreStruct {
+                        path: at(e.ident.to_string()),
+                        params: generic_names(&e.generics),
+                        fields: Vec::new(),
+                        variants: None,
+                        data: Some(data),
+                        explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
+                        values: None,
+                    });
+                }
+                // An impl: its methods' generic parameters, and the
+                // associated types an impl of a trait sets.
+                syn::Item::Impl(im) => {
+                    let ty = match &*im.self_ty {
+                        syn::Type::Path(p) => p.path.segments.last().map(|s| s.ident.to_string()),
+                        _ => None,
+                    };
+                    for it in &im.items {
+                        if let (syn::ImplItem::Fn(f), Some(ty)) = (it, &ty) {
+                            let path = at(format!("{ty}::{}", f.sig.ident));
+                            // An inherent impl's method, by the impl's type:
+                            // its own generic parameters, which a call's
+                            // turbofish binds.
+                            if im.trait_.is_none() {
+                                out.generics
+                                    .entry(path.clone())
+                                    .or_insert_with(|| generic_names(&f.sig.generics));
+                            }
+                            out.methods.entry(path).or_default().extend(
+                                generic_names(&im.generics)
+                                    .into_iter()
+                                    .chain(generic_names(&f.sig.generics)),
+                            );
+                        }
+                    }
+                    let Some((tr, _)) = &im.trait_ else {
+                        continue;
+                    };
+                    let Some(tname) = tr.segments.last().map(|s| s.ident.to_string()) else {
+                        continue;
+                    };
+                    for it in &im.items {
+                        if let syn::ImplItem::Type(t) = it {
+                            out.assoc.insert(
+                                (text(&im.self_ty), tname.clone(), t.ident.to_string()),
+                                (module.join("::"), text(&t.ty)),
+                            );
+                        }
+                    }
                 }
                 syn::Item::Fn(f) => {
                     out.generics
@@ -675,6 +771,10 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
     walk(&src, &mut files);
     files.sort();
     let mut out = CoreDecls::default();
+    // Every file first, for the macros each declares; each file's items
+    // are then read with its invocations of them expanded.
+    let mut read: Vec<(Vec<String>, Vec<syn::Item>)> = Vec::new();
+    let mut macros = crate::expand::Macros::default();
     for file in files {
         let Ok(text) = std::fs::read_to_string(&file) else {
             continue;
@@ -685,6 +785,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
         }) else {
             continue;
         };
+        macros.collect(&parsed.items);
         let rel = file.strip_prefix(&src).unwrap_or(&file).with_extension("");
         let mut module: Vec<String> = rel
             .components()
@@ -693,7 +794,16 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
         if matches!(module.last().map(String::as_str), Some("mod" | "lib")) {
             module.pop();
         }
-        items(&module, &parsed.items, &mut out);
+        read.push((module, parsed.items));
+    }
+    let reread = |tokens: proc_macro2::TokenStream| {
+        syn::parse2::<syn::File>(tokens.clone())
+            .or_else(|_| syn::parse2::<syn::File>(without_const_traits(tokens)))
+            .ok()
+            .map(|f| f.items)
+    };
+    for (module, parsed) in read {
+        items(&module, &macros.expand(parsed, &reread), &mut out);
     }
     out
 }
@@ -836,6 +946,27 @@ impl Instances<'_> {
     /// module's `use` name for its first segment, else from the module or
     /// from core's root.
     fn resolve(&self, module: &str, path: &str) -> Option<String> {
+        // `crate::`, `self::` and `super::` as Rust reads them.
+        let mut at: Vec<&str> = module.split("::").filter(|s| !s.is_empty()).collect();
+        let mut rest_path = path;
+        let mut relative = false;
+        loop {
+            if let Some(r) = rest_path.strip_prefix("crate::") {
+                at.clear();
+                rest_path = r;
+            } else if let Some(r) = rest_path.strip_prefix("self::") {
+                rest_path = r;
+            } else if let Some(r) = rest_path.strip_prefix("super::") {
+                at.pop();
+                rest_path = r;
+            } else {
+                break;
+            }
+            relative = true;
+        }
+        if relative {
+            return self.resolve(&at.join("::"), rest_path);
+        }
         let (head, rest) = path
             .split_once("::")
             .map_or((path, None), |(h, r)| (h, Some(r)));
@@ -946,25 +1077,95 @@ impl Instances<'_> {
             .cloned()
             .zip(args.iter().map(|a| (*a).to_string()))
             .collect();
-        let mut fields = Vec::new();
-        for (i, (name, t)) in st.fields.iter().enumerate() {
-            let t = self.rooted(module, &super::stdlib::substitute(t, &binds));
-            self.mention(&t, types);
-            let ft = super::lower::ty(&t, types).ok()?;
-            fields.push((
-                name.as_deref()
-                    .map_or_else(|| format!("item{i}"), lift::local_name),
-                ft,
-            ));
-        }
+        // A field's type at the instance's arguments, from core's root: an
+        // associated type of an argument (`T::NonZeroInner`) is the type
+        // the one impl that sets it for that argument sets, read in the
+        // impl's module.
+        let field = |cx: &mut Self, t: &str, types: &mut Types| -> Option<lift::Ty> {
+            // `T::Assoc`, which substitution leaves as a path, with `T`
+            // bound first.
+            let t = match t.split_once("::") {
+                Some((p, assoc)) if binds.contains_key(p) && !assoc.contains("::") => {
+                    format!("{}::{assoc}", binds[p])
+                }
+                _ => super::stdlib::substitute(t, &binds),
+            };
+            let projected = t
+                .strip_prefix('<')
+                .and_then(|r| r.split_once(" as "))
+                .and_then(|(base, rest)| {
+                    Some((base.to_string(), rest.rsplit_once(">::")?.1.to_string()))
+                })
+                .or_else(|| {
+                    t.rsplit_once("::")
+                        .map(|(b, a)| (b.to_string(), a.to_string()))
+                });
+            let set: Vec<String> = projected
+                .map(|(base, assoc)| {
+                    cx.decls
+                        .assoc
+                        .iter()
+                        .filter(|((ty, _, a), _)| *ty == base && *a == assoc)
+                        .map(|(_, (m, to))| cx.rooted(m, to))
+                        .collect()
+                })
+                .unwrap_or_default();
+            let t = match set.as_slice() {
+                [one] => one.clone(),
+                _ => cx.rooted(module, &t),
+            };
+            cx.mention(&t, types);
+            super::lower::ty(&t, types).ok()
+        };
         parts.extend(args.iter().copied());
         let name = crate::lex::pascal(&parts);
-        types.structs.insert(name.clone(), fields);
         let text = if args.is_empty() {
             path.to_string()
         } else {
             format!("{path}<{}>", args.join(", "))
         };
+        // An enum the lift has its own type for, `Option` or `Result`,
+        // keeps that type.
+        if st.data.is_some() && super::lower::ty(&text, types).is_ok() {
+            return None;
+        }
+        if let Some(data) = &st.data {
+            let mut variants = Vec::new();
+            for (v, fs) in data {
+                let mut lifted = Vec::new();
+                for (f, t) in fs {
+                    lifted.push((f.clone(), field(self, t, types)?));
+                }
+                variants.push((v.clone(), lifted));
+            }
+            if st.explicit {
+                self.explicit.insert(name.clone());
+            }
+            types.datas.insert(name.clone(), variants);
+            types.aliases.insert(text, name.clone());
+            self.done.insert(key, Some(name.clone()));
+            return Some(name);
+        }
+        let mut fields = Vec::new();
+        for (i, (fname, t)) in st.fields.iter().enumerate() {
+            let ft = field(self, t, types)?;
+            fields.push((
+                fname
+                    .as_deref()
+                    .map_or_else(|| format!("item{i}"), lift::local_name),
+                ft,
+            ));
+        }
+        // A struct of one pattern-typed field holds the values its pattern
+        // admits.
+        if let [(_, raw)] = st.fields.as_slice() {
+            if let Some((base, pat)) = raw.strip_prefix('(').and_then(|r| r.split_once(") is ")) {
+                types
+                    .valid
+                    .insert(name.clone(), (base.to_string(), pat.to_string()));
+            }
+        }
+        types.structs.insert(name.clone(), fields);
         types.aliases.insert(text, name.clone());
         self.done.insert(key, Some(name.clone()));
         Some(name)
@@ -1062,21 +1263,20 @@ fn instantiate_structs(
 }
 
 /// The type parameters of a dumped body, each bound to [`CANONICAL`]: the
-/// bare capitalized names its locals' types mention (rustc prints the
-/// locals' own types by their paths, so a bare name is a parameter), and
-/// `Self`. A const parameter, a bare name in an array's length, is bound to
-/// `#`, which no body takes.
-pub(crate) fn canonical_bindings(text: &str) -> BTreeMap<String, String> {
-    let mut out = BTreeMap::new();
-    for line in text.lines() {
-        let line = line.trim();
-        let Some(rest) = line.strip_prefix("let ") else {
-            continue;
-        };
-        let Some((_, ty)) = rest.split_once(": ") else {
-            continue;
-        };
-        let ty = ty.trim_end_matches(';');
+/// bare capitalized names its locals' types mention (rustc prints those
+/// types by their paths, so a bare name is a parameter), `Self`, and those
+/// of its signature's types that `declared` holds (the signature prints a
+/// type by its bare name too). A const parameter is bound to `#`: a bare
+/// name in an array's length, or one a type mentions that the body also
+/// reads as a value, `const N` (a constant item is never a type's bare
+/// name).
+pub(crate) fn canonical_bindings(
+    text: &str,
+    declared: &dyn Fn(&str) -> bool,
+) -> BTreeMap<String, String> {
+    // Each bare name in the types, with whether one mention is a length.
+    let mut names: BTreeMap<String, bool> = BTreeMap::new();
+    for (signature, ty) in signature_and_local_types(text) {
         let chars: Vec<char> = ty.chars().collect();
         let mut i = 0;
         while i < chars.len() {
@@ -1099,13 +1299,137 @@ pub(crate) fn canonical_bindings(text: &str) -> BTreeMap<String, String> {
                     || after.starts_with(" =")
                     || after.starts_with('=');
                 let bare = word.starts_with(|c: char| c.is_ascii_uppercase());
-                if bare && !segment && !named {
+                if bare && !segment && !named && (!signature || declared(&word)) {
                     let length = before.trim_end().ends_with(';');
-                    let bound = if length { "#" } else { CANONICAL };
-                    out.entry(word).or_insert_with(|| bound.to_string());
+                    *names.entry(word).or_default() |= length;
                 }
             } else {
                 i += 1;
+            }
+        }
+    }
+    // The names the body reads as values: `const N`, not `*const T`.
+    let mut values = std::collections::BTreeSet::new();
+    let mut rest = text;
+    while let Some(at) = rest.find("const ") {
+        let pointer = rest[..at].ends_with('*');
+        let after = &rest[at + "const ".len()..];
+        let word: String = after
+            .chars()
+            .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+            .collect();
+        let path = after[word.len()..].starts_with([':', '<', '(']);
+        if !pointer && !path && !word.is_empty() {
+            values.insert(word);
+        }
+        rest = after;
+    }
+    names
+        .into_iter()
+        .map(|(word, length)| {
+            let bound = if length || values.contains(&word) {
+                "#"
+            } else {
+                CANONICAL
+            };
+            (word, bound.to_string())
+        })
+        .collect()
+}
+
+/// `line` with each associated type of a type parameter, `<I as
+/// Iterator>::Item` (which rustc leaves unnormalized only where the
+/// body's bounds do not fix it), written as the parameter itself: within
+/// the body it is a type of its own about which only its bounds say
+/// anything, as the parameter is, so the census instantiates it at the
+/// parameter's binding too. Nested projections fold from the inside.
+fn opaque_projections(line: &str, params: &BTreeMap<String, String>) -> String {
+    let mut out = line.to_string();
+    'again: loop {
+        let mut from = 0;
+        while let Some(at) = out[from..].find('<').map(|i| i + from) {
+            from = at + 1;
+            let rest = &out[at + 1..];
+            let word: String = rest
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                .collect();
+            if !params.contains_key(&word) || !rest[word.len()..].starts_with(" as ") {
+                continue;
+            }
+            // The `>` closing this `<`, then `::Name`.
+            let mut depth = 0i64;
+            let mut close = None;
+            let mut prev = ' ';
+            for (i, c) in out[at..].char_indices() {
+                match c {
+                    '<' => depth += 1,
+                    '>' if prev != '-' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            close = Some(at + i);
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+                prev = c;
+            }
+            let Some(close) = close else {
+                continue;
+            };
+            let Some(after) = out[close + 1..].strip_prefix("::") else {
+                continue;
+            };
+            let name: String = after
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                .collect();
+            // An associated type, `Item`: not a method, `next(..)`, nor
+            // a constant, `MAX`.
+            let ty = name.starts_with(|c: char| c.is_ascii_uppercase())
+                && name.chars().any(|c| c.is_ascii_lowercase());
+            let next = after[name.len()..].chars().next();
+            if !ty || matches!(next, Some('(' | ':')) {
+                continue;
+            }
+            let end = close + 1 + "::".len() + name.len();
+            out.replace_range(at..end, &word);
+            continue 'again;
+        }
+        return out;
+    }
+}
+
+/// The texts of a dumped body's types, each with whether its `fn` line
+/// writes it: its parameters' and its return type's, and each local's.
+fn signature_and_local_types(text: &str) -> Vec<(bool, &str)> {
+    let mut out = Vec::new();
+    for line in text.lines() {
+        let line = line.trim();
+        if let Some(rest) = line.strip_prefix("let ") {
+            if let Some((_, ty)) = rest.split_once(": ") {
+                out.push((false, ty.trim_end_matches(';')));
+            }
+            continue;
+        }
+        if !line.starts_with("fn ") {
+            continue;
+        }
+        let line = line.trim_end_matches('{').trim_end();
+        let (head, ret) = line.rsplit_once(" -> ").unwrap_or((line, ""));
+        if !ret.is_empty() {
+            out.push((true, ret));
+        }
+        let Some(open) = head.find("(_") else {
+            continue;
+        };
+        let Some(params) = head[open + 1..].strip_suffix(')') else {
+            continue;
+        };
+        for p in parse::split_top(params, ',') {
+            if let Some((_, ty)) = p.split_once(": ") {
+                out.push((true, ty.trim()));
             }
         }
     }
@@ -1314,12 +1638,46 @@ mod tests {
     #[test]
     fn a_bodys_type_parameters_are_its_bare_names() {
         let text = "fn f(_1: Option<T>, _2: F) -> Option<U> {\n    let mut _0: option::Option<U>;\n    let _4: T;\n    let mut _5: F;\n    let _6: &<T as ops::Deref>::Target;\n    let _7: [T; N];\n}\n";
-        let p = canonical_bindings(text);
+        let p = canonical_bindings(text, &|_| false);
+        // The signature's own names, and a const parameter the body reads.
+        let header = "fn g(_1: V, _2: *const W, _3: &Layout) -> IntoIter<V, M> {\n    let mut _0: IntoIter<V, M>;\n    _3 = Lt(copy _2, const M);\n    _4 = const MAX;\n}\n";
+        let q = canonical_bindings(header, &|w| ["V", "W", "M"].contains(&w));
+        assert!(!q.contains_key("Layout"));
+        assert_eq!(q.get("V").map(String::as_str), Some(CANONICAL));
+        assert_eq!(q.get("W").map(String::as_str), Some(CANONICAL));
+        assert_eq!(q.get("M").map(String::as_str), Some("#"));
+        assert!(!q.contains_key("MAX") && !q.contains_key("IntoIter"));
         assert_eq!(p.get("T").map(String::as_str), Some(CANONICAL));
         assert_eq!(p.get("U").map(String::as_str), Some(CANONICAL));
         assert_eq!(p.get("F").map(String::as_str), Some(CANONICAL));
         assert_eq!(p.get("N").map(String::as_str), Some("#"));
         assert!(!p.contains_key("Deref") && !p.contains_key("Target"));
+    }
+
+    #[test]
+    fn a_parameters_associated_types_are_the_parameter() {
+        let p: BTreeMap<String, String> = [("I".to_string(), CANONICAL.to_string())].into();
+        assert_eq!(
+            opaque_projections("let _3: Option<<I as iter::Iterator>::Item>;", &p),
+            "let _3: Option<I>;"
+        );
+        assert_eq!(
+            opaque_projections(
+                "let _4: <<I as Try>::Residual as Residual<u8>>::TryType;",
+                &p
+            ),
+            "let _4: I;"
+        );
+        // A method or a constant of the parameter's trait stays.
+        let call = "_5 = <I as Iterator>::next(move _6) -> [return: bb1, unwind continue];";
+        assert_eq!(opaque_projections(call, &p), call);
+        assert_eq!(
+            opaque_projections("_7 = const <I as Bits>::MAX;", &p),
+            "_7 = const <I as Bits>::MAX;"
+        );
+        // Another type's associated type stays.
+        let other = "let _8: <u8 as Iterator>::Item;";
+        assert_eq!(opaque_projections(other, &p), other);
     }
 
     #[test]
