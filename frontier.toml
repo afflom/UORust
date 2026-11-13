@@ -2111,7 +2111,7 @@ reason = "mir"
 detail = "mir::Ty: mir::core::CoreDecls"
 
 [[residue]]
-kappa = "0505c6051fd048b8d3249f296ffe205814ac8526db66daa04d97cac9f0c545e0"
+kappa = "b512889e2ab78b581a2f9911d95c5d148bc27620826ca37bf791e1391208e945"
 function = "uorust::mir::core::Instances<'_>::canonical"
 reason = "type"
 detail = "type outside the lift: Instances<'_>"
@@ -2435,7 +2435,7 @@ reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
 
 [[residue]]
-kappa = "463873602067527c7eac69d3201af9c0cee171980a5c38dafeddcfd5b300eda5"
+kappa = "55d93e90fbe07cb4b68cc2003156c4b10b1084d340d24b638960da246e29b39e"
 function = "uorust::mir::lower::Fun<'_, '_>::call"
 reason = "type"
 detail = "type outside the lift: Fun<'_, '_>"
@@ -4139,7 +4139,7 @@ function = "uorust::ingest::workspace"
 effect = "Fs effect: Path::canonicalize"
 
 [[effect]]
-kappa = "d7c5b44685bbcd95d63c7770189da8298e85fcb1aa53b867345b5443575dfe87"
+kappa = "8d091e5d4261e7af76b4b0732d9e4ac2fdc3ca22d1e28d381fc120fc45ef931d"
 function = "uorust::library"
 effect = "calls uorust::mir::core::census, which performs a Fs effect: std::fs::read_dir"
 
@@ -4149,17 +4149,17 @@ function = "uorust::main"
 effect = "calls uorust::run, which reaches an effect"
 
 [[effect]]
-kappa = "7592bb8b33f595cd22f80a87d9fc9cf37287a857b2a295262d87aa36aea15e1d"
+kappa = "91c3e69f353103bd51ba83ec889d1c353f697ba698fff9dbc1b15e7c732c2c1b"
 function = "uorust::mir::core::census"
 effect = "Fs effect: std::fs::read_dir"
 
 [[effect]]
-kappa = "8f3e87349a9cc10cc58cafe8ef0ee46d0036e7bc1d759a79a06970538395c1fa"
+kappa = "2c29d5b10494f6df7ed75f0f13033d60bdd4c61e5529bf6356d9eeef619335f2"
 function = "uorust::mir::core::core_census"
 effect = "calls uorust::mir::core::census, which performs a Fs effect: std::fs::read_dir"
 
 [[effect]]
-kappa = "194d6b2528b1f21411b5788d4adecf8fe8984528acc9296891fc48da83d76710"
+kappa = "8e342b45f005c5e716325635bfb5df90b7d8a41e4e2bd1971f4e7917706761a6"
 function = "uorust::mir::core::core_decls"
 effect = "Fs effect: std::fs::read_dir"
 
@@ -4309,7 +4309,7 @@ function = "uorust::registry::fetch"
 effect = "Process effect: Command::new"
 
 [[effect]]
-kappa = "8c4713e42550ee6ec67914ffa12fe3278c061ac2850cf55338ec22e22cb8db9d"
+kappa = "479f7d18d11c79c97fa2bb435a0932c0993bddf3ffdb51a793cbbd64f573c59a"
 function = "uorust::registry::lift_crate"
 effect = "Env effect: std::env::temp_dir"
 
