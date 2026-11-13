@@ -78,7 +78,7 @@ definition{
   name: workloads,
   parameters: [],
   result: (List Workload),
-  body: (cons (record Workload {id := "core", file := ".github/workflows/core.yml", cronHour := 5, cronMinute := 17, group := "core", cancel := true, onPush := true}) (cons (record Workload {id := "std", file := ".github/workflows/std.yml", cronHour := 5, cronMinute := 47, group := "std", cancel := true, onPush := true}) (cons (record Workload {id := "crates", file := ".github/workflows/crates.yml", cronHour := 6, cronMinute := 29, group := "crates", cancel := true, onPush := false}) (nil Workload)))),
+  body: (cons (record Workload {id := "core", file := ".github/workflows/core.yml", cronHour := 5, cronMinute := 17, group := "core", cancel := false, onPush := true}) (cons (record Workload {id := "std", file := ".github/workflows/std.yml", cronHour := 5, cronMinute := 47, group := "std", cancel := false, onPush := true}) (cons (record Workload {id := "crates", file := ".github/workflows/crates.yml", cronHour := 6, cronMinute := 29, group := "crates", cancel := false, onPush := false}) (nil Workload)))),
   axioms: []
 }
 
@@ -315,14 +315,6 @@ definition{
 }
 
 definition{
-  name: kappaPreimage,
-  parameters: [krate : String, path : String, text : String],
-  result: String,
-  body: (prim join (cons (prim join (cons krate (cons path (nil String))) "::" : String) (cons text (nil String))) "\n" : String),
-  axioms: [propext]
-}
-
-definition{
   name: recordedTranslated,
   parameters: [kappa : String, old : (List Row)],
   result: Bool,
@@ -424,6 +416,25 @@ definition{
   parameters: [],
   result: (List Row),
   body: (cons (record Row {kappa := "k1", translated := true}) (cons (record Row {kappa := "k1", translated := true}) (nil Row))),
+  axioms: []
+}
+
+definition{
+  name: noneCancel,
+  parameters: [xs : (List Workload)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => ((not (project head cancel)) && (noneCancel tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: noRunCancelsAnother,
+  parameters: [],
+  statement: ((noneCancel (workloads)) = true),
+  proof: decide{},
   axioms: []
 }
 
