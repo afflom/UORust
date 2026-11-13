@@ -114,7 +114,7 @@ cause = "mir::Operand::Constant: the constant item str::count::do_count_chars::C
 path = "core::from_utf8"
 kappa = "08681762160d887ad21a986e158a226b878bef2252e37eedfd5d12d8ee5f470c"
 status = "residue"
-cause = "mir::Ty: str::error::Utf8Error"
+cause = "mir::TerminatorKind::Call: run_utf8_validation"
 
 [[fn]]
 path = "core::from_utf8_mut"
@@ -137,74 +137,74 @@ cause = "mir::Ty: &mut str"
 [[fn]]
 path = "core::lossy::<impl at library/core/src/str/lossy.rs:185:10: 185:15>::clone"
 kappa = "87ad3d31b6ebfbfaca9dda94a8eca67b19d364962906618d6b8fcd5727ee9d12"
-status = "residue"
-cause = "mir::Ty: str::lossy::Utf8Chunks<'_>"
+status = "translated"
+digest = "1e66d8c57b81257c65920fbde0e64372e28dec45d7586d7abe11cbfd0d546fdd"
 
 [[fn]]
 path = "core::lossy::<impl at library/core/src/str/lossy.rs:71:10: 71:15>::clone"
 kappa = "1125aff8ef160cd4bcc3eeb1aca3774e0196a18eadf9c8e42f3c032e1e179b2d"
-status = "residue"
-cause = "mir::Ty: str::lossy::Utf8Chunk<'_>"
+status = "translated"
+digest = "c9c4c1a9646486142b66e1bcd369219880dd7dff4db95e1faa3fbe751cccfeeb"
 
 [[fn]]
 path = "core::lossy::<impl at library/core/src/str/lossy.rs:71:17: 71:22>::fmt"
 kappa = "922c7b9c6dbdfea5f56f8370dabea0021b4f713ea931894a6cbe2d7e60a56224"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::lossy::<impl at library/core/src/str/lossy.rs:71:24: 71:33>::eq"
 kappa = "86376d16ded8fccd198af64ca8bed59efd4ecb1e5799d8508e5466f1e8cd7450"
 status = "residue"
-cause = "mir::Ty: Utf8Chunk<'_>"
+cause = "mir::TerminatorKind::Call: <&[u8] as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::lossy::<impl at library/core/src/str/lossy.rs:71:35: 71:37>::assert_fields_are_eq"
 kappa = "673b56c1a7bb39bda42c5aff52af575bad6b64a23a1545d0d01a642fe0c4c70d"
-status = "residue"
-cause = "mir::Ty: Utf8Chunk<'_>"
+status = "translated"
+digest = "fdcb21df542c5db7e0001b5168a5bea033b5b265da5ee54121d70317bcb33ad7"
 
 [[fn]]
 path = "core::lossy::<impl at library/core/src/str/lossy.rs:8:1: 8:10>::utf8_chunks"
 kappa = "a50f0e4c793f69269c3a7c5b73934efdcca262d712841fc6b31811b7dcc5bebf"
-status = "residue"
-cause = "mir::Ty: str::lossy::Utf8Chunks<'_>"
+status = "translated"
+digest = "8a620cd0386819af22857c44e765e0607531acd9451eed2a57b01d9898622cbc"
 
 [[fn]]
 path = "core::lossy::Debug::fmt"
 kappa = "17dcd727bcb2c5087c56e46ab9a3486951707ad1e5095bf63f28e1ec98c7a86a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: lossy::Debug<'_>"
 
 [[fn]]
 path = "core::lossy::Utf8Chunk::invalid"
 kappa = "aebea9a939ff14b3fdd604045bf70b5c83a06eb88142ceeade6cc59d9424518a"
-status = "residue"
-cause = "mir::Ty: Utf8Chunk<'_>"
+status = "translated"
+digest = "0a44e022d00cf5c9aeb9e56c850584c9a7e3fad86a3294b379362ed070fe4e92"
 
 [[fn]]
 path = "core::lossy::Utf8Chunk::valid"
 kappa = "6490b522b11caacf9c4de1eb28c36599bcd92eda74ea4b7bfe31c6dc3cb726f1"
-status = "residue"
-cause = "mir::Ty: Utf8Chunk<'_>"
+status = "translated"
+digest = "3e7ae9061b97603b5e84372ed7dc6a74c85c79716b7f5708ee8dd4cb6220f0ee"
 
 [[fn]]
 path = "core::lossy::Utf8Chunks::debug"
 kappa = "abed144c6d8bda4ea483f533332af3e68191290511de873738c82445d18db970"
-status = "residue"
-cause = "mir::Ty: str::lossy::Debug<'_>"
+status = "translated"
+digest = "9b47311b525bb27e5c9e62d516d437f95adc2905316fb789e55aa51f0ac4e092"
 
 [[fn]]
 path = "core::lossy::Utf8Chunks::fmt"
 kappa = "383de71b7daca4dba14b0e36f654c550d2279a29759c42f375df6845d74320ef"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::lossy::Utf8Chunks::next"
 kappa = "5f6990d31936cb8445ae93cb3856c6af8c582e936db7f4f9c4b0fc5f7cb127c3"
 status = "residue"
-cause = "mir::Ty: str::lossy::Utf8Chunk<'_>"
+cause = "mir::TerminatorKind::Call: Option::copied"
 
 [[fn]]
 path = "core::next_code_point"
@@ -230,7 +230,7 @@ cause = "mir::Ty: str::pattern::StrSearcher<'_, '_>"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1062:17: 1062:22>::fmt"
 kappa = "0d934268d791a86e65462753086ee46c06f8e2651cad886d1901aaf11561489d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: StrSearcher<'_, '_>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1071:10: 1071:15>::clone"
@@ -242,19 +242,19 @@ cause = "mir::Ty: str::pattern::StrSearcherImpl"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1071:17: 1071:22>::fmt"
 kappa = "445a8826a49ad2a768006627045572bc25081c04eda22106000f2fb7386994ef"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: StrSearcherImpl"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1077:10: 1077:15>::clone"
 kappa = "f5cb10e370f6cbe30e0b122dab87bce4e6ee1342a4c2e0c71225cbfdf28a1f71"
-status = "residue"
-cause = "mir::Ty: str::pattern::EmptyNeedle"
+status = "translated"
+digest = "228ba746477460c3deeccb33b2d2d10119c4a59e3499c39a1569165e2713138e"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1077:17: 1077:22>::fmt"
 kappa = "232bfcbc22adbbce830448c081c5204221fdb462a0f4cb2d3a714de2a9241d8a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1114:1: 1114:57>::haystack"
@@ -289,14 +289,14 @@ cause = "mir::Ty: StrSearcher<'_, '_>"
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1283:10: 1283:15>::clone"
 kappa = "7ece6f078463f5352f96b39228ae9085b7a14e554970f838aca6f11ed5f8b7c2"
-status = "residue"
-cause = "mir::Ty: str::pattern::TwoWaySearcher"
+status = "translated"
+digest = "973fd67b738f0c66da1dc6a1aa0a1ea148c8a242ad0b9d46a1dcd6799a6e898b"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:1283:17: 1283:22>::fmt"
 kappa = "d8fb0cfa17a27ab43eeb74c6730f442905fc1c44b21b63c11dbcabc23dfef8c2"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:172:16: 172:21>::clone"
@@ -320,7 +320,7 @@ cause = "mir::Ty: Utf8Pattern<'_>"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:172:38: 172:43>::fmt"
 kappa = "bffc5f362f3573f08c70a867854aa65df7cf4ff9b85ea46c312986ef4649cee8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Utf8Pattern<'_>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:185:16: 185:21>::clone"
@@ -344,25 +344,25 @@ cause = "mir::Ty: SearchStep"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:185:38: 185:43>::fmt"
 kappa = "aa0b19a91d708eba4b0963bd992017b14dd2b9639ab76029d01159e8a1f85f32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SearchStep"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:369:10: 369:15>::clone"
 kappa = "2f5b716b0e816028e74d36b9bbd05b3cbfe2f3b378b02d5d0c87acc070c52df6"
-status = "residue"
-cause = "mir::Ty: str::pattern::CharSearcher<'_>"
+status = "translated"
+digest = "e1488e1bf2a8d12492d7bbbb8f316f4b62e996f1e8cc60eae456b968251ac4b1"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:369:17: 369:22>::fmt"
 kappa = "0d4db8cca6a979a022d000a3d43df54aedd0873eb2ceca50e04d3cbe2dc2c52c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:401:1: 401:50>::haystack"
 kappa = "caad832bcf200da7bbd9a542c1623af2d5c9e895f894e94be21fea247b99dee8"
-status = "residue"
-cause = "mir::Ty: CharSearcher<'_>"
+status = "translated"
+digest = "a26ffbdab838526926b9d321adb09bc0bbecd3e332e70804531095b34f7064e3"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:401:1: 401:50>::next"
@@ -374,7 +374,7 @@ cause = "mir::Ty: str::pattern::SearchStep"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:401:1: 401:50>::next_match"
 kappa = "4103cfe871ab4eaf528b05ce15ae746f19cfdd57568a67ae6bd4903e4825c121"
 status = "residue"
-cause = "mir::Ty: CharSearcher<'_>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:479:1: 479:57>::next_back"
@@ -386,7 +386,7 @@ cause = "mir::Ty: str::pattern::SearchStep"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:479:1: 479:57>::next_match_back"
 kappa = "fa6f22965b2a55424549b64d9a0b20e7a4df7bf9f8a8ae365ec8e87fca08e848"
 status = "residue"
-cause = "mir::Ty: CharSearcher<'_>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:645:1: 645:47>::matches"
@@ -420,7 +420,7 @@ path = "core::pattern::<impl at library/core/src/str/pattern.rs:668:17: 668:22>:
 kappa = "deb9f8821ecf6f953b8212c6f4850ca91f93d6d78ce7f00f8f7ea246ac7d0696"
 at = "C=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: MultiCharEqSearcher<'_, u32>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:684:1: 684:76>::haystack"
@@ -662,7 +662,7 @@ cause = "mir::Ty: str::pattern::CharSliceSearcher<'_, '_>"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:873:17: 873:22>::fmt"
 kappa = "8379a3a835bbbc2ea5e79f4ed6eac263256ddf43d5d737bfaf18ade4fc59f487"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: CharSliceSearcher<'_, '_>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:876:1: 876:63>::haystack"
@@ -716,31 +716,31 @@ cause = "mir::Ty: str::pattern::CharSliceSearcher<'_, '_>"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::is_contained_in"
 kappa = "91ea80a5b9a03e78aadf2fc9b946628def086eba44effc06b3df7061d5b238d2"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<&[char]>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_contained_in"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::is_prefix_of"
 kappa = "331dd8a2b23c543403dc3e26a916f6d34d82acdad2d3980b0d7f01d77a00972a"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<&[char]>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_prefix_of"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::is_suffix_of"
 kappa = "7d43c43e0284bb1dff77c7ff3451f0d19a855d77eae563b2a031ba0991d504e3"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<&[char]>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_suffix_of"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::strip_prefix_of"
 kappa = "a887d45ac3ebdbded3fac375414100e37312a36be32ea21122ebd1336f489bc8"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<&[char]>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_prefix_of"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::strip_suffix_of"
 kappa = "067c94c6e010f2001bc4cf11e06ef8c6abf1afd250245e7c32bd899650edd455"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<&[char]>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_suffix_of"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:903:10: 903:15>::clone"
@@ -880,13 +880,13 @@ cause = "mir::TerminatorKind::Call: <&str as pattern::Pattern>::is_suffix_of"
 path = "core::pattern::CharPredicateSearcher::fmt"
 kappa = "913b908e57564c1b59256212a2403c93ec245be6abe22dfd467eac3b6e98180f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: F"
 
 [[fn]]
 path = "core::pattern::CharSearcher::utf8_size"
 kappa = "29a5f682e8ba47b9903614628642fe137bed992441ae71b8a1c4e2e90ea04666"
-status = "residue"
-cause = "mir::Ty: CharSearcher<'_>"
+status = "translated"
+digest = "128ea0fdd9f5419f99b932f48aab0081b8a5ae03c40b5aee9802fb5c9f8bb729"
 
 [[fn]]
 path = "core::pattern::F::into_searcher"
@@ -900,21 +900,21 @@ path = "core::pattern::F::is_contained_in"
 kappa = "73d63eebcf4fe4b29ae453d6b5bd419f44fc804ba603900bdeb62552c8f172ec"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<u32>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_contained_in"
 
 [[fn]]
 path = "core::pattern::F::is_prefix_of"
 kappa = "d5cdccc92b85263f8fefc438f1f68268289bb7991d47c07007f119c9acb97f21"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<u32>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_prefix_of"
 
 [[fn]]
 path = "core::pattern::F::is_suffix_of"
 kappa = "4c5d87509ba69e63686168ec9b3b8d25ccb5b1132d98761227b5a914231fdb7e"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<u32>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_suffix_of"
 
 [[fn]]
 path = "core::pattern::F::matches"
@@ -928,14 +928,14 @@ path = "core::pattern::F::strip_prefix_of"
 kappa = "0832a437cea5f389a1b6de3c610dfa50aeb7c090587512ca645d261f7f97285d"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<u32>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_prefix_of"
 
 [[fn]]
 path = "core::pattern::F::strip_suffix_of"
 kappa = "6e81cc65c8a0c8aa686f1465d658021e19488740521879bfa000b3302e96618f"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: str::pattern::MultiCharEqPattern<u32>"
+cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_suffix_of"
 
 [[fn]]
 path = "core::pattern::MatchOnly::matching"
@@ -1031,7 +1031,7 @@ cause = "mir::Ty: str::pattern::StrSearcher<'_, '_>"
 path = "core::pattern::TwoWaySearcher::byteset_contains"
 kappa = "926edbab09cc67523759faf10e76c18f7d21d58d9c6d37cf6a33b4d298b6cf2f"
 status = "residue"
-cause = "mir::Ty: TwoWaySearcher"
+cause = "mir::BinOp::BitAnd: on Nat and Nat"
 
 [[fn]]
 path = "core::pattern::TwoWaySearcher::byteset_create"
@@ -1049,7 +1049,7 @@ cause = "mir::TerminatorKind::SwitchInt: a loop whose header does not exit on an
 path = "core::pattern::TwoWaySearcher::new"
 kappa = "3a593f4800c6c45eae83bee4828096ee0c8d4525488a9c3c9972abdfeaea1236"
 status = "residue"
-cause = "mir::Ty: str::pattern::TwoWaySearcher"
+cause = "mir::TerminatorKind::Call: TwoWaySearcher::maximal_suffix"
 
 [[fn]]
 path = "core::pattern::TwoWaySearcher::next"
@@ -1081,7 +1081,7 @@ cause = "mir::Ty: str::pattern::Utf8Pattern<'_>"
 path = "core::pattern::char::into_searcher"
 kappa = "ce8430dab11c68dfd773a8449d2bba23bd32d9b64973c8920afb4e3fa8b93835"
 status = "residue"
-cause = "mir::Ty: str::pattern::CharSearcher<'_>"
+cause = "mir::Rvalue::Repeat"
 
 [[fn]]
 path = "core::pattern::char::is_contained_in"
@@ -1117,7 +1117,7 @@ cause = "mir::Rvalue::Repeat"
 path = "core::run_utf8_validation"
 kappa = "b7c1baedde0dd1e8f16a1dba14b37cd337531ae1fdd0a2e551233118811739da"
 status = "residue"
-cause = "mir::Ty: str::error::Utf8Error"
+cause = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[fn]]
 path = "core::run_utf8_validation::USIZE_BYTES"
@@ -1165,7 +1165,7 @@ cause = "mir::Ty: !"
 path = "core::small_slice_eq"
 kappa = "68934c3abf98f8988ab9eb669dea126636a786299a134d054818edfbe4aeb2cc"
 status = "residue"
-cause = "mir::Ty: iter::adapters::zip::Zip<slice::iter::Iter<'_, u8>, slice::iter::Iter<'_, u8>>"
+cause = "mir::TerminatorKind::Call: <slice::iter::Iter as iterator::Iterator>::zip"
 
 [[fn]]
 path = "core::str::<impl at library/core/src/internal_macros.rs:100:13: 100:76>::call_once"
@@ -1399,73 +1399,73 @@ cause = "mir::Ty: str::UnsafeBytesToStr"
 path = "core::str::error::<impl at library/core/src/str/error.rs:132:10: 132:15>::fmt"
 kappa = "a85345a751e37689dbdda4b546f3bbf6b41f2f289450e554ff84e892b35999cc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::error::<impl at library/core/src/str/error.rs:132:17: 132:22>::clone"
 kappa = "84b6f95c154402edc27f0f429f348daf134fc517b83d3a3a10d8719acbe8b910"
-status = "residue"
-cause = "mir::Ty: str::error::ParseBoolError"
+status = "translated"
+digest = "25ddaadf7f856e5f6b0e6fa9ca1e6d1d9e971aac74115afd9029ba7fac4a2398"
 
 [[fn]]
 path = "core::str::error::<impl at library/core/src/str/error.rs:132:24: 132:33>::eq"
 kappa = "53f1a542fbf56f1d7e3b1ff5d95fce654bea93f47203dc799a1c271796209262"
-status = "residue"
-cause = "mir::Ty: ParseBoolError"
+status = "translated"
+digest = "2c54a6e3c5410dafd708cb8bcc8f02113220a90f18a17d8a2ec52a4ea8996187"
 
 [[fn]]
 path = "core::str::error::<impl at library/core/src/str/error.rs:132:35: 132:37>::assert_fields_are_eq"
 kappa = "9f5aa69a108dfb8ff8630d265b46a6e855d47af0252a2ad723d0cc3916c30f02"
-status = "residue"
-cause = "mir::Ty: ParseBoolError"
+status = "translated"
+digest = "33d7e8a73a09a0f6cee69829e4f60f14263d7061016e3899d3b5537fb659c20b"
 
 [[fn]]
 path = "core::str::error::<impl at library/core/src/str/error.rs:45:16: 45:18>::assert_fields_are_eq"
 kappa = "4b7c5271b9fdea9bd396f77ab8de22feeae3bf34931a8cc91b36bd09d5be4787"
-status = "residue"
-cause = "mir::Ty: Utf8Error"
+status = "translated"
+digest = "662882d9268626f8152cf6361a47ef35bf495e89d01784830032f7a526d8fc15"
 
 [[fn]]
 path = "core::str::error::<impl at library/core/src/str/error.rs:45:20: 45:29>::eq"
 kappa = "26c5e22c87ec7a98023c34d8a3d85c802098411dfd9bbe2d8ccf2231abd77e95"
 status = "residue"
-cause = "mir::Ty: Utf8Error"
+cause = "mir::TerminatorKind::Call: <Option as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::str::error::<impl at library/core/src/str/error.rs:45:31: 45:36>::clone"
 kappa = "901ba89521948ae1bb607b635c64b842dfdb5f24e34fe68bddc646db8f14e288"
-status = "residue"
-cause = "mir::Ty: str::error::Utf8Error"
+status = "translated"
+digest = "2bbc706001bf1281b67ce1cfdc70c3ad9735832afa246cb37617c15cb9e4ae11"
 
 [[fn]]
 path = "core::str::error::<impl at library/core/src/str/error.rs:45:38: 45:43>::fmt"
 kappa = "d76636a1d0e894674b1486a4fc670e2b95262c039fc154d84da7ede828e2605c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::error::ParseBoolError::fmt"
 kappa = "73b726338dd4ef23566dc14b5d51f5e58a5776fd51c433819f285b0244f6c904"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::error::Utf8Error::error_len"
 kappa = "43308d107e8216ca6ad67543a07c32361e3b2eb601ebf02166dda52597592006"
-status = "residue"
-cause = "mir::Ty: Utf8Error"
+status = "translated"
+digest = "e011c97e1cab2b0c1e8915418689bdb46de51e33b864945d6093a1d788d9608e"
 
 [[fn]]
 path = "core::str::error::Utf8Error::fmt"
 kappa = "5e6ba94f450e35a81f3d11dc212afb7853ab7ea353240071c0d739e54d74c018"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::error::Utf8Error::valid_up_to"
 kappa = "b464cf13cb0f95386072b7061897408c7156077d0517aae3370793c3ab86ffe7"
-status = "residue"
-cause = "mir::Ty: Utf8Error"
+status = "translated"
+digest = "b890cf1b399d26ae5da61b25fe39a3b48a43694b9565aed4b3b464a1c6a2566c"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1161:10: 1161:15>::clone"
@@ -1477,7 +1477,7 @@ cause = "mir::Ty: str::iter::Lines<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1161:17: 1161:22>::fmt"
 kappa = "0d45676c3f68a58ebf2b9deb925766410b949e8da4e3f0842c981bf8004eb093"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Lines<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1226:10: 1226:15>::clone"
@@ -1489,7 +1489,7 @@ cause = "mir::Ty: str::iter::LinesAny<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1226:17: 1226:22>::fmt"
 kappa = "d4fdf23676b0ac9a9ae6fb6b82127259413250a69d58a2b2475e049a9f1c4e42"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: LinesAny<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1267:10: 1267:15>::clone"
@@ -1501,7 +1501,7 @@ cause = "mir::Ty: str::iter::SplitWhitespace<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1267:17: 1267:22>::fmt"
 kappa = "ac6acc32b0cef3284f7d49cc0345037b0053ba5ef02a91a59765d6c89df5bbae"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SplitWhitespace<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1280:10: 1280:15>::clone"
@@ -1513,7 +1513,7 @@ cause = "mir::Ty: str::iter::SplitAsciiWhitespace<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1280:17: 1280:22>::fmt"
 kappa = "fcfb9ca700d20dc863efb6076aa119f8b1a14d37d7c35aae37fe3f2fb74ec6da"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SplitAsciiWhitespace<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1484:10: 1484:15>::clone"
@@ -1531,7 +1531,7 @@ cause = "mir::Ty: str::iter::EscapeDebug<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1543:17: 1543:22>::fmt"
 kappa = "a0de76a6edbf36b1f47b6cff59a792ca60c06acc523e633f789ec406c544e459"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::EscapeDebug<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1553:10: 1553:15>::clone"
@@ -1543,7 +1543,7 @@ cause = "mir::Ty: str::iter::EscapeDefault<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1553:17: 1553:22>::fmt"
 kappa = "a29af9194869abbde8f67606a2288f6e8806bddaf62bd875cca25ffbbb5fc177"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::EscapeDefault<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1560:10: 1560:15>::clone"
@@ -1555,25 +1555,25 @@ cause = "mir::Ty: str::iter::EscapeUnicode<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1560:17: 1560:22>::fmt"
 kappa = "b61aea41d61ef512cb972e62c488f484d2ba69d3fa61079803198e4c72084f85"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::EscapeUnicode<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1568:9: 1568:44>::fmt"
 kappa = "11cf1da837dd7539874247bdf7a668c358e1336a61c71cc980ec725e42551f1a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::EscapeDebug<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1568:9: 1568:44>::fmt#2"
 kappa = "49fb94c90563bfab5785bce4e58a14732a9a31a7645596b49093d59dfdf328d3"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::EscapeDefault<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1568:9: 1568:44>::fmt#3"
 kappa = "216f0e78fd2a1af233d2ee49f83518e9355c58437859ff4638b6dda1d27ad0b3"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::EscapeUnicode<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1575:9: 1575:40>::fold"
@@ -1663,13 +1663,13 @@ cause = "mir::Ty: str::iter::CharIndices<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:169:17: 169:22>::fmt"
 kappa = "0e2f92cbf8f3387bdab7b5e84026df9d98de1801c0c7fe287aba026a6c2027e1"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: CharIndices<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:27:10: 27:15>::clone"
 kappa = "958fbb821a13ab5190a55788076972e7777a6441fbd4b1f704eec57b83aa5c40"
-status = "residue"
-cause = "mir::Ty: str::iter::Chars<'_>"
+status = "translated"
+digest = "41951b4871900feca1d6f38502f0470e657e65a74b2e9a8ac47023d3c8f2f838"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:283:10: 283:15>::clone"
@@ -1681,7 +1681,7 @@ cause = "mir::Ty: str::iter::Bytes<'_>"
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:283:17: 283:22>::fmt"
 kappa = "04b4c921481bcfd01ab48054e99f36606a02d0013c0cd93e5d746aad601c7697"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::Bytes<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:417:9: 419:45>::clone"
@@ -1716,35 +1716,35 @@ path = "core::str::iter::<impl at library/core/src/str/iter.rs:495:9: 497:50>::f
 kappa = "779701ba9d5a301c5f1d23b5fc81b8e66f631c8a66fea2b80d26a47ce0195609"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Matches<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:495:9: 497:50>::fmt#2"
 kappa = "19eff67f79ca2e32ad2cce9c40a435aa3e951cf33f55d47d28029eee9ee94727"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::Split<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:495:9: 497:50>::fmt#3"
 kappa = "ca967f25397941daf9c2425e9ed484deac972f7ff0cdb553a4dbb933709a552c"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SplitTerminator<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:495:9: 497:50>::fmt#4"
 kappa = "f20e7da095c122cd6c29c93849c6e9623ac7f047e563c3ff3599236dc5fc303f"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::SplitN<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:495:9: 497:50>::fmt#5"
 kappa = "fc490bbeef288d121df2b46a4df922907ec7461c01faa9c7151fc4eaf1a828f5"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: MatchIndices<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:507:9: 507:67>::next"
@@ -1821,35 +1821,35 @@ path = "core::str::iter::<impl at library/core/src/str/iter.rs:531:9: 533:50>::f
 kappa = "8d0bde093b7814267ab019888f6d23689fb3e77f7bf32921d7b49102a1a82fc5"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RMatches<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:531:9: 533:50>::fmt#2"
 kappa = "229e384f933a50f1476faa77659596a38ae9071a00a97bcd560e28a4b30b23ad"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::RSplit<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:531:9: 533:50>::fmt#3"
 kappa = "69bd6dff46976bf13d69de95840164dc87f61627897eec1bf9137e49f5c374e3"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RSplitTerminator<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:531:9: 533:50>::fmt#4"
 kappa = "32b9865705b866b9f27d5e58cc3d3fef2a006fa7cdd1f31960bb40af017f5ebb"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::RSplitN<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:531:9: 533:50>::fmt#5"
 kappa = "c504cf11d86ef4e1a9262e946334a8fa30992c2775be6e0e94d9f4939584fdb8"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RMatchIndices<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:543:9: 545:59>::next"
@@ -2131,49 +2131,49 @@ cause = "mir::Ty: num::nonzero::NonZero<usize>"
 path = "core::str::iter::Chars::as_str"
 kappa = "27bdb7477d4f420ae01472fa6e1ea19d64397acdc90518aea2d912df8c1cb249"
 status = "residue"
-cause = "mir::Ty: Chars<'_>"
+cause = "mir::TerminatorKind::Call: slice::iter::Iter::as_slice"
 
 [[fn]]
 path = "core::str::iter::Chars::count"
 kappa = "2071352c74b8b41ae3ef03676209f56930ea18afbf131cd03bcba3fb46dcbec9"
 status = "residue"
-cause = "mir::Ty: Chars<'_>"
+cause = "mir::TerminatorKind::Call: Chars::as_str"
 
 [[fn]]
 path = "core::str::iter::Chars::fmt"
 kappa = "3e903fee2ae16bd50678de074da86242f781eca938ab310fcca60b130fe1f283"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::iter::Chars::last"
 kappa = "69dd5e68c10cb5090418bfe568bfb46ace28ee4179852783a60d2f5a4afafc00"
 status = "residue"
-cause = "mir::Ty: Chars<'_>"
+cause = "mir::TerminatorKind::Call: <Chars as double_ended::DoubleEndedIterator>::next_back"
 
 [[fn]]
 path = "core::str::iter::Chars::next"
 kappa = "18d7b55a54a1b72f064b58e30d9ce5ffa287c200a6ebcf4b91e764eca1c7a54b"
 status = "residue"
-cause = "mir::Ty: Chars<'_>"
+cause = "mir::TerminatorKind::Call: next_code_point"
 
 [[fn]]
 path = "core::str::iter::Chars::next_back"
 kappa = "c8039764911e94ffe0825aa78cb5d01a40071f569f92418c3c2f9d9f7137f6e6"
 status = "residue"
-cause = "mir::Ty: Chars<'_>"
+cause = "mir::TerminatorKind::Call: next_code_point_reverse"
 
 [[fn]]
 path = "core::str::iter::Chars::size_hint"
 kappa = "cfb418da9c89865f88f90dfbca7fcc7d593cff3ab7cc7e153e76011e69e18c20"
 status = "residue"
-cause = "mir::Ty: Chars<'_>"
+cause = "mir::TerminatorKind::Call: num::<impl usize>::div_ceil"
 
 [[fn]]
 path = "core::str::iter::EncodeUtf16::fmt"
 kappa = "c6153443f842c95fee494ffed856e7f9fb65ed5cb8b9b0e3f79894c16d87d14f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: EncodeUtf16<'_>"
 
 [[fn]]
 path = "core::str::iter::EncodeUtf16::next"
@@ -2240,7 +2240,7 @@ path = "core::str::iter::MatchIndicesInternal::fmt"
 kappa = "49b4c0963d05bb450146b87f534432fdfafef11c09b7389b60789a6b9f33b1b1"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: MatchIndicesInternal<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::MatchIndicesInternal::next"
@@ -2261,7 +2261,7 @@ path = "core::str::iter::MatchesInternal::fmt"
 kappa = "7afbbb97b61dc0bf6bd4b97461181f11b11a406ed84045f9f5a2b423841ddd58"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: MatchesInternal<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::MatchesInternal::next"
@@ -2347,7 +2347,7 @@ path = "core::str::iter::SplitInclusive::fmt"
 kappa = "07332defc67697667f10aca76743c6241bf2d6045783e9b975a9540e56cff388"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: str::iter::SplitInclusive<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::SplitInclusive::next"
@@ -2375,7 +2375,7 @@ path = "core::str::iter::SplitInternal::fmt"
 kappa = "e5c33163cff2b6066ea4f96352d0c0af0405deef8249bb34fe3b8c48a3245d6f"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SplitInternal<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::SplitInternal::get_end"
@@ -2431,7 +2431,7 @@ path = "core::str::iter::SplitNInternal::fmt"
 kappa = "02fccfbb6846d28c169f43d041de09c0cdf9d647af614f54e017af2910c70e00"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SplitNInternal<'_, u32>"
 
 [[fn]]
 path = "core::str::iter::SplitNInternal::next"
@@ -2501,13 +2501,13 @@ cause = "mir::Ty: !"
 path = "core::str::str::as_ascii"
 kappa = "5697d44df568e42d136b9d566d9b65076555bc9bcd6bc13673bf48fc65687ff6"
 status = "residue"
-cause = "mir::Ty: ascii::ascii_char::AsciiChar"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::str::str::as_ascii_unchecked"
 kappa = "6c825b4896ebaaec92f4a7d5610983af030ecd03fe4c39380225631e9e7d849e"
 status = "residue"
-cause = "mir::Ty: ascii::ascii_char::AsciiChar"
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
 
 [[fn]]
 path = "core::str::str::as_ascii_unchecked::precondition_check"
@@ -2573,7 +2573,7 @@ cause = "mir::Ty: str::iter::CharIndices<'_>"
 path = "core::str::str::chars"
 kappa = "9cf0d254845cdd1f6254c556bb172bf1a2660d186147412022697eb096704754"
 status = "residue"
-cause = "mir::Ty: str::iter::Chars<'_>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::str::str::contains"
@@ -2636,7 +2636,7 @@ cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 path = "core::str::str::from_utf8"
 kappa = "24aebe683af48097591dc601bd5c00adf212993404c5ab917c7e1927342f3eac"
 status = "residue"
-cause = "mir::Ty: str::error::Utf8Error"
+cause = "mir::TerminatorKind::Call: from_utf8"
 
 [[fn]]
 path = "core::str::str::from_utf8_mut"
@@ -3433,8 +3433,8 @@ cause = "mir::Ty: &mut str"
 [[fn]]
 path = "core::str::traits::bool::from_str"
 kappa = "3bb92f5a5fd2f0f6367d10a83e578cd4e435f56886e2f31f9d47139f445de7b2"
-status = "residue"
-cause = "mir::Ty: str::error::ParseBoolError"
+status = "translated"
+digest = "1d0494aaa690d4a3a2662c2e6f667f114215336e3db4a169eddbbfe89aa530db"
 
 [[fn]]
 path = "core::str::traits::str::cmp"

@@ -2,19 +2,19 @@
 path = "core::any::<impl at library/core/src/any.rs:152:1: 152:28>::fmt"
 kappa = "83ab3589e67c672ee3620701bacfa290526cdd8f06d5486abbda30d73927e468"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn Any"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:162:1: 162:35>::fmt"
 kappa = "b90eb59d99fa2672924bc6ef26ade4c70f9508a4555012388bfedee4304d947a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn Any + marker::Send"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:169:1: 169:42>::fmt"
 kappa = "485fbaec5d50f28121824ecc2418329cb582c097e6d62354d7857f5aef407786"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn Any + marker::Send + marker::Sync"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:175:1: 175:13>::downcast_mut"
@@ -176,7 +176,7 @@ cause = "mir::Ty: TypeId"
 path = "core::any::TypeId::fmt"
 kappa = "dd02c8f5acdb6bf8ee1bd82fd2b535bac91af020a28f003488503160deffb235"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: TypeId"
 
 [[fn]]
 path = "core::any::TypeId::hash"

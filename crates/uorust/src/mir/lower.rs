@@ -1967,11 +1967,16 @@ impl Fun<'_, '_> {
                     .ok_or_else(|| kind(k, &format!("{n}, which is not a struct")))?;
                 // Named fields in the order the struct declares them.
                 let mut by: BTreeMap<String, String> = BTreeMap::new();
-                for ((f, _), v) in ops.iter().zip(vals) {
-                    let Some(f) = f else {
-                        return Err(kind(k, "a tuple struct"));
+                for (i, ((f, _), v)) in ops.iter().zip(vals).enumerate() {
+                    // A tuple struct's fields by position.
+                    let f = match f {
+                        Some(f) => lift::local_name(f),
+                        None => fields
+                            .get(i)
+                            .map(|(f, _)| f.clone())
+                            .ok_or_else(|| kind(k, "a tuple struct's field past its own"))?,
                     };
-                    by.insert(lift::local_name(f), v);
+                    by.insert(f, v);
                 }
                 let mut parts = Vec::new();
                 for (f, _) in fields {
@@ -2743,6 +2748,16 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             Some(f) => ty(&f, types),
             None => Ok(Ty::Unit),
         };
+    }
+    // An instance of a struct of core's own, in core's scope.
+    if types.core {
+        if let Some(n) = types
+            .aliases
+            .get(t)
+            .filter(|n| types.structs.contains_key(*n) || types.enums.contains_key(*n))
+        {
+            return Ok(Ty::Named(n.clone()));
+        }
     }
     // A path of std's, or in core's own scope a path of core's: MIR prints
     // core's paths there without the crate.

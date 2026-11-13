@@ -14,7 +14,7 @@ cause = "mir::Ty: &mut bstr::ByteStr"
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:385:1: 385:48>::try_from"
 kappa = "7f67c7f1225117b80cb5050aa5052c5e25e705b4417e6374b521635f20e2dd12"
 status = "residue"
-cause = "mir::Ty: str::error::Utf8Error"
+cause = "mir::Ty: ByteStr"
 
 [[fn]]
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:396:1: 396:56>::try_from"
@@ -92,13 +92,13 @@ cause = "mir::Ty: &mut [u8]"
 path = "core::bstr::ByteStr::fmt"
 kappa = "b789051a4d8f0cba228307bb6c65b71e0187e05597136e3cd66a32c9f6addfb4"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: ByteStr"
 
 [[fn]]
 path = "core::bstr::ByteStr::fmt#2"
 kappa = "b47b7bf1aa61e69883b8490120efc34a8d5684159d9df0f540529307b8873d17"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: ByteStr"
 
 [[fn]]
 path = "core::bstr::ByteStr::from_bytes"
@@ -580,5 +580,5 @@ cause = "mir::Ty: ByteStr"
 path = "core::emit"
 kappa = "57c2f2620cedb95a871757196bde3b3f8f1988dfd412fc0e54295a9632b9969a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: ByteStr"
 

@@ -23,7 +23,7 @@ cause = "mir::Instantiation: a const parameter"
 path = "core::fmt_subslice"
 kappa = "4257d5cbf01f6ff481467de3aadea9c3594bbcab1e46f22df99888627abe2bef"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ip_addr::<impl at library/core/src/net/ip_addr.rs:166:16: 166:21>::clone"
@@ -65,7 +65,7 @@ cause = "mir::Ty: net::ip_addr::Ipv6MulticastScope"
 path = "core::ip_addr::<impl at library/core/src/net/ip_addr.rs:226:23: 226:28>::fmt"
 kappa = "a3c0d772eafe8bd98afd8255748c52cc225c69fe253fbe35c590e6ccbc1609ea"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Ipv6MulticastScope"
 
 [[fn]]
 path = "core::ip_addr::<impl at library/core/src/net/ip_addr.rs:226:30: 226:39>::eq"
@@ -329,13 +329,13 @@ cause = "mir::Ty: IpAddr"
 path = "core::ip_addr::IpAddr::fmt"
 kappa = "4bf5cf8b9350fd6e18e84c8a75069a5ac2524d68e82691ed8ba9144c12f4da94"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: IpAddr"
 
 [[fn]]
 path = "core::ip_addr::IpAddr::fmt#2"
 kappa = "244913caa93fb4d9dfde40b298aeae428bcb8011ba1f95a93c3b5ce8046df61f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: IpAddr"
 
 [[fn]]
 path = "core::ip_addr::IpAddr::from"
@@ -473,13 +473,13 @@ cause = "mir::Ty: Ipv4Addr"
 path = "core::ip_addr::Ipv4Addr::fmt"
 kappa = "249d2b13cac75a1e872a11afb5ab41e8f4ecb6261d298627afe53f2364851a98"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Ipv4Addr"
 
 [[fn]]
 path = "core::ip_addr::Ipv4Addr::fmt#2"
 kappa = "5b2da46ea10469e2cf111ba2a548c20cb059f707fdd460eec8a3cf287de9c5db"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Ipv4Addr"
 
 [[fn]]
 path = "core::ip_addr::Ipv4Addr::from"
@@ -660,13 +660,13 @@ cause = "mir::Ty: Ipv6Addr"
 path = "core::ip_addr::Ipv6Addr::fmt"
 kappa = "8c785c07d7dfeb116292333e0f49ea3f21232689e70eeeb691b51d434a8a6376"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Ipv6Addr"
 
 [[fn]]
 path = "core::ip_addr::Ipv6Addr::fmt#2"
 kappa = "e0c88164a84115d329be04026cdae497e337fa51a5c5288d2d3786c4ed0a8ebb"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Ipv6Addr"
 
 [[fn]]
 path = "core::ip_addr::Ipv6Addr::from"
@@ -895,55 +895,55 @@ cause = "mir::Ty: convert::Infallible"
 path = "core::parser::<impl at library/core/src/net/parser.rs:460:10: 460:15>::fmt"
 kappa = "fbf606a6ba8096ffdecb2047e6af4596b56ab50ce2a19d73123056c791023637"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::parser::<impl at library/core/src/net/parser.rs:460:17: 460:22>::clone"
 kappa = "71e8b265466eae937bc11e341872b25b28f41acfee4674a5f5ec07a6f1e7d7a9"
-status = "residue"
-cause = "mir::Ty: net::parser::AddrKind"
+status = "translated"
+digest = "34b4a62c1f090c23c5775cfc70fb829f049e110f444294a9696ea0e20e652234"
 
 [[fn]]
 path = "core::parser::<impl at library/core/src/net/parser.rs:460:24: 460:33>::eq"
 kappa = "c0b3720a65eca128884200ede023937179e6e951d07834cefabb397563e9a758"
 status = "residue"
-cause = "mir::Ty: AddrKind"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::parser::<impl at library/core/src/net/parser.rs:460:35: 460:37>::assert_fields_are_eq"
 kappa = "88b9034df3f9d8980537b344fc4066521d362cb30b2dad3c2aa315ee81086399"
-status = "residue"
-cause = "mir::Ty: AddrKind"
+status = "translated"
+digest = "bff142708a58a419b646622bae50a37d58a42851f8e3a87712e9cb5226ee09ad"
 
 [[fn]]
 path = "core::parser::<impl at library/core/src/net/parser.rs:495:10: 495:15>::fmt"
 kappa = "bddfac6f61460f54a00b22ac99e00434578b791b5a93027f0b71032077d9c5cb"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::parser::<impl at library/core/src/net/parser.rs:495:17: 495:22>::clone"
 kappa = "6c78bfad64b872dec28539270d095d75cb8009f4e6db2e106a814163fce8ff58"
-status = "residue"
-cause = "mir::Ty: net::parser::AddrParseError"
+status = "translated"
+digest = "1856616b5b526ed0be40837f69f8af6be0961a3e7cc68768e19ee6943ec6e459"
 
 [[fn]]
 path = "core::parser::<impl at library/core/src/net/parser.rs:495:24: 495:33>::eq"
 kappa = "6095325270d418dbb89d389c72ec9add06da50b40c1c9acc7e0480f074389002"
 status = "residue"
-cause = "mir::Ty: AddrParseError"
+cause = "mir::TerminatorKind::Call: <AddrKind as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::parser::<impl at library/core/src/net/parser.rs:495:35: 495:37>::assert_fields_are_eq"
 kappa = "95421c78fd4b592d4386a54be9b420e4d337688181aa397afda6d6c3602b95bb"
-status = "residue"
-cause = "mir::Ty: AddrParseError"
+status = "translated"
+digest = "28df9304db16b59fcca2e2832fbbbd9f9bac1459d50f0826a9e84b00a9b41075"
 
 [[fn]]
 path = "core::parser::AddrParseError::fmt"
 kappa = "235870b97fd178bff7886e8f9f8c160067ceec3f6ef1e1cc78b06e0b7af27f17"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::parser::IpAddr::from_str"
@@ -984,40 +984,40 @@ cause = "mir::Ty: net::ip_addr::Ipv6Addr"
 [[fn]]
 path = "core::parser::Parser::new"
 kappa = "8f37b811f7f60ce081a7faab95f2d5f0bca54b037b20629cca6a3ff200157d11"
-status = "residue"
-cause = "mir::Ty: net::parser::Parser<'_>"
+status = "translated"
+digest = "6fe44eff17241562519d1f7f369398c2d6c238f1ea67d5a346fff8e62316f5c0"
 
 [[fn]]
 path = "core::parser::Parser::parse_with"
 kappa = "747170053e8f5e3b62ae36aba4fc4afd2eee35c1fe9a59406d00de7f6518409d"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: net::parser::AddrParseError"
+cause = "mir::Ty: &mut net::parser::Parser<'_>"
 
 [[fn]]
 path = "core::parser::Parser::peek_char"
 kappa = "27b2aaf60a76ec0ad7958f4e1123435f8cab4cb5c26f37afb0175788b0595e60"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::AggregateKind::Closure: parser::<impl at library/core/src/net/parser.rs:38:1: 38:20>::peek_char::{closure#0}: type outside the lift: {closure@library/core/src/net/parser.rs:68:32: 68:36}"
 
 [[fn]]
 path = "core::parser::Parser::read_atomically"
 kappa = "43992ed5fd89b5f0016a298143f456d5183bb8fa262d919619d910562a181e1f"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::Ty: &mut net::parser::Parser<'_>"
 
 [[fn]]
 path = "core::parser::Parser::read_char"
 kappa = "89a937993e73b9bb33e145650bbcb9ba1225110f85453d219204bd8a9036ee68"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::TerminatorKind::Call: slice::<impl [u8]>::split_first"
 
 [[fn]]
 path = "core::parser::Parser::read_given_char"
 kappa = "48302cbcc9bbc216f227b916135fce78040fd8cb73fddacf4fda7226788dcb29"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::AggregateKind::Closure: parser::<impl at library/core/src/net/parser.rs:38:1: 38:20>::read_given_char::{closure#0}: type outside the lift: {closure@library/core/src/net/parser.rs:82:30: 82:33}"
 
 [[fn]]
 path = "core::parser::Parser::read_ipv4_addr"
@@ -1036,26 +1036,26 @@ path = "core::parser::Parser::read_number"
 kappa = "77ffe1bb127ad7bdaee8643093bd54051f8bea6558737fbbf826781cb44b732c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::AggregateKind::Closure: parser::<impl at library/core/src/net/parser.rs:38:1: 38:20>::read_number::{closure#0}: type outside the lift: {closure@library/core/src/net/parser.rs:115:30: 115:38}"
 
 [[fn]]
 path = "core::parser::Parser::read_port"
 kappa = "bc35fa334212c2d36ee9a3ca57b1ffcf2cd06e7fb5b5592e77f2d11e2acc304c"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::AggregateKind::Closure: parser::<impl at library/core/src/net/parser.rs:38:1: 38:20>::read_port::{closure#0}: type outside the lift: {closure@library/core/src/net/parser.rs:251:30: 251:33}"
 
 [[fn]]
 path = "core::parser::Parser::read_scope_id"
 kappa = "17d40420ae3d394595991c9416f771f95fbb8badeaebb28c28196e615cdd7295"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::AggregateKind::Closure: parser::<impl at library/core/src/net/parser.rs:38:1: 38:20>::read_scope_id::{closure#0}: type outside the lift: {closure@library/core/src/net/parser.rs:259:30: 259:33}"
 
 [[fn]]
 path = "core::parser::Parser::read_separator"
 kappa = "cd956eeecdccdbb4490b63198682174cfcf07a44bc8a75407623d0fb610fb436"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::Ty: F"
 
 [[fn]]
 path = "core::parser::Parser::read_socket_addr_v4"
@@ -1109,7 +1109,7 @@ cause = "mir::Ty: net::socket_addr::SocketAddrV6"
 path = "core::read_groups"
 kappa = "8af01d3f6fb9e110680212a3ad1c41874fe230297866e1caa65e62d76042e8f2"
 status = "residue"
-cause = "mir::Ty: Parser<'_>"
+cause = "mir::Ty: slice::iter::IterMut<'_, u16>"
 
 [[fn]]
 path = "core::socket_addr::<impl at library/core/src/net/socket_addr.rs:145:16: 145:21>::clone"
@@ -1223,13 +1223,13 @@ cause = "mir::Ty: SocketAddrV4"
 path = "core::socket_addr::SocketAddr::fmt"
 kappa = "ea773a45eda9258b1152ca814c7a6055bf07919977797eebd76a3b8245ea1de2"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SocketAddr"
 
 [[fn]]
 path = "core::socket_addr::SocketAddr::fmt#2"
 kappa = "9e4d013224a1886f2075018a8078e26eed467d9cc98719703e8f924ae3d3aeb0"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SocketAddr"
 
 [[fn]]
 path = "core::socket_addr::SocketAddr::from"
@@ -1296,13 +1296,13 @@ cause = "mir::Ty: SocketAddr"
 path = "core::socket_addr::SocketAddrV4::fmt"
 kappa = "af807eba63f863783b35c337420f9213d64fa63923a32aacbb0ef621073ffedc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SocketAddrV4"
 
 [[fn]]
 path = "core::socket_addr::SocketAddrV4::fmt#2"
 kappa = "b513342ca50fe220b53ef0ac63f4334f5d80e39fb269c833badb83ea903d6c20"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SocketAddrV4"
 
 [[fn]]
 path = "core::socket_addr::SocketAddrV4::ip"
@@ -1344,13 +1344,13 @@ cause = "mir::Ty: SocketAddrV6"
 path = "core::socket_addr::SocketAddrV6::fmt"
 kappa = "f61f5ad8983523a2edb4ec125e07b701dcc10943a2ff46f27b6b248b34a8bbd0"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SocketAddrV6"
 
 [[fn]]
 path = "core::socket_addr::SocketAddrV6::fmt#2"
 kappa = "71d26a845ab414c5b85382518b2797e115b1f80c9b43e1e77821c31b2bea1beb"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: SocketAddrV6"
 
 [[fn]]
 path = "core::socket_addr::SocketAddrV6::ip"

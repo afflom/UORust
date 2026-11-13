@@ -26,7 +26,7 @@ cause = "mir::Ty: FromBytesWithNulError"
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:125:38: 125:43>::fmt"
 kappa = "01c51a2012396b4cdfe2ed4447a1d8ff92dd40e5b7d18b53fd02f7dc47ad3443"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: FromBytesWithNulError"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:10: 158:15>::clone"
@@ -50,7 +50,7 @@ cause = "mir::Ty: FromBytesUntilNulError"
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:38: 158:43>::fmt"
 kappa = "f12bfc07b0cb55b98068c72703f434297f14f5cd4864c0290ffdacbf16f30ce6"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: FromBytesUntilNulError"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:180:1: 180:29>::default"
@@ -68,7 +68,7 @@ cause = "mir::Ty: ffi::c_str::Bytes<'_>"
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:780:17: 780:22>::fmt"
 kappa = "91a4c9b6632abfa1c09e3fac19849aee119cd53caac70029b697a69f992a3665"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: c_str::Bytes<'_>"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:91:10: 91:19>::eq"
@@ -176,7 +176,7 @@ cause = "mir::Ty: CStr"
 path = "core::c_str::CStr::fmt"
 kappa = "ccdcb8345f57497282318599289356e879a16edb84f8d2ebacd13529c7ebe9cc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: CStr"
 
 [[fn]]
 path = "core::c_str::CStr::from_bytes_until_nul"
@@ -260,25 +260,25 @@ cause = "mir::Ty: CStr"
 path = "core::c_str::CStr::to_str"
 kappa = "c7d824bee168bbb102df113bf89d46c639de357395e181e48994ceb7d17926f3"
 status = "residue"
-cause = "mir::Ty: str::error::Utf8Error"
+cause = "mir::Ty: CStr"
 
 [[fn]]
 path = "core::c_str::FromBytesUntilNulError::fmt"
 kappa = "e249819e129f36fcaed2d877b65cfbdb36b00af49811bbc40bf27d8741c952bc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: FromBytesUntilNulError"
 
 [[fn]]
 path = "core::c_str::FromBytesWithNulError::fmt"
 kappa = "ca95d34ab307950a4050dc4a4d80097233412c1e2afb44af49c6d3af2393ebde"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: FromBytesWithNulError"
 
 [[fn]]
 path = "core::ffi::c_void::fmt"
 kappa = "56a3862697e302a089ebd8d4ac49c6cda8b44ed3a5235a915cbaf06a7d193313"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::strlen"
@@ -308,7 +308,7 @@ digest = "20c254da57beefe2b705380c0c407a621cb273b77d890939d5437fd9f3a2b847"
 path = "core::va_list::<impl at library/core/src/ffi/va_list.rs:123:18: 123:23>::fmt"
 kappa = "d1a47c7c68fe5464acef05ce1e42571b4ffd2a98f8ea5cd71c97645b0569ea42"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: VaListInner"
 
 [[fn]]
 path = "core::va_list::<impl at library/core/src/ffi/va_list.rs:123:25: 123:30>::clone"
@@ -338,7 +338,7 @@ cause = "mir::Ty: ffi::va_list::VaList<'_>"
 path = "core::va_list::VaList::fmt"
 kappa = "e37ea90d376d7b1fc583cc5c9e81425278889900bee4e289d1f588211c202a43"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: VaList<'_>"
 
 [[fn]]
 path = "core::va_list::VaList::next_arg"

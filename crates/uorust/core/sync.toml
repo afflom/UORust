@@ -140,61 +140,61 @@ cause = "mir::Ty: isize"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt"
 kappa = "bbf65c2df98fb92bc00391e349537f9d7c77fea768c6e597aa55e82919b7712e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<i8>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#10"
 kappa = "625b0360e7f00eaaa3e048e0b94abc8feb325bfdab4478e969f6ec455ea23607"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<usize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#2"
 kappa = "9f53aa216d896b99c3d2d7390c66d5f69fdcd758f74c649a552b64146948e704"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<u8>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#3"
 kappa = "a2aa06c8a9c4cf1996dae3729b69e12f8e70fdf420755a126db28c0f4dcf9f9d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<i16>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#4"
 kappa = "fadc17e8f10de5979f23ef0a65e3b51fab4a54ddb66a2f37d92836c0f836d6fd"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<u16>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#5"
 kappa = "cba79b98b0db8aec9d4ff7691ddd5d874dc51c979466727cdfb507e30df01b1d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<i32>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#6"
 kappa = "b276a0cd3be78097fecc7b6ba38c9d7867f5b8095076017984059d074d28563e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<u32>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#7"
 kappa = "f07eba032f85b9aef5fb496bdecea7d0ff410ea10a508d2f4817bbbbe2ad2911"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<i64>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#8"
 kappa = "7cc750f2092a91c6f9b8f3a0959b61b812044a55c24d5d78dad4e4b91605311c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<u64>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#9"
 kappa = "7820711a3d7455331797d804dff49939395dd09cd6443bfe92efbd01665a8bda"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::as_ptr"
@@ -1596,7 +1596,7 @@ digest = "83ba281707fb875a984cfa3cf279e6fcd37429c9b8fbf8bd3a90ab45fa9f6403"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:23: 444:28>::fmt"
 kappa = "6f6fda1dba12fe685459945afd9e354f5e445c0ded32266160a0ac5b8cfc96aa"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:30: 444:32>::assert_fields_are_eq"
@@ -1687,7 +1687,7 @@ cause = "mir::Ty: Atomic<bool>"
 path = "core::atomic::AtomicBool::fmt"
 kappa = "518e50985c380aa4a23b2fea2a1b543947dfe1a3cb5a236ee2185bb6d544f1fb"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Atomic<bool>"
 
 [[fn]]
 path = "core::atomic::AtomicBool::from"
@@ -1851,14 +1851,14 @@ path = "core::atomic::AtomicPtr::fmt"
 kappa = "e1b5d4e0e38650ac1bf7bc2933860aae5c87798841132f1b0e4b8ae7da21cd17"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: *mut u32"
 
 [[fn]]
 path = "core::atomic::AtomicPtr::fmt#2"
 kappa = "b96580d6819b8d9fa38e62951a09977de0757d0d133d052033ae6ceed33f0b37"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: *mut u32"
 
 [[fn]]
 path = "core::atomic::AtomicPtr::from"
@@ -2175,7 +2175,7 @@ cause = "mir::Ty: SyncView<u32>"
 path = "core::sync_view::SyncView::fmt"
 kappa = "93f3d905636421f46ae525ccb3900d3d4e29ffc4784550edd2c7f615c72c1fe9"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::sync_view::SyncView::from"

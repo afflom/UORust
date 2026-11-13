@@ -10,7 +10,7 @@ path = "core::poll::<impl at library/core/src/task/poll.rs:11:23: 11:28>::fmt"
 kappa = "8ae1f5b2347d18dc19adcd3374302335898629866fe8f834298ea8ae7769ea2c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Poll<u32>"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:30: 11:32>::assert_fields_are_eq"
@@ -152,13 +152,13 @@ cause = "mir::Ty: task::wake::RawWakerVTable"
 path = "core::wake::<impl at library/core/src/task/wake.rs:108:34: 108:39>::fmt"
 kappa = "fabf8071cf2fd1306d445ab9372d879d58300eef47aec18cc6beb3e057fa0938"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RawWakerVTable"
 
 [[fn]]
 path = "core::wake::<impl at library/core/src/task/wake.rs:206:10: 206:15>::fmt"
 kappa = "0a9311e2ad34c0372830bfc05d251eefdb0f19aace50bc4f5ac8591ba325b4a8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: ExtData<'_>"
 
 [[fn]]
 path = "core::wake::<impl at library/core/src/task/wake.rs:20:10: 20:19>::eq"
@@ -170,13 +170,13 @@ cause = "mir::Ty: RawWaker"
 path = "core::wake::<impl at library/core/src/task/wake.rs:20:21: 20:26>::fmt"
 kappa = "3893f61a72a7b6b59bc9e075c49e76596a6d5c1bbd506b865951f85f7e3452fa"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RawWaker"
 
 [[fn]]
 path = "core::wake::<impl at library/core/src/task/wake.rs:300:10: 300:15>::fmt"
 kappa = "c0682b755eecff7965f4165cd8c6802c80c5e4906b818ed4507c7ade752f5667"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: ContextBuilder<'_>"
 
 [[fn]]
 path = "core::wake::Context::ext"
@@ -188,7 +188,7 @@ cause = "mir::Ty: &mut dyn any::Any"
 path = "core::wake::Context::fmt"
 kappa = "92618a96f5bd648f848a4eaa0f610c0360212de987529edc04014fe4a9ff3f5f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Context<'_>"
 
 [[fn]]
 path = "core::wake::Context::from_waker"
@@ -272,7 +272,7 @@ cause = "mir::Ty: LocalWaker"
 path = "core::wake::LocalWaker::fmt"
 kappa = "7d340a794fe48ff4f4878bf985b4999323172dbf85cc92c7fe3ef9e96a83c2b7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: LocalWaker"
 
 [[fn]]
 path = "core::wake::LocalWaker::from_fn_ptr"
@@ -386,7 +386,7 @@ cause = "mir::Ty: Waker"
 path = "core::wake::Waker::fmt"
 kappa = "fcd6da604374a4e10f5a53be645a741f245f7db76194462fde541c467115f334"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Waker"
 
 [[fn]]
 path = "core::wake::Waker::from_fn_ptr"

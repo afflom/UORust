@@ -22,7 +22,7 @@ cause = "mir::Ty: !"
 path = "core::assert_matches_failed::Pattern::fmt"
 kappa = "c4290eb4f967c6d1a6f3ce47dcc20a020d470d768bec0f6ad87a04ba42c96f95"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: assert_matches_failed::Pattern<'_>"
 
 [[fn]]
 path = "core::const_panic_fmt"
@@ -245,7 +245,7 @@ cause = "mir::Ty: !"
 path = "core::panicking::<impl at library/core/src/panicking.rs:371:10: 371:15>::fmt"
 kappa = "1fb5789db232b14e34b1090a83d131fac5aaec03ea86d3400ef4af345b35e83f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::panicking::panic"

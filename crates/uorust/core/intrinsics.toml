@@ -7,8 +7,8 @@ digest = "d94925ddcb604fcebbdf9e1815bd1373716f2baf9e5d0e1c4d217c79de17262a"
 [[fn]]
 path = "core::Call"
 kappa = "6b670523423f6722184db1294f51ccf0559859fec67e6b16b04091c7d4e5309c"
-status = "residue"
-cause = "mir::Ty: ReturnToArg"
+status = "translated"
+digest = "5be8d41e61e0e7ac7b688a113be3f7c9e9fc5b06efc34e1a5addeb29c1f7fe1a"
 
 [[fn]]
 path = "core::CastPtrToPtr"
@@ -55,8 +55,8 @@ digest = "544681be7542f51b7a0eaef62a7cb4f701cd4f6999145df058c4f304224875ba"
 [[fn]]
 path = "core::Goto"
 kappa = "850728fdb4ee1b71e20d99984135956dbd3334957d89d9a345cbe5166cd2c811"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::BasicBlock"
+status = "translated"
+digest = "bca62dfa6c060c9ce3ee1e82f35ffd0580f425fbd31da5f65d84045476bd6969"
 
 [[fn]]
 path = "core::Move"
@@ -82,14 +82,14 @@ cause = "mir::Ty: <u32 as ptr::metadata::Pointee>::Metadata"
 [[fn]]
 path = "core::Return"
 kappa = "73e7ab6b2131a34fca1591e8f36787180e87690fde1c75211f807f82d13ad680"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::BasicBlock"
+status = "translated"
+digest = "e05a38a88f4051c4f34d7bedeb858e6f0357a764041e7e5b50347eeea1d0843a"
 
 [[fn]]
 path = "core::ReturnTo"
 kappa = "c5de257f8dcb03077fa3380d2ecc61e72acb41d5d67239c3aea5b107b8e8c2cf"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::ReturnToArg"
+status = "translated"
+digest = "5e1aa2e04682cbdb7e77c95473f092993ba89ca03c7b9f0f5ebcf3bf9695ab4f"
 
 [[fn]]
 path = "core::SetDiscriminant"
@@ -132,20 +132,20 @@ cause = "mir::Ty: T"
 [[fn]]
 path = "core::Unreachable"
 kappa = "1ecc45bd1fc8d240a42be1be588a1f96ed762d66420bcf8d66493a3fe1293f62"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::BasicBlock"
+status = "translated"
+digest = "71484758e7981949ca58d97ebdaac51183b4dd0f4ee43e186da40d00bbeb15a2"
 
 [[fn]]
 path = "core::UnwindCleanup"
 kappa = "d9d00729720fab24936823b99c02347bb11c7373c7429cb79b545c384e30c023"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::UnwindActionArg"
+status = "translated"
+digest = "68defc6ec03ca2911ae93541c712ba143a26ada72a6d9f1b5509a6fa981a0106"
 
 [[fn]]
 path = "core::UnwindContinue"
 kappa = "34370a48262a039bbc592009f610f6ba2cb7f0eb2dd4b921024b920dbc5b2588"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::UnwindActionArg"
+status = "translated"
+digest = "fdd234dc74253ac8d5b6df2a9b62efc067b6d9943ed061978b990c99800aeace"
 
 [[fn]]
 path = "core::UnwindResume"
@@ -156,14 +156,14 @@ digest = "48f9c9c6d0d34541dd454ca2b22421adec7ad3ef33839fd43ec473c3bfba2359"
 [[fn]]
 path = "core::UnwindTerminate"
 kappa = "96e66e9df29252db072b029ce752c9d615d3bef02fc97a79bde8f23e3d387948"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::UnwindActionArg"
+status = "translated"
+digest = "68e5facd1c637d3b93822a151c151f7f61c5074579adf5a51f9fdbcc31ec8d2c"
 
 [[fn]]
 path = "core::UnwindUnreachable"
 kappa = "e95da83b5e0ca75e67891073b5e3e4f2c9db29784f13162fcf436f3005c6e320"
-status = "residue"
-cause = "mir::Ty: intrinsics::mir::UnwindActionArg"
+status = "translated"
+digest = "d5b2e829ab3ba202ab8f0eb9269e6aa4f1661b11108883522add3e697ffe26b8"
 
 [[fn]]
 path = "core::Variant"
@@ -1002,19 +1002,19 @@ digest = "da5e11b312a8e25c01cfea5bf3f880f11a569332e38d8d2f4a1689628c15e86c"
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:10: 75:15>::fmt"
 kappa = "9dff05d1c28ef945e62f18fbc468a2ba6498674644681706f530e7d5d8e7201f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:31: 75:40>::eq"
 kappa = "2e2aa386adacbdd4bdfdfead8b4048376bb0e629cbc486986f091b6597c0a89a"
 status = "residue"
-cause = "mir::Ty: AtomicOrdering"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:42: 75:44>::assert_fields_are_eq"
 kappa = "8f32ce0b950443f3a08f8ff5d81850c8b3392ea50cee9c8725ed2ebcd591c5cc"
-status = "residue"
-cause = "mir::Ty: AtomicOrdering"
+status = "translated"
+digest = "d3678cb18102067a47d9851c952d36a8528af70a4bfdda0a5ebd60f01f561c81"
 
 [[fn]]
 path = "core::intrinsics::align_of"
@@ -1163,19 +1163,19 @@ cause = "mir::TerminatorKind::Call: intrinsics::forget"
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:10: 407:15>::fmt"
 kappa = "87ce7d5ca6f4717dea34b74586b83d62a8a1eee87a6280f841c356142ca2fb66"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:31: 407:40>::eq"
 kappa = "9ac31061e26b246723b7db47f1836b8703d0fc9e35b8fd5f5bb146053ba25b2a"
 status = "residue"
-cause = "mir::Ty: intrinsics::simd::SimdAlign"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:42: 407:44>::assert_fields_are_eq"
 kappa = "053ead543ce6a44b6c4394019be42a4092cb55b8430a030eb25888673735b1f2"
-status = "residue"
-cause = "mir::Ty: intrinsics::simd::SimdAlign"
+status = "translated"
+digest = "58c00986e77a1bdaa192997f4dd4d402749a826017b85e62cfd0ede2866c339a"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_add"

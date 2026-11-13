@@ -2,7 +2,7 @@
 path = "core::array::<impl at library/core/src/array/mod.rs:182:10: 182:15>::fmt"
 kappa = "842b9e987686bd60695ef9ef5eea490ddfc90296cf2db59234be1b868d98b014"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: TryFromSliceError"
 
 [[fn]]
 path = "core::array::<impl at library/core/src/array/mod.rs:182:23: 182:28>::clone"
@@ -504,7 +504,7 @@ cause = "mir::Instantiation: a const parameter"
 path = "core::array::TryFromSliceError::fmt"
 kappa = "4a7fed8360164a2d49846b6cbe34b28b0e3d3c07e8757a92b8fced5f4f78bcb2"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: TryFromSliceError"
 
 [[fn]]
 path = "core::array::TryFromSliceError::from"
@@ -629,7 +629,7 @@ path = "core::array::iter::IntoIter::fmt"
 kappa = "3af6a91e40200e8bbf0a5877a874be51ad1136b7e0f1448485aa4610ac88d3cb"
 at = "N=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: array::iter::IntoIter<u32, u32>"
 
 [[fn]]
 path = "core::array::iter::IntoIter::fold"
@@ -972,7 +972,7 @@ path = "core::iter_inner::PolymorphicIter::fmt"
 kappa = "b6ca86b4555602771a24d03dea83e72858be7ec9084597a80cf8429de7555f6a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
 
 [[fn]]
 path = "core::iter_inner::PolymorphicIter::len"

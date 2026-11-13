@@ -287,14 +287,14 @@ path = "core::non_null::NonNull::fmt"
 kappa = "30c02238d0b2ca5d947cc807d017a5f6f2ebc5a4b44e202a135020e9ee58642c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: NonNull<u32>"
 
 [[fn]]
 path = "core::non_null::NonNull::fmt#2"
 kappa = "edf33cc09c5dbd047903eff9ce38b22d1c8922de5560e15bbfd94e80cec6d817"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: NonNull<u32>"
 
 [[fn]]
 path = "core::non_null::NonNull::from"
@@ -566,14 +566,14 @@ path = "core::ptr::F::fmt"
 kappa = "2c4442968a686b6a1577c0365924dd05e5618398852c0307118bacd54f9e8fc2"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ptr::F::fmt#2"
 kappa = "09dd1ffa84461c47b6e55f7d2b79bec6a6aa48a577bb98f705247fa291e2cf41"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ptr::F::hash"
@@ -1131,7 +1131,7 @@ path = "core::ptr::metadata::DynMetadata::fmt"
 kappa = "f350ca86e533807dee06175bea2eb0eebec26ea94e210063674c2bf710839a44"
 at = "Dyn=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DynMetadata<u32>"
 
 [[fn]]
 path = "core::ptr::metadata::DynMetadata::hash"
@@ -1145,7 +1145,7 @@ path = "core::ptr::metadata::DynMetadata::layout"
 kappa = "2f23fc3f8a1b168eef25560794233504247bfdf6f51a95301b8e4a6f6084d4ea"
 at = "Dyn=u32"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::Ty: DynMetadata<u32>"
 
 [[fn]]
 path = "core::ptr::metadata::DynMetadata::partial_cmp"
@@ -1977,14 +1977,14 @@ path = "core::unique::Unique::fmt"
 kappa = "0c87e175d84735022bd944b583232ef9c6f9340130fc8ec8bbb427b12860b91e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Unique<u32>"
 
 [[fn]]
 path = "core::unique::Unique::fmt#2"
 kappa = "fbc21d8c9fe59bc4d9442c84fd175263b67f7f40ffa8df335c582d66cf02816d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Unique<u32>"
 
 [[fn]]
 path = "core::unique::Unique::from"

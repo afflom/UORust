@@ -69,7 +69,7 @@ cause = "mir::Ty: AllocError"
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:31:38: 31:43>::fmt"
 kappa = "f1251fb5920b81f869485fe88ce6d0cdce79cadc3b1363af244338a387dd2ab6"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: AllocError"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::allocate"
@@ -159,97 +159,97 @@ cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
 path = "core::alloc::AllocError::fmt"
 kappa = "a7c9ea9f5be77f69344a9c7bd6dd7779d3ecaddb047ef2cef8d19342658127c0"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: AllocError"
 
 [[fn]]
 path = "core::inner"
 kappa = "ad91324b9eb50964db0336e1564a5b1e956008ac11cb3080b44812727023a8de"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: Layout::max_size_for_alignment"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:16: 28:21>::clone"
 kappa = "083a3fe08ebf360063379cb0dbf34bd6ff82e789d594038fad0c57810626f4b4"
-status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+status = "translated"
+digest = "990f2f8503423480a3abda7c73f760605ffd363ac9c90935c1f334c67cf3a1e3"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:23: 28:28>::fmt"
 kappa = "d6ed07336fd3d2eeb04f73b917f82757fe86683766b4174c842c741efa01878e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:30: 28:39>::eq"
 kappa = "4cf87614574409ba2438621489745bcd62a5c6fa8dc78edb19f98de53c6d7e5b"
 status = "residue"
-cause = "mir::Ty: Layout"
+cause = "mir::TerminatorKind::Call: <alignment::Alignment as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:41: 28:43>::assert_fields_are_eq"
 kappa = "57bb41004566116374c2096b0a5c461a32c1dd5c73f5f7bb57e7ae2329350fa2"
-status = "residue"
-cause = "mir::Ty: Layout"
+status = "translated"
+digest = "8ec99c63fefffb1f3cdc9e06f340dbe16933af2595626ba6d35effed538868c3"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:45: 28:49>::hash"
 kappa = "3ba4e85eaa34efdef1dd7a65dedf2ee5bd05693c867101f7dc64e6a8895d2d9b"
 status = "residue"
-cause = "mir::Ty: Layout"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:605:10: 605:15>::clone"
 kappa = "69cbc697e6648bd9ec003f01b8a81f7627560abe747f898925647cc0be0ab5d9"
-status = "residue"
-cause = "mir::Ty: alloc::layout::LayoutError"
+status = "translated"
+digest = "ad16995442005a80bf4f57829dd2f9724bf89cce5f389f0a74ef4cedc8bbd3e1"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:605:17: 605:26>::eq"
 kappa = "b5e371695ccb1f856ed9e71062719f9e4969c4358597428102fd5e12941e29ea"
-status = "residue"
-cause = "mir::Ty: LayoutError"
+status = "translated"
+digest = "be7d8924ef44d94f5510f088429e0a70edecc3ab95d3fa0e22d86719df1b21f5"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:605:28: 605:30>::assert_fields_are_eq"
 kappa = "e14dffe475d94a118f97987ef91e958c2158f0d2f58acdf8a5573aa626f0bf63"
-status = "residue"
-cause = "mir::Ty: LayoutError"
+status = "translated"
+digest = "937b99dcc73e98e84aa0d9875a225cc8306707ecff6ebefc8fadb783a55a05e9"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:605:32: 605:37>::fmt"
 kappa = "3417f372985129e805cc3f42ca18474f0a5a833aea75e27e0775132d1c95ccb9"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::layout::Layout::adjust_alignment_to"
 kappa = "7b0609d36198dc78f2eaa392d521b4a201cfd8157db69bcea67a9fa8ec3603f1"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::max"
 
 [[fn]]
 path = "core::layout::Layout::align"
 kappa = "fd2592345b77ace114dfd978c9c02a37545b9907079875e392daa9463f4a77f8"
 status = "residue"
-cause = "mir::Ty: Layout"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
 
 [[fn]]
 path = "core::layout::Layout::align_to"
 kappa = "71036e29598db16523ca0e47301b608405703a8a8a1f876ff8b02f6af0ecdbed"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::new"
 
 [[fn]]
 path = "core::layout::Layout::alignment"
 kappa = "6f75f6a91a3cd639f252d15e358423a28b95af590571672c975b0e8990b4d294"
-status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+status = "translated"
+digest = "a9c59a034a56d2a9c66e2ec9139e15915406e028eb5efa4ead8d5813a714776d"
 
 [[fn]]
 path = "core::layout::Layout::array"
 kappa = "714f789016235e4210a994033cacdafb3ef15b0e2b9fb2070dbcdcacd2431119"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::Operand::Constant: the constant item <T as mem::SizedTypeProperties>::LAYOUT"
 
 [[fn]]
 path = "core::layout::Layout::dangling_ptr"
@@ -261,39 +261,39 @@ cause = "mir::Ty: ptr::non_null::NonNull<u8>"
 path = "core::layout::Layout::extend"
 kappa = "b9b8d539a92909324670fda481cba0baa2c816e85fe197f3b97de08abd21186e"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::max"
 
 [[fn]]
 path = "core::layout::Layout::extend_packed"
 kappa = "2fe89e4673d3a0d078b1134841c2c3b1e87b89c235d97e6128371531141fb149"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: unchecked_add"
 
 [[fn]]
 path = "core::layout::Layout::for_value"
 kappa = "c10a96355bc6d833f1d870689048f308d0889512e8fc587a42deb15835337bdd"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 
 [[fn]]
 path = "core::layout::Layout::for_value_raw"
 kappa = "9e38b8a2eac1cb3587500b7b5e4b317a4cd5d6d42582504d54eecf9592f3ea01"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::Ty: *const u32"
 
 [[fn]]
 path = "core::layout::Layout::from_size_align"
 kappa = "57abcf2f370d636b663aceb0bb39adcba71f4df06a0c0784008e6f780c03e578"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: Layout::is_size_align_valid"
 
 [[fn]]
 path = "core::layout::Layout::from_size_align_unchecked"
 kappa = "948a2d93a43b37748969ff89c11bf7264de47c96f01cf9d92d6f10ad2585c8f8"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
 
 [[fn]]
 path = "core::layout::Layout::from_size_align_unchecked::precondition_check"
@@ -305,83 +305,83 @@ cause = "mir::TerminatorKind::Call: Layout::is_size_align_valid"
 path = "core::layout::Layout::from_size_alignment"
 kappa = "d7490469d2ca79e2ad6eb8b20d48a0bd27a8fc69d0aff914246c75aed97d5e68"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: Layout::is_size_alignment_valid"
 
 [[fn]]
 path = "core::layout::Layout::from_size_alignment_unchecked"
 kappa = "da243c9e5d19750f5be9dd689b14a931831b5df2e5278330fa56e978706ab605"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
 
 [[fn]]
 path = "core::layout::Layout::from_size_alignment_unchecked::precondition_check"
 kappa = "d5dec3a284d77f074ef64438fd45cd4b8885b1ff9fc28d48c557cab0dfd32755"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::TerminatorKind::Call: Layout::is_size_alignment_valid"
 
 [[fn]]
 path = "core::layout::Layout::is_size_align_valid"
 kappa = "44be45b21c1853245f55c23008dae8eb093f6e642498850821ffde7df0ac811b"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::new"
 
 [[fn]]
 path = "core::layout::Layout::is_size_alignment_valid"
 kappa = "1197ff765439f1fb4a93b0c32a0f8dcfd52d8f177b10288846c1245656c06a92"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::TerminatorKind::Call: Layout::max_size_for_alignment"
 
 [[fn]]
 path = "core::layout::Layout::max_size_for_alignment"
 kappa = "a148db3f7e51e6705047a24f56af4a1fc86282ae0411fe3b61e5d93e4cb8279a"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Operand::Constant: num::<impl isize>::MAX as usize (IntToInt)"
 
 [[fn]]
 path = "core::layout::Layout::new"
 kappa = "285f0fdfabc07d458333d9c22e39ce8189dc0c9b0d1cb715a966c1cbd7368b83"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::Operand::Constant: the constant item <T as mem::SizedTypeProperties>::LAYOUT"
 
 [[fn]]
 path = "core::layout::Layout::pad_to_align"
 kappa = "00bb851e46b64b3ec3ebf4bc18a501dd2e1e38103db6dcc0e8fb440839a29741"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: Layout::size_rounded_up_to_custom_alignment"
 
 [[fn]]
 path = "core::layout::Layout::padding_needed_for"
 kappa = "3252b80e93dd409aa355147b0bd9bc94567b2c766dde16e2d7da9fbd51b6bdc9"
 status = "residue"
-cause = "mir::Ty: Layout"
+cause = "mir::TerminatorKind::Call: Layout::size_rounded_up_to_custom_alignment"
 
 [[fn]]
 path = "core::layout::Layout::repeat"
 kappa = "9d01e1750c7542baec0199f303031fb1a74192f6de3c9511a6dc78e99e8591f6"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: Layout::pad_to_align"
 
 [[fn]]
 path = "core::layout::Layout::repeat_packed"
 kappa = "e039e0f6c9c69b00c64b0da660b1c9feabd9483f76e2b8be9ec892abd02332a5"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::TerminatorKind::Call: num::<impl usize>::checked_mul"
 
 [[fn]]
 path = "core::layout::Layout::size"
 kappa = "220a6d4baa0d820dfde6f90c59fcd8261a2049a90ecd7627174347c565455501"
-status = "residue"
-cause = "mir::Ty: Layout"
+status = "translated"
+digest = "f53991eedf9a6e8c12544255b11652c6553c6b0a4acba722811694bd6df2e2cc"
 
 [[fn]]
 path = "core::layout::Layout::size_rounded_up_to_custom_alignment"
 kappa = "2b245982d3008c0678e6908014cb9315f675926c6310769f847cb1be95259269"
 status = "residue"
-cause = "mir::Ty: Layout"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
 
 [[fn]]
 path = "core::layout::LayoutError::fmt"
 kappa = "e494c7c190356fb4e80b57073a2a5e2cfefacca40fb4d430a76f26fd65203320"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 

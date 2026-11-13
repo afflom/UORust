@@ -8,25 +8,25 @@ cause = "mir::Ty: UnsafeCell<&i32>"
 path = "core::cell::<impl at library/core/src/cell.rs:863:10: 863:15>::fmt"
 kappa = "b854ec587250b57c3ba70661b34a22202e89a56ed0b4b9fd1ed46c0808d7f8a0"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: BorrowError"
 
 [[fn]]
 path = "core::cell::<impl at library/core/src/cell.rs:889:10: 889:15>::fmt"
 kappa = "f86c2ba75404fd67b0ff7b3eb21cf4d590ea18027c1a340681a932bd86bd092c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: BorrowMutError"
 
 [[fn]]
 path = "core::cell::BorrowError::fmt"
 kappa = "0094d4389065efd595cb94ded7e57b6be4dca944e3701e648cf7734dc0427e83"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: BorrowError"
 
 [[fn]]
 path = "core::cell::BorrowMutError::fmt"
 kappa = "82d6835852e4fa7214700d7e51cffaf51c1c9eb930c19d5bd3359b4df4e4b4d3"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: BorrowMutError"
 
 [[fn]]
 path = "core::cell::BorrowRef::clone"
@@ -272,7 +272,7 @@ path = "core::cell::Ref::fmt"
 kappa = "881b5570c6bf1bbf0a929689a22a580741cf7ea9404b12c4904506f1e5ebb96e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: cell::Ref<'_, u32>"
 
 [[fn]]
 path = "core::cell::Ref::leak"
@@ -496,7 +496,7 @@ path = "core::cell::RefMut::fmt"
 kappa = "93127080cde454c5fee99b3674e3f870fbca6732b70e5fc7a4b038d78d7b0b4b"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RefMut<'_, u32>"
 
 [[fn]]
 path = "core::cell::RefMut::leak"
@@ -671,7 +671,7 @@ path = "core::cell::once::OnceCell::fmt"
 kappa = "2167d59ed50bbafaf42593eee185f9f9f992303ac14ab72738b48e57b428cd1d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: OnceCell<u32>"
 
 [[fn]]
 path = "core::cell::once::OnceCell::from"
@@ -844,7 +844,7 @@ path = "core::lazy::LazyCell::fmt"
 kappa = "1b41b2cf9a79dfcec2cd68b57e92bb2a444cb802a7b47a8cd4db509cce416634"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: LazyCell<u32, u32>"
 
 [[fn]]
 path = "core::lazy::LazyCell::from"

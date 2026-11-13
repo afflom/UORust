@@ -69,7 +69,7 @@ cause = "mir::Operand::Constant: unicode::unicode_data::case_ignorable::lookup_s
 path = "core::conversions::<impl at library/core/src/unicode/unicode_data.rs:755:20: 755:25>::clone"
 kappa = "53670edc18eb4c171fe41041b91605b8cbb2fdd7a845447dfb1e27138e0e0ffa"
 status = "residue"
-cause = "mir::Ty: unicode::unicode_data::conversions::Range"
+cause = "mir::Ty: conversions::Range"
 
 [[fn]]
 path = "core::conversions::Range::end"
@@ -81,13 +81,13 @@ cause = "mir::Ty: conversions::Range"
 path = "core::conversions::Range::new"
 kappa = "2900553e2bea851f85e5c9caec70ee9acfc08a5bb6c692230a4948eb82625ffa"
 status = "residue"
-cause = "mir::Ty: unicode::unicode_data::conversions::Range"
+cause = "mir::Ty: ops::range::RangeInclusive<u16>"
 
 [[fn]]
 path = "core::conversions::Range::singleton"
 kappa = "6ae2f06bdf765175e4d27811cd2be431fa370e9985d53218401cff0774485daa"
 status = "residue"
-cause = "mir::Ty: unicode::unicode_data::conversions::Range"
+cause = "mir::Ty: ops::range::RangeInclusive<u16>"
 
 [[fn]]
 path = "core::conversions::Range::start"
@@ -99,13 +99,13 @@ cause = "mir::Ty: conversions::Range"
 path = "core::conversions::Range::step_by_1"
 kappa = "51ee1c04be413b885afd2abf079980b6eb5a03846fb2c4d7f73148a8b9581a51"
 status = "residue"
-cause = "mir::Ty: unicode::unicode_data::conversions::Range"
+cause = "mir::Ty: ops::range::RangeInclusive<u16>"
 
 [[fn]]
 path = "core::conversions::Range::step_by_2"
 kappa = "7dcbb8a4bc0c71cd1698fab3aa80cc96a2bf1cf0512e090467a7cb5162413085"
 status = "residue"
-cause = "mir::Ty: unicode::unicode_data::conversions::Range"
+cause = "mir::Ty: ops::range::RangeInclusive<u16>"
 
 [[fn]]
 path = "core::conversions::lookup"
@@ -214,19 +214,19 @@ cause = "mir::Operand::Constant: the constant item unicode::unicode_data::UNICOD
 path = "core::unicode_data::ShortOffsetRunHeader::new"
 kappa = "5246c57f488fe785697d5fda3f80dcca52ac71979f83e6cc1f76d154cec9a878"
 status = "residue"
-cause = "mir::Ty: unicode::unicode_data::ShortOffsetRunHeader"
+cause = "mir::Operand::Constant: 11_i32 as u32 (IntToInt)"
 
 [[fn]]
 path = "core::unicode_data::ShortOffsetRunHeader::prefix_sum"
 kappa = "abf0b0c1989ac3b8a36c3ebdf2aa7f3a9d6d7280973cb9e0e356aef669587ec9"
 status = "residue"
-cause = "mir::Ty: ShortOffsetRunHeader"
+cause = "mir::Operand::Constant: 21_i32 as u32 (IntToInt)"
 
 [[fn]]
 path = "core::unicode_data::ShortOffsetRunHeader::start_index"
 kappa = "6da7cd24ec443e1541f37bbe5b6ae209813478148a8f97b1888111a6281a0df5"
 status = "residue"
-cause = "mir::Ty: ShortOffsetRunHeader"
+cause = "mir::Operand::Constant: 21_i32 as u32 (IntToInt)"
 
 [[fn]]
 path = "core::unicode_data::UNICODE_VERSION"

@@ -9,7 +9,7 @@ cause = "mir::Ty: {async fn body of future::async_drop::async_drop_in_place<u32>
 path = "core::future::<impl at library/core/src/future/mod.rs:50:10: 50:15>::fmt"
 kappa = "519360b596417c8afe37d623366a76d27409c58cf01e97d80eefa002e52b3a39"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: ResumeTy"
 
 [[fn]]
 path = "core::future::<impl at library/core/src/future/mod.rs:50:23: 50:28>::clone"
@@ -36,21 +36,21 @@ path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:10: 10
 kappa = "0d098e04d46b0b565533dd7de8c8b8accfa68e20f34754990b8664cbed6fc166"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:17: 10:22>::clone"
 kappa = "b376a0860062860ebed422fb3eff4c43aa0330d133fb93a2b7797bc53cd6b90f"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: future::ready::Ready<u32>"
+status = "translated"
+digest = "d86cd451fc979d16a7212c0fb8464f2971c6e0171a8002b5dedae73f4cc94323"
 
 [[fn]]
 path = "core::future::ready::Ready::into_inner"
 kappa = "82437f0fff457d4e905c1b708f901a13796a5c0570128496a8bca04e33abb4ce"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Ready<u32>"
+cause = "mir::TerminatorKind::Call: Option::expect"
 
 [[fn]]
 path = "core::future::ready::Ready::poll"
@@ -104,7 +104,7 @@ cause = "mir::Ty: future::pending::Pending<u32>"
 path = "core::pending::Pending::fmt"
 kappa = "79e561f8369af1df3e97d155175969a0d55262e870ad8aedebd729409741e57b"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::pending::Pending::poll"
@@ -117,14 +117,14 @@ cause = "mir::Ty: task::poll::Poll<u32>"
 path = "core::poll_fn"
 kappa = "e43bc8d65f0717a8819dc906d787271814a250e921514f1c7210b074bf6a68a6"
 at = "F=u32"
-status = "residue"
-cause = "mir::Ty: future::poll_fn::PollFn<u32>"
+status = "translated"
+digest = "d7535914b739944be81d1c7d1517657483efd3571d39e34fc670ce8ecd167234"
 
 [[fn]]
 path = "core::poll_fn::PollFn::fmt"
 kappa = "51f640c1cdaa74aa7bc7337c03bfc9bf7433bde164fc1afdbdebf8bc8fbb0b38"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: F"
 
 [[fn]]
 path = "core::poll_fn::PollFn::poll"
@@ -137,6 +137,6 @@ cause = "mir::Ty: task::poll::Poll<u32>"
 path = "core::ready"
 kappa = "3790bdcad8f9c560771e1c891af58ef0b6173cf2bb732aa397d19c4851943f9e"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: future::ready::Ready<u32>"
+status = "translated"
+digest = "c4621d1966cf68d9a36f9c1826de4c7f4da66fded0ce4354e5a28456ca2a5a0f"
 

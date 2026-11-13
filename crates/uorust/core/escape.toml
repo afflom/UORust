@@ -14,14 +14,14 @@ cause = "mir::Ty: escape::MaybeEscapedCharacter<u32>"
 [[fn]]
 path = "core::escape::<impl at library/core/src/escape.rs:169:10: 169:15>::clone"
 kappa = "761e1d834bdea1b1012b08a07dd2a2d149c70cc2d841110b11d0fb08423d79c3"
-status = "residue"
-cause = "mir::Ty: escape::AlwaysEscaped"
+status = "translated"
+digest = "c2701656288ebc1877bd3774edce0259c2a70bf900e21c2e1cee5c7b1d8e9d70"
 
 [[fn]]
 path = "core::escape::<impl at library/core/src/escape.rs:175:10: 175:15>::clone"
 kappa = "6b5bcb48fc1e9d216843c6b8ad380843b2ce017135193afd7f4b899c2874acaa"
-status = "residue"
-cause = "mir::Ty: escape::MaybeEscaped"
+status = "translated"
+digest = "80cf8be1307a2fbb5c252bce7c5edd0382969c89acb828b33794c5735b4c9a48"
 
 [[fn]]
 path = "core::escape::<impl at library/core/src/escape.rs:180:10: 180:15>::clone"
@@ -68,28 +68,28 @@ path = "core::escape::EscapeIterInner::fmt"
 kappa = "720a379be75531ac9a289dcc4584c900ff9167b0ef5f6fa3567e08910ee44b57"
 at = "N=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: EscapeIterInner<u32, AlwaysEscaped>"
 
 [[fn]]
 path = "core::escape::EscapeIterInner::fmt#2"
 kappa = "9833090f57c472187778b82fe8891781368e847052fc94472c23a3c04b6d2db2"
 at = "N=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: EscapeIterInner<u32, MaybeEscaped>"
 
 [[fn]]
 path = "core::escape::EscapeIterInner::fmt#3"
 kappa = "048f9ab7128d7d3281efec8255ee88bbea7ccbef306f6c081bdf4cc70083505b"
 at = "N=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: EscapeIterInner<u32, AlwaysEscaped>"
 
 [[fn]]
 path = "core::escape::EscapeIterInner::fmt#4"
 kappa = "88e9083c78a4724cb84e7978c6709b56777b48e4351450b148d66a0c0dd3bab7"
 at = "N=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: EscapeIterInner<u32, MaybeEscaped>"
 
 [[fn]]
 path = "core::escape::EscapeIterInner::len"
@@ -116,7 +116,7 @@ path = "core::escape::EscapeIterInner::next#2"
 kappa = "0bf9e2e7e392d073684b15ae0a4f5aa10a64ca7b813b91aede8e12de24bfb945"
 at = "N=u32"
 status = "residue"
-cause = "mir::Ty: MaybeEscaped"
+cause = "mir::Ty: EscapeIterInner<u32, MaybeEscaped>"
 
 [[fn]]
 path = "core::escape::EscapeIterInner::next_back"
@@ -130,7 +130,7 @@ path = "core::escape::EscapeIterInner::printable"
 kappa = "0f02aa1e22c066163850f1fbbf5496748b0af15736c089a676186c0b57970f6a"
 at = "N=u32"
 status = "residue"
-cause = "mir::Ty: escape::MaybeEscaped"
+cause = "mir::Ty: escape::EscapeIterInner<u32, escape::MaybeEscaped>"
 
 [[fn]]
 path = "core::escape::EscapeIterInner::to_char"
@@ -156,7 +156,7 @@ cause = "mir::Ty: escape::EscapeIterInner<u32, u32>"
 path = "core::escape::HEX_DIGITS"
 kappa = "7500cb5c9353b75671387734190bc1670c2d0d4dff55abb4a02290bb5bba6e26"
 status = "residue"
-cause = "mir::Ty: ascii::ascii_char::AsciiChar"
+cause = 'mir::Operand::Constant: b"0123456789abcdef"'
 
 [[fn]]
 path = "core::escape::backslash"

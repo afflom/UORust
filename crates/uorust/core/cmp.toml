@@ -2,7 +2,7 @@
 path = "core::cmp::<impl at library/core/src/cmp.rs:397:16: 397:21>::fmt"
 kappa = "86c4bd269118f2f787fd046b32120163d3cb0632638eac978383cac888748071"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:397:23: 397:27>::hash"
@@ -45,7 +45,7 @@ path = "core::cmp::<impl at library/core/src/cmp.rs:680:16: 680:21>::fmt"
 kappa = "8f40e936f539b3cac4b6356217afaeeef446a01a242d5230ffaf27b6f3764110"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: cmp::Reverse<u32>"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:680:23: 680:27>::hash"

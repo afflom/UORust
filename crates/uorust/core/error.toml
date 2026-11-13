@@ -8,7 +8,7 @@ cause = "mir::Ty: error::Source<'_>"
 path = "core::error::<impl at library/core/src/error.rs:1076:17: 1076:22>::fmt"
 kappa = "c954a32824b403e62ced779fe7e07526ead3e3dcb8e95aa5c5052d9cf1e3e482"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Source<'_>"
 
 [[fn]]
 path = "core::error::<impl at library/core/src/error.rs:1100:1: 1100:44>::cause"
@@ -132,7 +132,7 @@ cause = "mir::Ty: any::TypeId"
 path = "core::error::Request::fmt"
 kappa = "70a9a3cae4e82fa4ef96716d5608708e05d80af2bb8411a72fea4950c3b8fb27"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Request<'_>"
 
 [[fn]]
 path = "core::error::Request::provide"
@@ -205,7 +205,7 @@ cause = "mir::Ty: &mut error::TaggedOption<'_, u32>"
 path = "core::error::private::<impl at library/core/src/error.rs:267:14: 267:19>::fmt"
 kappa = "8ca95671ddd9aea329a20fe207833a9949d06bdff099a20df9b2575fd549cc8a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::request_by_type_tag"
@@ -233,19 +233,19 @@ path = "core::tags::<impl at library/core/src/error.rs:982:14: 982:19>::fmt"
 kappa = "7c028ccd1b56efc949db69c13bdc55d4d9fcbb932ea8fd522f87e023935fa88f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Value<u32>"
 
 [[fn]]
 path = "core::tags::<impl at library/core/src/error.rs:990:14: 990:19>::fmt"
 kappa = "dc45f242100079553ad4a1410858586971f1d91e568e6d2c62b2dfaeeff251ae"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: MaybeSizedValue<u32>"
 
 [[fn]]
 path = "core::tags::<impl at library/core/src/error.rs:999:14: 999:19>::fmt"
 kappa = "018a2094be22260566d668f36cbc6fe7033a61688dfd8d78f02e4ef4137f822a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: tags::Ref<u32>"
 

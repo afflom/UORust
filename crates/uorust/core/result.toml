@@ -17,14 +17,14 @@ path = "core::result::<impl at library/core/src/result.rs:1973:10: 1973:15>::fmt
 kappa = "aba2cfdf1663a08fe2797e6749796be504236da0f341530a3d2c2b5720326ac8"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: result::Iter<'_, u32>"
 
 [[fn]]
 path = "core::result::<impl at library/core/src/result.rs:2022:10: 2022:15>::fmt"
 kappa = "b56ff3d6d2e1914eb312443827be56f2466e81ff19310e061aa11194dc52b393"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: result::IterMut<'_, u32>"
 
 [[fn]]
 path = "core::result::<impl at library/core/src/result.rs:2068:10: 2068:15>::clone"
@@ -38,14 +38,14 @@ path = "core::result::<impl at library/core/src/result.rs:2068:17: 2068:22>::fmt
 kappa = "8800ff5800248b9be7c3ae4f27e29efa5bd3be85f8c76f74930358f649db80f3"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: result::IntoIter<u32>"
 
 [[fn]]
 path = "core::result::<impl at library/core/src/result.rs:552:16: 552:21>::fmt"
 kappa = "7154a5fa7976a994b6cfc0ebc438795674ca7de6960621eb2797f9c65622c858"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::result::<impl at library/core/src/result.rs:552:23: 552:27>::hash"

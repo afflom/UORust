@@ -118,13 +118,13 @@ cause = "mir::Ty: &mut fmt::builders::DebugList<'_, '_>"
 path = "core::builders::DebugList::finish"
 kappa = "c936496141c885038d23ef82cd9416202364ef78da2afbe1c99b584a15a56ac8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugList<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugList::finish_non_exhaustive"
 kappa = "8898dde478760bdebf8f935622f25a95ea9c04b317160952302b228c91206e49"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugList<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugMap::entries"
@@ -143,13 +143,13 @@ cause = "mir::Ty: &mut fmt::builders::DebugMap<'_, '_>"
 path = "core::builders::DebugMap::finish"
 kappa = "1f239a6d8b0edaeca15ea1747b5512af6b9f22ef2b0ebe86d263eceb93e4a63e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugMap<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugMap::finish_non_exhaustive"
 kappa = "f76979ca7d677930ecec7bfdd94f4f328c20d75a0aa958480f919b36bba9709d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugMap<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugMap::is_pretty"
@@ -205,13 +205,13 @@ cause = "mir::Ty: &mut fmt::builders::DebugSet<'_, '_>"
 path = "core::builders::DebugSet::finish"
 kappa = "3c5135444c6349188a1238211bc2b3d8e7d5d39e2af8a53b47d4060714d9c8a5"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugSet<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugSet::finish_non_exhaustive"
 kappa = "a149d399139dfa45d594900ce3d9ecf53dcfccb77ec5e1a33477ca6f69b06292"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugSet<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugStruct::field"
@@ -229,13 +229,13 @@ cause = "mir::Ty: &mut fmt::builders::DebugStruct<'_, '_>"
 path = "core::builders::DebugStruct::finish"
 kappa = "ae1b2ac8ef6d1a4aba227ba3d2f65946d610a9755e6f165e98cca54f280e3f11"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugStruct<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugStruct::finish_non_exhaustive"
 kappa = "c63c45147c7485b1649d1aa57c3917be6a0dfaa8b12068e89f2c24f152c1a475"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugStruct<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugStruct::is_pretty"
@@ -259,13 +259,13 @@ cause = "mir::Ty: &mut fmt::builders::DebugTuple<'_, '_>"
 path = "core::builders::DebugTuple::finish"
 kappa = "17fe5fed232f00370b9799058135bf8ce34d49c271a4e47c3522c4abb84bc97d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugTuple<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugTuple::finish_non_exhaustive"
 kappa = "87d36c77284915b8829a1683472b7411428d1ee1693878cf2f99f18e4efe508f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DebugTuple<'_, '_>"
 
 [[fn]]
 path = "core::builders::DebugTuple::is_pretty"
@@ -278,14 +278,14 @@ path = "core::builders::FromFn::fmt"
 kappa = "47b65f5e2bf10fa7ba713821dc1549f38aec524e85df9c97b3ef22b192583144"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: builders::FromFn<u32>"
 
 [[fn]]
 path = "core::builders::FromFn::fmt#2"
 kappa = "ff1cf2569cdc4fb684e11fd276750e451028aebdcbeb456400e53f50f9b547ef"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: builders::FromFn<u32>"
 
 [[fn]]
 path = "core::builders::PadAdapter::wrap"
@@ -297,26 +297,26 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::builders::PadAdapter::write_char"
 kappa = "7d4d95403877314aac6ea112f3fc7c06f11aa08f61b843990266054c6618ee36"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: PadAdapter<'_, '_>"
 
 [[fn]]
 path = "core::builders::PadAdapter::write_str"
 kappa = "18ef9c051169b8fbba8e3378990b9678754d400804a61e50b45a9372a87506ca"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: PadAdapter<'_, '_>"
 
 [[fn]]
 path = "core::builders::PadAdapterState::default"
 kappa = "4b5f5aeadfcc25a6fa1046d244f6b4f2918387d0a4e0e0e68e6f09e50375d3f0"
-status = "residue"
-cause = "mir::Ty: fmt::builders::PadAdapterState"
+status = "translated"
+digest = "c246dfb0928bbbd2367b098e5ef3d8ea87ace3efa7ac3c3655f4005f8564fbe1"
 
 [[fn]]
 path = "core::builders::from_fn"
 kappa = "4cb32c79aba034f0c526161f216dcc63d5c66d33a96effdadee0534d6dbdc7b3"
 at = "F=u32"
-status = "residue"
-cause = "mir::Ty: fmt::builders::FromFn<u32>"
+status = "translated"
+digest = "49ad383737222128bc5f50c928dbaf77649b1ba13e537864a7d85dbb6f405649"
 
 [[fn]]
 path = "core::debug_list_new"
@@ -364,7 +364,7 @@ cause = "mir::Ty: maybe_uninit::MaybeUninit<u8>"
 path = "core::exp_u128"
 kappa = "f25a79dcdc52d1695749882f2967d804290e326a0760dff39d0f15c79c9d561a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::exp_u128::MAX_COEF_LEN"
@@ -388,7 +388,7 @@ cause = "mir::Operand::Constant: the constant item fmt::num::exp_u128::MAX_COEF_
 path = "core::exp_u64"
 kappa = "3f4ba5ef49a34153198cd5e2be9836694b6981329f66eedb04e58233a116ac78"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::exp_u64::MAX_COEF_LEN"
@@ -413,477 +413,477 @@ path = "core::float_to_decimal_common_exact"
 kappa = "c9552ff37cac2448822a2cc226c8f7d8de258c94a38f9ebc7fdd66ea0ae6b9a3"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::float_to_decimal_common_shortest"
 kappa = "c0e53eb2aff936128e6ade5c0380fce351ae7741c1e859acb3e3d0c117e6bc09"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::float_to_decimal_display"
 kappa = "60523fcc6ee724d95c15f827a5ea8f3745dd5d5ad30e0fc4e431973555562308"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::float_to_exponential_common"
 kappa = "0a599bc5bf95a37f0688e967cda0ee36093ff4ace0eb4ddbf860fc9bb617bc46"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::float_to_exponential_common_exact"
 kappa = "3ebf5b7029aa5ae188fa3cb4c23eab58f0c1030d36425f02fb68fcdde53a812c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::float_to_exponential_common_shortest"
 kappa = "9f75d3600a839d4e30f50e946a99805fee166a07e76aa0a229d695e8eb1ba4e7"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::float_to_general_debug"
 kappa = "376730af323893e28141d97c19dc6273ce4a96e06e5155c180bc89c4c8bdf401"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:16: 108:21>::clone"
 kappa = "4ce3f5e775f813f54cc439642c8049719f58d8076a31eeaac3a5bac32c871d4a"
-status = "residue"
-cause = "mir::Ty: fmt::Error"
+status = "translated"
+digest = "200c3723d3b77d81eee1170c12c24bfb37ffbd6f2747d65c2b6d9a2493001b94"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:23: 108:28>::fmt"
 kappa = "ddff70455f5dfe35fa6af78039df676230e7799d2fed08628dfad703b5e6213a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:30: 108:37>::default"
 kappa = "17ea58e517f74bb0a47555676c5189aed5bb285eae4fc61fc2d3334f0ee8fbe6"
-status = "residue"
-cause = "mir::Ty: fmt::Error"
+status = "translated"
+digest = "392a10588fb80597a5571287a2a374df3cafe962863d2ea36fe928864d361f01"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:39: 108:41>::assert_fields_are_eq"
 kappa = "a2221a227c86b0108a8e1db3ba448bdac21872caa55243ff68985dfa255da2b7"
-status = "residue"
-cause = "mir::Ty: fmt::Error"
+status = "translated"
+digest = "d50bf02c5103c7c667ea60e091972c6857aa6bfa8b6422de6507c78c52cc8fde"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:43: 108:47>::hash"
 kappa = "7aa96ebbe7c6d681b84689e436267819578cb51e21e058d8fdb32bf389848dfd"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:49: 108:52>::cmp"
 kappa = "5d2de0e6318152bfbbb0d9c8c81e27a99fbadc7c45e217b0bbc7ddb15159c841"
-status = "residue"
-cause = "mir::Ty: fmt::Error"
+status = "translated"
+digest = "aae8855cc806f7bc8055842357c6a100821212ecf46fb8baa7c83a55b2be121e"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:54: 108:63>::eq"
 kappa = "6c2a7cc6ce45ad7283b131e5393a57c8c3a04d5d998735d9ea2ff3cf7c10e626"
-status = "residue"
-cause = "mir::Ty: fmt::Error"
+status = "translated"
+digest = "dc6915ab19c0a90e5f10be79ac83b599868d80dfd8f119725e33cdcadb004db0"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:108:65: 108:75>::partial_cmp"
 kappa = "defc2c21bdfbee7baf7292793201b187b89e6ca58da44d2f513d4933f738468c"
-status = "residue"
-cause = "mir::Ty: fmt::Error"
+status = "translated"
+digest = "ae3a5846c7f65ad7a67dcf406758a478b5a3f479775cdc238def1926b0005bcf"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:246:1: 246:41>::write_char"
 kappa = "9dd5a3a4b814602d4934435acc84ffae1cbad1dd7218d6628ab2efb78e8ba467"
 at = "W=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:246:1: 246:41>::write_fmt"
 kappa = "0a5861e3342d9694b0c827d8b5e13ef7c864483ff7f9ead3ee8732d33c326a94"
 at = "W=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:246:1: 246:41>::write_str"
 kappa = "b02229f2296993842742e0ceb94969fdb71f9d7aef589a3b6976d5063a5d1243"
 at = "W=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:261:16: 261:21>::clone"
 kappa = "515fc2c86067f4a05374b47740dab5cbf94b711603c7744964727a367127fedb"
-status = "residue"
-cause = "mir::Ty: fmt::Sign"
+status = "translated"
+digest = "87afb20642175450646ad1bfa5313575cda85370ecd94252dbeb8c07fb6970b8"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:261:23: 261:28>::fmt"
 kappa = "dc466071eb46590e606b112aebf56291b7e9b17aaebc49453aa3730ee9738e7c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:261:30: 261:39>::eq"
 kappa = "8d6edf82917519e1620cd9b4bce9745c4daf818880d8eaf8e40ae19609c13af2"
 status = "residue"
-cause = "mir::Ty: fmt::Sign"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:261:41: 261:43>::assert_fields_are_eq"
 kappa = "df429bf41ff7635dfa09bf76160061951700aa0ffbc32e3f4cefc09a8f144dc9"
-status = "residue"
-cause = "mir::Ty: fmt::Sign"
+status = "translated"
+digest = "aa83160435b23e6d5754978b6d6d2c43a6ee3b34b129560980ae808808544a05"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:26:16: 26:21>::clone"
 kappa = "3cb026f443da46675a1c1a5289ca25a271de1690d15db9d31a5ef9728b411375"
-status = "residue"
-cause = "mir::Ty: fmt::Alignment"
+status = "translated"
+digest = "2fb3d94874b7fb4e7413941a8b5be06dadcd6a64cf86e764c72a05d581c0bf63"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:26:23: 26:28>::fmt"
 kappa = "d63983bb17c620ad63fc68baed439736d150a3051f8df3a8534a4794c69a2dfe"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:26:30: 26:39>::eq"
 kappa = "1da2ca0e1e933c6a2b1b6f0a0d46f525a105ba7cc47af60b15f1c1d413f6d5c4"
 status = "residue"
-cause = "mir::Ty: fmt::Alignment"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:26:41: 26:43>::assert_fields_are_eq"
 kappa = "362c37bab5357ff7860f616ddd10f64f1171008e36ad3c3238bec2d78fd08bcf"
-status = "residue"
-cause = "mir::Ty: fmt::Alignment"
+status = "translated"
+digest = "44b6038d9547d02eae1c23ab3142984d63b820e2667e62202b738d4d27f4e80d"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:272:16: 272:21>::clone"
 kappa = "1d85341c75b611a21bffd227842896bbdb2006a074e3e2f580f4dfd997a1552c"
-status = "residue"
-cause = "mir::Ty: fmt::DebugAsHex"
+status = "translated"
+digest = "3baeed619489aa2622c40b429271779cdb33094ca58c8814c8afbc6e3e85af6d"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:272:23: 272:28>::fmt"
 kappa = "450355dfd042646e3430f13ff75f5931f69ac3688e1b0bc1e14ac77638d06421"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:272:30: 272:39>::eq"
 kappa = "f1a186acaef130a3f70e69905998c93c15d856fa79414981794a8f5540386fa3"
 status = "residue"
-cause = "mir::Ty: DebugAsHex"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:272:41: 272:43>::assert_fields_are_eq"
 kappa = "2c6a54f28ea5330bdb1d64d17831c715896007fd857685dfde873809c9a6266f"
-status = "residue"
-cause = "mir::Ty: DebugAsHex"
+status = "translated"
+digest = "fb35be6c9f21adeb3b0e8fe0a4078842a2676c6eda3a8044c0179103e36cb03c"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:285:16: 285:21>::clone"
 kappa = "bed9c23d570c13d594b897156205b32ad403087a3481b3eb21691b8b793c45ca"
-status = "residue"
-cause = "mir::Ty: fmt::FormattingOptions"
+status = "translated"
+digest = "764c1abede67c461752b537dfebb9d1505613a0da20e94d21c147e4f4b21ac68"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:285:23: 285:28>::fmt"
 kappa = "01ef961dae0355a66f2d2f28de1db610e94fc3c007e968c29b5e6812f86fd34f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:285:30: 285:39>::eq"
 kappa = "d3e563a3af60c67537dc424835edebd66c0f8c7b4ad548c695b62a9e4d1fc942"
-status = "residue"
-cause = "mir::Ty: FormattingOptions"
+status = "translated"
+digest = "35134509e70e8bf560e422de681786b4dac9ed860b1b75724b37d46eb8fed96a"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:285:41: 285:43>::assert_fields_are_eq"
 kappa = "9d1a5e0dd9e0a376e72dd81cd7b898a95431525b20f992dfbcc78f78af898163"
-status = "residue"
-cause = "mir::Ty: FormattingOptions"
+status = "translated"
+digest = "244675a089ed176f41c4239e12523ff839033ebae31bb08ec67c442fa15d03be"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt"
 kappa = "6ac4247fe7ec6f55cd3b27a1963fcaa41bf5fee0f10234d82991f52c84347a85"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt#2"
 kappa = "5e1a89f19187eb776d05bf9d35c3c0c76b793ef640adeb76032b3b016dccdb09"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt#3"
 kappa = "c37bd45de7878dd0c84f8053e4f7de933749e72837a2a4c5fc2c888999fbfbb4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt#4"
 kappa = "e4f13c110d5e87984244ffc0770f85d9603c2baf5bff96e0e379481d6dbc9d34"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt#5"
 kappa = "d024eb83d244fdcb100300a4a4f1ffd33a9831f8d827b3ab6a5a7c4e6bc09884"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt#6"
 kappa = "94371014ee90704238cfaf7dcec22aa1fa807442125fc3dc11a4b00763e4f8a0"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt#7"
 kappa = "93fbe13231a25f80611854bb6544b9334ae84c7be581404b7073096941de0e8f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2871:9: 2871:47>::fmt#8"
 kappa = "fc09c8c5df48051c18da8e977e700a1b86b81d17543d41120138fd2e44073fa7"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt"
 kappa = "81e5225eedb702c386562274cee30f08eac550c0c02ddbd1973bdc5f269cd2cd"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt#2"
 kappa = "2b680d9f68d0edecfdffd89f8ef73be7d8272f10279b98fa894c69469c9fc65e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt#3"
 kappa = "de965ff9200898ff6b7de01688bcb60d4ef95ed197e72a131edb59692146da3d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt#4"
 kappa = "f3db86e1a8a5b15a092b5a6c2074112887691c822b2f825ebc03cb65b6f9f7bd"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt#5"
 kappa = "c2de25c11c65b9fa1de23c9203164576052122ac704b045f0be238e8998125b2"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt#6"
 kappa = "acfe6645427413bac45d0f17b4146f98370f0c58e540f9fc6a1b517d656bad87"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt#7"
 kappa = "49591ac58c44645a0d71e447124fe5643928a701ca005f6d656610cd4548a924"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2875:9: 2875:51>::fmt#8"
 kappa = "67ae101cd796a268853b400c5724aa96d937d4a21ada95068a88eda7d9890c10"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2885:1: 2885:17>::fmt"
 kappa = "bddc3c989815f86c817f502817634f9c5bc826540cccbb41b5ccee2047826fca"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: !"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2893:1: 2893:19>::fmt"
 kappa = "b613eaa25bf30cf4bbf6e02680f5ae9216e2c5528a2ed71c2f2530b1e604474d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: !"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:2997:1: 2997:43>::fmt"
 kappa = "db9d24240cde4f1f6934012a783cd5932a4daa143e741b418650b9516d3deca6"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: *const u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3042:1: 3042:41>::fmt"
 kappa = "0f88033d5e3a521a0f970dba608940edb59d75e4a7dc3ae7a20af4b95b103ea1"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: *mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3049:1: 3049:37>::fmt"
 kappa = "99016b5f4bfb38044b391f20c9077021f766970393d7a81de769ace4e11cf614"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3056:1: 3056:41>::fmt"
 kappa = "023529732f65be0660787adb7b620e00f1eeff3ac877738b2ee47a1251c96fc3"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3065:1: 3065:41>::fmt"
 kappa = "3dffd179efaf0c093cfc03e267942d731f523e50bb8f4d9ad1ceceb3aa514cab"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: *const u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3071:1: 3071:39>::fmt"
 kappa = "1b3114fba9d23688a64e67c4d013238b18ec60833e4959b990f0e57bd391c5f0"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: *mut u32"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt"
 kappa = "d34e3c665086a81c9a9a4b332cf0c6b410410460c5d2aab6a76783545ef9e4d8"
 at = "A=u32, T=u32, U=u32, V=u32, W=u32, X=u32, Y=u32, Z=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#10"
 kappa = "78fa50adb40316e8dd690803c02077df0806a20c4d52f0b38e20641df314bfeb"
 at = "A=u32, B=u32, C=u32, D=u32, T=u32, U=u32, V=u32, W=u32, X=u32, Y=u32, Z=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#11"
 kappa = "d76b9afeafea8e14dc4a2603066c01cfdb5c2a7ab6cecf6f144317bbf6a33379"
 at = "A=u32, B=u32, C=u32, T=u32, U=u32, V=u32, W=u32, X=u32, Y=u32, Z=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#12"
 kappa = "bd641f5fc2961dc63f33c2db634fab8c484bb8465396337df8780fbe43425ce6"
 at = "A=u32, B=u32, T=u32, U=u32, V=u32, W=u32, X=u32, Y=u32, Z=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#2"
 kappa = "b61f4aa08f23b5a5f1a5b8fe5a97582bc9584aec6234db603e33ba211991f1a4"
 at = "T=u32, U=u32, V=u32, W=u32, X=u32, Y=u32, Z=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#3"
 kappa = "eb2f3def7065253f53761fb9bd9149ab52436907337214395cb9012e7c3f3f97"
 at = "T=u32, U=u32, V=u32, W=u32, X=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#4"
 kappa = "173c9968d1e28c3caa898a098cff7ecc76c77fe7908de23120a66b242da61066"
 at = "T=u32, U=u32, V=u32, W=u32, X=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#5"
 kappa = "1272cd8990b5601e9702b3b979326dcb9c72264bc3b9b7f95a8ef527cb3a5808"
 at = "T=u32, U=u32, V=u32, W=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#6"
 kappa = "8f3781b69dc4c8115c6428d104cb7c27132144cf65fb80418adccd74e1abcdcf"
 at = "T=u32, U=u32, V=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#7"
 kappa = "e7e0a1853df78f948d7778cd98fd23f272975417e8c528c47d280947a30fa963"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#8"
 kappa = "6c59d434ef432c5daf88cbcb9863d5fa713aa578424eb4cfa56d0f5fb873c733"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3087:13: 3087:58>::fmt#9"
 kappa = "d0c988650525d6404245e555247ebbbff6a0710b588abc073ea67075c5272223"
 at = "A=u32, B=u32, C=u32, D=u32, E=u32, T=u32, U=u32, V=u32, W=u32, X=u32, Y=u32, Z=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3121:1: 3121:29>::fmt"
 kappa = "49d36378640413aa93f06a21c73c9d6667275afbdca10a4dd889a195a994aa8f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:3128:1: 3128:18>::fmt"
 kappa = "6289c053d4d09d12f90181d0319d63ebf51ba5376b0e6d587541cb877c7095b7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:715:16: 715:21>::clone"
@@ -913,13 +913,13 @@ cause = "mir::Ty: Arguments<'_>"
 path = "core::fmt::Arguments::fmt"
 kappa = "571a3b3ffedf8bd9f0472f2cfd5207e8ae6474b447c8d6fa729450069fc9143c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::Arguments::fmt#2"
 kappa = "916237f85fb7e92034869284ff317a9015a251f139253949947c47062f3c424c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::Arguments::from_str"
@@ -945,19 +945,19 @@ path = "core::fmt::Cell::fmt"
 kappa = "c2823d0a6df77149dbbb98e94f73efd2ca0e2e8b50e1c57d1c65bd478ca4313f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Cell<u32>"
 
 [[fn]]
 path = "core::fmt::Error::fmt"
 kappa = "f3bed1114b9acf401b35a0e21eea5a1044eb4f9b56dc2ebe6fe91a7fb5e3a9fe"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::align"
 kappa = "9f3f7c063268bf4229c5de4ec5483d4af25858b050f669d87d65508e921ceb1b"
 status = "residue"
-cause = "mir::Ty: fmt::Alignment"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::alternate"
@@ -999,37 +999,37 @@ cause = "mir::Ty: fmt::builders::DebugStruct<'_, '_>"
 path = "core::fmt::Formatter::debug_struct_field1_finish"
 kappa = "d1066f8683649f3bb6dd4c4c0daff03ac4a856e61fd45202c0f7facc3970eeb9"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_struct_field2_finish"
 kappa = "4571483c23a6620f20a235b6f58853a79ed6f5f7c73b1a6bd8b65b8bee1fad87"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_struct_field3_finish"
 kappa = "18e88d36f3ac908e62c1cd8e16f9da7cff544558c8c30f2d2c9a198358e48d39"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_struct_field4_finish"
 kappa = "8e3891ac14d436cd19489570d7f276ecb762ad1d167bf455fe099d2b9719f4e6"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_struct_field5_finish"
 kappa = "e69998e56aee199dc8fd10a51df5fcdb199b04156128ea583c50257797c05598"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_struct_fields_finish"
 kappa = "2065c737f8de01a85e432b9e90c51d0cf7fc9ba146b79a7ececef11882609672"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_tuple"
@@ -1041,37 +1041,37 @@ cause = "mir::Ty: fmt::builders::DebugTuple<'_, '_>"
 path = "core::fmt::Formatter::debug_tuple_field1_finish"
 kappa = "c6104c4d8ba5371475164415f4bad36c77bf76e63e7f9c7138b661e692b8c4cc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_tuple_field2_finish"
 kappa = "03c24841b082d14f3dd2cb582ae4a7a80507b36a6fa7ab93781d3029fb873e45"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_tuple_field3_finish"
 kappa = "002ba981bb6869bb80df085e24dbfb668173d2ef690896a6db1715153f49b2c8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_tuple_field4_finish"
 kappa = "da43e4d5de691434609f432a8e44fad281c2ec28b112daa605a6cd2946f481be"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_tuple_field5_finish"
 kappa = "3d1425255cd862ac36b4dd18113b01b8f6a0a97b8b35cdd6d1f9f7b54d7e54ce"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_tuple_fields_finish"
 kappa = "1e6ea51f2a513b789ac2bba64395cb2119af233cae50e1b87c9052ef606e6929"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::debug_upper_hex"
@@ -1101,31 +1101,31 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::Formatter::options"
 kappa = "90266c093f6f6db2ec3239b6987366641d5849ed08767003813d99374f3491d1"
 status = "residue"
-cause = "mir::Ty: fmt::FormattingOptions"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::pad"
 kappa = "4951431b651c8641f5fb3ecda3ba2d3202de2ba33da5bf0166f26eb9a85fab27"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::pad_formatted_parts"
 kappa = "4a4a3afe4ee5fc3410c52f850f28c8723b963d281a3004d4a82048d658b4f46a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::pad_integral"
 kappa = "a9d1a74ec8d6f7bcd3db3157a9bee1310915a5861201a7fdeab9eebc5bef9aa6"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::padding"
 kappa = "5816a6ffdc9881fed3579744b8110152792d6d72b93467b68e74995a86bce2ce"
 status = "residue"
-cause = "mir::Ty: fmt::PostPadding"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::precision"
@@ -1137,7 +1137,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::Formatter::sign"
 kappa = "a0f894b96496fe0f2ddd21f405612d44a8fc1c38895df04a690734275e4c052f"
 status = "residue"
-cause = "mir::Ty: fmt::Sign"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::sign_aware_zero_pad"
@@ -1180,43 +1180,43 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::Formatter::write_char"
 kappa = "a96480fb51a81e7cbdb025e542250e8422901a720090818ab754559b3ef00cb8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::write_fmt"
 kappa = "4d73ac59832c86ac3e9052648ba7c68910d58b04e5c3fc371647a4ce20e66b3f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::write_fmt#2"
 kappa = "aecd65f918fcf4a30798d019c7fa46c24615f6923026792ff5c4a03de1413593"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::write_formatted_parts"
 kappa = "6ddcebe77b597df5e38e6a16c5f06babf0e2286db01faaccd3f4dad8dad7215e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::write_formatted_parts::write_bytes"
 kappa = "bb6c26a124da498c9ce76a06383092bac067c803b32774de383153eb4cd8ca85"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn fmt::Write"
 
 [[fn]]
 path = "core::fmt::Formatter::write_str"
 kappa = "1098e7221c03bd97fff5796d2bf9263c012b0206c626f4cc4d90c30b98408279"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Formatter::write_str#2"
 kappa = "55255a5805d2156e8c9fd0e560f603784e5377f1c57e228643464b7e3dc799d7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::align"
@@ -1246,7 +1246,7 @@ cause = "mir::Ty: &mut fmt::FormattingOptions"
 path = "core::fmt::FormattingOptions::default"
 kappa = "41c8993b23379469eb621ba9db316bcc4c76a83a94ded49808b1db6e58734a1e"
 status = "residue"
-cause = "mir::Ty: fmt::FormattingOptions"
+cause = "mir::TerminatorKind::Call: FormattingOptions::new"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::fill"
@@ -1258,55 +1258,55 @@ cause = "mir::Ty: &mut fmt::FormattingOptions"
 path = "core::fmt::FormattingOptions::get_align"
 kappa = "a07a9cf96be4286852f448ba9f413399e8bc7f2e5f9c2044fd53f7db390c68c7"
 status = "residue"
-cause = "mir::Ty: fmt::Alignment"
+cause = "mir::Operand::Constant: the constant item fmt::flags::ALIGN_BITS"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_alternate"
 kappa = "7c5aff594f5fd4b5f65c5abd90f21829d1a7e18951b07e6b6618f59d9bde4e30"
 status = "residue"
-cause = "mir::Ty: FormattingOptions"
+cause = "mir::Operand::Constant: the constant item fmt::flags::ALTERNATE_FLAG"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_debug_as_hex"
 kappa = "82dfefeda563ddf8f53724ee2c45cf09d1fdb0e3fd826a988a0cf54bf938adcc"
 status = "residue"
-cause = "mir::Ty: fmt::DebugAsHex"
+cause = "mir::Operand::Constant: the constant item fmt::flags::DEBUG_LOWER_HEX_FLAG"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_fill"
 kappa = "d8e16625e6bcb8a9811db512af72af4bd20713c45ba1b0256692d427d2bde405"
 status = "residue"
-cause = "mir::Ty: FormattingOptions"
+cause = "mir::BinOp::BitAnd: on Nat and Nat"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_precision"
 kappa = "22d64ce1b62f6ce52d9dd0e69200e11704a9b743da1814b4eae43ee1baf5044d"
 status = "residue"
-cause = "mir::Ty: FormattingOptions"
+cause = "mir::Operand::Constant: the constant item fmt::flags::PRECISION_FLAG"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_sign"
 kappa = "beeb07d657d8e0da9da0b95166d84c26fba06c73ab678039cd6310d78ff57543"
 status = "residue"
-cause = "mir::Ty: fmt::Sign"
+cause = "mir::Operand::Constant: the constant item fmt::flags::SIGN_PLUS_FLAG"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_sign_aware_zero_pad"
 kappa = "c741bc38c33bd5ac575fc0e0c740a63bb5d21d093a42b90f1d03ad8b263ec379"
 status = "residue"
-cause = "mir::Ty: FormattingOptions"
+cause = "mir::Operand::Constant: the constant item fmt::flags::SIGN_AWARE_ZERO_PAD_FLAG"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_width"
 kappa = "a786a2a9b28df339c4025034ba07d2f1818479fb87ac405223f5f7cbd4a283f6"
 status = "residue"
-cause = "mir::Ty: FormattingOptions"
+cause = "mir::Operand::Constant: the constant item fmt::flags::WIDTH_FLAG"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::new"
 kappa = "cc16cacfe4dc528d23e498a94382d18346740a1c47a53534137819eeae79f0f7"
 status = "residue"
-cause = "mir::Ty: fmt::FormattingOptions"
+cause = "mir::Operand::Constant: ' ' as u32 (IntToInt)"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::precision"
@@ -1336,104 +1336,104 @@ cause = "mir::Ty: &mut fmt::FormattingOptions"
 path = "core::fmt::PhantomData::fmt"
 kappa = "0f33f39e6b205ff541fe5643eb2bf5c40a82900568b6b3f9106ac1233a1cb1cb"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::fmt::PostPadding::new"
 kappa = "1b4b1025f6787064269bced2366f1089e70c38776ed15ef769d7c3b1bb763a33"
-status = "residue"
-cause = "mir::Ty: fmt::PostPadding"
+status = "translated"
+digest = "f93126c60b03907d580a5ce0f0d131cb628c54050e887bfebd2923a3d9a8d460"
 
 [[fn]]
 path = "core::fmt::PostPadding::write"
 kappa = "3203e3b930e15d24c26bc6bbfd08d234160fc61572300e5e3b1dd00daaabd400"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Ref::fmt"
 kappa = "6fa7e8bcf5ca1ae6561c8f82fc9a76fba3384d99988aae3b68d9563288231aeb"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: cell::Ref<'_, u32>"
 
 [[fn]]
 path = "core::fmt::RefCell::fmt"
 kappa = "5a2391c5f44b6ae34f1f0c0327809b0c837e5703fb4fa7993b5632043e1ca5f8"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RefCell<u32>"
 
 [[fn]]
 path = "core::fmt::RefMut::fmt"
 kappa = "1cf5a2569bdbec035d3a75c21409bea9692250cd7d8becfb244fe7e4978d0ea9"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: RefMut<'_, u32>"
 
 [[fn]]
 path = "core::fmt::SyncUnsafeCell::fmt"
 kappa = "5e2d94d07e966016c3c1c287d6f514df26d18168ee56ed26f63af63c5ba7bbcd"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::fmt::UnsafeCell::fmt"
 kappa = "4e3cdbcc2a18efb1bac126b413206c4b348348864c5df0fc42c3f76571cd0bc9"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::fmt::Write::write_char"
 kappa = "157d00b35b8f1b33958548e30307948840350ff21ec36a848d89dfae5f82d79b"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Rvalue::Repeat"
 
 [[fn]]
 path = "core::fmt::Write::write_fmt"
 kappa = "7275d7bbfbd0681deace343a28bb407a589038ecd6d09fa98836382e9c7948d2"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::Write::write_fmt::<impl at library/core/src/fmt/mod.rs:219:9: 219:56>::spec_write_fmt"
 kappa = "e56a14136ea8aaff3f53d7ed9745715a4bdb925e8a42094aacdf3b73922e24f7"
 at = "W=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::Write::write_fmt::<impl at library/core/src/fmt/mod.rs:230:9: 230:47>::spec_write_fmt"
 kappa = "c0fdf32261c15f450496df2273197a7b0731ff7ba6f61b740aed4b4f11f48b62"
 at = "W=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::bool::fmt"
 kappa = "32cf5bdb185be2fcabc8adf44126eecd1f82e576e5756d28543e3ad4e25d40df"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::bool::fmt#2"
 kappa = "130c445bf5ba96ea5ebc3092e15eaa45202bff6d4a0b720aa472e70784d3d111"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::char::fmt"
 kappa = "dc6f3d35b0419683a6d80ca8cd0fb22a3825f115489a132a4a78ef577c66e19c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::char::fmt#2"
 kappa = "e70e11a82a2bf2eeef0d6872bb78f442aca591c5f1516ec3e92bce25360ad8ef"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:14:11: 14:36>::already_rounded_value_should_use_exponential"
@@ -1457,223 +1457,223 @@ cause = "mir::Ty: f64"
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:209:13: 209:31>::fmt"
 kappa = "ef54bf99a2f2268627bb75c3c76778fa77bf90804bd7edbfb1bda3855c93e9c8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:209:13: 209:31>::fmt#2"
 kappa = "e2e28553f308d3b1c27633a2a489853fe2e6e7601378d03a381163dda6c3cd39"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:209:13: 209:31>::fmt#3"
 kappa = "9a69a4ef91383f859fb6257b4d26c8b44db7cbbd66dfb02960279adad907cbf7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:216:13: 216:33>::fmt"
 kappa = "7c8c357c8a74b236dcd804f3a2078c469fd15863f85a69fe88400647cb7284c7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:216:13: 216:33>::fmt#2"
 kappa = "61ed864534de6f174a5e9760edd59f3121a57bd2e8998a28029352c72ad0cd29"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:216:13: 216:33>::fmt#3"
 kappa = "56e15e88894ce54e61a3ee27c83f935ed08a0d71b5ea08baac32072ec6d49dc1"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:223:13: 223:34>::fmt"
 kappa = "84891a51c678fdc145966325a307d3bb1b8dd21eec0c610d46e218a0cf02a17f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:223:13: 223:34>::fmt#2"
 kappa = "45f37a1b774c114a087dcca26ff0aafed03e3263f068dd83569ddcf339834e8e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:223:13: 223:34>::fmt#3"
 kappa = "96d9b1770373f92db8e649b9a95936175822caafad3f2d54e49e5550fa709ec4"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:230:13: 230:34>::fmt"
 kappa = "cf29d705530c47f68683c33969ba66a285eb63a0f1de6d194047779790522ef1"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:230:13: 230:34>::fmt#2"
 kappa = "bcf68100c997034882e8c95118fa469f1863b43f1bf632d51a79a6b852fe9ec9"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::fmt::float::<impl at library/core/src/fmt/float.rs:230:13: 230:34>::fmt#3"
 kappa = "8658be1ab572d84910a894fddceb9d1eb774b7719378747cfad436cb255ad0f6"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::fmt::float::f128::fmt"
 kappa = "8e7a6d082d593f6df64cef0ec767d3f0baa5eb879c528827ae75cc1be4e57aec"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: f128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt"
 kappa = "19b6724008ef84f07a10d0b314a4ddfc71e9b86bf43d715ef4a6782a7b67284f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#10"
 kappa = "864935b2ebb687533460cd7b8f217a2a4988a431d37901b94f5f7c36d21c2c0d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#11"
 kappa = "46380e27bbc01201ddc2b590c4d96c86c8e607fc97ceb27c72ece16a9f762720"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#12"
 kappa = "c0146c8742db893549f097cecc77af67f8887c837ec828852ade5d082c395b79"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#13"
 kappa = "99dc2b05bac595d015bcd851d873b961c40fed26fb7daa8fa543cdb11497ee82"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#14"
 kappa = "ba230e10477c21356c639676fb98c56b544dfe5f815f59864929726b16e8f613"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#15"
 kappa = "0b37b9bf54a5c4f40122633e6c1deb54dc456676cfb70351c3bca39fd7cc03d8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#16"
 kappa = "c7bdccc10c090336c50e95f93e14982d7008849d165158c81d4bb88d3f3a2d5e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#17"
 kappa = "edb8b6f8457c7a49927691053e5bb722527996c2b629b345e5c9c92cc05ce22e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#18"
 kappa = "267f4dac048a332a3d0133fa2bf0560b2da0b60e9a496258b816f6142c2c34dd"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#19"
 kappa = "efb0dd55a77a698027e4812b93cf7a98059788882b0dc03a6644d5e0c83a6d83"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#2"
 kappa = "609ca804bb35e573e803095bfc1d55afe56b84b642dbf3db88db95285516d65d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#20"
 kappa = "40bff7ab5773ade71ef40d4b3b27a78fd84d5263206243974c6c8b73363479e4"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#21"
 kappa = "5b7f7b9af5e130e53fb75a1f65011ff364917d17cad38e265ca90d2ef80faa58"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#22"
 kappa = "c1cddd43dec04d1a303b4a22922379d7424479d966347784790af119ce2d3521"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#23"
 kappa = "38f3252de76ef7366d4ee7a8342211a3b27563f61309080227ddb9d751f53aed"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#24"
 kappa = "d40a0a696db27ec43c04b68472ddf2b8466f28f965562532de10fde909ea466c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#3"
 kappa = "ce33745a5559b43e578a6f33834294ce220b2698b220c2fcba9a02bf2dcddd29"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#4"
 kappa = "00f3ce87ffba74e207d21600cd37dd79ab6c50f3b1833453e8f88acfa46e7cc2"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#5"
 kappa = "297f0387cacad712bd05641455c8cbb3838427d5216edf17b3f18b01c7244d35"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#6"
 kappa = "7dc37f4015fb49752fd81ae14a4de573c8cc04af2a090ca0ca6389333209680b"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#7"
 kappa = "d2b21aa88f96aaae1d58d726c3a0ee0046b5a62ff78c451cd201fbf77a0f6cbc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#8"
 kappa = "2ff422eadc9ca2eacff52e4c6cd999e3c3f8dd314e5cc82ad5bd64d2562f4b54"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt#9"
 kappa = "83df23b0c6429ad8865dbcf5cd88c035821c1eb943c47b7b0b845997d98b9ec7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::BASE"
@@ -2111,241 +2111,241 @@ cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt"
 kappa = "293b12cc7c32b9f62030f8fc816d5080722b8c34204ef446d331b8666a3f1d95"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#10"
 kappa = "bfcca714ebcb0e967ec64b65bee6d171a502eadd985a06d715536e6d3071b83c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#11"
 kappa = "92b6727014e09c949bc08606fb6bfc47c012ccdc8e2e6484e274035f9cf846bc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#12"
 kappa = "2acc2f4f4f33170776e4b1584274fd47fc66bdb1c42451c7007e57157b5d49fa"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#13"
 kappa = "196b73a8f586c024119652182c8002237ea76864aa73a1745dcad78393f11203"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#14"
 kappa = "1b471b9d10da52d7b6ab1fcc94209456250a34f2d0506d4b5a242456466614d5"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#15"
 kappa = "fd49772f6fa4e2be79fc0ad8c1dad3091f89637912a27ca36cbd6fc3f2cfa61e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#16"
 kappa = "be87eaa80066f475dbdecc8c3c3c4c951e2387f6afa8cd0b856ea519477e8304"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#17"
 kappa = "f57a6b5d1fe904248614e90179f1afc33cb2de71c4c879454c02cec0d8d04d06"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#18"
 kappa = "8a558a78ba9ca6126d6151ca3708dc78c416250e835c1a60f565817049387f81"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#19"
 kappa = "600645d3080cf06531ac716b4e669bc79e8bd57ae070629b1dbe226c86a61b53"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#2"
 kappa = "d1de513e91c961b9428b0c3d15eb2e6f4119224cd96758b11fca27e52f6ad526"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#20"
 kappa = "afeb80b0e053a6c437b8794ffb2deec89d61bc69ce1e1ee481bbe2c0d530336b"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#21"
 kappa = "e28fa7df2d9b75fd4f49c900df5a12879a9889214eb09740e4a023702156d39e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#22"
 kappa = "7a335b5ca17b1b920148e210348138b4585ce05b85a83d703bb1672d143bfa88"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#23"
 kappa = "75d2c2c21ab0c73d98735ba11ee2c58baadb514db1246334f1323996457a3297"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#24"
 kappa = "2d74653d9d932537be190331273e73efdcc31482153eccd881af8c19f1dc6e66"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#3"
 kappa = "bba07d9e7491b904bb28f9afdb601c70fd326ea4d712200adb1b2b17a434c540"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#4"
 kappa = "fc7cb6af543df4a4fbb967aa689f054dd5002a51986771e6300481d56c17899e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#5"
 kappa = "ccb4c6c5f57ffb20404b90dbdea53c2221bd8853623bac191581b0e71ec4ae19"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#6"
 kappa = "7c5944089b4c9f316d306acbb8db27a091c1ce047a082c18f4c4e404a054b40a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#7"
 kappa = "5733be46e26dff8b9b8de0da4ee9d6aceef43e60ff262b89e10f570b135d0ced"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#8"
 kappa = "3848c81d3a03bb5f7c27349f5bde767f512ce6a1a0f3a78aaad694d0561d7024"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#9"
 kappa = "5693901bc0e64125eb6c0a53b400d51acfd77583c14ccbb6a0818590dc5dd7c3"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt"
 kappa = "70ed1e13997fd8bc7936d824c8d721d6425f5f5e45e3e1a0e49258577c0a4f93"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt"
 kappa = "a988f415b62ffdd0d16fe86d47c2d43a91c4f011653b89fd1072c6b28efc3392"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt"
 kappa = "70f1dbf5553f109b893c9bcd01ea84543ca493a3686ff9aa2f2fa96c0c5174bd"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt"
 kappa = "f7708a05ef9b83d5ae53fda4824e35da4a0a78862bc199049249e1cbca1acbc0"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt"
 kappa = "78027c741e7f92e5a3444b7ef5ce4e1b2bac45153b3143c74f9c30f314353c47"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#10"
 kappa = "1a178d95acc0d4f14bff87cd8ef8a24b370aaf4863022e1513dbd0ed8883d4b2"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#11"
 kappa = "bf8980314149708c9674fd83beb497d57c8c55576862fc92792949d20b6d0d3e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#12"
 kappa = "536c9b2e6274a53223f6e87a2caa67d6021e861aa24947e79516f6e0d6f1dd1e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#2"
 kappa = "deb3f8ccea789687daccf29cab567825ab44fefd1b00a8fe2c1b924f2be7e0f0"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#3"
 kappa = "a27b8bd117e7984413861954a12857f477571dfa7a7f95290202415969a30079"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#4"
 kappa = "6225786250aee3fdd918df23b8cb52319c7c228e002273b0807e24aec65225ec"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#5"
 kappa = "08fc6d31fcbd061ffd5f754ccf0cf6b25a9b808fe8f1406a4789144a6a548109"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#6"
 kappa = "057c4fcd54cae9e6728d7dc4eb150145afc2ea3e6c396b84e891e85c05c8bf51"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#7"
 kappa = "ab0240a91b77f5f1de9243e9dd2b99f53ec1859e8d97e91c56c0102d53288c67"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#8"
 kappa = "14fb20934256d05d33b606934b2cd6cbca85e5c464e3821b293d87065df970dd"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#9"
 kappa = "5e50226df47308cb9504d69f5d673e479b5982b5a638525b05366693cab3a489"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::_"
@@ -2363,7 +2363,7 @@ cause = "mir::Operand::Constant: the constant item num::<impl u128>::MIN"
 path = "core::fmt::num::i128::fmt"
 kappa = "3fd102698efe97e4555fc137e8b52a59e46241cfad4623bbd58f082cc6028ec2"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::fmt::num::i128::format_into"
@@ -2375,31 +2375,31 @@ cause = "mir::Ty: i128"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt"
 kappa = "3d2b540a9aff75349ad52f43346009e48f2ac16ab65093771870ddef6ba51f70"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt#2"
 kappa = "908c35ddd252f84e1d26ba226c7deff87bb815352bb193704541fde9f1bd8bc3"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt#3"
 kappa = "768418f9c949a7ff42f8b9cb0f84a2cad9c84b1d5c2a302d19d5415b9353e99d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt#4"
 kappa = "4a26981dc6cd7772e7119fc666cfe89e66f2f3b26f6c572e23901d3ca6c18ce6"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt#5"
 kappa = "58ab1c9b7a28b1dc502cbf348bc3180295969951f2de16f4ef17387f51b38eee"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt::MAX_DEC_N"
@@ -2435,31 +2435,31 @@ cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt"
 kappa = "6ae3e52bdea78c193b6cb140a4441634a6b2ebf756369e7ac4bea9d586f82427"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt#2"
 kappa = "8ec5add4379b9b9c7c035c9fb9b060c01706d55dbd4c63f4fcf6a9e3fa506985"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt#3"
 kappa = "a5233d8a53abdcdd7e6f75f9131b47dfa0a4a8a080eabca92ba123d106966bfc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt#4"
 kappa = "c5aeb33577ffb250d8ff852b6992535d4a8e0bed603240d9b73b3f219177b1cc"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt#5"
 kappa = "eb620a56247b0799624dd05cb9c05ec23c9ae37f48a4f6c548cff8e4611bc89f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt::MAX_DEC_N"
@@ -2615,121 +2615,121 @@ cause = "mir::Ty: num_buffer::NumBuffer<u16>"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt"
 kappa = "5ee94b4f79321254360cb2b1d2fe4f645fc335ec819a12f31e4ae02bd50e018c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt#2"
 kappa = "f838cbe16a352b395441854abd36622809cc7b131749fb3ab848d65560a37598"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt#3"
 kappa = "33e8cf6035db835ff363b98f8d53fd91be7a7dab690dcf60b11bf564715cb32d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt#4"
 kappa = "88454c8fda58d6ed5f9cfebf763565f8d25bee186a98b86d20bf71ea7d9c10dd"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt#5"
 kappa = "e6e55d7b81da127327851f1642203abfc9198ea210340c9b59b2bf0f4791a4d2"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt"
 kappa = "607845534010b4291538fe59baef5025465378a77699591f1f5579c32faae868"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt#2"
 kappa = "56000630be2ae2198527ab0b627c27c90f8503d62d5865dc8ba88565e8858022"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt#3"
 kappa = "270787a5f04989310113fd036460c35c0cea79664530215f2867b30a4061aa06"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt#4"
 kappa = "8dc5673518ca50b4098bbca091786b192344f84f022c6e3db58b5f5ea34c0245"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt#5"
 kappa = "3952211fdf1b3780e037c5c5abaeb7a0e5abfc9c4467d8d1439c77e7721be66f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt"
 kappa = "a870ebd4ec37bf47fb6b8b5d3e9c0dd994fdd88c502f3021c8db52efe22fc68e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt#2"
 kappa = "27ae543695c958a9bd78a40f6ec155428363f0a295ddedd3bba9133eacd67078"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt#3"
 kappa = "1918511d5cc726a91265e7020b677fe44ed078be351abdade2e3c5ae384d7651"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt#4"
 kappa = "5449c4bcdd346c7cc6c6e67dab71c8a76ce8b4cfab6b23fe158a85290583ce6b"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt#5"
 kappa = "5c3c83831e03cd6247578d52e71e943926be47d24f18e3bcf7dba2d915fc6b72"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt"
 kappa = "dbc1adafa21e712b58bf2fc9d92fd807158e20e70666e6f6cd2437dceb03b58c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt#2"
 kappa = "c54fa2079a8e478477a706b9e89d818e33bac033cb6186c8fab85391f6d68c2a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt#3"
 kappa = "d36df5f69b21fde9e0bd7610354ca7079dd960afe863d5cbb8f260cb524bf0f7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt#4"
 kappa = "9e544e3e112b35b1e936c6bfda8c0123f7343e27290eaa502683e7bbf4f12e7b"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt#5"
 kappa = "9053e8d193a0915a120c69a249244b8effeb6bff978082505d0efcb75d489ae8"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_"
@@ -2819,7 +2819,7 @@ cause = "mir::Ty: maybe_uninit::MaybeUninit<u8>"
 path = "core::fmt::num::u128::fmt"
 kappa = "9fcf33906990eb67292e04727211390d11f8e22711319b42cbd2aa7d9faa3d3b"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::u128::format_into"
@@ -2831,13 +2831,13 @@ cause = "mir::Ty: num_buffer::NumBuffer<u128>"
 path = "core::fmt::str::fmt"
 kappa = "ea73a0a6953b3ade1f97376a4c9487dbb68101891f6598febd3b1d6411534539"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::str::fmt#2"
 kappa = "a6a3a51dbe600a7caa74d9ce888a2f2e8d0b58582d2d814e4978a3c9f4c784cb"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::str::fmt::needs_escape"
@@ -2849,7 +2849,7 @@ digest = "53d5d81a62ede76289691f680b8c708191c6ed399535fb16bd73b3213daeda70"
 path = "core::fmt::write"
 kappa = "712f7bf6e23190ef83e1c423a27cba62ff9dd3182f879d1c7f5d66902a04c113"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn fmt::Write"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:14:13: 14:44>::BUF_SIZE"
@@ -2933,7 +2933,7 @@ cause = "mir::Ty: T"
 path = "core::num_buffer::NumBuffer::fmt"
 kappa = "1d9ee2c3865f55000b04e5bd36b746220d86bc24f52270ed65d450a3ff0eedc7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::num_buffer::NumBuffer::new"
@@ -2946,7 +2946,7 @@ cause = "mir::Ty: fmt::num_buffer::NumBuffer<u32>"
 path = "core::pointer_fmt_inner"
 kappa = "552b1914130820f87816478fa53552b391cde906d7dc8b5c3c58e4e61b2fc845"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::rt::<impl at library/core/src/fmt/rt.rs:13:16: 13:21>::clone"
@@ -2970,7 +2970,7 @@ cause = "mir::Ty: Argument<'_>"
 path = "core::rt::Argument::fmt"
 kappa = "e79764b5f8f97954dd2045f50f4ac61645b216b7a5d19508230b8c8029428fee"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Argument<'_>"
 
 [[fn]]
 path = "core::rt::Argument::from_usize"
@@ -3052,5 +3052,5 @@ cause = "mir::Ty: fmt::rt::Argument<'_>"
 path = "core::write_prefix"
 kappa = "840a5bb5c7db90378740304384092c9b26d4f6a98dac770b06c9c0a656d4d648"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 

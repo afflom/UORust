@@ -71,15 +71,15 @@ cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 path = "core::from_iter::<impl at library/core/src/async_iter/from_iter.rs:12:10: 12:15>::clone"
 kappa = "1dc3ad7fdb34fc878be09d4ab3e741fb1ef152613c089c641e49ed5860ce8524"
 at = "I=u32"
-status = "residue"
-cause = "mir::Ty: async_iter::from_iter::FromIter<u32>"
+status = "translated"
+digest = "8b90f81572f2ce3b4bff91d012f4e5ddbcb0bca65f5b7343ab3b7707ebe8252e"
 
 [[fn]]
 path = "core::from_iter::<impl at library/core/src/async_iter/from_iter.rs:12:17: 12:22>::fmt"
 kappa = "2fe6b282d44e918e8a69ce04fafc59bbdca6371b11bf2096395ccaca0ce5c7f6"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::from_iter::FromIter::poll_next"
@@ -93,5 +93,5 @@ path = "core::from_iter::FromIter::size_hint"
 kappa = "224e059ea6ea058c83154dbca476ff16fbe5ca268ea03be5a58036735f0d4d6a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: FromIter<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::size_hint"
 

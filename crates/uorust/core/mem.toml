@@ -8,7 +8,7 @@ cause = "mir::TerminatorKind::Call: intrinsics::align_of"
 path = "core::SizedTypeProperties::ALIGNMENT"
 kappa = "144348caca9672f07026c08959a70e9183a1f73406876ac5962dd9953e553dc8"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::Operand::Constant: the constant item <Self as mem::SizedTypeProperties>::ALIGN"
 
 [[fn]]
 path = "core::SizedTypeProperties::IS_ZST"
@@ -20,7 +20,7 @@ cause = "mir::Operand::Constant: the constant item <Self as mem::SizedTypeProper
 path = "core::SizedTypeProperties::LAYOUT"
 kappa = "b8298e71bf35e60ecebb9c86edfc2831defe25d64b5d1324e7b879a5ae55fba1"
 status = "residue"
-cause = "mir::Ty: alloc::layout::Layout"
+cause = "mir::Operand::Constant: the constant item <Self as mem::SizedTypeProperties>::SIZE"
 
 [[fn]]
 path = "core::SizedTypeProperties::MAX_SLICE_LEN"
@@ -45,7 +45,7 @@ cause = "mir::Ty: mem::manually_drop::ManuallyDrop<u32>"
 path = "core::_alignment_can_be_structurally_matched"
 kappa = "84d3ab8aa6cc977c34014d7c192ad0a7b247dbcb6c14bab51e7a5d7d67301af3"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Ty: mem::alignment::AlignmentEnum"
 
 [[fn]]
 path = "core::align_of_val_raw"
@@ -57,20 +57,20 @@ cause = "mir::Ty: *const u32"
 [[fn]]
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:15:16: 15:21>::clone"
 kappa = "991ea331f79ef90c5fcf72b6364ba35261526ce31e23eb9387b99c8e5b389225"
-status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+status = "translated"
+digest = "bf4753fcf4edeaf3d4befb1117140a00e410b89ee8bc544cb376bcb25788cf73"
 
 [[fn]]
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:15:23: 15:32>::eq"
 kappa = "389163c0b5b05cbaf151a9e41a9620cc36ef2b674b402436b3d6eca06027993f"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Ty: mem::alignment::AlignmentEnum"
 
 [[fn]]
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:15:34: 15:36>::assert_fields_are_eq"
 kappa = "f682898be7457b417722be620d6b7ab67061ccfdac0d3577193b0a6bc83c753b"
-status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+status = "translated"
+digest = "7fed3bbe73f5365724e307df519543a1e7a3f9ec48e169aba357b17af90a2655"
 
 [[fn]]
 path = "core::alignment::<impl at library/core/src/mem/alignment.rs:405:16: 405:21>::clone"
@@ -94,7 +94,7 @@ cause = "mir::Ty: AlignmentEnum"
 path = "core::alignment::Alignment::MIN"
 kappa = "59f0f67aa31d38fceff99c534da24d9f9cbf5681166e6bd44f3fa8e457cf67db"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::new"
 
 [[fn]]
 path = "core::alignment::Alignment::as_nonzero"
@@ -112,62 +112,62 @@ cause = "mir::Ty: num::nonzero::NonZero<usize>"
 path = "core::alignment::Alignment::as_usize"
 kappa = "91c1d99011b7df5f6d43e2000a853859190956cc729727f7e2f90df871bbb0c6"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
 
 [[fn]]
 path = "core::alignment::Alignment::cmp"
 kappa = "002966fcf28c04ac2145235d7ed3e0e62090bd19c7e0a047d55afadff19bcdc9"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
 
 [[fn]]
 path = "core::alignment::Alignment::default"
 kappa = "213977bcbc2c19f750cae59907cebc50496f5cc85cac4a78955c316f42fcd761"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::Operand::Constant: the constant item mem::alignment::Alignment::MIN"
 
 [[fn]]
 path = "core::alignment::Alignment::fmt"
 kappa = "795e5fa1d032d799a5b38fe21f210bd3184c5455a47db8c76182332c439c9298"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::alignment::Alignment::hash"
 kappa = "3025b8b5bb9907c74a5cb11d8c2cbb83e5a9c05d7f8674efc4579f483b46321d"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
 
 [[fn]]
 path = "core::alignment::Alignment::log2"
 kappa = "463b88039099557c2cd1f82c55b287b6145260bf5dc2889af8198fdeec9f5bdf"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
 
 [[fn]]
 path = "core::alignment::Alignment::mask"
 kappa = "14878d0483cda056bf53d77a9515b8253130d03da3ce4120f2acef3c967cdef9"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
 
 [[fn]]
 path = "core::alignment::Alignment::max"
 kappa = "73d7fbdf2280dc26a7b295e79493f6fd05e7b55f6721a99711b0adbf3dc4dac9"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
 
 [[fn]]
 path = "core::alignment::Alignment::new"
 kappa = "37a979b306f315a28561a72206fc3decc75cb433e9734bea9bbbe51734c20048"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
 
 [[fn]]
 path = "core::alignment::Alignment::new_unchecked"
 kappa = "3a6ab5f0fc5649b1daabe017cb42666978d9a142560b23db6bb2b1e6de292530"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::TerminatorKind::Call: check_language_ub"
 
 [[fn]]
 path = "core::alignment::Alignment::new_unchecked::precondition_check"
@@ -179,39 +179,39 @@ cause = "mir::TerminatorKind::Call: num::<impl usize>::is_power_of_two"
 path = "core::alignment::Alignment::of"
 kappa = "722874d79b5d00d4cb13ab6aa1ea45e7a22cafe7501fc637cf19708df3d3da66"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::Operand::Constant: the constant item <T as mem::SizedTypeProperties>::ALIGNMENT"
 
 [[fn]]
 path = "core::alignment::Alignment::of_val"
 kappa = "afe305a42c5488f6dbbb6094d0987e53c559b78abd54d00bbf6237ee1adc4f16"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::TerminatorKind::Call: mem::align_of_val"
 
 [[fn]]
 path = "core::alignment::Alignment::of_val_raw"
 kappa = "31291a79bf07032d0309d02d453378da8bf4e7aa9a0ea315d089a6624c0b063a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::Ty: *const u32"
 
 [[fn]]
 path = "core::alignment::Alignment::partial_cmp"
 kappa = "b5946e56a39ba1845a133b1c6c51fa28485582e69afa40e4e8ab9f63de726b36"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::TerminatorKind::Call: <alignment::Alignment as cmp::Ord>::cmp"
 
 [[fn]]
 path = "core::alignment::Alignment::try_from"
 kappa = "713c4ea32ee3a820a5f5524bc4bb21023d405eaf68763be0415ded6946860c2e"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::Ty: num::error::TryFromIntError"
 
 [[fn]]
 path = "core::alignment::Alignment::try_from#2"
 kappa = "a45c44da8d700e475bcaf2fd7b4dbb9f54b9da0351a55e21b540846255834bf7"
 status = "residue"
-cause = "mir::Ty: mem::alignment::Alignment"
+cause = "mir::Ty: num::error::TryFromIntError"
 
 [[fn]]
 path = "core::alignment::NonZero::from"
@@ -235,7 +235,7 @@ cause = "mir::TerminatorKind::Call: mem::size_of"
 path = "core::alignment::usize::from"
 kappa = "296f69a62f8a8cfc13daee4f1c471910bf2b9ee994d8fbc1d4e455c81694869f"
 status = "residue"
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
 
 [[fn]]
 path = "core::conjure_zst"
@@ -308,7 +308,7 @@ path = "core::drop_guard::DropGuard::fmt"
 kappa = "0ab3466209bb5abf8eee061940fddbdad43239422efcbe1fc7ef5aec179b4386"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DropGuard<u32, u32>"
 
 [[fn]]
 path = "core::drop_guard::DropGuard::new"
@@ -336,7 +336,7 @@ path = "core::manually_drop::<impl at library/core/src/mem/manually_drop.rs:158:
 kappa = "b63480fd56ac6d997e7964cfdfe4aab77126aa6f5dbe3a88a02c319de68f5141"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: ManuallyDrop<u32>"
 
 [[fn]]
 path = "core::manually_drop::<impl at library/core/src/mem/manually_drop.rs:158:30: 158:37>::default"
@@ -420,21 +420,21 @@ path = "core::maybe_dangling::<impl at library/core/src/mem/maybe_dangling.rs:72
 kappa = "42d0f28bfbd4b9620e79b8adee203d66f0f889366b1275da14f3277894544da5"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::maybe_dangling::<impl at library/core/src/mem/maybe_dangling.rs:72:23: 72:28>::clone"
 kappa = "387d750f8c37e245f687dbf94125f98339b79e5b5090b5426c0b7ba744342656"
 at = "P=u32"
-status = "residue"
-cause = "mir::Ty: mem::maybe_dangling::MaybeDangling<u32>"
+status = "translated"
+digest = "de7d56340ed5632b88fda7ca57588913ef4d5ed02d61925b1855b2ecbc0e2a4f"
 
 [[fn]]
 path = "core::maybe_dangling::<impl at library/core/src/mem/maybe_dangling.rs:72:30: 72:37>::default"
 kappa = "0488bc83ba68c6cf023315d2137be2632ecd14aac3a5e481b60a96eae543b567"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: mem::maybe_dangling::MaybeDangling<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
 
 [[fn]]
 path = "core::maybe_dangling::MaybeDangling::as_mut"
@@ -447,22 +447,22 @@ cause = "mir::Ty: &mut u32"
 path = "core::maybe_dangling::MaybeDangling::as_ref"
 kappa = "9302054bced8752e5afca5fb90e60f843384b0af55834e9b269ae85c7656f1a0"
 at = "P=u32"
-status = "residue"
-cause = "mir::Ty: MaybeDangling<u32>"
+status = "translated"
+digest = "74eb610de37202d80c4e78929f9611e0795ce6ccff65d83d0fde713c9ecdeb1d"
 
 [[fn]]
 path = "core::maybe_dangling::MaybeDangling::into_inner"
 kappa = "59dbddea44b7b34af28d7d81e11e58329dab82956f75c10725d38ba4a8c0257e"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: MaybeDangling<u32>"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::maybe_dangling::MaybeDangling::new"
 kappa = "11cbdf6f143e8b73f3174c1309826ee484de99334728c03501293e90a3d9c024"
 at = "P=u32"
-status = "residue"
-cause = "mir::Ty: mem::maybe_dangling::MaybeDangling<u32>"
+status = "translated"
+digest = "7d7310691a9f17c475eda0828a22dfe559491b6f86ed5403323bd5aff8a34e25"
 
 [[fn]]
 path = "core::maybe_uninit::<impl at library/core/src/mem/maybe_uninit.rs:1119:1: 1119:25>::as_bytes"
@@ -678,7 +678,7 @@ cause = "mir::Ty: mem::maybe_uninit::MaybeUninit<u32>"
 path = "core::maybe_uninit::MaybeUninit::fmt"
 kappa = "469da303f46d92c7cc3530432cb5f4e717408091a5852fdf9dca2da22bcd1521"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::maybe_uninit::MaybeUninit::from"
@@ -741,7 +741,7 @@ path = "core::mem::Discriminant::fmt"
 kappa = "17bea6307c41ff6350513774b51583afdf7e2d14a74b85947e6c167c13a52be1"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Discriminant<u32>"
 
 [[fn]]
 path = "core::mem::Discriminant::hash"
@@ -846,80 +846,80 @@ cause = "mir::Ty: *const u32"
 [[fn]]
 path = "core::transmutability::<impl at library/core/src/mem/transmutability.rs:150:10: 150:19>::eq"
 kappa = "85dea70e4eaf07b4a56dbb5db5f35f1d6b0c1c3ef31bac62e75e5cc68aa13bbd"
-status = "residue"
-cause = "mir::Ty: Assume"
+status = "translated"
+digest = "f787f8467bfb8d531f710c8817d35e0b11ee1729c64b06007cb23b76b670bfe9"
 
 [[fn]]
 path = "core::transmutability::<impl at library/core/src/mem/transmutability.rs:150:21: 150:23>::assert_fields_are_eq"
 kappa = "15bf3f26d4b54051afa42c312614e4e700fb199441181e3a343448f6b595ee99"
-status = "residue"
-cause = "mir::Ty: Assume"
+status = "translated"
+digest = "80bc25536e27629b55dc52f850d7aa3a462055ebcca3cedb546c40135dad58d2"
 
 [[fn]]
 path = "core::transmutability::<impl at library/core/src/mem/transmutability.rs:150:25: 150:30>::clone"
 kappa = "310732d96018e7a9554f0929be0db748881694fe2944bbcfac41f82c43a86d41"
-status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+status = "translated"
+digest = "de82572b530571a8c725852c2e165c08490178b429a399683b5a43e459290b5d"
 
 [[fn]]
 path = "core::transmutability::<impl at library/core/src/mem/transmutability.rs:150:38: 150:43>::fmt"
 kappa = "ae352975344e92c9b81ccc4895ebae562e8e1242c1ed1b34370a0f15e31b6c45"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::transmutability::Assume::ALIGNMENT"
 kappa = "0f96431d3c5aa66f5597358ed41b94d887ede9197285ca1ab83f09b6e87ee2ac"
 status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
 
 [[fn]]
 path = "core::transmutability::Assume::LIFETIMES"
 kappa = "aaa7317bf3550c043d2689e2a3d26195648f9f640763ff670087c924e6330103"
 status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
 
 [[fn]]
 path = "core::transmutability::Assume::NOTHING"
 kappa = "d9a7de1fe31403cdb84d10bf74d47a05fa2f5a30564c9afe84b6cc5e158153ed"
-status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+status = "translated"
+digest = "0c672638c268b38b44302bb55c478909667fd605c9eaf0c8bf49ce86a6cc7195"
 
 [[fn]]
 path = "core::transmutability::Assume::SAFETY"
 kappa = "d830bd11580ea5b2098787487109c96942406e9a3c5c7d2d3157ab524fa8540e"
 status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
 
 [[fn]]
 path = "core::transmutability::Assume::VALIDITY"
 kappa = "859b9c29b80002cb0e4cf53a18c67840cd2043375037e00e877519f9309d0fb9"
 status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+cause = "mir::Operand::Constant: the constant item mem::transmutability::Assume::NOTHING"
 
 [[fn]]
 path = "core::transmutability::Assume::add"
 kappa = "2c411f3b25d8f75263a0309e987ba2fc1c94c8f5f246c5e501975467e3bc22c9"
 status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+cause = "mir::TerminatorKind::Call: Assume::and"
 
 [[fn]]
 path = "core::transmutability::Assume::and"
 kappa = "2902eab20539a4b0feb108e91368615d2fd6971887af5095c4dab56afa36dca7"
-status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+status = "translated"
+digest = "3ab7918a44c6f75ee4248a7ce19b250bb7698efdabac124c764f4a062b00cf66"
 
 [[fn]]
 path = "core::transmutability::Assume::but_not"
 kappa = "91756cd77a8a36249127b1aa788784a7338ff9b40a2bac7c19546f2e6f7bea2b"
-status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+status = "translated"
+digest = "a64734b107dccd8d77f2d52832f9861c4dc4a9a3601008c40db32edbdee5baff"
 
 [[fn]]
 path = "core::transmutability::Assume::sub"
 kappa = "94311a26ea3103a3e62b87e9dccde8027998f08a7f5587aaeb265220679de8b8"
 status = "residue"
-cause = "mir::Ty: mem::transmutability::Assume"
+cause = "mir::TerminatorKind::Call: Assume::but_not"
 
 [[fn]]
 path = "core::transmute_copy"
@@ -946,80 +946,80 @@ cause = "mir::Operand::Constant: mem::transmute_prefix::<u32, u32>::{constant#0}
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:100:10: 100:15>::fmt"
 kappa = "be1a6baa76bbc08920f1a48a87f5b2ffeb12b0b3ed8a2a746914a59bd1e0783f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: type_info::Tuple"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:109:10: 109:15>::fmt"
 kappa = "bf5f3257b564de3812045887e2b41972d38b4b5ceb3eeec153ca6defe9611b6a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: type_info::Field"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:10:10: 10:15>::fmt"
 kappa = "9685e83d2b9fcbba79930bccc4f758bdbbf91ba3678c7a361b83759743a1f2d7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: type_info::Type"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:122:10: 122:15>::fmt"
 kappa = "d787077e24d866d5f05e8c6d66cf4611629f9b7fedbf53acfc5ff1e038d3f280"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Array"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:133:10: 133:15>::fmt"
 kappa = "39d692e8cc32a38e0080f0f061dba7dfd4642efa79f4ed8a3e5fd4e524ef934f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Slice"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:143:10: 143:15>::fmt"
 kappa = "88685ec82409877d8a090ffcd5adcc9ebdf01aa9a6651a190cd33ea289d3c43e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DynTrait"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:152:10: 152:15>::fmt"
 kappa = "a36d808f7e556d6747690859ac0b1b609c957f595369adca7b83fd8df4414aba"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: DynTraitPredicate"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:161:10: 161:15>::fmt"
 kappa = "76df682d5f5571fafc0ca0f7b6aa9f12fb1cb3518ca5d0284ca15900150ab532"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Trait"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:172:10: 172:15>::fmt"
 kappa = "58efe61f03760534618a8f1551c76feb28a13d22353b962ae09717da4b68457e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Struct"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:185:10: 185:15>::fmt"
 kappa = "53788b06274e37da51ede9134129566d280b4724a4dccbd3c12863cd6b33ff9c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Union"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:196:10: 196:15>::fmt"
 kappa = "d1d2ba827525cca5c8fbed6ed5791eef36e14410e13c5e1671b38b8fa982a698"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Enum"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:209:10: 209:15>::fmt"
 kappa = "0f6bce8816f1d084dc8d6e5d80d640dec395d71de79242ea4de12be83102604a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Variant"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:20:10: 20:15>::fmt"
 kappa = "fcdd1dc5fc083de3a53c2ad05b05ef0dca5c8bba865a42d630b0979828054415"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: TraitImpl<u32>"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:20:17: 20:26>::eq"
@@ -1038,79 +1038,79 @@ cause = "mir::Ty: T"
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:222:10: 222:15>::fmt"
 kappa = "fab99f2fcdac1712730f7488564441c4d07c17cdea53de22d81f3c4dbcdd1042"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Generic"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:235:10: 235:15>::fmt"
 kappa = "c90c5d8fe1fe0e1e047847ecdba2f7ec285dd56281b8b303820dbfb0ca754c9c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:243:10: 243:15>::fmt"
 kappa = "533acc5541ca7f7107716602f7ad21d90b276393681d8e3d1d41cd0610b5eda4"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: GenericType"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:252:10: 252:15>::fmt"
 kappa = "513f163d3c50b373c95f45ba27bd299a774e1cda47b0ea55636bac4635fa824d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Const"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:261:10: 261:15>::fmt"
 kappa = "745642eb839159ac05293b65df9d92e34c3d7ce5396946bec2e2e651454cbdd0"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:269:10: 269:15>::fmt"
 kappa = "495ae208abe8952a0344bd679ab9585ee0640956ed9d4bcad09143ba5682ee1d"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:277:10: 277:15>::fmt"
 kappa = "410eba8415e349c57487091174e6fc58faabf8af4b347413f7d88a824158c8b1"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: type_info::Int"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:288:10: 288:15>::fmt"
 kappa = "b51d905738700cfd5cbcae4b4392ecaceb765fcafa3194037763bc70b288cf62"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: type_info::Float"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:297:10: 297:15>::fmt"
 kappa = "718b6d122f20c79763b6794c7420cafe114fc8797b8cdd3eab30ac50159dd91c"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:305:10: 305:15>::fmt"
 kappa = "dfe925c93a59d4b13aaafdf8c217e9f233c1cd9028b1170d7fc788bb0deb52fe"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Reference"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:316:10: 316:15>::fmt"
 kappa = "113dd7cc874faf8efa735c0675da0551104aeffd13e920f7e4bba4070c65fb2b"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: type_info::Pointer"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:326:10: 326:15>::fmt"
 kappa = "3c18d040460217469a41f70935e720385e0dfd15cb4b313b5421954a4fb7192e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: type_info::FnPtr"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:346:10: 346:15>::fmt"
 kappa = "9c9691470f1533507a971c8c23d28b90111f9afbf68952f648bd7b334285a057"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Abi"
 
 [[fn]]
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:346:17: 346:24>::default"
@@ -1122,7 +1122,7 @@ cause = "mir::Ty: mem::type_info::Abi"
 path = "core::type_info::<impl at library/core/src/mem/type_info.rs:61:10: 61:15>::fmt"
 kappa = "9f9cbee0d4a126e45bacadf84da95247d1e88d46385f42ea25c4d46aa8f343c9"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: TypeKind"
 
 [[fn]]
 path = "core::type_info::TraitImpl::get_vtable"

@@ -57,13 +57,13 @@ cause = "mir::Ty: ffi::c_str::CStr"
 path = "core::location::Location::fmt"
 kappa = "c56a1212cd886d868f8b49d96db4b21def6fd020be8ce1bba93106fdc409aa4f"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Location<'_>"
 
 [[fn]]
 path = "core::location::Location::fmt#2"
 kappa = "fd1c91e39e2d124606232ac5180e9233337ca1ce8467d6ab645c18b22c9e9860"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Location<'_>"
 
 [[fn]]
 path = "core::location::Location::hash"
@@ -88,7 +88,7 @@ cause = "mir::Ty: Location<'_>"
 path = "core::panic_info::<impl at library/core/src/panic/panic_info.rs:13:10: 13:15>::fmt"
 kappa = "622136ce255efb836388161f93ee6d7d3a96ebaeca9c4549da9a886a3bf7d7a7"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: PanicInfo<'_>"
 
 [[fn]]
 path = "core::panic_info::PanicInfo::can_unwind"
@@ -100,7 +100,7 @@ cause = "mir::Ty: PanicInfo<'_>"
 path = "core::panic_info::PanicInfo::fmt"
 kappa = "04f81569a2cfb64e3361c3d2b4e982806f026c72915253376dc6fc0c63e85348"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: PanicInfo<'_>"
 
 [[fn]]
 path = "core::panic_info::PanicInfo::force_no_backtrace"
@@ -142,13 +142,13 @@ cause = "mir::Ty: PanicMessage<'_>"
 path = "core::panic_info::PanicMessage::fmt"
 kappa = "57f604fcd79964c24e2d85f5f15a50bea82074cf1706827605223db577fdf8ec"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: PanicMessage<'_>"
 
 [[fn]]
 path = "core::panic_info::PanicMessage::fmt#2"
 kappa = "aead9b1a3e2ea45f5f782b9f2f11f967c514bc0c1552c99176e164a63aa94b6e"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: PanicMessage<'_>"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::call_once"
@@ -183,7 +183,7 @@ path = "core::unwind_safe::AssertUnwindSafe::fmt"
 kappa = "c6bf778a2964c970ea21597225dce0a205e749e8e520675707836fa7d497925e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: AssertUnwindSafe<u32>"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::from"

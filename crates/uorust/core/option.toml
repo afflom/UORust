@@ -30,21 +30,21 @@ path = "core::option::<impl at library/core/src/option.rs:2483:17: 2483:22>::fmt
 kappa = "ccea4af991a6adf43104f9f200cedc0f4e85a0e1e1d628b7085a2ec02ad30d74"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: Item<u32>"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2526:10: 2526:15>::fmt"
 kappa = "aa7e21b1ba33761a9bee89e6876a416f63bbe0fb41c2985237b56aa5ab4d2cf8"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: option::Iter<'_, u32>"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2576:10: 2576:15>::fmt"
 kappa = "636c577fe409ba100b650b64dcaa0e6960a567cc8e5ab4c87d0b82bd1b2ee084"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: option::IterMut<'_, u32>"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2616:10: 2616:15>::clone"
@@ -58,7 +58,7 @@ path = "core::option::<impl at library/core/src/option.rs:2616:17: 2616:22>::fmt
 kappa = "a58384b08b4d248869e2a469c34211a45ddc89b5db5360f51880a04eb543be92"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: option::IntoIter<u32>"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:2655:10: 2655:15>::clone"
@@ -72,14 +72,14 @@ path = "core::option::<impl at library/core/src/option.rs:2655:17: 2655:22>::fmt
 kappa = "e60dd13366dd9cb47d797b3a77fd0bc0d1a687475e7a5242dd2345148e199146"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: OptionFlatten<u32>"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:591:16: 591:21>::fmt"
 kappa = "f594de47f9bd940ffae5ec28d403453ad90652a102f58b445536d0756af535d4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::option::<impl at library/core/src/option.rs:591:23: 591:27>::hash"
