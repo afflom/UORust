@@ -365,24 +365,6 @@ mod tests {
             }
             (q, r)
         }
-        fn decimal(&self) -> String {
-            if self.is_zero() {
-                return "0".into();
-            }
-            let mut digits = Vec::new();
-            let mut n = self.clone();
-            let ten18 = Big::from(1_000_000_000_000_000_000u128);
-            while !n.is_zero() {
-                let (q, r) = n.divmod(&ten18);
-                digits.push(r.to_u128().unwrap_or(0));
-                n = q;
-            }
-            let mut out = digits.pop().unwrap_or(0).to_string();
-            for d in digits.iter().rev() {
-                out.push_str(&format!("{d:018}"));
-            }
-            out
-        }
     }
 
     impl PartialOrd for Big {
