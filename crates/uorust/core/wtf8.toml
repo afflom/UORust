@@ -85,8 +85,8 @@ digest = "7e17f4478c387ffc760b234d6a4e53f207e28fc7aee4fa13c656562c6e836427"
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:566:10: 566:15>::clone"
 kappa = "561cfe76d154606bf5036a48fe1a7db247f93cf1ff6325d6f4290ea9a62e743d"
-status = "residue"
-cause = "mir::Ty: wtf8::EncodeWide<'_>"
+status = "translated"
+digest = "57284315d7fba78be79e9c8232e9212e94c02a749abef137846fd9edbfdcbcec"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:653:1: 653:35>::clone_to_uninit"
@@ -156,6 +156,12 @@ status = "residue"
 cause = "mir::Ty: CodePoint"
 
 [[fn]]
+path = "core::wtf8::EncodeWide::fmt"
+kappa = "e8d40cb3a30b08ef1d2a58665ae48d80a3c99b2c60aaffacfe4c86443570d04d"
+status = "residue"
+cause = "mir::Ty: fmt::Formatter<'_>"
+
+[[fn]]
 path = "core::wtf8::EncodeWide::fmt::CodeUnit::fmt"
 kappa = "c0b47297f272507a1852a2ce8d26b073a920e231e6e558bfe33a4393b7dd38c2"
 status = "residue"
@@ -165,13 +171,13 @@ cause = "mir::Ty: CodeUnit"
 path = "core::wtf8::EncodeWide::next"
 kappa = "d3dd130f429ff950a2f56794c30317fe5910cfbfd3bcfe7e9d57ad7285547f83"
 status = "residue"
-cause = "mir::Ty: EncodeWide<'_>"
+cause = "mir::Rvalue::Repeat"
 
 [[fn]]
 path = "core::wtf8::EncodeWide::size_hint"
 kappa = "aaeac105b866afee7843a523fef06079c44f530632d9d5b03994afb4324e35da"
 status = "residue"
-cause = "mir::Ty: EncodeWide<'_>"
+cause = "mir::TerminatorKind::Call: <Wtf8CodePoints as iterator::Iterator>::size_hint"
 
 [[fn]]
 path = "core::wtf8::Wtf8::as_bytes"
@@ -213,7 +219,7 @@ digest = "cca3713a001c8e99afc525367e4cbab61c42a18d5e6acea43fec7efecd49c931"
 path = "core::wtf8::Wtf8::encode_wide"
 kappa = "09cd6a0036d4bf028133b0eec6aa1fdf4e7c891bab834f706db978d0b1f8c845"
 status = "residue"
-cause = "mir::Ty: wtf8::EncodeWide<'_>"
+cause = "mir::TerminatorKind::Call: Wtf8::code_points"
 
 [[fn]]
 path = "core::wtf8::Wtf8::eq_ignore_ascii_case"
@@ -268,25 +274,25 @@ cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write"
 path = "core::wtf8::Wtf8::index"
 kappa = "9b31dbcc94692d8e6e1695cc4e3ccf2a9f9a2e2976098ef9ae1e003b9f9fb049"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::TerminatorKind::Call: Wtf8::is_code_point_boundary"
 
 [[fn]]
 path = "core::wtf8::Wtf8::index#2"
 kappa = "2b2a85dad59809db9fb16e77868cf609fe92cbf2e9ebb1a3ba0a1e8c8a25dcd0"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: Wtf8::is_code_point_boundary"
 
 [[fn]]
 path = "core::wtf8::Wtf8::index#3"
 kappa = "58814b544a46b98ff1109bda62e7b9bb864df1b9cf1216227ebecfd5fcee40be"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::TerminatorKind::Call: Wtf8::is_code_point_boundary"
 
 [[fn]]
 path = "core::wtf8::Wtf8::index#4"
 kappa = "7b716f77e3f7566a29da201134fce484e28a4e8a669bfdcaffac956989489c45"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "4bea94dcdd4b860d60fa655b806e8cca7e4a021f339790db6fb3584a1f93cd7f"
 
 [[fn]]
 path = "core::wtf8::Wtf8::initial_trail_surrogate"
@@ -334,7 +340,7 @@ cause = "mir::TerminatorKind::Call: slice::ascii::<impl [u8]>::make_ascii_upperc
 path = "core::wtf8::Wtf8::next_surrogate"
 kappa = "4b4a5c83ceacb06929b850111e6806e8420f78caae5946e2e79a9457b3589e40"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: <[u8] as Index>::index"
 
 [[fn]]
 path = "core::wtf8::Wtf8::try_check_utf8_boundary"

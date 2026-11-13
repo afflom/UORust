@@ -381,6 +381,13 @@ status = "residue"
 cause = "mir::Ty: NonNull<[u32]>"
 
 [[fn]]
+path = "core::non_null::NonNull::map_addr"
+kappa = "1ffb680c9ceedc276ed8658f4b231a7f4fed2bc59ff212b98544140cac2c2a7e"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: ptr::non_null::NonNull<u32>"
+
+[[fn]]
 path = "core::non_null::NonNull::new"
 kappa = "436174f6b62454d3428651a7215588dd2c914ac0145d71468e66b303869143c2"
 at = "T=u32"
@@ -881,7 +888,7 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "6af5079e2f8698d5047de7113c1313a160e6bce91ea7bc22809764796409cd3c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item *const u8) -> bool {ptr::const_ptr::<impl *const u32>::is_null::runtime}, bool>(move _4, ptr::const_ptr::<impl *const u32>::is_null::compiletime, ptr::const_ptr::<impl *const u32>::is_null::runtime"
+cause = "mir::Operand::Constant: the constant item ptr::const_ptr::<impl *const u32>::is_null::compiletime"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::is_null::compiletime"
@@ -894,6 +901,13 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "1077bc68031a504c27614abaf10d443da40ec3c2be31b363a6a5cfaaff7ce337"
 status = "residue"
 cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u8>::addr"
+
+[[fn]]
+path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::map_addr"
+kappa = "6c03975ad765d7247231840cb088c172d8cfbbe87f3ebbeb580c812e3f578f8d"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: impl FnOnce(usize) -> usize"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::mask"
@@ -919,7 +933,7 @@ cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const T>::offset::run
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap"
 kappa = "ac95604f3aa44e58c77ba32aa599716e2d0f2f546e8d88eb156a91a5d2bd65cd"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item *const ()"
+cause = "mir::Operand::Constant: the constant item ptr::const_ptr::<impl *const T>::offset::runtime_offset_nowrap::compiletime"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap::compiletime"
@@ -951,7 +965,7 @@ cause = "mir::TerminatorKind::Call: check_language_ub"
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned::precondition_check"
 kappa = "ae39de60a08d71e801bfaafa3443eefa9fb6d152ce7b90d767f96d51c1e74954"
 status = "residue"
-cause = "mir::TerminatorKind::Call: runtime_ptr_ge"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned::runtime_ptr_ge: core's MIR stops at mir::Operand::Constant: the constant item runtime_ptr_ge::compiletime"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::read"
@@ -1540,6 +1554,13 @@ status = "residue"
 cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast_const"
 
 [[fn]]
+path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::map_addr"
+kappa = "9f9f6bde98ab694388d2ed95fc1e8a146a2291a3e23969c70ae94bb0ffa9f53f"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: impl FnOnce(usize) -> usize"
+
+[[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::mask"
 kappa = "93a850e0bd414413ff363c839d9860f9fe21d9088e139b6a66945e77268d248c"
 at = "T=u32"
@@ -1563,7 +1584,7 @@ cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut T>::offset::runtime
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap"
 kappa = "246a4e139765a0a2f0c415e5fefcd99a8be9a825895f63cec53b96e9abfef3e5"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item *const ()"
+cause = "mir::Operand::Constant: the constant item ptr::mut_ptr::<impl *mut T>::offset::runtime_offset_nowrap::compiletime"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap::compiletime"
@@ -1843,7 +1864,7 @@ cause = "mir::TerminatorKind::Call: maybe_is_aligned"
 path = "core::runtime_ptr_ge"
 kappa = "fec1221f548c3a582d6ba409f0eb33861e9a8de9e9aaf68db0063278baa1ce09"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item *const ()"
+cause = "mir::Operand::Constant: the constant item runtime_ptr_ge::compiletime"
 
 [[fn]]
 path = "core::runtime_ptr_ge::compiletime"

@@ -2,7 +2,7 @@
 path = "core::check_language_ub"
 kappa = "7ca3b31bc62d62ff3370b0f247eee35b54df97823b9abc4451e0aa5cde57b353"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item ) -> bool {check_language_ub::runtime}, bool>(move _2, check_language_ub::compiletime, check_language_ub::runtime"
+cause = "mir::TerminatorKind::Call: const_eval_select"
 
 [[fn]]
 path = "core::check_language_ub::compiletime"
@@ -14,7 +14,7 @@ digest = "87b096d721d7addc88ea2a84455412068e94f2b514b4c8cc2e218763a045d4ef"
 path = "core::check_language_ub::runtime"
 kappa = "f120fa7823965e6c2650fdd81d3210076c9fca84ee4b62e7137895a7a9adaceb"
 status = "translated"
-digest = "844b47c05dca110bd7e6d7f0b186bfafe85f47c9aceeece31ec3d3c1e6dfd0d0"
+digest = "1419a5949fd1d5e270c76d2c4a5b29711fda1f5fbc1ae199b941fd92d88e8576"
 
 [[fn]]
 path = "core::is_valid_allocation_size"
@@ -26,7 +26,7 @@ cause = "mir::Operand::Constant: the constant item num::<impl isize>::MAX as usi
 path = "core::maybe_is_aligned"
 kappa = "aa29f837098c1d2b0c22890981ce291896478c41e3a27eab5e2c8480ef4f28d5"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item *const ()"
+cause = "mir::Operand::Constant: the constant item maybe_is_aligned::compiletime"
 
 [[fn]]
 path = "core::maybe_is_aligned::compiletime"
@@ -44,13 +44,13 @@ cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const ()>::is_aligned
 path = "core::maybe_is_aligned_and_not_null"
 kappa = "f2d6ef039f565f5439b7e08f22d55525a0ad863afb2e49da0a97302b9053d043"
 status = "residue"
-cause = "mir::TerminatorKind::Call: maybe_is_aligned"
+cause = "mir::TerminatorKind::Call: ub_checks::maybe_is_aligned: core's MIR stops at mir::Operand::Constant: the constant item maybe_is_aligned::compiletime"
 
 [[fn]]
 path = "core::maybe_is_nonoverlapping"
 kappa = "6fe729a9a9801604588a75a51cf5b214f19f3879173820626389ff30e3124dcf"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item *const ()"
+cause = "mir::Operand::Constant: the constant item maybe_is_nonoverlapping::compiletime"
 
 [[fn]]
 path = "core::maybe_is_nonoverlapping::compiletime"

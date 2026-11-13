@@ -8,49 +8,49 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::time::<impl at library/core/src/time.rs:1605:10: 1605:15>::fmt"
 kappa = "b5600949d7e733a26dc204ab20e1bc3b16aa947a5508d3ada8f3c0a4f4ec3d8c"
 status = "residue"
-cause = "mir::Ty: TryFromFloatSecsError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:17: 1605:22>::clone"
 kappa = "d87aabc298cc02656c776c6be415d86a28698fc94c5c15c77ff61589665e042d"
-status = "residue"
-cause = "mir::Ty: time::TryFromFloatSecsError"
+status = "translated"
+digest = "df1c47d89fc9f096bf06935e7e9b5bf61bd385a7e800b091328d750268606bd3"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:24: 1605:33>::eq"
 kappa = "36e7bbd31c6a22539e8c50906e847f5943cf9588c7eb50bc416400719f4d38b3"
 status = "residue"
-cause = "mir::Ty: TryFromFloatSecsError"
+cause = "mir::TerminatorKind::Call: <TryFromFloatSecsErrorKind as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:35: 1605:37>::assert_fields_are_eq"
 kappa = "11149b25c82b4e2262e38babd6a36ee254365f2d2cd1b328dfc40a2bc2bc993a"
-status = "residue"
-cause = "mir::Ty: TryFromFloatSecsError"
+status = "translated"
+digest = "9412d9f50c19dcad0bba6c8054d24ba9b4ced725e705c1855c54bc89e9b98824"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:10: 1626:15>::fmt"
 kappa = "c6a91ea68299317a4a062c30341b78a316e673da2a3edc99483d1f51c90fb62e"
 status = "residue"
-cause = "mir::Ty: TryFromFloatSecsErrorKind"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:17: 1626:22>::clone"
 kappa = "8326514094f60e4b9ada21f4886ff72490b243443b9efa80715090b597654926"
-status = "residue"
-cause = "mir::Ty: time::TryFromFloatSecsErrorKind"
+status = "translated"
+digest = "5195c5127e463b3e749f61df428ef2002c82c78dff327a25034a46baf6cf4d93"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:24: 1626:33>::eq"
 kappa = "178fe6a03d3c9bde5beadd727079f3c3fe3870f2ad35c38caadeafdb02c53018"
 status = "residue"
-cause = "mir::Ty: TryFromFloatSecsErrorKind"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:35: 1626:37>::assert_fields_are_eq"
 kappa = "ae3c66285721f7ff08824f2d91ef1c14f691026db6f6c79a076760f3e0245f82"
-status = "residue"
-cause = "mir::Ty: TryFromFloatSecsErrorKind"
+status = "translated"
+digest = "9c942d51ea66bf3fc6959f91addacfcf7494f319add98b39161178cdbb45ccef"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:10: 79:15>::clone"
@@ -502,7 +502,7 @@ cause = "mir::Operand::Constant: 11_i32 as u32 (IntToInt)"
 path = "core::time::TryFromFloatSecsError::fmt"
 kappa = "2721d9b0f7407dd1a5788dc2887f13dcfd073ac576f8d5ad61994b3556b675c7"
 status = "residue"
-cause = "mir::Ty: TryFromFloatSecsError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::time::u32::mul"

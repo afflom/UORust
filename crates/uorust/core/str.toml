@@ -90,7 +90,7 @@ cause = "mir::TerminatorKind::Call: mem::size_of"
 path = "core::count_chars"
 kappa = "d9b5ab00269d962e64a18401b222f5fda8e2c7af70aa7dbb2ad0cfe52642659e"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
+cause = "mir::Operand::Constant: the constant item str::count::USIZE_SIZE"
 
 [[fn]]
 path = "core::do_count_chars"
@@ -126,7 +126,7 @@ cause = "mir::TerminatorKind::Call: run_utf8_validation"
 path = "core::from_utf8_unchecked"
 kappa = "8e8eece67fa04b6da3df9bceb057b655da2dbb0bde0a6e8a5e60010e10ec8be6"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::transmute"
+cause = "mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::from_utf8_unchecked_mut"
@@ -174,7 +174,7 @@ digest = "8a620cd0386819af22857c44e765e0607531acd9451eed2a57b01d9898622cbc"
 path = "core::lossy::Debug::fmt"
 kappa = "17dcd727bcb2c5087c56e46ab9a3486951707ad1e5095bf63f28e1ec98c7a86a"
 status = "residue"
-cause = "mir::Ty: lossy::Debug<'_>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::lossy::Utf8Chunk::invalid"
@@ -716,31 +716,31 @@ cause = "mir::Ty: str::pattern::CharSliceSearcher<'_, '_>"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::is_contained_in"
 kappa = "91ea80a5b9a03e78aadf2fc9b946628def086eba44effc06b3df7061d5b238d2"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_contained_in"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_contained_in: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<&[char]>>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::is_prefix_of"
 kappa = "331dd8a2b23c543403dc3e26a916f6d34d82acdad2d3980b0d7f01d77a00972a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_prefix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_prefix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<&[char]>>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::is_suffix_of"
 kappa = "7d43c43e0284bb1dff77c7ff3451f0d19a855d77eae563b2a031ba0991d504e3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_suffix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_suffix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<&[char]>>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::strip_prefix_of"
 kappa = "a887d45ac3ebdbded3fac375414100e37312a36be32ea21122ebd1336f489bc8"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_prefix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_prefix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<&[char]>>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:894:1: 894:32>::strip_suffix_of"
 kappa = "067c94c6e010f2001bc4cf11e06ef8c6abf1afd250245e7c32bd899650edd455"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_suffix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_suffix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<&[char]>>"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:903:10: 903:15>::clone"
@@ -900,42 +900,42 @@ path = "core::pattern::F::is_contained_in"
 kappa = "73d63eebcf4fe4b29ae453d6b5bd419f44fc804ba603900bdeb62552c8f172ec"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_contained_in"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_contained_in: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::pattern::F::is_prefix_of"
 kappa = "d5cdccc92b85263f8fefc438f1f68268289bb7991d47c07007f119c9acb97f21"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_prefix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_prefix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::pattern::F::is_suffix_of"
 kappa = "4c5d87509ba69e63686168ec9b3b8d25ccb5b1132d98761227b5a914231fdb7e"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::is_suffix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_suffix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::pattern::F::matches"
 kappa = "01b5e20adc199ff516ae92cde267bdc0b96817ce2bfbdaeedb5796ef5e25ed3f"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as function::FnMut>::call_mut"
+cause = "mir::Ty: mut u32"
 
 [[fn]]
 path = "core::pattern::F::strip_prefix_of"
 kappa = "0832a437cea5f389a1b6de3c610dfa50aeb7c090587512ca645d261f7f97285d"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_prefix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_prefix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::pattern::F::strip_suffix_of"
 kappa = "6e81cc65c8a0c8aa686f1465d658021e19488740521879bfa000b3302e96618f"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <MultiCharEqPattern as pattern::Pattern>::strip_suffix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_suffix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::pattern::MatchOnly::matching"
@@ -1518,8 +1518,8 @@ cause = "mir::Ty: SplitAsciiWhitespace<'_>"
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1484:10: 1484:15>::clone"
 kappa = "022a1a11146b8841f5464b393859700c936483dae56181132be0267b46d31806"
-status = "residue"
-cause = "mir::Ty: str::iter::EncodeUtf16<'_>"
+status = "translated"
+digest = "f5f75ad45fd723c7b5d49bd6f1f4f1809dfbe6f06b07b0b374b0408b6708f00a"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:1543:10: 1543:15>::clone"
@@ -1656,14 +1656,14 @@ cause = "mir::Ty: str::iter::EscapeUnicode<'_>"
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:169:10: 169:15>::clone"
 kappa = "5df2c8f950a3ffc13c85d14701d5939856a425a80e4b85b4d6ef6d52d7159d94"
-status = "residue"
-cause = "mir::Ty: str::iter::CharIndices<'_>"
+status = "translated"
+digest = "c0dd9b5343791ade3cec5c09e9c8afd3fc68c2be01b1062d635e9e668d699caf"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:169:17: 169:22>::fmt"
 kappa = "0e2f92cbf8f3387bdab7b5e84026df9d98de1801c0c7fe287aba026a6c2027e1"
 status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:27:10: 27:15>::clone"
@@ -1674,14 +1674,14 @@ digest = "41951b4871900feca1d6f38502f0470e657e65a74b2e9a8ac47023d3c8f2f838"
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:283:10: 283:15>::clone"
 kappa = "c4d049b6c819c0a1c890890654425a8f4f11201b25b661b834e3f41260ce1481"
-status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+status = "translated"
+digest = "97aa168c2d8ed7618ed06814c0ae44d7ec435a1f3ff94e9a64916d65656993dd"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:283:17: 283:22>::fmt"
 kappa = "04b4c921481bcfd01ab48054e99f36606a02d0013c0cd93e5d746aad601c7697"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::iter::<impl at library/core/src/str/iter.rs:417:9: 419:45>::clone"
@@ -1981,145 +1981,145 @@ cause = "mir::Ty: RMatchIndices<'_, u32>"
 path = "core::str::iter::Bytes::__iterator_get_unchecked"
 kappa = "62090ebe715032bc0e05d384748021f3a1d9cd42e083060b618a48bc24d9ac29"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::__iterator_get_unchecked"
 
 [[fn]]
 path = "core::str::iter::Bytes::all"
 kappa = "7bb1e92bcd4ce4ec494610647579cb3172bef525faf4fcd92fc89f9971f75107"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::all"
 
 [[fn]]
 path = "core::str::iter::Bytes::any"
 kappa = "90423b0d6e2da6c4ce7cb4e09078da574828fafa3dcafbf6f6872550a2e1d006"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::any"
 
 [[fn]]
 path = "core::str::iter::Bytes::count"
 kappa = "748901ed8c3e88e2ecbc21713c83b09599402128e50863668bd60e13a17d83c3"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::count"
 
 [[fn]]
 path = "core::str::iter::Bytes::find"
 kappa = "c91599c0f219854a2fa6beba8bc672aa1a4ce4a1f12b4345858fb7c171be39b4"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::find"
 
 [[fn]]
 path = "core::str::iter::Bytes::is_empty"
 kappa = "369bbebf2eeec771c4b6f2e130aa88c64d1b72f63cae71a33b024b635f091e8b"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as exact_size::ExactSizeIterator>::is_empty"
 
 [[fn]]
 path = "core::str::iter::Bytes::last"
 kappa = "3f0392c00733a5726c1fe2be172e35b56b78472470278ad1895795a94e2177b2"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::last"
 
 [[fn]]
 path = "core::str::iter::Bytes::len"
 kappa = "819609b13985afb76e09a506292c1f802c4ee7f5f106489b1c91991e9df29ae8"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as exact_size::ExactSizeIterator>::len"
 
 [[fn]]
 path = "core::str::iter::Bytes::next"
 kappa = "19fe16876090b6d821a139065da255fae306cfd63ffc753ab211e33d12709a87"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::next"
 
 [[fn]]
 path = "core::str::iter::Bytes::next_back"
 kappa = "733a00a52bb4676b1d8e454fb2a18081154293f4fe7c4fa85e681cf585799efb"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as double_ended::DoubleEndedIterator>::next_back"
 
 [[fn]]
 path = "core::str::iter::Bytes::nth"
 kappa = "c656f0a6fca92b69ab42d56c0755a5adbe99373174cd2c525b82f430bd69ba40"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::nth"
 
 [[fn]]
 path = "core::str::iter::Bytes::nth_back"
 kappa = "26689123c5aad14860ac763ac02022a3ac41e1ed6bafb4187d7567075a249e82"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as double_ended::DoubleEndedIterator>::nth_back"
 
 [[fn]]
 path = "core::str::iter::Bytes::position"
 kappa = "5edc71c821e3f7f339d55096347089b14b8f69901f9a3e2fe2c9b34d6ee829ad"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::position"
 
 [[fn]]
 path = "core::str::iter::Bytes::rfind"
 kappa = "fd94e0d6f1666f94c82a785c9d72cf0290bfd7f6d551080414975a79007febaf"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as double_ended::DoubleEndedIterator>::rfind"
 
 [[fn]]
 path = "core::str::iter::Bytes::rposition"
 kappa = "7370cd32cfe3a734cf23a703c8a7a5c39f6d2dce70416e4aad9e0e7f738ab5e0"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::rposition"
 
 [[fn]]
 path = "core::str::iter::Bytes::size_hint"
 kappa = "20304857be53751a5fde037f6a0ce8cf33185a2cf0a19d99284b988bf6493f05"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: <Copied as iterator::Iterator>::size_hint"
 
 [[fn]]
 path = "core::str::iter::CharIndices::as_str"
 kappa = "80fd99c2a64e90bd4cf32fa12e828a4cd6ba2576ec0be6d66afa7c926ff26f02"
 status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+cause = "mir::TerminatorKind::Call: Chars::as_str"
 
 [[fn]]
 path = "core::str::iter::CharIndices::count"
 kappa = "15d2307d643e51aebf55ac8b32531e01f9fe2a29a0afc6fba66de2f98639d256"
 status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+cause = "mir::TerminatorKind::Call: <Chars as iterator::Iterator>::count"
 
 [[fn]]
 path = "core::str::iter::CharIndices::last"
 kappa = "e3cafa6d62b45f83174c0c732ad4d360bfdcdb14ad4e5f4570b3e8e8e2f2d424"
 status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+cause = "mir::TerminatorKind::Call: <CharIndices as double_ended::DoubleEndedIterator>::next_back"
 
 [[fn]]
 path = "core::str::iter::CharIndices::next"
 kappa = "070328fc8b2e5b2c9872e81d1d85b3c7c3eff5eb5adb879a8f93e741d9465e1b"
 status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+cause = "mir::TerminatorKind::Call: <Chars as iterator::Iterator>::next"
 
 [[fn]]
 path = "core::str::iter::CharIndices::next_back"
 kappa = "8ddcd4e877030a0a7c0fab2481ac52e1abe94440a881d4524e605cb07d0fb834"
 status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+cause = "mir::TerminatorKind::Call: <Chars as double_ended::DoubleEndedIterator>::next_back"
 
 [[fn]]
 path = "core::str::iter::CharIndices::offset"
 kappa = "9f2c46c3ae8ce58ee06554b815dff40bbf26076c327330774c774ca67932b7b1"
-status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+status = "translated"
+digest = "de16dd2418ead8cc9ee5bfed6ca79f627605b25ec3c662199f2221fb9925f2ab"
 
 [[fn]]
 path = "core::str::iter::CharIndices::size_hint"
 kappa = "e9a6a6501613eccbc0adea2c2cd64d98a89a947c6d9dbf10a2b0d0fb0ee3b5cf"
 status = "residue"
-cause = "mir::Ty: CharIndices<'_>"
+cause = "mir::TerminatorKind::Call: <Chars as iterator::Iterator>::size_hint"
 
 [[fn]]
 path = "core::str::iter::Chars::advance_by"
@@ -2155,13 +2155,13 @@ cause = "mir::TerminatorKind::Call: <Chars as double_ended::DoubleEndedIterator>
 path = "core::str::iter::Chars::next"
 kappa = "18d7b55a54a1b72f064b58e30d9ce5ffa287c200a6ebcf4b91e764eca1c7a54b"
 status = "residue"
-cause = "mir::TerminatorKind::Call: next_code_point"
+cause = "mir::TerminatorKind::Call: str::validations::next_code_point: core's MIR stops at mir::TerminatorKind::Call: <Option as Try>::branch"
 
 [[fn]]
 path = "core::str::iter::Chars::next_back"
 kappa = "c8039764911e94ffe0825aa78cb5d01a40071f569f92418c3c2f9d9f7137f6e6"
 status = "residue"
-cause = "mir::TerminatorKind::Call: next_code_point_reverse"
+cause = "mir::TerminatorKind::Call: str::validations::next_code_point_reverse: core's MIR stops at mir::TerminatorKind::Call: <Option as Try>::branch"
 
 [[fn]]
 path = "core::str::iter::Chars::size_hint"
@@ -2173,19 +2173,19 @@ cause = "mir::TerminatorKind::Call: num::<impl usize>::div_ceil"
 path = "core::str::iter::EncodeUtf16::fmt"
 kappa = "c6153443f842c95fee494ffed856e7f9fb65ed5cb8b9b0e3f79894c16d87d14f"
 status = "residue"
-cause = "mir::Ty: EncodeUtf16<'_>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::str::iter::EncodeUtf16::next"
 kappa = "5f21ae195e9079d0fa8e4e72913062322bc4f8a3086da9cc57b0b44f0943c357"
 status = "residue"
-cause = "mir::Ty: EncodeUtf16<'_>"
+cause = "mir::Rvalue::Repeat"
 
 [[fn]]
 path = "core::str::iter::EncodeUtf16::size_hint"
 kappa = "08504e30c4e0ee11ef988472290d7c6101c9a47d3871d6579c0138e703294044"
 status = "residue"
-cause = "mir::Ty: EncodeUtf16<'_>"
+cause = "mir::TerminatorKind::Call: num::<impl usize>::div_ceil"
 
 [[fn]]
 path = "core::str::iter::Lines::last"
@@ -2519,7 +2519,7 @@ cause = "mir::TerminatorKind::Call: str::<impl str>::is_ascii"
 path = "core::str::str::as_bytes"
 kappa = "1b827ca391dac3ba7ea6ea35ab6a35fa867a827674219182192fbdb49ace75f3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::transmute"
+cause = "mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::str::str::as_bytes_mut"
@@ -2555,7 +2555,7 @@ digest = "73d5b65d68274e38bd4e710e939c520812b00f889502d4c7800235d0e17c7b43"
 path = "core::str::str::bytes"
 kappa = "03e5aaa09cb86d531d610a204a6666869834dca4224e0dd1e947cc35acb129fa"
 status = "residue"
-cause = "mir::Ty: str::iter::Bytes<'_>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::str::str::ceil_char_boundary"
@@ -2567,7 +2567,7 @@ cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 path = "core::str::str::char_indices"
 kappa = "2efc9e88dd32afe75ba55cfd5ba31b1e25fe2674c32f3a32bd3a636690206bf3"
 status = "residue"
-cause = "mir::Ty: str::iter::CharIndices<'_>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::chars"
 
 [[fn]]
 path = "core::str::str::chars"
@@ -2580,20 +2580,20 @@ path = "core::str::str::contains"
 kappa = "6305b90b6241313f232f4960e2cbd451056ab1f09ce77ce41d57aa9433d42f77"
 at = "P=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as pattern::Pattern>::is_contained_in"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_contained_in: core's MIR stops at mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_contained_in: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::str::str::encode_utf16"
 kappa = "b1664094fe727889b6565e1f7a442cbfb7950dc51d1ed0255c417bd1c34e6ab2"
 status = "residue"
-cause = "mir::Ty: str::iter::EncodeUtf16<'_>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::chars"
 
 [[fn]]
 path = "core::str::str::ends_with"
 kappa = "e723eb094f28f0bcdbe8f95db7dbdde21b461a87eedcaaf665830bde3f9c24f4"
 at = "P=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as pattern::Pattern>::is_suffix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_suffix_of: core's MIR stops at mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_suffix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::str::str::eq_ignore_ascii_case"
@@ -2806,13 +2806,13 @@ cause = "mir::Ty: str::iter::RSplitN<'_, u32>"
 path = "core::str::str::slice_mut_unchecked"
 kappa = "2773b930955e9ac740292aa3da4be57a750f2748df39d6491829afd694a9befa"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::str::str::slice_unchecked"
 kappa = "a84763e286c35eb3a6daabacf513447472f22b65a591327cf1da57928d99becb"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::str::str::split"
@@ -2902,7 +2902,7 @@ path = "core::str::str::starts_with"
 kappa = "225998e0c22a6ba3a56590a99997f852cd9fefbabf7e54b27e55c89d030503d2"
 at = "P=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as pattern::Pattern>::is_prefix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_prefix_of: core's MIR stops at mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::is_prefix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::str::str::strip_circumfix"
@@ -2916,20 +2916,26 @@ path = "core::str::str::strip_prefix"
 kappa = "094da1425370f119a4d79ed61343b57af039c0a729e2862493e7de95422037d7"
 at = "P=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as pattern::Pattern>::strip_prefix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_prefix_of: core's MIR stops at mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_prefix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::str::str::strip_suffix"
 kappa = "314e953ea008dc9b97c620585898e22641b50a5a58938f62142b0241957d80a8"
 at = "P=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as pattern::Pattern>::strip_suffix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_suffix_of: core's MIR stops at mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_suffix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::str::str::substr_range"
 kappa = "900e44c613b73f11ed5d1fe4c868e0a2b4db77e36fe24db9a5005b449824ae8e"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
+
+[[fn]]
+path = "core::str::str::trim"
+kappa = "a48a79d71ba4572120b27bb16da7d318e149097472a6ca63b42bc553f1911951"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item methods::<impl char>::is_whitespace"
 
 [[fn]]
 path = "core::str::str::trim_ascii"
@@ -2948,6 +2954,12 @@ path = "core::str::str::trim_ascii_start"
 kappa = "d127134f7ea9a8bbfec9b1ea5f16f879391d0892471a903c99a4fb9e3dc0da87"
 status = "residue"
 cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
+
+[[fn]]
+path = "core::str::str::trim_end"
+kappa = "023926b7cfb574583ecc210be028970652c56fc836c7d8566bcbb67329ff7808"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item methods::<impl char>::is_whitespace"
 
 [[fn]]
 path = "core::str::str::trim_end_matches"
@@ -2981,7 +2993,7 @@ path = "core::str::str::trim_prefix"
 kappa = "6c6841cad49d60ab9960fdcc5e01fd5bf99af51387499e34b9672abcf6749f5e"
 at = "P=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as pattern::Pattern>::strip_prefix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_prefix_of: core's MIR stops at mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_prefix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::str::str::trim_right"
@@ -2997,6 +3009,12 @@ status = "residue"
 cause = "mir::TerminatorKind::Call: str::<impl str>::trim_end_matches"
 
 [[fn]]
+path = "core::str::str::trim_start"
+kappa = "63bb6045cd2d0cc4ed7823da816cb5599f83e81e11ff6f6b8ebdb11ecef370ed"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item methods::<impl char>::is_whitespace"
+
+[[fn]]
 path = "core::str::str::trim_start_matches"
 kappa = "fcc2300e1991bb267c2fa0abad76e4059416f22933988d926d8bd03541896d9c"
 at = "P=u32"
@@ -3008,25 +3026,25 @@ path = "core::str::str::trim_suffix"
 kappa = "cef721387551ff009948701f205f3397972469945c8e7d41566bb555db2eb684"
 at = "P=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as pattern::Pattern>::strip_suffix_of"
+cause = "mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_suffix_of: core's MIR stops at mir::TerminatorKind::Call: str::pattern::<impl at library/core/src/str/pattern.rs:943:1: 945:28>::strip_suffix_of: core's MIR stops at type outside the lift: str::pattern::MultiCharEqPattern<str::pattern::MultiCharEqPattern<u32>>"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get"
 kappa = "5fbd76e77581af7f8aa4692bec965cf3d1d493f45026ab4a189e5f42de8a62e5"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_mut"
 kappa = "d8d4498110d1a834835cd9020f310d2c679d107b191d9a094526d82770f44a46"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked"
 kappa = "dc36aa2afb8e480dc50531bd6bb6f5d080e88e20b013bdcfcdcbca90bb487330"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked::precondition_check"
@@ -3038,7 +3056,7 @@ cause = "mir::Ty: fmt::Arguments<'_>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked_mut"
 kappa = "a8d8382a58ba8016cbaabf5617ebd3d177e18dfb24c1237997cc90e8314494b7"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::get_unchecked_mut::precondition_check"
@@ -3050,31 +3068,31 @@ cause = "mir::Ty: fmt::Arguments<'_>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::index"
 kappa = "b7a272a7e91c02ac0efef0e63f11906590257e6fad11382cb9275f8954e14526"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::Range as SliceIndex>::get"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:158:1: 158:56>::index_mut"
 kappa = "c35ec435ba9475b40c743d90f040bfaa409c692fdcdacdbbf8d1bd5eca98b8fe"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get"
 kappa = "2de60162b3beac88d8b9f413aa483b6936be98bef16fc6f6bc6fde49ad6585c0"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_mut"
 kappa = "b1dae0b936fd1418100600a0c58c7847c5a0e1b6be9b4ae50c19600b0671c45b"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked"
 kappa = "1dd52f6ab065585e6af00e8208d40f9a054fa1dd586ee32ff2f7a03207855d13"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked::precondition_check"
@@ -3086,7 +3104,7 @@ cause = "mir::Ty: fmt::Arguments<'_>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked_mut"
 kappa = "f9fd83203ca4000744be9420956c636dcf4dd278b79f2a4fe72fae1899c09056"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::TerminatorKind::Call: intrinsics::ub_checks"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::get_unchecked_mut::precondition_check"
@@ -3098,13 +3116,13 @@ cause = "mir::Ty: fmt::Arguments<'_>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::index"
 kappa = "6ac354cbb356a051ca93dea15713f09fbe2f482f193c03802b9116dc66bd876d"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::TerminatorKind::Call: <range::Range as SliceIndex>::get"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:263:1: 263:58>::index_mut"
 kappa = "0c81a9fb8aaa0ad89d01792bb4ce79eaee8a6fa9b55c9db769bb59c31b5f8c7f"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:380:1: 380:71>::get"
@@ -3146,289 +3164,289 @@ cause = "mir::Ty: Bound<usize>"
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get"
 kappa = "38be6d47d870c2c35e5f3685d08f25d07dbd6cfd7b46ce5b969e7cbcc97db42a"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get_mut"
 kappa = "3628b6bbf83cbcdb726afded9ee339c1b93db24d1b381a54ae597d0b082c2d7e"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get_unchecked"
 kappa = "7d14d77ca686dc9113cc05ca9506fa5c77b98e704d2694d60e2c50ec6e1d9833"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::Range as SliceIndex>::get_unchecked"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get_unchecked_mut"
 kappa = "7e2cdab6aab39733bcdd359defa177f03b76f6b1d7db599625dbf97d9da65bbe"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::Range as SliceIndex>::get_unchecked_mut"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::index"
 kappa = "f644441059cbd9937886509c3e6970e6b1dc26b5aa646bf28bc7be384805b3d5"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::TerminatorKind::Call: str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::get: core's MIR stops at mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:435:1: 435:58>::index_mut"
 kappa = "2d87ce3342c84de95bde0870f90995e1673d42f0e4c8f12e9dd972f754155dbc"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get"
 kappa = "0742e9542a960f1da8a19fc9f5f3635a69671a72dc144b1aab037345fe4989c0"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get_mut"
 kappa = "348dd6d350c7d0ed61a6945ddf057a6bdeeca929e5aecf90eda9a9c7033ea88f"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get_unchecked"
 kappa = "e7130b4728e891ec5500fcdcd199e22cb1eb863ba9533c1004908f5ba435693e"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const [u8]>::len"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::get_unchecked_mut"
 kappa = "05511157e498506b60100478f319dd3ab5c90079bbe8a6200aed8f4c29de2737"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u8]>::len"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::index"
 kappa = "612908a636ac20bac4bc19d478365c4d7333f57e0a7c84cb998eacb8065c7fbc"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::RangeFrom as SliceIndex>::get"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:504:1: 504:60>::index_mut"
 kappa = "6178d53e209a7e57c665c7629f34bd9700ffc2d4aeb5854ffcb38cfcedca2537"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get"
 kappa = "ced8264ff4bae84ee9e1c1afbc1ae38ac33be578aa0ae8fd8f6270443fe392f2"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get_mut"
 kappa = "c1dc215b1060e511c283c9423e3aa3428aea65ae83311990e4d3f48378b12eee"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get_unchecked"
 kappa = "5520a5fd266ec7fda1cb83cf6716223701fa8739f68aba515873864332400dbe"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const [u8]>::len"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::get_unchecked_mut"
 kappa = "44cd2c45549426a16d4a7f56de8e527f237ca35ead7de9adddade6bc6ffd08d1"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u8]>::len"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::index"
 kappa = "84968a96be01318a03f6163d8970f4a9ca669b6b9e86a2f8dff49ff999a365a6"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: <range::RangeFrom as SliceIndex>::get"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:560:1: 560:62>::index_mut"
 kappa = "cafc8953c45bfbfb6694f2b77c35b291fc73e5528314b44bfd9fbc8fff5dd658"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get"
 kappa = "6b73757e64928edbfc6075c456ef3f48a2b8cc2c195f966b0bc2d9f814766d5d"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::end"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get_mut"
 kappa = "9cacab54a39bb352e70ca27ffac1252bb6465f01526eec1268590cebe35ebacb"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::end"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get_unchecked"
 kappa = "770ea28589b0b0778ed2a885bca0f6360157bed1b72d25e3f7a33c675088b713"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::into_slice_range"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::get_unchecked_mut"
 kappa = "05cd2fbdc37e6c52b60110c4203f4e4f780a15e7317a1302e61ccf21e6dafcdc"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::into_slice_range"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::index"
 kappa = "c9e17f7ab9485e7bf0665cea602dbe1e346b0ac3f882f9c91f543ef8194e18d7"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:632:1: 632:65>::index_mut"
 kappa = "7b1ccffde9741f1d0ee9c76259896a5471e0e89bf951663802c1deb324817cd3"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::is_char_boundary"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get"
 kappa = "b4b961ff151d031c8ec26964bdc8866d2f35554652cff38924fdf0ccddb242b9"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::RangeInclusive as convert::From>::from"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get_mut"
 kappa = "2b841896e4c886418e7e55f7382666ba421e204317c796095c34b9c8a13a159d"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::RangeInclusive as convert::From>::from"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get_unchecked"
 kappa = "b7f5cc7c9b8321d060778a262a04323489859c958f95fcc7938119940da0d745"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::RangeInclusive as convert::From>::from"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::get_unchecked_mut"
 kappa = "60f8b3eae8d6fc94ebb818ae04765fa23ede18cd5ce53dbb67c0491c2939616b"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::RangeInclusive as convert::From>::from"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::index"
 kappa = "9e78184ab99811ecaa26a0cbdc00ada67801f5d9f5d847f0580fff40efe7403e"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::RangeInclusive as convert::From>::from"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:690:1: 690:67>::index_mut"
 kappa = "bfab2ae7306303226a988de28d1545a0c820989d2393308f7fba5eb25051bbc8"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::TerminatorKind::Call: <ops::range::RangeInclusive as convert::From>::from"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get"
 kappa = "31148000949fd6aa193c4b438acb3ed72f5ee97718cfd098a5677449f5935669"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get_mut"
 kappa = "31dae7d54cce1785cea0f4405099fbb573e94467ace8d04c6b06b2726e1a7cd3"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get_unchecked"
 kappa = "83aef3e639252ce6eb17d886c7463c0563a5acb833d05163cdd0cf80b0feec98"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::get_unchecked_mut"
 kappa = "6503f5df30c5470c825cf174bca4d9c8f4c9ee1fe0f33e88d087ae80d59f7c81"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::index"
 kappa = "c9f58ab5a547caf9a638cb7f8ed0e66dfd8f3385b9ead6aef2a7f5d8a9f4ab59"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:736:1: 736:67>::index_mut"
 kappa = "1c70fabf9ce9dcc810cce67704b03294867b2ba76655522700249bfecbe8cf90"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get"
 kappa = "dfd7642fd4a0b1674858e2b571b89bc34cbe0d44d35077517c97eaaf5785f280"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get_mut"
 kappa = "68b72b812e25ec016012a4ea078d4c90704b1af09baa636bc8ef56da154da4e7"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get_unchecked"
 kappa = "b54d5ebcd6f274762bea81c7df27662203dfb9a9efc62d3b97697185d0e13ea2"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::get_unchecked_mut"
 kappa = "54f0ed6af57bf24bb19e1fb63f45bfa62552e91fe332b8184f71a08a80a3ee0f"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::index"
 kappa = "3b2bac083646dbc04ac412ecc5c5974c3e61709e7cb17fa9b207ad5551c8e60c"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:782:1: 782:69>::index_mut"
 kappa = "b2d1ec60871995002ce7cf9f5fa5a675dd3b26dc12b5c46f90b590e2ebb317fb"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get"
 kappa = "494b63c1cd20e79fbae6e7520e92df2ccaa7901b2df4608e2c818fdac5d4318c"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "5f94c2c21d61377ba90c06cadeaf1b7a21c7a4ba79f2ec39e7f51b42f28084c7"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get_mut"
 kappa = "82acaffc8e66db01cb92355978d6affbac289dab019f99b7af397b6b6c31eac6"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "f8ed86dc03af8bde3981621500d217c398d2b2afe341e746e52baf608064fd62"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get_unchecked"
 kappa = "8dfdcc086c649737519ad3ba841ae9f0b32cd4bb643c4096729bb3a1cf978784"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "924eec813b305e6ed1bca01e4bf8964e8355d7fe7e1ae901beeababa968f7267"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::get_unchecked_mut"
 kappa = "887d261c2ef217c00d693931f91db59acd821df6b9d14518c3286f90d520900e"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "57a0970069a029da0ebf3b817cf27835f4273e026c553ee8d751e804a4c9447f"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::index"
 kappa = "30f128fec5801b9d19653f00a28ed9b44834079fcbc94744e4a89af4c18de794"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "8c26aad75b3e5f080ce4100610d4fcb88c5bc41c03ba3d42a5441008ea60552f"
 
 [[fn]]
 path = "core::str::traits::<impl at library/core/src/str/traits.rs:93:1: 93:53>::index_mut"
 kappa = "6c4330329eaca4c88aba151e053fd8305e78c145687bb79f41e9b28467b7be61"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "7c2f3b6ccd7a480521d686f1f0fb5aad228cc45bab4da6e5a244d03e69c70449"
 
 [[fn]]
 path = "core::str::traits::bool::from_str"
@@ -3466,7 +3484,7 @@ cause = "mir::Ty: <u32 as slice::index::SliceIndex<str>>::Output"
 path = "core::str::traits::str::partial_cmp"
 kappa = "717c21947007428514c411fa53b2fbb560caf342cf94202a62bab0546d9c5d4a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <str as cmp::Ord>::cmp"
+cause = "mir::TerminatorKind::Call: str::traits::<impl at library/core/src/str/traits.rs:18:1: 18:17>::cmp: core's MIR stops at mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::sum_bytes_in_usize"

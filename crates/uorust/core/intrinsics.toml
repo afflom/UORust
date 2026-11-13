@@ -313,15 +313,15 @@ cause = "mir::Ty: panic::location::Location<'_>"
 path = "core::carrying_mul_add"
 kappa = "6b2dbddbc26be7ad43f352804ea47318b73c4068f550d98d980257c09dc3a344"
 at = "T=u32, U=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as CarryingMulAdd>::carrying_mul_add"
+status = "translated"
+digest = "783ecf22f882d70d6742563819be9670f897871fa9e48d3dd3ace444bd68ae3d"
 
 [[fn]]
 path = "core::carryless_mul"
 kappa = "bbc9d5c4e260a86a06cf134ecddd93861830542fe3b8884a4372d2925bb01cce"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as CarrylessMul>::carryless_mul"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul: core's MIR stops at mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::catch_unwind"
@@ -389,7 +389,7 @@ path = "core::contract_check_ensures"
 kappa = "8f7f6c689802a889698a842574e18fe8696aa4375c1fbbee1a1a99a31b72f502"
 at = "C=u32, Ret=u32"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item Option<u32>"
+cause = "mir::TerminatorKind::Call: contract_check_ensures::runtime"
 
 [[fn]]
 path = "core::contract_check_ensures::compiletime"
@@ -410,7 +410,7 @@ path = "core::contract_check_requires"
 kappa = "a4dc3de81716719a84896e9a95279b16ac952f0c4c219dd2ee7a1edf7a284b8d"
 at = "C=u32"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item contract_check_requires::compiletime::<u32>"
+cause = "mir::TerminatorKind::Call: contract_check_requires::runtime"
 
 [[fn]]
 path = "core::contract_check_requires::compiletime"
@@ -515,7 +515,7 @@ path = "core::disjoint_bitor"
 kappa = "38f6c3e54b4c75de078b2bc1defaf3e4aed647bedfff32df5cc104651e98c719"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as DisjointBitOr>::disjoint_bitor"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor: core's MIR stops at mir::BinOp::BitAnd: on Nat and Nat"
 
 [[fn]]
 path = "core::exact_div"
@@ -596,8 +596,8 @@ digest = "663b87a93c6913e3f16800fb0ff241d322aee71732932339c86b170e7e1f515d"
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor"
 kappa = "5832d9b5a4d92e0d612d0f9c89d1768fc35a0937051b79c8dda9d5870db9e1ab"
-status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+status = "translated"
+digest = "053b82571c5a354ef165672b48462690d1fd8de621a78d7cb953d76ad117b980"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#10"
@@ -675,73 +675,73 @@ cause = "mir::BinOp::BitAnd: on i16 and i16"
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl"
 kappa = "74db1c4ef76f92131b48f3e602d9e7a48d32ab3b52efc795abdcdb0d2a4fd51a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#2"
 kappa = "f34bc1e4a5f47c8dc3a570e49944c7c717798771c012d75a065a1242ec29d4b9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#3"
 kappa = "b78e1ebeba9df2f4433505f312fdf39f26e7a18fe0b8643d633a1ca79b8b0d02"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#4"
 kappa = "225dd76a969d57acc81d9ef0bcb633d2ec66317ffd4ad06fa096eda5736488a9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#5"
 kappa = "915f5cafa3f5aea139c4d842bf266ba8bb77246ab0b3de48999067fa49c0434d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#6"
 kappa = "c661dcc1effdfc57932ec7c791de7277ee34c4a23ca493d25622a4ac536ce48a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr"
 kappa = "9dda2c2f96191141c45c82def079778b4bbb83d01c1e59ede03960c0c5f4e7c7"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#2"
 kappa = "dcd70a928e3fb54f097c6c2c681a271dd01e4b79e56cfbf6178ec2bf3f955b88"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#3"
 kappa = "9b90a2545e50e633b04b5e0ff1740b073e57a65cd3aa129388d68458ad5f3271"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#4"
 kappa = "13cb7b026b64730f3f4d8ad20d367a6a128ba8c3d2c4d9ba3664513f4daff8d2"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#5"
 kappa = "ea5a9c574eb3f1cb729dee2c0316819c4c6897fffce8266ec5814c80abf0f53c"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#6"
 kappa = "3f0e8b1ee0f239ca9560ae12773d74e834d1e12e6d862ccacb7d6ba0c96545a7"
 status = "residue"
-cause = "mir::TerminatorKind::Call: assume"
+cause = "mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul"
@@ -843,13 +843,13 @@ digest = "46067c1af3bf16ee7af74be442b703322498100cf54da5c1e49f59aa4de935ec"
 path = "core::fallback::i128::carrying_mul_add"
 kappa = "c1b9e7bbfc5104c491b48234b93eb02faf663150a127c22cc91a2bfb5468093e"
 status = "residue"
-cause = "mir::TerminatorKind::Call: wide_mul_u128"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::wide_mul_u128: core's MIR stops at mir::TerminatorKind::Call: intrinsics::fallback::wide_mul_u128::to_low_high: core's MIR stops at mir::Operand::Constant: the constant item intrinsics::fallback::wide_mul_u128::to_low_high::MASK"
 
 [[fn]]
 path = "core::fallback::u128::carrying_mul_add"
 kappa = "528ecaca6159e2369cfb30234660d9b329be5b3394111dec29b96f1023149504"
 status = "residue"
-cause = "mir::TerminatorKind::Call: wide_mul_u128"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::wide_mul_u128: core's MIR stops at mir::TerminatorKind::Call: intrinsics::fallback::wide_mul_u128::to_low_high: core's MIR stops at mir::Operand::Constant: the constant item intrinsics::fallback::wide_mul_u128::to_low_high::MASK"
 
 [[fn]]
 path = "core::fdiv_algebraic"
@@ -875,8 +875,8 @@ digest = "5d0a83b3b709784598fb77f9454d0e21f4564ebdc8dda704eb9d841a7a58ba66"
 path = "core::float_to_int_unchecked"
 kappa = "c2f9a035cb9b5cee2f980210681becccef7477d2dc6da4e9433786cb6e4362e8"
 at = "Int=u32"
-status = "residue"
-cause = "mir::Ty: Float"
+status = "translated"
+digest = "660ceeb7173e1e00875ecb11d07b1c17a6129dbb1fbf6d0d833710ac22eeda1d"
 
 [[fn]]
 path = "core::floorf128"
@@ -1008,7 +1008,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:31: 75:40>::eq"
 kappa = "2e2aa386adacbdd4bdfdfead8b4048376bb0e629cbc486986f091b6597c0a89a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:42: 75:44>::assert_fields_are_eq"
@@ -1137,8 +1137,8 @@ cause = "mir::Ty: T"
 [[fn]]
 path = "core::intrinsics::likely"
 kappa = "db202cecb6227acb3037495f271a1108f5ad4510fea77337b6f9095c44720eca"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::cold_path"
+status = "translated"
+digest = "0942079fc52b67e0d170a4fde640615556c614e91ef6b6159af2e4579dd342b8"
 
 [[fn]]
 path = "core::intrinsics::needs_drop"
@@ -1157,7 +1157,7 @@ path = "core::intrinsics::select_unpredictable"
 kappa = "cb251792a51ed6cea6db582fcc5ad210aaac8d108c42f2b8c1eb89d5b2b73553"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::forget"
+cause = "mir::TerminatorKind::Call: intrinsics::forget, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:10: 407:15>::fmt"
@@ -1169,7 +1169,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:31: 407:40>::eq"
 kappa = "9ac31061e26b246723b7db47f1836b8703d0fc9e35b8fd5f5bb146053ba25b2a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: discriminant_value"
+cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:42: 407:44>::assert_fields_are_eq"
@@ -1477,8 +1477,8 @@ digest = "5a7cde793544d148fa66b63a236617979bc700572a205b79765b769ff48c7ae2"
 [[fn]]
 path = "core::intrinsics::unlikely"
 kappa = "82051eb5571f76061d01ff3934b38916aab2422797684284f3ee39defc6ea469"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::cold_path"
+status = "translated"
+digest = "1a2c5ab29698adbef1de1ad540b7165934a33e76b4996dad8d133142a2ff70b1"
 
 [[fn]]
 path = "core::intrinsics::variant_count"
@@ -1916,7 +1916,7 @@ digest = "42b68e784cad8647d43bf8f714293b57f6ce7eba9fe55255e1abc19f3482ca15"
 path = "core::scalar_mul"
 kappa = "f05af51f7c21eecc744c73e9ea2cb5b85b1928cb503c904eba5f3ec7ea5e2b60"
 status = "residue"
-cause = "mir::TerminatorKind::Call: to_low_high"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::wide_mul_u128::to_low_high: core's MIR stops at mir::Operand::Constant: the constant item intrinsics::fallback::wide_mul_u128::to_low_high::MASK"
 
 [[fn]]
 path = "core::simd_arith_offset"
@@ -2388,14 +2388,14 @@ path = "core::unchecked_funnel_shl"
 kappa = "ceb01311727ae09a7c15ce463239772c03b53073b031ff307cb36e4056450e8f"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as FunnelShift>::unchecked_funnel_shl"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl: core's MIR stops at mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::unchecked_funnel_shr"
 kappa = "4ecb21a91c67849404099c54a3ef15f68d22d85e516e23019744d82a39aad971"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as FunnelShift>::unchecked_funnel_shr"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr: core's MIR stops at mir::TerminatorKind::Call: intrinsics::unchecked_shl, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::unchecked_mul"
@@ -2504,7 +2504,7 @@ digest = "9e31c555cbf4db9fe6b11f760cc4c48678987a49cd63eb1e43ffff970cc5b674"
 path = "core::wide_mul_u128"
 kappa = "cce713d6bbf244faf57b030f28abeb2a2a6010db57597d0643235c4f4b83aa20"
 status = "residue"
-cause = "mir::TerminatorKind::Call: to_low_high"
+cause = "mir::TerminatorKind::Call: intrinsics::fallback::wide_mul_u128::to_low_high: core's MIR stops at mir::Operand::Constant: the constant item intrinsics::fallback::wide_mul_u128::to_low_high::MASK"
 
 [[fn]]
 path = "core::wrapping_add"

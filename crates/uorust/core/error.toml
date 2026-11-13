@@ -149,9 +149,30 @@ status = "residue"
 cause = "mir::Ty: error::Request<'_>"
 
 [[fn]]
+path = "core::error::Request::provide_ref_with"
+kappa = "bb473b37e70c27ae4f2546fe2dd08a70045e692557f29776ab4f1a9aa1c06415"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: error::Request<'_>"
+
+[[fn]]
 path = "core::error::Request::provide_value"
 kappa = "18fec80cd112a4cac778935a3cc844eb986718052dfc7fc05e968adbaf0ac59f"
 at = "T=u32"
+status = "residue"
+cause = "mir::Ty: error::Request<'_>"
+
+[[fn]]
+path = "core::error::Request::provide_value_with"
+kappa = "0daa9904e02a6b3a7fd3b630fe4294f8780b3f49ad8a918de5b2b65d9dfe4e0f"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: error::Request<'_>"
+
+[[fn]]
+path = "core::error::Request::provide_with"
+kappa = "ee34a6f5642615fc11767cc3b11eb66fa6a278237607aec7ce85b77689ac1828"
+at = "I=u32"
 status = "residue"
 cause = "mir::Ty: error::Request<'_>"
 
@@ -173,6 +194,12 @@ path = "core::error::Request::would_be_satisfied_by_value_of"
 kappa = "cad16e064805318d50e19761f5768d5a325d5c0deaaab113d3eec9f2cb968f66"
 status = "residue"
 cause = "mir::Ty: Request<'_>"
+
+[[fn]]
+path = "core::error::Source::next"
+kappa = "6f7ae45edb5722926c3226aaa312cf9890bb2360f626f3ff7cbc3daa78509739"
+status = "residue"
+cause = "mir::Ty: dyn error::Error"
 
 [[fn]]
 path = "core::error::Source::size_hint"
@@ -233,19 +260,19 @@ path = "core::tags::<impl at library/core/src/error.rs:982:14: 982:19>::fmt"
 kappa = "7c028ccd1b56efc949db69c13bdc55d4d9fcbb932ea8fd522f87e023935fa88f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Value<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::tags::<impl at library/core/src/error.rs:990:14: 990:19>::fmt"
 kappa = "dc45f242100079553ad4a1410858586971f1d91e568e6d2c62b2dfaeeff251ae"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: MaybeSizedValue<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::tags::<impl at library/core/src/error.rs:999:14: 999:19>::fmt"
 kappa = "018a2094be22260566d668f36cbc6fe7033a61688dfd8d78f02e4ef4137f822a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: tags::Ref<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 

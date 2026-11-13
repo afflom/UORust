@@ -143,6 +143,13 @@ status = "residue"
 cause = "mir::Ty: BorrowedCursor<'_>"
 
 [[fn]]
+path = "core::borrowed_buf::BorrowedCursor::with_unfilled_buf"
+kappa = "813e0cf6910ca00e14097dd9bfd1d11570feae24cf51217562f243827ef25141"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: BorrowedCursor<'_>"
+
+[[fn]]
 path = "core::borrowed_buf::BorrowedCursor::written"
 kappa = "337c5ccacf488aa6de79b3043803fe4de23750b438f3f046549ebf3cd6520eb9"
 status = "residue"
@@ -345,19 +352,19 @@ path = "core::util::<impl at library/core/src/io/util.rs:134:10: 134:15>::fmt"
 kappa = "e43d53be627de75bde4b76f5ed1620e7cd6a5a8a170e9eb42d0fdbd9291b5ff1"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: util::Chain<u32, u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::util::<impl at library/core/src/io/util.rs:13:16: 13:21>::clone"
 kappa = "50c35c9af2d0f69e42e96eb6365cd5c56bb119896fd632ecc0b78bc0eaae10d0"
-status = "residue"
-cause = "mir::Ty: util::Empty"
+status = "translated"
+digest = "51f2275ca5a041f00e410c65eb90722b3b7bff39b56381446e068de2d5fb66c4"
 
 [[fn]]
 path = "core::util::<impl at library/core/src/io/util.rs:13:23: 13:28>::fmt"
 kappa = "4fcc96b889c954ca835d58d0f432bf7bbc8acbfdf0811da4dd343f49961b2116"
 status = "residue"
-cause = "mir::Ty: util::Empty"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::util::<impl at library/core/src/io/util.rs:13:30: 13:37>::default"
@@ -370,55 +377,55 @@ path = "core::util::<impl at library/core/src/io/util.rs:242:10: 242:15>::fmt"
 kappa = "9d7174511d1f505079bf9ab63ccd155fbcc6cd547f83e46365ec179981e08bcd"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: util::Take<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::util::Chain::get_mut"
 kappa = "3373d5d8bc770a7db40b88fa1d6b55ca199ac40b35e39f93cc90d1027bab613e"
 at = "T=u32, U=u32"
-status = "residue"
-cause = "mir::Ty: util::Chain<u32, u32>"
+status = "translated"
+digest = "6bad0c2015cf856f9943050c5df75ba0612b71187de8d15915b25c49ed6393f1"
 
 [[fn]]
 path = "core::util::Chain::get_ref"
 kappa = "2cb30192cd6af0e19bd6dc402dba4acc9194dcbb40d3ed114ae25db583c60a96"
 at = "T=u32, U=u32"
-status = "residue"
-cause = "mir::Ty: util::Chain<u32, u32>"
+status = "translated"
+digest = "484ed528fdc853956094c57f92e0df458bf7619eaf9a0aa24be90cde4b835eec"
 
 [[fn]]
 path = "core::util::Chain::into_inner"
 kappa = "ffbe907a5c6ef1a3c62109c5380d71c4bd901ba8b6ee391124aba8e7311dcede"
 at = "T=u32, U=u32"
-status = "residue"
-cause = "mir::Ty: util::Chain<u32, u32>"
+status = "translated"
+digest = "26d409746140ff2049d2320caac17d48095fe527cdd47b97122ee90c57e94361"
 
 [[fn]]
 path = "core::util::Repeat::fmt"
 kappa = "082973e55dd0774059fc6df89619dc75674ce62c7fe13272b1b02a47bb845f6c"
 status = "residue"
-cause = "mir::Ty: util::Repeat"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::util::Take::get_mut"
 kappa = "e75d9642ef45367098474a6e90fb7c09a0e01c13e1d129e9e993d1c374280735"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: util::Take<u32>"
+status = "translated"
+digest = "46a59c8f3213422f94cb12d190cba7c3da7a8dc6b468433c31e005c95068605b"
 
 [[fn]]
 path = "core::util::Take::get_ref"
 kappa = "e0a8048088ab9a24a7ad443a81f884c049fa3bd9b9ad41792b00d3543fa70366"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: util::Take<u32>"
+status = "translated"
+digest = "e04266bbc8677317e1b29bc046d73af702b9bfe438a3baeb930471ac35c202f3"
 
 [[fn]]
 path = "core::util::Take::into_inner"
 kappa = "f336378ac8c8d225e8a6aa640044f81c7b92315d0f3d3543e81b6932760896f4"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: util::Take<u32>"
+status = "translated"
+digest = "09107ffb6d976fe5e9a3e9fa416f99c694ff6b9c1231284e996759ec6a0dd7a7"
 
 [[fn]]
 path = "core::util::Take::limit"

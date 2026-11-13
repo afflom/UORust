@@ -553,8 +553,20 @@ status = "residue"
 cause = "mir::Ty: char::EscapeDefault"
 
 [[fn]]
+path = "core::char::EscapeDefault::last"
+kappa = "81747ee8d41528519e07919fba638c56e4bd063e7bf00c2b34aa69d439d20871"
+status = "residue"
+cause = "mir::Ty: char::EscapeDefault"
+
+[[fn]]
 path = "core::char::EscapeDefault::len"
 kappa = "1c32a7b3e41142b46bcfa19114bc23bef3c31afb5aba03dc0584933446cd60a9"
+status = "residue"
+cause = "mir::Ty: char::EscapeDefault"
+
+[[fn]]
+path = "core::char::EscapeDefault::next"
+kappa = "78d9afd26a56a0e4e2273dc94d4a94e1bb2be64697d3fde9448bc8d1627603cc"
 status = "residue"
 cause = "mir::Ty: char::EscapeDefault"
 
@@ -595,6 +607,12 @@ status = "residue"
 cause = "mir::Ty: char::EscapeUnicode"
 
 [[fn]]
+path = "core::char::EscapeUnicode::last"
+kappa = "8dd9fe9c69228aa9fcdd4df9410e95afaf7864199f3d6bfab8aff7db3935f4fe"
+status = "residue"
+cause = "mir::Ty: char::EscapeUnicode"
+
+[[fn]]
 path = "core::char::EscapeUnicode::len"
 kappa = "fe6fcb5be17b116ce9f2973a112b5b6e98501bf7df4cdf5fb618d91f53c750aa"
 status = "residue"
@@ -603,6 +621,12 @@ cause = "mir::Ty: char::EscapeUnicode"
 [[fn]]
 path = "core::char::EscapeUnicode::new"
 kappa = "9377617a996a887e7b8c9d7895df3d4a0e30fe3e464fb327dfc8a0093a30a9ba"
+status = "residue"
+cause = "mir::Ty: char::EscapeUnicode"
+
+[[fn]]
+path = "core::char::EscapeUnicode::next"
+kappa = "c1eab1696700840d403905125049aafb53fc7fd35cee44e3c1f0247bc49b1ad9"
 status = "residue"
 cause = "mir::Ty: char::EscapeUnicode"
 
@@ -627,86 +651,86 @@ cause = "mir::Operand::Constant: the constant item char::methods::<impl char>::U
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:238:10: 238:15>::clone"
 kappa = "14f298e584fca9dd2407924253f419d66417b04dec53e2309f49645f0ec5db66"
-status = "residue"
-cause = "mir::Ty: char::convert::ParseCharError"
+status = "translated"
+digest = "6a734d726d6dbe864512eec3d43adb66c0b482262a056265f51fab0dcdaec14f"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:238:17: 238:22>::fmt"
 kappa = "3507c9d450531bbe5f18c53e497f5230fd5b2a57cbb81b79c303b20a1ad85858"
 status = "residue"
-cause = "mir::Ty: ParseCharError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:238:24: 238:33>::eq"
 kappa = "7fb07d25ae54d003e0cc49623d43f38e054f8c250d1067d8e09c0ff75e24f20d"
 status = "residue"
-cause = "mir::Ty: ParseCharError"
+cause = "mir::TerminatorKind::Call: <CharErrorKind as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:238:35: 238:37>::assert_fields_are_eq"
 kappa = "9303e1aed438b6fd5b0479165d8d20f6ee54fda6474cdceb36e6639729f0342e"
-status = "residue"
-cause = "mir::Ty: ParseCharError"
+status = "translated"
+digest = "0ff41fa19bc01777d2c536b797be782034bd5ee17055069574768df4902fa1a2"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:243:16: 243:21>::clone"
 kappa = "2ff908492a80b2a1d63e50a94a7a7f4f7d72630dc5b1247d6ca67efbe1ca177b"
-status = "residue"
-cause = "mir::Ty: char::convert::CharErrorKind"
+status = "translated"
+digest = "cdcff1726d1cc08ed27f72a7c7f2de16deb89b2cccb5f2fdfd9ae52df48e641b"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:243:23: 243:28>::fmt"
 kappa = "848b24f99f2a2a1d254dc414a90c460e0ebe118ad9afdea21ed1c8fe75ea688e"
 status = "residue"
-cause = "mir::Ty: CharErrorKind"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:243:30: 243:39>::eq"
 kappa = "cdfff75a4bd6927fd741bc1c45f4159585ad3fc71e0e3e305b92e9fc71cd34b5"
 status = "residue"
-cause = "mir::Ty: CharErrorKind"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:243:41: 243:43>::assert_fields_are_eq"
 kappa = "7cd1a9a3a989330fc9dba2ed00f8c9a54b1b5c63b3062bd61fc158a132185899"
-status = "residue"
-cause = "mir::Ty: CharErrorKind"
+status = "translated"
+digest = "ad58707818fb2d2c5d33b34823a13584d528a801b0a69ef8c5ebaa8f293a283b"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:317:16: 317:21>::clone"
 kappa = "fcddd23f480e773728efdc52fa2be3a18c14e87115d85b537691cd44586223c5"
-status = "residue"
-cause = "mir::Ty: char::convert::CharTryFromError"
+status = "translated"
+digest = "a9688114dd00c8fd2b6f7020dac7b6af086c0c10a2e5575fe1e3655a99f6566b"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:317:23: 317:28>::fmt"
 kappa = "2acd38708642a77ab23bb5497b0a4a32ea492f2385935b04ae18f655fe749e14"
 status = "residue"
-cause = "mir::Ty: CharTryFromError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:317:30: 317:39>::eq"
 kappa = "7af020dd1664404386d97d48300c063399300d7ae2d28c1426ac2fc68d852b9c"
 status = "residue"
-cause = "mir::Ty: CharTryFromError"
+cause = "mir::TerminatorKind::Call: <() as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:317:41: 317:43>::assert_fields_are_eq"
 kappa = "8195d74d615ec3a7213295649ad66b926481c7e73bb7db6d19cc3a4804a8284c"
-status = "residue"
-cause = "mir::Ty: CharTryFromError"
+status = "translated"
+digest = "f57a8715341c89b98a79b4ef6bb62455faaaefd81da34841a9778a175ef773f9"
 
 [[fn]]
 path = "core::char::convert::CharTryFromError::fmt"
 kappa = "d6a9d98fe33ea9ce429e45b8da2869fc6ecc6ba650a36c165689b7fd296e31f3"
 status = "residue"
-cause = "mir::Ty: CharTryFromError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::char::convert::ParseCharError::fmt"
 kappa = "dbb00493b822a503459f8f738965fd42221528d8ba58c1691a092fbec22db1bf"
 status = "residue"
-cause = "mir::Ty: ParseCharError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::char::convert::char::from"
@@ -718,13 +742,13 @@ cause = "mir::CastKind::IntToInt: from Nat to String"
 path = "core::char::convert::char::from_str"
 kappa = "9fedad260085c8844eddde4a7ff2e800254fae35b32669867576549abed48139"
 status = "residue"
-cause = "mir::Ty: char::convert::ParseCharError"
+cause = "mir::TerminatorKind::Call: str::<impl str>::chars"
 
 [[fn]]
 path = "core::char::convert::char::try_from"
 kappa = "3776c78af7c3530e2eef6cd4a1f2a8e25302db911803e9c0632358b0b2c92363"
 status = "residue"
-cause = "mir::Ty: char::convert::CharTryFromError"
+cause = "mir::TerminatorKind::Call: char_try_from_u32"
 
 [[fn]]
 path = "core::char::convert::from_digit"
@@ -736,7 +760,7 @@ cause = "mir::Ty: fmt::Arguments<'_>"
 path = "core::char::convert::from_u32"
 kappa = "8fdf4fb248442a04938fd9f6361c1d0e0556ad6af885ca0157e04db5e055780e"
 status = "residue"
-cause = "mir::Ty: char::convert::CharTryFromError"
+cause = "mir::TerminatorKind::Call: char_try_from_u32"
 
 [[fn]]
 path = "core::char::convert::from_u32_unchecked"
@@ -748,7 +772,7 @@ cause = "mir::TerminatorKind::Call: check_language_ub"
 path = "core::char::convert::from_u32_unchecked::precondition_check"
 kappa = "58369ed22e8e132dfea17f405e3faa92ea4489bf2fc29008a2bee85172b4289f"
 status = "residue"
-cause = "mir::Ty: char::convert::CharTryFromError"
+cause = "mir::TerminatorKind::Call: char_try_from_u32"
 
 [[fn]]
 path = "core::char::convert::u128::from"
@@ -760,7 +784,7 @@ cause = "mir::CastKind::IntToInt: from String to Nat"
 path = "core::char::convert::u16::try_from"
 kappa = "b698c456346bf5d82adea97648f6e716e27c3a747f74d054dd5cf1be05fd1c19"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as convert::From>::from"
+cause = "mir::TerminatorKind::Call: char::convert::<impl at library/core/src/char/convert.rs:40:1: 40:30>::from: core's MIR stops at mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::char::convert::u32::from"
@@ -778,13 +802,13 @@ cause = "mir::CastKind::IntToInt: from String to Nat"
 path = "core::char::convert::u8::try_from"
 kappa = "fdb08464e175c39163ea7699d52a259dd36b57f155340b52d585b2d0abcf218c"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as convert::From>::from"
+cause = "mir::TerminatorKind::Call: char::convert::<impl at library/core/src/char/convert.rs:40:1: 40:30>::from: core's MIR stops at mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::char::convert::usize::try_from"
 kappa = "eda407d38ce644fb10420ceff4b9dec1488cb5232df1cd568647a50ee4195911"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as convert::From>::from"
+cause = "mir::TerminatorKind::Call: char::convert::<impl at library/core/src/char/convert.rs:40:1: 40:30>::from: core's MIR stops at mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::char::decode_utf16"
@@ -797,39 +821,39 @@ cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 path = "core::char::from_digit"
 kappa = "61f7c7690b1ad1b4d4ceaa0f0efe27d5fefba4c4e67446a73fb26499d5ab4ed2"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_digit"
+cause = "mir::TerminatorKind::Call: char::convert::from_digit: core's MIR stops at type outside the lift: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::char::from_u32"
 kappa = "bfa0b468a869e27cd6cdcdb89cfdaa66ba89759132716da970e6f5a7abf5c196"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32: core's MIR stops at mir::TerminatorKind::Call: char_try_from_u32"
 
 [[fn]]
 path = "core::char::from_u32_unchecked"
 kappa = "876c7bb96535ae22b9090355799ffef0a97eaaf014ec7f7b51c057ef34670217"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: check_language_ub"
 
 [[fn]]
 path = "core::char_try_from_u32"
 kappa = "84415456f79a4e5af05041de5f400f72e0d1ccef93ec37ac6a467b82f0cdfa75"
 status = "residue"
-cause = "mir::Ty: char::convert::CharTryFromError"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::decode::<impl at library/core/src/char/decode.rs:14:10: 14:15>::clone"
 kappa = "e53356339ae0e49b329afe116850ab91f21f987c0df0b64cecabec14e71d7a87"
 at = "I=u32"
-status = "residue"
-cause = "mir::Ty: decode::DecodeUtf16<u32>"
+status = "translated"
+digest = "fe54e8d6267bdc9844ce4c6aabb6578dd75bf44b84ea4163c0ee3c3c2e3d7e11"
 
 [[fn]]
 path = "core::decode::<impl at library/core/src/char/decode.rs:14:17: 14:22>::fmt"
 kappa = "39ca3591455c16d02153f313a8dc68cca8eb038beefad354372a9ac18e506f1a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: decode::DecodeUtf16<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::decode::<impl at library/core/src/char/decode.rs:27:10: 27:15>::fmt"
@@ -860,14 +884,14 @@ path = "core::decode::DecodeUtf16::next"
 kappa = "5d5c98c89cd653241d746256f920cfded5e04973521b9fd5de0924e28df5046b"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: decode::DecodeUtf16<u32>"
+cause = "mir::TerminatorKind::Call: Option::take"
 
 [[fn]]
 path = "core::decode::DecodeUtf16::size_hint"
 kappa = "67e9aab3976c8814ff2acfb39ad7343fda407b84a7f0aef8d895a328c561a3c5"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: decode::DecodeUtf16<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::size_hint"
 
 [[fn]]
 path = "core::decode::DecodeUtf16Error::fmt"
@@ -1043,19 +1067,19 @@ cause = "mir::Ty: char::EscapeUnicode"
 path = "core::methods::char::from_digit"
 kappa = "6942f51e4bc5218b6eee915a41aaf82339a1951d91b0408d52b55f2cfee532d0"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_digit"
+cause = "mir::TerminatorKind::Call: char::convert::from_digit: core's MIR stops at type outside the lift: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::methods::char::from_u32"
 kappa = "8bffdeb40ef54796a6e2f5d50183a52d622145222badb9ddd93b89cfcec792eb"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32: core's MIR stops at mir::TerminatorKind::Call: char_try_from_u32"
 
 [[fn]]
 path = "core::methods::char::from_u32_unchecked"
 kappa = "23b7d4c0bbe0fd5caa6caa3b7d1ee447c4dae95cd0ee6cadc053547adecd60be"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: check_language_ub"
 
 [[fn]]
 path = "core::methods::char::is_alphabetic"

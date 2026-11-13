@@ -50,26 +50,26 @@ cause = "mir::TerminatorKind::Call: Layout::alignment"
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:31:16: 31:21>::clone"
 kappa = "ee5918340b9bf90994f7089ef87dd8fa0251598b7ebe221b0ebf54b256332cd0"
-status = "residue"
-cause = "mir::Ty: alloc::AllocError"
+status = "translated"
+digest = "6e0263a4c046cf9daf86c560df7d8f718b596510a04d945e994679cee283201b"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:31:23: 31:32>::eq"
 kappa = "d5518710d4edbb8dfaeab16ccdd2e229edfa1664d6df419118fb1cfc9d55be2f"
-status = "residue"
-cause = "mir::Ty: AllocError"
+status = "translated"
+digest = "e647ecb667891bb7d8b08955be21b236076b08cf15746263e0be6be7bbe6fa99"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:31:34: 31:36>::assert_fields_are_eq"
 kappa = "3630b3cc74a1dd97db0d9c982363d490ea375dd7d14917e2c620ee24bc9ec437"
-status = "residue"
-cause = "mir::Ty: AllocError"
+status = "translated"
+digest = "abc88ac491b67b5d71e9938614ebe8df284030ab82cce5d9bb034b145118584d"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:31:38: 31:43>::fmt"
 kappa = "f1251fb5920b81f869485fe88ce6d0cdce79cadc3b1363af244338a387dd2ab6"
 status = "residue"
-cause = "mir::Ty: AllocError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::allocate"
@@ -159,7 +159,7 @@ cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
 path = "core::alloc::AllocError::fmt"
 kappa = "a7c9ea9f5be77f69344a9c7bd6dd7779d3ecaddb047ef2cef8d19342658127c0"
 status = "residue"
-cause = "mir::Ty: AllocError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::inner"
@@ -243,7 +243,7 @@ cause = "mir::TerminatorKind::Call: alignment::Alignment::new"
 path = "core::layout::Layout::alignment"
 kappa = "6f75f6a91a3cd639f252d15e358423a28b95af590571672c975b0e8990b4d294"
 status = "translated"
-digest = "a9c59a034a56d2a9c66e2ec9139e15915406e028eb5efa4ead8d5813a714776d"
+digest = "369773d800a9bbbdbdbb73be9edb0f98f1d25a77997c11e5a181c641f9bf5ebe"
 
 [[fn]]
 path = "core::layout::Layout::array"

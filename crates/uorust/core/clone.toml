@@ -28,7 +28,7 @@ cause = "mir::Ty: CStr"
 path = "core::clone::<impl at library/core/src/clone.rs:589:1: 589:51>::clone_to_uninit"
 kappa = "0439659a2747252db259a786a6fc210144966e6489682ac525b6ae11141553e8"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::clone::Clone::clone_from"
@@ -184,7 +184,7 @@ path = "core::uninit::<impl at library/core/src/clone/uninit.rs:12:1: 12:37>::cl
 kappa = "bf2486a22104496d28177661d976d23dbe337a8afe5a370406d46d005fb43db0"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u32]>::len"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::uninit::<impl at library/core/src/clone/uninit.rs:55:1: 55:44>::clone_one"
@@ -198,7 +198,7 @@ path = "core::uninit::<impl at library/core/src/clone/uninit.rs:55:1: 55:44>::cl
 kappa = "b9739d65cc94dbe2ce7b672a2a5ab6271322929fc9096011471ebaef321d1f18"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut [u32]>::len"
+cause = "mir::TerminatorKind::Call: slice::<impl [u32]>::as_ptr"
 
 [[fn]]
 path = "core::uninit::InitializingSlice::drop"

@@ -38,7 +38,7 @@ cause = "mir::Operand::Constant: unicode::printable::SINGLETONS1U::promoted[0]"
 path = "core::alphabetic::lookup"
 kappa = "9d16ab64705c9a4a17ec2ea8085a5a0cf2cb75192a84347556f7601e19a11cce"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::alphabetic::lookup_slow"
@@ -57,7 +57,7 @@ cause = "mir::Instantiation: a const parameter"
 path = "core::case_ignorable::lookup"
 kappa = "994cda81abc91f61757823506af646fed0ecf3db2356ad9032dfc2763d4a5e7b"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::case_ignorable::lookup_slow"
@@ -68,50 +68,50 @@ cause = "mir::Operand::Constant: unicode::unicode_data::case_ignorable::lookup_s
 [[fn]]
 path = "core::conversions::<impl at library/core/src/unicode/unicode_data.rs:755:20: 755:25>::clone"
 kappa = "53670edc18eb4c171fe41041b91605b8cbb2fdd7a845447dfb1e27138e0e0ffa"
-status = "residue"
-cause = "mir::Ty: conversions::Range"
+status = "translated"
+digest = "c7791ff2944c00bbf90efbdf18d56889f426298ddb1bea088437e2f1464f1922"
 
 [[fn]]
 path = "core::conversions::Range::end"
 kappa = "446152794004c46343426d6293c33e919d40dd6621a76c884330afb790591297"
-status = "residue"
-cause = "mir::Ty: conversions::Range"
+status = "translated"
+digest = "ac4c9829c7602d1194784f1b66e05071ed2fedf3a984abdd321970392463478e"
 
 [[fn]]
 path = "core::conversions::Range::new"
 kappa = "2900553e2bea851f85e5c9caec70ee9acfc08a5bb6c692230a4948eb82625ffa"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<u16>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::start"
 
 [[fn]]
 path = "core::conversions::Range::singleton"
 kappa = "6ae2f06bdf765175e4d27811cd2be431fa370e9985d53218401cff0774485daa"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<u16>"
+cause = "mir::TerminatorKind::Call: ops::range::RangeInclusive::new"
 
 [[fn]]
 path = "core::conversions::Range::start"
 kappa = "55b3ae7b4048d3202e34f920fb93cc2c9999df8953e8fea65d879a1176c701ae"
-status = "residue"
-cause = "mir::Ty: conversions::Range"
+status = "translated"
+digest = "6869dfc6dc9babc985d0641f8730cbce8b1b4d0f0501261396101d049934de26"
 
 [[fn]]
 path = "core::conversions::Range::step_by_1"
 kappa = "51ee1c04be413b885afd2abf079980b6eb5a03846fb2c4d7f73148a8b9581a51"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<u16>"
+cause = "mir::TerminatorKind::Call: conversions::Range::new"
 
 [[fn]]
 path = "core::conversions::Range::step_by_2"
 kappa = "7dcbb8a4bc0c71cd1698fab3aa80cc96a2bf1cf0512e090467a7cb5162413085"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<u16>"
+cause = "mir::TerminatorKind::Call: conversions::Range::new"
 
 [[fn]]
 path = "core::conversions::lookup"
 kappa = "b4718d21e485455959bc6e5e1d25005844fe3dbe130d9bc27af72edcdaea5a31"
 status = "residue"
-cause = "mir::Ty: L1Lut"
+cause = "mir::TerminatorKind::Call: unicode::unicode_data::conversions::deconstruct: core's MIR stops at mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::deconstruct"
@@ -123,7 +123,7 @@ cause = "mir::CastKind::IntToInt: from String to Nat"
 path = "core::grapheme_extend::lookup"
 kappa = "53d85bfbd24c80f52a39f696390c73810bf2a9492f0fa8bfbb5732bd16a8d7e3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::grapheme_extend::lookup_slow"
@@ -141,13 +141,13 @@ cause = "mir::CastKind::IntToInt: from String to Nat"
 path = "core::lowercase::lookup"
 kappa = "8aef6aec2fa4b65c29bd49cf65978234e9b8bc6bfd216387f71fd5d8c7a0e430"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::lt::lookup"
 kappa = "2f74a095121466f665643e4ba8a5efcea4a6fc3740b2c1ff80d11768a333bbb1"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::lt::lookup_slow"
@@ -159,7 +159,7 @@ cause = "mir::Operand::Constant: unicode::unicode_data::lt::lookup_slow::{consta
 path = "core::n::lookup"
 kappa = "182073e9d576ab6dad4cd64d81366039b275119fe2a342be9ad1179c05b489c3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::n::lookup_slow"
@@ -238,11 +238,11 @@ digest = "51ba4b6de40b770ec029cfdc9beb694f96f4fd86d8c6cbdfb061924267db5563"
 path = "core::uppercase::lookup"
 kappa = "5166d7f471b2a3d4eaf1c394fa2f8c4446354ad953c6949dd3c726508cda7da3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::white_space::lookup"
 kappa = "933bbacafb88af89d239649239e1112c952cbd2a995949716cffa5faa89fd416"
 status = "residue"
-cause = "mir::TerminatorKind::Call: methods::<impl char>::is_ascii"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 

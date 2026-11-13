@@ -31,26 +31,26 @@ cause = "mir::Ty: FromBytesWithNulError"
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:10: 158:15>::clone"
 kappa = "2cc408bc18fb433e5144c53979fd7a322327dcb11d2890e4a66d714c4e9bb843"
-status = "residue"
-cause = "mir::Ty: ffi::c_str::FromBytesUntilNulError"
+status = "translated"
+digest = "0b19865d0269d404bcf188090da3c1517d155ae3681c85a67060f42873bec285"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:23: 158:32>::eq"
 kappa = "262007f11b5aff582d6168d1818a5db06ffec90e32b982ddd052bd7bbe68c726"
 status = "residue"
-cause = "mir::Ty: FromBytesUntilNulError"
+cause = "mir::TerminatorKind::Call: ffi::c_str::<impl at library/core/src/ffi/c_str.rs:125:23: 125:32>::eq: core's MIR stops at mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:34: 158:36>::assert_fields_are_eq"
 kappa = "c52e4b3477c3e470979612a5f16efe985f4fbb37a5799fa41fe83c4eea4b5405"
-status = "residue"
-cause = "mir::Ty: FromBytesUntilNulError"
+status = "translated"
+digest = "414936e3c380470448e087fa314dc5aa0b042946118e308099510766b17fc788"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:158:38: 158:43>::fmt"
 kappa = "f12bfc07b0cb55b98068c72703f434297f14f5cd4864c0290ffdacbf16f30ce6"
 status = "residue"
-cause = "mir::Ty: FromBytesUntilNulError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::c_str::<impl at library/core/src/ffi/c_str.rs:180:1: 180:29>::default"
@@ -164,7 +164,7 @@ cause = "mir::Ty: CStr"
 path = "core::c_str::CStr::display"
 kappa = "dc760d2d7f9d3464c7a82ac619c94af7245c50342ad127ef1c29c9986202827d"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::Ty: CStr"
 
 [[fn]]
 path = "core::c_str::CStr::eq"
@@ -266,7 +266,7 @@ cause = "mir::Ty: CStr"
 path = "core::c_str::FromBytesUntilNulError::fmt"
 kappa = "e249819e129f36fcaed2d877b65cfbdb36b00af49811bbc40bf27d8741c952bc"
 status = "residue"
-cause = "mir::Ty: FromBytesUntilNulError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::c_str::FromBytesWithNulError::fmt"
@@ -284,7 +284,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::strlen"
 kappa = "c6592680373c27b8e6b9d654d633d0f854d775b23ab2ebb71e224489612c8fc6"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item *const i8) -> usize {strlen::runtime}, usize>(move _2, strlen::compiletime, strlen::runtime"
+cause = "mir::Operand::Constant: the constant item strlen::compiletime"
 
 [[fn]]
 path = "core::strlen::compiletime"

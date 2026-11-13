@@ -155,42 +155,42 @@ path = "core::unwind_safe::AssertUnwindSafe::call_once"
 kappa = "2a0eccb9e823e1a5c561bfab17d794e8ef3fb0f5024f407cc5c262978479b2db"
 at = "F=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: AssertUnwindSafe<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::default"
 kappa = "979422a83c1b34f81c12d0a4b60ed5b55bce268deb76d4ef863a8a6396dd1758"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: panic::unwind_safe::AssertUnwindSafe<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::deref"
 kappa = "98a1b22ec1c059fcbb286a04c35b400863031df7f8c9eff7c493afb1aaff6bd8"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: AssertUnwindSafe<u32>"
+status = "translated"
+digest = "124708a1cf7754e646b73a1d5ac88665156ff1174501557b2258749828c9c526"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::deref_mut"
 kappa = "fe58d9c00e404e6c7b0300d45f9aa21fa97e5a0361e0bcd020452900fb023128"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: AssertUnwindSafe<u32>"
+status = "translated"
+digest = "b2cf15453ff9aa8d7e8f2110379ebab2a07e22c35911d8eb9261a9ac39e53834"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::fmt"
 kappa = "c6bf778a2964c970ea21597225dce0a205e749e8e520675707836fa7d497925e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: AssertUnwindSafe<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::from"
 kappa = "da6730c40018bbc74e4fc50b8612ef06c2d04efdd75d2eb32eda67dfd4b76457"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: panic::unwind_safe::AssertUnwindSafe<u32>"
+status = "translated"
+digest = "c7abfbdc3c2004d65496026a322f01262e5e0664d12bf84f381a17858d013ef5"
 
 [[fn]]
 path = "core::unwind_safe::AssertUnwindSafe::poll"
@@ -211,5 +211,5 @@ path = "core::unwind_safe::AssertUnwindSafe::size_hint"
 kappa = "ba1d0bc768085f1c059cb5e45e00d1e9526b0def313ee34a2a0e8d4af371720a"
 at = "S=u32"
 status = "residue"
-cause = "mir::Ty: AssertUnwindSafe<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as AsyncIterator>::size_hint"
 

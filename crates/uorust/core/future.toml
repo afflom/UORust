@@ -91,20 +91,20 @@ path = "core::pending"
 kappa = "766f4174a641a35bea2f2ec3ce548b7b02298ee78d2ead9d8e617740fe01c9a9"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: future::pending::Pending<u32>"
+cause = "mir::Rvalue::Use"
 
 [[fn]]
 path = "core::pending::Pending::clone"
 kappa = "8f207ae712019a1d20726b175c6f87f0e942cedc58c97c48695817264b01a744"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: future::pending::Pending<u32>"
+cause = "mir::TerminatorKind::Call: future::pending::pending: core's MIR stops at mir::Rvalue::Use"
 
 [[fn]]
 path = "core::pending::Pending::fmt"
 kappa = "79e561f8369af1df3e97d155175969a0d55262e870ad8aedebd729409741e57b"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::pending::Pending::poll"

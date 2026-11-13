@@ -2,128 +2,128 @@
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:324:1: 324:33>::default"
 kappa = "7316e9c90d9c7ea09b81dafd1a7abab3539f68b01e727c0d5f081912b28eb637"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = 'mir::Operand::Constant: b""'
 
 [[fn]]
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:331:1: 331:37>::default"
 kappa = "50a96cdbf63ca94aae3d0f528afc9bedae57b46e55d37798f927db3418eb5b5e"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::Operand::Constant: <&mut bstr::ByteStr as default::Default>::default::promoted[0]"
 
 [[fn]]
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:385:1: 385:48>::try_from"
 kappa = "7f67c7f1225117b80cb5050aa5052c5e25e705b4417e6374b521635f20e2dd12"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: from_utf8"
 
 [[fn]]
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:396:1: 396:56>::try_from"
 kappa = "9a7422c91865bc4134aa36631fcf7327158f581287e90f90590d1bfb7dd6cc78"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: from_utf8_mut"
 
 [[fn]]
 path = "core::bstr::ByteStr::as_byte_str"
 kappa = "32dc2113f69667c05c3eb61beeedcf9dd5e11d0f1702390ca2722ea3b0057be5"
-status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+status = "translated"
+digest = "950304370c78416ca4d01b296fa5f4a3a06baa022cb725c796ea7ac9695cdd04"
 
 [[fn]]
 path = "core::bstr::ByteStr::as_bytes"
 kappa = "5250bb3db05f9aab59d50eb55bdf71c522750aa756852e97a28696e2734a7896"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "d2e596128f54ce1fb3f70fa655a7fd2e0e2bb45acba69291bf2652586bf81b64"
 
 [[fn]]
 path = "core::bstr::ByteStr::as_bytes_mut"
 kappa = "b786262797da778505a64389e0e92aa192e6b9ba58064c84f3d62346cd0b8e57"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "872763b52970e62845f2145413707610bc80943e7031b0f181264182208c388d"
 
 [[fn]]
 path = "core::bstr::ByteStr::as_mut"
 kappa = "0a42a45fdd1df47ad21631af624623846ccc062b5fd5dedb2a5cfb5de8d1c5dc"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "81383cac6d349184605d4c0fad924c8488ee7340858ec08fa77769c9fea91a51"
 
 [[fn]]
 path = "core::bstr::ByteStr::as_mut_byte_str"
 kappa = "4ebfe3e4db2303153e6064fa5d111d3cfcffd76347d941e71201d9c12edd6e60"
-status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+status = "translated"
+digest = "4e1ea56d500e8fb142a923b92ce986efc4e02b765a3bd90d5661c84b66d5a5a4"
 
 [[fn]]
 path = "core::bstr::ByteStr::as_ref"
 kappa = "555f3ff67edfd5230d3e050cc566f82365f004f794e65263032a7671b82b2bef"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "92bf965ba3d3cc4b4ce90e985504bf5a7ebdf3f758256ed654820e043de2295b"
 
 [[fn]]
 path = "core::bstr::ByteStr::as_ref#2"
 kappa = "a48198a5581814f557b0a408110c3d68ffda5e6a4efa42ff13b90191332cf306"
-status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+status = "translated"
+digest = "5fd8a1c9ffcbacc256b0ca5cadb3d027428c86887796723df48e7db22397e840"
 
 [[fn]]
 path = "core::bstr::ByteStr::borrow"
 kappa = "659a75de0126f9e2109eb504588b05956ba42bd182d0bc50e63a83794a22f2e6"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "3ef912a7a7d78ca5d9366648f983e556de438445d9340eccf118e29f673785a4"
 
 [[fn]]
 path = "core::bstr::ByteStr::borrow_mut"
 kappa = "9ac359af27f806b5bf450acd86da6c9e81e94a6f0a099b0909da03035dd29d33"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "a5642fc932ab08afbd44d7f8471313ba51f60dd027cff2fa090ce4fc404f3d23"
 
 [[fn]]
 path = "core::bstr::ByteStr::deref"
 kappa = "f0ce3cf7775796d0e800f05a93ffa953a702ff69408d2aa2b290856398a8bc98"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "93f33363c12fe11fa0e0155b43f40804b67b8f0ca2b558942cc6b78f5427a1ec"
 
 [[fn]]
 path = "core::bstr::ByteStr::deref_mut"
 kappa = "a36c4424ea1593e0daf9c9c08444a8820ca4e82b390141677233485ca0733cc0"
-status = "residue"
-cause = "mir::Ty: ByteStr"
+status = "translated"
+digest = "a220e64856bd5753b226e0e81cdf551be9107feb4a995d41c8608e4dcc9a4f16"
 
 [[fn]]
 path = "core::bstr::ByteStr::fmt"
 kappa = "b789051a4d8f0cba228307bb6c65b71e0187e05597136e3cd66a32c9f6addfb4"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::bstr::ByteStr::fmt#2"
 kappa = "b47b7bf1aa61e69883b8490120efc34a8d5684159d9df0f540529307b8873d17"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::bstr::ByteStr::from_bytes"
 kappa = "40c688cabdced0e50f2d41cced1cd040c504150c035f92ab40dc8132ea2001cd"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::bstr::ByteStr::from_bytes_mut"
 kappa = "b2ababd83b1a14762f32a98b07d7f2b3bdb73455d96c274dac5535f86696ba15"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::bstr::ByteStr::new"
 kappa = "b87b5199640cb4d7a32e660c1400531531a5dc7b1da6ddfea9ac1e7702bc193f"
 at = "B=u32"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: <u32 as convert::AsRef>::as_ref"
 
 [[fn]]
 path = "core::bstr::str::as_ref"
 kappa = "a7101c483d3a5dd0455cc760beb25bff3f70a5bc95529449b0d155d3c4b95c8f"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::new"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:107:9: 107:54>::eq"
@@ -156,50 +156,50 @@ cause = "mir::Instantiation: a const parameter"
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:168:1: 168:51>::get"
 kappa = "4048e534839774e2a66098db6c26232f8bb0ab39f3d8db03c576a1379d809ceb"
-status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+status = "translated"
+digest = "eecdabf8e34690b013b548dff7d820db7b8bb85a417e3ebd151144a80bc962cf"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:168:1: 168:51>::get_mut"
 kappa = "6b047f69d9cf9dc139d533011a9c429b729a884ff7b205344ea108dd0d3eb012"
-status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+status = "translated"
+digest = "f8b600e9a2cc654ba747a929919f2e6811342c1125f81539fd6d0d346bf0b1ef"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:168:1: 168:51>::get_unchecked"
 kappa = "8e7834ee4f47098aa10eec689f292315544468f9bb398db2322a3e8b27b3a0f1"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "c3d194ba9528f9a3478b99d3f914ef7554446e7d04aa89751e2afcf99d47c04d"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:168:1: 168:51>::get_unchecked_mut"
 kappa = "9dfef5ba85769a4cb48b0e0c8daf8bdabe30500cc4f5eed89e7586539e39d98c"
-status = "residue"
-cause = "mir::Ty: RangeFull"
+status = "translated"
+digest = "f799f01179db48cce00781f7f12ac7facd1571da36ef7bf87c889f40d7bb9841"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:168:1: 168:51>::index"
 kappa = "671bcb4b2893505344a1a86955efc08dcb172021da0580b475974d47a71a3e8a"
-status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+status = "translated"
+digest = "f99c36e55e67c83674ba61a67946b04791a49a5bf4ad831ab938de5aa7e8b569"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:168:1: 168:51>::index_mut"
 kappa = "c1976b30413cbc58bd5acb5124233f84c4dc3525e470eb3d4554cdff1643ae05"
-status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+status = "translated"
+digest = "27707c2495a0d7b808857096a9f022d6d43691ee5ef49f664b1b5a924bfcfcc5"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:197:1: 197:42>::get"
 kappa = "8608da47b4fd721773e885cfb7075f9e4719542581c2c74b664f23df0a963b1f"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:197:1: 197:42>::get_mut"
 kappa = "eb22fe25d4e34bf014ef782d99f2918deff55f4e1dac4f0f4e45aa993ef570c0"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:197:1: 197:42>::get_unchecked"
@@ -217,13 +217,145 @@ cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:197:1: 197:42>::index"
 kappa = "630adf6e11a0d274ee2a23a2181470d863d710701fd66913c00a06874c28481e"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:197:1: 197:42>::index_mut"
 kappa = "e2be443519abf9ed8e05f6bcbf7e888ec0a910fa746786302b77dfdac864c766"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get"
+kappa = "1f7dce049b85962ea7092b691fdef8260a4936ea13b1722531ea5e00b676406f"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#10"
+kappa = "ee6a7bf8b5cc912bd6fd31ff8f27685b59d630f7cf946cebad453aa6995dd442"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#11"
+kappa = "f5dbd71a79a53da3cfb9db47471c2f11461a06347c6163508afa99476d50d277"
+status = "residue"
+cause = "mir::Ty: Bound<usize>"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#2"
+kappa = "95581cc81a3a1b98dceaa91522321582d3c05f048d4aa99b761eaa225ad56d18"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#3"
+kappa = "955cf6f867b4125228b84f8789a6ac8eabce7e9db2e1378a4ccab9afd951afce"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#4"
+kappa = "35175c8f9149bc893cf33e3f9a509843f3020c264c73f67420af213be58c9d63"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#5"
+kappa = "d54e30c328d56acdf33f7b3c67e28c53a2f814ec589f9cee36ae4372f49d03c6"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#6"
+kappa = "8d354ce4b13eb6f032335ab9cdbd1e0bbe1877331e3547bf9e4ee963ab41a669"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#7"
+kappa = "5bacb99fbeb28c2457f4bde3292947fd500de4d14a2b14fa5f95f8156f686477"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#8"
+kappa = "251bf2388528195acecd30e638a8b4844a4b7ed80461a307532b32ebdeab248d"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#9"
+kappa = "41aaa891dc7d5326aea456e474eeffb5e4c5f745b448b9785d3f107077241bf5"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut"
+kappa = "c534b9e159d576e683100fdd42333f06a9daaed4b4dd718cb91128232fae4c25"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#10"
+kappa = "e9867e54b942cc214f8e4aab1609e39f13d484c259caef37e08ee48727ff29e3"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#11"
+kappa = "64b4125438df0c6df0bcd27dd9f549b3946d4c483f9a560f0baad69fb7f02206"
+status = "residue"
+cause = "mir::Ty: Bound<usize>"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#2"
+kappa = "c5f14e52a4ebc3f2da455118e461ec4916d96b997598086d926f47c2c33b23c4"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#3"
+kappa = "187395670cb65f3938242585a23d2568d6943bbd9a8a9856878d7f116b9fda19"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#4"
+kappa = "5b5dcbc821ff85975fecd87cf5d5dcfebec2be4defd14aa25772b6090e448253"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#5"
+kappa = "8760244947ae1617a191f1dc4e7c66968af5731177d653ac5b4e6525719f588b"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#6"
+kappa = "2b6094a2ea8d49543e83dfbceb503eca331fc1e97948946f497ab9fefa11b128"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#7"
+kappa = "9f533a45f69cb23d6773dcb88c61edadbcdf1f834dfdfc471688f32043de13f3"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#8"
+kappa = "edd5a26d5bcde639dee0c07a36d56d04876a7af5697d0cf5b406a9f33f3f2c06"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
+
+[[fn]]
+path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#9"
+kappa = "4807f8c78928f202f50889bab4c10b61def75468fd357ebbb70209832055b5f4"
+status = "residue"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked"
@@ -235,7 +367,7 @@ cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#10"
 kappa = "57070163db29d8b35c9d008be83c5bf9e449f17a503cb589f8eaa5de5bf5df48"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#11"
@@ -247,49 +379,49 @@ cause = "mir::Ty: Bound<usize>"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#2"
 kappa = "54179d6f0a9992d5c9d6fb1f8b018f4615a71e4200f368dacf5d74193aef65df"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#3"
 kappa = "16a5066619eb37f248a948293c36d112a9704b32831c5b95aac03c87f9ab070d"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#4"
 kappa = "6e3b8c8fc6fadaacb980abff8e6dc3d67ca20ecab254cfd3fc15912979196d69"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#5"
 kappa = "0159a16f3d815a9042b5f09da8725d6fcc8582d1e794a567e2859a43d8d91bfb"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#6"
 kappa = "e57039f278ebd1a5fad3b47d28d5810e0cf86990b48b0b80c67ffa1ad2da9af0"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#7"
 kappa = "47ec45218873ece2fded9024a10cbf73d0042fd1f53ff9ba54938cce85aa2997"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#8"
 kappa = "cd0bea3bbbfe4e0dca790f32fd14879b4f0f3f48946219dcd1be36cf8f9c9c37"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#9"
 kappa = "6d3c7a00a4568e1d8be9787df762a415377a856a56fd7fc92811d655455b96dd"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut"
@@ -301,7 +433,7 @@ cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#10"
 kappa = "7c947862e55f9c6d85823f04b74ef0b2671543a79857771812557cf4b2ba328b"
 status = "residue"
-cause = "mir::Ty: range::RangeToInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#11"
@@ -313,248 +445,248 @@ cause = "mir::Ty: Bound<usize>"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#2"
 kappa = "25f5bb8f7f9044f1d15007081b57be4bd43a4bbbbe23b3d555a8a874e83dfc62"
 status = "residue"
-cause = "mir::Ty: ops::range::Range<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#3"
 kappa = "d339f9ef95dda56b6992e1433dcb130813672dfe63cd35d462783b5f6255b672"
 status = "residue"
-cause = "mir::Ty: range::Range<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#4"
 kappa = "d783e44ec466e1bc7246ab604d876f3cb7f7a0f9e219d85f131f03f40a3087ff"
 status = "residue"
-cause = "mir::Ty: RangeTo<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#5"
 kappa = "daf3222d35fd82461cd09332577f916e1afe05b233d0ac2e6f19dac39e951a3c"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeFrom<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#6"
 kappa = "36f130a558803b3e7bf87a6ae31234586542abda30db98e21b3a89c54265581d"
 status = "residue"
-cause = "mir::Ty: range::RangeFrom<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#7"
 kappa = "b59d189e6c683ad5a19ac344d05eb724e719cb31dcfc7eca5c2c5bffe1398c41"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#8"
 kappa = "c05b4c813cd54331785fc9328a416310bdd06c5d7810be3825b15745650dcc7f"
 status = "residue"
-cause = "mir::Ty: range::RangeInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#9"
 kappa = "2c14b0c8691c507c6e9ef688ce4a53d96a4248e2e3b65fc992c8eccc6541fa4c"
 status = "residue"
-cause = "mir::Ty: ops::range::RangeToInclusive<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index"
 kappa = "f838f35ea10b257e73cf0e48bd72ea80195d5d0a09c9184c88c29afa0a51f879"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#10"
 kappa = "4f4906cd2a2cc5d5c0d93cbf6a56cd1ff745a773849e3eb801348ad47e2acad3"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#11"
 kappa = "2fb92a9b9ee91cd51a95de0db578927c66fec23eeb401bb5917a159be0b77ae2"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::Ty: Bound<usize>"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#2"
 kappa = "a3217b6f7c63d34e899c44708e746f83f2a5cdb14616aec65b29cc192240f6ce"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#3"
 kappa = "84815571dec8d161619bcd0220a43ccbbabbe56a0c297b3255745bd0a31774fb"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#4"
 kappa = "50cd6aa9797a05311b950be71dd7424a3eb341565d15b5eb5a4b08eb412ab825"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#5"
 kappa = "a032fa7c7ab3e46dae5607764fcfff780a4ecc77419ca236d57952143a3974cf"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#6"
 kappa = "3c5c888a701ec18dff7611b6b76957df36eaee27ee7380e2213b33cd55b285bb"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#7"
 kappa = "0b2413ca6bee75abca03b3408d57e4ac26863eefad79ddab9c49d6139b375fe2"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#8"
 kappa = "81efa0f51636bccaf030a9aa6372b8a29eae030357cd78095285cf56734716bd"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#9"
 kappa = "cd963af47e80effd21912be21801cbf41546f1876b0f6d6ebdd4d1f969aba3bc"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut"
 kappa = "ea35ec93bcabbae0c7acdcdfa9ae499c5c9a8f3434b3df236ffec4d9582710ff"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#10"
 kappa = "57765b94e01d4193122b5097115886483b0854091350b563c1f075fd419fee2f"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#11"
 kappa = "270e3cfc76fd17c7fd56d6aea0f5e6ed91464b2948936c190949e9b96f5e5e83"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::Ty: Bound<usize>"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#2"
 kappa = "1980cf64fab9d8f7a70c46ba04064567b8d77c1c24ac87242dc1a935492af8da"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#3"
 kappa = "e23ff7d4d072b9e19ab8599abc00636c6db2af538a29afee128bc8df7eb106b4"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#4"
 kappa = "d7c550ccdcd246094ae2159b4294c8b2fb88fa206bd976afac8f6c0087ba2800"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#5"
 kappa = "77dea550ccbdc88d91e029b4fe48a6a0ac1fdf1e792bc2b1f04a5da7acbbb06b"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#6"
 kappa = "1e7935dab48e6073c3c516cbbfea45b9355ab8313c31e835f0d951e778d4d8be"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#7"
 kappa = "7d32ecab997edff9684b7bfc1ecea5f976f7ebbb2a2320af97151f63dff99a64"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#8"
 kappa = "c9e109231331df29f73cedfdd8ac02d9335c1cf4e1d4d90482d43f6e3ca811e7"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#9"
 kappa = "467afa89d71e9a990f66de6a0fc42ab52ebc5884c050a09e2cbf9582dc008f9c"
 status = "residue"
-cause = "mir::Ty: bstr::ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes_mut"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq"
 kappa = "d5a4262a4056effccbd23dd81ea9ab02eae4b4cf0478b0a6cb7ba95d9055f14c"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq#2"
 kappa = "738bb7a6b0fcae9d07a7261fa73e01d1f36792eed3b7191cce6a5e1616e0ef72"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <str as convert::AsRef>::as_ref"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq#3"
 kappa = "e7c7ffa04b637645432ede63e444fc118614ef55dffd7d5da078f7356d402895"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <&str as convert::AsRef>::as_ref"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq#4"
 kappa = "3affac26faa4bd83a43f6ddb37dab6cf418360b891b06c0e73014ebd28b31e13"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq"
 kappa = "021156a696ca880aa6778d5704b571e58ecfb50da846e0fd36dff8c68cb7b27d"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq#2"
 kappa = "6898d7df39e4cb26b163d1f15ab6680d4a7043c91a0d61fee3ae2c00447e8bb3"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: ByteStr::as_bytes"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq#3"
 kappa = "915cf8911e7d19d7ae34c7ae4138f8bbb2c910ee262c65fef39fec8d1407c801"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <str as convert::AsRef>::as_ref"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq#4"
 kappa = "a9e717a05f2f27db753a77cc5a739543463bce98dcadf0e892f8d2a0c3e33009"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <&str as convert::AsRef>::as_ref"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::cmp"
 kappa = "5714a4b881df92e9815d53b32001075fdb516c24964cf2ac107be134f9a87cbf"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <[u8] as cmp::Ord>::cmp"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::eq"
 kappa = "f2195d5e0cc26ae222ea67b2d98488fb47a49f4a11b7a870d0cb45bcc47d661a"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <&[u8] as cmp::PartialEq>::eq"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::hash"
 kappa = "8d228ac4205df0d500582758e4b43feb61316440c93d3dc820cb0e8e005775ae"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <[u8] as hash::Hash>::hash"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::index"
@@ -574,11 +706,11 @@ cause = "mir::Ty: <u32 as slice::index::SliceIndex<bstr::ByteStr>>::Output"
 path = "core::bstr::traits::ByteStr::partial_cmp"
 kappa = "ff10b8d8c6b2d036302dcc76a874dc0e089b6d85247474c211a37fc106c8a23d"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::TerminatorKind::Call: <[u8] as cmp::PartialOrd>::partial_cmp"
 
 [[fn]]
 path = "core::emit"
 kappa = "57c2f2620cedb95a871757196bde3b3f8f1988dfd412fc0e54295a9632b9969a"
 status = "residue"
-cause = "mir::Ty: ByteStr"
+cause = "mir::Ty: fmt::Formatter<'_>"
 

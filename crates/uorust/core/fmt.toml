@@ -278,14 +278,14 @@ path = "core::builders::FromFn::fmt"
 kappa = "47b65f5e2bf10fa7ba713821dc1549f38aec524e85df9c97b3ef22b192583144"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: builders::FromFn<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::builders::FromFn::fmt#2"
 kappa = "ff1cf2569cdc4fb684e11fd276750e451028aebdcbeb456400e53f50f9b547ef"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: builders::FromFn<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::builders::PadAdapter::wrap"
@@ -945,7 +945,7 @@ path = "core::fmt::Cell::fmt"
 kappa = "c2823d0a6df77149dbbb98e94f73efd2ca0e2e8b50e1c57d1c65bd478ca4313f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Cell<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::Error::fmt"
@@ -1336,7 +1336,7 @@ cause = "mir::Operand::Constant: the constant item fmt::flags::WIDTH_FLAG"
 path = "core::fmt::PhantomData::fmt"
 kappa = "0f33f39e6b205ff541fe5643eb2bf5c40a82900568b6b3f9106ac1233a1cb1cb"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::PostPadding::new"

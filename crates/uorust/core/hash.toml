@@ -122,40 +122,40 @@ path = "core::hash::BuildHasherDefault::build_hasher"
 kappa = "fa19de47e06254bb428af2d86d14da4e2b88826acfdc2056d1e2e20ce546c93b"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: BuildHasherDefault<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::clone"
 kappa = "490cd6c85276cde849c49c430f6d442cea194add13fe51b32e6f26341da300bd"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: hash::BuildHasherDefault<u32>"
+cause = "mir::Rvalue::Use"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::default"
 kappa = "52517222a50ded4cd069a77097eea1a89b9c060093194593e8947e8880947f0c"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: hash::BuildHasherDefault<u32>"
+cause = "mir::TerminatorKind::Call: BuildHasherDefault::new"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::eq"
 kappa = "6e12bba1d689b3f436186965733785ac5e63e45aedcbf682720845b2b1e60178"
-status = "residue"
-cause = "mir::Ty: H"
+status = "translated"
+digest = "bec00b77f1c8958ef8795aa5fe9b85d88a1bec03ac1605afbbec62de1edbaea5"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::fmt"
 kappa = "03fe8db4c9a0e6168f010899143dba9450dbfca2c4f780f462e10378f9315277"
 status = "residue"
-cause = "mir::Ty: H"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::new"
 kappa = "afbda992a3ed8ebe881a881d8817e27d38c658e13790108ca5ff4676107f67f0"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: hash::BuildHasherDefault<u32>"
+cause = "mir::Rvalue::Use"
 
 [[fn]]
 path = "core::hash::Hash::hash_slice"
@@ -586,244 +586,244 @@ cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_str"
 path = "core::sip::<impl at library/core/src/hash/sip.rs:19:10: 19:15>::fmt"
 kappa = "e7a280b64a438b8f9209690cd962a81687f4fc858d3549cd05534b03f6f084a6"
 status = "residue"
-cause = "mir::Ty: SipHasher13"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:19:17: 19:22>::clone"
 kappa = "4bda786b3535f3011212f3c44b38400a99874c8f16f54c2a6e0565209aef8cb5"
-status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher13"
+status = "translated"
+digest = "8c3d6dfbb2c4d3df8a7c0990c7173ec6afcc232c2635fdc126c4050b8271b3b2"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:19:24: 19:31>::default"
 kappa = "f2cdd3091d1bae3fbaaa6e53a25ed924e586c4da60911201445193d9af74e279"
 status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher13"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:343:1: 343:41>::default: core's MIR stops at mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:29:10: 29:15>::fmt"
 kappa = "3b67dc9debe70d9f6901f598d050f1a14d75748cec8f06d06672a232366b5692"
 status = "residue"
-cause = "mir::Ty: SipHasher24"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:29:17: 29:22>::clone"
 kappa = "f5bee1a6d5c756b929d705569ab846859c28760cd6de93bc030ef66d3afd5a49"
-status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher24"
+status = "translated"
+digest = "575f1fc74ac0759da7df6299d0982240f16881a7cdd96e49bd8cb9a761ebd41a"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:29:24: 29:31>::default"
 kappa = "8b745376784f03fb44dd2cce630d74f032148ed0b21d2d322028f711e5b4814d"
 status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher24"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:343:1: 343:41>::default: core's MIR stops at mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:357:10: 357:15>::fmt"
 kappa = "c0c370590e86866b5a23ed3c296de9ac8efa2c480261a8f3cf3052157751538b"
 status = "residue"
-cause = "mir::Ty: Sip13Rounds"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:357:17: 357:22>::clone"
 kappa = "9585b6f87dbe21041f834524174f4299863b69b0c923b252bee096bfa2a98b8c"
-status = "residue"
-cause = "mir::Ty: hash::sip::Sip13Rounds"
+status = "translated"
+digest = "2700dd2efa37dc5b595a81488ac0e928caf81d79c5275165d9372dd30d99491d"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:357:24: 357:31>::default"
 kappa = "520331621996f8d6fcf1c7a2335fa7da0d5688aa310f016a9b4107a3e0247bb7"
-status = "residue"
-cause = "mir::Ty: hash::sip::Sip13Rounds"
+status = "translated"
+digest = "9bdac3e829ee5dcd2937ff4d4d4206f9de1c9d014576eaf1f9c323f607ea4f30"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:374:10: 374:15>::fmt"
 kappa = "426158358c63d4a64e52d75fa16695adca912ea000ed15d730299fb141cfcbb9"
 status = "residue"
-cause = "mir::Ty: Sip24Rounds"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:374:17: 374:22>::clone"
 kappa = "afa328a21c6ad5f82018a07447af9d76a55728911aedfd4fe6385a833aeb1dbc"
-status = "residue"
-cause = "mir::Ty: hash::sip::Sip24Rounds"
+status = "translated"
+digest = "00676ba8ff91438071e9af913b917678cbedb42db3de9fa5237a47b9f7d04e77"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:374:24: 374:31>::default"
 kappa = "202d7130368c99647cd9c4ed2cbdabf34e97b998d6e38195c58800bd03748d66"
-status = "residue"
-cause = "mir::Ty: hash::sip::Sip24Rounds"
+status = "translated"
+digest = "7a74fea798b6cd5fcda5ebe99114a95cdd70dd45873a2ab1185f289c5220266e"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:48:10: 48:15>::fmt"
 kappa = "5a84ac0d193b7152a1acd9e82dc8607ab67822525a389f06751a42b07cd24e26"
 status = "residue"
-cause = "mir::Ty: SipHasher"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:48:17: 48:22>::clone"
 kappa = "7c1802549d4e2d5352c7ca411bf83b1b2bd43201be1edcddb28a9fdaf006ee4b"
-status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher"
+status = "translated"
+digest = "f7df0918bd94eb71d6aa1fc44ab75a18b91ffa75707b1bc7d2adb4248fb41225"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:48:24: 48:31>::default"
 kappa = "723b7f5a992cd666706b58bcf18487beb89d8f497acefdfd871f6c88e93faf8a"
 status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher"
+cause = "mir::TerminatorKind::Call: <SipHasher24 as default::Default>::default"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:51:10: 51:15>::fmt"
 kappa = "4d9f5191805073253c9f96f47d49dd606652413be871c1dc26d8bc50c8f53349"
 at = "S=u32"
 status = "residue"
-cause = "mir::Ty: sip::Hasher<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:62:10: 62:15>::fmt"
 kappa = "06db13be70db8f2e3160963a9ec66b2825fd28c575c74ec4f6b81e4d3ae5c525"
 status = "residue"
-cause = "mir::Ty: sip::State"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:62:17: 62:22>::clone"
 kappa = "b9895887ce2292bbf408baa9219cf7246c84d2d7221dd0f074276c24421fd552"
-status = "residue"
-cause = "mir::Ty: hash::sip::State"
+status = "translated"
+digest = "39cbb942fd1a5bbe2ca5f2694097dfbb7b0699989054de2ebe7f17bec5e138da"
 
 [[fn]]
 path = "core::sip::Hasher::clone"
 kappa = "7b0a8ff30e7b6b0eed8b07a01b549d7089460c9bb7348131d1b7b896663246c7"
 at = "S=u32"
-status = "residue"
-cause = "mir::Ty: hash::sip::Hasher<u32>"
+status = "translated"
+digest = "86cc2384bc36e45dfed999d194b8eaaaebffb3d594be2e9d3da0f7f3d2fc8ce3"
 
 [[fn]]
 path = "core::sip::Hasher::default"
 kappa = "586b4d6d285f6874660a8d4f15c7f9ef2fa0371494c08de19091b65e9c7a8b68"
 at = "S=u32"
 status = "residue"
-cause = "mir::Ty: hash::sip::Hasher<u32>"
+cause = "mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
 
 [[fn]]
 path = "core::sip::Hasher::finish"
 kappa = "64bd9c70e1419ebc2e6136ee5b35eebe2a22ed1ab3d252d9943046d5527fb3a5"
 status = "residue"
-cause = "mir::Ty: S"
+cause = "mir::Operand::Constant: 56_i32 as u32 (IntToInt)"
 
 [[fn]]
 path = "core::sip::Hasher::new_with_keys"
 kappa = "52fef900fd930c4c10eb78d9848143c6d1df4f22b7d983956cc8c513a1f31ca5"
 at = "S=u32"
 status = "residue"
-cause = "mir::Ty: hash::sip::Hasher<u32>"
+cause = "mir::TerminatorKind::Call: sip::Hasher::reset"
 
 [[fn]]
 path = "core::sip::Hasher::reset"
 kappa = "8468d45fe0f24e14cd9621460c9e08db0214c8f57fbca3b1cf148e47d6d42e3c"
 status = "residue"
-cause = "mir::Ty: S"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::sip::Hasher::write"
 kappa = "0376d560aab85612dd843d054c57fdb581a9b043173bfc63f2f2a89e024e4f10"
 status = "residue"
-cause = "mir::Ty: S"
+cause = "mir::TerminatorKind::Call: hash::sip::u8to64_le: core's MIR stops at mir::TerminatorKind::Call: slice::<impl [u8]>::as_ptr"
 
 [[fn]]
 path = "core::sip::Hasher::write_str"
 kappa = "7b81d6c0d21482dec626ba3077f99362528f713d34b2cc7e88112bc7859f9332"
 at = "S=u32"
 status = "residue"
-cause = "mir::Ty: sip::Hasher<u32>"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::sip::Sip13Rounds::c_rounds"
 kappa = "701eca8618fa1c1bf8ee03c8abf1a37ab8b4064cf692555e2f58bbfc35866191"
 status = "residue"
-cause = "mir::Ty: sip::State"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
 
 [[fn]]
 path = "core::sip::Sip13Rounds::d_rounds"
 kappa = "7118a0bb4b42bbf722b6045da36883aad796c3b7ec22bd272cacf2bf94b59ff4"
 status = "residue"
-cause = "mir::Ty: sip::State"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
 
 [[fn]]
 path = "core::sip::Sip24Rounds::c_rounds"
 kappa = "fcebe56a0263842e705fb658b2f3199d16a92ae0e18eb298dd58f18ac3fd845d"
 status = "residue"
-cause = "mir::Ty: sip::State"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
 
 [[fn]]
 path = "core::sip::Sip24Rounds::d_rounds"
 kappa = "ccef0943090515e121dc08a24dab616cd8b03b9a6bf574257619b7581a87e1a0"
 status = "residue"
-cause = "mir::Ty: sip::State"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
 
 [[fn]]
 path = "core::sip::SipHasher13::finish"
 kappa = "24c809e0d1a60e79bb2fb8d3f6eb890509d55f30cdbc594c7e7dfb2237500313"
 status = "residue"
-cause = "mir::Ty: SipHasher13"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::finish: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher13::new"
 kappa = "b657b4973ce28782483ead424da212b53ec3d0b2e6431620fcd75594adeba60c"
 status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher13"
+cause = "mir::TerminatorKind::Call: SipHasher13::new_with_keys"
 
 [[fn]]
 path = "core::sip::SipHasher13::new_with_keys"
 kappa = "ae8a622289ac1f77c71cc8343444a1c7b128ebfacddccd6fca6b5b0d51802ffb"
 status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher13"
+cause = "mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
 
 [[fn]]
 path = "core::sip::SipHasher13::write"
 kappa = "a84f781be69954a753a4bb142e0e0966627e732848993c0db721ac4dd581389b"
 status = "residue"
-cause = "mir::Ty: SipHasher13"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher13::write_str"
 kappa = "a6033bdda408bceb1a3d660702f4f02f39cfa1ae1e4bf277301eb8cda83635a1"
 status = "residue"
-cause = "mir::Ty: SipHasher13"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write_str: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::finish"
 kappa = "66951724d1fd1a2980f5c2ba02be4b25fc222f05a59aaafa8477705caaf4d3de"
 status = "residue"
-cause = "mir::Ty: SipHasher"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::finish: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::new"
 kappa = "f5ae8e4329de2e15bac6f436339e1d65de9879aed40d19cc436735032da3b608"
 status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher"
+cause = "mir::TerminatorKind::Call: SipHasher::new_with_keys"
 
 [[fn]]
 path = "core::sip::SipHasher::new_with_keys"
 kappa = "8be75fd8fa198ffda91e2a19b9c2bac784b800c2ade914380942936e04a9f6c4"
 status = "residue"
-cause = "mir::Ty: hash::sip::SipHasher"
+cause = "mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
 
 [[fn]]
 path = "core::sip::SipHasher::write"
 kappa = "30c1e941385c154ccb9cd7b4051286029319a7b9b13b4fde5c461e1c8fb0a789"
 status = "residue"
-cause = "mir::Ty: SipHasher"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::write_str"
 kappa = "0ee00b377ef36a02aa8c3a0520ad4cf046e95b135218141f28880569e2870464"
 status = "residue"
-cause = "mir::Ty: SipHasher"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write_str: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::u8to64_le"
 kappa = "91322c5df1b7ec0d3b0189ff6bdabf8d8f8e23d62aeb220ed21d99a7fd143a0b"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of"
+cause = "mir::TerminatorKind::Call: slice::<impl [u8]>::as_ptr"
 

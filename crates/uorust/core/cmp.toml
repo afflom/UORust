@@ -45,21 +45,21 @@ path = "core::cmp::<impl at library/core/src/cmp.rs:680:16: 680:21>::fmt"
 kappa = "8f40e936f539b3cac4b6356217afaeeef446a01a242d5230ffaf27b6f3764110"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:680:23: 680:27>::hash"
 kappa = "f0f6016e19b6dc097a89e16624339ac96c756506e78c46d2300a33eef174cf53"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:681:16: 681:25>::eq"
 kappa = "a5486e905ad9db70b5ea315b1b4e69d6a48cdb7abf72dc1fd5413eeef965096f"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+status = "translated"
+digest = "247f7ee667b7305b69dcfd9a234d437ef0aed9823e10b98dd01559bb272ae2c1"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:681:27: 681:29>::assert_fields_are_eq"
@@ -72,7 +72,7 @@ path = "core::cmp::<impl at library/core/src/cmp.rs:681:31: 681:38>::default"
 kappa = "23b35f602eefcf55ed42d859c0cfde57b2778e013a6d8ad201c5a7144d368d3a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as default::Default>::default"
 
 [[fn]]
 path = "core::cmp::Eq::assert_fields_are_eq"
@@ -91,21 +91,21 @@ path = "core::cmp::Ord::clamp"
 kappa = "f3f2b34cb48a505b6fb2f0dc8706016a8094953ac46720af8b3d86d5cc731e3b"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::le"
+cause = "mir::TerminatorKind::Call: panicking::panic"
 
 [[fn]]
 path = "core::cmp::Ord::max"
 kappa = "3f1df06b034738160f42be2f2658ae0ec3a9ee558ef4023d7a7b561aecbb3c13"
 at = "Self=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::lt"
+status = "translated"
+digest = "47c9a0c5361af9e98ad2829b3d7be954b0763110f49d11ef8d5b57030956e9dc"
 
 [[fn]]
 path = "core::cmp::Ord::min"
 kappa = "4d5b960e9a836cb7eff02f4d494831a5da31993e17c46079523b1be284e7ec63"
 at = "Self=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::lt"
+status = "translated"
+digest = "0ec1a09158f1445c54f555a5bf9328df5a4c949a51508d39cdd60beef9d7a21e"
 
 [[fn]]
 path = "core::cmp::Ordering::as_raw"
@@ -176,60 +176,116 @@ status = "translated"
 digest = "ee8215bbccd8020da6b5f44f44c20f8ae553ff2c3e0b99f14b24700fba9329bb"
 
 [[fn]]
+path = "core::cmp::PartialOrd::__chaining_ge"
+kappa = "79879aec04cccba991d7b523ad94fc66d6b906521eb41cdc2d731673bbc20e86"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item cmp::Ordering::is_ge"
+
+[[fn]]
+path = "core::cmp::PartialOrd::__chaining_gt"
+kappa = "4ef7af9beeed3427d337613712aac33f8a32803101c5f36c2d71ac36c9e28618"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item cmp::Ordering::is_gt"
+
+[[fn]]
+path = "core::cmp::PartialOrd::__chaining_le"
+kappa = "8f41400dc398151f55e0c346a6c822f15866074f2c6fffc1bef1fb4b9f164aba"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item cmp::Ordering::is_le"
+
+[[fn]]
+path = "core::cmp::PartialOrd::__chaining_lt"
+kappa = "5a1ea5e53d9dec0c8626b90355df3775619cc7f980982ae48b5ba8d8923e8f1b"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item cmp::Ordering::is_lt"
+
+[[fn]]
+path = "core::cmp::PartialOrd::ge"
+kappa = "4bcb184f7e850eadfb4a744aa6f06295dffcb53e16db10ee79651cbab1f6812b"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
+
+[[fn]]
+path = "core::cmp::PartialOrd::gt"
+kappa = "cf592b2ca82600efbd01ded4614eed4fa839ec256b1e6f179c62c95eca9e0534"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
+
+[[fn]]
+path = "core::cmp::PartialOrd::le"
+kappa = "6a318b0695d18d8b87ff671f8bb9665db6c793eed66b78d9683cfe73c5834ecf"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
+
+[[fn]]
+path = "core::cmp::PartialOrd::lt"
+kappa = "5e88bde3fcd9f9bac6a40b30fcec2af11ba783fc0daeb908165a882f204c2bd9"
+at = "Rhs=u32, Self=u32"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
+
+[[fn]]
 path = "core::cmp::Reverse::clone"
 kappa = "01887480891a019de94eb1467a8441f4cda80dbc58026cae5dbf9e1383591ff9"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+status = "translated"
+digest = "96f600be5b1e3f1e96426fd288442f78894efac9a8acbd3575affe35c642eeb4"
 
 [[fn]]
 path = "core::cmp::Reverse::clone_from"
 kappa = "7f62d04ce50db0b53b63d0e8c6226a2cd3e6a15e47cbeb9bb3a9028c18dd853b"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as clone::Clone>::clone_from"
 
 [[fn]]
 path = "core::cmp::Reverse::cmp"
 kappa = "bd3ebf4d6da865a7dfd44c5a4ecf24944c9983fd5bb145674e87e5fd5e2d5da6"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::Reverse::ge"
 kappa = "89055a4c078ed043b08c06eecf8a2f49806349d9862ed7c0014a4cda668d16e2"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+status = "translated"
+digest = "ce2b2efc2c14ca3f111a5db8cc716930f503c9a4a6bab382dc853c6cc5bc6d89"
 
 [[fn]]
 path = "core::cmp::Reverse::gt"
 kappa = "77b2785d4dc7401e2918a903b55e0bb56e4b7239f4497f35dcc0081dfc56b11c"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+status = "translated"
+digest = "2154f3d4ebd9dba21d77220e3313dad20c9380899a2e4c1125cf3e41c71e652e"
 
 [[fn]]
 path = "core::cmp::Reverse::le"
 kappa = "51a91093d61c01896286a9cc43b3f3b8aca5ccaf8099b3fa285b1ea8cde49108"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+status = "translated"
+digest = "ce8e1b2d4b2be3dd585cc9c06cc72cd793dcb8535eef1728e1db657b05657959"
 
 [[fn]]
 path = "core::cmp::Reverse::lt"
 kappa = "f3fc120a0c5ac196762106293e70868ffcaf740b049f3c87debc7f1d73e19bcc"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+status = "translated"
+digest = "12da601f1799d189c2da251bd78cd5a3134308e97e1a1c1b4e590264f53c2d07"
 
 [[fn]]
 path = "core::cmp::Reverse::partial_cmp"
 kappa = "45c844ee013d2d8fb22753f2d68a0a3c235cbfce7e1d6e881ee85c6a2c5253cf"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Reverse<u32>"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1876:13: 1876:40>::eq"
@@ -1816,70 +1872,70 @@ path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__c
 kappa = "a2fffc367388e9a79dbc4957901ed92cc7f88e22e7e10c7ae691b29f2cf1c40e"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_ge"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__chaining_gt"
 kappa = "b39682d325b4186ffac064e57297a3cf115c8ea2e8525f433920ba32e555dcdd"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_gt"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__chaining_le"
 kappa = "0aaf6d5186d9057b922de1cf04f6ae7ae7c09384895d85e4aa259bebbb1f10c2"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_le"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__chaining_lt"
 kappa = "75f1301caec09d2e0469f1490fbc9f2876cc66bd28c59051e1c65cdd95dfea1d"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_lt"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::ge"
 kappa = "82be0b824c37381cd7c5fa9015d64deff4c921cf69c2345ef1a787648c0ea697"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::ge"
+status = "translated"
+digest = "4b1c8da7e9c97dbb9626514d7bdfdbec4f7fc8ed69c5772d9d9290b7d3b4ecb2"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::gt"
 kappa = "fe9c2d482e7e8c1ca86ce97f7acf9cc0af02b586e48d083af50bd76ec3d0f089"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::gt"
+status = "translated"
+digest = "9fb7ed99a8dee12336affe8c11e7dc23ea7714625fe9f55f27037ca702c36cab"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::le"
 kappa = "c3ec0009dc5662b820c8bfb1a5f6bd187c9aad7e26ab4dc57324fe08bf90bd44"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::le"
+status = "translated"
+digest = "27d2dff6d97bb0194ecb6efce9de448d490d0aae6d6c3bb9f1df571c6604352d"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::lt"
 kappa = "8dd609a12d88ab0522634472d150dfa4bc4218e61c24d601e20f6628b2e24664"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::lt"
+status = "translated"
+digest = "05e3e34d304fafe8515ffb0b8c4f98caee57301a1364260240d9bf1e266df487"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::partial_cmp"
 kappa = "e7c9b942cb1f7655908717105c2fab63e966c493d36da82be9b9a045d3b9ea2a"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::partial_cmp"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2175:5: 2177:24>::cmp"
 kappa = "fea1aeb46219218870fe7f80e25d62c75729b73e8a45d9ffd28d3f0d1dc3b585"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::Ord>::cmp"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2192:5: 2194:33>::eq"
@@ -1900,70 +1956,70 @@ path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__c
 kappa = "2a9e3169381d17036c4684b4287b69e98796c1eeca455d3d16ae170a21ea2d65"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_ge"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__chaining_gt"
 kappa = "cb4f1fcab2bf995cea8190da6bf442ceb71e0609eb702fe7f4b6b38c0d9dc0e6"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_gt"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__chaining_le"
 kappa = "20eccc2e0155b70a7d8ffa240f23e3b41e13b9dd3532b06e88bf6b084f69a6e1"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_le"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__chaining_lt"
 kappa = "2feedc6376fad5a6a14f7eb4d9ad143ce9ac84eaa9a534ed79817b592168cbef"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_lt"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt: core's MIR stops at mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::ge"
 kappa = "09b31914a6544f5104821e5c5dd3dbf2f0142be2ec5e7ae1468d4342b220c8f3"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::ge"
+status = "translated"
+digest = "0d04449ca8d3cfc9dbe13b05c909e8c832f67fc3dfc9079f6bd91eb79d4e3fe5"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::gt"
 kappa = "689a4b288616475e6e7da4d93ab5bd1c198da7342003922b3f11223e9142d19b"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::gt"
+status = "translated"
+digest = "3a58d7dede6026871ac5cc75a55694569bb62de98761eb93eae56e3af8bcb3fc"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::le"
 kappa = "f1a9c53f43c4d14db76b776821c98cee41975ca8413f1374b499711f0c2a6da3"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::le"
+status = "translated"
+digest = "6d732cbe9c1680adc1a817e45daf2896305c033d62d4f81b561b4a0b456583af"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::lt"
 kappa = "162af22b0d22dd75a12971ccace45fa4ae865257ca10a39448af849fd31a9195"
 at = "A=u32, B=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::lt"
+status = "translated"
+digest = "098c50e60a7ef23881b8474bbb6a945dcfed79513773b91ae70eb7a5dc54612f"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::partial_cmp"
 kappa = "5995bd2f3b84f39de01ccf6a7c6e488dd9d694b76d5bb4b179a741751e5966cc"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::partial_cmp"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2250:5: 2252:24>::cmp"
 kappa = "7a227bcfa3b82c6aafadc1a601bcd3f9a5c03cca51a75e0be3180d37720a851a"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::Ord>::cmp"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp: core's MIR stops at mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2265:5: 2267:33>::eq"
@@ -2068,8 +2124,15 @@ digest = "971028b392758a1c09ae913024cb149ffa0f7c8ff785137fb1732540029b43f6"
 [[fn]]
 path = "core::cmp::impls::bool::partial_cmp"
 kappa = "8316125b5838156534848e343878f906e0548fed60304fc0cef9aadb30df3dee"
+status = "translated"
+digest = "d8e00a4d86d65722ab8176de1121c25a31f5787fdcc3a5c73696587fb540d998"
+
+[[fn]]
+path = "core::default_chaining_impl"
+kappa = "bbc40c2e2caba9fbdcb1f046b4cea2d33180868bd3e3806bfe479355f626f98f"
+at = "Destruct=u32, Ordering=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <bool as cmp::Ord>::cmp"
+cause = "mir::Ty: impl [const] FnOnce(u32) -> bool + [const] u32"
 
 [[fn]]
 path = "core::max"
@@ -2117,8 +2180,8 @@ cause = "mir::TerminatorKind::Call: <u32 as function::FnMut>::call_mut"
 path = "core::minmax"
 kappa = "ac6b5828cf86dd84a4bc25c0069d63fb2feb97dd21351250b21caec9cab948e7"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::lt"
+status = "translated"
+digest = "338751a0df5c26c58f7dd6f3905094ff37459916f092d3d1df183f347c01777a"
 
 [[fn]]
 path = "core::minmax_by"

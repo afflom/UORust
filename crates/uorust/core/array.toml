@@ -2,13 +2,13 @@
 path = "core::array::<impl at library/core/src/array/mod.rs:182:10: 182:15>::fmt"
 kappa = "842b9e987686bd60695ef9ef5eea490ddfc90296cf2db59234be1b868d98b014"
 status = "residue"
-cause = "mir::Ty: TryFromSliceError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::array::<impl at library/core/src/array/mod.rs:182:23: 182:28>::clone"
 kappa = "6a45521c6b906b2bb6709bbe5bb551b7b4a9d1579c4422f4226cbf15ca06eb62"
-status = "residue"
-cause = "mir::Ty: array::TryFromSliceError"
+status = "translated"
+digest = "0cfea1604bab51ef82b5f448d5d4f814e199c42599314c10dc5db7dbb7eef4cb"
 
 [[fn]]
 path = "core::array::<impl at library/core/src/array/mod.rs:206:1: 206:52>::as_ref"
@@ -459,6 +459,13 @@ status = "residue"
 cause = "mir::Instantiation: a const parameter"
 
 [[fn]]
+path = "core::array::<impl at library/core/src/array/mod.rs:520:1: 520:31>::try_map"
+kappa = "6faea7d5b9ad333db0475ce6925f1b296adf660f61d8056ca73a0d37430c1717"
+at = "Destruct=u32, N=#, R=u32, T=u32"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
 path = "core::array::Guard::drop"
 kappa = "0a350b1eadb1b1307cee1e52a8c2b3e638245a6c45d1a2b29c4b3e9aff14e8d3"
 at = "T=u32"
@@ -504,13 +511,13 @@ cause = "mir::Instantiation: a const parameter"
 path = "core::array::TryFromSliceError::fmt"
 kappa = "4a7fed8360164a2d49846b6cbe34b28b0e3d3c07e8757a92b8fced5f4f78bcb2"
 status = "residue"
-cause = "mir::Ty: TryFromSliceError"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::array::TryFromSliceError::from"
 kappa = "9da4d4688f396f3214e4a062381702111149d52b2efc48dae0bf2969919e5e9a"
-status = "residue"
-cause = "mir::Ty: array::TryFromSliceError"
+status = "translated"
+digest = "796bfe3ae341e4d4eb3f7500133a28c388642b4a6735d292a216e221b979bd31"
 
 [[fn]]
 path = "core::array::ascii::<impl at library/core/src/array/ascii.rs:3:1: 3:29>::as_ascii"
@@ -958,7 +965,7 @@ path = "core::iter_inner::PolymorphicIter::drop"
 kappa = "96a47194def3c2586032c1194d46762b0344ee8075e6ee8b51419400a483bafc"
 at = "DATA=u32"
 status = "residue"
-cause = "mir::Ty: PolymorphicIter<u32>"
+cause = "mir::TerminatorKind::Call: <u32 as PartialDrop>::partial_drop"
 
 [[fn]]
 path = "core::iter_inner::PolymorphicIter::empty"
@@ -971,6 +978,13 @@ cause = "mir::Instantiation: a const parameter"
 path = "core::iter_inner::PolymorphicIter::fmt"
 kappa = "b6ca86b4555602771a24d03dea83e72858be7ec9084597a80cf8429de7555f6a"
 at = "T=u32"
+status = "residue"
+cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
+
+[[fn]]
+path = "core::iter_inner::PolymorphicIter::fold"
+kappa = "568483cff2db257c3f9dd7f563eab35054f3641eb80b62ab1c0ba193b061f8ef"
+at = "B=u32, T=u32"
 status = "residue"
 cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
 
@@ -998,6 +1012,13 @@ cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
 path = "core::iter_inner::PolymorphicIter::next_back"
 kappa = "031d320b4e17b4dce91c16d1df46d220ffbfc652a7ee5562afb61b11255a148d"
 at = "T=u32"
+status = "residue"
+cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
+
+[[fn]]
+path = "core::iter_inner::PolymorphicIter::rfold"
+kappa = "b8ad90896684d5c5aa3bbf52c148481fb14ffa4c0903d100e58c27a7b060f9ad"
+at = "B=u32, T=u32"
 status = "residue"
 cause = "mir::Ty: maybe_uninit::MaybeUninit<u32>"
 
@@ -1042,4 +1063,11 @@ kappa = "098216b87f0ba82d958d78d7e1f24e7ad8ea41271568a54a2d9ff408a34b4f7e"
 at = "F=u32, N=#, R=u32"
 status = "residue"
 cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "core::try_from_fn_erased"
+kappa = "e101c7b349c803d68188587d6bbb30cb6bc2d1c5c93ebfe3737d0984b30e5ace"
+at = "Destruct=u32, R=u32"
+status = "residue"
+cause = "mir::Ty: <u32 as ops::try_trait::Try>::Residual"
 
