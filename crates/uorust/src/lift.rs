@@ -352,7 +352,8 @@ pub(crate) struct Types {
     pub(crate) borrowing: BTreeMap<String, Vec<(usize, String)>>,
     /// The discriminants an enum's source sets, one per variant in order,
     /// by LexLean name, where they are not the variants' indices alone.
-    pub(crate) discriminants: BTreeMap<String, Vec<i128>>,
+    /// Held as `i64`, the width the lift lifts, and widened where read.
+    pub(crate) discriminants: BTreeMap<String, Vec<i64>>,
 }
 
 /// The strongly connected components of a graph, each one set.

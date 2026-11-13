@@ -2786,7 +2786,7 @@ impl Fun<'_, '_> {
         // The discriminants core's source sets for an enum (`cmp::Ordering`'s
         // -1, 0 and 1, as the lift's `CmpOrdering`), where its declarations
         // agree on them (see `core::census`); else each variant's index.
-        let set: Option<&Vec<i128>> = match &t {
+        let set: Option<&Vec<i64>> = match &t {
             Ty::Named(n) => self.cx.types.discriminants.get(n),
             _ => None,
         };
@@ -2808,7 +2808,7 @@ impl Fun<'_, '_> {
         };
         let mut out = Vec::new();
         for (i, (variant, ctor, fields)) in ctors.iter().enumerate() {
-            let value = set.map_or(i as i128, |v| v[i]);
+            let value = set.map_or(i as i128, |v| i128::from(v[i]));
             let target = arms
                 .iter()
                 .find(|(a, _)| same(*a, value))
@@ -3579,7 +3579,7 @@ impl Fun<'_, '_> {
                 };
                 let vs = self.cx.types.enums.get(n).ok_or_else(as_value)?;
                 let values: Vec<i128> = match self.cx.types.discriminants.get(n) {
-                    Some(v) => v.clone(),
+                    Some(v) => v.iter().map(|x| i128::from(*x)).collect(),
                     None if !self.cx.explicit.contains(n) => (0..vs.len() as i128).collect(),
                     None => return Err(as_value()),
                 };

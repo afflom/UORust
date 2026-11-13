@@ -452,9 +452,7 @@ pub(crate) fn shard(
         let agreed = found.all(|v| v == first);
         match first {
             Some(v) if agreed && v.len() == vs.len() => {
-                types
-                    .discriminants
-                    .insert(n.clone(), v.iter().map(|x| i128::from(*x)).collect());
+                types.discriminants.insert(n.clone(), v.clone());
                 explicit.remove(&n);
             }
             _ => {
