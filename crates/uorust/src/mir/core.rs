@@ -37,6 +37,48 @@ pub struct CoreRow {
     pub cause: Option<String>,
 }
 
+/// Whose bodies a census translates: core, std, or a crate of crates.io.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Scope {
+    /// The crate's name, as its paths begin: `core`, `std`, `serde`.
+    pub krate: String,
+    /// Whether every path the MIR prints without a crate is one of std's:
+    /// true in core's and std's own scope, where MIR prints their paths
+    /// without the crate.
+    pub own_std: bool,
+    /// What the bodies were dumped from: `rust-src 1.97.1`, `serde 1.0.0`.
+    pub source: String,
+    /// The command that writes the register, named in its header.
+    pub command: String,
+}
+
+impl Scope {
+    /// Core at the pinned toolchain's rust-src.
+    pub fn core() -> Self {
+        Self::library("core")
+    }
+
+    /// A crate of the pinned toolchain's rust-src: `core`, `std`.
+    pub fn library(krate: &str) -> Self {
+        Scope {
+            krate: krate.to_string(),
+            own_std: true,
+            source: format!("rust-src {}", super::spec::TOOLCHAIN),
+            command: format!("uorust {krate}"),
+        }
+    }
+
+    /// A crate of crates.io at a version.
+    pub fn registry(krate: &str, version: &str) -> Self {
+        Scope {
+            krate: krate.to_string(),
+            own_std: false,
+            source: format!("{krate} {version}"),
+            command: format!("uorust crate {krate}@{version}"),
+        }
+    }
+}
+
 /// The census of one module shard.
 #[derive(Clone, Debug, Default)]
 pub struct CoreShard {
@@ -57,9 +99,15 @@ impl CoreShard {
 /// per module) whose impls are named by the sources under `library` (the
 /// rust-src `library` directory the dumps were built from).
 pub fn core_census(library: &Path, dumps: &Path) -> Result<Vec<CoreShard>, UorustError> {
-    let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
     // The dumps name sources `library/core/src/..`.
-    let root = library.parent().unwrap_or(library).to_path_buf();
+    census(&Scope::core(), library.parent().unwrap_or(library), dumps)
+}
+
+/// Translate every body of the module shards under `dumps` (one directory
+/// per module) of the crate `scope` names, whose dumps name their sources
+/// relative to `root`.
+pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>, UorustError> {
+    let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
     let mut modules: Vec<PathBuf> = std::fs::read_dir(dumps)
         .map_err(|e| io(dumps, e))?
         .filter_map(Result::ok)
@@ -84,13 +132,15 @@ pub fn core_census(library: &Path, dumps: &Path) -> Result<Vec<CoreShard>, Uorus
         for file in &files {
             texts.push(std::fs::read_to_string(file).map_err(|e| io(file, e))?);
         }
-        shards.push(core_shard(&root, &module, &texts));
+        shards.push(shard(scope, root, &module, &texts));
     }
     Ok(shards)
 }
 
-/// One module's census from the texts of its dumps.
-pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreShard {
+/// One module's census of the crate `scope` names from the texts of its
+/// dumps.
+pub(crate) fn shard(scope: &Scope, root: &Path, module: &str, texts: &[String]) -> CoreShard {
+    let krate = scope.krate.as_str();
     // Each body at its instantiation, with the bindings and its own text.
     let mut bodies: Vec<(IrBody, String, String)> = Vec::new();
     let mut consts: BTreeMap<String, IrBody> = BTreeMap::new();
@@ -125,7 +175,7 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
             // An impl a macro writes has no source of its own to name it by.
             let path = super::resolve_impls(root, &body.path).unwrap_or_else(|| body.path.clone());
             let kappa = crate::project::sha(
-                format!("core::{}\n{}", original.path, numbered_allocations(text)).as_bytes(),
+                format!("{krate}::{}\n{}", original.path, numbered_allocations(text)).as_bytes(),
             );
             let mut body = body;
             body.path = path;
@@ -134,7 +184,7 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
     }
     // Core's own scope, with `cmp::Ordering` the lift's ordering.
     let mut types = Types {
-        core: true,
+        core: scope.own_std,
         ..Types::default()
     };
     types.enums.insert(
@@ -154,13 +204,13 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     let mut rows = Vec::new();
     for (body, at, kappa) in bodies {
-        let mut path = format!("core::{}", body.path);
+        let mut path = format!("{krate}::{}", body.path);
         let n = seen.entry(path.clone()).or_default();
         *n += 1;
         if *n > 1 {
             path = format!("{path}#{n}");
         }
-        let segs: Vec<&str> = std::iter::once("core")
+        let segs: Vec<&str> = std::iter::once(krate)
             .chain(parse::split_path(&body.path))
             .collect();
         let name = crate::lex::camel(&segs);
@@ -169,7 +219,7 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
             types: &types,
             widths: &widths,
             callees: &callees,
-            krate: "core".to_string(),
+            krate: krate.to_string(),
             taken: &none,
             explicit: &none,
             limit: crate::project::MAX_FILE_BYTES,
@@ -325,6 +375,12 @@ pub(crate) fn canonical_bindings(text: &str) -> BTreeMap<String, String> {
 /// Write each shard's rows to `<module>.toml` in the register `dir`, then
 /// the summary over every module file the register holds.
 pub fn write_core_register(dir: &Path, shards: &[CoreShard]) -> Result<(), UorustError> {
+    write_register(&Scope::core(), dir, shards)
+}
+
+/// Write each shard's rows to `<module>.toml` in the register `dir` of the
+/// crate `scope` names, then the summary over every module file it holds.
+pub fn write_register(scope: &Scope, dir: &Path, shards: &[CoreShard]) -> Result<(), UorustError> {
     let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
     std::fs::create_dir_all(dir).map_err(|e| io(dir, e))?;
     for s in shards {
@@ -353,13 +409,19 @@ pub fn write_core_register(dir: &Path, shards: &[CoreShard]) -> Result<(), Uorus
         let file = dir.join(format!("{}.toml", s.module));
         std::fs::write(&file, rows).map_err(|e| io(&file, e))?;
     }
-    summarize_core_register(dir)
+    summarize_register(scope, dir)
 }
 
 /// The register's `frontier.toml`: per module the bodies, the translated and
 /// the residue, and the causes the residue stops at, most bodies first,
 /// from the module files the register holds.
 pub fn summarize_core_register(dir: &Path) -> Result<(), UorustError> {
+    summarize_register(&Scope::core(), dir)
+}
+
+/// The `frontier.toml` of the register `dir` of the crate `scope` names.
+pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> {
+    let (krate, source, command) = (&scope.krate, &scope.source, &scope.command);
     let toolchain = super::spec::TOOLCHAIN;
     let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
     let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
@@ -408,8 +470,8 @@ pub fn summarize_core_register(dir: &Path) -> Result<(), UorustError> {
         );
     }
     let mut summary = format!(
-        "# The core register (written by `uorust core`; do not edit): every body of\n\
-         # core's MIR at rust-src {toolchain}, translated by the MIR path with each\n\
+        "# The {krate} register (written by `{command}`; do not edit): every body of\n\
+         # {krate}'s MIR at {source}, translated by the MIR path with each\n\
          # type parameter bound to `{CANONICAL}`, by module. A translated body lowers\n\
          # to LexLean; the residue stops at the causes listed last. Rows, by κ, are\n\
          # in each module's own file, and none recorded translated may regress.\n\n\
@@ -469,7 +531,7 @@ pub fn core_regressions(dir: &Path, shards: &[CoreShard]) -> Vec<String> {
 
 /// A cause's kind with the head of its detail: up to its first clause, a
 /// path without its generic arguments.
-fn cause_category(cause: &str) -> String {
+pub fn cause_category(cause: &str) -> String {
     let (kind, detail) = cause.split_once(": ").unwrap_or((cause, ""));
     // Generic arguments dropped: `Option::<u32>::map` is `Option::map`.
     let mut plain = String::new();
