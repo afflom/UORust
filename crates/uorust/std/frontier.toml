@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 4067
-translated = 67
-residue = 4000
+translated = 68
+residue = 3999
 
 [module.alloc]
 bodies = 20
@@ -92,8 +92,8 @@ residue = 376
 
 [module.panic]
 bodies = 21
-translated = 0
-residue = 21
+translated = 1
+residue = 20
 
 [module.panicking]
 bodies = 44
@@ -320,12 +320,12 @@ cause = "mir::Ty: thread::id::ThreadId"
 bodies = 14
 
 [[cause]]
-cause = "mir::Rvalue::Repeat"
+cause = "mir::Ty: fs::FileType"
 bodies = 13
 
 [[cause]]
-cause = "mir::Ty: fs::FileType"
-bodies = 13
+cause = "mir::Rvalue::Repeat: of a value that is not a constant"
+bodies = 12
 
 [[cause]]
 cause = "mir::Ty: sys::fs::unix::FileType"
@@ -1052,10 +1052,6 @@ cause = "mir::Ty: Atomic<u32>"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: CStr"
-bodies = 3
-
-[[cause]]
 cause = "mir::Ty: CStringIter<'_>"
 bodies = 3
 
@@ -1348,6 +1344,10 @@ cause = "mir::TerminatorKind::Call: sys::args::unix::imp::really_init: std's MIR
 bodies = 2
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom: std's MIR stops at mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
+bodies = 2
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: without_provenance_mut"
 bodies = 2
 
@@ -1357,6 +1357,10 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: BacktraceStatus"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: CStr"
 bodies = 2
 
 [[cause]]
@@ -1792,6 +1796,10 @@ cause = "mir::Instantiation: u32 for a parameter bounded by BufRead"
 bodies = 1
 
 [[cause]]
+cause = "mir::Operand::Constant: a const parameter's value"
+bodies = 1
+
+[[cause]]
 cause = "mir::Operand::Constant: alloc::__default_lib_allocator::__rdl_dealloc::promoted[0]: type outside the lift: alloc::System"
 bodies = 1
 
@@ -1996,10 +2004,6 @@ cause = "mir::TerminatorKind::Call: alloc_crate::vec::Vec::capacity"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: begin_panic"
-bodies = 1
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: char::methods::eq_ignore_ascii_case"
 bodies = 1
 
@@ -2177,10 +2181,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: sys::process::unix::common::getppid"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom: std's MIR stops at mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
 bodies = 1
 
 [[cause]]

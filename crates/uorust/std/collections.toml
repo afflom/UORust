@@ -306,7 +306,7 @@ cause = "mir::Ty: core::fmt::Error"
 [[fn]]
 path = "std::map::HashMap::from"
 kappa = "b552a317b0a7e76fdbbb15d899db765e41401759fbb50f4d2a5f72a0d0247793"
-at = "K=u32, N=#, V=u32"
+at = "K=u32, N=#usize_N, V=u32"
 status = "residue"
 cause = "mir::Ty: collections::hash::map::HashMap<u32, u32>"
 
@@ -327,14 +327,14 @@ cause = "mir::Ty: map::HashMap<u32, u32, u32, u32>"
 [[fn]]
 path = "std::map::HashMap::get_disjoint_mut"
 kappa = "beb80a4b2bb53f9923d2e3c1f820dd1c558dcff57e66cf2751f360290de9b8ad"
-at = "A=u32, K=u32, N=#, Q=u32, S=u32, V=u32"
+at = "A=u32, K=u32, N=#_N, Q=u32, S=u32, V=u32"
 status = "residue"
 cause = "mir::Ty: map::HashMap<u32, u32, u32, u32>"
 
 [[fn]]
 path = "std::map::HashMap::get_disjoint_unchecked_mut"
 kappa = "7cbc9aa6fa211747e73e46aa66c054600aae48612341395bd8c9925a8102aa6b"
-at = "A=u32, K=u32, N=#, Q=u32, S=u32, V=u32"
+at = "A=u32, K=u32, N=#_N, Q=u32, S=u32, V=u32"
 status = "residue"
 cause = "mir::Ty: map::HashMap<u32, u32, u32, u32>"
 
@@ -1399,7 +1399,7 @@ cause = "mir::Ty: core::fmt::Error"
 [[fn]]
 path = "std::set::HashSet::from"
 kappa = "216c349c99e9216c27ca1995f01608fb979ab7aafcdea7e801d2053a3a215f2c"
-at = "N=#, T=u32"
+at = "N=#usize_N, T=u32"
 status = "residue"
 cause = "mir::Ty: collections::hash::set::HashSet<u32>"
 

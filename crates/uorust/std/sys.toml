@@ -1848,7 +1848,7 @@ digest = "38c48e6260391e9b9d094734969d00d789708cfcbe7c5585c4f057345399ad50"
 path = "std::hashmap_random_keys"
 kappa = "b5a1f487b7055b152fc86327524b8ce85dcab82bc6de00acf7ea4ddbc5b29fc5"
 status = "residue"
-cause = "mir::Rvalue::Repeat"
+cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom: std's MIR stops at mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
 
 [[fn]]
 path = "std::ignore_notfound"
@@ -3277,7 +3277,7 @@ cause = "mir::Ty: ffi::os_str::OsString"
 [[fn]]
 path = "std::sys::args::common::Args::next_chunk"
 kappa = "6366e218ca63ee6d3963e016c38e67c6439c2b5c59e3f7e788f2e05cd2ecc022"
-at = "N=#"
+at = "N=#_N"
 status = "residue"
 cause = "mir::Ty: ffi::os_str::OsString"
 
@@ -4463,7 +4463,7 @@ cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
 path = "std::sys::io::error::unix::error_string"
 kappa = "508cd986a498389a47002f2c932c428475f3dfffb23221eb04a25fba5e619ffc"
 status = "residue"
-cause = "mir::Rvalue::Repeat"
+cause = "mir::Rvalue::Repeat: of a value that is not a constant"
 
 [[fn]]
 path = "std::sys::io::error::unix::is_interrupted"
@@ -5985,9 +5985,9 @@ digest = "eac4fbaace7262a0b23aa1cd3617027865b4b05db3f6855937b03ee9ac9be36d"
 [[fn]]
 path = "std::truncate_cstr"
 kappa = "250fecbae73b6782bab1f33483220a06f3f987669b75785368c4088216c91eb7"
-at = "MAX_WITH_NUL=#"
+at = "MAX_WITH_NUL=#_MAX_WITH_NUL"
 status = "residue"
-cause = "mir::Ty: CStr"
+cause = "mir::Operand::Constant: a const parameter's value, of a type its source does not give"
 
 [[fn]]
 path = "std::try_statx"
