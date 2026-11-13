@@ -333,7 +333,7 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
 impl Fun<'_, '_> {
     /// The model's definitions a float term needs, held as auxiliaries;
     /// the term itself.
-    fn float_use(&mut self, u: float::Use) -> String {
+    fn float_use(&mut self, u: float::FloatUse) -> String {
         for d in u.defs {
             self.calls.insert(d.name.clone());
             self.aux.entry(d.name.clone()).or_insert_with(|| d.decl());
@@ -341,8 +341,8 @@ impl Fun<'_, '_> {
         u.term
     }
 
-    fn float_model(&self, f: float::Format) -> float::Model {
-        float::Model::of(f, &self.cx.types.floats)
+    fn float_model(&self, f: float::Format) -> float::Ieee {
+        float::Ieee::of(f, &self.cx.types.floats)
     }
 
     /// A call of one of core's float intrinsics, by the name MIR prints:

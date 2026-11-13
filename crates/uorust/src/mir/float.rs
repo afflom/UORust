@@ -589,7 +589,7 @@ fn isqrt_def(width: u32) -> Def {
 // The model of one format.
 
 /// The parts of a model: every definition it holds, by name.
-pub(crate) struct Model {
+pub(crate) struct Ieee {
     pub(crate) format: Format,
     /// The widest significand of any format the scope holds, which a
     /// conversion into this one rounds.
@@ -599,7 +599,7 @@ pub(crate) struct Model {
 /// What a float operation needs: its definitions, the dependencies first.
 pub(crate) type Defs = Vec<Def>;
 
-impl Model {
+impl Ieee {
     fn f(&self) -> Format {
         self.format
     }
@@ -1476,7 +1476,7 @@ impl Model {
     /// The conversion of a value of `from` into this format.
     pub(crate) fn from_float_def(&self, from: Format) -> Def {
         let to = self.f();
-        let src = Model {
+        let src = Ieee {
             format: from,
             widest: self.widest,
         };
@@ -1522,7 +1522,7 @@ impl Model {
 
 /// A use of the model: the term, and the definitions it needs, the
 /// dependencies first.
-pub(crate) struct Use {
+pub(crate) struct FloatUse {
     pub(crate) term: String,
     pub(crate) defs: Defs,
 }
@@ -1532,17 +1532,17 @@ pub(crate) fn widest(floats: &BTreeMap<String, Format>) -> u32 {
     floats.values().map(|f| f.frac + 1).max().unwrap_or(0)
 }
 
-impl Model {
-    pub(crate) fn of(format: Format, floats: &BTreeMap<String, Format>) -> Model {
-        Model {
+impl Ieee {
+    pub(crate) fn of(format: Format, floats: &BTreeMap<String, Format>) -> Ieee {
+        Ieee {
             format,
             widest: widest(floats),
         }
     }
 
     /// A call of one of the model's own operations on terms.
-    pub(crate) fn apply(&self, op: &str, args: &[&str]) -> Use {
-        Use {
+    pub(crate) fn apply(&self, op: &str, args: &[&str]) -> FloatUse {
+        FloatUse {
             term: self
                 .op(op, args.iter().map(|a| M::V(a.to_string())).collect())
                 .flat(),
@@ -1551,26 +1551,26 @@ impl Model {
     }
 
     /// `x as uN`, `N` the width.
-    pub(crate) fn to_nat(&self, width: u32, x: &str) -> Use {
+    pub(crate) fn to_nat(&self, width: u32, x: &str) -> FloatUse {
         let d = self.to_nat_def(width);
         let term = call(&d.name, vec![M::V(x.to_string())]).flat();
         let mut defs = self.all();
         defs.push(d);
-        Use { term, defs }
+        FloatUse { term, defs }
     }
 
     /// An unsigned integer `x as` this format.
-    pub(crate) fn of_nat(&self, x: &str) -> Use {
-        Use {
+    pub(crate) fn of_nat(&self, x: &str) -> FloatUse {
+        FloatUse {
             term: self.from_nat(M::V(x.to_string())).flat(),
             defs: self.all(),
         }
     }
 
     /// A value of `from` `as` this format.
-    pub(crate) fn of_float(&self, from: Format, x: &str) -> Use {
+    pub(crate) fn of_float(&self, from: Format, x: &str) -> FloatUse {
         if from == self.f() {
-            return Use {
+            return FloatUse {
                 term: x.to_string(),
                 defs: Vec::new(),
             };
@@ -1579,7 +1579,7 @@ impl Model {
         let term = call(&d.name, vec![M::V(x.to_string())]).flat();
         let mut defs = self.all();
         defs.push(d);
-        Use { term, defs }
+        FloatUse { term, defs }
     }
 
     /// The bit pattern of one of the constants IEEE 754 fixes for the
@@ -1666,9 +1666,9 @@ pub(crate) fn method(trait_name: Option<&str>, name: &str) -> Option<(Method, us
     })
 }
 
-impl Model {
+impl Ieee {
     /// A test of one value or two, as a term.
-    pub(crate) fn test(&self, op: &str, args: &[&str]) -> Option<Use> {
+    pub(crate) fn test(&self, op: &str, args: &[&str]) -> Option<FloatUse> {
         let f = self.f();
         let x = || M::V(args[0].to_string());
         let field = || self.field(x());
@@ -1684,7 +1684,7 @@ impl Model {
             "IsSignPositive" => not(self.negative(x())),
             _ => return None,
         };
-        Some(Use {
+        Some(FloatUse {
             term: term.flat(),
             defs: self.all(),
         })
@@ -1756,7 +1756,7 @@ pub(crate) fn literal(f: Format, text: &str, widest: u32) -> Option<Big> {
             .add(&Big::from(u128::from(c.to_digit(10)?)));
     }
     let exp10 = exp10 - i64::try_from(frac.len()).ok()?;
-    let m = Model { format: f, widest };
+    let m = Ieee { format: f, widest };
     let pow10 = |k: u64| (0..k).fold(Big::from(1), |acc, _| acc.mul(&Big::from(10)));
     let bm = f.bm();
     // value = digits * 10^exp10; scaled to `num / den * 2^-shift`.
@@ -1885,12 +1885,12 @@ mod tests {
 
     struct Run {
         defs: BTreeMap<String, Def>,
-        model: Model,
+        model: Ieee,
     }
 
     impl Run {
         fn new(format: Format) -> Run {
-            let model = Model {
+            let model = Ieee {
                 format,
                 widest: 113,
             };
@@ -2220,7 +2220,7 @@ mod tests {
 
     #[test]
     fn the_model_prints_as_lexlean() {
-        let m = Model {
+        let m = Ieee {
             format: F32,
             widest: 113,
         };
