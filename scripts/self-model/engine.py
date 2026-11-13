@@ -568,7 +568,7 @@ jobs:
         env:
           GH_TOKEN: ${{{{ github.token }}}}
           VERSION: ${{{{ steps.cadence.outputs.version }}}}
-          REBASE: '1'
+          REBASE: any
         run: |
           set -euo pipefail
           paths="Cargo.toml Cargo.lock README.md install.sh install.ps1 model/cadence.toml"

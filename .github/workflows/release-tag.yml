@@ -51,9 +51,11 @@ jobs:
             echo "release-tag: $tag is already released; nothing to do"
             exit 0
           fi
-          main=$(git ls-remote "https://github.com/$REPOSITORY.git" refs/heads/main | cut -f1)
-          if [[ $main != "$sha" ]]; then
-            echo "release-tag: main moved past $sha; the gate of the newer commit decides"
+          # The gated commit need not be main's head, which under a stream
+          # of pushes rarely holds still long enough: it must be on main.
+          status=$(gh api "repos/$REPOSITORY/compare/$sha...main" --jq .status)
+          if [[ $status != identical && $status != ahead ]]; then
+            echo "release-tag: $sha is not on main ($status); nothing to do"
             exit 0
           fi
           gh api "repos/$REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$sha" >/dev/null
