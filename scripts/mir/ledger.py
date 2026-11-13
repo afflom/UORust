@@ -19,6 +19,12 @@ two κ and applies the same rule to the ledger file:
     python3 -I scripts/mir/ledger.py record REGISTER SHARDS_DIR
     python3 -I scripts/mir/ledger.py stale-crates REGISTERS RANKED.json
     python3 -I scripts/mir/ledger.py record-crates REGISTERS CRATES_JSON
+    python3 -I scripts/mir/ledger.py mir-key
+
+`mir-key` prints the key a library's MIR dump is kept under, as a CI
+artifact: the toolchain κ and the digest of the dump script, the two inputs
+that fix the dump's bytes. `just core-mir` fetches the dumps CI made under
+the current key, so a lane's census reads the very MIR CI's does.
 
 The ledger of a register is crates/uorust/ledger/<its directory's name>.toml:
 core.toml, std.toml, and crates.toml for the crates of crates.io.
@@ -45,6 +51,14 @@ def toolchain_kappa():
     lock = open(os.path.join(ROOT, "prismpm.lock"), encoding="utf-8").read()
     image = lock.split('"sdk_image":"', 1)[1].split('"', 1)[0]
     return sha(f"{tree_kappa(TOOLCHAIN)}\0{image}".encode())
+
+
+DUMP = ["scripts/mir/dump-lib.sh"]
+
+
+def mir_key():
+    """The key of a library's MIR dump: (toolchain κ, dump-script digest)."""
+    return f"{toolchain_kappa()[:16]}-{tree_kappa(DUMP)[:16]}"
 
 
 def ledger_path(register):
@@ -113,5 +127,7 @@ elif cmd == "record-crates":
               if os.path.exists(os.path.join(registers, c["name"], "frontier.toml"))]
     record(registers, lifted)
     print(f"ledger: {len(lifted)} attempts recorded in {ledger_path(registers)}")
+elif cmd == "mir-key":
+    print(mir_key())
 else:
     sys.exit(f"ledger: unknown command {cmd}")

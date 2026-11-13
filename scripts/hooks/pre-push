@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Refuse a push to main that bootstrap or core.yml would refuse, before it
+# lands: rustfmt and xtask validate (R1, R4, R5, the bootstrap root), and,
+# when the push touches the MIR path (crates/uorust/src/mir), the core
+# register's ratchet on CI's own MIR (scripts/mir/core-gate.sh). Runs in the
+# pushing worktree with that lane's own build. Installed by `just hooks`.
+#
+# The lane's N is $LANE_N when set, else one derived from the worktree's
+# path; every workspace member is built with it (the brief's LANE_CFG).
+set -euo pipefail
+zero=0000000000000000000000000000000000000000
+# Every ref line first, so nothing the gates run reads them from stdin.
+pushed=$(cat)
+while read -r _lref lsha rref rsha; do
+  [ -n "$rref" ] || continue
+  [ "$rref" = refs/heads/main ] || continue
+  [ "$lsha" = "$zero" ] && continue
+  root=$(git rev-parse --show-toplevel)
+  cd "$root"
+  N=${LANE_N:-$(( $(printf '%s' "$root" | cksum | cut -d' ' -f1) % 200 + 30 ))}
+  cfg=()
+  for p in uorust repo-model repo-conformance xtask; do
+    cfg+=(--config "profile.dev.package.$p.codegen-units=$N" --config "profile.dev.package.$p.debug=0")
+  done
+  export CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-/home/user/uorust-engine/target} CARGO_INCREMENTAL=0
+  cargo fmt --all -- --check >/dev/null || { echo "pre-push: cargo fmt --check fails; run cargo fmt" >&2; exit 1; }
+  cargo run -q --locked -p xtask "${cfg[@]}" -- validate \
+    || { echo "pre-push: xtask validate (R1/R4/R5) refuses this tree" >&2; exit 1; }
+  # What the push adds to main: from the remote's main when this clone has
+  # it, else from the last fetched origin/main.
+  base=$rsha
+  if [ "$base" = "$zero" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+    base=$(git merge-base origin/main "$lsha")
+  fi
+  if [ -n "$(git diff --name-only "$base" "$lsha" -- crates/uorust/src/mir)" ]; then
+    echo "pre-push: the push touches crates/uorust/src/mir; running the core register's ratchet on CI's MIR" >&2
+    scripts/mir/core-gate.sh "${cfg[@]}" \
+      || { echo "pre-push: core-gate refuses: a body the core register records as translated is now residue" >&2; exit 1; }
+  fi
+done <<<"$pushed"

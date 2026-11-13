@@ -101,6 +101,20 @@ core:
     scripts/mir/dump-core.sh target/core-mir
     cargo run -q --locked -p uorust -- core --mir target/core-mir --library target/rust-src-`sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml`/library --register crates/uorust/core
 
+# Fetch into target/core-mir the MIR CI dumped of core, under the current
+# key (toolchain κ, dump-script digest): a local dump can differ from CI's,
+# and then a local census cannot see the regressions CI's refuses. A module CI
+# has no dump of under the key is dumped here instead.
+core-mir:
+    scripts/mir/fetch-mir.sh core target/core-mir
+
+# The core register's ratchet on CI's own MIR: fetch it (`core-mir`),
+# translate every module against a copy of the committed register and fail
+# when a body it records as translated is residue. The committed register is
+# left as it is. Extra arguments go to cargo (a lane's `--config` flags).
+core-gate *cargo:
+    scripts/mir/core-gate.sh {{cargo}}
+
 # Rewrite the std register, crates/uorust/std, as `core` does core's.
 std:
     scripts/mir/dump-lib.sh std target/std-mir
@@ -241,7 +255,9 @@ certified-gate out="target/certified-gate":
     cargo run -q --locked -p uorust -- certify agree --dir {{out}} >{{out}}/kappa.txt
     cat {{out}}/kappa.txt
 
-# Install the repository's hooks: the pre-commit ratchet.
+# Install the repository's hooks: the pre-commit ratchet, and the pre-push
+# gate (rustfmt, xtask validate, and `core-gate` when the push touches the
+# MIR path).
 hooks:
     git config core.hooksPath scripts/hooks
 
