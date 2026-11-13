@@ -234,7 +234,31 @@ pub(crate) fn split_top(text: &str, sep: char) -> Vec<&str> {
     let mut quoted = false;
     let mut escaped = false;
     let mut prev = ' ';
+    // The end of a char literal being skipped (`','`, `'['`, `'\''`),
+    // whose character is no separator or bracket; a lifetime (`'a`) has no
+    // closing quote after one character.
+    let mut literal_end = 0usize;
     for (i, c) in text.char_indices() {
+        if i < literal_end {
+            continue;
+        }
+        if c == '\'' && !quoted {
+            let rest = &text[i + 1..];
+            let close = if rest.starts_with('\\') {
+                rest.get(2..).and_then(|r| r.find('\'')).map(|j| j + 3)
+            } else {
+                let mut cs = rest.char_indices();
+                match (cs.next(), cs.next()) {
+                    (Some(_), Some((j, '\''))) => Some(j + 1),
+                    _ => None,
+                }
+            };
+            if let Some(len) = close {
+                literal_end = i + 1 + len;
+                prev = '\'';
+                continue;
+            }
+        }
         if quoted {
             match c {
                 _ if escaped => escaped = false,
