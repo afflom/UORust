@@ -193,7 +193,9 @@ jobs:
 {checkout()}      - name: Build uorust and list the modules through the locked SDK
         shell: bash
         run: |
-          scripts/ci/sdk.sh 'cargo build --locked -p uorust && mkdir -p target/bin && cp target/debug/uorust target/bin/ && scripts/mir/dump-lib.sh "$CRATE" --modules >target/modules.json'
+          # The SDK's shell sees none of this job's environment: the crate is
+          # expanded here.
+          scripts/ci/sdk.sh "cargo build --locked -p uorust && mkdir -p target/bin && cp target/debug/uorust target/bin/ && scripts/mir/dump-lib.sh $CRATE --modules >target/modules.json"
       - name: Keep the modules the ledger has not attempted
         id: modules
         shell: bash
