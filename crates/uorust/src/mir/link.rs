@@ -22,13 +22,18 @@ pub(crate) struct CoreLink {
     bodies: BTreeMap<String, Vec<String>>,
     /// For each last segment of a body's path, the paths that have it: MIR
     /// prints a path by its last segment where no other item has it.
-    lasts: BTreeMap<String, Vec<String>>,
+    pub(crate) lasts: BTreeMap<String, Vec<String>>,
     /// Each impl MIR names `<impl at span>`, by its span: the last segment
     /// of the trait it implements (`None` for an inherent impl) and the
     /// type it implements it for, as its source states them. A derive's
     /// span is the trait's name alone, and a macro's names its type by a
-    /// metavariable: either type is `_`, which any type may be.
-    impls: BTreeMap<String, (Option<String>, String)>,
+    /// metavariable: either type is `_`, for the types its bodies name. A
+    /// blanket impl's, for a parameter of its own, is `*`, every type.
+    pub(crate) impls: BTreeMap<String, (Option<String>, String)>,
+    /// For each impl whose type is `_`, the names its bodies' signatures
+    /// mention: among them, the types a macro's or a derive's impls are
+    /// for.
+    pub(crate) wild: BTreeMap<String, std::collections::BTreeSet<String>>,
 }
 
 impl CoreLink {
@@ -190,6 +195,7 @@ impl CoreLink {
                                 }
                             }
                         }
+                        let params = &h[..start];
                         let h = h[start..].split(" where").next().unwrap_or("").trim();
                         let h = h.strip_prefix("const ").unwrap_or(h).trim();
                         match h.split_once(" for ") {
@@ -197,7 +203,22 @@ impl CoreLink {
                                 let tr = tr.trim().trim_start_matches('!');
                                 let tr = tr.split('<').next().unwrap_or(tr);
                                 let tr = tr.rsplit("::").next().unwrap_or(tr).trim();
-                                let ty = if ty.contains('$') { "_" } else { ty.trim() };
+                                // A macro's trait named by a metavariable is
+                                // any trait.
+                                let tr = if tr.contains('$') { "_" } else { tr };
+                                let ty = ty.trim();
+                                // A blanket impl, for a parameter of its
+                                // own, is for every type: `*`.
+                                let blanket = params
+                                    .split(|c: char| !(c.is_alphanumeric() || c == '_'))
+                                    .any(|w| !w.is_empty() && w == ty);
+                                let ty = if ty.contains('$') {
+                                    "_"
+                                } else if blanket {
+                                    "*"
+                                } else {
+                                    ty
+                                };
                                 (Some(tr.to_string()), ty.to_string())
                             }
                             None if h.contains('$') => (None, "_".to_string()),
@@ -213,11 +234,38 @@ impl CoreLink {
                 impls.insert(span.to_string(), entry);
             }
         }
+        let mut wild: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+        for (path, texts) in &bodies {
+            let Some(at) = path.rfind("<impl at ") else {
+                continue;
+            };
+            let after = &path[at + "<impl at ".len()..];
+            let Some(span) = after.find('>').map(|e| &after[..e]) else {
+                continue;
+            };
+            if impls.get(span).is_none_or(|(_, ty)| ty != "_") {
+                continue;
+            }
+            for text in texts {
+                let Some(head) = text.lines().find_map(|l| l.strip_prefix("fn ")) else {
+                    continue;
+                };
+                // Every name its signature's types mention: a body that
+                // takes no `self` may name its type only inside another
+                // (`Result<Self, E>`).
+                let types = head.get(head.find('(').unwrap_or(0)..).unwrap_or("");
+                let types = types.split(|c: char| !(c.is_alphanumeric() || c == '_'));
+                wild.entry(span.to_string())
+                    .or_default()
+                    .extend(types.filter(|w| !w.is_empty()).map(str::to_string));
+            }
+        }
         CoreLink {
             decls,
             bodies,
             lasts,
             impls,
+            wild,
         }
     }
 
@@ -276,8 +324,9 @@ impl CoreLink {
                 .collect(),
             None => Vec::new(),
         };
-        if !explicit.is_empty() {
-            let names = self.decls.generics.get(path)?;
+        // A method's own parameters, which core's declarations do not
+        // list, are bound by its arguments' types alone.
+        if let (false, Some(names)) = (explicit.is_empty(), self.decls.generics.get(path)) {
             if names.len() != explicit.len() {
                 return None;
             }
@@ -343,10 +392,22 @@ impl CoreLink {
             name.rsplit("::").next().unwrap_or(name).to_string()
         };
         // The impl a method's path names it in: its last `<impl at span>`.
-        let impl_of = |p: &str| -> Option<&(Option<String>, String)> {
+        let impl_of = |p: &str| -> Option<(String, &(Option<String>, String))> {
             let at = p.rfind("<impl at ")?;
             let after = &p[at + "<impl at ".len()..];
-            self.impls.get(&after[..after.find('>')?])
+            let span = &after[..after.find('>')?];
+            Some((span.to_string(), self.impls.get(span)?))
+        };
+        // Whether the impl at `span`, for `ty`, may be for a type of head
+        // `x`: a `_` impl is for the types its bodies take.
+        let is_for = |span: &str, ty: &str, x: &str| {
+            if ty == "*" {
+                true
+            } else if ty == "_" {
+                self.wild.get(span).is_none_or(|w| w.contains(x))
+            } else {
+                type_head(ty) == x
+            }
         };
         let segs = split_path(&erased);
         let method = segs.last().copied().unwrap_or_default();
@@ -379,10 +440,10 @@ impl CoreLink {
                 .flatten()
                 .filter(|_| arg_texts.iter().all(Option::is_some))
                 .filter(|p| match (impl_of(p), &qualified, &inherent) {
-                    (Some((Some(t), ty)), Some((x, tr)), _) => {
-                        t == tr && (ty == "_" || type_head(ty) == type_head(x))
+                    (Some((span, (Some(t), ty))), Some((x, tr)), _) => {
+                        (t == tr || t == "_") && is_for(&span, ty, &type_head(x))
                     }
-                    (Some((None, ty)), None, Some(x)) => ty == "_" || type_head(ty) == *x,
+                    (Some((span, (None, ty))), None, Some(x)) => is_for(&span, ty, x),
                     _ => false,
                 })
                 .cloned()
@@ -390,7 +451,38 @@ impl CoreLink {
         };
         let paths: Vec<String> = match self.path(&erased) {
             Some(p) if qualified.is_none() => vec![p],
-            _ => candidates(),
+            _ => {
+                let mut found = candidates();
+                // An impl for `X`'s own type is chosen over a blanket impl,
+                // whose bounds the link does not check (`impl<F: FnPtr> Ord
+                // for F` is not `bool`'s).
+                let blanket = |p: &String| impl_of(p).is_some_and(|(_, (_, ty))| ty == "*");
+                if found.iter().any(|p| !blanket(p)) {
+                    found.retain(|p| !blanket(p));
+                }
+                // An impl that does not define `m` has the trait's provided
+                // body, its `Self` the impl's type.
+                if let (true, Some((x, tr))) = (found.is_empty(), &qualified) {
+                    let implemented = self.impls.iter().any(|(span, (t, ty))| {
+                        matches!(t.as_deref(), Some(t) if t == tr || t == "_")
+                            && is_for(span, ty, &type_head(x))
+                    });
+                    if implemented {
+                        found = self
+                            .lasts
+                            .get(method)
+                            .into_iter()
+                            .flatten()
+                            .filter(|p| {
+                                let s = split_path(p);
+                                !p.contains("<impl") && s.len() >= 2 && s[s.len() - 2] == tr
+                            })
+                            .cloned()
+                            .collect();
+                    }
+                }
+                found
+            }
         };
         let mut fits = paths.iter().flat_map(|p| {
             self.bodies
@@ -407,8 +499,11 @@ impl CoreLink {
                     // declares it with.
                     let own = super::core::canonical_bindings(text);
                     let declares = self.decls.generics.get(p.as_str());
-                    let param =
-                        |k: &String| own.contains_key(k) || declares.is_some_and(|d| d.contains(k));
+                    let param = |k: &String| {
+                        own.contains_key(k)
+                            || k == "Self"
+                            || declares.is_some_and(|d| d.contains(k))
+                    };
                     // A type rustc prints by its bare name binds itself:
                     // `ByteStr` is `bstr::ByteStr`.
                     let itself = |k: &String, v: &String| {

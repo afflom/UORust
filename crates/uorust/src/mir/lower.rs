@@ -3593,6 +3593,59 @@ impl Fun<'_, '_> {
                 let krate = self.cx.krate.clone();
                 return self.shared(inst, &krate, &args, dt);
             }
+            // `<X as Trait>::m` where no impl of `Trait` in core is for
+            // `X`'s type: the census bound a parameter that `Trait` bounds
+            // to `X`, which does not implement it.
+            let qualified = erased
+                .strip_prefix('<')
+                .and_then(|r| r.rsplit_once(">::"))
+                .and_then(|(q, _)| q.split_once(" as "));
+            if let Some((x, tr)) = qualified {
+                let tr = tr.split('<').next().unwrap_or(tr);
+                let tr = tr.rsplit("::").next().unwrap_or(tr);
+                let head = |t: &str| {
+                    t.split('<')
+                        .next()
+                        .unwrap_or(t)
+                        .rsplit("::")
+                        .next()
+                        .unwrap_or(t)
+                        .to_string()
+                };
+                let bound = x == super::core::CANONICAL;
+                let is_for = |span: &str, ty: &str| {
+                    if ty == "*" {
+                        true
+                    } else if ty == "_" {
+                        link.wild.get(span).is_none_or(|w| w.contains(&head(x)))
+                    } else {
+                        head(ty) == head(x)
+                    }
+                };
+                // An impl of `Trait` for `X`, or a method `m` of an impl for
+                // `X` of a trait a macro names by a metavariable.
+                let method = split_path(&erased).last().copied().unwrap_or_default();
+                let implemented = link
+                    .impls
+                    .iter()
+                    .any(|(span, (t, ty))| t.as_deref() == Some(tr) && is_for(span, ty))
+                    || link.lasts.get(method).into_iter().flatten().any(|p| {
+                        let span = p
+                            .rfind("<impl at ")
+                            .map(|at| &p[at + "<impl at ".len()..])
+                            .and_then(|a| Some(&a[..a.find('>')?]));
+                        span.and_then(|sp| Some((sp, link.impls.get(sp)?)))
+                            .is_some_and(|(sp, (t, ty))| {
+                                t.as_deref() == Some("_") && is_for(sp, ty)
+                            })
+                    });
+                if bound && !implemented {
+                    return Err(kind(
+                        "Instantiation",
+                        &format!("{x} for a parameter bounded by {tr}, which {x} does not implement in core"),
+                    ));
+                }
+            }
         }
         // Otherwise std's own MIR, at the call's types.
         match self.std_instance(callee, &args, texts, dest, dt)? {
