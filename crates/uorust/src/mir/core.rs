@@ -499,6 +499,9 @@ pub(crate) struct CoreDecls {
     pub(crate) intrinsics: std::collections::BTreeSet<String>,
     /// The traits core declares, by path: a field's trait object names one.
     traits: std::collections::BTreeSet<String>,
+    /// The unions core declares (`MaybeUninit`), by path: a path a `use`
+    /// names one by resolves to it, though no record is made of it here.
+    unions: std::collections::BTreeSet<String>,
     /// Each type alias core declares, by path: the module it is written
     /// in, its generic parameters in order and the type it names.
     aliases: BTreeMap<String, (String, Vec<String>, String)>,
@@ -828,6 +831,9 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                 syn::Item::Trait(t) => {
                     out.traits.insert(at(t.ident.to_string()));
                 }
+                syn::Item::Union(u) => {
+                    out.unions.insert(at(u.ident.to_string()));
+                }
                 syn::Item::Type(t) => {
                     out.aliases.insert(
                         at(t.ident.to_string()),
@@ -1120,6 +1126,7 @@ impl Instances<'_> {
     fn canonical(&self, path: &str, depth: usize) -> Option<String> {
         if self.by.contains_key(path)
             || self.decls.traits.contains(path)
+            || self.decls.unions.contains(path)
             || self.decls.aliases.contains_key(path)
         {
             return Some(path.to_string());
