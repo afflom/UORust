@@ -25,6 +25,22 @@ while read -r _lref lsha rref rsha; do
     cargo run -q --locked -p xtask "${cfg[@]}" -- "$gate" \
       || { echo "pre-push: xtask $gate refuses this tree" >&2; exit 1; }
   done
+  # The self model's generators still run on this tree: they cite source
+  # lines by a needle that must name one line, and a push that breaks one
+  # stops generate.yml, so nothing regenerates and bootstrap stays red.
+  work=$(mktemp -d)
+  mkdir -p "$work/model" "$work/scripts"
+  cp model/routes.toml model/cadence.toml "$work/model/"
+  cp Cargo.toml "$work/"
+  cp -r scripts/self-model "$work/scripts/"
+  tar --exclude=app/.lexlean --exclude=app/.prism --exclude=app/target --exclude=app/.lake -cf - app | tar -C "$work" -xf -
+  if ! { python3 -I "$work/scripts/self-model/routes.py" "$work" && python3 -I "$work/scripts/self-model/facets.py" "$work" "$root" &&
+    python3 -I "$work/scripts/self-model/release.py" "$work" "$root"; } >/dev/null; then
+    rm -rf "$work"
+    echo "pre-push: the self model's generators (scripts/self-model) fail on this tree" >&2
+    exit 1
+  fi
+  rm -rf "$work"
   # What the push adds to main: from the remote's main when this clone has
   # it, else from the last fetched origin/main.
   base=$rsha
