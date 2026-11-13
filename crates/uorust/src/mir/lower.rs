@@ -6245,16 +6245,21 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
                 (Some((_, v)), None) => Some(v.clone()),
                 _ => None,
             };
+            let known = |r: &String| {
+                types.enums.contains_key(r)
+                    || types.structs.contains_key(r)
+                    || types.datas.contains_key(r)
+            };
+            // The scope's own type of that name first: the bare alias only
+            // where the name resolves to no type of the scope's.
             let r = types
                 .aliases
                 .get(&printed.join("::"))
                 .cloned()
+                .or_else(|| Some(types.resolve(n)).filter(known))
                 .or(bare)
                 .unwrap_or_else(|| types.resolve(n));
-            if types.enums.contains_key(&r)
-                || types.structs.contains_key(&r)
-                || types.datas.contains_key(&r)
-            {
+            if known(&r) {
                 Ty::Named(r)
             } else {
                 // In core's scope, a type the std table models, printed by

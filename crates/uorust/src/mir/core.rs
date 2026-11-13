@@ -434,10 +434,6 @@ fn without_def_ids(text: &str) -> String {
     out
 }
 
-/// A struct's or a variant's fields: each one's name, where it has one,
-/// and its type as written.
-type Fields = Vec<(Option<String>, String)>;
-
 /// A struct core's source declares: its path from core's root, its type
 /// parameters and its fields (a tuple struct's by position), each with its
 /// type as written.
@@ -450,7 +446,7 @@ pub(crate) struct CoreStruct {
     /// has no fields.
     variants: Option<Vec<String>>,
     /// For an enum whose variants hold data, each variant and its fields.
-    data: Option<Vec<(String, Fields)>>,
+    data: Option<Vec<(String, Vec<(Option<String>, String)>)>>,
     /// Whether such an enum's variants set their own discriminants.
     pub(crate) explicit: bool,
     /// Such an enum's discriminants, in its variants' order, where each is
