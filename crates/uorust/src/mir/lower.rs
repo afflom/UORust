@@ -41,7 +41,11 @@ use crate::lift::{self, Lift, Residue, Ty, Types};
 pub(crate) struct Callee {
     pub(crate) name: String,
     pub(crate) params: Vec<Ty>,
+    /// The forward result: the type of the body's `_0`.
     pub(crate) result: Ty,
+    /// Where the definition threads `&mut` parameters: its result type and
+    /// the positions of the parameters it gives back (see [`threaded`]).
+    pub(crate) threads: Option<(Ty, Vec<usize>)>,
 }
 
 /// What every function of a crate is translated against.
@@ -135,6 +139,10 @@ struct Called {
     term: String,
     updates: BTreeMap<usize, String>,
     guard: Option<String>,
+    /// A callee that threads `&mut` parameters: `term` is its tuple, of
+    /// this type, and the positions of the arguments it gives back, in the
+    /// order the tuple holds them after `_0`'s value.
+    threads: Option<(Ty, Vec<usize>)>,
 }
 
 impl Called {
@@ -143,6 +151,7 @@ impl Called {
             term,
             updates: BTreeMap::new(),
             guard: None,
+            threads: None,
         }
     }
 }
@@ -184,7 +193,15 @@ struct Fun<'a, 'c> {
     name: String,
     /// The main definition's parameters.
     params: Vec<(String, Ty)>,
+    /// The type of the return place `_0`.
+    ret: Ty,
+    /// The definition's result: `_0`'s type, followed by the new value of
+    /// each `&mut` parameter where it has any (see [`threaded`]).
     result: Ty,
+    /// Whether the body returns `!`: it never returns, so a diverging call
+    /// is its meaning, and the theorem that the call is unreachable is its
+    /// callers' to prove.
+    diverges: bool,
     loops: BTreeMap<IrBlockId, Option<Loop>>,
     regions: BTreeMap<IrBlockId, BTreeSet<IrBlockId>>,
     decls: Vec<Decl>,
@@ -201,14 +218,46 @@ struct Fun<'a, 'c> {
     /// Terms of a fixed-width unsigned type, with its width on every
     /// declared target: a value of `u32` is at most `u32::MAX`.
     ranged: BTreeMap<String, u32>,
-    /// The `&mut` parameters of a body the path translates for its caller
-    /// (a std instance or a closure): each holds the borrowed value, which
-    /// writes through it replace.
+    /// The `&mut` parameters: each holds the borrowed value, which writes
+    /// through it replace, and the definition returns its last value.
     mut_params: BTreeSet<IrLocal>,
 }
 
+/// The parameters that are mutable borrows, in order, of a body with these
+/// locals' types and this arity: a `&mut T` parameter is threaded as state,
+/// as Aeneas's backward functions are. The definition takes the borrowed
+/// `T` and returns, after `_0`'s value, the value each such parameter's
+/// place holds when the body returns; a caller writes it back into the
+/// place it lent. A closure's environment `_1` is the closure's own state,
+/// which its call gives back unchanged.
+pub(crate) fn threaded(locals: &[String], arity: usize, closure: bool) -> Vec<usize> {
+    let mut out = Vec::new();
+    let mut l = 1;
+    while l <= arity {
+        if !(closure && l == 1) {
+            if let Some(t) = locals.get(l) {
+                if mut_target(t).is_some() {
+                    out.push(l);
+                }
+            }
+        }
+        l += 1;
+    }
+    out
+}
+
+/// `ret` followed by the threaded parameters' types, or `ret` alone.
+pub(crate) fn threaded_result(ret: &Ty, rest: &[Ty], types: &Types) -> Ty {
+    if rest.is_empty() {
+        return ret.clone();
+    }
+    let mut ts = vec![ret.clone()];
+    ts.extend(rest.iter().cloned());
+    types.tuple(ts)
+}
+
 /// The type a `&mut T` (or `&'a mut T`) points to, as printed.
-fn mut_target(text: &str) -> Option<&str> {
+pub(crate) fn mut_target(text: &str) -> Option<&str> {
     let rest = text.trim().strip_prefix('&')?;
     let rest = match rest.strip_prefix('\'') {
         Some(r) => r.split_once(' ').map_or(r, |(_, r)| r),
@@ -235,6 +284,67 @@ fn max_of(bits: u32) -> String {
     }
 }
 
+/// The struct a raw pointer is, in a scope that declares it: an address,
+/// its provenance and its metadata, as `core::ptr`'s documentation gives
+/// them. A pointer is a typed address (its pointee is the type MIR prints
+/// for it, and a cast between pointer types keeps the address and the
+/// provenance); `allocation` names the allocation its provenance grants
+/// access to, `0` for none (`ptr::without_provenance`, `ptr::null`);
+/// `metadata` is a slice's or a `str`'s length, and `0` standing for the
+/// unit a thin pointer's metadata is. Reads and writes through one reach
+/// memory, which the value model does not hold.
+pub(crate) const POINTER: &str = "RawPointer";
+
+/// The fields of [`POINTER`]: LexLean name and type.
+pub(crate) fn pointer_fields() -> Vec<(String, Ty)> {
+    vec![
+        ("allocation".to_string(), Ty::Nat(None)),
+        ("address".to_string(), Ty::Nat(None)),
+        ("metadata".to_string(), Ty::Nat(None)),
+    ]
+}
+
+/// A [`POINTER`] value from its fields' terms. A pointer without provenance
+/// (`allocation` `0`) at an address is what an integer transmuted to a
+/// pointer is (`core::ptr`: "transmuting an integer to a pointer produces a
+/// pointer without provenance").
+fn pointer_value(allocation: &str, address: &str, metadata: &str) -> String {
+    format!(
+        "(record RawPointer {{allocation := {allocation}, address := {address}, metadata := {metadata}}})"
+    )
+}
+
+/// The pointee of a raw pointer type as printed, and whether its metadata
+/// is a length (a slice or a `str`); `None` for any other type, and for a
+/// trait object, whose metadata is a vtable.
+fn pointee(text: &str) -> Option<(&str, bool)> {
+    let t = text.trim();
+    let rest = t.strip_prefix("*const ").or_else(|| t.strip_prefix("*mut "))?.trim();
+    if rest.starts_with("dyn ") {
+        return None;
+    }
+    let sized_len = (rest.starts_with('[') && !rest.contains(';')) || rest == "str";
+    Some((rest, sized_len))
+}
+
+/// Whether a type is the lift's raw pointer.
+fn is_pointer(t: &Ty) -> bool {
+    matches!(t, Ty::Named(n) if n == POINTER)
+}
+
+/// The address of a pointer value.
+fn address(v: &str) -> String {
+    format!("(project {v} address)")
+}
+
+/// The residue of a read or write through a raw pointer.
+fn through_pointer(what: &str) -> Residue {
+    kind(
+        spec::MirProjectionElem::Deref.path(),
+        &format!("a {what} through a raw pointer, into memory the value model does not hold"),
+    )
+}
+
 /// Translate one body to the definition `name`.
 pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
     let mut f = Fun {
@@ -242,7 +352,9 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         body,
         name: name.to_string(),
         params: Vec::new(),
+        ret: Ty::Unit,
         result: Ty::Unit,
+        diverges: body.locals.first().is_some_and(|t| t.trim() == "!"),
         loops: BTreeMap::new(),
         regions: BTreeMap::new(),
         decls: Vec::new(),
@@ -259,7 +371,25 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         mut_params: BTreeSet::new(),
     };
     f.used.insert(name.to_string());
-    f.result = f.local_ty(0)?;
+    let threads = threaded(&body.locals, body.arity, super::closure_type(body).is_some());
+    // A `&mut` parameter rebound to another borrow no longer reaches the
+    // place its caller lent, whose last value the definition returns.
+    for block in &body.blocks {
+        let rebinds = |p: &IrPlace| p.projection.is_empty() && threads.contains(&p.local);
+        let rebound = block
+            .statements
+            .iter()
+            .any(|s| matches!(s, IrStatement::Assign(p, _) if rebinds(p)))
+            || matches!(&block.terminator, IrTerminator::Call { destination, .. } if rebinds(destination));
+        if rebound {
+            return Err(kind(
+                spec::MirStatementKind::Assign.path(),
+                "a `&mut` parameter rebound to another borrow",
+            ));
+        }
+    }
+    f.mut_params.extend(threads.iter().copied());
+    f.ret = f.local_ty(0, &[])?;
     let mut st = State::default();
     // A closure's definition takes its environment first (the struct of its
     // captures), then its arguments.
@@ -281,21 +411,21 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         st.env.insert(1, Val::Env(p, et, captures));
     }
     let closure = closure.is_some();
-    // A body translated for its caller reads its `&mut` parameters as the
-    // values they borrow.
-    let internal = !cx.active.is_empty();
+    // A `&mut` parameter is read as the value it borrows.
     for l in 1..=body.arity {
         if closure && l == 1 {
             continue;
         }
-        if internal && body.locals.get(l).and_then(|t| mut_target(t)).is_some() {
-            f.mut_params.insert(l);
-        }
-        let ty = f.local_ty(l)?;
+        let ty = f.local_ty(l, &[])?;
         let p = f.fresh(body.names.get(l).cloned().flatten().as_deref(), l);
         st.env.insert(l, Val::V(p.clone(), ty.clone()));
         f.params.push((p, ty));
     }
+    let mut threads_ty = Vec::new();
+    for &l in &threads {
+        threads_ty.push(f.local_ty(l, &[])?);
+    }
+    f.result = threaded_result(&f.ret, &threads_ty, cx.types);
     f.find_loops()?;
     f.scope = f.params.clone();
     let value = match f.float_intrinsic_body() {
@@ -441,6 +571,7 @@ impl Fun<'_, '_> {
                     term: "()".into(),
                     updates: BTreeMap::from([(0, new)]),
                     guard: None,
+                    threads: None,
                 })
             }
             _ => None,
@@ -516,16 +647,34 @@ impl Fun<'_, '_> {
         }
     }
 
-    fn local_ty(&self, l: IrLocal) -> Lift<Ty> {
+    /// The type of the value at the place `steps` reach from the local
+    /// `l`: a borrow (shared or mutable) is the value it borrows, so a
+    /// dereference keeps the type.
+    fn local_ty(&self, l: IrLocal, steps: &[IrProjection]) -> Lift<Ty> {
         let text = self
             .body
             .locals
             .get(l)
             .ok_or_else(|| kind("IrBody", "a local without a declaration"))?;
-        match mut_target(text) {
-            Some(target) if self.mut_params.contains(&l) => ty(target, self.cx.types),
-            _ => ty(text, self.cx.types),
+        let mut t = ty(text, self.cx.types)?;
+        for step in steps {
+            t = match step {
+                IrProjection::Deref if is_pointer(&t) => return Err(through_pointer("write")),
+                IrProjection::Deref | IrProjection::Downcast(_) => t,
+                IrProjection::Field(_, fty) => ty(fty, self.cx.types)?,
+                IrProjection::Index(_) | IrProjection::ConstantIndex(..) => match t {
+                    Ty::List(elem) => *elem,
+                    other => {
+                        return Err(kind(
+                            spec::MirProjectionElem::Index.path(),
+                            &format!("an index into {}", other.render()),
+                        ))
+                    }
+                },
+                IrProjection::Other(k, _) => return Err(kind(k.path(), "")),
+            };
         }
+        Ok(t)
     }
 
     /// The width `usize` has on the narrowest declared target.
@@ -610,6 +759,11 @@ impl Fun<'_, '_> {
     /// they are written.
     fn live_at(&self, b: IrBlockId) -> BTreeSet<IrLocal> {
         let blocks = &self.body.blocks;
+        let threads = threaded(
+            &self.body.locals,
+            self.body.arity,
+            super::closure_type(self.body).is_some(),
+        );
         let mut uses: Vec<BTreeSet<IrLocal>> = Vec::new();
         let mut defs: Vec<BTreeSet<IrLocal>> = Vec::new();
         for block in blocks {
@@ -659,7 +813,13 @@ impl Fun<'_, '_> {
                         d.insert(destination.local);
                     }
                 }
-                IrTerminator::Return => read(0, &d),
+                // The return gives `_0` and each `&mut` parameter's value.
+                IrTerminator::Return => {
+                    read(0, &d);
+                    for &l in &threads {
+                        read(l, &d);
+                    }
+                }
                 _ => {}
             }
             uses.push(u);
@@ -757,7 +917,7 @@ impl Fun<'_, '_> {
             ..State::default()
         };
         for l in live {
-            let t = self.local_ty(l).map_err(|_| {
+            let t = self.local_ty(l, &[]).map_err(|_| {
                 kind(
                     "TerminatorKind::Goto",
                     "a loop whose live state has a type outside the lift",
@@ -864,7 +1024,11 @@ impl Fun<'_, '_> {
                     args,
                     target: Some(n),
                 } if destination.projection.is_empty() && !self.loops.contains_key(n) => {
-                    self.call_into(destination, callee, args, *n, &mut st)?;
+                    // A threading call's tuple is bound in the body, not in
+                    // a measure.
+                    if self.call_into(destination, callee, args, *n, &mut st)?.is_some() {
+                        return Ok(None);
+                    }
                     b = *n;
                 }
                 IrTerminator::Switch(op, arms, otherwise) => {
@@ -1003,18 +1167,44 @@ impl Fun<'_, '_> {
             IrTerminator::Goto(n) | IrTerminator::Drop(n) | IrTerminator::False(_, n) => {
                 self.goto(*n, st)
             }
-            IrTerminator::Return => match st.env.get(&0) {
-                Some(Val::V(v, _)) => {
-                    let v = v.clone();
-                    self.grow(&v)?;
-                    Ok(Expr::Flat(v))
-                }
-                _ if self.result == Ty::Unit => Ok(Expr::Flat("()".into())),
-                _ => Err(kind(
-                    "TerminatorKind::Return",
-                    "the return place holds no value",
-                )),
-            },
+            IrTerminator::Return => {
+                let whole = IrPlace {
+                    local: 0,
+                    projection: Vec::new(),
+                };
+                let v = match st.env.get(&0) {
+                    // A returned borrow is the value of the place it borrows.
+                    Some(Val::V(..) | Val::Mut(_)) => self.read(&whole, &st)?.0,
+                    _ if self.ret == Ty::Unit => "()".into(),
+                    _ => {
+                        return Err(kind(
+                            "TerminatorKind::Return",
+                            "the return place holds no value",
+                        ))
+                    }
+                };
+                let threads = threaded(
+            &self.body.locals,
+            self.body.arity,
+            super::closure_type(self.body).is_some(),
+        );
+                let v = if threads.is_empty() {
+                    v
+                } else {
+                    // `_0`, then the last value of each `&mut` parameter.
+                    let mut items = vec![v];
+                    for l in threads {
+                        let place = IrPlace {
+                            local: l,
+                            projection: Vec::new(),
+                        };
+                        items.push(self.read(&place, &st)?.0);
+                    }
+                    lift::tuple_value(&self.result, &items)
+                };
+                self.grow(&v)?;
+                Ok(Expr::Flat(v))
+            }
             IrTerminator::Unreachable => self.unreachable(&st, "unreachable"),
             IrTerminator::Assert {
                 condition,
@@ -1042,11 +1232,31 @@ impl Fun<'_, '_> {
             } => {
                 let Some(target) = target else {
                     // A call that does not return panics or diverges: the
-                    // path to it must be unreachable.
+                    // path to it must be unreachable, unless the body
+                    // itself returns `!`, whose callers carry that theorem.
+                    // `!` has no value, so its stand-in is never observed.
+                    if self.diverges {
+                        let d = lift::default_of(&self.result, self.cx.types).ok_or_else(|| {
+                            kind(
+                                spec::MirTerminatorKind::Call.path(),
+                                "a diverging body whose result has no value to stand for `!`",
+                            )
+                        })?;
+                        return Ok(Expr::Flat(d));
+                    }
                     return self.unreachable(&st, callee);
                 };
-                self.call_into(destination, callee, args, *target, &mut st)?;
-                self.goto(*target, st)
+                let binding = self.call_into(destination, callee, args, *target, &mut st)?;
+                let rest = self.goto(*target, st)?;
+                Ok(match binding {
+                    Some((name, ty, value)) => Expr::Let {
+                        name,
+                        ty,
+                        value: Box::new(Expr::Flat(value)),
+                        body: Box::new(rest),
+                    },
+                    None => rest,
+                })
             }
             IrTerminator::Other(k, _) => Err(kind(k.path(), "")),
         }
@@ -1113,22 +1323,63 @@ impl Fun<'_, '_> {
                 "a write into a part of a local that holds no value",
             ));
         };
-        let updated = self.replace(&whole, &wt, &steps, &new)?;
+        let updated = self.replace(&whole, &wt, &steps, &new, st)?;
         self.grow(&updated)?;
         st.env.insert(p.local, Val::V(updated, wt));
         Ok(())
     }
 
     /// `whole` with the part `steps` reach replaced by `new`.
-    fn replace(&mut self, whole: &str, t: &Ty, steps: &[IrProjection], new: &str) -> Lift<String> {
+    fn replace(
+        &mut self,
+        whole: &str,
+        t: &Ty,
+        steps: &[IrProjection],
+        new: &str,
+        st: &State,
+    ) -> Lift<String> {
         let k = spec::MirStatementKind::Assign.path();
         let Some((step, rest)) = steps.split_first() else {
             return Ok(new.to_string());
         };
+        // An item of a list: the list with that item replaced, which an
+        // `assert` (or a slice pattern's length check) before the write
+        // proves in bounds.
+        let at = match (step, t) {
+            (IrProjection::Index(l), Ty::List(_)) => match st.env.get(l) {
+                Some(Val::V(i, Ty::Nat(_))) => Some(i.clone()),
+                _ => {
+                    return Err(kind(
+                        spec::MirProjectionElem::Index.path(),
+                        "an index that is not a natural",
+                    ))
+                }
+            },
+            (IrProjection::ConstantIndex(n, true), Ty::List(_)) => Some(format!(
+                "(prim subtract (prim length {whole} : Nat) {n} : Nat)"
+            )),
+            (IrProjection::ConstantIndex(n, false), Ty::List(_)) => Some(n.to_string()),
+            _ => None,
+        };
+        if let (Some(i), Ty::List(elem)) = (at, t) {
+            let read = self.index_aux(elem, false)?;
+            let part = format!("({read} {whole} {i})");
+            let inner = self.replace(&part, elem, rest, new, st)?;
+            let update = self.index_aux(elem, true)?;
+            return Ok(format!("({update} {whole} {i} {inner})"));
+        }
+        // The one variant a place is matched as: its binder replaced.
+        if let IrProjection::Downcast(_) = step {
+            return Err(kind(k, "a write into a field of an enum's variant"));
+        }
+        if matches!(step, IrProjection::Deref) && is_pointer(t) {
+            return Err(through_pointer("write"));
+        }
         let IrProjection::Field(i, _) = step else {
             let step = match step {
                 IrProjection::Deref => spec::MirProjectionElem::Deref,
                 IrProjection::Index(_) => spec::MirProjectionElem::Index,
+                IrProjection::ConstantIndex(..) => spec::MirProjectionElem::ConstantIndex,
                 IrProjection::Downcast(_) => spec::MirProjectionElem::Downcast,
                 IrProjection::Other(k, _) => *k,
                 IrProjection::Field(..) => spec::MirProjectionElem::Field,
@@ -1137,7 +1388,7 @@ impl Fun<'_, '_> {
         };
         let part = self.field(whole, t, *i)?;
         let pt = self.field_ty(t, *i)?;
-        let inner = self.replace(&part, &pt, rest, new)?;
+        let inner = self.replace(&part, &pt, rest, new, st)?;
         match t {
             Ty::Tuple(ts) | Ty::Pair(ts) => {
                 let items: Vec<String> = (0..ts.len())
@@ -1189,7 +1440,9 @@ impl Fun<'_, '_> {
     }
 
     /// A call that returns: its value into `destination`, and each mutably
-    /// borrowed local's new value from the callee's backward function.
+    /// borrowed place's new value from the callee's backward function. A
+    /// callee that threads its `&mut` parameters returns a tuple, which is
+    /// bound once: the binding to wrap the rest of the path in.
     fn call_into(
         &mut self,
         destination: &IrPlace,
@@ -1197,13 +1450,7 @@ impl Fun<'_, '_> {
         args: &[IrOperand],
         target: IrBlockId,
         st: &mut State,
-    ) -> Lift<()> {
-        if !destination.projection.is_empty() {
-            return Err(kind(
-                spec::MirTerminatorKind::Call.path(),
-                "a result written into a projection",
-            ));
-        }
+    ) -> Lift<Option<(String, String, String)>> {
         let mut vals = Vec::new();
         let mut texts = Vec::new();
         let mut borrowed: BTreeMap<usize, IrPlace> = BTreeMap::new();
@@ -1219,16 +1466,68 @@ impl Fun<'_, '_> {
                     vals.push(self.read(&place, st)?);
                     borrowed.insert(i, place);
                 }
-                _ => vals.push(self.operand(a, st)?),
+                _ => {
+                    // A `&mut` parameter passed on lends the place it holds.
+                    if let Some(l) = whole.filter(|l| self.mut_params.contains(l)) {
+                        borrowed.insert(
+                            i,
+                            IrPlace {
+                                local: l,
+                                projection: Vec::new(),
+                            },
+                        );
+                    }
+                    vals.push(self.operand(a, st)?);
+                }
             }
         }
-        let dt = self.local_ty(destination.local)?;
-        let dest_text = self.body.locals[destination.local].clone();
+        let dt = self.local_ty(destination.local, &destination.projection)?;
+        let dest_text = if destination.projection.is_empty() {
+            self.body.locals[destination.local].clone()
+        } else {
+            String::new()
+        };
         let called = self.call(callee, vals.clone(), &texts, &dest_text, &dt, st)?;
-        // Each mutably borrowed local takes the value the call's backward
+        let Called {
+            term,
+            mut updates,
+            guard,
+            threads,
+        } = called;
+        // A threading callee's tuple, bound once: `_0`'s value first, then
+        // each `&mut` argument's new value.
+        let mut binding = None;
+        let term = match threads {
+            Some((rt, positions)) => {
+                let name = self.fresh(Some("called"), destination.local);
+                st.facts.insert(format!("({name} = {term})"));
+                st.binders.push((name.clone(), rt.clone()));
+                self.mention(&rt);
+                for (k, p) in positions.iter().enumerate() {
+                    updates.insert(*p, lift::tuple_item(&rt, &name, k + 1));
+                }
+                binding = Some((name.clone(), rt.render(), term));
+                lift::tuple_item(&rt, &name, 0)
+            }
+            None => term,
+        };
+        // An argument the callee writes through, whose place the translation
+        // does not hold, would lose the write.
+        for (i, new) in &updates {
+            if !borrowed.contains_key(i) && vals.get(*i).is_some_and(|(v, _)| v != new) {
+                return Err(kind(
+                    spec::MirRvalue::Ref.path(),
+                    &format!(
+                        "BorrowKind::Mut passed to {}, a borrow whose place is not known",
+                        erase(callee)
+                    ),
+                ));
+            }
+        }
+        // Each mutably borrowed place takes the value the call's backward
         // function gives it.
         for (i, place) in borrowed {
-            let Some(new) = called.updates.get(&i) else {
+            let Some(new) = updates.get(&i) else {
                 // A borrowed value no one reads again needs no new value.
                 if !self.live_at(target).contains(&place.local) {
                     continue;
@@ -1244,8 +1543,8 @@ impl Fun<'_, '_> {
             self.grow(new)?;
             self.write(&place, Val::V(new.clone(), vals[i].1.clone()), st)?;
         }
-        let v = called.term;
-        let value = match (called.guard, &dt) {
+        let v = term;
+        let value = match (guard, &dt) {
             (Some(guard), Ty::Option(item)) => Val::Guarded {
                 guard,
                 value: v,
@@ -1267,8 +1566,12 @@ impl Fun<'_, '_> {
                 Val::V(v, dt)
             }
         };
-        st.env.insert(destination.local, value);
-        Ok(())
+        if destination.projection.is_empty() {
+            st.env.insert(destination.local, value);
+        } else {
+            self.write(destination, value, st)?;
+        }
+        Ok(binding)
     }
 
     /// The guard, held value and item type of the guarded option whose
@@ -1482,26 +1785,21 @@ impl Fun<'_, '_> {
             IrStatement::Other(k, _) => Err(kind(k.path(), "")),
             IrStatement::Assign(p, rv) => {
                 if p.projection.is_empty() {
-                    let v = self.rvalue(rv, p.local, st)?;
+                    let v = self.rvalue(rv, p, st)?;
                     st.env.insert(p.local, v);
                     return Ok(());
                 }
-                // A write into a place: the rvalue at the place's type.
-                let v = match rv {
-                    IrRvalue::Use(o) => {
-                        let (v, t) = self.operand(o, st)?;
-                        Val::V(v, t)
+                // A write into a place: the rvalue at the place's type, as
+                // a functional update of the local that holds the place.
+                let v = self.rvalue(rv, p, st)?;
+                let v = match v {
+                    // An overflow-checked pair written whole is a tuple.
+                    Val::Checked(value, overflow, t) => {
+                        let pair = self.cx.types.tuple(vec![t, Ty::Bool]);
+                        self.mention(&pair);
+                        Val::V(lift::tuple_value(&pair, &[value, overflow]), pair)
                     }
-                    IrRvalue::Ref(spec::MirBorrowKind::Shared, q) | IrRvalue::CopyForDeref(q) => {
-                        let (v, t) = self.read(q, st)?;
-                        Val::V(v, t)
-                    }
-                    _ => {
-                        return Err(kind(
-                            spec::MirStatementKind::Assign.path(),
-                            "a write into a place of an rvalue other than a value",
-                        ))
-                    }
+                    other => other,
                 };
                 self.write(p, v, st)
             }
@@ -1711,6 +2009,8 @@ impl Fun<'_, '_> {
                     through.projection.extend(rest.iter().cloned());
                     return self.read(&through, st);
                 }
+                // Read whole, a borrow is the value of the place it borrows.
+                None => return self.read(&q, st),
                 _ => {
                     return Err(kind(
                         spec::MirRvalue::Ref.path(),
@@ -1722,6 +2022,7 @@ impl Fun<'_, '_> {
         while let Some(step) = steps.next() {
             match step {
                 // A shared reference or a box is the value it points to.
+                IrProjection::Deref if is_pointer(&t) => return Err(through_pointer("read")),
                 IrProjection::Deref => {}
                 IrProjection::Field(i, fty) => {
                     let ft = ty(fty, self.cx.types)?;
@@ -1788,7 +2089,29 @@ impl Fun<'_, '_> {
                             &format!("an index into {}", t.render()),
                         ));
                     };
-                    let f = self.index_aux(&elem)?;
+                    let f = self.index_aux(&elem, false)?;
+                    v = format!("({f} {v} {i})");
+                    t = *elem;
+                    if let Some(b) = fixed(&t) {
+                        self.ranged.insert(v.clone(), b);
+                    }
+                }
+                // `[n of m]` and `[-n of m]`, which a slice pattern reads
+                // after its match has checked the length: the item `n` from
+                // the start, or from the end.
+                IrProjection::ConstantIndex(n, from_end) => {
+                    let Ty::List(elem) = t.clone() else {
+                        return Err(kind(
+                            spec::MirProjectionElem::ConstantIndex.path(),
+                            &format!("an index into {}", t.render()),
+                        ));
+                    };
+                    let i = if *from_end {
+                        format!("(prim subtract (prim length {v} : Nat) {n} : Nat)")
+                    } else {
+                        n.to_string()
+                    };
+                    let f = self.index_aux(&elem, false)?;
                     v = format!("({f} {v} {i})");
                     t = *elem;
                     if let Some(b) = fixed(&t) {
@@ -1827,8 +2150,55 @@ impl Fun<'_, '_> {
 
     /// The definition reading a list at an index, which an `assert` before
     /// it proves in bounds: the item there, or a value of its type where the
-    /// index is past the end (never, by that theorem).
-    fn index_aux(&mut self, elem: &Ty) -> Lift<String> {
+    /// index is past the end (never, by that theorem). With `write`, the
+    /// definition writing an item, by structural recursion on the list: the
+    /// list with the item at the index replaced, unchanged where the index
+    /// is past the end.
+    fn index_aux(&mut self, elem: &Ty, write: bool) -> Lift<String> {
+        if write {
+            let name = format!("mirUpdate{}", elem.tag());
+            if !self.aux.contains_key(&name) {
+                let e = elem.render();
+                self.aux.insert(
+                    name.clone(),
+                    Decl::Definition {
+                        name: name.clone(),
+                        parameters: vec![
+                            ("items".into(), format!("(List {e})")),
+                            ("index".into(), "Nat".into()),
+                            ("value".into(), e.clone()),
+                        ],
+                        result: format!("(List {e})"),
+                        body: Expr::Match {
+                            scrutinee: "items".into(),
+                            arms: vec![
+                                Arm {
+                                    pattern: "List.nil".into(),
+                                    body: Expr::Flat(format!("(nil {e})")),
+                                },
+                                Arm {
+                                    pattern: "List.cons head rest".into(),
+                                    body: Expr::If {
+                                        condition: Box::new(Expr::Flat("(index =? 0)".into())),
+                                        then: Box::new(Expr::Flat("(cons value rest)".into())),
+                                        otherwise: Box::new(Expr::Flat(format!(
+                                            "(cons head ({name} rest (prim subtract index 1 : Nat) value))"
+                                        ))),
+                                    },
+                                },
+                            ],
+                        },
+                        axioms: Vec::new(),
+                        recursive: Some("items".into()),
+                        termination: None,
+                        mutual: None,
+                    },
+                );
+            }
+            self.mention(elem);
+            self.calls.insert(name.clone());
+            return Ok(name);
+        }
         let name = format!("mirIndex{}", elem.tag());
         if !self.aux.contains_key(&name) {
             let d = lift::default_of(elem, self.cx.types).ok_or_else(|| {
@@ -1872,8 +2242,35 @@ impl Fun<'_, '_> {
         Ok(name)
     }
 
-    fn rvalue(&mut self, rv: &IrRvalue, dest: IrLocal, st: &mut State) -> Lift<Val> {
+    fn rvalue(&mut self, rv: &IrRvalue, dest: &IrPlace, st: &mut State) -> Lift<Val> {
+        // A `&mut` read out of a place into a `&mut` local (`deref_copy
+        // (*_1)` of a `&mut &mut T`) is a reborrow of the place it points
+        // to, where the translation knows that place.
+        if let IrRvalue::Use(IrOperand::Copy(q) | IrOperand::Move(q)) | IrRvalue::CopyForDeref(q) = rv
+        {
+            let into_mut = dest.projection.is_empty()
+                && self
+                    .body
+                    .locals
+                    .get(dest.local)
+                    .and_then(|t| mut_target(t))
+                    .is_some();
+            if into_mut && !q.projection.is_empty() {
+                let mut through = q.clone();
+                through.projection.push(IrProjection::Deref);
+                if let Ok(place) = self.borrowed(&through, st) {
+                    return Ok(Val::Mut(place));
+                }
+            }
+        }
         match rv {
+            // A mutable borrow moved or copied whole is the same borrow.
+            IrRvalue::Use(IrOperand::Copy(q) | IrOperand::Move(q))
+                if q.projection.is_empty()
+                    && matches!(st.env.get(&q.local), Some(Val::Mut(_))) =>
+            {
+                Ok(st.env[&q.local].clone())
+            }
             IrRvalue::Use(o) => {
                 let (v, t) = self.operand(o, st)?;
                 Ok(Val::V(v, t))
@@ -1893,6 +2290,18 @@ impl Fun<'_, '_> {
                         let u = self.float_model(*f).apply("Neg", &[&v]);
                         Ok(Val::V(self.float_use(u), t.clone()))
                     }
+                    // A raw pointer's metadata: a slice's length, or the
+                    // unit of a thin pointer.
+                    (spec::MirUnOp::PtrMetadata, t) if is_pointer(t) => {
+                        let mt = self.local_ty(dest.local, &dest.projection)?;
+                        match mt {
+                            Ty::Unit => Ok(Val::V("()".into(), Ty::Unit)),
+                            Ty::Nat(None) => {
+                                Ok(Val::V(format!("(project {v} metadata)"), Ty::Nat(None)))
+                            }
+                            _ => Err(kind(op.path(), &format!("of {}", mt.render()))),
+                        }
+                    }
                     (spec::MirUnOp::PtrMetadata, Ty::List(elem)) => {
                         let len = format!("(prim length {v} : Nat)");
                         self.length_fact(&len, elem, st);
@@ -1904,7 +2313,7 @@ impl Fun<'_, '_> {
             IrRvalue::Binary(op, a, b) => self.binary(*op, a, b, st),
             IrRvalue::Aggregate(IrAggregate::Closure(ct), ops) => self.closure_value(ct, ops, st),
             IrRvalue::Aggregate(agg, ops) => {
-                let t = self.local_ty(dest)?;
+                let t = self.local_ty(dest.local, &dest.projection)?;
                 let mut vals = Vec::new();
                 for (_, o) in ops {
                     vals.push(self.operand(o, st)?.0);
@@ -1913,9 +2322,27 @@ impl Fun<'_, '_> {
                 self.mention(&t);
                 Ok(Val::V(v, t))
             }
-            IrRvalue::Cast(k, o, _) => {
+            IrRvalue::Cast(k, o, target) => {
                 let (v, from) = self.operand(o, st)?;
-                let to = self.local_ty(dest)?;
+                let to = self.local_ty(dest.local, &dest.projection)?;
+                // A cast to a thin pointer drops the metadata; one from a
+                // thin pointer to a wide one does not type in Rust.
+                if matches!(k, spec::MirCastKind::PtrToPtr) && is_pointer(&from) && is_pointer(&to) {
+                    let source = match o {
+                        IrOperand::Copy(q) | IrOperand::Move(q) if q.projection.is_empty() => {
+                            self.body.locals.get(q.local).and_then(|t| pointee(t))
+                        }
+                        _ => None,
+                    };
+                    return match (source, pointee(target)) {
+                        (Some((_, true)), Some((_, false))) => Ok(Val::V(
+                            pointer_value(&format!("(project {v} allocation)"), &address(&v), "0"),
+                            to,
+                        )),
+                        (Some((_, wide)), Some((_, into))) if wide == into => Ok(Val::V(v, to)),
+                        _ => Err(kind(k.path(), "between pointers whose metadata differ")),
+                    };
+                }
                 match (k, &from, &to) {
                     (spec::MirCastKind::IntToInt, Ty::Nat(_), Ty::Nat(_)) => {
                         // Widening keeps the value on every target; any other
@@ -1949,6 +2376,20 @@ impl Fun<'_, '_> {
                         if f.width() == *w =>
                     {
                         Ok(Val::V(v, to))
+                    }
+                    // `ptr as usize`, `expose_provenance`: the address. The
+                    // provenance it exposes matters only to
+                    // `with_exposed_provenance`, which is residue.
+                    (spec::MirCastKind::PointerExposeProvenance, f, Ty::Nat(None))
+                        if is_pointer(f) =>
+                    {
+                        Ok(Val::V(address(&v), to))
+                    }
+                    (spec::MirCastKind::Transmute, f, Ty::Nat(None)) if is_pointer(f) => {
+                        Ok(Val::V(address(&v), to))
+                    }
+                    (spec::MirCastKind::Transmute, Ty::Nat(None), t) if is_pointer(t) => {
+                        Ok(Val::V(pointer_value("0", &v, "0"), to))
                     }
                     _ => Err(kind(
                         k.path(),
@@ -2000,6 +2441,37 @@ impl Fun<'_, '_> {
         use spec::MirBinOp as B;
         let (x, xt) = self.operand(a, st)?;
         let (y, yt) = self.operand(b, st)?;
+        // Raw pointers compare by their addresses: `core::ptr` compares thin
+        // pointers as addresses, provenance aside.
+        // A wide pointer's metadata breaks a tie, as rustc's comparison of
+        // wide pointers does; a thin pointer's is always the unit.
+        if is_pointer(&xt)
+            && is_pointer(&yt)
+            && matches!(op, B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge)
+        {
+            let (ax, ay) = (address(&x), address(&y));
+            let (mx, my) = (format!("(project {x} metadata)"), format!("(project {y} metadata)"));
+            let eq = format!("(({ax} =? {ay}) && ({mx} =? {my}))");
+            let lt = |a: &str, b: &str, ma: &str, mb: &str, strict: bool| {
+                let tie = if strict { "<?" } else { "<=?" };
+                format!("(({a} <? {b}) || (({a} =? {b}) && ({ma} {tie} {mb})))")
+            };
+            let s = match op {
+                B::Eq => eq,
+                B::Ne => format!("(not {eq})"),
+                B::Lt => lt(&ax, &ay, &mx, &my, true),
+                B::Le => lt(&ax, &ay, &mx, &my, false),
+                B::Gt => lt(&ay, &ax, &my, &mx, true),
+                _ => lt(&ay, &ax, &my, &mx, false),
+            };
+            return Ok(Val::V(s, Ty::Bool));
+        }
+        if is_pointer(&xt) && matches!(op, B::Offset) {
+            return Err(kind(
+                op.path(),
+                "an offset of a raw pointer, whose bounds are its allocation's, which the value model does not hold",
+            ));
+        }
         let bad = || {
             kind(
                 op.path(),
@@ -2334,11 +2806,22 @@ impl Fun<'_, '_> {
                 }
                 _ => return Err(kind(k, "a closure applied to another arity")),
             }
+            // A closure that writes through a `&mut` argument gives it back
+            // inside the arguments' tuple, whose places the call does not
+            // hold apart.
+            let cb = &self.cx.closures[&closure];
+            if !threaded(&cb.locals, cb.arity, true).is_empty() {
+                return Err(kind(
+                    k,
+                    "a closure that writes through a `&mut` argument, passed in the arguments' tuple",
+                ));
+            }
             let term = format!("({name} {})", items.join(" "));
             return Ok(Called {
                 term,
                 updates: BTreeMap::from([(0, env.clone())]),
                 guard: None,
+                threads: None,
             });
         }
         let key = format!("{}::{callee}", self.cx.krate);
@@ -2374,11 +2857,16 @@ impl Fun<'_, '_> {
                 ));
             }
             self.calls.insert(c.name.clone());
-            if args.is_empty() {
-                return Ok(Called::value(c.name.clone()));
-            }
-            let a: Vec<String> = args.into_iter().map(|(v, _)| v).collect();
-            return Ok(Called::value(format!("({} {})", c.name, a.join(" "))));
+            let term = if args.is_empty() {
+                c.name.clone()
+            } else {
+                let a: Vec<String> = args.into_iter().map(|(v, _)| v).collect();
+                format!("({} {})", c.name, a.join(" "))
+            };
+            return Ok(Called {
+                threads: c.threads.clone(),
+                ..Called::value(term)
+            });
         }
         if let Some(v) = self.float_intrinsic(callee, &args, dt) {
             return Ok(Called::value(v));
@@ -2404,11 +2892,12 @@ impl Fun<'_, '_> {
                 term: applied.term,
                 updates: applied.updates,
                 guard: applied.guard,
+                threads: None,
             });
         }
         // Otherwise std's own MIR, at the call's types.
         match self.std_instance(callee, &args, texts, dest, dt)? {
-            Some(term) => Ok(Called::value(term)),
+            Some(called) => Ok(called),
             None => Err(kind(k, &erase(callee))),
         }
     }
@@ -2423,7 +2912,7 @@ impl Fun<'_, '_> {
         texts: &[Option<String>],
         dest: &str,
         dt: &Ty,
-    ) -> Lift<Option<String>> {
+    ) -> Lift<Option<Called>> {
         let k = spec::MirTerminatorKind::Call.path();
         let Some(stdlib::Instance { path, text, bound }) = stdlib::instance(callee, texts, dest)
         else {
@@ -2473,21 +2962,35 @@ impl Fun<'_, '_> {
             ));
         };
         let at = |t: &Ty| t.render();
+        // A body that threads `&mut` parameters returns them after `_0`.
+        let positions: Vec<usize> = threaded(&body.locals, body.arity, false)
+            .into_iter()
+            .map(|l| l - 1)
+            .collect();
+        let rest: Vec<Ty> = positions
+            .iter()
+            .filter_map(|&i| args.get(i).map(|(_, t)| t.clone()))
+            .collect();
+        let full = threaded_result(dt, &rest, self.cx.types);
         if parameters.len() != args.len()
             || parameters
                 .iter()
                 .zip(args)
                 .any(|((_, p), (_, a))| *p != at(a))
-            || *result != at(dt)
+            || *result != at(&full)
         {
             return Err(kind(k, &format!("{path}, at other types than the call's")));
         }
         self.calls.insert(name.clone());
         let a: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
-        Ok(Some(if a.is_empty() {
+        let term = if a.is_empty() {
             name
         } else {
             format!("({name} {})", a.join(" "))
+        };
+        Ok(Some(Called {
+            threads: (!positions.is_empty()).then_some((full, positions)),
+            ..Called::value(term)
         }))
     }
 }
@@ -2551,6 +3054,12 @@ fn std_call(
             if matches!(dt, Ty::Nat(_)) && f.max_bits(t) <= f.min_bits(dt) =>
         {
             Some(v.clone())
+        }
+        // `transmute` between a raw pointer and `usize`: its address one
+        // way, a pointer without provenance the other (`core::ptr`).
+        ("transmute", [(v, t)]) if is_pointer(t) && matches!(dt, Ty::Nat(None)) => Some(address(v)),
+        ("transmute", [(v, Ty::Nat(None))]) if is_pointer(dt) => {
+            Some(pointer_value("0", v, "0"))
         }
         // An iterator is its own `IntoIterator`.
         ("into_iter", [(v, t)]) if same(t, dt) && path.contains("IntoIterator>") => Some(v.clone()),
@@ -2887,11 +3396,19 @@ fn std_printed(segs: &[&str], name: &str, args: &[Ty]) -> Option<Ty> {
 pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     let t = text.trim();
     let bad = || Err(Residue::Type(t.to_string()));
-    if t.starts_with("&mut ")
-        || t.starts_with('*')
-        || t.starts_with("dyn ")
-        || t.starts_with("impl ")
-    {
+    // `!`, the type of no value: a place of it is never written, so its
+    // stand-in is the unit, never observed (a call that returns it does not
+    // return, and the path to it is proved unreachable).
+    if t == "!" {
+        return Ok(Ty::Unit);
+    }
+    // A raw pointer, where the scope declares the pointer struct: a typed
+    // address with its provenance and metadata (see [`POINTER`]). A pointer
+    // to a trait object, whose metadata is a vtable, is residue.
+    if pointee(t).is_some() && types.structs.contains_key(POINTER) {
+        return Ok(Ty::Named(POINTER.to_string()));
+    }
+    if t.starts_with('*') || t.starts_with("dyn ") || t.starts_with("impl ") {
         return bad();
     }
     if let Some(rest) = t.strip_prefix('&') {
@@ -2900,9 +3417,11 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             Some(r) => r.split_once(' ').map_or(r, |(_, r)| r),
             None => rest,
         };
-        if rest.starts_with("mut ") {
-            return bad();
-        }
+        // A mutable borrow holds the value it borrows, as a shared one does.
+        // A write through one is a write of the place it borrows: the
+        // translation follows a borrow whose place it knows (`Val::Mut`, a
+        // `&mut` parameter), and any other is residue where it is written.
+        let rest = rest.strip_prefix("mut ").unwrap_or(rest);
         if rest == "str" {
             return Ok(Ty::Str);
         }
@@ -3074,6 +3593,25 @@ mod tests {
     }
 
     #[test]
+    fn a_pointer_value_is_the_pointer_struct() {
+        let v = pointer_value("1", "2", "3");
+        assert!(v.starts_with(&format!("(record {POINTER} {{")), "{v}");
+        for (f, _) in pointer_fields() {
+            assert!(v.contains(&format!("{f} := ")), "{v} lacks {f}");
+        }
+    }
+
+    #[test]
+    fn mut_parameters_are_threaded() {
+        let locals: Vec<String> = ["()", "&mut u32", "u8", "&'a mut [u8]"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        assert_eq!(threaded(&locals, 3, false), vec![1, 3]);
+        assert_eq!(threaded(&locals, 3, true), vec![3]);
+    }
+
+    #[test]
     fn mir_types_name_the_lifts_types() {
         let types = Types::default();
         assert_eq!(
@@ -3085,7 +3623,10 @@ mod tests {
             ty("std::option::Option<std::string::String>", &types),
             Ok(Ty::Option(Box::new(Ty::Str)))
         );
-        assert!(ty("&mut u8", &types).is_err());
+        // A mutable borrow holds the value it borrows; `!` stands as the unit.
+        assert_eq!(ty("&mut u8", &types), Ok(Ty::Nat(Some(8))));
+        assert_eq!(ty("&'a mut [u8]", &types), Ok(Ty::List(Box::new(Ty::Nat(Some(8))))));
+        assert_eq!(ty("!", &types), Ok(Ty::Unit));
         assert!(ty("*const u8", &types).is_err());
         assert_eq!(ty("std::boxed::Box<bool>", &types), Ok(Ty::Bool));
         assert_eq!(

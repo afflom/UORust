@@ -208,6 +208,10 @@ pub(crate) fn shard(scope: &Scope, root: &Path, module: &str, texts: &[String]) 
         crate::order::ORDERING.to_string(),
     );
     instantiate_structs(&mut types, &core_structs(root), &bodies);
+    // A raw pointer: an address, its provenance and its metadata.
+    types
+        .structs
+        .insert(lower::POINTER.to_string(), lower::pointer_fields());
     let widths = lift::pointer_widths(&[]);
     let callees = BTreeMap::new();
     let none = std::collections::BTreeSet::new();

@@ -146,12 +146,20 @@ self-model-write:
 fixtures:
     cargo run -q --locked -p uorust -- project crates/uorust/tests/fixtures/thermostat --out crates/uorust/tests/fixtures/thermostat-prism --name thermostat --last-modified 2026-11-11T00:00:00Z
 
+# Decide every translation of the MIR path's fixture with `lexlean verify` and
+# rewrite its verdict register, crates/uorust/tests/fixtures/mir-path's
+# lift-verdicts.toml, which the tests decide the fixture on without a verifier.
+prove-fixture:
+    cargo run -q --locked -p uorust -- mir crates/uorust/tests/fixtures/mir-path --out target/mir-fixture
+    cargo run -q --locked -p uorust -- prove crates/uorust/tests/fixtures/mir-path --out target/mir-fixture-prove --scratch target/mir-fixture-scratch --name walk --last-modified 2026-11-11T00:00:00Z --mir target/mir-fixture --verdicts crates/uorust/tests/fixtures/mir-path/lift-verdicts.toml
+
 # Every writer, in the order their outputs feed each other: the self model and
-# the fixture projection from the sources, the MIR path's verdicts and the
-# lift register from the workspace, then CONFORMANCE.md from the register.
-# `generate.yml` runs this on every push to main and hourly, and commits what
-# changed, so no generated file is stale.
-generate: self-model-write fixtures prove register model-write
+# the fixture projection from the sources, the MIR path's verdicts (the
+# fixture's and the workspace's) and the lift register from the workspace,
+# then CONFORMANCE.md from the register. `generate.yml` runs this on every
+# push to main and hourly, and commits what changed, so no generated file is
+# stale.
+generate: self-model-write fixtures prove-fixture prove register model-write
 
 # The content standard (scripts/content/standard.json) on an assembled site.
 content site="site":

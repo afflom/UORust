@@ -3483,6 +3483,7 @@ fn behavior(
                         name: c.name.clone(),
                         params: c.params.iter().map(|(_, _, t)| t.clone()).collect(),
                         result: c.result.clone(),
+                        threads: None,
                     },
                 );
             }
@@ -3678,21 +3679,35 @@ fn mir_lift(
             continue;
         }
         let types = &scopes[r.pkg];
-        let sig: Result<(Vec<Ty>, Ty), Residue> = (|| {
+        // The lift's signature: its parameters (a `&mut T` as the `T` it
+        // borrows), its forward result (`_0`'s type), the positions of its
+        // threaded parameters (`lower::threaded`), and the definition's
+        // result.
+        let sig: Result<(Vec<Ty>, Ty, Vec<usize>, Ty), Residue> = (|| {
             let mut params = Vec::new();
             for l in 1..=body.arity {
-                params.push(lower::ty(&body.locals[l], types)?);
+                let text = &body.locals[l];
+                params.push(lower::ty(lower::mut_target(text).unwrap_or(text), types)?);
             }
-            Ok((params, lower::ty(&body.locals[0], types)?))
+            let ret = lower::ty(&body.locals[0], types)?;
+            let closure = crate::mir::closure_type(body).is_some();
+            let positions: Vec<usize> = lower::threaded(&body.locals, body.arity, closure)
+                .into_iter()
+                .map(|l| l - 1)
+                .collect();
+            let rest: Vec<Ty> = positions.iter().map(|&i| params[i].clone()).collect();
+            let full = lower::threaded_result(&ret, &rest, types);
+            Ok((params, ret, positions, full))
         })();
         match sig {
-            Ok((params, result)) => {
+            Ok((params, result, positions, full)) => {
                 callees.insert(
                     path.clone(),
                     lower::Callee {
                         name: name.clone(),
                         params,
                         result,
+                        threads: (!positions.is_empty()).then_some((full, positions)),
                     },
                 );
                 todo.push((r, name, body));

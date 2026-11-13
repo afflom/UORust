@@ -29,9 +29,9 @@ pub fn count(xs: &[u8], needle: u8) -> usize {
     n
 }
 
-/// Bump a counter in place: a mutable borrow, outside a value model.
-pub fn bump(n: &mut u32) {
-    *n = n.wrapping_add(1);
+/// Bump a counter in a `Cell`: interior mutability, outside a value model.
+pub fn bump(n: &std::cell::Cell<u32>) {
+    n.set(n.get().wrapping_add(1));
 }
 
 /// The largest value present, absent ones counting as zero: std's own

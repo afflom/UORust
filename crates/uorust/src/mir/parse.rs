@@ -323,7 +323,11 @@ pub(crate) fn place(text: &str) -> Option<IrPlace> {
         p.projection.push(match local_of(step) {
             Some(l) => IrProjection::Index(l),
             None if step.contains(" of ") => {
-                IrProjection::Other(spec::MirProjectionElem::ConstantIndex, step.to_string())
+                let (n, _) = step.split_once(" of ")?;
+                match n.trim().strip_prefix('-') {
+                    Some(back) => IrProjection::ConstantIndex(back.parse().ok()?, true),
+                    None => IrProjection::ConstantIndex(n.trim().parse().ok()?, false),
+                }
             }
             None => IrProjection::Other(spec::MirProjectionElem::Subslice, step.to_string()),
         });
@@ -972,10 +976,7 @@ fn sum(_1: &[u64], _2: (u8, bool)) -> u64 {
         );
         assert_eq!(
             place("_2[1 of 3]").map(|p| p.projection),
-            Some(vec![IrProjection::Other(
-                spec::MirProjectionElem::ConstantIndex,
-                "1 of 3".into()
-            )])
+            Some(vec![IrProjection::ConstantIndex(1, false)])
         );
     }
 

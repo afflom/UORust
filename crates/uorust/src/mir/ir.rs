@@ -67,6 +67,9 @@ pub(crate) enum IrProjection {
     Field(usize, String),
     /// An index by a local.
     Index(IrLocal),
+    /// `[n of m]`, or `[-n of m]` from the end: an index by a constant,
+    /// which a slice pattern reads after checking the length.
+    ConstantIndex(u64, bool),
     /// The place as one variant of its enum.
     Downcast(String),
     /// Any other step: its kind and text.

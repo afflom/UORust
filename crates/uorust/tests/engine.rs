@@ -1301,7 +1301,7 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
     // names it.
     assert_eq!(
         residue_detail(&trial, "walk::bump").as_deref(),
-        Some("mir::Ty: &mut u32")
+        Some("mir::Ty: std::cell::Cell<u32>")
     );
 
     // The committed verdicts: the proved translation lifts, the refused one
