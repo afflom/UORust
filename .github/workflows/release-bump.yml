@@ -10,10 +10,14 @@
 # SDK, scripts/release/bump.py moves every file that names the version, the
 # lock and every generated file are rewritten (scripts/self-model/write.sh),
 # and `lexlean verify` must decide the new release from the rule
-# (app/src/Cadence.lex.tex) before anything is pushed. The push dispatches
-# the gate; when it passes on the new version, release-tag.yml tags it and
-# release.yml builds it. Nothing is pushed when main moved: the newer
-# commit's gate decides again.
+# (app/src/Cadence.lex.tex) before anything is pushed. Green is observed on
+# the commit the gate passed (the bootstrap run that triggered this one, or
+# on a schedule the newest green main), never on main's head, which under a
+# stream of pushes is almost always still being gated; the counts are read
+# at that commit. The release commit (the version, the lock, cadence.toml) is
+# rebased onto main as it moved and dispatches generate.yml, which rewrites
+# the self model on top and dispatches the gate; when it passes on the new
+# version, release-tag.yml tags it and release.yml builds it.
 name: release
 
 on:
@@ -53,26 +57,52 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
         run: |
           set -euo pipefail
-          sha=$(git rev-parse HEAD)
-          # Green is the gate's verdict on this exact commit, never a run's exit.
-          conclusion=$(gh run list --repo "$REPOSITORY" --workflow bootstrap.yml --commit "$sha" --limit 1 --json conclusion --jq '.[0].conclusion // ""')
+          # Green is the gate's verdict on one exact commit, never a run's exit:
+          # the commit the triggering bootstrap run gated, or the newest main
+          # commit the gate passed.
+          if [[ $EVENT == workflow_run ]]; then
+            sha=$RUN_SHA
+            conclusion=$RUN_CONCLUSION
+          else
+            sha=$(gh run list --repo "$REPOSITORY" --workflow bootstrap.yml --branch main --status success --limit 1 --json headSha --jq '.[0].headSha // ""')
+            conclusion=success
+            if [[ -z $sha ]]; then sha=$(git rev-parse HEAD); conclusion=""; fi
+          fi
           green=0
-          if [[ $conclusion == success ]]; then green=1; fi
-          version=$(python3 -I scripts/self-model/cadence.py . --propose "$green")
+          if [[ $conclusion == success ]] && git merge-base --is-ancestor "$sha" HEAD; then green=1; fi
+          # The counts are those of the green commit; the release is appended
+          # to main's cadence.
+          observed="$RUNNER_TEMP/observed"
+          git worktree add -q --detach "$observed" "$sha"
+          cp model/cadence.toml "$observed/model/cadence.toml"
+          version=$(python3 -I scripts/self-model/cadence.py "$observed" --propose "$green")
+          cp "$observed/model/cadence.toml" model/cadence.toml
+          git worktree remove --force "$observed"
           echo "version=$version" >>"$GITHUB_OUTPUT"
-          echo "main $sha: gate ${conclusion:-pending}; release ${version:-none}" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "observed $sha: gate ${conclusion:-pending}; release ${version:-none}" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Move the version, rewrite what follows from it, and decide the release
         if: steps.cadence.outputs.version != ''
         shell: bash
         env:
           VERSION: ${{ steps.cadence.outputs.version }}
         run: scripts/ci/sdk.sh "python3 -I scripts/release/bump.py . $VERSION && cargo update -q -w --offline && bash scripts/self-model/write.sh && cd app && lexlean verify src/Engine.lex.tex src/Cadence.lex.tex"
-      - name: Push the release and dispatch its gate
+      - name: Push the release and dispatch generate, which dispatches its gate
         if: steps.cadence.outputs.version != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.cadence.outputs.version }}
-        run: scripts/ci/push.sh "Release $VERSION" "Cargo.toml Cargo.lock README.md install.sh install.ps1 model/cadence.toml app" bootstrap.yml
+          REBASE: '1'
+        run: |
+          set -euo pipefail
+          paths="Cargo.toml Cargo.lock README.md install.sh install.ps1 model/cadence.toml"
+          # The self model the decision rewrote is generate's to commit on
+          # top of main as it is; set it aside so the release rebases cleanly.
+          git add -- $paths
+          git stash push -q --keep-index --include-untracked || true
+          scripts/ci/push.sh "Release $VERSION" "$paths" generate.yml
