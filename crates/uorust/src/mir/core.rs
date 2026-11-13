@@ -213,7 +213,8 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
     }
 }
 
-/// A dump's text with its allocations numbered by their first mention:
+/// A dump's text with its allocations numbered by their first mention and
+/// its statics named without their build's indices:
 /// rustc numbers them in the order the whole build makes them, which varies
 /// from one build of core to the next.
 fn numbered_allocations(text: &str) -> String {
@@ -234,6 +235,37 @@ fn numbered_allocations(text: &str) -> String {
             out.push_str("alloc");
             rest = after;
         }
+    }
+    out.push_str(rest);
+    without_def_ids(&out)
+}
+
+/// A dump's text without what names a static by its build: `DefId(0:54051 ~
+/// core[59f9]::m::X)` is `DefId(core::m::X)`, its index and the crate's
+/// disambiguator varying from one build of core to the next.
+fn without_def_ids(text: &str) -> String {
+    let mut out = String::new();
+    let mut rest = text;
+    while let Some(at) = rest.find("DefId(") {
+        out.push_str(&rest[..at + "DefId(".len()]);
+        let after = &rest[at + "DefId(".len()..];
+        let after = after
+            .find(" ~ ")
+            .map_or(after, |i| &after[i + " ~ ".len()..]);
+        // The crate's name, then its disambiguator in brackets.
+        let name = after.len()
+            - after
+                .trim_start_matches(|c: char| c.is_ascii_alphanumeric() || c == '_')
+                .len();
+        out.push_str(&after[..name]);
+        let tail = &after[name..];
+        rest = match tail
+            .strip_prefix('[')
+            .and_then(|t| t.find(']').map(|i| &t[i + 1..]))
+        {
+            Some(t) => t,
+            None => tail,
+        };
     }
     out.push_str(rest);
     out
@@ -493,6 +525,10 @@ mod tests {
         assert_eq!(
             numbered_allocations("a = alloc812; b = alloc77; c = alloc812; reallocate"),
             "a = alloc#0; b = alloc#1; c = alloc#0; reallocate"
+        );
+        assert_eq!(
+            numbered_allocations("x = const <static(DefId(0:54051 ~ core[59f9]::m::OFFSETS))>;"),
+            "x = const <static(DefId(core::m::OFFSETS))>;"
         );
     }
 

@@ -2,7 +2,7 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 230 of 761 functions of product code are lifted; 442
+# Honesty report: 230 of 762 functions of product code are lifted; 443
 # are residue, 34 foreign and 55 effect rows.
 # Residue by cause:
 #   arithmetic: 3
@@ -66,8 +66,8 @@
 #   mir::Rvalue::Aggregate: 5
 #     2 Expr, which is not a struct
 #     3 TypeKind, which is not a struct
-#   mir::Rvalue::Discriminant: 3
-#     3 a discriminant read as a value
+#   mir::Rvalue::Discriminant: 4
+#     4 a discriminant read as a value
 #   mir::Rvalue::RawPtr: 5
 #   mir::Rvalue::Use: 9
 #   mir::TerminatorKind::Call: 97
@@ -1860,7 +1860,7 @@ reason = "arithmetic"
 detail = "usize + wraps or panics where its value leaves the pointer width: past 2^32 on wasm32-unknown-unknown and thumbv7em-none-eabihf, past 2^64 on x86_64-unknown-linux-gnu and aarch64-unknown-linux-gnu"
 
 [[residue]]
-kappa = "43eb1b1aedc39473df5c5f56247b84f4ba6dcd8db48fe35465955a2bd037a6a5"
+kappa = "14d9734d07cfe6530518768e54514f28fc8d90f24534075353c678b2bc9f0e5c"
 function = "uorust::mir::core::numbered_allocations"
 reason = "mir"
 detail = "mir::Rvalue::Discriminant: a discriminant read as a value"
@@ -1870,6 +1870,12 @@ kappa = "69c796b17d9cfd1078ff251a7c62a58e7a817bc16912e159b5187520bf41c5c1"
 function = "uorust::mir::core::toml_quote"
 reason = "mir"
 detail = "mir::Ty: toml::Value"
+
+[[residue]]
+kappa = "8dbe22c90f019a700f9964e61123eddc21ff631f0e70bdbbcbcf35a6e84ca659"
+function = "uorust::mir::core::without_def_ids"
+reason = "mir"
+detail = "mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[residue]]
 kappa = "7c1874ef38ba377aacaa7f8b0d86ba917c19abca230da648598d5de8dd175efe"
