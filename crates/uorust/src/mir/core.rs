@@ -416,7 +416,19 @@ pub(crate) fn shard(
             (t.clone(), captures)
         })
         .collect();
-    let explicit = instantiate_structs(&mut types, link, &bodies, &closures);
+    // The structs the bodies name, and those their instances at their
+    // `Fn`-bounded parameters' functions name (`FromFn<impl Fn() -> T>`).
+    let scanned: Vec<(IrBody, String, String)> = bodies
+        .iter()
+        .cloned()
+        .chain(
+            variants
+                .iter()
+                .flatten()
+                .map(|(b, a)| (b.clone(), a.clone(), String::new())),
+        )
+        .collect();
+    let explicit = instantiate_structs(&mut types, link, &scanned, &closures);
     // A raw pointer: an address, its provenance and its metadata.
     types
         .structs
@@ -463,14 +475,19 @@ pub(crate) fn shard(
                 .and_then(|r| r.map_err(|e| crate::project::mir_residue(e).detail()))
         };
         // The instance at its parameters' functions where it lowers, else
-        // the canonical one.
+        // the canonical one; where neither does, the cause is the former's,
+        // which got further than an instance its bounds refuse.
         let mut at = at;
         let outcome = match variant.map(|(b, a)| (lowered(&b), a)) {
             Some((Ok(l), a)) => {
                 at = a;
                 Ok(l)
             }
-            _ => lowered(&body),
+            Some((Err(e), a)) => lowered(&body).map_err(|_| {
+                at = a;
+                e
+            }),
+            None => lowered(&body),
         };
         let (digest, cause) = match outcome {
             Ok(lowered) => {
@@ -898,11 +915,12 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                 None => t,
             }
         };
-        // Each type parameter bounded by `Fn` or `FnOnce` of the generics
-        // in scope, and the bound, `impl FnOnce(A) -> R`: the parameter is
-        // a function, its one method the function itself. (`FnMut`'s
-        // `call_mut` changes its environment, which a function does not
-        // hold.)
+        // Each type parameter bounded by `Fn`, `FnMut` or `FnOnce` of the
+        // generics in scope, and the bound, `impl FnOnce(A) -> R`: the
+        // parameter is a function, its one method the function itself. A
+        // `FnMut` one is bound to `impl Fn(A) -> R`, the functions among
+        // its types (every `Fn` is a `FnMut`, whose `call_mut` changes no
+        // environment), which its row's instance states.
         let fn_bounds = |scopes: &[&syn::Generics]| -> BTreeMap<String, String> {
             let mut found = BTreeMap::new();
             let mut bound = |p: String, b: &syn::TypeParamBound| {
@@ -916,9 +934,11 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                 let syn::PathArguments::Parenthesized(args) = &last.arguments else {
                     return;
                 };
-                if name != "Fn" && name != "FnOnce" {
-                    return;
-                }
+                let name = match name.as_str() {
+                    "Fn" | "FnMut" => "Fn",
+                    "FnOnce" => "FnOnce",
+                    _ => return,
+                };
                 let inputs: Vec<String> = args.inputs.iter().map(|a| text(&a.ty)).collect();
                 let output = match &args.output {
                     syn::ReturnType::Default => "()".to_string(),

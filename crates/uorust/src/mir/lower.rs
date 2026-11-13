@@ -5149,8 +5149,9 @@ impl Fun<'_, '_> {
                         .to_string()
                 })
             });
-        // A function a parameter's `Fn` or `FnOnce` bound states: applied
-        // to the arguments' tuple's items, or to the unit where it is empty.
+        // A function a parameter's `Fn`, `FnMut` or `FnOnce` bound states:
+        // applied to the arguments' tuple's items, or to the unit where it
+        // is empty.
         if let (Some(_), [(f, Ty::Fn(ins, out)), (a, at)]) = (
             through_fn.as_ref().filter(|c| c.starts_with("impl Fn")),
             args.as_slice(),
@@ -5169,7 +5170,11 @@ impl Fun<'_, '_> {
                 t if ins.len() == 1 && ins[0] == *t => vec![a.clone()],
                 _ => return Err(kind(k, "a function parameter applied to another arity")),
             };
-            return Ok(Called::value(format!("(apply {f} {})", items.join(" "))));
+            // Through `call_mut`, the function is its own new value: a
+            // function's environment is unchanged by a call.
+            let mut called = Called::value(format!("(apply {f} {})", items.join(" ")));
+            called.updates.insert(0, f.clone());
+            return Ok(called);
         }
         if let Some(closure) = through_fn.filter(|c| c.starts_with("{closure@")) {
             let (name, captured) = self.closure_def(&closure)?;

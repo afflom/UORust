@@ -449,14 +449,68 @@ impl CoreLink {
                     continue;
                 }
                 let args = &ts[bang + 3..];
-                // The tokens before the trait's are the matcher's literals.
-                let literal = matcher[..ti]
-                    .iter()
-                    .zip(args)
-                    .all(|(m, a)| m.starts_with('$') || m == a);
-                if let (true, Some(t)) = (literal, args.get(ti)) {
-                    let ty = yi.and_then(|i| args.get(i)).filter(|t| !t.starts_with('$'));
-                    calls.push((t.clone(), ty.cloned()));
+                // A matcher that is one repetition, `$($tr:ident),*`: each
+                // of the invocation's items, split at the separator outside
+                // brackets, binds the metavariable once, in order.
+                let close = (matcher.first().map(String::as_str) == Some("$")
+                    && matcher.get(1).map(String::as_str) == Some("("))
+                .then(|| {
+                    let mut depth = 0i64;
+                    matcher.iter().enumerate().skip(1).find_map(|(j, t)| {
+                        depth += match t.as_str() {
+                            "(" | "[" | "{" => 1,
+                            ")" | "]" | "}" => -1,
+                            _ => 0,
+                        };
+                        (depth == 0).then_some(j)
+                    })
+                })
+                .flatten()
+                .filter(|c| ti > 1 && ti < *c);
+                let items: Vec<&[String]> = match close {
+                    Some(c) => {
+                        let sep = matcher
+                            .get(c + 1)
+                            .filter(|t| !matches!(t.as_str(), "*" | "+" | "?"));
+                        let mut depth = 0i64;
+                        let mut out = Vec::new();
+                        let mut from = 0;
+                        for (j, a) in args.iter().enumerate() {
+                            match a.as_str() {
+                                "(" | "[" | "{" => depth += 1,
+                                ")" | "]" | "}" if depth == 0 => {
+                                    out.push(&args[from..j]);
+                                    from = args.len();
+                                    break;
+                                }
+                                ")" | "]" | "}" => depth -= 1,
+                                _ if depth == 0 && Some(a) == sep => {
+                                    out.push(&args[from..j]);
+                                    from = j + 1;
+                                }
+                                _ => {}
+                            }
+                        }
+                        if from < args.len() {
+                            out.push(&args[from..]);
+                        }
+                        out.into_iter().filter(|i| !i.is_empty()).collect()
+                    }
+                    None => vec![args],
+                };
+                // Within a repetition, the metavariables' places in it.
+                let (skip, ti) = close.map_or((0, ti), |_| (2, ti - 2));
+                let yi = yi.and_then(|i| i.checked_sub(skip));
+                for args in items {
+                    // The tokens before the trait's are the matcher's literals.
+                    let literal = matcher[skip..skip + ti]
+                        .iter()
+                        .zip(args)
+                        .all(|(m, a)| m.starts_with('$') || m == a);
+                    if let (true, Some(t)) = (literal, args.get(ti)) {
+                        let ty = yi.and_then(|i| args.get(i)).filter(|t| !t.starts_with('$'));
+                        calls.push((t.clone(), ty.cloned()));
+                    }
                 }
             }
             // Each body's type: its first parameter's, `&` dropped.
