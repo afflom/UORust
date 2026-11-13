@@ -235,7 +235,7 @@ fn run(cli: Cli) -> Result<(), UorustError> {
         Command::Merge(args) => {
             let scope = match uorust::registry::parse_spec(&args.krate) {
                 Ok((name, version)) => uorust::mir::core::Scope::registry(&name, &version),
-                Err(_) => uorust::mir::core::Scope::library(&args.krate),
+                Err(_) => uorust::mir::core::Scope::library(&args.krate, uorust::mir::TOOLCHAIN),
             };
             let merged = uorust::queue::merge(&scope, &args.register, &args.shards)?;
             println!(
@@ -261,7 +261,7 @@ fn run(cli: Cli) -> Result<(), UorustError> {
 /// Translate the module shards of `krate`, a crate of the pinned
 /// toolchain's rust-src, and write its register.
 fn library(krate: &str, args: &CoreArgs) -> Result<(), UorustError> {
-    let scope = uorust::mir::core::Scope::library(krate);
+    let scope = uorust::mir::core::Scope::library(krate, uorust::mir::TOOLCHAIN);
     // The dumps name sources `library/<crate>/src/..`.
     let root = args.library.parent().unwrap_or(&args.library);
     let shards = uorust::mir::core::census(&scope, root, &args.mir)?;

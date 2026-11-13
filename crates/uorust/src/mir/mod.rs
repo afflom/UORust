@@ -38,6 +38,9 @@ pub mod verdict;
 
 pub use prove::{prove, Summary};
 
+/// The toolchain the MIR path is pinned to, for the binary's scopes.
+pub const TOOLCHAIN: &str = spec::TOOLCHAIN;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;

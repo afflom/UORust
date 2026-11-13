@@ -53,17 +53,19 @@ pub struct Scope {
 }
 
 impl Scope {
-    /// Core at the pinned toolchain's rust-src.
-    pub fn core() -> Self {
-        Self::library("core")
+    /// Core at the rust-src of `toolchain`.
+    pub fn core(toolchain: &str) -> Self {
+        Self::library("core", toolchain)
     }
 
-    /// A crate of the pinned toolchain's rust-src: `core`, `std`.
-    pub fn library(krate: &str) -> Self {
+    /// A crate of the rust-src of `toolchain`: `core`, `std`. The toolchain
+    /// is the caller's (the pinned one, [`super::spec::TOOLCHAIN`]), so the
+    /// scope is a function of its arguments alone and lifts.
+    pub fn library(krate: &str, toolchain: &str) -> Self {
         Scope {
             krate: krate.to_string(),
             own_std: true,
-            source: format!("rust-src {}", super::spec::TOOLCHAIN),
+            source: format!("rust-src {toolchain}"),
             command: format!("uorust {krate}"),
         }
     }
@@ -100,7 +102,11 @@ impl CoreShard {
 /// rust-src `library` directory the dumps were built from).
 pub fn core_census(library: &Path, dumps: &Path) -> Result<Vec<CoreShard>, UorustError> {
     // The dumps name sources `library/core/src/..`.
-    census(&Scope::core(), library.parent().unwrap_or(library), dumps)
+    census(
+        &Scope::core(super::spec::TOOLCHAIN),
+        library.parent().unwrap_or(library),
+        dumps,
+    )
 }
 
 /// Translate every body of the module shards under `dumps` (one directory
@@ -610,7 +616,7 @@ pub(crate) fn canonical_bindings(text: &str) -> BTreeMap<String, String> {
 /// Write each shard's rows to `<module>.toml` in the register `dir`, then
 /// the summary over every module file the register holds.
 pub fn write_core_register(dir: &Path, shards: &[CoreShard]) -> Result<(), UorustError> {
-    write_register(&Scope::core(), dir, shards)
+    write_register(&Scope::core(super::spec::TOOLCHAIN), dir, shards)
 }
 
 /// Write each shard's rows to `<module>.toml` in the register `dir` of the
@@ -651,7 +657,7 @@ pub fn write_register(scope: &Scope, dir: &Path, shards: &[CoreShard]) -> Result
 /// the residue, and the causes the residue stops at, most bodies first,
 /// from the module files the register holds.
 pub fn summarize_core_register(dir: &Path) -> Result<(), UorustError> {
-    summarize_register(&Scope::core(), dir)
+    summarize_register(&Scope::core(super::spec::TOOLCHAIN), dir)
 }
 
 /// The `frontier.toml` of the register `dir` of the crate `scope` names.
