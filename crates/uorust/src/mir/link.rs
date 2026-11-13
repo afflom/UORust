@@ -23,6 +23,12 @@ pub(crate) struct CoreLink {
     /// For each last segment of a body's path, the paths that have it: MIR
     /// prints a path by its last segment where no other item has it.
     lasts: BTreeMap<String, Vec<String>>,
+    /// Each impl MIR names `<impl at span>`, by its span: the last segment
+    /// of the trait it implements (`None` for an inherent impl) and the
+    /// type it implements it for, as its source states them. A derive's
+    /// span is the trait's name alone, and a macro's names its type by a
+    /// metavariable: either type is `_`, which any type may be.
+    impls: BTreeMap<String, (Option<String>, String)>,
 }
 
 impl CoreLink {
@@ -116,10 +122,102 @@ impl CoreLink {
         for (resolved, texts) in aliases {
             bodies.entry(resolved).or_insert(texts);
         }
+        // Each impl's header, read from the source its span names.
+        let mut impls = BTreeMap::new();
+        for path in bodies.keys() {
+            let mut rest = path.as_str();
+            while let Some(at) = rest.find("<impl at ") {
+                let after = &rest[at + "<impl at ".len()..];
+                let Some(end) = after.find('>') else {
+                    break;
+                };
+                let span = &after[..end];
+                rest = &after[end + 1..];
+                if impls.contains_key(span) {
+                    continue;
+                }
+                // `file:l1:c1: l2:c2`, lines and columns from one.
+                let Some((file, range)) = span.split_once(':') else {
+                    continue;
+                };
+                let nums: Vec<usize> = range
+                    .split([':', ' '])
+                    .filter(|n| !n.is_empty())
+                    .filter_map(|n| n.parse().ok())
+                    .collect();
+                let [l1, c1, l2, c2] = nums.as_slice() else {
+                    continue;
+                };
+                let lines = sources.entry(file.to_string()).or_insert_with(|| {
+                    std::fs::read_to_string(root.join(file))
+                        .unwrap_or_default()
+                        .lines()
+                        .map(str::to_string)
+                        .collect()
+                });
+                let mut src = String::new();
+                for l in *l1..=*l2 {
+                    let chars: Vec<char> =
+                        lines.get(l - 1).map_or(Vec::new(), |t| t.chars().collect());
+                    let from = if l == *l1 { c1 - 1 } else { 0 };
+                    let to = if l == *l2 {
+                        (c2 - 1).min(chars.len())
+                    } else {
+                        chars.len()
+                    };
+                    src.extend(chars.get(from.min(to)..to).into_iter().flatten());
+                    src.push(' ');
+                }
+                let head = src.trim();
+                let head = head.strip_prefix("unsafe ").unwrap_or(head);
+                let entry = match head.strip_prefix("impl") {
+                    Some(h) if !h.starts_with(|c: char| c.is_alphanumeric() || c == '_') => {
+                        // `impl<'a, T: X>`: the impl's own generics skipped.
+                        let mut depth = 0i64;
+                        let mut start = 0;
+                        if h.trim_start().starts_with('<') {
+                            for (i, c) in h.char_indices() {
+                                match c {
+                                    '<' => depth += 1,
+                                    '>' if depth > 0 && !h[..i].ends_with('-') => {
+                                        depth -= 1;
+                                        if depth == 0 {
+                                            start = i + 1;
+                                            break;
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
+                        let h = h[start..].split(" where").next().unwrap_or("").trim();
+                        let h = h.strip_prefix("const ").unwrap_or(h).trim();
+                        match h.split_once(" for ") {
+                            Some((tr, ty)) => {
+                                let tr = tr.trim().trim_start_matches('!');
+                                let tr = tr.split('<').next().unwrap_or(tr);
+                                let tr = tr.rsplit("::").next().unwrap_or(tr).trim();
+                                let ty = if ty.contains('$') { "_" } else { ty.trim() };
+                                (Some(tr.to_string()), ty.to_string())
+                            }
+                            None if h.contains('$') => (None, "_".to_string()),
+                            None => (None, h.to_string()),
+                        }
+                    }
+                    // A derive's span: the trait's name.
+                    _ => (
+                        Some(head.rsplit("::").next().unwrap_or(head).to_string()),
+                        "_".to_string(),
+                    ),
+                };
+                impls.insert(span.to_string(), entry);
+            }
+        }
         CoreLink {
             decls,
             bodies,
             lasts,
+            impls,
         }
     }
 
@@ -133,6 +231,18 @@ impl CoreLink {
         let last = split_path(erased).last().copied().unwrap_or(erased);
         if let Some([one]) = self.lasts.get(last).map(Vec::as_slice) {
             return one.ends_with(&tail).then(|| one.clone());
+        }
+        // A bare name, as MIR prints a free function its caller has in
+        // scope: the one free function or intrinsic core declares by it,
+        // where methods of the same name are not free.
+        if !erased.contains("::") {
+            let mut free = self.decls.generics.keys().filter(|p| {
+                split_path(p).last() == Some(&erased)
+                    && (self.bodies.contains_key(*p) || self.decls.intrinsics.contains(*p))
+            });
+            if let (Some(p), None) = (free.next(), free.next()) {
+                return Some(p.clone());
+            }
         }
         // A path MIR prints by its last segments, which one body's path ends.
         let mut ends = self.bodies.keys().filter(|p| p.ends_with(&tail));
@@ -220,20 +330,67 @@ impl CoreLink {
                     .to_string(),
             ))
         };
-        let paths: Vec<String> = match self.path(&erased) {
-            Some(p) => vec![p],
-            None => {
-                let method = erased
-                    .starts_with('<')
-                    .then(|| erased.rsplit_once(">::"))??
-                    .1;
-                self.lasts
-                    .get(method)?
-                    .iter()
-                    .filter(|p| p.contains("<impl") && arg_texts.iter().all(Option::is_some))
-                    .cloned()
-                    .collect()
+        // The type an impl is for, by its head: a path's last segment, or
+        // the kind of a pointer, slice or array.
+        let type_head = |t: &str| -> String {
+            let t = t.trim();
+            for k in ["*const ", "*mut ", "&mut ", "&", "[", "("] {
+                if t.starts_with(k) {
+                    return k.trim().to_string();
+                }
             }
+            let name = t.split('<').next().unwrap_or(t).trim_end_matches("::");
+            name.rsplit("::").next().unwrap_or(name).to_string()
+        };
+        // The impl a method's path names it in: its last `<impl at span>`.
+        let impl_of = |p: &str| -> Option<&(Option<String>, String)> {
+            let at = p.rfind("<impl at ")?;
+            let after = &p[at + "<impl at ".len()..];
+            self.impls.get(&after[..after.find('>')?])
+        };
+        let segs = split_path(&erased);
+        let method = segs.last().copied().unwrap_or_default();
+        // `<X as Trait>::m`: a method of an impl of `Trait`, never an
+        // inherent one; `X::m` or `<impl X>::m`: a method of an inherent impl
+        // of `X`'s type.
+        let qualified = erased
+            .strip_prefix('<')
+            .and_then(|r| r.rsplit_once(">::"))
+            .and_then(|(q, _)| q.split_once(" as "))
+            .map(|(x, tr)| {
+                let tr = tr.split('<').next().unwrap_or(tr);
+                (
+                    x.to_string(),
+                    tr.rsplit("::").next().unwrap_or(tr).to_string(),
+                )
+            });
+        let inherent: Option<String> = match segs.as_slice() {
+            [.., x, _] if qualified.is_none() => Some(
+                x.strip_prefix("<impl ")
+                    .and_then(|r| r.strip_suffix('>'))
+                    .map_or_else(|| type_head(x), type_head),
+            ),
+            _ => None,
+        };
+        let candidates = || -> Vec<String> {
+            self.lasts
+                .get(method)
+                .into_iter()
+                .flatten()
+                .filter(|_| arg_texts.iter().all(Option::is_some))
+                .filter(|p| match (impl_of(p), &qualified, &inherent) {
+                    (Some((Some(t), ty)), Some((x, tr)), _) => {
+                        t == tr && (ty == "_" || type_head(ty) == type_head(x))
+                    }
+                    (Some((None, ty)), None, Some(x)) => ty == "_" || type_head(ty) == *x,
+                    _ => false,
+                })
+                .cloned()
+                .collect()
+        };
+        let paths: Vec<String> = match self.path(&erased) {
+            Some(p) if qualified.is_none() => vec![p],
+            _ => candidates(),
         };
         let mut fits = paths.iter().flat_map(|p| {
             self.bodies
@@ -244,12 +401,54 @@ impl CoreLink {
                     let (params, ret) = signature(text)?;
                     let params: Vec<&str> = params.iter().map(String::as_str).collect();
                     let g = self.bind(p, callee, Some((&params, &ret)), arg_texts, dest)?;
-                    // A name the signature binds is a parameter, not a type core
-                    // declares.
-                    let declared = g
-                        .keys()
-                        .any(|k| self.decls.structs.iter().any(|s| s.name() == k));
-                    (!declared).then(|| (p.clone(), text, g))
+                    // A name the signature binds is one of the body's own
+                    // parameters, the bare names its locals' types mention, not
+                    // a type rustc prints by its bare name, or one the source
+                    // declares it with.
+                    let own = super::core::canonical_bindings(text);
+                    let declares = self.decls.generics.get(p.as_str());
+                    let param = |k: &String| own.contains_key(k) || declares.is_some_and(|d| d.contains(k));
+                    // A type rustc prints by its bare name binds itself:
+                    // `ByteStr` is `bstr::ByteStr`.
+                    let itself = |k: &String, v: &String| {
+                        let v = v.trim_start_matches('&').trim_start_matches("mut ");
+                        let v = v.split('<').next().unwrap_or(v);
+                        v.rsplit("::").next() == Some(k.as_str())
+                    };
+                    let declared = g.iter().any(|(k, v)| {
+                        if param(k) {
+                            self.decls.structs.iter().any(|s| s.name() == k)
+                        } else {
+                            !itself(k, v)
+                        }
+                    });
+                    let mut g = g;
+                    g.retain(|k, _| param(k));
+                    // A type the signature prints by its path is the type of that
+                    // path: `range::RangeInclusive<T>` is not
+                    // `ops::range::RangeInclusive<usize>`.
+                    let head = |t: &str| -> Option<String> {
+                        let t = t
+                            .trim()
+                            .trim_start_matches('&')
+                            .trim_start_matches("mut ")
+                            .trim();
+                        let name = &t[..t.find('<').unwrap_or(t.len())];
+                        name.contains("::").then(|| name.to_string())
+                    };
+                    let pairs = params
+                        .iter()
+                        .filter_map(|p| p.split_once(": ").map(|(_, t)| t))
+                        .zip(arg_texts.iter())
+                        .filter_map(|(p, a)| a.as_deref().map(|a| (p, a)))
+                        .chain(std::iter::once((ret.as_str(), dest)));
+                    let mut differ = false;
+                    for (p, a) in pairs {
+                        if let (Some(x), Some(y)) = (head(p), head(a)) {
+                            differ |= x != y;
+                        }
+                    }
+                    (!declared && !differ).then(|| (p.clone(), text, g))
                 })
         });
         let (path, text, generics) = match (fits.next(), fits.next()) {

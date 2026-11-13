@@ -3611,10 +3611,26 @@ impl Fun<'_, '_> {
             )
         })?;
         let name = split_path(path).last().copied().unwrap_or(path);
-        match (name, args, generics.values().collect::<Vec<_>>().as_slice()) {
-            // `size_of::<T>() -> usize`: `T`'s size in the data layout, the
-            // same on every declared target.
-            ("size_of", [], [t]) if *dt == Ty::Nat(None) => {
+        // The model the table names for it, at the types its call binds in
+        // the order core declares its parameters.
+        use super::intrinsic::Model as M;
+        let model = super::intrinsic::TABLE
+            .iter()
+            .find(|(n, _)| *n == name)
+            .map(|(_, m)| *m);
+        let order = link.decls.generics.get(path).cloned().unwrap_or_default();
+        let types: Vec<&String> = order.iter().filter_map(|n| generics.get(n)).collect();
+        let unmodeled = || {
+            kind(
+                k,
+                &format!("{path}, an intrinsic the table does not model"),
+            )
+        };
+        match (model, args, types.as_slice()) {
+            // `size_of::<T>() -> usize`, and `size_of_val` of a sized `T`:
+            // `T`'s size in the data layout, the same on every declared
+            // target.
+            (Some(M::Size), [], [t]) | (Some(M::SizeOfVal), [_], [t]) if *dt == Ty::Nat(None) => {
                 let t = ty(t, self.cx.types)?;
                 let sizes = super::link::size_of(&t, self.cx.widths).ok_or_else(|| {
                     kind(
@@ -3638,10 +3654,45 @@ impl Fun<'_, '_> {
                     )),
                 }
             }
-            _ => Err(kind(
-                k,
-                &format!("{path}, an intrinsic the table does not model"),
-            )),
+            (Some(M::Identity), [(v, t)], _) if t == dt => Ok(v.clone()),
+            (Some(M::Unit), _, _) if *dt == Ty::Unit => Ok("()".into()),
+            // A validity assertion is the unit where `T` passes it: every
+            // type the lift holds is inhabited; the all-zero pattern is a
+            // number, `false`, the unit or `'\0'`; the all-`0x01` pattern
+            // of `mem::uninitialized` is a number, `true` or the unit, but
+            // no `char` (`0x01010101` is above `char::MAX`).
+            (Some(m @ (M::Inhabited | M::ZeroValid | M::UninitValid)), [], [t]) if *dt == Ty::Unit => {
+                let t = ty(t, self.cx.types)?;
+                let number = matches!(t, Ty::Nat(_) | Ty::Int(_) | Ty::Signed(_) | Ty::Float(_));
+                let valid = match m {
+                    M::Inhabited => true,
+                    M::ZeroValid => number || matches!(t, Ty::Bool | Ty::Unit | Ty::Char),
+                    _ => number || matches!(t, Ty::Bool | Ty::Unit),
+                };
+                if valid {
+                    Ok("()".into())
+                } else {
+                    Err(kind(k, &format!("{path} of {}, which panics", t.render())))
+                }
+            }
+            // `transmute` between two types the lift holds alike.
+            (Some(M::Transmute), [(v, t)], [_, _]) if t == dt => Ok(v.clone()),
+            // `three_way_compare` of two integers: `Less` where `a < b` by
+            // the type's order, `Equal` where they are equal.
+            (Some(M::Compare), [(a, at), (b, bt)], [_])
+                if at == bt && *dt == Ty::Named(crate::order::ORDERING.to_string()) =>
+            {
+                let int = Int::of(at, self.cx.widths).ok_or_else(unmodeled)?;
+                let less = super::int::less(a, b, int);
+                let v = crate::order::ordering_value;
+                Ok(format!(
+                    "(if {less} then {} else (if ({a} =? {b}) then {} else {}))",
+                    v("Less"),
+                    v("Equal"),
+                    v("Greater")
+                ))
+            }
+            _ => Err(unmodeled()),
         }
     }
 

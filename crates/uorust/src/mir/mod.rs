@@ -29,6 +29,7 @@ pub(crate) mod spec;
 #[cfg(test)]
 mod generate;
 mod int;
+mod intrinsic;
 pub(crate) mod ir;
 mod prove;
 // Generated: its layout is the generator's, which the std test compares.

@@ -846,6 +846,27 @@ pub(crate) fn unify(
         let a = a.strip_prefix("mut ").unwrap_or(a);
         return unify(p, a, generics);
     }
+    // A raw pointer, a slice, an array or a tuple: its parts, in order.
+    for k in ["*const ", "*mut "] {
+        if let (Some(p), Some(a)) = (p.strip_prefix(k), a.strip_prefix(k)) {
+            return unify(p, a, generics);
+        }
+    }
+    for (open, close, sep) in [('[', ']', ';'), ('(', ')', ',')] {
+        let inner = |t: &str| t.strip_prefix(open).and_then(|r| r.strip_suffix(close)).map(str::to_string);
+        if let (Some(p), Some(a)) = (inner(&p), inner(&a)) {
+            let (ps, as_) = (super::parse::split_top(&p, sep), super::parse::split_top(&a, sep));
+            let ps: Vec<&str> = ps.iter().map(|x| x.trim()).filter(|x| !x.is_empty()).collect();
+            let as_: Vec<&str> = as_.iter().map(|x| x.trim()).filter(|x| !x.is_empty()).collect();
+            if ps.len() != as_.len() {
+                return None;
+            }
+            for (x, y) in ps.iter().zip(&as_) {
+                unify(x, y, generics)?;
+            }
+            return Some(());
+        }
+    }
     let split = |t: &str| -> (String, Vec<String>) {
         let segs = super::parse::split_path(t);
         let last = segs.last().copied().unwrap_or(t);
