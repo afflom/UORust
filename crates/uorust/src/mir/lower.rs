@@ -5244,7 +5244,7 @@ impl Fun<'_, '_> {
                 let mut arms = Vec::new();
                 for (i, (variant, ctor, fields)) in ctors.iter().enumerate() {
                     let n = match &values {
-                        Some(vs) => Some(vs[i]),
+                        Some(vs) => Some(i128::from(vs[i])),
                         None => i128::try_from(i).ok(),
                     };
                     let value = n

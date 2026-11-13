@@ -452,7 +452,9 @@ pub(crate) struct CoreStruct {
     pub(crate) explicit: bool,
     /// Such an enum's discriminants, in its variants' order, where each is
     /// a literal or follows one.
-    pub(crate) values: Option<Vec<i128>>,
+    /// (A discriminant past `i64`'s range is no literal here: the
+    /// workspace's own lift holds no wider signed integer.)
+    pub(crate) values: Option<Vec<i64>>,
 }
 
 impl CoreStruct {
@@ -790,7 +792,9 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                                 out.push(value);
                                 next = value.and_then(|n| n.checked_add(1));
                             }
-                            out.into_iter().collect::<Option<Vec<i128>>>()
+                            out.into_iter()
+                                .map(|v| v.and_then(|n| i64::try_from(n).ok()))
+                                .collect::<Option<Vec<i64>>>()
                         },
                     });
                 }
