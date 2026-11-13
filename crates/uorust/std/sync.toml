@@ -199,7 +199,7 @@ cause = "mir::Ty: counter::Sender<u32>"
 path = "std::current_thread_id"
 kappa = "86bbe86232a6b5ad3eb00b582b0d2bf7a0d46106e966ab384dcf165e87f54610"
 status = "residue"
-cause = "mir::Operand::Constant: sync::mpmc::waker::current_thread_id::promoted[0]"
+cause = "mir::Operand::Constant: sync::mpmc::waker::current_thread_id::promoted[0]: type outside the lift: thread::local::LocalKey<u8>"
 
 [[fn]]
 path = "std::guard_poison"
@@ -738,7 +738,7 @@ path = "std::mpmc::list::Block::destroy"
 kappa = "aeb9781eb4efafe9b0a10a26c273f62f6ad0e062e1abc7ce193f7713725cf3fa"
 at = "T=u32"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item sync::mpmc::list::BLOCK_CAP"
+cause = "mir::Operand::Constant: sync::mpmc::list::BLOCK_CAP: mir::Operand::Constant: the constant item sync::mpmc::list::LAP"
 
 [[fn]]
 path = "std::mpmc::list::Block::new"

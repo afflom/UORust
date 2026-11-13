@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 4067
-translated = 49
-residue = 4018
+translated = 63
+residue = 4004
 
 [module.alloc]
 bodies = 20
@@ -22,8 +22,8 @@ residue = 24
 
 [module.backtrace]
 bodies = 20
-translated = 1
-residue = 19
+translated = 2
+residue = 18
 
 [module.bstr]
 bodies = 0
@@ -137,8 +137,8 @@ residue = 507
 
 [module.sys]
 bodies = 1004
-translated = 22
-residue = 982
+translated = 34
+residue = 970
 
 [module.test_helpers]
 bodies = 0
@@ -147,8 +147,8 @@ residue = 0
 
 [module.thread]
 bodies = 116
-translated = 2
-residue = 114
+translated = 3
+residue = 113
 
 [module.time]
 bodies = 49
@@ -464,10 +464,6 @@ cause = "mir::Ty: sys::process::unix::common::ExitCode"
 bodies = 8
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
-bodies = 7
-
-[[cause]]
 cause = "mir::Ty: CommandEnv"
 bodies = 7
 
@@ -780,6 +776,10 @@ cause = "mir::Ty: waker::Waker"
 bodies = 5
 
 [[cause]]
+cause = "mir::Operand::Constant: the constant item core::num::MAX"
+bodies = 4
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: core::mem::size_of"
 bodies = 4
 
@@ -1030,10 +1030,6 @@ bodies = 4
 [[cause]]
 cause = 'mir::Ty: unsafe extern "u32" fn'
 bodies = 4
-
-[[cause]]
-cause = "mir::Operand::Constant: the constant item core::num::MAX"
-bodies = 3
 
 [[cause]]
 cause = "mir::Operand::Constant: {alloc735: &Atomic<usize>}"
@@ -1320,11 +1316,11 @@ cause = "mir::Ty: thread::join_handle::JoinHandle<u32>"
 bodies = 3
 
 [[cause]]
-cause = "mir::Operand::Constant: 30_i32 as u32"
+cause = "mir::Instantiation: u32 for a parameter bounded by CopyRead"
 bodies = 2
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as core::ops::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce"
 bodies = 2
 
 [[cause]]
@@ -1796,19 +1792,11 @@ cause = "mir::CastKind::PointerCoercion: from"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: 31_i32 as u32"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsRawFd"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: alloc::__default_lib_allocator::__rdl_dealloc::promoted[0]"
-bodies = 1
-
-[[cause]]
-cause = "mir::Operand::Constant: core::num::MAX as usize"
-bodies = 1
-
-[[cause]]
-cause = "mir::Operand::Constant: libc::UIO_MAXIOV as usize"
+cause = "mir::Operand::Constant: alloc::__default_lib_allocator::__rdl_dealloc::promoted[0]: type outside the lift: alloc::System"
 bodies = 1
 
 [[cause]]
@@ -1816,15 +1804,15 @@ cause = "mir::Operand::Constant: os::unix::net::addr::SUN_PATH_OFFSET::{constant
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: panicking::panic_count::finished_panic_hook::promoted[0]"
+cause = "mir::Operand::Constant: panicking::panic_count::finished_panic_hook::promoted[0]: type outside the lift: core::cell::Cell<"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: panicking::panic_count::get_count::promoted[0]"
+cause = "mir::Operand::Constant: panicking::panic_count::get_count::promoted[0]: type outside the lift: core::cell::Cell<"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: panicking::panic_count::is_zero_slow_path::promoted[0]"
+cause = "mir::Operand::Constant: panicking::panic_count::is_zero_slow_path::promoted[0]: type outside the lift: core::cell::Cell<"
 bodies = 1
 
 [[cause]]
@@ -1836,11 +1824,15 @@ cause = "mir::Operand::Constant: path::SEPARATORS_STR: mir::Operand::Constant: t
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: sync::mpmc::waker::current_thread_id::promoted[0]"
+cause = "mir::Operand::Constant: sync::mpmc::list::BLOCK_CAP: mir::Operand::Constant: the constant item sync::mpmc::list::LAP"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::Operand::Constant: 47_u8 as char"
+cause = "mir::Operand::Constant: sync::mpmc::waker::current_thread_id::promoted[0]: type outside the lift: thread::local::LocalKey<u8>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::CastKind::IntToInt: from Nat to String"
 bodies = 1
 
 [[cause]]
@@ -1876,11 +1868,11 @@ cause = "mir::Operand::Constant: the constant item libc::SIG_IGN"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item libc::_SC_PAGESIZE"
+cause = "mir::Operand::Constant: the constant item libc::UIO_MAXIOV"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item sync::mpmc::list::BLOCK_CAP"
+cause = "mir::Operand::Constant: the constant item libc::_SC_PAGESIZE"
 bodies = 1
 
 [[cause]]
@@ -1904,15 +1896,7 @@ cause = "mir::Operand::Constant: the constant item sys::paths::unix::PATH_SEPARA
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::READERS_WAITING"
-bodies = 1
-
-[[cause]]
 cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::READ_LOCKED"
-bodies = 1
-
-[[cause]]
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::WRITERS_WAITING"
 bodies = 1
 
 [[cause]]
@@ -1992,27 +1976,7 @@ cause = "mir::Rvalue::Use"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as CopyRead>::min_limit"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as CopyRead>::taken"
-bodies = 1
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as io::BufRead>::consume"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as os::fd::raw::AsRawFd>::as_raw_fd"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: _assert"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: _assert_both"
 bodies = 1
 
 [[cause]]

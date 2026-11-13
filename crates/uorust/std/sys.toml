@@ -31,14 +31,14 @@ cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::REA
 [[fn]]
 path = "std::MASK"
 kappa = "15242151aeffd035d8a1701ad5dda6318c9a261f0c05e96df27a42cb1c8e4899"
-status = "residue"
-cause = "mir::Operand::Constant: 30_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "203c456545f43f26a4734055ae4fb4c99d5f89121e17597d75bc8da61be49dc9"
 
 [[fn]]
 path = "std::MAX_READERS"
 kappa = "d2cab8d91e953cd7ed5643d7631c27f96607d027c9c6ae7ba3d7d7a5b34d9803"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+status = "translated"
+digest = "0c439aff8fb994236b7669d7c512701a0d9e98ebb31ef8c55f33ee281f1c7f44"
 
 [[fn]]
 path = "std::MIN_ALIGN"
@@ -67,14 +67,14 @@ cause = "mir::Operand::Constant: the constant item core::num::<impl u32>::MAX"
 [[fn]]
 path = "std::READERS_WAITING"
 kappa = "27b42fd807b5f240cb332b00568606aeefde1ad4c896037a5d5b83ae9d74d8d2"
-status = "residue"
-cause = "mir::Operand::Constant: 30_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "0812de5f7aea9a9f5966f099d3f2ca57f269d7cd79345907ef99fcae57a16f61"
 
 [[fn]]
 path = "std::READ_LIMIT"
 kappa = "3abeae91c9f747f3149d5e4e2d56bd7ed0601d56b8820bc25529783d0f750466"
 status = "residue"
-cause = "mir::Operand::Constant: core::num::<impl isize>::MAX as usize (IntToInt)"
+cause = "mir::Operand::Constant: the constant item core::num::<impl isize>::MAX"
 
 [[fn]]
 path = "std::TIMESPEC_MAX"
@@ -91,28 +91,28 @@ digest = "1009599298c97f7764605bec157bae535d25e3a70a9d2b896c0ed30145881c0d"
 [[fn]]
 path = "std::WRITERS_WAITING"
 kappa = "d100f04c9faf76740ccb05563cefbf04f236aa0d3f692c29ff5198846fdbe67e"
-status = "residue"
-cause = "mir::Operand::Constant: 31_i32 as u32 (IntToInt)"
+status = "translated"
+digest = "a6ca1c110904eca4a5dd2d992fb96426f64f4fdb8f706b4c657fb28c88f1b076"
 
 [[fn]]
 path = "std::WRITE_LOCKED"
 kappa = "4e717f4fb56e8b9a9fd26e105d5a38d2e41b61589c15b452f0038800aa961daf"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+status = "translated"
+digest = "82ba873cf4ce8a523d54ddd5d5822dedb7cd57dd973d21dd05162cefaf8e7920"
 
 [[fn]]
 path = "std::__rust_begin_short_backtrace"
 kappa = "2e1565b1236b73cd4ccac581e8a0d3cb2c8d3ec35d622008289aee0c15ae58d4"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as core::ops::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "std::__rust_end_short_backtrace"
 kappa = "8df4108e3081ec6e916908b9429cf36952e68374de40eb8d424bd9c6d9dca438"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as core::ops::FnOnce>::call_once"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "std::_print_fmt"
@@ -1829,20 +1829,20 @@ cause = "mir::TerminatorKind::Call: glibc_version::gnu_get_libc_version"
 [[fn]]
 path = "std::has_reached_max_readers"
 kappa = "42aa4db0568a18273236929fc8c7fb71c8cf7282d1096e5b50efb7e2e1170faa"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+status = "translated"
+digest = "9255ccab3f4e45f1393a9b5b7800a1654493830673cbc43a856a88b5d0a31a5f"
 
 [[fn]]
 path = "std::has_readers_waiting"
 kappa = "2ae818f12e3647995b99b2f3eb20fbc6dfd3ef1ce3a23346890874f7a1b1c17b"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::READERS_WAITING"
+status = "translated"
+digest = "661f78df74cf53c9b30758109886f5e8799b0b17c80db6569eebefd1de3e35bc"
 
 [[fn]]
 path = "std::has_writers_waiting"
 kappa = "b15246616971e036f9df3157a9e51b2dafb00400adb926ad656eddcfc7a93b55"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::WRITERS_WAITING"
+status = "translated"
+digest = "38c48e6260391e9b9d094734969d00d789708cfcbe7c5585c4f057345399ad50"
 
 [[fn]]
 path = "std::hashmap_random_keys"
@@ -1998,26 +1998,26 @@ cause = "mir::Ty: io::error::Error"
 [[fn]]
 path = "std::is_read_lockable"
 kappa = "09558f7fbd0ff8688ffd226072aefebc8d4cf197eff378d3b51eb62f48fd3150"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+status = "translated"
+digest = "087c6f43e3306408fef7fc5c60b2092a7b70aadba6987f3922466bd9efcb8d49"
 
 [[fn]]
 path = "std::is_read_lockable_after_wakeup"
 kappa = "553fcf0e46371d2b594628ec706d281f87e38fbde701669ab057b1d262508c52"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+status = "translated"
+digest = "c3260b6182be97e2a60b187b6c9c25fe5ca01b287ea280aab22d020ab3b2440f"
 
 [[fn]]
 path = "std::is_unlocked"
 kappa = "27e31c937770d213231a6582082b2f2bd7fd1e2465afc4803c7a21f2f1c43e0f"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+status = "translated"
+digest = "4f26d16fdbf3acb2d50c14d992a147e4f39662a21313fe3e3c7418ea7eec639e"
 
 [[fn]]
 path = "std::is_write_locked"
 kappa = "cf79d82869e37e906d0cf23a36940f922ea1793a851aed59461deec67a6bba9a"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+status = "translated"
+digest = "70f7689f96c2cfd99000853cda58d7f74bf6b4730588378e0c0a417f62e419f0"
 
 [[fn]]
 path = "std::isatty::is_terminal"
@@ -2044,7 +2044,7 @@ path = "std::kernel_copy::linux::<impl at library/std/src/sys/io/kernel_copy/lin
 kappa = "c4ea6717590bbec23e0e77bafeb5cb0e7a1bebf600c0d511aae23260d2e28529"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as CopyRead>::min_limit"
+cause = "mir::Instantiation: u32 for a parameter bounded by CopyRead, which u32 does not implement in core"
 
 [[fn]]
 path = "std::kernel_copy::linux::<impl at library/std/src/sys/io/kernel_copy/linux.rs:302:1: 304:17>::properties"
@@ -2058,7 +2058,7 @@ path = "std::kernel_copy::linux::<impl at library/std/src/sys/io/kernel_copy/lin
 kappa = "cdff444c4605d682c759c2266afd2f9010cc0dcf0ed55a53166aca9255323fb8"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as CopyRead>::taken"
+cause = "mir::Instantiation: u32 for a parameter bounded by CopyRead, which u32 does not implement in core"
 
 [[fn]]
 path = "std::kernel_copy::linux::<impl at library/std/src/sys/io/kernel_copy/linux.rs:323:1: 325:18>::properties"
@@ -2406,7 +2406,7 @@ cause = "mir::Ty: sys::pal::unix::stack_overflow::Handler"
 path = "std::max_iov"
 kappa = "77e8ac89cb0f9270927e32aa863b011400aff3d0499f93399affa5fc02323c07"
 status = "residue"
-cause = "mir::Operand::Constant: libc::UIO_MAXIOV as usize (IntToInt)"
+cause = "mir::Operand::Constant: the constant item libc::UIO_MAXIOV"
 
 [[fn]]
 path = "std::min_stack_size"
@@ -4487,7 +4487,7 @@ cause = "mir::Ty: ffi::os_str::OsString"
 path = "std::sys::path::unix::SEPARATORS"
 kappa = "f75f05ce3afa1e2888d9582f1fc5624452266406566490f78310c26be62ce050"
 status = "residue"
-cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::Operand::Constant: 47_u8 as char (IntToInt)"
+cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::CastKind::IntToInt: from Nat to String"
 
 [[fn]]
 path = "std::sys::path::unix::SEPARATORS_STR"

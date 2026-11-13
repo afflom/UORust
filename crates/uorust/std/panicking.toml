@@ -91,13 +91,13 @@ cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 path = "std::finished_panic_hook"
 kappa = "1182601f5c362ea2b858f387f740071ee9006df8382d0fdc80702a72cb13323b"
 status = "residue"
-cause = "mir::Operand::Constant: panicking::panic_count::finished_panic_hook::promoted[0]"
+cause = "mir::Operand::Constant: panicking::panic_count::finished_panic_hook::promoted[0]: type outside the lift: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::get_count"
 kappa = "07833e0648e652ba3a32ba419d711963f29de43e16a7da7a1971dbb35ab3e24e"
 status = "residue"
-cause = "mir::Operand::Constant: panicking::panic_count::get_count::promoted[0]"
+cause = "mir::Operand::Constant: panicking::panic_count::get_count::promoted[0]: type outside the lift: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::increase"
@@ -109,7 +109,7 @@ cause = "mir::Ty: panicking::panic_count::MustAbort"
 path = "std::is_zero_slow_path"
 kappa = "d1afd7dfccfb2a9f25da42f93220e1e2a9d998ff7bb180689c8f299e32ba1295"
 status = "residue"
-cause = "mir::Operand::Constant: panicking::panic_count::is_zero_slow_path::promoted[0]"
+cause = "mir::Operand::Constant: panicking::panic_count::is_zero_slow_path::promoted[0]: type outside the lift: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::panic_count::<impl at library/std/src/panicking.rs:374:14: 374:19>::fmt"
