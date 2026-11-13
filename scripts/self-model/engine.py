@@ -161,11 +161,12 @@ def library(w):
 # (scripts/mir/dump-lib.sh {krate} --modules), never listed here; the attempt
 # ledger (scripts/mir/ledger.py, Engine::staleModules) keeps only the modules
 # whose (module, translator κ, toolchain κ) it has not seen, so a tick with
-# nothing new is idle and settles. Each shard dumps its module's MIR,
-# keeps that dump as an artifact keyed by (toolchain κ, dump-script digest),
-# which `just core-mir` fetches, translates it with the uorust the first stage
-# built, and refuses a body the register records as translated that is now
-# residue. The writing stage
+# nothing new is idle and settles. The first stage dumps every module's MIR
+# in one build; each shard keeps its module's dump as an artifact keyed by
+# (toolchain κ, dump-script digest), which `just core-mir` fetches, translates
+# its module with the uorust the first stage built, linked against every
+# module's bodies as a whole census is (`--only`), and refuses a body the
+# register records as translated that is now residue. The writing stage
 # merges the shards' module files (`uorust merge`, the same monotonicity over
 # the whole register), records the attempts, pushes the register and
 # dispatches the generate workflow, so the Quality facet's cause queue
@@ -205,6 +206,19 @@ jobs:
           stale=$(python3 -I scripts/mir/ledger.py stale "crates/uorust/$CRATE" target/modules.json)
           echo "modules=$stale" >>"$GITHUB_OUTPUT"
           echo "$CRATE: stale module shards $stale" >>"$GITHUB_STEP_SUMMARY"
+      # Every module, in one build: a shard links its module against all of
+      # them, so its rows are a whole census's.
+      - name: Dump every module through the locked SDK
+        if: ${{{{ steps.modules.outputs.modules != '[]' }}}}
+        shell: bash
+        run: scripts/ci/sdk.sh "scripts/mir/dump-lib.sh $CRATE target/mir"
+      - name: Keep every module's MIR for the shards
+        if: ${{{{ steps.modules.outputs.modules != '[]' }}}}
+        uses: {USES['actions/upload-artifact']}
+        with:
+          name: ${{{{ env.CRATE }}}}-mir-all
+          path: target/mir
+          retention-days: {KEEP['uorust']}
       - name: Keep the built uorust for the shards
         uses: {USES['actions/upload-artifact']}
         with:
@@ -228,14 +242,15 @@ jobs:
         with:
           name: uorust-${{{{ env.CRATE }}}}
           path: target/bin
-      - name: Dump the module through the locked SDK
+      - name: Fetch every module's MIR
+        uses: {USES['actions/download-artifact']}
+        with:
+          name: ${{{{ env.CRATE }}}}-mir-all
+          path: target/mir
+      - name: Key the module's MIR
         id: dump
         shell: bash
-        env:
-          MODULE: ${{{{ matrix.module }}}}
-        run: |
-          scripts/ci/sdk.sh "scripts/mir/dump-lib.sh $CRATE target/mir '$MODULE'"
-          echo "key=$(python3 -I scripts/mir/ledger.py mir-key)" >>"$GITHUB_OUTPUT"
+        run: echo "key=$(python3 -I scripts/mir/ledger.py mir-key)" >>"$GITHUB_OUTPUT"
       # The dump is kept whether or not the translation refuses it: it is the
       # MIR `just core-mir` fetches, keyed by (toolchain κ, dump-script
       # digest), so a lane's census reads the bytes CI's reads.
@@ -243,7 +258,9 @@ jobs:
         uses: {USES['actions/upload-artifact']}
         with:
           name: ${{{{ env.CRATE }}}}-mir-${{{{ steps.dump.outputs.key }}}}-${{{{ matrix.module }}}}
-          path: target/mir
+          path: |
+            target/mir/target.toml
+            target/mir/${{{{ matrix.module }}}}
           retention-days: {KEEP['mir']}
       - name: Translate the module through the locked SDK
         shell: bash
@@ -252,7 +269,7 @@ jobs:
         run: |
           chmod +x target/bin/uorust
           channel=$(sed -n 's/^channel = "\\(.*\\)"/\\1/p' rust-toolchain.toml)
-          scripts/ci/sdk.sh "target/bin/uorust $CRATE --mir target/mir --library target/rust-src-$channel/library --register crates/uorust/$CRATE"
+          scripts/ci/sdk.sh "target/bin/uorust $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --register crates/uorust/$CRATE"
           mkdir -p target/shard
           cp "crates/uorust/$CRATE/$MODULE.toml" target/shard/
       - name: Keep the module's register file

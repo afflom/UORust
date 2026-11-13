@@ -10,8 +10,8 @@
 # under target/, builds CRATE from it with -Zbuild-std on the pinned compiler
 # and a -Zdump-mir filter naming the module, and keeps each of CRATE's own
 # bodies' `ElaborateBoxDerefs.before` dump under OUT/MODULE with this
-# machine's paths resolved away. The build of each shard is removed before
-# the next, so the disk holds one shard's build at a time.
+# machine's paths resolved away. One build dumps every module asked for, so
+# a census can link each module against all the others.
 set -euo pipefail
 root=$(cd "$(dirname "$0")/../.." && pwd)
 krate=$1
@@ -66,16 +66,25 @@ if [ "$krate" = core ]; then
 else
   printf '\n' >"$work/probe/src/lib.rs"
 fi
+# One build dumps every module asked for: a module's filter where there is
+# one, the pass alone (every item) where there are several. Each module's
+# bodies are its own `CRATE.MODULE-*` files.
+if [ $# -eq 1 ]; then
+  filter="ElaborateBoxDerefs&$1::"
+else
+  filter="ElaborateBoxDerefs"
+fi
+rm -rf "$work/mir" "$work/target"
+mkdir -p "$work/mir"
+(
+  cd "$work/probe"
+  __CARGO_TESTS_ONLY_SRC_ROOT="$cache/library" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 \
+    CARGO_TARGET_DIR="$work/target" \
+    RUSTFLAGS="-Zdump-mir=$filter -Zdump-mir-dir=$work/mir -Coverflow-checks=on -Cdebug-assertions=off" \
+    cargo +"$channel" build -q -Zbuild-std="$krate" --target "$host"
+)
+rm -rf "$work/target"
 for module in "$@"; do
-  rm -rf "$work/mir" "$work/target"
-  mkdir -p "$work/mir"
-  (
-    cd "$work/probe"
-    __CARGO_TESTS_ONLY_SRC_ROOT="$cache/library" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 \
-      CARGO_TARGET_DIR="$work/target" \
-      RUSTFLAGS="-Zdump-mir=ElaborateBoxDerefs&$module:: -Zdump-mir-dir=$work/mir -Coverflow-checks=on -Cdebug-assertions=off" \
-      cargo +"$channel" build -q -Zbuild-std="$krate" --target "$host"
-  )
   dest="$out/$module"
   rm -rf "$dest"
   mkdir -p "$dest"

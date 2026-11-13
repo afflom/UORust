@@ -106,13 +106,23 @@ pub fn core_census(library: &Path, dumps: &Path) -> Result<Vec<CoreShard>, Uorus
         &Scope::core(super::spec::TOOLCHAIN),
         library.parent().unwrap_or(library),
         dumps,
+        &[],
     )
 }
 
 /// Translate every body of the module shards under `dumps` (one directory
 /// per module) of the crate `scope` names, whose dumps name their sources
 /// relative to `root`.
-pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>, UorustError> {
+///
+/// Every module's dumps are linked, so a call into another module is that
+/// module's body; with `only` nonempty, only the modules it names are
+/// translated (a CI shard's), and their rows are those of the whole census.
+pub fn census(
+    scope: &Scope,
+    root: &Path,
+    dumps: &Path,
+    only: &[String],
+) -> Result<Vec<CoreShard>, UorustError> {
     let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
     let mut modules: Vec<PathBuf> = std::fs::read_dir(dumps)
         .map_err(|e| io(dumps, e))?
@@ -186,6 +196,7 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
     );
     Ok(read
         .iter()
+        .filter(|(module, _, _)| only.is_empty() || only.contains(module))
         .map(|(module, texts, _)| shard(scope, root, module, texts, &widths, &layouts, &link))
         .collect())
 }

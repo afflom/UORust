@@ -221,7 +221,7 @@ pub fn lift_crate(name: &str, version: &str, register: &Path) -> Result<Lifted, 
         std::fs::create_dir_all(&shards).map_err(|e| tool("mir", e))?;
         dump(&dir, &work, &shards)?;
         let scope = Scope::registry(name, version);
-        let census = census(&scope, &dir, &shards)?;
+        let census = census(&scope, &dir, &shards, &[])?;
         let regressed = core_regressions(register, &census);
         if !regressed.is_empty() {
             return Err(tool(

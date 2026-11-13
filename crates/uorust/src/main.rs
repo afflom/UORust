@@ -158,6 +158,11 @@ struct CoreArgs {
     /// The register directory: `frontier.toml` and one file per module.
     #[arg(long)]
     register: PathBuf,
+    /// Translate only this module (repeatable), linked against every
+    /// module the dumps hold: a CI shard's census, whose rows are the
+    /// whole census's.
+    #[arg(long)]
+    only: Vec<String>,
 }
 
 #[derive(clap::Args)]
@@ -358,7 +363,7 @@ fn library(krate: &str, args: &CoreArgs) -> Result<(), UorustError> {
     let scope = uorust::mir::core::Scope::library(krate, uorust::mir::TOOLCHAIN);
     // The dumps name sources `library/<crate>/src/..`.
     let root = args.library.parent().unwrap_or(&args.library);
-    let shards = uorust::mir::core::census(&scope, root, &args.mir)?;
+    let shards = uorust::mir::core::census(&scope, root, &args.mir, &args.only)?;
     let regressed = uorust::mir::core::core_regressions(&args.register, &shards);
     if !regressed.is_empty() {
         return Err(UorustError::Tool(format!(

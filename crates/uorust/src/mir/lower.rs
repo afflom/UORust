@@ -5198,6 +5198,7 @@ impl Fun<'_, '_> {
         }
         // In a library's scope, an intrinsic's model or the library's own
         // body.
+        let mut unimplemented: Option<String> = None;
         if let Some(link) = self.cx.core {
             if let Some(path) = link
                 .path(&erase(callee))
@@ -5287,18 +5288,22 @@ impl Fun<'_, '_> {
                             })
                     });
                 if bound && !implemented {
-                    return Err(kind(
-                        "Instantiation",
-                        &format!("{x} for a parameter bounded by {tr}, which {x} does not implement in core"),
+                    unimplemented = Some(format!(
+                        "{x} for a parameter bounded by {tr}, which {x} does not implement in core"
                     ));
                 }
             }
         }
-        // Otherwise std's own MIR, at the call's types.
+        // Otherwise std's own MIR, at the call's types. Where neither has
+        // it, a parameter the census bound to a type its bound's trait has
+        // no impl for in the bodies the link holds is the cause.
         let memory = st.memory.clone();
         match self.std_instance(callee, &args, texts, dest, dt, memory.as_deref())? {
             Some(called) => Ok(called),
-            None => Err(kind(k, &erase(callee))),
+            None => Err(match unimplemented {
+                Some(why) => kind("Instantiation", &why),
+                None => kind(k, &erase(callee)),
+            }),
         }
     }
 
