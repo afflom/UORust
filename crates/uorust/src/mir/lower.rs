@@ -7589,30 +7589,53 @@ fn plain_cell(t: &Ty) -> bool {
 /// "bool"), and an `Option` of a plain value as `0` for `None` and the
 /// value plus one for `Some` (a code of the model's own: Rust specifies no
 /// layout for it, so no program observes the difference).
-fn encoding(t: &Ty) -> Option<()> {
+fn encoding(t: &Ty, types: &Types) -> Option<()> {
     match t {
         _ if plain_cell(t) => Some(()),
         Ty::Bool => Some(()),
         Ty::Option(inner) if matches!(**inner, Ty::Nat(_)) => Some(()),
+        _ => single_field(t, types).and_then(|(_, f)| encoding(&f, types)),
+    }
+}
+
+/// The one field of a struct of one field: such a struct is held in its
+/// field's cell. That code is injective, so it is a sound stand-in for the
+/// struct's bytes whatever layout rustc gives it (`repr(transparent)`
+/// structs, `UnsafeCell<T>` and `Cell<T>` among them, have their field's
+/// layout outright).
+fn single_field(t: &Ty, types: &Types) -> Option<(String, Ty)> {
+    let Ty::Named(n) = t else { return None };
+    match types.structs.get(n).map(Vec::as_slice) {
+        Some([(name, field)]) => Some((name.clone(), field.clone())),
         _ => None,
     }
 }
 
 /// The cell holding value `v` of type `t` (see [`encoding`]).
-fn encode(t: &Ty, v: &str) -> String {
+fn encode(t: &Ty, v: &str, types: &Types) -> String {
     match t {
         Ty::Bool => format!("(if {v} then 1 else 0)"),
         Ty::Option(_) => format!("(mirEncodeOption {v})"),
-        _ => v.to_string(),
+        _ => match single_field(t, types) {
+            Some((name, f)) => encode(&f, &format!("(project {v} {name})"), types),
+            None => v.to_string(),
+        },
     }
 }
 
 /// The value of type `t` cell `c` holds (see [`encoding`]).
-fn decode(t: &Ty, c: &str) -> String {
+fn decode(t: &Ty, c: &str, types: &Types) -> String {
     match t {
         Ty::Bool => format!("({c} =? 1)"),
         Ty::Option(_) => format!("(mirDecodeOption {c})"),
-        _ => c.to_string(),
+        _ => match single_field(t, types) {
+            Some((name, f)) => format!(
+                "(record {} {{{name} := {}}})",
+                t.render(),
+                decode(&f, c, types)
+            ),
+            None => c.to_string(),
+        },
     }
 }
 
@@ -7667,7 +7690,7 @@ impl Fun<'_, '_> {
                 }
             };
         let elem = ty(elem_text, self.cx.types)?;
-        let encoded = encoding(&elem).is_some();
+        let encoded = encoding(&elem, self.cx.types).is_some();
         if !encoded || (shape != Shape::Scalar && !plain_cell(&elem)) {
             return Err(kind(
                 MEMORY_KIND,
@@ -7677,7 +7700,13 @@ impl Fun<'_, '_> {
                 ),
             ));
         }
-        let l = match &elem {
+        // A struct of one field is laid out as that field (see
+        // [`single_field`]).
+        let mut laid = elem.clone();
+        while let Some((_, f)) = single_field(&laid, self.cx.types) {
+            laid = f;
+        }
+        let l = match &laid {
             // A layout rustc chooses (an `Option`'s): Rust specifies none,
             // so the model's own is as good as any. It is one cell of
             // twice the item's size, holding the value's code.
@@ -7689,7 +7718,7 @@ impl Fun<'_, '_> {
                     align: i.align,
                 }
             }
-            _ => super::layout::agreed(&elem, self.cx.layouts)
+            _ => super::layout::agreed(&laid, self.cx.layouts)
                 .map_err(|r| kind(MEMORY_KIND, &super::layout::reason(&r)))?,
         };
         if l.size == 0 {
@@ -7781,8 +7810,11 @@ impl Fun<'_, '_> {
         view: &View,
         steps: &[IrProjection],
         st: &State,
-    ) -> Lift<(String, Access)> {
+    ) -> Lift<(String, Access, Ty)> {
         let mut pointer = view.pointer.clone();
+        // The type of the part reached: a field of a struct of one field
+        // is in the struct's cell (see [`single_field`]).
+        let mut at = view.elem.clone();
         let mut rest = steps;
         if view.shape == Shape::Items {
             let at = match rest.first() {
@@ -7810,10 +7842,17 @@ impl Fun<'_, '_> {
                     maybe = false;
                 }
                 IrProjection::Field(0, fty) if maybe && fty.trim() == "()" => {
-                    return Ok((pointer.clone(), Access::Unit(pointer)));
+                    return Ok((pointer.clone(), Access::Unit(pointer), Ty::Unit));
                 }
                 IrProjection::Field(0, fty)
-                    if !maybe && ty(fty, self.cx.types).ok().as_ref() == Some(&view.elem) => {}
+                    if !maybe && ty(fty, self.cx.types).ok().as_ref() == Some(&at) => {}
+                IrProjection::Field(0, _)
+                    if !maybe && single_field(&at, self.cx.types).is_some() =>
+                {
+                    if let Some((_, f)) = single_field(&at, self.cx.types) {
+                        at = f;
+                    }
+                }
                 _ => {
                     return Err(kind(
                         MEMORY_KIND,
@@ -7823,9 +7862,9 @@ impl Fun<'_, '_> {
             }
         }
         Ok(if maybe {
-            (pointer.clone(), Access::Maybe(pointer))
+            (pointer.clone(), Access::Maybe(pointer), at)
         } else {
-            (pointer.clone(), Access::Cell(pointer))
+            (pointer.clone(), Access::Cell(pointer), at)
         })
     }
 
@@ -7850,7 +7889,7 @@ impl Fun<'_, '_> {
             self.grow(&out)?;
             return Ok((out, Ty::List(Box::new(view.elem.clone()))));
         }
-        let (_, access) = self.access(view, steps, st)?;
+        let (_, access, at) = self.access(view, steps, st)?;
         let out = match access {
             Access::Cell(p) => {
                 self.obligation(
@@ -7859,8 +7898,8 @@ impl Fun<'_, '_> {
                     "a read through a pointer",
                 );
                 (
-                    decode(&view.elem, &format!("(mirLoad {m} {p} {s})")),
-                    view.elem.clone(),
+                    decode(&at, &format!("(mirLoad {m} {p} {s})"), self.cx.types),
+                    at,
                 )
             }
             Access::Maybe(p) => (
@@ -7877,7 +7916,7 @@ impl Fun<'_, '_> {
     fn store(&mut self, view: &View, steps: &[IrProjection], v: Val, st: &mut State) -> Lift<()> {
         let m = self.memory_at(st)?;
         let s = view.stride;
-        let (_, access) = self.access(view, steps, st)?;
+        let (_, access, at) = self.access(view, steps, st)?;
         let Val::V(value, _) = v else {
             return Err(kind(MEMORY_KIND, "a borrow or a pair written into memory"));
         };
@@ -7888,7 +7927,10 @@ impl Fun<'_, '_> {
                     &format!("((mirWritable {m} {p} {s}) = true)"),
                     "a write through a pointer",
                 );
-                format!("(mirStore {m} {p} {s} {})", encode(&view.elem, &value))
+                format!(
+                    "(mirStore {m} {p} {s} {})",
+                    encode(&at, &value, self.cx.types)
+                )
             }
             Access::Maybe(p) => {
                 self.obligation(
@@ -7954,10 +7996,10 @@ impl Fun<'_, '_> {
             .view_of(p, st)?
             .ok_or_else(|| kind(MEMORY_KIND, "a place not in memory"))?;
         // The address of a whole array or slice is its first item's.
-        let (pointer, _) = if steps.is_empty() && view.shape == Shape::Items {
-            (view.pointer.clone(), Access::Unit(view.pointer.clone()))
+        let pointer = if steps.is_empty() && view.shape == Shape::Items {
+            view.pointer.clone()
         } else {
-            self.access(&view, &steps, st)?
+            self.access(&view, &steps, st)?.0
         };
         let pointer = if wide && steps.is_empty() && view.shape == Shape::Items {
             match st.placed.get(&p.local) {
@@ -7987,7 +8029,7 @@ impl Fun<'_, '_> {
         let pointer = format!("(mirAllocated {m} {align} 0)");
         let memory = format!(
             "(mirAllocate {m} {stride} {align} 1 (mirCellsOf {}) (mirDefinedAs 1))",
-            encode(&elem, &value)
+            encode(&elem, &value, self.cx.types)
         );
         self.grow(&memory)?;
         st.memory = Some(memory);
@@ -8035,7 +8077,7 @@ impl Fun<'_, '_> {
         let (length, cells, defined, metadata) = match (&shape, value) {
             (Shape::Scalar, Some(v)) => (
                 "1".to_string(),
-                format!("(mirCellsOf {})", encode(&elem, &v)),
+                format!("(mirCellsOf {})", encode(&elem, &v, self.cx.types)),
                 "(mirDefinedAs 1)".to_string(),
                 "0".to_string(),
             ),
