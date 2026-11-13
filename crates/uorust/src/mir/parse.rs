@@ -498,9 +498,14 @@ fn rvalue(text: &str) -> IrRvalue {
     use spec::MirRvalue as R;
     let t = text.trim();
     let other = |k: R| IrRvalue::Other(k, t.to_string());
+    // `&raw const p` and `&raw mut p`: the address of a place.
     if let Some(rest) = t.strip_prefix("&raw ") {
-        let _ = rest;
-        return other(R::RawPtr);
+        let (m, p) = rest.split_once(' ').unwrap_or((rest, ""));
+        return match (m, place(p)) {
+            ("const", Some(p)) => IrRvalue::RawPtr(false, p),
+            ("mut", Some(p)) => IrRvalue::RawPtr(true, p),
+            _ => other(R::RawPtr),
+        };
     }
     if let Some(rest) = t.strip_prefix("&fake ") {
         let p = rest.split_once(' ').map_or(rest, |(_, p)| p);
@@ -1009,7 +1014,7 @@ fn sum(_1: &[u64], _2: (u8, bool)) -> u64 {
         ));
         assert!(matches!(
             rvalue("&raw const (*_1)"),
-            IrRvalue::Other(spec::MirRvalue::RawPtr, _)
+            IrRvalue::RawPtr(false, _)
         ));
         assert!(matches!(
             rvalue("&mut _1"),

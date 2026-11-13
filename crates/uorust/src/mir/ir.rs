@@ -131,6 +131,8 @@ pub(crate) enum IrRvalue {
     /// named by field.
     Aggregate(IrAggregate, Vec<(Option<String>, IrOperand)>),
     Cast(spec::MirCastKind, IrOperand, String),
+    /// `&raw const p` (`false`) or `&raw mut p` (`true`): a place's address.
+    RawPtr(bool, IrPlace),
     /// Any other rvalue: its kind and text.
     Other(spec::MirRvalue, String),
 }

@@ -19,8 +19,10 @@
 pub mod core;
 pub mod coverage;
 pub(crate) mod float;
+pub(crate) mod layout;
 mod link;
 pub(crate) mod lower;
+pub(crate) mod memory;
 mod parse;
 // Generated: its layout is the generator's, which the spec test compares.
 #[rustfmt::skip]

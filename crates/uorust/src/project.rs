@@ -3949,6 +3949,7 @@ fn mir_lift(
             closures: &closures,
             active: &[],
             core: None,
+            layouts: &[],
         };
         match lower::lower(&cx, body, &name) {
             Ok(lowered) => {

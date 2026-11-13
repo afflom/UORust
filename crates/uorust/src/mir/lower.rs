@@ -74,6 +74,9 @@ pub(crate) struct Cx<'a> {
     pub(crate) active: &'a [String],
     /// In core's scope, core's own bodies, which its calls name.
     pub(crate) core: Option<&'a super::link::CoreLink>,
+    /// The data layout of each target the translation answers for (see
+    /// [`super::layout`]); none where the dumps record none.
+    pub(crate) layouts: &'a [super::layout::DataLayout],
 }
 
 impl<'a> Cx<'a> {
@@ -94,6 +97,7 @@ impl<'a> Cx<'a> {
             closures: self.closures,
             active,
             core: self.core,
+            layouts: self.layouts,
         }
     }
 }
@@ -147,6 +151,8 @@ struct Called {
     /// this type, and the positions of the arguments it gives back, in the
     /// order the tuple holds them after `_0`'s value.
     threads: Option<(Ty, Vec<usize>)>,
+    /// The callee takes the memory, and gives it back last in its tuple.
+    memory: bool,
 }
 
 impl Called {
@@ -156,6 +162,7 @@ impl Called {
             updates: BTreeMap::new(),
             guard: None,
             threads: None,
+            memory: false,
         }
     }
 }
@@ -182,6 +189,10 @@ struct State {
     facts: BTreeSet<String>,
     /// The loop helper this path runs inside.
     inside: Option<IrBlockId>,
+    /// The memory where control is, in a body that reaches it.
+    memory: Option<String>,
+    /// The locals whose values live in memory.
+    placed: BTreeMap<IrLocal, Placed>,
 }
 
 /// A loop: its helper's name and parameters (the locals live at its header).
@@ -225,6 +236,41 @@ struct Fun<'a, 'c> {
     /// The `&mut` parameters: each holds the borrowed value, which writes
     /// through it replace, and the definition returns its last value.
     mut_params: BTreeSet<IrLocal>,
+    /// Whether the definition takes and returns the memory (see
+    /// [`super::memory`]): its last parameter, and its result's last item.
+    memory: bool,
+    /// The cell sizes the body's memory accesses use, whose laws the
+    /// translation proves.
+    strides: BTreeSet<u64>,
+    /// Whether a place a shared borrow lends was copied into an allocation,
+    /// and whether the body observes an address: together, an alias the
+    /// copy does not keep could be observed.
+    mirrored_shared: bool,
+    observes_address: bool,
+}
+
+/// A local whose value lives in memory since its address was taken: the
+/// pointer to its first cell, its cells' type and size, and their shape.
+#[derive(Clone, Debug)]
+struct Placed {
+    pointer: String,
+    elem: Ty,
+    stride: u64,
+    shape: Shape,
+    /// The place is the caller's, lent by a borrow: a copy in an
+    /// allocation of its own, which the caller does not see.
+    mirror: bool,
+}
+
+/// How a value's cells are laid out.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum Shape {
+    /// One value.
+    Scalar,
+    /// A `MaybeUninit<T>`: one cell, initialized or not.
+    Maybe,
+    /// An array or slice: its items, one cell each.
+    Items,
 }
 
 /// The parameters that are mutable borrows, in order, of a body with these
@@ -356,6 +402,21 @@ fn through_pointer(what: &str) -> Residue {
 
 /// Translate one body to the definition `name`.
 pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
+    // A body reaches memory where it takes an address or reads through a
+    // pointer, or where a callee does: then the memory is threaded through
+    // it.
+    let direct = reaches_memory(body);
+    match lower_in(cx, body, name, direct) {
+        Err(r) if !direct && is_needs_memory(&r) => lower_in(cx, body, name, true),
+        Err(r) if is_needs_memory(&r) => Err(kind(
+            MEMORY_KIND,
+            "a memory the body's translation cannot thread",
+        )),
+        other => other,
+    }
+}
+
+fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowered> {
     let mut f = Fun {
         cx,
         body,
@@ -378,6 +439,10 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         measure: None,
         ranged: BTreeMap::new(),
         mut_params: BTreeSet::new(),
+        memory,
+        strides: BTreeSet::new(),
+        mirrored_shared: false,
+        observes_address: false,
     };
     f.used.insert(name.to_string());
     let threads = threaded(
@@ -438,8 +503,21 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
     for &l in &threads {
         threads_ty.push(f.local_ty(l, &[])?);
     }
+    // The memory, last: taken, and given back after the `&mut` parameters.
+    if memory {
+        if !cx.types.structs.contains_key(super::memory::MEMORY) {
+            return Err(kind(MEMORY_KIND, "memory, in a scope that declares none"));
+        }
+        let m = f.fresh(Some("memory"), 0);
+        f.params.push((m.clone(), super::memory::memory_ty()));
+        st.memory = Some(m);
+        threads_ty.push(super::memory::memory_ty());
+    }
     f.result = threaded_result(&f.ret, &threads_ty, cx.types);
     f.find_loops()?;
+    if memory && !f.loops.is_empty() {
+        return Err(kind(MEMORY_KIND, "a loop of a body that reaches memory"));
+    }
     f.scope = f.params.clone();
     // A float intrinsic core declares without a body (it is `unreachable`,
     // the compiler supplying it) is the prelude's model of it, as a call
@@ -468,6 +546,18 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         Some(c) => Expr::Flat(c.term),
         None => f.block(0, st)?,
     };
+    if f.mirrored_shared && f.observes_address {
+        return Err(kind(
+            MEMORY_KIND,
+            "the address of a place a shared borrow lends, copied apart from any other borrow of it",
+        ));
+    }
+    // The memory's model and its laws at each cell size the body uses.
+    if memory {
+        for d in super::memory::declarations(&f.strides) {
+            f.aux.entry(d.name().to_string()).or_insert(d);
+        }
+    }
     let result = f.result.clone();
     f.mention(&result);
     for (_, t) in f.params.clone() {
@@ -1069,10 +1159,11 @@ impl Fun<'_, '_> {
                     self.body.arity,
                     super::closure_type(self.body).is_some(),
                 );
-                let v = if threads.is_empty() {
+                let v = if threads.is_empty() && !self.memory {
                     v
                 } else {
-                    // `_0`, then the last value of each `&mut` parameter.
+                    // `_0`, then the last value of each `&mut` parameter,
+                    // then the memory.
                     let mut items = vec![v];
                     for l in threads {
                         let place = IrPlace {
@@ -1080,6 +1171,9 @@ impl Fun<'_, '_> {
                             projection: Vec::new(),
                         };
                         items.push(self.read(&place, &st)?.0);
+                    }
+                    if self.memory {
+                        items.push(self.returned_memory(&items[0], &st)?);
                     }
                     lift::tuple_value(&self.result, &items)
                 };
@@ -1177,6 +1271,9 @@ impl Fun<'_, '_> {
     /// value is replaced in a new value of the local, and a write through a
     /// mutable borrow writes the place it borrows.
     fn write(&mut self, p: &IrPlace, v: Val, st: &mut State) -> Lift<()> {
+        if let Some((view, steps)) = self.view_of(p, st)? {
+            return self.store(&view, &steps, v, st);
+        }
         let k = spec::MirStatementKind::Assign.path();
         if let (Some(Val::Mut(q)), Some((IrProjection::Deref, rest))) =
             (st.env.get(&p.local), p.projection.split_first())
@@ -1255,6 +1352,27 @@ impl Fun<'_, '_> {
         }
         if matches!(step, IrProjection::Deref) && is_pointer(t) {
             return Err(through_pointer("write"));
+        }
+        // A `MaybeUninit`'s value written: it holds that value now.
+        if let (IrProjection::Field(1, fty), Ty::Option(inner)) = (step, t) {
+            if wrapper(fty).is_some_and(|(n, _)| n == "ManuallyDrop") {
+                let d = lift::default_of(inner, self.cx.types)
+                    .ok_or_else(|| kind(MEMORY_KIND, "a MaybeUninit of a type with no value"))?;
+                let part =
+                    format!("(match {whole} | Option.none => {d} | Option.some held => held)");
+                let inner_new = self.replace(&part, inner, rest, new, st)?;
+                return Ok(format!(
+                    "(ctor Option.some [{}] {inner_new})",
+                    inner.render()
+                ));
+            }
+        }
+        if let IrProjection::Field(0, fty) = step {
+            if !matches!(t, Ty::Named(_) | Ty::Tuple(_) | Ty::Pair(_))
+                && ty(fty, self.cx.types).ok().as_ref() == Some(t)
+            {
+                return self.replace(whole, t, rest, new, st);
+            }
         }
         let IrProjection::Field(i, _) = step else {
             let step = match step {
@@ -1381,6 +1499,7 @@ impl Fun<'_, '_> {
             mut updates,
             guard,
             threads,
+            memory,
         } = called;
         // A threading callee's tuple, bound once: `_0`'s value first, then
         // each `&mut` argument's new value.
@@ -1393,6 +1512,9 @@ impl Fun<'_, '_> {
                 self.mention(&rt);
                 for (k, p) in positions.iter().enumerate() {
                     updates.insert(*p, lift::tuple_item(&rt, &name, k + 1));
+                }
+                if memory {
+                    st.memory = Some(lift::tuple_item(&rt, &name, positions.len() + 1));
                 }
                 binding = Some((name.clone(), rt.render(), term));
                 lift::tuple_item(&rt, &name, 0)
@@ -1454,7 +1576,7 @@ impl Fun<'_, '_> {
                 Val::V(v, dt)
             }
         };
-        if destination.projection.is_empty() {
+        if destination.projection.is_empty() && !st.placed.contains_key(&destination.local) {
             st.env.insert(destination.local, value);
         } else {
             self.write(destination, value, st)?;
@@ -1752,7 +1874,7 @@ impl Fun<'_, '_> {
             IrStatement::Marker(_) | IrStatement::Assume(_) => Ok(()),
             IrStatement::Other(k, _) => Err(kind(k.path(), "")),
             IrStatement::Assign(p, rv) => {
-                if p.projection.is_empty() {
+                if p.projection.is_empty() && !st.placed.contains_key(&p.local) {
                     let v = self.rvalue(rv, p, st)?;
                     st.env.insert(p.local, v);
                     return Ok(());
@@ -1994,6 +2116,9 @@ impl Fun<'_, '_> {
 
     /// The value at a place.
     fn read(&mut self, p: &IrPlace, st: &State) -> Lift<(String, Ty)> {
+        if let Some((view, steps)) = self.view_of(p, st)? {
+            return self.load(&view, &steps, st);
+        }
         let base = st.env.get(&p.local).cloned().ok_or_else(|| {
             kind(
                 spec::MirOperand::Copy.path(),
@@ -2127,6 +2252,39 @@ impl Fun<'_, '_> {
                 IrProjection::Deref => text = text.as_deref().and_then(referent),
                 IrProjection::Field(0, fty) if text.as_deref().is_some_and(one_tuple) => {
                     t = ty(fty, self.cx.types)?;
+                    text = Some(fty.clone());
+                }
+                // A `MaybeUninit`'s value, read as a `T`: it must hold one.
+                IrProjection::Field(1, fty)
+                    if matches!(t, Ty::Option(_))
+                        && wrapper(fty).is_some_and(|(n, _)| n == "ManuallyDrop") =>
+                {
+                    let Ty::Option(inner) = t.clone() else {
+                        unreachable!()
+                    };
+                    let d = lift::default_of(&inner, self.cx.types).ok_or_else(|| {
+                        kind(MEMORY_KIND, "a MaybeUninit of a type with no value")
+                    })?;
+                    self.obligation(
+                        st,
+                        &format!("((match {v} | Option.none => false | Option.some held => true) = true)"),
+                        "an initialized MaybeUninit",
+                    );
+                    v = format!("(match {v} | Option.none => {d} | Option.some held => held)");
+                    t = *inner;
+                    text = None;
+                }
+                // Its `uninit` field, the unit.
+                IrProjection::Field(0, fty) if matches!(t, Ty::Option(_)) && fty.trim() == "()" => {
+                    v = "()".into();
+                    t = Ty::Unit;
+                    text = Some(fty.clone());
+                }
+                // `ManuallyDrop`'s field, the value it wraps.
+                IrProjection::Field(0, fty)
+                    if !matches!(t, Ty::Named(_) | Ty::Tuple(_) | Ty::Pair(_))
+                        && ty(fty, self.cx.types).ok().as_ref() == Some(&t) =>
+                {
                     text = Some(fty.clone());
                 }
                 IrProjection::Field(i, fty) => {
@@ -2583,9 +2741,11 @@ impl Fun<'_, '_> {
                     (spec::MirCastKind::PointerExposeProvenance, f, Ty::Nat(None))
                         if is_pointer(f) =>
                     {
+                        self.observes_address = true;
                         Ok(Val::V(address(&v), to))
                     }
                     (spec::MirCastKind::Transmute, f, Ty::Nat(None)) if is_pointer(f) => {
+                        self.observes_address = true;
                         Ok(Val::V(address(&v), to))
                     }
                     (spec::MirCastKind::Transmute, Ty::Nat(None), t) if is_pointer(t) => {
@@ -2597,6 +2757,7 @@ impl Fun<'_, '_> {
                     )),
                 }
             }
+            IrRvalue::RawPtr(_, p) => self.address_of(p, dest, st),
             IrRvalue::Other(k, _) => Err(kind(k.path(), "")),
         }
     }
@@ -2691,6 +2852,25 @@ impl Fun<'_, '_> {
     ) -> Lift<Val> {
         let (x, xt) = self.operand(a, st)?;
         let (y, yt) = self.operand(b, st)?;
+        // An offset moves the pointer by whole pointees, which the
+        // operand's type names.
+        if is_pointer(&xt) && matches!(op, spec::MirBinOp::Offset) {
+            let text = match a {
+                IrOperand::Copy(q) | IrOperand::Move(q) if q.projection.is_empty() => {
+                    self.body.locals.get(q.local).cloned().unwrap_or_default()
+                }
+                _ => String::new(),
+            };
+            let Some((pointee_text, _)) = pointee(&text) else {
+                return Err(kind(
+                    op.path(),
+                    "an offset of a pointer whose type is not known",
+                ));
+            };
+            let pointee_text = pointee_text.to_string();
+            let moved = self.offset_pointer(&x, &pointee_text, &y, &yt, true, st)?;
+            return Ok(Val::V(moved, xt));
+        }
         self.binary_on(op, x, xt, y, yt, st)
     }
 
@@ -2713,6 +2893,7 @@ impl Fun<'_, '_> {
             && is_pointer(&yt)
             && matches!(op, B::Eq | B::Ne | B::Lt | B::Le | B::Gt | B::Ge)
         {
+            self.observes_address = true;
             let (ax, ay) = (address(&x), address(&y));
             let (mx, my) = (
                 format!("(project {x} metadata)"),
@@ -2732,12 +2913,6 @@ impl Fun<'_, '_> {
                 _ => lt(&ay, &ax, &my, &mx, false),
             };
             return Ok(Val::V(s, Ty::Bool));
-        }
-        if is_pointer(&xt) && matches!(op, B::Offset) {
-            return Err(kind(
-                op.path(),
-                "an offset of a raw pointer, whose bounds are its allocation's, which the value model does not hold",
-            ));
         }
         // A signed integer by its Rust name, which the `Nat` it is held as
         // would not say.
@@ -3039,6 +3214,24 @@ impl Fun<'_, '_> {
         vals: Vec<String>,
     ) -> Lift<String> {
         let k = spec::MirRvalue::Aggregate.path();
+        // `MaybeUninit { uninit: () }` holds no value, `MaybeUninit { value }`
+        // its value; `ManuallyDrop { value }` is the value.
+        if let IrAggregate::Adt(path, None) = agg {
+            let name = wrapper(path)
+                .map(|(n, _)| n)
+                .or_else(|| split_path(path).last().copied());
+            let field = ops.first().and_then(|(f, _)| f.as_deref());
+            match (name, field, t, vals.as_slice()) {
+                (Some("MaybeUninit"), Some("uninit"), Ty::Option(inner), _) => {
+                    return Ok(format!("(ctor Option.none [{}])", inner.render()))
+                }
+                (Some("MaybeUninit"), Some("value"), Ty::Option(inner), [v]) => {
+                    return Ok(format!("(ctor Option.some [{}] {v})", inner.render()))
+                }
+                (Some("ManuallyDrop"), Some("value"), _, [v]) => return Ok(v.clone()),
+                _ => {}
+            }
+        }
         match (agg, t) {
             (IrAggregate::Tuple, Ty::Unit) if vals.is_empty() => Ok("()".into()),
             (IrAggregate::Tuple, Ty::Tuple(_) | Ty::Pair(_)) => Ok(lift::tuple_value(t, &vals)),
@@ -3258,6 +3451,7 @@ impl Fun<'_, '_> {
                 updates: BTreeMap::from([(0, env.clone())]),
                 guard: None,
                 threads: None,
+                memory: false,
             });
         }
         let key = format!("{}::{callee}", self.cx.krate);
@@ -3380,6 +3574,7 @@ impl Fun<'_, '_> {
                         updates: BTreeMap::from([(0, f.term(op, &terms))]),
                         guard: None,
                         threads: None,
+                        memory: false,
                     })
                 }
                 float::Kind::Bits
@@ -3411,6 +3606,7 @@ impl Fun<'_, '_> {
                 updates: applied.updates,
                 guard: applied.guard,
                 threads: None,
+                memory: false,
             });
         }
         // `Arguments::new(template, args)` of `format_args!`, where the
@@ -3661,13 +3857,31 @@ impl Fun<'_, '_> {
                 .path(&erase(callee))
                 .filter(|p| link.decls.intrinsics.contains(p))
             {
+                // An intrinsic that reaches memory: the memory's model.
+                let name = split_path(&path).last().copied().unwrap_or_default();
+                if MEMORY_INTRINSICS.contains(&name) {
+                    let mut generics = turbofish(callee);
+                    if generics.is_empty() {
+                        let text = texts.first().cloned().flatten().unwrap_or_default();
+                        generics.push(match name {
+                            "offset" | "arith_offset" => text,
+                            _ => pointee(&text)
+                                .map(|(t, _)| t.to_string())
+                                .unwrap_or_default(),
+                        });
+                    }
+                    if let Some(term) = self.memory_intrinsic(name, &generics, &args, st)? {
+                        return Ok(Called::value(term));
+                    }
+                }
                 return self
                     .intrinsic(link, &path, callee, &args, dt, st)
                     .map(Called::value);
             }
             if let Some(inst) = link.instance(callee, texts, dest) {
                 let krate = self.cx.krate.clone();
-                return self.shared(inst, &krate, &args, dt);
+                let memory = st.memory.clone();
+                return self.shared(inst, &krate, &args, dt, memory.as_deref());
             }
             // `<X as Trait>::m` where no impl of `Trait` in core is for
             // `X`'s type: the census bound a parameter that `Trait` bounds
@@ -3724,7 +3938,8 @@ impl Fun<'_, '_> {
             }
         }
         // Otherwise std's own MIR, at the call's types.
-        match self.std_instance(callee, &args, texts, dest, dt)? {
+        let memory = st.memory.clone();
+        match self.std_instance(callee, &args, texts, dest, dt, memory.as_deref())? {
             Some(called) => Ok(called),
             None => Err(kind(k, &erase(callee))),
         }
@@ -3943,6 +4158,7 @@ impl Fun<'_, '_> {
         root: &str,
         args: &[(String, Ty)],
         dt: &Ty,
+        memory: Option<&str>,
     ) -> Lift<Called> {
         let k = spec::MirTerminatorKind::Call.path();
         let stdlib::Instance { path, text, bound } = inst;
@@ -3992,40 +4208,73 @@ impl Fun<'_, '_> {
                 &format!("{path}, whose translation has no definition"),
             ));
         };
-        let at = |t: &Ty| t.render();
-        // A body that threads `&mut` parameters returns them after `_0`.
-        let positions: Vec<usize> = threaded(&body.locals, body.arity, false)
-            .into_iter()
-            .map(|l| l - 1)
-            .collect();
-        let rest: Vec<Ty> = positions
-            .iter()
-            .filter_map(|&i| args.get(i).map(|(_, t)| t.clone()))
-            .collect();
-        let full = threaded_result(dt, &rest, self.cx.types);
-        if parameters.len() != args.len()
-            || parameters
-                .iter()
-                .zip(args)
-                .any(|((_, p), (_, a))| *p != at(a))
-            || *result != at(&full)
-        {
-            return Err(kind(k, &format!("{path}, at other types than the call's")));
-        }
         if let (true, Expr::Flat(v)) = (parameters.is_empty(), value) {
             if v == "true" || v == "false" || v.chars().all(|c| c.is_ascii_digit()) {
                 return Ok(Called::value(v.clone()));
             }
         }
-        self.calls.insert(name.clone());
+        let (parameters, result) = (parameters.clone(), result.clone());
+        self.instance_called(&name, &path, &body, &parameters, &result, args, dt, memory)
+    }
+
+    /// The call of an instance's definition: its arguments, then the
+    /// memory where it takes it; its tuple where it gives back `&mut`
+    /// arguments or the memory, `_0`'s value first.
+    #[allow(clippy::too_many_arguments)]
+    fn instance_called(
+        &mut self,
+        name: &str,
+        path: &str,
+        body: &IrBody,
+        parameters: &[(String, String)],
+        result: &str,
+        args: &[(String, Ty)],
+        dt: &Ty,
+        memory: Option<&str>,
+    ) -> Lift<Called> {
+        let k = spec::MirTerminatorKind::Call.path();
+        let at = |t: &Ty| t.render();
+        let takes_memory = parameters
+            .last()
+            .is_some_and(|(_, t)| t == super::memory::MEMORY);
+        let mut args: Vec<(String, Ty)> = args.to_vec();
+        if takes_memory {
+            let m = memory.ok_or_else(needs_memory)?;
+            args.push((m.to_string(), super::memory::memory_ty()));
+        }
+        // A body that threads `&mut` parameters returns them after `_0`,
+        // then the memory.
+        let positions: Vec<usize> = threaded(&body.locals, body.arity, false)
+            .into_iter()
+            .map(|l| l - 1)
+            .collect();
+        let mut rest: Vec<Ty> = positions
+            .iter()
+            .filter_map(|&i| args.get(i).map(|(_, t)| t.clone()))
+            .collect();
+        if takes_memory {
+            rest.push(super::memory::memory_ty());
+        }
+        let full = threaded_result(dt, &rest, self.cx.types);
+        if parameters.len() != args.len()
+            || parameters
+                .iter()
+                .zip(&args)
+                .any(|((_, p), (_, a))| *p != at(a))
+            || result != at(&full)
+        {
+            return Err(kind(k, &format!("{path}, at other types than the call's")));
+        }
+        self.calls.insert(name.to_string());
         let a: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
         let term = if a.is_empty() {
-            name
+            name.to_string()
         } else {
             format!("({name} {})", a.join(" "))
         };
         Ok(Called {
-            threads: (!positions.is_empty()).then_some((full, positions)),
+            threads: (!rest.is_empty()).then_some((full, positions)),
+            memory: takes_memory,
             ..Called::value(term)
         })
     }
@@ -4040,6 +4289,7 @@ impl Fun<'_, '_> {
         texts: &[Option<String>],
         dest: &str,
         dt: &Ty,
+        memory: Option<&str>,
     ) -> Lift<Option<Called>> {
         let k = spec::MirTerminatorKind::Call.path();
         let Some(stdlib::Instance { path, text, bound }) = stdlib::instance(callee, texts, dest)
@@ -4089,37 +4339,9 @@ impl Fun<'_, '_> {
                 &format!("{path}, whose translation has no definition"),
             ));
         };
-        let at = |t: &Ty| t.render();
-        // A body that threads `&mut` parameters returns them after `_0`.
-        let positions: Vec<usize> = threaded(&body.locals, body.arity, false)
-            .into_iter()
-            .map(|l| l - 1)
-            .collect();
-        let rest: Vec<Ty> = positions
-            .iter()
-            .filter_map(|&i| args.get(i).map(|(_, t)| t.clone()))
-            .collect();
-        let full = threaded_result(dt, &rest, self.cx.types);
-        if parameters.len() != args.len()
-            || parameters
-                .iter()
-                .zip(args)
-                .any(|((_, p), (_, a))| *p != at(a))
-            || *result != at(&full)
-        {
-            return Err(kind(k, &format!("{path}, at other types than the call's")));
-        }
-        self.calls.insert(name.clone());
-        let a: Vec<String> = args.iter().map(|(v, _)| v.clone()).collect();
-        let term = if a.is_empty() {
-            name
-        } else {
-            format!("({name} {})", a.join(" "))
-        };
-        Ok(Some(Called {
-            threads: (!positions.is_empty()).then_some((full, positions)),
-            ..Called::value(term)
-        }))
+        let (parameters, result) = (parameters.clone(), result.clone());
+        self.instance_called(&name, &path, &body, &parameters, &result, args, dt, memory)
+            .map(Some)
     }
 }
 
@@ -4455,9 +4677,10 @@ fn operand_reads(o: &IrOperand) -> Vec<IrLocal> {
 fn rvalue_reads(rv: &IrRvalue) -> Vec<IrLocal> {
     match rv {
         IrRvalue::Use(o) | IrRvalue::Unary(_, o) | IrRvalue::Cast(_, o, _) => operand_reads(o),
-        IrRvalue::Ref(_, p) | IrRvalue::CopyForDeref(p) | IrRvalue::Discriminant(p) => {
-            place_reads(p)
-        }
+        IrRvalue::Ref(_, p)
+        | IrRvalue::RawPtr(_, p)
+        | IrRvalue::CopyForDeref(p)
+        | IrRvalue::Discriminant(p) => place_reads(p),
         IrRvalue::Binary(_, a, b) => {
             let mut out = operand_reads(a);
             out.extend(operand_reads(b));
@@ -4704,6 +4927,12 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         ("ControlFlow", [b]) if std => {
             return Ok(Ty::Outcome(Box::new(Ty::Unit), Box::new(ty(b, types)?)))
         }
+        // `ManuallyDrop<T>` holds a `T`, which it only keeps from dropping;
+        // a `MaybeUninit<T>` holds one or none (the Reference: reading it
+        // uninitialized as a `T` is undefined), so it is an `Option<T>`,
+        // `None` where uninitialized.
+        ("ManuallyDrop", [t]) if std => return ty(t, types),
+        ("MaybeUninit", [t]) if std => return Ok(Ty::Option(Box::new(ty(t, types)?))),
         _ => {}
     }
     // Every primitive integer, its signedness and width from its name: `u`
@@ -4782,7 +5011,9 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
                 if types.core {
                     if let Some(m) = stdlib::model_type(n, &args).filter(|m| {
                         m.mentions().iter().all(|x| match x {
-                            Ty::Named(x) => types.structs.contains_key(x) || types.enums.contains_key(x),
+                            Ty::Named(x) => {
+                                types.structs.contains_key(x) || types.enums.contains_key(x)
+                            }
                             _ => true,
                         })
                     }) {
@@ -4794,6 +5025,583 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         }
         _ => return std_printed(&segs, name, &args).ok_or_else(|| Residue::Type(t.to_string())),
     })
+}
+
+/// The residue kind of what the memory model does not hold.
+const MEMORY_KIND: &str = "Memory";
+
+/// The detail of the signal that a body reaches memory only through a
+/// callee: its translation is made again with the memory threaded.
+const NEEDS_MEMORY: &str = "a callee reaches memory";
+
+fn needs_memory() -> Residue {
+    kind(MEMORY_KIND, NEEDS_MEMORY)
+}
+
+fn is_needs_memory(r: &Residue) -> bool {
+    matches!(r, Residue::Mir(s) if *s == format!("{MEMORY_KIND}: {NEEDS_MEMORY}"))
+}
+
+/// The intrinsics that read or write memory, or compute a pointer with
+/// the bounds of its allocation, by name.
+const MEMORY_INTRINSICS: &[&str] = &[
+    "read_via_copy",
+    "write_via_move",
+    "typed_swap_nonoverlapping",
+    "copy_nonoverlapping",
+    "copy",
+    "offset",
+    "arith_offset",
+    "aggregate_raw_ptr",
+];
+
+/// The type arguments a callee's last segment states: `["u32"]` of
+/// `read_via_copy::<u32>`.
+fn turbofish(callee: &str) -> Vec<String> {
+    let last = split_path(callee).last().copied().unwrap_or_default();
+    let Some(at) = last.find("::<") else {
+        return Vec::new();
+    };
+    let Some(inner) = last[at + 3..].strip_suffix('>') else {
+        return Vec::new();
+    };
+    split_top(inner, ',')
+        .into_iter()
+        .map(|t| t.trim().to_string())
+        .filter(|t| !t.is_empty())
+        .collect()
+}
+
+/// Whether a body takes an address, reads or writes through a raw pointer,
+/// offsets one, or calls a memory intrinsic.
+fn reaches_memory(body: &IrBody) -> bool {
+    let raw = |l: IrLocal| body.locals.get(l).is_some_and(|t| pointee(t).is_some());
+    let through = |p: &IrPlace| raw(p.local) && p.projection.first() == Some(&IrProjection::Deref);
+    let operand =
+        |o: &IrOperand| matches!(o, IrOperand::Copy(p) | IrOperand::Move(p) if through(p));
+    body.blocks.iter().any(|b| {
+        b.statements.iter().any(|s| match s {
+            IrStatement::Assign(p, rv) => {
+                through(p)
+                    || match rv {
+                        IrRvalue::RawPtr(..) => true,
+                        IrRvalue::Binary(spec::MirBinOp::Offset, ..) => true,
+                        IrRvalue::Ref(_, q) | IrRvalue::CopyForDeref(q) => through(q),
+                        IrRvalue::Use(o) | IrRvalue::Unary(_, o) | IrRvalue::Cast(_, o, _) => {
+                            operand(o)
+                        }
+                        IrRvalue::Binary(_, a, c) => operand(a) || operand(c),
+                        IrRvalue::Aggregate(_, ops) => ops.iter().any(|(_, o)| operand(o)),
+                        _ => false,
+                    }
+            }
+            _ => false,
+        }) || match &b.terminator {
+            IrTerminator::Call {
+                callee,
+                args,
+                destination,
+                ..
+            } => {
+                let path = erase(callee);
+                let last = split_path(&path).last().copied().unwrap_or_default();
+                MEMORY_INTRINSICS.contains(&last)
+                    || args.iter().any(operand)
+                    || through(destination)
+            }
+            IrTerminator::Switch(o, ..) => operand(o),
+            _ => false,
+        }
+    })
+}
+
+/// A way into memory: the pointer to a value's first cell, its cells' type
+/// and size, and their shape.
+#[derive(Clone, Debug)]
+struct View {
+    pointer: String,
+    elem: Ty,
+    stride: u64,
+    shape: Shape,
+}
+
+/// What a place reached through a [`View`] is.
+enum Access {
+    /// A cell's value.
+    Cell(String),
+    /// A `MaybeUninit`'s cell, read whole.
+    Maybe(String),
+    /// A `MaybeUninit`'s `uninit` field, the unit.
+    Unit(String),
+}
+
+/// The type's name and its one argument, where `text` is an instance of a
+/// generic struct of one parameter: `MaybeUninit<T>`.
+fn wrapper(text: &str) -> Option<(&str, &str)> {
+    let t = text.trim();
+    let last = split_path(t).last().copied()?;
+    let at = last.find('<')?;
+    let name = last[..at].trim_end_matches("::");
+    let arg = last[at + 1..].strip_suffix('>')?;
+    (split_top(arg, ',').len() == 1).then_some((name, arg))
+}
+
+impl Fun<'_, '_> {
+    /// The memory where control is.
+    fn memory_at(&self, st: &State) -> Lift<String> {
+        st.memory.clone().ok_or_else(needs_memory)
+    }
+
+    /// The cells of a value of the type printed `text`: their type, size
+    /// and alignment, and their shape.
+    fn cells_of(&mut self, text: &str) -> Lift<(Ty, u64, u64, Shape)> {
+        let t = text.trim();
+        let (elem_text, shape) =
+            if let Some(inner) = t.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
+                (split_top(inner, ';')[0], Shape::Items)
+            } else {
+                match wrapper(t) {
+                    Some(("MaybeUninit", arg)) => (arg, Shape::Maybe),
+                    Some(("ManuallyDrop", arg)) => (arg, Shape::Scalar),
+                    _ => (t, Shape::Scalar),
+                }
+            };
+        let elem = ty(elem_text, self.cx.types)?;
+        if !matches!(elem, Ty::Nat(_) | Ty::Float(_)) {
+            return Err(kind(
+                MEMORY_KIND,
+                &format!(
+                    "a value of {}, which the memory holds no cells of",
+                    elem.render()
+                ),
+            ));
+        }
+        let l = super::layout::agreed(&elem, self.cx.layouts)
+            .map_err(|r| kind(MEMORY_KIND, &r.to_string()))?;
+        if l.size == 0 {
+            return Err(kind(MEMORY_KIND, "a zero-sized value in memory"));
+        }
+        self.strides.insert(l.size);
+        self.mention(&super::memory::memory_ty());
+        self.mention(&Ty::Named(POINTER.to_string()));
+        Ok((elem, l.size, l.align, shape))
+    }
+
+    /// The view through a raw pointer `term` to a value of the type printed
+    /// `text`.
+    fn pointer_view(&mut self, term: &str, text: &str) -> Lift<View> {
+        let (elem, stride, _, shape) = self.cells_of(text)?;
+        Ok(View {
+            pointer: term.to_string(),
+            elem,
+            stride,
+            shape,
+        })
+    }
+
+    /// The view a place is reached through, where it is in memory: a local
+    /// whose address was taken, or a dereference of a raw pointer. The
+    /// steps left are the place's projection past it.
+    fn view_of(&mut self, p: &IrPlace, st: &State) -> Lift<Option<(View, Vec<IrProjection>)>> {
+        if let Some(placed) = st.placed.get(&p.local) {
+            let through = placed.mirror && p.projection.first() == Some(&IrProjection::Deref);
+            let steps = p.projection[usize::from(through)..].to_vec();
+            return Ok(Some((
+                View {
+                    pointer: placed.pointer.clone(),
+                    elem: placed.elem.clone(),
+                    stride: placed.stride,
+                    shape: placed.shape.clone(),
+                },
+                steps,
+            )));
+        }
+        let text = self.body.locals.get(p.local).cloned().unwrap_or_default();
+        if let (Some((pointee_text, _)), Some((IrProjection::Deref, rest))) =
+            (pointee(&text), p.projection.split_first())
+        {
+            let Some(Val::V(term, _)) = st.env.get(&p.local) else {
+                return Err(kind(MEMORY_KIND, "a pointer read before it is written"));
+            };
+            let term = term.clone();
+            let view = self.pointer_view(&term, pointee_text)?;
+            return Ok(Some((view, rest.to_vec())));
+        }
+        Ok(None)
+    }
+
+    /// The pointer to the part of a view `steps` reach, and what it is.
+    fn access(
+        &mut self,
+        view: &View,
+        steps: &[IrProjection],
+        st: &State,
+    ) -> Lift<(String, Access)> {
+        let mut pointer = view.pointer.clone();
+        let mut rest = steps;
+        if view.shape == Shape::Items {
+            let at = match rest.first() {
+                Some(IrProjection::Index(l)) => match st.env.get(l) {
+                    Some(Val::V(i, Ty::Nat(_))) => i.clone(),
+                    _ => return Err(kind(MEMORY_KIND, "an index that is not a natural")),
+                },
+                Some(IrProjection::ConstantIndex(n, false)) => n.to_string(),
+                _ => return Err(kind(MEMORY_KIND, "an array or slice in memory, read whole")),
+            };
+            pointer = format!(
+                "(mirAdvance {pointer} (prim multiply {at} {} : Nat))",
+                view.stride
+            );
+            rest = &rest[1..];
+        }
+        // A wrapper's field is the wrapped value: `MaybeUninit`'s `value`
+        // (its `ManuallyDrop`), and `ManuallyDrop`'s own.
+        let mut maybe = view.shape == Shape::Maybe;
+        for step in rest {
+            match step {
+                IrProjection::Field(1, fty)
+                    if maybe && wrapper(fty).is_some_and(|(n, _)| n == "ManuallyDrop") =>
+                {
+                    maybe = false;
+                }
+                IrProjection::Field(0, fty) if maybe && fty.trim() == "()" => {
+                    return Ok((pointer.clone(), Access::Unit(pointer)));
+                }
+                IrProjection::Field(0, fty)
+                    if !maybe && ty(fty, self.cx.types).ok().as_ref() == Some(&view.elem) => {}
+                _ => {
+                    return Err(kind(
+                        MEMORY_KIND,
+                        &format!("a part of a value in memory: {step:?}"),
+                    ))
+                }
+            }
+        }
+        Ok(if maybe {
+            (pointer.clone(), Access::Maybe(pointer))
+        } else {
+            (pointer.clone(), Access::Cell(pointer))
+        })
+    }
+
+    /// A read of the part of a view `steps` reach.
+    fn load(&mut self, view: &View, steps: &[IrProjection], st: &State) -> Lift<(String, Ty)> {
+        let m = self.memory_at(st)?;
+        let s = view.stride;
+        let (_, access) = self.access(view, steps, st)?;
+        let out = match access {
+            Access::Cell(p) => {
+                self.obligation(
+                    st,
+                    &format!("((mirReadable {m} {p} {s}) = true)"),
+                    "a read through a pointer",
+                );
+                (format!("(mirLoad {m} {p} {s})"), view.elem.clone())
+            }
+            Access::Maybe(p) => (
+                format!("(mirLoadMaybe {m} {p} {s})"),
+                Ty::Option(Box::new(view.elem.clone())),
+            ),
+            Access::Unit(_) => ("()".to_string(), Ty::Unit),
+        };
+        self.grow(&out.0)?;
+        Ok(out)
+    }
+
+    /// A write of `v` into the part of a view `steps` reach.
+    fn store(&mut self, view: &View, steps: &[IrProjection], v: Val, st: &mut State) -> Lift<()> {
+        let m = self.memory_at(st)?;
+        let s = view.stride;
+        let (_, access) = self.access(view, steps, st)?;
+        let Val::V(value, _) = v else {
+            return Err(kind(MEMORY_KIND, "a borrow or a pair written into memory"));
+        };
+        let new = match access {
+            Access::Cell(p) => {
+                self.obligation(
+                    st,
+                    &format!("((mirWritable {m} {p} {s}) = true)"),
+                    "a write through a pointer",
+                );
+                format!("(mirStore {m} {p} {s} {value})")
+            }
+            Access::Maybe(p) => {
+                self.obligation(
+                    st,
+                    &format!("((mirWritable {m} {p} {s}) = true)"),
+                    "a write through a pointer",
+                );
+                format!("(mirStoreMaybe {m} {p} {s} {value})")
+            }
+            Access::Unit(p) => {
+                self.obligation(
+                    st,
+                    &format!("((mirWritable {m} {p} {s}) = true)"),
+                    "a write through a pointer",
+                );
+                format!("(mirForget {m} {p} {s})")
+            }
+        };
+        self.grow(&new)?;
+        st.memory = Some(new);
+        Ok(())
+    }
+
+    /// `&raw const p` or `&raw mut p`: the place's address. A place not yet
+    /// in memory is moved into an allocation of its own.
+    fn address_of(&mut self, p: &IrPlace, dest: &IrPlace, st: &mut State) -> Lift<Val> {
+        let pt = Ty::Named(POINTER.to_string());
+        // Through a mutable borrow: the place it borrows.
+        if let (Some(Val::Mut(q)), Some((IrProjection::Deref, rest))) =
+            (st.env.get(&p.local).cloned(), p.projection.split_first())
+        {
+            let mut through = q.clone();
+            through.projection.extend(rest.iter().cloned());
+            return self.address_of(&through, dest, st);
+        }
+        if self.view_of(p, st)?.is_none() {
+            self.place_root(p, st)?;
+        }
+        let (view, steps) = self
+            .view_of(p, st)?
+            .ok_or_else(|| kind(MEMORY_KIND, "a place not in memory"))?;
+        let (pointer, _) = self.access(&view, &steps, st)?;
+        // A pointer to a slice carries its length.
+        let wide = dest.projection.is_empty()
+            && self
+                .body
+                .locals
+                .get(dest.local)
+                .and_then(|t| pointee(t))
+                .is_some_and(|(_, w)| w);
+        let pointer = if wide && steps.is_empty() && view.shape == Shape::Items {
+            match st.placed.get(&p.local) {
+                Some(placed) => format!(
+                    "(record {POINTER} {{allocation := (project {pointer} allocation), address := (project {pointer} address), metadata := (project {} metadata)}})",
+                    placed.pointer
+                ),
+                None => pointer,
+            }
+        } else {
+            pointer
+        };
+        self.mention(&pt);
+        Ok(Val::V(pointer, pt))
+    }
+
+    /// Move the local a place is rooted at into an allocation of its own:
+    /// the local itself, or the place a borrow it holds lends.
+    fn place_root(&mut self, p: &IrPlace, st: &mut State) -> Lift<()> {
+        let l = p.local;
+        let text = self
+            .body
+            .locals
+            .get(l)
+            .cloned()
+            .ok_or_else(|| kind(MEMORY_KIND, "a local without a declaration"))?;
+        let through = p.projection.first() == Some(&IrProjection::Deref);
+        let (value_text, mirror, shared) = if through {
+            let Some(r) = referent(&text) else {
+                return Err(kind(
+                    MEMORY_KIND,
+                    &format!("the address of a place behind {text}"),
+                ));
+            };
+            let mutable = mut_target(&text).is_some();
+            (r.to_string(), true, !mutable)
+        } else {
+            (text.clone(), false, false)
+        };
+        let (elem, stride, align, shape) = self.cells_of(&value_text)?;
+        let m = self.memory_at(st)?;
+        let value = match st.env.get(&l) {
+            Some(Val::V(v, _)) => Some(v.clone()),
+            None if shape == Shape::Maybe => None,
+            _ => {
+                return Err(kind(
+                    MEMORY_KIND,
+                    "the address of a local that holds no value",
+                ))
+            }
+        };
+        let (length, cells, defined, metadata) = match (&shape, value) {
+            (Shape::Scalar, Some(v)) => (
+                "1".to_string(),
+                format!("(mirCellsOf {v})"),
+                "(mirDefinedAs 1)".to_string(),
+                "0".to_string(),
+            ),
+            (Shape::Maybe, Some(v)) => (
+                "1".to_string(),
+                format!("(mirCellsOfMaybe {v})"),
+                format!("(mirDefinedOfMaybe {v})"),
+                "0".to_string(),
+            ),
+            (Shape::Maybe, None) => (
+                "1".to_string(),
+                "(mirCellsOf 0)".to_string(),
+                "(mirDefinedAs 0)".to_string(),
+                "0".to_string(),
+            ),
+            (Shape::Items, Some(v)) => {
+                let len = format!("(prim length {v} : Nat)");
+                (
+                    len.clone(),
+                    format!("(mirCellsOfList {v} {stride})"),
+                    "(mirDefinedAs 1)".to_string(),
+                    len,
+                )
+            }
+            _ => {
+                return Err(kind(
+                    MEMORY_KIND,
+                    "the address of a local that holds no value",
+                ))
+            }
+        };
+        let pointer = format!("(mirAllocated {m} {align} {metadata})");
+        let memory = format!("(mirAllocate {m} {stride} {align} {length} {cells} {defined})");
+        self.grow(&memory)?;
+        if shared {
+            self.mirrored_shared = true;
+        }
+        st.memory = Some(memory);
+        st.placed.insert(
+            l,
+            Placed {
+                pointer,
+                elem,
+                stride,
+                shape,
+                mirror,
+            },
+        );
+        Ok(())
+    }
+
+    /// The memory a body gives back: every allocation it made freed, its
+    /// locals' and its copies of the places its callers lent, which no
+    /// pointer it returns may reach.
+    fn returned_memory(&mut self, returned: &str, st: &State) -> Lift<String> {
+        let mut m = self.memory_at(st)?;
+        for placed in st.placed.values() {
+            if placed.mirror && returned.contains(&placed.pointer) {
+                return Err(kind(
+                    MEMORY_KIND,
+                    "a pointer to a place the caller lent, returned: the value model gives that place no address",
+                ));
+            }
+            m = format!("(mirFree {m} (project {} allocation))", placed.pointer);
+        }
+        self.grow(&m)?;
+        Ok(m)
+    }
+
+    /// `p.offset(n)` and `p.add(n)`: `n` items further on, which must stay
+    /// in its allocation or one past its end (`checked`), as `offset`
+    /// requires; `arith_offset`'s wrapping pointer is not checked.
+    fn offset_pointer(
+        &mut self,
+        p: &str,
+        pointee_text: &str,
+        n: &str,
+        nt: &Ty,
+        checked: bool,
+        st: &State,
+    ) -> Lift<String> {
+        if !matches!(nt, Ty::Nat(_)) {
+            return Err(kind(MEMORY_KIND, &format!("an offset by {}", nt.render())));
+        }
+        let (_, stride, _, _) = self.cells_of(pointee_text)?;
+        let moved = format!("(mirAdvance {p} (prim multiply {n} {stride} : Nat))");
+        if checked {
+            let m = self.memory_at(st)?;
+            self.obligation(
+                st,
+                &format!("((mirWithin {m} {moved}) = true)"),
+                "an offset within its allocation",
+            );
+        }
+        self.grow(&moved)?;
+        Ok(moved)
+    }
+
+    /// A call of an intrinsic that reaches memory, by its name and the
+    /// types it binds: its model.
+    fn memory_intrinsic(
+        &mut self,
+        name: &str,
+        generics: &[String],
+        args: &[(String, Ty)],
+        st: &mut State,
+    ) -> Lift<Option<String>> {
+        let one = |i: usize| generics.get(i).cloned().unwrap_or_default();
+        match (name, args) {
+            ("read_via_copy", [(p, _)]) => {
+                let view = self.pointer_view(p, &one(0))?;
+                Ok(Some(self.load(&view, &[], st)?.0))
+            }
+            ("write_via_move", [(p, _), (v, t)]) => {
+                let view = self.pointer_view(p, &one(0))?;
+                self.store(&view, &[], Val::V(v.clone(), t.clone()), st)?;
+                Ok(Some("()".into()))
+            }
+            ("typed_swap_nonoverlapping", [(x, _), (y, _)]) => {
+                let vx = self.pointer_view(x, &one(0))?;
+                let vy = self.pointer_view(y, &one(0))?;
+                let (a, at) = self.load(&vx, &[], st)?;
+                let (b, bt) = self.load(&vy, &[], st)?;
+                self.obligation(
+                    st,
+                    &format!("((((project {x} allocation) =? (project {y} allocation)) && ((project {x} address) =? (project {y} address))) = false)"),
+                    "pointers that do not overlap",
+                );
+                self.store(&vx, &[], Val::V(b, bt), st)?;
+                self.store(&vy, &[], Val::V(a, at), st)?;
+                Ok(Some("()".into()))
+            }
+            ("copy_nonoverlapping" | "copy", [(src, _), (dst, _), (count, _)]) if count == "1" => {
+                let vs = self.pointer_view(src, &one(0))?;
+                let vd = self.pointer_view(dst, &one(0))?;
+                let (v, t) = self.load(&vs, &[], st)?;
+                self.store(&vd, &[], Val::V(v, t), st)?;
+                Ok(Some("()".into()))
+            }
+            ("offset" | "arith_offset", [(p, _), (n, nt)]) => {
+                // `offset::<*const T, usize>`: `T` is the pointer's pointee.
+                let pointer_text = one(0);
+                let Some((pointee_text, _)) = pointee(&pointer_text) else {
+                    return Err(kind(MEMORY_KIND, &format!("an offset of {pointer_text}")));
+                };
+                let pointee_text = pointee_text.to_string();
+                let checked = name == "offset";
+                Ok(Some(self.offset_pointer(
+                    p,
+                    &pointee_text,
+                    n,
+                    nt,
+                    checked,
+                    st,
+                )?))
+            }
+            ("aggregate_raw_ptr", [(data, _), (meta, mt)]) => {
+                let meta = match mt {
+                    Ty::Nat(_) => meta.clone(),
+                    Ty::Unit => "0".to_string(),
+                    other => {
+                        return Err(kind(
+                            MEMORY_KIND,
+                            &format!("a pointer's metadata of {}", other.render()),
+                        ))
+                    }
+                };
+                Ok(Some(format!(
+                    "(record {POINTER} {{allocation := (project {data} allocation), address := (project {data} address), metadata := {meta}}})"
+                )))
+            }
+            _ => Ok(None),
+        }
+    }
 }
 
 #[cfg(test)]

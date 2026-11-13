@@ -51,7 +51,11 @@ host=$(rustc +"$channel" -vV | sed -n 's/^host: //p')
 # own data layout states it: `usize` in these bodies is that wide.
 mkdir -p "$out"
 width=$(rustc +"$channel" --print cfg --target "$host" | sed -n 's/^target_pointer_width="\(.*\)"/\1/p')
-printf 'triple = "%s"\npointer_width = %s\n' "$host" "$width" >"$out/target.toml"
+# Its data layout, as its target specification states it: the memory's
+# strides and alignments are read from it (crates/uorust/src/mir/layout.rs).
+layout=$(RUSTC_BOOTSTRAP=1 rustc +"$channel" -Zunstable-options --print target-spec-json --target "$host" |
+  python3 -I -c 'import json, sys; print(json.load(sys.stdin)["data-layout"])')
+printf 'triple = "%s"\npointer_width = %s\ndata_layout = "%s"\n' "$host" "$width" "$layout" >"$out/target.toml"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/probe/src"

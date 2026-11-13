@@ -126,6 +126,7 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
     // and its `target_pointer_width` as rustc prints it); every width a
     // target may have when there is none.
     let file = dumps.join("target.toml");
+    let mut layouts = Vec::new();
     let widths = match std::fs::read_to_string(&file) {
         Err(_) => lift::pointer_widths(&[]),
         Ok(text) => {
@@ -143,6 +144,8 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
                 .and_then(toml::Value::as_integer)
                 .and_then(|w| u32::try_from(w).ok())
                 .ok_or_else(|| bad("no pointer_width".into()))?;
+            // Its data layout, which `dump-lib.sh` records beside them.
+            layouts = super::layout::from_target_toml(&doc).map_err(|r| bad(r.to_string()))?;
             vec![(width, vec![triple.to_string()])]
         }
     };
@@ -173,7 +176,7 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
     );
     Ok(read
         .iter()
-        .map(|(module, texts)| shard(scope, root, module, texts, &widths, &link))
+        .map(|(module, texts)| shard(scope, root, module, texts, &widths, &layouts, &link))
         .collect())
 }
 
@@ -186,6 +189,7 @@ pub(crate) fn shard(
     module: &str,
     texts: &[String],
     widths: &[(u32, Vec<String>)],
+    layouts: &[super::layout::DataLayout],
     link: &super::link::CoreLink,
 ) -> CoreShard {
     let krate = scope.krate.as_str();
@@ -268,6 +272,11 @@ pub(crate) fn shard(
     types
         .structs
         .insert(lower::POINTER.to_string(), lower::pointer_fields());
+    // The memory raw pointers reach (see `super::memory`).
+    types.structs.insert(
+        super::memory::MEMORY.to_string(),
+        super::memory::memory_fields(),
+    );
     let callees = BTreeMap::new();
     let none = std::collections::BTreeSet::new();
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
@@ -296,6 +305,7 @@ pub(crate) fn shard(
             closures: &closures,
             active: &active,
             core: Some(link),
+            layouts,
         };
         let outcome = if at.contains('#') {
             Err("mir::Instantiation: a const parameter".to_string())
