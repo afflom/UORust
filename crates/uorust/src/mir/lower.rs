@@ -791,13 +791,39 @@ impl Fun<'_, '_> {
             .get(l)
             .ok_or_else(|| kind("IrBody", "a local without a declaration"))?;
         let mut t = ty(text, self.cx.types)?;
+        let mut at = Some(text.clone());
         for step in steps {
             t = match step {
-                IrProjection::Deref if is_pointer(&t) => return Err(through_pointer("write")),
-                IrProjection::Deref | IrProjection::Downcast(_) => t,
-                IrProjection::Field(_, fty) => ty(fty, self.cx.types)?,
+                // A raw pointer's pointee, or a reference's referent.
+                IrProjection::Deref => match at.as_deref().map(|x| (pointee(x), referent(x))) {
+                    Some((Some((pt, _)), _)) => {
+                        let pt = pt.to_string();
+                        at = Some(pt.clone());
+                        ty(&pt, self.cx.types)?
+                    }
+                    Some((None, Some(r))) => {
+                        at = Some(r);
+                        t
+                    }
+                    _ if is_pointer(&t) => return Err(through_pointer("write")),
+                    _ => {
+                        at = None;
+                        t
+                    }
+                },
+                IrProjection::Downcast(_) => {
+                    at = None;
+                    t
+                }
+                IrProjection::Field(_, fty) => {
+                    at = Some(fty.clone());
+                    ty(fty, self.cx.types)?
+                }
                 IrProjection::Index(_) | IrProjection::ConstantIndex(..) => match t {
-                    Ty::List(elem) => *elem,
+                    Ty::List(elem) => {
+                        at = at.as_deref().and_then(item_of);
+                        *elem
+                    }
                     other => {
                         return Err(kind(
                             spec::MirProjectionElem::Index.path(),
@@ -2653,7 +2679,11 @@ impl Fun<'_, '_> {
         while let Some(step) = steps.next() {
             match step {
                 // A shared reference or a box is the value it points to.
-                IrProjection::Deref if is_pointer(&t) => return Err(through_pointer("read")),
+                IrProjection::Deref
+                    if is_pointer(&t) && text.as_deref().is_none_or(|x| referent(x).is_none()) =>
+                {
+                    return Err(through_pointer("read"))
+                }
                 IrProjection::Deref => text = text.as_deref().and_then(referent),
                 IrProjection::Field(0, fty) if text.as_deref().is_some_and(one_tuple) => {
                     t = ty(fty, self.cx.types)?;
@@ -5938,6 +5968,14 @@ enum Access {
     Unit(String),
 }
 
+/// The item type of an array or slice type as printed: `T` of `[T]` or
+/// `[T; N]`.
+fn item_of(text: &str) -> Option<String> {
+    let inner = text.trim().strip_prefix('[')?.strip_suffix(']')?;
+    let parts = split_top(inner, ';');
+    Some(parts.first()?.trim().to_string())
+}
+
 /// Whether no value of `t` holds a pointer: a value loaded from memory
 /// names the pointer it was loaded through, but is not one.
 fn holds_no_pointer(t: &Ty) -> bool {
@@ -6049,18 +6087,26 @@ impl Fun<'_, '_> {
             let view = self.pointer_view(&term, pointee_text)?;
             return Ok(Some((view, rest.to_vec())));
         }
-        // A raw pointer held in a field, dereferenced: the field read, then
-        // the memory it points into (the last such step, so that a pointer
-        // read through another is loaded first).
-        let held = p.projection.iter().enumerate().rev().find_map(|(j, step)| {
-            match (step, j.checked_sub(1).map(|i| &p.projection[i])) {
-                (IrProjection::Deref, Some(IrProjection::Field(_, fty))) => {
-                    pointee(fty).map(|(t, _)| (j, t.to_string()))
-                }
+        // A raw pointer held in a field or behind a reference, dereferenced:
+        // the pointer read, then the memory it points into (the last such
+        // step, so that a pointer read through another is loaded first).
+        let mut at = Some(text.clone());
+        let mut held = None;
+        for (j, step) in p.projection.iter().enumerate() {
+            at = match (step, at.as_deref()) {
+                (IrProjection::Deref, Some(x)) => match pointee(x) {
+                    Some((pt, _)) => {
+                        held = Some((j, pt.to_string()));
+                        Some(pt.to_string())
+                    }
+                    None => referent(x),
+                },
+                (IrProjection::Field(_, fty), _) => Some(fty.clone()),
+                (IrProjection::Index(_) | IrProjection::ConstantIndex(..), Some(x)) => item_of(x),
                 _ => None,
-            }
-        });
-        if let Some((j, pointee_text)) = held {
+            };
+        }
+        if let Some((j, pointee_text)) = held.filter(|(j, _)| *j > 0) {
             let prefix = IrPlace {
                 local: p.local,
                 projection: p.projection[..j].to_vec(),
@@ -6210,7 +6256,12 @@ impl Fun<'_, '_> {
         let (view, steps) = self
             .view_of(p, st)?
             .ok_or_else(|| kind(MEMORY_KIND, "a place not in memory"))?;
-        let (pointer, _) = self.access(&view, &steps, st)?;
+        // The address of a whole array or slice is its first item's.
+        let (pointer, _) = if steps.is_empty() && view.shape == Shape::Items {
+            (view.pointer.clone(), Access::Unit(view.pointer.clone()))
+        } else {
+            self.access(&view, &steps, st)?
+        };
         // A pointer to a slice carries its length.
         let wide = dest.projection.is_empty()
             && self
