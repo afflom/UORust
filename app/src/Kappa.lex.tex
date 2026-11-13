@@ -1,0 +1,328 @@
+\begin{lexlean}{Kappa}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+inductive{
+  name: Symbol,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: newline, fields: []}, {name: byte, fields: [Nat]}]
+}
+
+structure{
+  name: KappaInput,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: path, type: (List Nat)}, {name: tokens, type: (List Symbol)}]
+}
+
+definition{
+  name: concatSymbols,
+  parameters: [left : (List Symbol), right : (List Symbol)],
+  result: (List Symbol),
+  body: (match left
+    | List.nil => right
+    | List.cons head tail => (cons head (concatSymbols tail right))),
+  axioms: [],
+  recursive_argument: left
+}
+
+definition{
+  name: noNewline,
+  parameters: [values : (List Symbol)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (match head
+      | Symbol.newline => false
+      | Symbol.byte value => (noNewline tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: beforeNewline,
+  parameters: [values : (List Symbol)],
+  result: (List Symbol),
+  body: (match values
+    | List.nil => (nil Symbol)
+    | List.cons head tail => (match head
+      | Symbol.newline => (nil Symbol)
+      | Symbol.byte value => (cons head (beforeNewline tail)))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: afterNewline,
+  parameters: [values : (List Symbol)],
+  result: (List Symbol),
+  body: (match values
+    | List.nil => (nil Symbol)
+    | List.cons head tail => (match head
+      | Symbol.newline => tail
+      | Symbol.byte value => (afterNewline tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: isEmpty,
+  parameters: [values : (List Symbol)],
+  result: Bool,
+  body: (match values | List.nil => true | List.cons head tail => false),
+  axioms: []
+}
+
+definition{
+  name: withoutLast,
+  parameters: [values : (List Symbol)],
+  result: (List Symbol),
+  body: (match values
+    | List.nil => (nil Symbol)
+    | List.cons head tail => (match (isEmpty tail)
+      | Bool.true => (nil Symbol)
+      | Bool.false => (cons head (withoutLast tail)))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: pathSymbols,
+  parameters: [path : (List Nat)],
+  result: (List Symbol),
+  body: (match path
+    | List.nil => (nil Symbol)
+    | List.cons head tail => (cons (ctor Symbol.byte head) (pathSymbols tail))),
+  axioms: [],
+  recursive_argument: path
+}
+
+definition{
+  name: kappaDomain,
+  parameters: [],
+  result: (List Symbol),
+  body: (cons (ctor Symbol.byte 117) (cons (ctor Symbol.byte 111) (cons (ctor Symbol.byte 114) (cons (ctor Symbol.byte 117) (cons (ctor Symbol.byte 115) (cons (ctor Symbol.byte 116) (cons (ctor Symbol.byte 47) (cons (ctor Symbol.byte 102) (cons (ctor Symbol.byte 117) (cons (ctor Symbol.byte 110) (cons (ctor Symbol.byte 99) (cons (ctor Symbol.byte 116) (cons (ctor Symbol.byte 105) (cons (ctor Symbol.byte 111) (cons (ctor Symbol.byte 110) (cons (ctor Symbol.byte 47) (cons (ctor Symbol.byte 49) (nil Symbol)))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: kappaPreimage,
+  parameters: [path : (List Nat), tokens : (List Symbol)],
+  result: (List Symbol),
+  body: (concatSymbols (kappaDomain) (cons (ctor Symbol.newline) (concatSymbols (pathSymbols path) (cons (ctor Symbol.newline) (concatSymbols tokens (cons (ctor Symbol.newline) (nil Symbol))))))),
+  axioms: []
+}
+
+definition{
+  name: kappaPath,
+  parameters: [preimage : (List Symbol)],
+  result: (List Symbol),
+  body: (beforeNewline (afterNewline preimage)),
+  axioms: []
+}
+
+definition{
+  name: kappaTokens,
+  parameters: [preimage : (List Symbol)],
+  result: (List Symbol),
+  body: (withoutLast (afterNewline (afterNewline preimage))),
+  axioms: []
+}
+
+theorem{
+  name: framedIsNotEmpty,
+  parameters: [values : (List Symbol)],
+  statement: ((isEmpty (concatSymbols values (cons (ctor Symbol.newline) (nil Symbol)))) = false),
+  proof: cases{
+    branches: [
+      {proof: simplify{definitions: [concatSymbols, isEmpty]}, binders: [], constructor: nil},
+      {proof: simplify{definitions: [concatSymbols, isEmpty]}, binders: [y, ys], constructor: cons}
+    ],
+    scrutinee: values
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: theLastNewlineIsDropped,
+  parameters: [values : (List Symbol)],
+  statement: ((withoutLast (concatSymbols values (cons (ctor Symbol.newline) (nil Symbol)))) = values),
+  proof: induction{
+    branches: [
+      {
+        proof: simplify{definitions: [concatSymbols, isEmpty, withoutLast]},
+        binders: [],
+        constructor: nil
+      },
+      {
+        proof: simplify{definitions: [concatSymbols, framedIsNotEmpty, ih, withoutLast]},
+        binders: [x, xs, ih],
+        constructor: cons
+      }
+    ],
+    scrutinee: values
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: aPathIsReadBack,
+  parameters: [path : (List Nat), rest : (List Symbol)],
+  statement: ((beforeNewline (concatSymbols (pathSymbols path) (cons (ctor Symbol.newline) rest))) = (pathSymbols path)),
+  proof: induction{
+    branches: [
+      {
+        proof: simplify{definitions: [beforeNewline, concatSymbols, pathSymbols]},
+        binders: [],
+        constructor: nil
+      },
+      {
+        proof: simplify{definitions: [beforeNewline, concatSymbols, ih, pathSymbols]},
+        binders: [x, xs, ih],
+        constructor: cons
+      }
+    ],
+    scrutinee: path
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: whatFollowsAPathIsReadBack,
+  parameters: [path : (List Nat), rest : (List Symbol)],
+  statement: ((afterNewline (concatSymbols (pathSymbols path) (cons (ctor Symbol.newline) rest))) = rest),
+  proof: induction{
+    branches: [
+      {
+        proof: simplify{definitions: [afterNewline, concatSymbols, pathSymbols]},
+        binders: [],
+        constructor: nil
+      },
+      {
+        proof: simplify{definitions: [afterNewline, concatSymbols, ih, pathSymbols]},
+        binders: [x, xs, ih],
+        constructor: cons
+      }
+    ],
+    scrutinee: path
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: kappaPathInvertsThePreimage,
+  parameters: [path : (List Nat), tokens : (List Symbol)],
+  statement: ((kappaPath (kappaPreimage path tokens)) = (pathSymbols path)),
+  proof: simplify{
+    definitions: [
+      aPathIsReadBack,
+      afterNewline,
+      concatSymbols,
+      kappaDomain,
+      kappaPath,
+      kappaPreimage
+    ]
+  },
+  axioms: [propext]
+}
+
+theorem{
+  name: kappaTokensInvertThePreimage,
+  parameters: [path : (List Nat), tokens : (List Symbol)],
+  statement: ((kappaTokens (kappaPreimage path tokens)) = tokens),
+  proof: simplify{
+    definitions: [
+      afterNewline,
+      concatSymbols,
+      kappaDomain,
+      kappaPreimage,
+      kappaTokens,
+      theLastNewlineIsDropped,
+      whatFollowsAPathIsReadBack
+    ]
+  },
+  axioms: [propext]
+}
+
+definition{
+  name: symbolBytes,
+  parameters: [values : (List Symbol)],
+  result: (List Nat),
+  body: (match values
+    | List.nil => (nil Nat)
+    | List.cons head tail => (match head
+      | Symbol.newline => (cons 10 (symbolBytes tail))
+      | Symbol.byte value => (cons value (symbolBytes tail)))),
+  axioms: [],
+  recursive_argument: values
+}
+
+theorem{
+  name: aPathsSymbolsAreItsBytes,
+  parameters: [path : (List Nat)],
+  statement: ((symbolBytes (pathSymbols path)) = path),
+  proof: induction{
+    branches: [
+      {proof: simplify{definitions: [pathSymbols, symbolBytes]}, binders: [], constructor: nil},
+      {
+        proof: simplify{definitions: [ih, pathSymbols, symbolBytes]},
+        binders: [x, xs, ih],
+        constructor: cons
+      }
+    ],
+    scrutinee: path
+  },
+  axioms: [propext]
+}
+
+definition{
+  name: preimageOf,
+  parameters: [input : KappaInput],
+  result: (List Symbol),
+  body: (kappaPreimage (project input path) (project input tokens)),
+  axioms: []
+}
+
+theorem{
+  name: thePathIsReadFromThePreimage,
+  parameters: [input : KappaInput],
+  statement: ((project input path) = (symbolBytes (kappaPath (preimageOf input)))),
+  proof: simplify{definitions: [aPathsSymbolsAreItsBytes, kappaPathInvertsThePreimage, preimageOf]},
+  axioms: [propext]
+}
+
+theorem{
+  name: theTokensAreReadFromThePreimage,
+  parameters: [input : KappaInput],
+  statement: ((project input tokens) = (kappaTokens (preimageOf input))),
+  proof: simplify{definitions: [kappaTokensInvertThePreimage, preimageOf]},
+  axioms: [propext]
+}
+
+theorem{
+  name: aNewlineInThePathBreaksTheFraming,
+  parameters: [],
+  statement: ((concatSymbols (kappaDomain) (cons (ctor Symbol.newline) (concatSymbols (cons (ctor Symbol.byte 97) (cons (ctor Symbol.newline) (cons (ctor Symbol.byte 98) (nil Symbol)))) (cons (ctor Symbol.newline) (concatSymbols (cons (ctor Symbol.byte 99) (nil Symbol)) (cons (ctor Symbol.newline) (nil Symbol))))))) = (kappaPreimage (cons 97 (nil Nat)) (cons (ctor Symbol.byte 98) (cons (ctor Symbol.newline) (cons (ctor Symbol.byte 99) (nil Symbol)))))),
+  proof: reflexivity{},
+  axioms: []
+}
+
+definition{
+  name: kappaPreimageFixture,
+  parameters: [],
+  result: (List Symbol),
+  body: (cons (ctor Symbol.byte 117) (cons (ctor Symbol.byte 111) (cons (ctor Symbol.byte 114) (cons (ctor Symbol.byte 117) (cons (ctor Symbol.byte 115) (cons (ctor Symbol.byte 116) (cons (ctor Symbol.byte 47) (cons (ctor Symbol.byte 102) (cons (ctor Symbol.byte 117) (cons (ctor Symbol.byte 110) (cons (ctor Symbol.byte 99) (cons (ctor Symbol.byte 116) (cons (ctor Symbol.byte 105) (cons (ctor Symbol.byte 111) (cons (ctor Symbol.byte 110) (cons (ctor Symbol.byte 47) (cons (ctor Symbol.byte 49) (cons (ctor Symbol.newline) (cons (ctor Symbol.byte 99) (cons (ctor Symbol.byte 58) (cons (ctor Symbol.byte 58) (cons (ctor Symbol.byte 102) (cons (ctor Symbol.newline) (cons (ctor Symbol.byte 102) (cons (ctor Symbol.byte 110) (cons (ctor Symbol.byte 32) (cons (ctor Symbol.byte 102) (cons (ctor Symbol.byte 32) (cons (ctor Symbol.byte 40) (cons (ctor Symbol.byte 41) (cons (ctor Symbol.byte 32) (cons (ctor Symbol.byte 123) (cons (ctor Symbol.byte 125) (cons (ctor Symbol.newline) (nil Symbol))))))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+theorem{
+  name: theFixtureIsThePreimage,
+  parameters: [],
+  statement: ((kappaPreimage (cons 99 (cons 58 (cons 58 (cons 102 (nil Nat))))) (cons (ctor Symbol.byte 102) (cons (ctor Symbol.byte 110) (cons (ctor Symbol.byte 32) (cons (ctor Symbol.byte 102) (cons (ctor Symbol.byte 32) (cons (ctor Symbol.byte 40) (cons (ctor Symbol.byte 41) (cons (ctor Symbol.byte 32) (cons (ctor Symbol.byte 123) (cons (ctor Symbol.byte 125) (nil Symbol)))))))))))) = (kappaPreimageFixture)),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

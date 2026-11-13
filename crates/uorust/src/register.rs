@@ -32,8 +32,26 @@ pub const SCHEMA: &str = "uorust/register/1";
 /// The κ of a function: SHA-256 over [`DOMAIN`], its crate path and its
 /// normalized token stream, one line each, as lowercase hex.
 pub fn kappa(path: &str, tokens: &str) -> String {
-    let digest = Sha256::digest(format!("{DOMAIN}\n{path}\n{tokens}\n").as_bytes());
+    let digest = Sha256::digest(kappa_preimage(path, tokens));
     digest.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// The bytes [`kappa`] hashes: [`DOMAIN`], the path and the tokens, each
+/// ended by a newline. The model decides the framing (`Kappa::kappaPreimage`
+/// in app/src/Kappa.lex.tex, whose path is bytes that are never a newline):
+/// the path and the tokens are each read back from the preimage
+/// (`Kappa::thePathIsReadFromThePreimage`,
+/// `Kappa::theTokensAreReadFromThePreimage`), so two functions with one
+/// preimage are one function, and this adapter only hashes. A crate path is
+/// `::`-joined identifiers and never holds a newline; one that did is the
+/// one input the framing cannot tell apart
+/// (`Kappa::aNewlineInThePathBreaksTheFraming`), so it is refused.
+pub fn kappa_preimage(path: &str, tokens: &str) -> Vec<u8> {
+    assert!(
+        !path.contains('\n'),
+        "a crate path holds a newline, which the κ framing cannot tell apart: {path:?}"
+    );
+    format!("{DOMAIN}\n{path}\n{tokens}\n").into_bytes()
 }
 
 /// What the lift decided for one function.
@@ -429,6 +447,40 @@ mod tests {
         assert!(
             Register::parse(at, &twice).is_err_and(|e| e.to_string().contains("more than one row"))
         );
+    }
+
+    #[test]
+    fn the_preimage_is_the_models_fixture() {
+        // Kappa::kappaPreimageFixture, which Kappa::theFixtureIsThePreimage
+        // proves is the model's preimage of these two inputs.
+        let model = std::fs::read_to_string(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../app/src/Kappa.lex.tex"),
+        )
+        .expect("Kappa.lex.tex");
+        let at = model
+            .find("name: kappaPreimageFixture,")
+            .expect("the fixture");
+        let body = &model[at..model[at..].find("\n}").map_or(model.len(), |e| at + e)];
+        let mut bytes = Vec::new();
+        for piece in body.split("(ctor Symbol.").skip(1) {
+            if piece.starts_with("newline") {
+                bytes.push(b'\n');
+            } else {
+                let n = piece
+                    .trim_start_matches("byte ")
+                    .split(')')
+                    .next()
+                    .expect("a byte");
+                bytes.push(n.trim().parse::<u8>().expect("a byte"));
+            }
+        }
+        assert_eq!(kappa_preimage("c::f", "fn f () {}"), bytes);
+    }
+
+    #[test]
+    #[should_panic(expected = "newline")]
+    fn a_path_with_a_newline_is_refused() {
+        let _ = kappa_preimage("c::f\ng", "x");
     }
 
     #[test]
