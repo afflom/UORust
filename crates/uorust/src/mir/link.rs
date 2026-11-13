@@ -292,11 +292,14 @@ impl CoreLink {
             let [text] = self.bodies.get(printed)?.as_slice() else {
                 return None;
             };
-            return text.lines().any(|l| l.starts_with("const ")).then(|| Instance {
-                path: printed.to_string(),
-                text: text.clone(),
-                bound: Vec::new(),
-            });
+            return text
+                .lines()
+                .any(|l| l.starts_with("const "))
+                .then(|| Instance {
+                    path: printed.to_string(),
+                    text: text.clone(),
+                    bound: Vec::new(),
+                });
         }
         let inner = printed.strip_prefix('<')?;
         let (self_ty, rest) = inner.split_once(" as ")?;

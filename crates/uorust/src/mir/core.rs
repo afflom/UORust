@@ -220,7 +220,9 @@ pub(crate) fn shard(
                     .and_then(|r| r.split_once('`'))
                     .map(|(p, _)| p);
                 if let Some(full) = full.filter(|f| f.ends_with(&format!("::{}", body.path))) {
-                    consts.entry(full.to_string()).or_insert_with(|| body.clone());
+                    consts
+                        .entry(full.to_string())
+                        .or_insert_with(|| body.clone());
                 }
             }
             if let Some(t) = super::closure_type(&body) {

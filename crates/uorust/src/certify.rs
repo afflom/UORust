@@ -175,7 +175,7 @@ pub fn production(
             format!(
                 "[[refused]]\nkappa = \"{}\"\ncause = {}\n\n",
                 r.kappa,
-                toml_string(c)
+                toml_quoted(c)
             )
         })
         .collect();
@@ -211,7 +211,7 @@ pub fn production(
 /// publishes, then replay the bundle with `verify-artifact` and keep under
 /// `kept` what [`sync`] reads of it: its result, its package sources and the
 /// refusals. The project and the build may live on a scratch volume.
-pub fn build(
+pub fn production_build(
     projection: &Path,
     out: &Path,
     register: &Register,
@@ -543,7 +543,7 @@ fn higher_order(text: &str) -> bool {
 /// export, by κ, with their causes.
 pub const REFUSALS: &str = "refusals.toml";
 
-fn toml_string(text: &str) -> String {
+fn toml_quoted(text: &str) -> String {
     toml::Value::String(text.to_string()).to_string()
 }
 
@@ -733,7 +733,7 @@ impl Manifest {
         for (kappa, cause) in &self.refused {
             out.push_str("\n[[refused]]\n");
             out.push_str(&format!("kappa = \"{kappa}\"\n"));
-            out.push_str(&format!("cause = {}\n", toml_string(cause)));
+            out.push_str(&format!("cause = {}\n", toml_quoted(cause)));
         }
         out
     }
@@ -1274,7 +1274,7 @@ pub(crate) fn reachable(dumps: &Dumps) -> BTreeSet<String> {
         work.push(entry);
     }
     while let Some(body) = work.pop() {
-        let (calls, made) = mentions(body);
+        let (calls, made) = body_mentions(body);
         for call in calls {
             let path = callee_path(&call);
             if let Some(next) = bodies.get(&path) {
@@ -1309,7 +1309,7 @@ pub(crate) fn callee_path(callee: &str) -> String {
 }
 
 /// The callees, and the closures built, of a body.
-fn mentions(body: &IrBody) -> (Vec<String>, Vec<String>) {
+fn body_mentions(body: &IrBody) -> (Vec<String>, Vec<String>) {
     let mut calls = Vec::new();
     let mut made = Vec::new();
     let operand = |o: &IrOperand, calls: &mut Vec<String>| {
@@ -1358,7 +1358,7 @@ pub const TREE: &str = "uorust/certified-output/1";
 /// for byte the same.
 pub fn tree_kappa(dir: &Path) -> Result<String, UorustError> {
     let mut files = Vec::new();
-    walk(dir, dir, &mut files)?;
+    tree_files(dir, dir, &mut files)?;
     files.sort();
     let mut text = Vec::new();
     text.extend_from_slice(TREE.as_bytes());
@@ -1370,7 +1370,7 @@ pub fn tree_kappa(dir: &Path) -> Result<String, UorustError> {
     Ok(crate::project::sha(&text))
 }
 
-fn walk(
+fn tree_files(
     root: &Path,
     dir: &Path,
     out: &mut Vec<(String, std::path::PathBuf)>,
@@ -1378,7 +1378,7 @@ fn walk(
     for entry in std::fs::read_dir(dir).map_err(|e| io(dir, e))? {
         let path = entry.map_err(|e| io(dir, e))?.path();
         if path.is_dir() {
-            walk(root, &path, out)?;
+            tree_files(root, &path, out)?;
         } else {
             let rel = path
                 .strip_prefix(root)

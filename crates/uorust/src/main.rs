@@ -400,7 +400,7 @@ fn certify(step: Certify) -> Result<(), UorustError> {
                 path: targets.clone(),
                 reason: e.to_string(),
             })?;
-            certify::build(
+            certify::production_build(
                 &projection,
                 &out,
                 &read_register(&register)?,
