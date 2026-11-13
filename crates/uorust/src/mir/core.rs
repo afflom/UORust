@@ -210,6 +210,18 @@ pub(crate) fn shard(
         {
             if body.arity == 0 && (body.path.contains("promoted[") || !body.path.contains('{')) {
                 consts.insert(body.path.clone(), body.clone());
+                // A constant item's dump names it by its full path (`//
+                // MIR for `fmt::flags::WIDTH_FLAG``), which its uses print,
+                // where its own text names it by its name alone.
+                let full = text
+                    .lines()
+                    .next()
+                    .and_then(|l| l.strip_prefix("// MIR for `"))
+                    .and_then(|r| r.split_once('`'))
+                    .map(|(p, _)| p);
+                if let Some(full) = full.filter(|f| f.ends_with(&format!("::{}", body.path))) {
+                    consts.entry(full.to_string()).or_insert_with(|| body.clone());
+                }
             }
             if let Some(t) = super::closure_type(&body) {
                 closures.insert(t, body.clone());

@@ -287,6 +287,17 @@ impl CoreLink {
     /// The body of the constant item `<X as Trait>::C` that the trait
     /// provides, with `Self` as `X`.
     pub(crate) fn constant(&self, printed: &str) -> Option<Instance> {
+        // A constant item of another module, by the path its dump names.
+        if !printed.starts_with('<') {
+            let [text] = self.bodies.get(printed)?.as_slice() else {
+                return None;
+            };
+            return text.lines().any(|l| l.starts_with("const ")).then(|| Instance {
+                path: printed.to_string(),
+                text: text.clone(),
+                bound: Vec::new(),
+            });
+        }
         let inner = printed.strip_prefix('<')?;
         let (self_ty, rest) = inner.split_once(" as ")?;
         let (tr, name) = rest.rsplit_once(">::")?;

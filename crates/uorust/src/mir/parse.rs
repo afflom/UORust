@@ -518,13 +518,11 @@ fn rvalue(text: &str) -> IrRvalue {
             IrRvalue::Ref(spec::MirBorrowKind::Shared, p)
         });
     }
-    if let Some(op) = operand(t) {
-        return IrRvalue::Use(op);
-    }
-    // `move _1 as u64 (IntToInt)`.
+    // `move _1 as u64 (IntToInt)`, and a constant cast, `const 27_i32 as
+    // u32 (IntToInt)`, which would otherwise read as one constant.
     if t.ends_with(')') {
-        if let Some(at) = t.find(" as ") {
-            if let Some(open) = t.rfind(" (") {
+        if let Some(open) = t.rfind(" (") {
+            if let Some(at) = t[..open].rfind(" as ") {
                 let kind_text = &t[open + 2..t.len() - 1];
                 let word = head(kind_text);
                 let kind = spec::MirCastKind::ALL
@@ -538,6 +536,9 @@ fn rvalue(text: &str) -> IrRvalue {
                 }
             }
         }
+    }
+    if let Some(op) = operand(t) {
+        return IrRvalue::Use(op);
     }
     let name = head(t);
     let args_text = t
