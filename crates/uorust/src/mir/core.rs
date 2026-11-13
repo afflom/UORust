@@ -641,14 +641,48 @@ fn impl_const_types(root: &Path, path: &str) -> BTreeMap<String, String> {
             break;
         };
         let header = super::impl_header(root, &after[..end]);
-        if let Some(im) =
-            header.and_then(|h| syn::parse_str::<syn::ItemImpl>(&format!("{h} {{}}")).ok())
-        {
+        if let Some(im) = header.and_then(|h| {
+            syn::parse_str::<syn::ItemImpl>(&format!("{} {{}}", without_constness(&h))).ok()
+        }) {
             out.extend(const_types(&im.generics));
         }
         rest = &after[end + 1..];
     }
     out
+}
+
+/// An impl's header with what syn does not read left out: the `const`
+/// of a const trait impl (`impl<T, const N: usize> const TryFrom<&[T]>
+/// for [T; N]`) and its where clause, whose bounds may be `[const]`. Its
+/// generics, which are what is read of it, stay as written.
+fn without_constness(header: &str) -> String {
+    let head = header.split(" where ").next().unwrap_or(header).trim_end();
+    let Some(rest) = head.trim_start().strip_prefix("impl") else {
+        return head.to_string();
+    };
+    // The generics' closing `>`, at depth zero.
+    let mut depth = 0usize;
+    let mut cut = 0;
+    if rest.starts_with('<') {
+        let chars: Vec<char> = rest.chars().collect();
+        for (i, c) in chars.iter().enumerate() {
+            match c {
+                '<' => depth += 1,
+                '>' if i > 0 && chars[i - 1] != '-' => {
+                    depth = depth.saturating_sub(1);
+                    if depth == 0 {
+                        cut = chars[..=i].iter().map(|c| c.len_utf8()).sum();
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    let (generics, after) = rest.split_at(cut);
+    let after = after.trim_start();
+    let after = after.strip_prefix("const ").unwrap_or(after);
+    format!("impl{generics} {after}")
 }
 
 /// An impl's type as its source writes it, without spaces: `[T]`.
@@ -1978,6 +2012,17 @@ mod tests {
         assert_eq!(p.get("F").map(String::as_str), Some(CANONICAL));
         assert_eq!(p.get("N").map(String::as_str), Some("#_N"));
         assert!(!p.contains_key("Deref") && !p.contains_key("Target"));
+    }
+
+    #[test]
+    fn a_const_trait_impls_const_parameters_have_their_types() {
+        let header = "impl<T, U, const N: usize> const PartialEq<[U; N]> for &mut [T] where T: [const] PartialEq<U>, ";
+        let im: syn::ItemImpl =
+            syn::parse_str(&format!("{} {{}}", without_constness(header))).unwrap();
+        assert_eq!(
+            const_types(&im.generics).get("N").map(String::as_str),
+            Some("usize")
+        );
     }
 
     #[test]
