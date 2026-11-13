@@ -292,6 +292,26 @@ pub(crate) fn definitions() -> Vec<Decl> {
             super::lower::POINTER
         ),
     ));
+    // `count` items read from `pointer` on, `stride` bytes apart: an
+    // array or slice in memory, read whole.
+    out.push(Decl::Definition {
+        name: "mirLoadItems".into(),
+        parameters: vec![
+            ("memory".into(), MEMORY.into()),
+            ("pointer".into(), super::lower::POINTER.into()),
+            ("stride".into(), "Nat".into()),
+            ("count".into(), "Nat".into()),
+        ],
+        result: "(List Nat)".into(),
+        body: Expr::Flat(
+            "(match count | Nat.zero => (nil Nat) | Nat.succ rest => (cons (mirLoad memory pointer stride) (mirLoadItems memory (mirAdvance pointer stride) stride rest)))"
+                .into(),
+        ),
+        axioms: Vec::new(),
+        recursive: Some("count".into()),
+        termination: None,
+        mutual: None,
+    });
     // In bounds of its allocation, or one past its end: what `offset`
     // requires of the pointer it computes.
     out.push(definition(

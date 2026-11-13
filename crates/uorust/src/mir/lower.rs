@@ -2305,9 +2305,12 @@ impl Fun<'_, '_> {
         } else {
             String::new()
         };
+        // The arguments passed by address, whose writes the memory holds.
+        let mut by_address = BTreeSet::new();
         let called = match self.call(callee, vals.clone(), &texts, &dest_text, &dt, st) {
             Err(r) if is_needs_address(&r) => {
                 for i in std::mem::take(&mut self.wants_address) {
+                    by_address.insert(i);
                     let Some(q) = lends_place.get(i).cloned().flatten() else {
                         return Err(kind(
                             MEMORY_KIND,
@@ -2388,6 +2391,9 @@ impl Fun<'_, '_> {
         // function gives it.
         let borrowed_places = borrowed.clone();
         for (i, place) in borrowed {
+            if by_address.contains(&i) && !updates.contains_key(&i) {
+                continue;
+            }
             let Some(new) = updates.get(&i) else {
                 // A borrowed value no one reads again needs no new value,
                 // unless it holds a borrow of a place that lives on.
@@ -7487,6 +7493,18 @@ impl Fun<'_, '_> {
     fn load(&mut self, view: &View, steps: &[IrProjection], st: &State) -> Lift<(String, Ty)> {
         let m = self.memory_at(st)?;
         let s = view.stride;
+        // A placed array or slice, read whole: every cell of a placement is
+        // defined when it is made, and a store keeps it so.
+        if steps.is_empty()
+            && view.shape == Shape::Items
+            && matches!(view.elem, Ty::Nat(_))
+            && st.placed.values().any(|p| p.pointer == view.pointer)
+        {
+            let p = &view.pointer;
+            let out = format!("(mirLoadItems {m} {p} {s} (project {p} metadata))");
+            self.grow(&out)?;
+            return Ok((out, Ty::List(Box::new(view.elem.clone()))));
+        }
         let (_, access) = self.access(view, steps, st)?;
         let out = match access {
             Access::Cell(p) => {
@@ -7642,7 +7660,9 @@ impl Fun<'_, '_> {
             .get(l)
             .cloned()
             .ok_or_else(|| kind(MEMORY_KIND, "a local without a declaration"))?;
-        let through = p.projection.first() == Some(&IrProjection::Deref);
+        // A `&mut` parameter stands for the place it borrows, also whole.
+        let through = p.projection.first() == Some(&IrProjection::Deref)
+            || (p.projection.is_empty() && self.mut_params.contains(&l));
         let (value_text, mirror, shared) = if through {
             let Some(r) = referent(&text) else {
                 return Err(kind(
