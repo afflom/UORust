@@ -118,7 +118,7 @@ cause = "mir::Ty: alignment::Alignment"
 path = "core::alignment::Alignment::cmp"
 kappa = "002966fcf28c04ac2145235d7ed3e0e62090bd19c7e0a047d55afadff19bcdc9"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: alignment::Alignment"
 
 [[fn]]
 path = "core::alignment::Alignment::default"
@@ -199,7 +199,7 @@ cause = "mir::Ty: mem::alignment::Alignment"
 path = "core::alignment::Alignment::partial_cmp"
 kappa = "b5946e56a39ba1845a133b1c6c51fa28485582e69afa40e4e8ab9f63de726b36"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: alignment::Alignment"
 
 [[fn]]
 path = "core::alignment::Alignment::try_from"
@@ -350,7 +350,7 @@ path = "core::manually_drop::ManuallyDrop::cmp"
 kappa = "d6cdfcb55045952a29fdd35f637a88845b954387cf20e62eea7f0bdb97f34623"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: ManuallyDrop<u32>"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::deref"
@@ -406,7 +406,7 @@ path = "core::manually_drop::ManuallyDrop::partial_cmp"
 kappa = "0de7dd90f7376277b001299c62ecd8bf40ea19e8197ba2704ab0a647d51b1200"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: ManuallyDrop<u32>"
 
 [[fn]]
 path = "core::manually_drop::ManuallyDrop::take"

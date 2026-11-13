@@ -130,7 +130,22 @@ pub(crate) fn core_shard(root: &Path, module: &str, texts: &[String]) -> CoreSha
             bodies.push((body, at.clone(), kappa));
         }
     }
-    let types = Types::default();
+    // Core's own scope, with `cmp::Ordering` the lift's ordering.
+    let mut types = Types {
+        core: true,
+        ..Types::default()
+    };
+    types.enums.insert(
+        crate::order::ORDERING.to_string(),
+        crate::order::ORDERINGS
+            .iter()
+            .map(|v| v.to_string())
+            .collect(),
+    );
+    types.aliases.insert(
+        crate::order::RUST_ORDERING.to_string(),
+        crate::order::ORDERING.to_string(),
+    );
     let widths = lift::pointer_widths(&[]);
     let callees = BTreeMap::new();
     let none = std::collections::BTreeSet::new();

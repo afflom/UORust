@@ -2729,12 +2729,19 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             None => Ok(Ty::Unit),
         };
     }
+    // A path of std's, or in core's own scope a path of core's: MIR prints
+    // core's paths there without the crate.
+    let std = segs.len() > 1 && (matches!(segs[0], "std" | "core" | "alloc") || types.core);
     match (name, raw.as_slice()) {
-        ("ControlFlow", [b, c]) if matches!(segs.first(), Some(&("std" | "core"))) => {
+        ("ControlFlow", [b, c]) if std => {
             return Ok(Ty::Outcome(
                 Box::new(ty(c, types)?),
                 Box::new(ty(b, types)?),
             ))
+        }
+        // `ControlFlow<B>`, its continue value the unit by default.
+        ("ControlFlow", [b]) if std => {
+            return Ok(Ty::Outcome(Box::new(Ty::Unit), Box::new(ty(b, types)?)))
         }
         _ => {}
     }
@@ -2742,7 +2749,6 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     for a in raw {
         args.push(ty(a, types)?);
     }
-    let std = segs.len() > 1 && matches!(segs[0], "std" | "core" | "alloc");
     Ok(match (name, args.as_slice()) {
         ("bool", []) => Ty::Bool,
         ("u8", []) => Ty::Nat(Some(8)),
@@ -2760,6 +2766,10 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
         ("Box", [a]) => a.clone(),
         // A std type whose representation bottoms out in raw pointers: the
         // table's model of it.
+        // A std type the scope lifts as its own: `cmp::Ordering`.
+        (n, []) if std && types.enums.contains_key(&types.resolve(n)) => {
+            Ty::Named(types.resolve(n))
+        }
         _ if std => {
             let head: Vec<&str> = segs[..segs.len() - 1].to_vec();
             let path = format!("{}::{name}", head.join("::"));

@@ -1589,8 +1589,8 @@ cause = "mir::Ty: isize"
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:16: 444:21>::clone"
 kappa = "91342be2ec3ad4b8503de3e826b9bc19b45a6255b0cdaaa2a4929c992c3244c0"
-status = "residue"
-cause = "mir::Ty: sync::atomic::Ordering"
+status = "translated"
+digest = "83ba281707fb875a984cfa3cf279e6fcd37429c9b8fbf8bd3a90ab45fa9f6403"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:23: 444:28>::fmt"
@@ -1601,20 +1601,20 @@ cause = "mir::Ty: fmt::Error"
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:30: 444:32>::assert_fields_are_eq"
 kappa = "3256c5ac813dc85364dd6dc594ee1c9534e5e1508c9958e54cc7c0fa005ed281"
-status = "residue"
-cause = "mir::Ty: atomic::Ordering"
+status = "translated"
+digest = "cc1213c5a22fbc7352f6a73aafb4a3c95d44e2071998c4c11ba57571497db35d"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:34: 444:43>::eq"
 kappa = "b4142502c7efa7a6924a3481890f411348948248e6575759d89a3d40ef5b695b"
 status = "residue"
-cause = "mir::Ty: atomic::Ordering"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:45: 444:49>::hash"
 kappa = "f2ac3d3016d5c19eb4c4163bd3acb28bffcf9d9f8a2b68dc1a42cb081a428829"
 status = "residue"
-cause = "mir::Ty: atomic::Ordering"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::atomic::AtomicBool::as_ptr"
@@ -2053,13 +2053,13 @@ cause = "mir::Ty: *mut u32"
 path = "core::compiler_fence"
 kappa = "1b7cfec513c370e948208d9a65584be7e6cb991913033b8e7463c55958c620b3"
 status = "residue"
-cause = "mir::Ty: atomic::Ordering"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fence"
 kappa = "9f1dd39a3d2c67d6b2cc3a48edeb3f27104396848ac7a830acf9d0c9ea9eeebb"
 status = "residue"
-cause = "mir::Ty: atomic::Ordering"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::spin_loop_hint"
@@ -2071,7 +2071,7 @@ cause = "mir::TerminatorKind::Call: spin_loop"
 path = "core::strongest_failure_ordering"
 kappa = "770fd6205fe5aa70b32891de3401850e78815d1994eaa209f63b608aa3d2c883"
 status = "residue"
-cause = "mir::Ty: sync::atomic::Ordering"
+cause = "mir::Rvalue::Aggregate: the variant CmpOrdering::Relaxed"
 
 [[fn]]
 path = "core::sync_view::SyncView::as_mut"
@@ -2155,7 +2155,7 @@ path = "core::sync_view::SyncView::cmp"
 kappa = "f072727c75e2d3a6d4fb512a7ee7f625dab915c515c9da3524d6517423d93fad"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: SyncView<u32>"
 
 [[fn]]
 path = "core::sync_view::SyncView::default"
@@ -2224,7 +2224,7 @@ path = "core::sync_view::SyncView::partial_cmp"
 kappa = "ff8641ae77b2de82792c8e4b1024b4e7b39a9bffbccd48af5342c0660a227e40"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: SyncView<u32>"
 
 [[fn]]
 path = "core::sync_view::SyncView::poll"

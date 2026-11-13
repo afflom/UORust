@@ -317,6 +317,9 @@ pub(crate) struct Types {
     /// The MIR path's closures, by their type as MIR prints it: the types
     /// of their captures, as printed.
     pub(crate) closures: BTreeMap<String, Vec<String>>,
+    /// Whether this is core's own scope, where MIR prints core's paths
+    /// without the crate: `ops::ControlFlow` is `core::ops::ControlFlow`.
+    pub(crate) core: bool,
 }
 
 /// The strongly connected components of a graph, each one set.
@@ -606,6 +609,7 @@ impl Types {
                 families: Vec::new(),
                 derives: BTreeMap::new(),
                 closures: BTreeMap::new(),
+                core: false,
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -630,6 +634,7 @@ impl Types {
                     families: Vec::new(),
                     derives: BTreeMap::new(),
                     closures: BTreeMap::new(),
+                    core: false,
                 };
             }
             names = lifted.into_keys().collect();

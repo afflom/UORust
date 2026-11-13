@@ -38,7 +38,7 @@ path = "core::pin::Pin::cmp"
 kappa = "edbd31386806c2b64291e12765edb6b4056002a566111385c7255e9cb766b6ca"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: Pin<u32>"
 
 [[fn]]
 path = "core::pin::Pin::deref"
@@ -199,7 +199,7 @@ path = "core::pin::Pin::partial_cmp"
 kappa = "6fa5a69942a7c839e8bf04af16ec40268644f713394b985d912c7c2b6b0a5cf0"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: Pin<u32>"
 
 [[fn]]
 path = "core::pin::Pin::set"

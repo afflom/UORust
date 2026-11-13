@@ -30,14 +30,14 @@ path = "core::poll::<impl at library/core/src/task/poll.rs:11:45: 11:48>::cmp"
 kappa = "f9c82c0d01ccb62de5630e19c7d9eb74288a1d9364eeaa8d6b27701a4c1a7420"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: Poll<u32>"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:50: 11:60>::partial_cmp"
 kappa = "86af029cc1dc76ea30c278fd0f407a332cbc75a5acc4db1a6e09280359a4d133"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: Poll<u32>"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:62: 11:66>::hash"
@@ -51,14 +51,14 @@ path = "core::poll::Poll::branch"
 kappa = "242b428f13f2295042dbcade18cf89f22cb2d74d35f5d7ac5501d317f864db15"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: convert::Infallible"
+cause = "mir::Ty: task::poll::Poll<u32>"
 
 [[fn]]
 path = "core::poll::Poll::branch#2"
 kappa = "2814dbe53a8675dac73855d75690743e404e0b61166abf07a798a2ba4bcf45df"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: convert::Infallible"
+cause = "mir::Ty: task::poll::Poll<option::Option<u32>>"
 
 [[fn]]
 path = "core::poll::Poll::from"

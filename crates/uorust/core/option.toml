@@ -274,7 +274,7 @@ path = "core::option::Option::cmp"
 kappa = "47bef688e539e3ff73425fa29d6329730c760a66b646e6e3221a76d7cac61793"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::Option::copied"
@@ -532,7 +532,7 @@ path = "core::option::Option::partial_cmp"
 kappa = "c96fcb1ea108d0cdcccee0cc1d1a2a5cc55a741791f6dfa94269c426b23356a5"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::option::Option::reduce"

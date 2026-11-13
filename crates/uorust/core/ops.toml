@@ -15007,7 +15007,7 @@ path = "core::control_flow::<impl at library/core/src/ops/control_flow.rs:88:16:
 kappa = "d080cfdd24d2cefa9a54ffc3177eb9830a8c28c82df3d845cdc004ebb30ce04d"
 at = "B=u32, C=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<u32, u32>"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::control_flow::<impl at library/core/src/ops/control_flow.rs:88:23: 88:32>::eq"
@@ -15062,14 +15062,14 @@ path = "core::control_flow::ControlFlow::from_output"
 kappa = "a5346457007c05410d464350debe9ef2630e54f2fcb3555ffcd162247f70ad42"
 at = "B=u32, C=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<u32, u32>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::from_residual"
 kappa = "8a9de5677c70e65022f293b7fc1c41c025648bd2cb7b179973498d18ec144afe"
 at = "B=u32, C=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<u32, u32>"
+cause = "mir::Ty: Infallible"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::from_try"
@@ -15109,14 +15109,14 @@ path = "core::control_flow::ControlFlow::map_break"
 kappa = "9b6558412f211dce41be9613ee80856d4f0f7f234c89cb2b9db9381e994ab92f"
 at = "B=u32, C=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<u32, u32>"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::map_continue"
 kappa = "ab8d2683a5973770614141a400f88928ce9793751dc164d35474032baaf8bb65"
 at = "B=u32, C=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<u32, u32>"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:133:1: 133:66>::resume"
@@ -15144,7 +15144,7 @@ path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:34: 8:44>:
 kappa = "1abeae6b012f55dffc507635009813c4d619dbf430590edebe61830d58e679d6"
 at = "R=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: CoroutineState<u32, u32>"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:46: 8:48>::assert_fields_are_eq"
@@ -15157,7 +15157,7 @@ path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:50: 8:53>:
 kappa = "cb0814bb591eee1403ba5e84dc9ed53f31819f67d2a9b2d6367d005834c13a76"
 at = "R=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: CoroutineState<u32, u32>"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:55: 8:60>::fmt"

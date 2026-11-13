@@ -738,7 +738,7 @@ path = "core::slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::bina
 kappa = "553174151caba6001a7fb026257d13ec775186888a1821c4ea1dac9cbc011aa6"
 at = "T=u32"
 status = "residue"
-cause = "mir::AggregateKind::Closure: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::binary_search::{closure#0}: type outside the lift: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::binary_search::{closure#0}: type outside the lift: {closure@library/core/src/slice/mod.rs:2924:31: 2924:34}"
 
 [[fn]]
 path = "core::slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::binary_search_by"
@@ -752,7 +752,7 @@ path = "core::slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::bina
 kappa = "e595803b5841fa7da7ed718844ff02a341c3304b4bbebcd97872ac5b1bd680cb"
 at = "B=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::AggregateKind::Closure: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::binary_search_by_key::{closure#0}: type outside the lift: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::binary_search_by_key::{closure#0}: type outside the lift: &mut u32"
 
 [[fn]]
 path = "core::slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::chunk_by"
@@ -1039,7 +1039,7 @@ path = "core::slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::part
 kappa = "5a495e41249523f8aa46244fc947754f271ba5f3ace5c2223bd6b7874a04b2aa"
 at = "P=u32, T=u32"
 status = "residue"
-cause = "mir::AggregateKind::Closure: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::partition_point::{closure#0}: type outside the lift: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::partition_point::{closure#0}: type outside the lift: &mut u32"
 
 [[fn]]
 path = "core::slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::rchunks"
@@ -1775,7 +1775,7 @@ path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:38:1: 38:39>::c
 kappa = "46d6724f8572ea0d7ef0bb3a151fe72b3f9b1505376c0728c8416a2c3dc342b3"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:417:13: 417:38>::slice_contains"
@@ -1914,133 +1914,133 @@ path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::_
 kappa = "b264997c53485df1d8a279df4855b16a433368927230ae9a3264a0139cf843a6"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_ge"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::__chaining_gt"
 kappa = "2923641215c2d162540c51a825162b1340caa1a12a5fd9eea2e5c638a6cdfd17"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_gt"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::__chaining_le"
 kappa = "0400ff5aee2d979fb90e32725b0001e2e0de47a143b2689be7999e42da0c8d46"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_le"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::__chaining_lt"
 kappa = "513b18310ad71206d07e17aab738360f14eae159ec96a25de5b0b33edcdf8872"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_lt"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::ge"
 kappa = "58e200717dded00a049d7258c1f422999607cd5ce26134a512b52d998878d3c7"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_ge"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::gt"
 kappa = "8be7c711aacf451e0e57a3fb211db856518fb48c30c848e1b593ac15d3426411"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_gt"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::le"
 kappa = "7942ff2c78b4564d946df22b7519fa4994cd78899e6afd71fb8db102ae09a518"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_le"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::lt"
 kappa = "d1e55ebe95dd94b32d02d4607e8f9f742dcaa6b738e7e9232f5b52649e69adfd"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_lt"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::partial_cmp"
 kappa = "0678540790a68f28866b84b706d8d81748b4e9c5b338c35569e62ae1361e543d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as SlicePartialOrd>::partial_compare"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_ge"
 kappa = "e0e174620dc7bc1356081c2b62d1030d17f6e38b2617bb69b94d17178c89a9a4"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_ge#2"
 kappa = "40bf4323fcddf7fdd0e80b8ef79b33a6212ce86f2d9d557f0fc7fa3e15ae42c8"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Operand::Constant: the constant item &'a usize"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_gt"
 kappa = "3cb9bd14b4ab3fe6c733934f934dd06cc160e2f5296b1cd3d5529b17046b3a51"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_gt#2"
 kappa = "7a4fb7c5c52059694317305b3f6b883e76f1bf7c5cc87633693d5d438cc009b3"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Operand::Constant: the constant item &'a usize"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_le"
 kappa = "1dfc5c18c95f8ebcd9155b90a901f1bebbd13ebc550690830a020903dc802c4f"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_le#2"
 kappa = "a1f46029c0ff27d31bee2c2a69615e1c1d5d9a6a94222b0ed0811fb9b2320eb9"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Operand::Constant: the constant item &'a usize"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_lt"
 kappa = "4ccf3f2c5fa355655521055373da6e3209681de65ea1229de99e95b8380506ca"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
 
 [[fn]]
 path = "core::slice::cmp::A::chaining_lt#2"
 kappa = "d8b104dcba80ef5639b0ed58d3e188f43964f4c7b989132d6d7a64ed9bc66ffe"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Operand::Constant: the constant item &'a usize"
 
 [[fn]]
 path = "core::slice::cmp::A::compare"
 kappa = "0c42beaa193b84bb386b6a0064bcc6f728df929edba4006699aac4a0fd261cd9"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::slice::cmp::A::compare#2"
 kappa = "b75946a498b675b7254dde4005b5ae98113aaf7830ed84b0988d7897b349881f"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::cmp::<impl at library/core/src/slice/cmp.rs:285:1: 285:42>::compare::{closure#0}: type outside the lift: {closure@library/core/src/slice/cmp.rs:287:26: 287:38}"
 
 [[fn]]
 path = "core::slice::cmp::A::equal_same_length"
@@ -2061,14 +2061,14 @@ path = "core::slice::cmp::A::partial_compare"
 kappa = "d78bc15df4cb8fb8ccc7733aba6aa57637e3fe2136c36ee279f9f77454ff81a9"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::cmp::<impl at library/core/src/slice/cmp.rs:182:1: 182:56>::partial_compare::{closure#0}: type outside the lift: {closure@library/core/src/slice/cmp.rs:184:26: 184:38}"
 
 [[fn]]
 path = "core::slice::cmp::A::partial_compare#2"
 kappa = "432f8e4ea5aaa6c965d94ebc1769b30e5d54b49654ebbd2fa310de0f2f71aa49"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
 
 [[fn]]
 path = "core::slice::cmp::T::slice_contains"

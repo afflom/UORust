@@ -118,7 +118,7 @@ path = "core::cell::Cell::cmp"
 kappa = "1e4ab1c2e153670f33ea4498b89e3de64a338671cd7270ef366094c1983aeb66"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: Cell<u32>"
 
 [[fn]]
 path = "core::cell::Cell::default"
@@ -216,7 +216,7 @@ path = "core::cell::Cell::partial_cmp"
 kappa = "41c666b4cc170493c991f091717309f4359d65f7bc48f4349ef14dc38d1ef113"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: Cell<u32>"
 
 [[fn]]
 path = "core::cell::Cell::replace"
@@ -335,7 +335,7 @@ path = "core::cell::RefCell::cmp"
 kappa = "547a0a4f211acf5918706537cd4c31626abb11ccfd44a4cddab9ed92bbea7409"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: RefCell<u32>"
 
 [[fn]]
 path = "core::cell::RefCell::default"
@@ -412,7 +412,7 @@ path = "core::cell::RefCell::partial_cmp"
 kappa = "183ce8679adfb60d9c6c049221d02796e9b73ee7a63e907076fe91e1f99845eb"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: RefCell<u32>"
 
 [[fn]]
 path = "core::cell::RefCell::replace"

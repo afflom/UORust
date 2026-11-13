@@ -850,7 +850,7 @@ cause = "mir::Ty: str::pattern::StrSearcher<'_, '_>"
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:973:1: 973:29>::is_contained_in"
 kappa = "1f689f6600bb8e76acd3c4466fc4703e52f28deca382d50e116897d09a7f94aa"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <usize as cmp::Ord>::cmp"
 
 [[fn]]
 path = "core::pattern::<impl at library/core/src/str/pattern.rs:973:1: 973:29>::is_prefix_of"
@@ -3440,7 +3440,7 @@ cause = "mir::Ty: str::error::ParseBoolError"
 path = "core::str::traits::str::cmp"
 kappa = "90a6f5f97f428525630b60c696325578d34e904ede53a423a0591e05ae9a293a"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 
 [[fn]]
 path = "core::str::traits::str::eq"
@@ -3466,7 +3466,7 @@ cause = "mir::Ty: &mut <u32 as slice::index::SliceIndex<str>>::Output"
 path = "core::str::traits::str::partial_cmp"
 kappa = "717c21947007428514c411fa53b2fbb560caf342cf94202a62bab0546d9c5d4a"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <str as cmp::Ord>::cmp"
 
 [[fn]]
 path = "core::sum_bytes_in_usize"

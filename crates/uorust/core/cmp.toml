@@ -8,37 +8,37 @@ cause = "mir::Ty: fmt::Error"
 path = "core::cmp::<impl at library/core/src/cmp.rs:397:23: 397:27>::hash"
 kappa = "5ec0569f28c91751fd6b69106f1082422a977146477ceb32a8b81d710d5c34d0"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:398:16: 398:21>::clone"
 kappa = "3c3a29dda7f6614ea56e9fb96adb7e9a7a8e144f954e84c2cbff331e95d885d0"
-status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+status = "translated"
+digest = "023fd62c86c2b8622d32a9c4780a345cbb4077db518114395b670998032de167"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:398:23: 398:25>::assert_fields_are_eq"
 kappa = "fd290ca764173f767e0b7857f4abbd23d6ec985b38587d76f20d7ab7fd58645b"
-status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+status = "translated"
+digest = "dd5c1057f28f55b80db47f84cbc210a60473221122b495c526a583b3d633660c"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:398:27: 398:37>::partial_cmp"
 kappa = "8a2aa3c554daaea1e261318185ec2b398497dfb215f23b6235956c24df8bb191"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:398:39: 398:42>::cmp"
 kappa = "b21192ce64990da52fa690cb962425848f0145c874a818ea7d9853b213bceb13"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:398:44: 398:53>::eq"
 kappa = "21d02e7ee74afe2bd4e105befb79026620da974a8d412396a733fbe7a0f104f4"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::<impl at library/core/src/cmp.rs:680:16: 680:21>::fmt"
@@ -117,56 +117,56 @@ cause = "mir::Ty: i8"
 path = "core::cmp::Ordering::is_eq"
 kappa = "f2d53daf7d806de305bf2018f3389e74a31dca585e2e6f1651e5558cd008d23d"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::Ordering::is_ge"
 kappa = "ac304737daaf44ea8e935f863c64a2f1538deb68e3780e79097c0f8b9309172f"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::Ordering::is_gt"
 kappa = "559c03e2292fd0e58a76bda31a24a12773c4715669e92a997c03413115864624"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::Ordering::is_le"
 kappa = "588634947a22cf5ddb6f1010ca62e882982728be75c8a6b9862b8f5c7eb95c73"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::Ordering::is_lt"
 kappa = "68b3c9e5bce4f53f16199b4fc73bb719996d688db6c183cc2c51ef1901f713c9"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::Ordering::is_ne"
 kappa = "45d7ffb3e30e07fbfec06a231ae19d0fdc30524fcfa0a2d5f9132848e92b42ac"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::Ordering::reverse"
 kappa = "05c11787c8dc1a89c9b85100efb0329d3edba57003cc514c415749b1e66a0522"
-status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+status = "translated"
+digest = "e47e6f8b9387d6aa9bf1272ab689710b0b0e15a23a172e2518366b8665e8022b"
 
 [[fn]]
 path = "core::cmp::Ordering::then"
 kappa = "8d75fc25ba991c179e35520befbd57e2e03ad28dae7901aeb9cd61dcea3eb621"
-status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+status = "translated"
+digest = "13b755486ac0e0581f82008eb27f07865ebf663bcd90c5d3c26a9203bc3fee17"
 
 [[fn]]
 path = "core::cmp::Ordering::then_with"
 kappa = "df839208325296fc86e64827dc3ad76bd1e84937e18eb7d8f497d3ad8f391b5b"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
 
 [[fn]]
 path = "core::cmp::PartialEq::ne"
@@ -194,7 +194,7 @@ path = "core::cmp::Reverse::cmp"
 kappa = "bd3ebf4d6da865a7dfd44c5a4ecf24944c9983fd5bb145674e87e5fd5e2d5da6"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: cmp::Reverse<u32>"
 
 [[fn]]
 path = "core::cmp::Reverse::ge"
@@ -229,7 +229,7 @@ path = "core::cmp::Reverse::partial_cmp"
 kappa = "45c844ee013d2d8fb22753f2d68a0a3c235cbfce7e1d6e881ee85c6a2c5253cf"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: cmp::Reverse<u32>"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1876:13: 1876:40>::eq"
@@ -463,97 +463,97 @@ digest = "015c735b37fea1935ff12b711f08996b39ad2b4299941a7ae2486ea0f3ae7b17"
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_ge"
 kappa = "03f379d282c236036031f870bf0b43fb6410d0793008f4913f984be93e24e208"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_ge#2"
 kappa = "a1327f7e6662c51b490a71996e3c4cff540beb2658006a947b72cac150203d59"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_ge#3"
 kappa = "918a822ef28dc9f395ca88327d2711b0d1b1d31d3261795ca4e6f070242f7e22"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_ge#4"
 kappa = "2b1de45e436ee45ca8c6358b07073200d5c11ba1b5530d3cf92703d3f5750742"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_gt"
 kappa = "96074923671510cb54f01044b9ed0ca0c828a9f5ca4ac7bb92927ff1a71ee2cb"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_gt#2"
 kappa = "5f2357c1d7e6dc5078f82e5b71fa94bb01e4ceac06c8c214bb877d9096a64fce"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_gt#3"
 kappa = "1512cc7609bf7dc0de627696ad501cd9f6857a65c03ec9c7c4766305b68a7846"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_gt#4"
 kappa = "149c65038add821af53a4972b7cee2cdd0bedca1168eb87c191a5bed1d4ba3ad"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_le"
 kappa = "64f3d4d455539225f18b6e2f79902f5cb5bfcc60edd156f85203f6c844e61e93"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_le#2"
 kappa = "9cddac4d1be15864970ab39f21e5bd033dc3a50c8b22766a0fcd132005899a84"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_le#3"
 kappa = "75cedf5882db2ffb55fa45ac6d3048880b6e19d0d8c8a6f3ef3ea943f4bf0774"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_le#4"
 kappa = "069f0a5e30318ae633bb875ed1141a9f76f3da265343f56dc9b8844492f1bb6b"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_lt"
 kappa = "1be691a4f42bff1d48ecf8faef8c10212fd831d44d2892283b852e9130a63f7f"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_lt#2"
 kappa = "73a7e5e5823e2696a3e8cc746985cbc27b424a7e53092b173c9ebf9c939cdf3d"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_lt#3"
 kappa = "b0efaba758ff4deb82d510ca4b4a0e911cab7a9b6e68288017cfd75af0acd405"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::__chaining_lt#4"
 kappa = "da2269282a12c41a109f4af811bc2269e3bb1144bcc446d76ad433b2e6b419ef"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: f128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::ge"
@@ -655,343 +655,343 @@ cause = "mir::Ty: f128"
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::partial_cmp"
 kappa = "f84b26b63be30e1e66dba0bf065f22f2e1d07664eb2b7209581637aec9494d02"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: f16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::partial_cmp#2"
 kappa = "3dcf7f5a8cbcf24d70d04943d3cac88888e5028f5a6c2d2281adf9a9633c8171"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: f32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::partial_cmp#3"
 kappa = "ac122b742b2a3118ab60d2534f6dae5a9b117a498ed87dd767f59a41681f1f71"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: f64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1955:13: 1955:41>::partial_cmp#4"
 kappa = "fe4ebb78fbeffd065b9e628888aea20e05300bbb72fcab0891b68f5afcfbaf9d"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: f128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1973:5: 1973:33>::partial_cmp"
 kappa = "01a11c8a0cda8f804c2d7f3e11789d8a939eb0b897e3af388f2d5ae640f7ba95"
-status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+status = "translated"
+digest = "da95462b0895e7b75196cc8cd18a1d5bad9f64b805d87364bd8b6b4aea5ca07c"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge"
 kappa = "28dc5877121e3c27df569f7970e39732c5fcd1416aa8f37dc17c213a81ebd147"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#10"
 kappa = "83cbf130722100b8e219968d2c57b532717e1dcb28b565fd62fd786546fa5c80"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#11"
 kappa = "136fd04a03321c5f81e4d9664465427414666d25d23cddc6bf506daf74d5220c"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#12"
 kappa = "fb1657c9d8fccfeea4ac28a924cb994ae4bf94c3c5ce4a4c91cc7f364974e7df"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#13"
 kappa = "0bfb990fdd98e9f2530f059b28b4f5e72e5f27e644c06a180e6fb2028f6f3d01"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#2"
 kappa = "cbba8153aa4e227ef95ff15584ea653ace5ac9594d9aabe22a427c6e805ef062"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#3"
 kappa = "117e29332bf087dd35f0a28a9299e4f0be40c465ebf8850c60fadd3982f07a5c"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#4"
 kappa = "ca1d685fb9f454f6e1cb645b14eddac1e0e644b3b4e7a052ae086262be2cf9b9"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#5"
 kappa = "317f44f45a045d4a38f0177db0fc723ee7b86d46b404555d31de0b21496c9e96"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#6"
 kappa = "5ff28d47b39c45c8f496f590671b0b55d291bd499e6c2856b0ae99e4babf2ccb"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#7"
 kappa = "96fdeac36bac99a253a6e9640cd344d6aeab9391d9fda2080c4e0e81a106b475"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#8"
 kappa = "60a09de7966a51c9f5443a88eb49586a4d0366ccc472669c15c1800b330990d6"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_ge#9"
 kappa = "aac20988cca3039af8b801e8247a1dae1f970420bdea50bd0cbb86ecf773d360"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt"
 kappa = "9e589e60ef1bf09aae264eeee046efc0395d2ae9db3056e0c448f3663c7adf45"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#10"
 kappa = "7c54979ad08bc49d45b708734049c4406b2becc13299ad31c403fa3f3b3ddb7f"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#11"
 kappa = "1e553034c48614b5f109995d53426d9db6757dd6e1530a4efe4f28f64e6142e6"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#12"
 kappa = "8854a8420b6e7aa40193905a1050081e776b6159c9e0f946deab247518363832"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#13"
 kappa = "a4f93d54e62d5fd003f3e1119b251eeae8f818f960d4a7eae2956981161e28c0"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#2"
 kappa = "2730f7bbf0b6f0126af46e3adcd83f2a8b7870b2c0c881a1648435d6ccd9ca68"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#3"
 kappa = "05b9f4292a2eefc5dd50c031f0a1f98cd37d8810c59b38c9fbb5c34e7f16180e"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#4"
 kappa = "3e61fb6b8f62335890e19a9e80e05d21af8558e81c406233b0349d969fec8435"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#5"
 kappa = "d22d8a2606e1989faa8952b55b38ce96c378869b3423d8b0d14c257352b98ce8"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#6"
 kappa = "937b463941dff1a958ca3c66ee66b3976d14f85c37d081590922bcbdaad6b9dc"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#7"
 kappa = "e27271ea90ab19acaaa0cf5adba2d09aefcc7b149c92cc16e7bb4f463c14c77a"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#8"
 kappa = "91fe84b534eeeca4ddf455c2de229157504a6352cb63f7637d29f1b5a28af55e"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_gt#9"
 kappa = "9fd062d27e17927f652404cdca4be82ec35dd953a9c59801794ee04ad370ffdd"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le"
 kappa = "1b894ab4073ceb898bf8f7b234edc55e3e6cbded97ec5579a4ef2b4072944a76"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#10"
 kappa = "13aeac13a469c69d63883d864de7634fc3241d67ead337e785c575ed428ea095"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#11"
 kappa = "de8aef889788626eac9d413cb3fb30e22bb56cc1ba59f4a5d4f2113e108de75f"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#12"
 kappa = "0644efff97fb28adb9f1f59fdb517e6e68f2015487e27dc9441e84e3fdf49ddb"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#13"
 kappa = "97577e05541d327157d7095ddd169944efb6e9b553df440aacd881afaab38e41"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#2"
 kappa = "e806a9f9c48cde37dbae19404c00db37cfb0eadf58c9fa56eba6e6462334ab6d"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#3"
 kappa = "c555a9b822c5a306e1964f1bba4242e6020eaff2e6aad69293813c4fd3bd3b29"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#4"
 kappa = "5f9daea0509eb2581f7c61c2fad7684ae9068e7bde1e09197dd08b4db94a8f5b"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#5"
 kappa = "dc94c82d4678e7a3cd8e0e7df75e2dd6d822b1668e934ded6b01b9bcbeb7fe76"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#6"
 kappa = "6ae5b5789eb25765c220b3928b1d56e8d1c09a3aeee7bc26dc5bc707edde2c97"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#7"
 kappa = "cc9ba7d03d580afd195da0633944b54eafbf6d2f83b69b6b71044a31eba3e197"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#8"
 kappa = "0f41a95a4882a57722123a1b3d0b719b83f9c5f4a55b5f055c663be2e2a985e7"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_le#9"
 kappa = "e671432db72933f9250b91b833e4b574c660ece5f1e7726e5d3fdf8d29610455"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt"
 kappa = "3baf9811b9c857250385208099526501cdd93932898b9c73fdead86040770812"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#10"
 kappa = "c060a06a2932730756e69878b23aa75108a962d839cf2fec60b4e6913c40a172"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#11"
 kappa = "3fa765a9ba44aa12aeedbe6edfa9e8568f7755f60e68a64ebce01fff483a70d8"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#12"
 kappa = "b1eb97df802df5524a227357860bf5e3975f86ed8447885455a76139311d0354"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#13"
 kappa = "f1eec0d0f330b62b30ae7ab2d9ad0a63ac869a86bda97b4d336175d375bb8b5a"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#2"
 kappa = "5186c6c87cd24d9889dcad577b0655a18ffcbcb075950be68d4662973b069928"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#3"
 kappa = "dc785f7757af8a81b0a3504b0303d95c41ff13b04bdc00a6e33eaebe8118839c"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#4"
 kappa = "3fc2abd6711050d5393e65cd36111c08232226f8440823cde8e2967c1f59d958"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#5"
 kappa = "2778dbb018f41ab4137546c8cf76b4ed3116e35a30b19554ea60c1d855e43e08"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#6"
 kappa = "e0ed2cf5cb55a91aee3d5a253537e77b6ac7e3d73e664f1eaef6524967f4bb3a"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#7"
 kappa = "9c13e5e1ace91dd2b0e9fda5b9ee59d5c60ef4e82e3d55b838acd6896c07e22b"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#8"
 kappa = "4de597a87d7bd046f72fbd429627a4cd9a366add410e8973a469d6f0926fd680"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::__chaining_lt#9"
 kappa = "383567c1fabd4a2ad6671222af7385cb4f60d2505f3e46ce1c6254449a0aa5b3"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::ge"
@@ -1309,79 +1309,79 @@ cause = "mir::Ty: i8"
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp"
 kappa = "f63a52c79989138d8e6b7dbd057647c90a9ce1e35b80d911750578e242b8a1f6"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#10"
 kappa = "498bc52ae3a75e89045ddd8a70186e2ba68e6bc8d8c121957fa7de423c4d38fa"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#11"
 kappa = "4b54a8d4e93773b2df7b1462b9a9bd957a01ac1010b386fb470881be4a6e3ed8"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#12"
 kappa = "604d619601a3203da1a888600152138169105e20439868baa3e5caf3f0443a32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#13"
 kappa = "7db0390f24caaa886721ba88f9bbc6e7551a04d391fb9b8fd473311082bfb36a"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#2"
 kappa = "cb584ba615cf1ea1d368eac32dfaefc9fd732449d299f3d36725a40635972ec8"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#3"
 kappa = "225ba2b3815854e98c5930a5379afe9201f3184892808b50ef2c6f931e541c77"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#4"
 kappa = "5b1377bc5acb717e511b83c30671a93d0fb20f5787bf191fc820aaf8765d91af"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#5"
 kappa = "f77e97d0d51ecabdb61bca9ceb721d65733a774b9f6a9aacd6f526d38eeb5ed2"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#6"
 kappa = "c0ea1f19b696b69f4d7ecc36a39ffb32bd222a99e2f956d48b4678d92c6f78f8"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#7"
 kappa = "a716272ed7c8c99d87715c84ecd765a8256a9547eace4ff20e5a549dba426ccc"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#8"
 kappa = "620927f7c61c8eda43242e215d4b56d33b28933a6ee31ce99e1b9a2bf6ddef1d"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:1997:13: 1997:41>::partial_cmp#9"
 kappa = "b5e9b03afdc6317f8c0f4274dd95439cbda6907db91e1cd95c7958defb979970"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::clamp"
@@ -1699,85 +1699,85 @@ cause = "mir::Ty: !"
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp"
 kappa = "b6557696b027deca8dce3c403909fa28eb0ec7acb97ece13f90ee63b6f4ee6fb"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#10"
 kappa = "67f8b38c90ddd3c2c7f97d42b0f20c78ab98770926bfde4bac9d9aa9eef79762"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i16"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#11"
 kappa = "012f5804c151ed2a85ce276284886460101d2a1c8186b50e898b5ed1db51e719"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#12"
 kappa = "dfbfb19bc7428b27057bced02bddc6220b3e011d9a45ef35e9074e2a47b65e48"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i64"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#13"
 kappa = "84c83cfed74ca32c3dc15b1199f8507aa14ecc354ace1ca05ac180c6ee95c89d"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i128"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#2"
 kappa = "43836da9777aa99fe072dd16a86b1754bbe061f915481ff57c219750dc1370a4"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#3"
 kappa = "cce2f36262c1e05a62c03e5b9e5a293cc54acb766ed5df79fdb3e6f749d25a0a"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#4"
 kappa = "0d07f692c6f646f18eba623692372ebef889fe9eb348d1958079326fb13c6712"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#5"
 kappa = "33b6249323074129f42af2b4ccea18c3701037ebc423bedf0147ef857d2e8be9"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#6"
 kappa = "51d00d7d373d4ad28b9f0169686826a78b086cc9939c4df99c847179c84d5cd4"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#7"
 kappa = "fa85dbab3966a05b7ef6af6fcea4befd78b4b6b0d0e9a8a65af005b79663b1bd"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: three_way_compare"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#8"
 kappa = "9f905ee2b4c1020b8def307103ba5ca9792e10578e55584fedec69f521d764c1"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: isize"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2008:13: 2008:34>::cmp#9"
 kappa = "b601f18c35b9c3ae2904ca99c4c46a32a2127eda289ae8193bf469f069b473cc"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2039:5: 2039:26>::cmp"
 kappa = "69af7907621590f3a672ed04f46c156580bf0b7ef5bdd79e8fc424bb67f6e78a"
-status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+status = "translated"
+digest = "361f06ba0d1183cb0d99133ee686aca5e9b704a922eb946b2c06f594df431cce"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2084:5: 2084:31>::eq"
@@ -1789,13 +1789,13 @@ cause = "mir::Ty: !"
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2097:5: 2097:32>::partial_cmp"
 kappa = "c00308e7c855da6e5f7a039141a954bc843c266fc34e29b5566205ef27ae095e"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: !"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2106:5: 2106:25>::cmp"
 kappa = "ba4d25cc59e16a2de6f0fa8bdbb4423c97023b4abfe8c3f41b3931f48d79c794"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: !"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2117:5: 2119:33>::eq"
@@ -1816,28 +1816,28 @@ path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__c
 kappa = "a2fffc367388e9a79dbc4957901ed92cc7f88e22e7e10c7ae691b29f2cf1c40e"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_ge"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__chaining_gt"
 kappa = "b39682d325b4186ffac064e57297a3cf115c8ea2e8525f433920ba32e555dcdd"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_gt"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__chaining_le"
 kappa = "0aaf6d5186d9057b922de1cf04f6ae7ae7c09384895d85e4aa259bebbb1f10c2"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_le"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::__chaining_lt"
 kappa = "75f1301caec09d2e0469f1490fbc9f2876cc66bd28c59051e1c65cdd95dfea1d"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_lt"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::ge"
@@ -1872,14 +1872,14 @@ path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2132:5: 2134:34>::par
 kappa = "e7c9b942cb1f7655908717105c2fab63e966c493d36da82be9b9a045d3b9ea2a"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::partial_cmp"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2175:5: 2177:24>::cmp"
 kappa = "fea1aeb46219218870fe7f80e25d62c75729b73e8a45d9ffd28d3f0d1dc3b585"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as cmp::Ord>::cmp"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2192:5: 2194:33>::eq"
@@ -1900,28 +1900,28 @@ path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__c
 kappa = "2a9e3169381d17036c4684b4287b69e98796c1eeca455d3d16ae170a21ea2d65"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__chaining_gt"
 kappa = "cb4f1fcab2bf995cea8190da6bf442ceb71e0609eb702fe7f4b6b38c0d9dc0e6"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__chaining_le"
 kappa = "20eccc2e0155b70a7d8ffa240f23e3b41e13b9dd3532b06e88bf6b084f69a6e1"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::__chaining_lt"
 kappa = "2feedc6376fad5a6a14f7eb4d9ad143ce9ac84eaa9a534ed79817b592168cbef"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::ge"
@@ -1956,14 +1956,14 @@ path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2207:5: 2209:34>::par
 kappa = "5995bd2f3b84f39de01ccf6a7c6e488dd9d694b76d5bb4b179a741751e5966cc"
 at = "A=u32, B=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2250:5: 2252:24>::cmp"
 kappa = "7a227bcfa3b82c6aafadc1a601bcd3f9a5c03cca51a75e0be3180d37720a851a"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: &mut u32"
 
 [[fn]]
 path = "core::cmp::impls::<impl at library/core/src/cmp.rs:2265:5: 2267:33>::eq"
@@ -1997,25 +1997,25 @@ cause = "mir::Ty: &mut u32"
 path = "core::cmp::impls::bool::__chaining_ge"
 kappa = "345e048fbade98e13980516ea7e00852959394ea0825beb2441db03f1460e7fe"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::bool::__chaining_gt"
 kappa = "ca8a9b62f7f605c41a479faeced17dbbd041d7b7a9d4061b72ce1cbbf381acca"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::bool::__chaining_le"
 kappa = "6cbd23c6d43408b77008814f627d68774cd4054cb70edc41b545b4ac9f4aa5a1"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::bool::__chaining_lt"
 kappa = "30e37fc36ae9f50c9a43270d4c415bb1738eadca55306b0ec7567fc9bad4ae3a"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
+cause = "mir::Rvalue::Aggregate: a Result variant"
 
 [[fn]]
 path = "core::cmp::impls::bool::clamp"
@@ -2027,7 +2027,7 @@ cause = "mir::BinOp::Le: on Bool and Bool"
 path = "core::cmp::impls::bool::cmp"
 kappa = "cb97b7cc7849e313f44fb7285aaab67efd9d4619206cb1a9bc6f9f5e2fd21165"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: i8"
 
 [[fn]]
 path = "core::cmp::impls::bool::ge"
@@ -2069,7 +2069,7 @@ digest = "971028b392758a1c09ae913024cb149ffa0f7c8ff785137fb1732540029b43f6"
 path = "core::cmp::impls::bool::partial_cmp"
 kappa = "8316125b5838156534848e343878f906e0548fed60304fc0cef9aadb30df3dee"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <bool as cmp::Ord>::cmp"
 
 [[fn]]
 path = "core::max"
@@ -2083,7 +2083,7 @@ path = "core::max_by"
 kappa = "672a9fbe4ed8d142e7b237a7a64a90104a74a5b0398be90cff0bc23745ebbb0a"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
 
 [[fn]]
 path = "core::max_by_key"
@@ -2104,7 +2104,7 @@ path = "core::min_by"
 kappa = "40e460a94f179ce8398a350e1f73065a280eb40f4926599705a62b3835a1ecd2"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
 
 [[fn]]
 path = "core::min_by_key"
@@ -2125,7 +2125,7 @@ path = "core::minmax_by"
 kappa = "14400e9ae2d5bd35a6ebfd80f40005026347deceac7e7f895b7715f83f940f55"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
 
 [[fn]]
 path = "core::minmax_by_key"

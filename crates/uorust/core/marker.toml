@@ -32,13 +32,13 @@ cause = "mir::Ty: PhantomPinned"
 path = "core::marker::<impl at library/core/src/marker.rs:1025:54: 1025:57>::cmp"
 kappa = "b989994d86223419aaa5db69948880c59c6036b0aa4d5a901851c358f0425f25"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomPinned"
 
 [[fn]]
 path = "core::marker::<impl at library/core/src/marker.rs:1025:59: 1025:69>::partial_cmp"
 kappa = "3ada839e4f292b1bd46c06e01d36add52deb61bfd5f247421346d9d08510d7c8"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomPinned"
 
 [[fn]]
 path = "core::marker::<impl at library/core/src/marker.rs:1025:71: 1025:75>::hash"
@@ -57,7 +57,7 @@ cause = "mir::Ty: marker::PhantomData<u32>"
 path = "core::marker::PhantomData::cmp"
 kappa = "e511915ca0a682c92d40b2a562cf22f780ff701a05162f5ed72303bbcca7a82b"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::marker::PhantomData::default"
@@ -82,7 +82,7 @@ cause = "mir::Ty: T"
 path = "core::marker::PhantomData::partial_cmp"
 kappa = "e0506a6420efd863df5eacb4dbdf6a8905de20a26590f0f0f4db5356ee84b6a3"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::marker::_"
@@ -173,37 +173,37 @@ cause = "mir::Ty: PhantomInvariantLifetime<'_>"
 path = "core::variance::<impl at library/core/src/marker/variance.rs:107:55: 107:65>::partial_cmp"
 kappa = "8cbbdf65d74f7c3965c7e2c8cd9a6a55044c8d215cec7059ae280a50ac21cff6"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomCovariantLifetime<'_>"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:107:55: 107:65>::partial_cmp#2"
 kappa = "ed0c148ba42e7542379f746fae7cce702a61b9bde49132e117a5f65a1cce93f4"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomContravariantLifetime<'_>"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:107:55: 107:65>::partial_cmp#3"
 kappa = "67edf91d701dd0a24566fcace98943d55d5b895c4f785a956c95017d84bfb1a2"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomInvariantLifetime<'_>"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:107:67: 107:70>::cmp"
 kappa = "abfb741d7d725666c4c6fd7121f1f72141191c02c275af4c5cd9bd37156df47e"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomCovariantLifetime<'_>"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:107:67: 107:70>::cmp#2"
 kappa = "22ac717fe16ce4f0e803ce1de2030c3ed528c6fe7af42fe78601d2e549d4f2dc"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomContravariantLifetime<'_>"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:107:67: 107:70>::cmp#3"
 kappa = "87f31bb0bfb8ee6b07eade73e236fe30cd36d90ee09022fd06ae2f9767d9a6f4"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: PhantomInvariantLifetime<'_>"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:107:72: 107:76>::hash"
@@ -401,37 +401,37 @@ cause = "mir::Ty: T"
 path = "core::variance::<impl at library/core/src/marker/variance.rs:77:9: 78:28>::partial_cmp"
 kappa = "8a580fc706e62919bf69384bc5a8b72d50205765684c699d9625f6e6890d6393"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:77:9: 78:28>::partial_cmp#2"
 kappa = "0ae6d8444394206f243b3761688733ee97b87c2e19fa35cf25023ed1cced3325"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:77:9: 78:28>::partial_cmp#3"
 kappa = "0a06dad5c143367ab928029cc29379240290fbc6fe319680fa37c429f1619f03"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:85:9: 86:28>::cmp"
 kappa = "adf04ffe1b46a9839fdb0a8bb71b1c229a69b3a2f8d861450467ef9657b0fb84"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:85:9: 86:28>::cmp#2"
 kappa = "234e4112680d1ddaef25aba92b70df25da5f23e51aa84f5172aac09d00ea46e8"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:85:9: 86:28>::cmp#3"
 kappa = "dd86d6e2b182923c72af68e37024af9cc09c8313bc0f3d44c1963c9b2523a0df"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::variance::<impl at library/core/src/marker/variance.rs:93:9: 94:28>::hash"

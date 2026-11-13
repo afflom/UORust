@@ -3151,14 +3151,14 @@ path = "core::flatten::FlattenCompat::advance_back_by::advance"
 kappa = "d7fc101208caaff41c760fcf3e5e6a1ae873bd8799b4660c7cbc538b42c47afd"
 at = "U=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<(), usize>"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
 
 [[fn]]
 path = "core::flatten::FlattenCompat::advance_by::advance"
 kappa = "4e2d2a418779ad50d57aeb333260d130941e101026402a8c5a998747bf0ed239"
 at = "U=u32"
 status = "residue"
-cause = "mir::Ty: ops::control_flow::ControlFlow<(), usize>"
+cause = "mir::Ty: num::nonzero::NonZero<usize>"
 
 [[fn]]
 path = "core::flatten::FlattenCompat::fold"
@@ -5065,7 +5065,7 @@ path = "core::iter_compare"
 kappa = "65b4142aa2efbc6847b8f800332d9bc1137829050ffb48e701cecbf09adbde81"
 at = "A=u32, B=u32, F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: {closure@library/core/src/iter/traits/iterator.rs:4208:9: 4208:17}"
 
 [[fn]]
 path = "core::iter_compare::compare"
@@ -5078,7 +5078,7 @@ path = "core::iter_eq"
 kappa = "e12f0788bd43b6fb1e1fd175f0d6e9fc01fa6f9a24d01b1ef9f2e5247052ba47"
 at = "A=u32, B=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: iter_compare"
 
 [[fn]]
 path = "core::iterator::<impl at library/core/src/iter/traits/iterator.rs:4237:1: 4237:47>::advance_by"
@@ -5251,14 +5251,14 @@ path = "core::iterator::Iterator::cmp"
 kappa = "39f74a5af62502fd4d221c8a83be63fe914f148ffc8a949253a902bb570e3b68"
 at = "I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: iterator::Iterator::cmp::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:3729:28: 3729:34}"
 
 [[fn]]
 path = "core::iterator::Iterator::cmp_by"
 kappa = "e520a39744b87c3d0d3f7c3ccbd71a429ca58045f04bd7806488f3ebe556fb6d"
 at = "F=u32, I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 
 [[fn]]
 path = "core::iterator::Iterator::cmp_by::compare"
@@ -5414,14 +5414,14 @@ path = "core::iterator::Iterator::ge"
 kappa = "93b66ef47a5145b760d47d301a788050045288fc863772e83dfb0a5a50e79e8d"
 at = "I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::partial_cmp"
 
 [[fn]]
 path = "core::iterator::Iterator::gt"
 kappa = "c782392e9c65311954c3386c45211a035fdd7c94585f60ee155e1dac77374b57"
 at = "I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::partial_cmp"
 
 [[fn]]
 path = "core::iterator::Iterator::inspect"
@@ -5483,14 +5483,14 @@ path = "core::iterator::Iterator::le"
 kappa = "349a308dccc48a1dfb270cfca5c2d4540da18220cdda8e98d2510964914102da"
 at = "I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::partial_cmp"
 
 [[fn]]
 path = "core::iterator::Iterator::lt"
 kappa = "7f72d237308780b43345e8920fac7af6d1e4a4d851bcd5dc2d1b430e5c0c2141"
 at = "I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::partial_cmp"
 
 [[fn]]
 path = "core::iterator::Iterator::map"
@@ -5531,7 +5531,7 @@ path = "core::iterator::Iterator::max_by_key::compare"
 kappa = "2363edb963ee98be4007344efefb013c43515cf38084c37710f17229b553b77d"
 at = "B=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::iterator::Iterator::max_by_key::key"
@@ -5557,7 +5557,7 @@ path = "core::iterator::Iterator::min_by_key::compare"
 kappa = "e81d9d3a8f23aef9ded69b0f6374616f833168ab82b386feaf8cc1f527bda25c"
 at = "B=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: T"
 
 [[fn]]
 path = "core::iterator::Iterator::min_by_key::key"
@@ -5591,14 +5591,14 @@ path = "core::iterator::Iterator::partial_cmp"
 kappa = "a8875d29d11ab607f513c10bc458514b9d64bce437be94af8128f6fe10051a72"
 at = "I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: iterator::Iterator::partial_cmp::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:3814:36: 3814:42}"
 
 [[fn]]
 path = "core::iterator::Iterator::partial_cmp_by"
 kappa = "51bc6242142afc3bcfbbcd45c2b0d57cb89b57bca8870aad507bbe38b0e844f2"
 at = "F=u32, I=u32, Self=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 
 [[fn]]
 path = "core::iterator::Iterator::partial_cmp_by::compare"

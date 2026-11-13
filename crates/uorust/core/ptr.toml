@@ -224,7 +224,7 @@ path = "core::non_null::NonNull::cmp"
 kappa = "cf8a11668c3f8fe7518ddda5acffb39c08b2319d95c69e35a21bdac637ea69a2"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: NonNull<u32>"
 
 [[fn]]
 path = "core::non_null::NonNull::copy_from"
@@ -426,7 +426,7 @@ path = "core::non_null::NonNull::partial_cmp"
 kappa = "abed3f24340e34158d11996fcac98add6086c871864e1a03d09eff55dfcc1af5"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: NonNull<u32>"
 
 [[fn]]
 path = "core::non_null::NonNull::read"
@@ -552,7 +552,7 @@ path = "core::ptr::F::cmp"
 kappa = "4b7b37480510f0f017a345ecbc8155e1ca3b6d4d68e80857addd0246250a7c05"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: *const ()"
 
 [[fn]]
 path = "core::ptr::F::eq"
@@ -587,7 +587,7 @@ path = "core::ptr::F::partial_cmp"
 kappa = "a99528b8cbeabf220e79f7bc75257f6fb551e7256b782effd6f3a3044993cd7c"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: *const ()"
 
 [[fn]]
 path = "core::ptr::align_offset"
@@ -692,7 +692,7 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1633:1:
 kappa = "2b60f59c8832fd8e8799b0172cc08941dd86d570849f9f918848c45bb74a7c0c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: *const u32"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1653:1: 1653:46>::ge"
@@ -727,7 +727,7 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1653:1:
 kappa = "c5a644ac722a6b5b7734e71a99ca7ca97c09910872f3d7c3c1662fa2366e892f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: *const u32"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:1686:1: 1686:44>::default"
@@ -1117,7 +1117,7 @@ path = "core::ptr::metadata::DynMetadata::cmp"
 kappa = "9e4922c6b96f976c6d7c6c1eee1100476c4ea6b9af859bd77d26803d76104cc9"
 at = "Dyn=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: DynMetadata<u32>"
 
 [[fn]]
 path = "core::ptr::metadata::DynMetadata::eq"
@@ -1152,7 +1152,7 @@ path = "core::ptr::metadata::DynMetadata::partial_cmp"
 kappa = "d60e87a24da9bd1e7b6b2ee093f1a5e2817abd31cf777a4dbdddb4df6758a259"
 at = "Dyn=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: DynMetadata<u32>"
 
 [[fn]]
 path = "core::ptr::metadata::DynMetadata::size_of"
@@ -1306,7 +1306,7 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:2073:1: 207
 kappa = "c7a786aef6f1ed6e68d178757e107eb0da40ed686cf1128101df642568be7ad3"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: *mut u32"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:2093:1: 2093:44>::ge"
@@ -1341,7 +1341,7 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:2093:1: 209
 kappa = "d697617c2a1fc7af90e3472da25c57d0c7d067407238742aeb33c0e84ad35f84"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: cmp::Ordering"
+cause = "mir::Ty: *mut u32"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:2126:1: 2126:42>::default"

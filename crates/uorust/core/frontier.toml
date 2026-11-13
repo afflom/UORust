@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 15584
-translated = 527
-residue = 15057
+translated = 535
+residue = 15049
 
 [module.alloc]
 bodies = 61
@@ -77,8 +77,8 @@ residue = 25
 
 [module.cmp]
 bodies = 347
-translated = 55
-residue = 292
+translated = 61
+residue = 286
 
 [module.contracts]
 bodies = 1
@@ -277,8 +277,8 @@ residue = 545
 
 [module.sync]
 bodies = 361
-translated = 0
-residue = 361
+translated = 2
+residue = 359
 
 [module.task]
 bodies = 71
@@ -322,39 +322,31 @@ residue = 61
 
 [[cause]]
 cause = "mir::Ty: i16"
-bodies = 782
-
-[[cause]]
-cause = "mir::Ty: i32"
-bodies = 770
+bodies = 788
 
 [[cause]]
 cause = "mir::Ty: i8"
-bodies = 770
+bodies = 786
 
 [[cause]]
-cause = "mir::Ty: i64"
-bodies = 765
+cause = "mir::Ty: i32"
+bodies = 776
 
 [[cause]]
 cause = "mir::Ty: isize"
-bodies = 765
+bodies = 775
+
+[[cause]]
+cause = "mir::Ty: i64"
+bodies = 771
 
 [[cause]]
 cause = "mir::Ty: i128"
-bodies = 735
+bodies = 741
 
 [[cause]]
 cause = "mir::Ty: fmt::Error"
-bodies = 653
-
-[[cause]]
-cause = "mir::Ty: cmp::Ordering"
-bodies = 246
-
-[[cause]]
-cause = "mir::Ty: ops::control_flow::ControlFlow<bool>"
-bodies = 188
+bodies = 655
 
 [[cause]]
 cause = "mir::Instantiation: a const parameter"
@@ -366,19 +358,19 @@ bodies = 175
 
 [[cause]]
 cause = "mir::Ty: *mut u32"
-bodies = 162
+bodies = 164
 
 [[cause]]
 cause = "mir::Ty: !"
-bodies = 156
+bodies = 158
 
 [[cause]]
 cause = "mir::Ty: num::nonzero::NonZero<usize>"
-bodies = 154
+bodies = 156
 
 [[cause]]
 cause = "mir::Ty: &mut u32"
-bodies = 132
+bodies = 138
 
 [[cause]]
 cause = "mir::Ty: <u32 as iter::traits::iterator::Iterator>::Item"
@@ -398,31 +390,31 @@ bodies = 105
 
 [[cause]]
 cause = "mir::Ty: f64"
-bodies = 97
-
-[[cause]]
-cause = "mir::Ty: *const u32"
-bodies = 94
+bodies = 102
 
 [[cause]]
 cause = "mir::Ty: f32"
-bodies = 94
+bodies = 99
+
+[[cause]]
+cause = "mir::Ty: *const u32"
+bodies = 96
+
+[[cause]]
+cause = "mir::Ty: T"
+bodies = 93
+
+[[cause]]
+cause = "mir::Ty: f16"
+bodies = 92
+
+[[cause]]
+cause = "mir::Ty: f128"
+bodies = 89
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item num::MAX"
 bodies = 88
-
-[[cause]]
-cause = "mir::Ty: f16"
-bodies = 87
-
-[[cause]]
-cause = "mir::Ty: f128"
-bodies = 84
-
-[[cause]]
-cause = "mir::Ty: T"
-bodies = 82
 
 [[cause]]
 cause = "mir::Ty: num::error::TryFromIntError"
@@ -462,7 +454,7 @@ bodies = 56
 
 [[cause]]
 cause = "mir::Ty: fmt::Arguments<'_>"
-bodies = 53
+bodies = 55
 
 [[cause]]
 cause = "mir::Ty: num::nonzero::NonZero<u128>"
@@ -509,16 +501,20 @@ cause = "mir::Ty: num::saturating::Saturating<usize>"
 bodies = 49
 
 [[cause]]
+cause = "mir::Ty: Wrapping<u32>"
+bodies = 45
+
+[[cause]]
 cause = "mir::Ty: ops::range::Bound<&u32>"
 bodies = 45
 
 [[cause]]
-cause = "mir::Ty: Wrapping<u32>"
-bodies = 43
-
-[[cause]]
 cause = "mir::UnOp::Not: on Nat"
 bodies = 42
+
+[[cause]]
+cause = "mir::Ty: Saturating<u32>"
+bodies = 41
 
 [[cause]]
 cause = "mir::Ty: Wrapping<u128>"
@@ -545,15 +541,15 @@ cause = "mir::Ty: time::Duration"
 bodies = 41
 
 [[cause]]
-cause = "mir::Ty: Saturating<u32>"
-bodies = 39
-
-[[cause]]
 cause = "mir::BinOp::BitAnd: on Nat and Nat"
 bodies = 38
 
 [[cause]]
 cause = "mir::BinOp::Shr: on Nat and Nat"
+bodies = 37
+
+[[cause]]
+cause = "mir::Ty: *const"
 bodies = 37
 
 [[cause]]
@@ -585,16 +581,16 @@ cause = "mir::Ty: &mut str"
 bodies = 35
 
 [[cause]]
-cause = "mir::Ty: *const"
-bodies = 35
-
-[[cause]]
 cause = "mir::Ty: ops::range::Range<u32>"
 bodies = 35
 
 [[cause]]
 cause = "mir::CastKind::IntToInt: a cast that may truncate"
 bodies = 34
+
+[[cause]]
+cause = "mir::Rvalue::Aggregate: a Result variant"
+bodies = 33
 
 [[cause]]
 cause = "mir::Ty: ptr::non_null::NonNull<u32>"
@@ -609,12 +605,16 @@ cause = "mir::Ty: *mut [u32]"
 bodies = 31
 
 [[cause]]
+cause = "mir::Ty: AsciiChar"
+bodies = 31
+
+[[cause]]
 cause = "mir::Ty: ops::range::RangeInclusive<u32>"
 bodies = 31
 
 [[cause]]
-cause = "mir::Ty: AsciiChar"
-bodies = 29
+cause = "mir::Ty: Ipv6Addr"
+bodies = 28
 
 [[cause]]
 cause = "mir::Ty: net::ip_addr::Ipv6Addr"
@@ -622,6 +622,10 @@ bodies = 28
 
 [[cause]]
 cause = "mir::Ty: *const [u32]"
+bodies = 27
+
+[[cause]]
+cause = "mir::Ty: Ipv4Addr"
 bodies = 27
 
 [[cause]]
@@ -633,8 +637,12 @@ cause = "mir::Ty: ops::range::Range<usize>"
 bodies = 27
 
 [[cause]]
-cause = "mir::Ty: Ipv6Addr"
-bodies = 25
+cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
+bodies = 26
+
+[[cause]]
+cause = "mir::Ty: NonZero<u32>"
+bodies = 26
 
 [[cause]]
 cause = "mir::Ty: ascii::ascii_char::AsciiChar"
@@ -653,20 +661,24 @@ cause = "mir::Operand::Constant: the constant item fmt::num::fmt::DIG_TAB"
 bodies = 24
 
 [[cause]]
-cause = "mir::Ty: Ipv4Addr"
-bodies = 24
-
-[[cause]]
-cause = "mir::Ty: NonZero<u32>"
-bodies = 24
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as function::FnOnce>::call_once"
-bodies = 22
-
-[[cause]]
 cause = "mir::Ty: NonNull<u32>"
-bodies = 22
+bodies = 24
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_ge"
+bodies = 23
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_gt"
+bodies = 23
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_le"
+bodies = 23
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::__chaining_lt"
+bodies = 23
 
 [[cause]]
 cause = "mir::BinOp::Le: on String and String"
@@ -674,6 +686,10 @@ bodies = 20
 
 [[cause]]
 cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
+bodies = 20
+
+[[cause]]
+cause = "mir::Ty: Wtf8"
 bodies = 20
 
 [[cause]]
@@ -686,6 +702,14 @@ bodies = 20
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item num::MIN"
+bodies = 19
+
+[[cause]]
+cause = "mir::Ty: ByteStr"
+bodies = 19
+
+[[cause]]
+cause = "mir::Ty: Duration"
 bodies = 19
 
 [[cause]]
@@ -765,7 +789,7 @@ cause = "mir::Ty: IndexRange"
 bodies = 18
 
 [[cause]]
-cause = "mir::Ty: Wtf8"
+cause = "mir::Ty: IpAddr"
 bodies = 18
 
 [[cause]]
@@ -777,11 +801,11 @@ cause = "mir::Operand::Constant: the constant item <u32 as mem::SizedTypePropert
 bodies = 17
 
 [[cause]]
-cause = "mir::Ty: ByteStr"
+cause = "mir::ProjectionElem::Field: a field of Nat"
 bodies = 17
 
 [[cause]]
-cause = "mir::Ty: Duration"
+cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 bodies = 17
 
 [[cause]]
@@ -798,6 +822,10 @@ bodies = 16
 
 [[cause]]
 cause = "mir::ProjectionElem::ConstantIndex"
+bodies = 16
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: str::as_bytes"
 bodies = 16
 
 [[cause]]
@@ -837,14 +865,6 @@ cause = "mir::Ty: ops::range::Bound<u32>"
 bodies = 16
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: str::as_bytes"
-bodies = 15
-
-[[cause]]
-cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
-bodies = 15
-
-[[cause]]
 cause = "mir::Ty: ascii::EscapeDefault"
 bodies = 15
 
@@ -857,15 +877,15 @@ cause = "mir::TerminatorKind::Call: intrinsics::transmute"
 bodies = 14
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: three_way_compare"
+bodies = 14
+
+[[cause]]
 cause = "mir::Ty: *mut u8"
 bodies = 14
 
 [[cause]]
 cause = "mir::Ty: Copied<u32>"
-bodies = 14
-
-[[cause]]
-cause = "mir::Ty: IpAddr"
 bodies = 14
 
 [[cause]]
@@ -897,6 +917,10 @@ cause = "mir::Ty: Atomic<bool>"
 bodies = 13
 
 [[cause]]
+cause = "mir::Ty: Cell<u32>"
+bodies = 13
+
+[[cause]]
 cause = "mir::Ty: Fuse<u32>"
 bodies = 13
 
@@ -921,7 +945,19 @@ cause = "mir::Ty: NonZero<usize>"
 bodies = 13
 
 [[cause]]
+cause = "mir::Ty: Pin<u32>"
+bodies = 13
+
+[[cause]]
+cause = "mir::Ty: RefCell<u32>"
+bodies = 13
+
+[[cause]]
 cause = "mir::Ty: U"
+bodies = 13
+
+[[cause]]
+cause = "mir::Ty: alignment::Alignment"
 bodies = 13
 
 [[cause]]
@@ -946,6 +982,14 @@ bodies = 12
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <"
+bodies = 12
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as cmp::Ord>::cmp"
+bodies = 12
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::partial_cmp"
 bodies = 12
 
 [[cause]]
@@ -985,7 +1029,15 @@ cause = "mir::Ty: <u32 as str::pattern::Pattern>::Searcher<'_>"
 bodies = 12
 
 [[cause]]
+cause = "mir::Ty: CStr"
+bodies = 12
+
+[[cause]]
 cause = "mir::Ty: P"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: SocketAddrV6"
 bodies = 12
 
 [[cause]]
@@ -1005,10 +1057,6 @@ cause = "mir::Ty: char::ToUppercase"
 bodies = 12
 
 [[cause]]
-cause = "mir::Ty: convert::Infallible"
-bodies = 12
-
-[[cause]]
 cause = "mir::Ty: ffi::c_str::CStr"
 bodies = 12
 
@@ -1019,10 +1067,6 @@ bodies = 12
 [[cause]]
 cause = "mir::Ty: mem::maybe_uninit::MaybeUninit<u32>"
 bodies = 12
-
-[[cause]]
-cause = "mir::ProjectionElem::Field: a field of Nat"
-bodies = 11
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as collect::Extend>::extend_one_unchecked"
@@ -1057,27 +1101,19 @@ cause = "mir::Ty: *mut str"
 bodies = 11
 
 [[cause]]
-cause = "mir::Ty: Cell<u32>"
-bodies = 11
-
-[[cause]]
-cause = "mir::Ty: Pin<u32>"
-bodies = 11
-
-[[cause]]
-cause = "mir::Ty: RefCell<u32>"
-bodies = 11
-
-[[cause]]
 cause = "mir::Ty: StepBy<u32>"
 bodies = 11
 
 [[cause]]
-cause = "mir::Ty: alignment::Alignment"
+cause = "mir::Ty: TypeId"
 bodies = 11
 
 [[cause]]
 cause = "mir::Ty: char::EscapeDefault"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: cmp::Reverse<u32>"
 bodies = 11
 
 [[cause]]
@@ -1113,11 +1149,11 @@ cause = "mir::Ty: *const u8"
 bodies = 10
 
 [[cause]]
-cause = "mir::Ty: CStr"
+cause = "mir::Ty: ChunksExact<'_"
 bodies = 10
 
 [[cause]]
-cause = "mir::Ty: ChunksExact<'_"
+cause = "mir::Ty: CodePoint"
 bodies = 10
 
 [[cause]]
@@ -1133,7 +1169,11 @@ cause = "mir::Ty: RepeatN<u32>"
 bodies = 10
 
 [[cause]]
-cause = "mir::Ty: SocketAddrV6"
+cause = "mir::Ty: SocketAddr"
+bodies = 10
+
+[[cause]]
+cause = "mir::Ty: convert::Infallible"
 bodies = 10
 
 [[cause]]
@@ -1189,15 +1229,7 @@ cause = "mir::Ty: RangeInclusiveIter<u32>"
 bodies = 9
 
 [[cause]]
-cause = "mir::Ty: TypeId"
-bodies = 9
-
-[[cause]]
 cause = "mir::Ty: char::EscapeUnicode"
-bodies = 9
-
-[[cause]]
-cause = "mir::Ty: cmp::Reverse<u32>"
 bodies = 9
 
 [[cause]]
@@ -1233,7 +1265,7 @@ cause = "mir::Ty: Cloned<u32>"
 bodies = 8
 
 [[cause]]
-cause = "mir::Ty: CodePoint"
+cause = "mir::Ty: ControlFlow<u32"
 bodies = 8
 
 [[cause]]
@@ -1242,6 +1274,10 @@ bodies = 8
 
 [[cause]]
 cause = "mir::Ty: Enumerate<u32>"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: ManuallyDrop<u32>"
 bodies = 8
 
 [[cause]]
@@ -1261,7 +1297,7 @@ cause = "mir::Ty: Self"
 bodies = 8
 
 [[cause]]
-cause = "mir::Ty: SocketAddr"
+cause = "mir::Ty: SocketAddrV4"
 bodies = 8
 
 [[cause]]
@@ -1333,6 +1369,14 @@ cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'
 bodies = 7
 
 [[cause]]
+cause = "mir::Ty: Big32x40"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: Big8x3"
+bodies = 7
+
+[[cause]]
 cause = "mir::Ty: CharIndices<'_>"
 bodies = 7
 
@@ -1345,11 +1389,23 @@ cause = "mir::Ty: FormattingOptions"
 bodies = 7
 
 [[cause]]
+cause = "mir::Ty: Infallible"
+bodies = 7
+
+[[cause]]
 cause = "mir::Ty: Layout"
 bodies = 7
 
 [[cause]]
+cause = "mir::Ty: Location<'_>"
+bodies = 7
+
+[[cause]]
 cause = "mir::Ty: Map<u32"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: char::CharCase"
 bodies = 7
 
 [[cause]]
@@ -1374,6 +1430,10 @@ bodies = 7
 
 [[cause]]
 cause = "mir::Ty: str::error::Utf8Error"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: task::poll::Poll<u32>"
 bodies = 7
 
 [[cause]]
@@ -1430,6 +1490,10 @@ bodies = 6
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as ShrAssign>::shr_assign"
+bodies = 6
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SliceOrd>::compare"
 bodies = 6
 
 [[cause]]
@@ -1593,6 +1657,14 @@ cause = "mir::Ty: Chars<'_>"
 bodies = 6
 
 [[cause]]
+cause = "mir::Ty: DynMetadata<u32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: ErrorKind"
+bodies = 6
+
+[[cause]]
 cause = "mir::Ty: EscapeAscii<'_>"
 bodies = 6
 
@@ -1609,10 +1681,6 @@ cause = "mir::Ty: Flatten<u32>"
 bodies = 6
 
 [[cause]]
-cause = "mir::Ty: ManuallyDrop<u32>"
-bodies = 6
-
-[[cause]]
 cause = "mir::Ty: Peekable<u32>"
 bodies = 6
 
@@ -1625,11 +1693,11 @@ cause = "mir::Ty: Skip<u32>"
 bodies = 6
 
 [[cause]]
-cause = "mir::Ty: SocketAddrV4"
+cause = "mir::Ty: SplitInternal<'_"
 bodies = 6
 
 [[cause]]
-cause = "mir::Ty: SplitInternal<'_"
+cause = "mir::Ty: SyncView<u32>"
 bodies = 6
 
 [[cause]]
@@ -1685,10 +1753,6 @@ cause = "mir::Ty: str::iter::EscapeUnicode<'_>"
 bodies = 6
 
 [[cause]]
-cause = "mir::Ty: task::poll::Poll<u32>"
-bodies = 6
-
-[[cause]]
 cause = "mir::Operand::Constant: 29_i32 as u32"
 bodies = 5
 
@@ -1698,14 +1762,6 @@ bodies = 5
 
 [[cause]]
 cause = "mir::Ty: ArrayChunks<u32"
-bodies = 5
-
-[[cause]]
-cause = "mir::Ty: Big32x40"
-bodies = 5
-
-[[cause]]
-cause = "mir::Ty: Big8x3"
 bodies = 5
 
 [[cause]]
@@ -1729,7 +1785,7 @@ cause = "mir::Ty: CharSliceSearcher<'_"
 bodies = 5
 
 [[cause]]
-cause = "mir::Ty: ControlFlow<u32"
+cause = "mir::Ty: CodePointInner"
 bodies = 5
 
 [[cause]]
@@ -1738,6 +1794,10 @@ bodies = 5
 
 [[cause]]
 cause = "mir::Ty: Filter<u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: Ipv6MulticastScope"
 bodies = 5
 
 [[cause]]
@@ -1753,7 +1813,55 @@ cause = "mir::Ty: LocalWaker"
 bodies = 5
 
 [[cause]]
-cause = "mir::Ty: Location<'_>"
+cause = "mir::Ty: Nanoseconds"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroCharInner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroU128Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroU16Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroU32Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroU64Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroU8Inner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: NonZeroUsizeInner"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: PhantomContravariantLifetime<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: PhantomCovariantLifetime<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: PhantomInvariantLifetime<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: PhantomPinned"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: Poll<u32>"
 bodies = 5
 
 [[cause]]
@@ -1765,6 +1873,18 @@ cause = "mir::Ty: SplitWhitespace<'_>"
 bodies = 5
 
 [[cause]]
+cause = "mir::Ty: U32NotAllOnes"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: U64NotAllOnes"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: UsizeNoHighBit"
+bodies = 5
+
+[[cause]]
 cause = "mir::Ty: Waker"
 bodies = 5
 
@@ -1773,15 +1893,7 @@ cause = "mir::Ty: any::TypeId"
 bodies = 5
 
 [[cause]]
-cause = "mir::Ty: atomic::Ordering"
-bodies = 5
-
-[[cause]]
 cause = "mir::Ty: cell::RefMut<'_"
-bodies = 5
-
-[[cause]]
-cause = "mir::Ty: char::CharCase"
 bodies = 5
 
 [[cause]]
@@ -1826,10 +1938,6 @@ bodies = 5
 
 [[cause]]
 cause = "mir::Ty: num::niche_types::Nanoseconds"
-bodies = 5
-
-[[cause]]
-cause = "mir::Ty: ops::control_flow::ControlFlow<u32"
 bodies = 5
 
 [[cause]]
@@ -1925,6 +2033,10 @@ cause = "mir::Operand::Constant: num::MAX as usize"
 bodies = 4
 
 [[cause]]
+cause = "mir::Operand::Constant: the constant item &'a usize"
+bodies = 4
+
+[[cause]]
 cause = "mir::Operand::Constant: the constant item <I as iter::adapters::zip::TrustedRandomAccessNoCoerce>::MAY_HAVE_SIDE_EFFECT"
 bodies = 4
 
@@ -1938,6 +2050,10 @@ bodies = 4
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as cmp::PartialOrd>::lt"
+bodies = 4
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as iterator::Iterator>::partial_cmp"
 bodies = 4
 
 [[cause]]
@@ -1985,19 +2101,19 @@ cause = "mir::Ty: CharSearcher<'_>"
 bodies = 4
 
 [[cause]]
+cause = "mir::Ty: CoroutineState<u32"
+bodies = 4
+
+[[cause]]
 cause = "mir::Ty: Decimal"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: DynMetadata<u32>"
+cause = "mir::Ty: I32NotAllOnes"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: ErrorKind"
-bodies = 4
-
-[[cause]]
-cause = "mir::Ty: Infallible"
+cause = "mir::Ty: I64NotAllOnes"
 bodies = 4
 
 [[cause]]
@@ -2006,6 +2122,30 @@ bodies = 4
 
 [[cause]]
 cause = "mir::Ty: Item<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: NonZeroI128Inner"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: NonZeroI16Inner"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: NonZeroI32Inner"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: NonZeroI64Inner"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: NonZeroI8Inner"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: NonZeroIsizeInner"
 bodies = 4
 
 [[cause]]
@@ -2029,10 +2169,6 @@ cause = "mir::Ty: SVec"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: SyncView<u32>"
-bodies = 4
-
-[[cause]]
 cause = "mir::Ty: Utf8Chunk<'_>"
 bodies = 4
 
@@ -2041,7 +2177,15 @@ cause = "mir::Ty: Utf8Error"
 bodies = 4
 
 [[cause]]
+cause = "mir::Ty: VARIANT"
+bodies = 4
+
+[[cause]]
 cause = "mir::Ty: VaList<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: __H"
 bodies = 4
 
 [[cause]]
@@ -2209,6 +2353,10 @@ cause = "mir::Ty: task::poll::Poll<option::Option<result::Result<u32"
 bodies = 4
 
 [[cause]]
+cause = "mir::Ty: task::poll::Poll<option::Option<u32>>"
+bodies = 4
+
+[[cause]]
 cause = "mir::BinOp::Gt: on String and String"
 bodies = 3
 
@@ -2226,6 +2374,10 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item num::imp::int_sqrt::u64_stages::HALF_BITS"
+bodies = 3
+
+[[cause]]
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 bodies = 3
 
 [[cause]]
@@ -2513,10 +2665,6 @@ cause = "mir::Ty: ChunksExactMut<'_"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: CodePointInner"
-bodies = 3
-
-[[cause]]
 cause = "mir::Ty: DecodeUtf16Error"
 bodies = 3
 
@@ -2526,10 +2674,6 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: IntErrorKind"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: Ipv6MulticastScope"
 bodies = 3
 
 [[cause]]
@@ -2562,58 +2706,6 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: MergeState<u32>"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: Nanoseconds"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: NonZeroCharInner"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: NonZeroU128Inner"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: NonZeroU16Inner"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: NonZeroU32Inner"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: NonZeroU64Inner"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: NonZeroU8Inner"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: NonZeroUsizeInner"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: PhantomContravariantLifetime<'_>"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: PhantomCovariantLifetime<'_>"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: PhantomInvariantLifetime<'_>"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: PhantomPinned"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: Poll<u32>"
 bodies = 3
 
 [[cause]]
@@ -2657,23 +2749,11 @@ cause = "mir::Ty: StrSearcher<'_"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: U32NotAllOnes"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: U64NotAllOnes"
-bodies = 3
-
-[[cause]]
 cause = "mir::Ty: UnsafeBytesToStr"
 bodies = 3
 
 [[cause]]
 cause = "mir::Ty: UnsafeCell<u32>"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: UsizeNoHighBit"
 bodies = 3
 
 [[cause]]
@@ -2974,10 +3054,6 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: slice::iter::Windows<'_"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: task::poll::Poll<option::Option<u32>>"
 bodies = 3
 
 [[cause]]
@@ -3285,10 +3361,6 @@ cause = "mir::Ty: Clamp<usize>"
 bodies = 2
 
 [[cause]]
-cause = "mir::Ty: CoroutineState<u32"
-bodies = 2
-
-[[cause]]
 cause = "mir::Ty: Cycle<u32>"
 bodies = 2
 
@@ -3361,14 +3433,6 @@ cause = "mir::Ty: H"
 bodies = 2
 
 [[cause]]
-cause = "mir::Ty: I32NotAllOnes"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: I64NotAllOnes"
-bodies = 2
-
-[[cause]]
 cause = "mir::Ty: InitializingSlice<'_"
 bodies = 2
 
@@ -3410,30 +3474,6 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: NonNull<[u32]>"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: NonZeroI128Inner"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: NonZeroI16Inner"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: NonZeroI32Inner"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: NonZeroI64Inner"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: NonZeroI8Inner"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: NonZeroIsizeInner"
 bodies = 2
 
 [[cause]]
@@ -3518,14 +3558,6 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: V"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: VARIANT"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: __H"
 bodies = 2
 
 [[cause]]
@@ -3721,10 +3753,6 @@ cause = "mir::Ty: num::imp::flt2dec::decoder::FullDecoded"
 bodies = 2
 
 [[cause]]
-cause = "mir::Ty: ops::control_flow::ControlFlow<"
-bodies = 2
-
-[[cause]]
 cause = "mir::Ty: ops::range::RangeFull"
 bodies = 2
 
@@ -3881,10 +3909,6 @@ cause = "mir::Ty: str::pattern::TwoWaySearcher"
 bodies = 2
 
 [[cause]]
-cause = "mir::Ty: sync::atomic::Ordering"
-bodies = 2
-
-[[cause]]
 cause = "mir::Ty: task::wake::Context<'_>"
 bodies = 2
 
@@ -3929,6 +3953,10 @@ cause = "mir::Ty: {closure@library/core/src/iter/traits/iterator.rs:3145:13: 314
 bodies = 2
 
 [[cause]]
+cause = "mir::Ty: {closure@library/core/src/iter/traits/iterator.rs:4208:9: 4208:17}"
+bodies = 2
+
+[[cause]]
 cause = "mir::Ty: {closure@library/core/src/iter/traits/iterator.rs:884:13: 884:28}"
 bodies = 2
 
@@ -3953,6 +3981,10 @@ cause = "mir::AggregateKind::Closure: char_count_general_case::{closure#0}: type
 bodies = 1
 
 [[cause]]
+cause = "mir::AggregateKind::Closure: iterator::Iterator::cmp::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:3729:28: 3729:34}"
+bodies = 1
+
+[[cause]]
 cause = "mir::AggregateKind::Closure: iterator::Iterator::count::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:232:13: 232:33}"
 bodies = 1
 
@@ -3962,6 +3994,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::AggregateKind::Closure: iterator::Iterator::is_sorted::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:4056:27: 4056:33}"
+bodies = 1
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: iterator::Iterator::partial_cmp::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:3814:36: 3814:42}"
 bodies = 1
 
 [[cause]]
@@ -3977,11 +4013,19 @@ cause = "mir::AggregateKind::Closure: round_up::{closure#0}: type outside the li
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: slice::binary_search::{closure#0}: type outside the lift: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::binary_search::{closure#0}: type outside the lift: {closure@library/core/src/slice/mod.rs:2924:31: 2924:34}"
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: slice::binary_search_by_key::{closure#0}: type outside the lift: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::binary_search_by_key::{closure#0}: type outside the lift: &mut u32"
+bodies = 1
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: slice::cmp::compare::{closure#0}: type outside the lift: {closure@library/core/src/slice/cmp.rs:287:26: 287:38}"
+bodies = 1
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: slice::cmp::partial_compare::{closure#0}: type outside the lift: {closure@library/core/src/slice/cmp.rs:184:26: 184:38}"
 bodies = 1
 
 [[cause]]
@@ -3997,7 +4041,7 @@ cause = "mir::AggregateKind::Closure: slice::partial_sort_unstable_by_key::{clos
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: slice::partition_point::{closure#0}: type outside the lift: cmp::Ordering"
+cause = "mir::AggregateKind::Closure: slice::partition_point::{closure#0}: type outside the lift: &mut u32"
 bodies = 1
 
 [[cause]]
@@ -4385,7 +4429,7 @@ cause = "mir::Operand::Constant: unicode::unicode_data::n::lookup_slow::{constan
 bodies = 1
 
 [[cause]]
-cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
+cause = "mir::Rvalue::Aggregate: the variant CmpOrdering::Relaxed"
 bodies = 1
 
 [[cause]]
@@ -4421,6 +4465,22 @@ cause = "mir::TerminatorKind::Call: <[u32] as CloneFromSpec>::spec_clone_from"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_ge"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_gt"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_le"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <[u32] as cmp::PartialOrd>::__chaining_lt"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: <[u32] as specialize::SpecFill>::spec_fill"
 bodies = 1
 
@@ -4441,6 +4501,10 @@ cause = "mir::TerminatorKind::Call: <bool as Not>::not"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: <bool as cmp::Ord>::cmp"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: <slice::iter::Iter as iterator::Iterator>::is_sorted_by_key"
 bodies = 1
 
@@ -4450,6 +4514,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <slice::iter::Iter as iterator::Iterator>::rposition"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <str as cmp::Ord>::cmp"
 bodies = 1
 
 [[cause]]
@@ -4629,7 +4697,27 @@ cause = "mir::TerminatorKind::Call: <u32 as RemAssign>::rem_assign"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_ge"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_gt"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_le"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SliceChain>::chaining_lt"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: <u32 as SliceContains>::slice_contains"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SlicePartialOrd>::partial_compare"
 bodies = 1
 
 [[cause]]
@@ -4925,6 +5013,10 @@ cause = "mir::TerminatorKind::Call: <usize as WidenTarget>::internal_widen"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: <usize as cmp::Ord>::cmp"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: Layout::is_size_align_valid"
 bodies = 1
 
@@ -5046,6 +5138,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: is_ascii_simple"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: iter_compare"
 bodies = 1
 
 [[cause]]
@@ -6382,10 +6478,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: {closure@library/core/src/iter/traits/iterator.rs:4088:13: 4088:24}"
-bodies = 1
-
-[[cause]]
-cause = "mir::Ty: {closure@library/core/src/iter/traits/iterator.rs:4208:9: 4208:17}"
 bodies = 1
 
 [[cause]]
