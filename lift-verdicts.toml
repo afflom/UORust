@@ -12,3 +12,17 @@ function = "uorust::mir::parse::assert_kind"
 digest = "d6e48758b42ce344af1e2aafd5cfa46e42d818901d0c32813cd5ced7d4505269"
 status = "proved"
 axioms = { assertKind = ["Classical.choice", "Quot.sound", "propext"] }
+
+[[verdict]]
+kappa = "7eff26b67b5db97d0cb61cd99e4b500c1637c6525cead6629349a5046a96337f"
+function = "uorust::mir::float::Format::width"
+digest = "2621431e0173a22c33b762ce227277739d4b7f3dc259014f7401ca1bb7d55295"
+status = "refused"
+cause = "LLV7002: Lean rejected `Uorust.Behavior` (error): omega could not prove the goal:"
+
+[[verdict]]
+kappa = "fb7f9cf20bcf989e0ed7239eb476467fa9993e5b9f221358086370e354a25a99"
+function = "uorust::mir::float::Format::quotient_shift"
+digest = "31f58fe891ecc5c0ef89c2548fbadcbab2ad442191aa8703f10650330aced230"
+status = "refused"
+cause = "LLV7002: Lean rejected `Uorust.Behavior` (error): omega could not prove the goal:"
