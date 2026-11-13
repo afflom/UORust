@@ -28,9 +28,12 @@ permissions:
   contents: read
   actions: read
 
+# One run at a time, never cancelled: an export takes longer than main stays
+# still, so cancelling in progress meant no export ever finished. GitHub keeps
+# the newest waiting run; it runs next, on the newest main (as generate.yml).
 concurrency:
   group: certified
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   export:
