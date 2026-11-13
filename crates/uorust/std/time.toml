@@ -95,10 +95,22 @@ status = "residue"
 cause = "mir::Ty: time::Instant"
 
 [[fn]]
+path = "std::time::Instant::checked_add"
+kappa = "1d6b7edde25ba4733812db8aaa561a631c858aa72f7b0ffcfca5ce1f01f1b4ac"
+status = "residue"
+cause = "mir::Ty: time::Instant"
+
+[[fn]]
 path = "std::time::Instant::checked_duration_since"
 kappa = "ff9834fc4846d45b7de1663300c83a433d7bc126199788cf06476e3743d4d32a"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
+
+[[fn]]
+path = "std::time::Instant::checked_sub"
+kappa = "977c59ea36b23357e847b27650d68c29cb0be492cbe4349e6cf56b105e52203c"
+status = "residue"
+cause = "mir::Ty: time::Instant"
 
 [[fn]]
 path = "std::time::Instant::duration_since"
@@ -183,6 +195,24 @@ path = "std::time::SystemTime::add_assign"
 kappa = "201a875d5821cadb97eedde7804ec27d8f008c04757cf7e85ea8e9590b1a6d40"
 status = "residue"
 cause = "mir::Ty: time::SystemTime"
+
+[[fn]]
+path = "std::time::SystemTime::checked_add"
+kappa = "1ada3059a1767c12bb33431a3929fe68dd242e7b295aaaeef9afd0893e510f2c"
+status = "residue"
+cause = "mir::Ty: time::SystemTime"
+
+[[fn]]
+path = "std::time::SystemTime::checked_sub"
+kappa = "60480550fdfe787913d0c2a9037815c081980be4a6719770e61bd37d6b7568de"
+status = "residue"
+cause = "mir::Ty: time::SystemTime"
+
+[[fn]]
+path = "std::time::SystemTime::duration_since"
+kappa = "0bc42d14c8abb811318d38c6ea3d425eae14c0bcc14643e7bd70bf64fcd6803b"
+status = "residue"
+cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
 path = "std::time::SystemTime::elapsed"

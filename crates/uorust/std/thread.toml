@@ -309,6 +309,13 @@ status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
+path = "std::local::LocalKey::get"
+kappa = "7ce528baf0eb97fc32228ff9003fa419438b27310f3dc2f9e2eba145e5633585"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: LocalKey<Cell<u32>>"
+
+[[fn]]
 path = "std::local::LocalKey::initialize_with"
 kappa = "14e9874b28520c2c31dec13af2688a0ff731d779c4c81b662bb3853574440a49"
 at = "F=u32, R=u32, T=u32"
@@ -327,7 +334,7 @@ path = "std::local::LocalKey::replace"
 kappa = "daf8c0903092241b7709969d4c26fd48a0e74b0d1900cd3b225d5b66c66ae17a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Cell<u32>"
+cause = "mir::Ty: LocalKey<Cell<u32>>"
 
 [[fn]]
 path = "std::local::LocalKey::replace#2"
@@ -341,11 +348,25 @@ path = "std::local::LocalKey::set"
 kappa = "bb33339aca0f4ce3ca55e28e3f5d2b0de90d41b1606c190adf6ff81aaea6c901"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Cell<u32>"
+cause = "mir::Ty: LocalKey<Cell<u32>>"
 
 [[fn]]
 path = "std::local::LocalKey::set#2"
 kappa = "131c6e8173375856f82a9b71406bc48e45a4545258705d5ab4df8eca82a269e7"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: RefCell<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::take"
+kappa = "ef149885d6fde652e78ad97b9e1977c5ad30cad960a64365577f2050a1022030"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: LocalKey<Cell<u32>>"
+
+[[fn]]
+path = "std::local::LocalKey::take#2"
+kappa = "073d8725c27b0f04c484e43e16e0905278bfd88570e08beff718325162cb9e5e"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: RefCell<u32>"
@@ -362,7 +383,7 @@ path = "std::local::LocalKey::update"
 kappa = "a72024a89f64eb40b74e79e7eff99524ece818acfd3724dfffad7921738341bb"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Cell<u32>"
+cause = "mir::Ty: LocalKey<Cell<u32>>"
 
 [[fn]]
 path = "std::local::LocalKey::with"
@@ -592,6 +613,12 @@ status = "residue"
 cause = "mir::Ty: core::num::NonZero<u64>"
 
 [[fn]]
+path = "std::thread::id::ThreadId::from_u64"
+kappa = "393c074bbe9dd0c8c962c666dd39c8b3f351d902a4e55f574b3220255bd7750d"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
 path = "std::thread::id::ThreadId::new"
 kappa = "54b53391e893f70e47f939420ad52c4b6c85e7f8345d2d3670785af10d519a90"
 status = "residue"
@@ -642,6 +669,12 @@ cause = "mir::Ty: thread::thread::Thread"
 [[fn]]
 path = "std::thread::thread::Thread::name"
 kappa = "a428545ff2fb7d3c43bbd4af15db9d240985d89ae267abfb2cf3482ec03ec2d2"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread::thread::Thread::new"
+kappa = "dc11df9d3cb446c5a2fe41528c8212cc2f464d009efdd743cd5d637767f1ee8b"
 status = "residue"
 cause = "mir::Ty: thread::thread::Thread"
 

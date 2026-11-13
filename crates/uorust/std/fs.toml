@@ -280,10 +280,22 @@ status = "residue"
 cause = "mir::Ty: ffi::os_str::OsString"
 
 [[fn]]
+path = "std::fs::DirEntry::file_type"
+kappa = "4cc3d39ff4f64d8e3f988f25c30822d984cf5c49b408bb4f7295a340d9525445"
+status = "residue"
+cause = "mir::Ty: fs::FileType"
+
+[[fn]]
 path = "std::fs::DirEntry::fmt"
 kappa = "7d5cd8ec834ef7e4b7a4c74b3c741beae1cb2edb75bf52b2745ea1579776ae1f"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::fs::DirEntry::metadata"
+kappa = "08728a20cd81fe489eb8c565cab3087c33ea61f68ff82f3215a445ab7e16a58e"
+status = "residue"
+cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::fs::DirEntry::path"
@@ -371,6 +383,12 @@ path = "std::fs::File::lock_shared"
 kappa = "2ccb54097b5f2c7bb3b2f8ab1a8949ef09ce1b47c63a6bf1d30fa378c5a59bcd"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::fs::File::metadata"
+kappa = "30edb0f7ab5d180f1e6ac8f515a275f3beafbb92efb82a2528d9c17a4a6b0699"
+status = "residue"
+cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::fs::File::open"
@@ -567,10 +585,22 @@ status = "residue"
 cause = "mir::Ty: fs::FileType"
 
 [[fn]]
+path = "std::fs::Metadata::accessed"
+kappa = "0db7c0d168987c2bd2d21a05d266defe4a595ac83191cbe4ccc05679b9374fdf"
+status = "residue"
+cause = "mir::Ty: time::SystemTime"
+
+[[fn]]
 path = "std::fs::Metadata::as_inner"
 kappa = "fbd9f9851f9957f70e669a03611f9e5058eda9c3c8d337fe8b41c743a42d852b"
 status = "residue"
 cause = "mir::Ty: sys::fs::unix::FileAttr"
+
+[[fn]]
+path = "std::fs::Metadata::created"
+kappa = "f754016439a9a6f50108183cedbca8f87a7e584830892d2f909e0c2242337a20"
+status = "residue"
+cause = "mir::Ty: time::SystemTime"
 
 [[fn]]
 path = "std::fs::Metadata::file_type"
@@ -613,6 +643,12 @@ path = "std::fs::Metadata::len"
 kappa = "3e15388d40809e6ae5f676d941673feda74de95b0cb309706281712d27f23782"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
+
+[[fn]]
+path = "std::fs::Metadata::modified"
+kappa = "df2c9861d69409433493e5f184b570e82a34e67b2588a06fbe0128e1f843d969"
+status = "residue"
+cause = "mir::Ty: time::SystemTime"
 
 [[fn]]
 path = "std::fs::Metadata::permissions"
@@ -758,6 +794,13 @@ status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
+path = "std::fs::metadata"
+kappa = "7e72e42b5e34c1b848e252a2e8942edc83666f0a9b7a91c0bc1eb6e9d7e617cb"
+at = "P=u32"
+status = "residue"
+cause = "mir::Ty: fs::Metadata"
+
+[[fn]]
 path = "std::fs::read"
 kappa = "67ce24af5bc0af6d9905739b3f6e8a475bc0b71de3b3cf994cfc47a8de593066"
 at = "P=u32"
@@ -769,6 +812,13 @@ path = "std::fs::read::inner"
 kappa = "76cae0bde95caee77275ca176ad3623a546de6a31f9bfb1ce1d9d4a378bae58c"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::fs::read_dir"
+kappa = "aa4e6c20f8fdf75678631d2ecd257c542c56b0c02e5ce8ca10e19ac1b17e9004"
+at = "P=u32"
+status = "residue"
+cause = "mir::Ty: fs::ReadDir"
 
 [[fn]]
 path = "std::fs::read_link"
@@ -845,6 +895,13 @@ kappa = "99af8ee767894fc6fbdbb4976cfc8bf34d498c7369f1062b1826ce22adea8e17"
 at = "P=u32"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::fs::symlink_metadata"
+kappa = "81781434cf2c11da214d62cfd604761f0f273b2794ec7ec7d836f9a357a3e69c"
+at = "P=u32"
+status = "residue"
+cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::fs::write"

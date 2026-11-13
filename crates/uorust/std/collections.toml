@@ -493,6 +493,13 @@ status = "residue"
 cause = "mir::Ty: collections::hash::map::OccupiedError<'_, u32, u32, u32>"
 
 [[fn]]
+path = "std::map::HashMap::try_reserve"
+kappa = "cf88247f20cff7f6ad9d504cde3763bac0e9255a078d70681fb371945968443e"
+at = "A=u32, K=u32, S=u32, V=u32"
+status = "residue"
+cause = "mir::Ty: alloc_crate::collections::TryReserveError"
+
+[[fn]]
 path = "std::map::HashMap::values"
 kappa = "e782b006444731f642b193fe442d02bafee7cbbaa8213c132272bd26e282f1c5"
 at = "A=u32, K=u32, S=u32, V=u32"
@@ -1563,6 +1570,13 @@ kappa = "ad3cbb150d626e2a52000bf3d5520f9379b4a4dfaa3fc0becdc57cca5602825b"
 at = "A=u32, Q=u32, S=u32, T=u32"
 status = "residue"
 cause = "mir::Ty: set::HashSet<u32, u32, u32>"
+
+[[fn]]
+path = "std::set::HashSet::try_reserve"
+kappa = "99cae936e3e2f36c38ed81a05bf3e5d94ac43468961897a3eb2f669b2e84884a"
+at = "A=u32, S=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: alloc_crate::collections::TryReserveError"
 
 [[fn]]
 path = "std::set::HashSet::union"

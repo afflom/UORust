@@ -696,6 +696,12 @@ status = "residue"
 cause = "mir::Ty: path::Iter<'_>"
 
 [[fn]]
+path = "std::path::Ancestors::next"
+kappa = "68c5306f90fc0fd457b12fa4906f0873299adcdfa8cce07386b718008666ea75"
+status = "residue"
+cause = "mir::Ty: path::Path"
+
+[[fn]]
 path = "std::path::Arc::from"
 kappa = "eba1208c918d9aea27b9224f04c679bc17db1634c04941213ac62dc4227a1cb8"
 status = "residue"
@@ -870,8 +876,20 @@ status = "residue"
 cause = "mir::Ty: Components<'_>"
 
 [[fn]]
+path = "std::path::Components::prefix_len"
+kappa = "0bca844a06ae931556129ab35cf577735da1270856e7926dfae4557b0fb9dd22"
+status = "residue"
+cause = "mir::Ty: Components<'_>"
+
+[[fn]]
 path = "std::path::Components::prefix_remaining"
 kappa = "b42db69ff561aeddd1e6df88ca1da1aff5fa5e5a672b5becf4c5ce8cf2eacf72"
+status = "residue"
+cause = "mir::Ty: Components<'_>"
+
+[[fn]]
+path = "std::path::Components::prefix_verbatim"
+kappa = "640c9c22bcce2ffd1700ad50978ac545261b6fa78738c038c587f6139237a2c1"
 status = "residue"
 cause = "mir::Ty: Components<'_>"
 
@@ -952,6 +970,18 @@ path = "std::path::Iter::fmt::DebugHelper::fmt"
 kappa = "82386f97b846cc7aa3be373b04bff01057cd2f67e5398825832e8306bb109bd0"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::path::Iter::next"
+kappa = "30aa3a945c9c613bf1d279a55db0d1287f99832f80770f224c826642c8931c2f"
+status = "residue"
+cause = "mir::Ty: ffi::os_str::OsStr"
+
+[[fn]]
+path = "std::path::Iter::next_back"
+kappa = "58812272ee4f8fe0eb80ca5ccef5e5806d1d4c123260260d3d4bcb032e2485fc"
+status = "residue"
+cause = "mir::Ty: ffi::os_str::OsStr"
 
 [[fn]]
 path = "std::path::NormalizeError::fmt"
@@ -1167,6 +1197,12 @@ cause = "mir::Ty: path::Path"
 [[fn]]
 path = "std::path::Path::has_root"
 kappa = "6d6574e3985f9fbfeea508c969540d713b6803e27cd1c0bd0ac8fdf7b49ef84f"
+status = "residue"
+cause = "mir::Ty: Path"
+
+[[fn]]
+path = "std::path::Path::has_trailing_sep"
+kappa = "f47168cce82b0aa6dc47cbb058d1ff51724ff1728567f89360675627143fe57f"
 status = "residue"
 cause = "mir::Ty: Path"
 
@@ -1580,6 +1616,12 @@ path = "std::path::PathBuf::into_os_string"
 kappa = "c3e8ce39f277f416949b9b28a76602aa58d28a642aa4789c2a0ed0ee4d65cecb"
 status = "residue"
 cause = "mir::Ty: ffi::os_str::OsString"
+
+[[fn]]
+path = "std::path::PathBuf::into_string"
+kappa = "8fb478a9d6d5383cb6341e694662096874fc65631aea678647737fe4aa7309a2"
+status = "residue"
+cause = "mir::Ty: path::PathBuf"
 
 [[fn]]
 path = "std::path::PathBuf::leak"

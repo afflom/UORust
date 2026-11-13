@@ -14,8 +14,8 @@ cause = "mir::Ty: sync::poison::mutex::Mutex<alloc_crate::vec::Vec<u8>>"
 path = "std::SizeHint::size_hint"
 kappa = "ac0550602a144c34096bfbc3d137c5e4c0cbc6ace819df1f8c2e669bcc61738a"
 at = "Self=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::lower_bound"
+status = "translated"
+digest = "9426fc0d02c992e27b1d3864fe107919419ab300a302415f4648a11826f1ec76"
 
 [[fn]]
 path = "std::_assert_error_is_sync_send"
@@ -183,6 +183,13 @@ cause = "mir::Ty: io::error::Error"
 path = "std::buffered::IntoInnerError::new"
 kappa = "8c5e7ed3e4da491ac7c4b184b9685eaef81f07f4c81027f7e722d0eca98133b5"
 at = "W=u32"
+status = "residue"
+cause = "mir::Ty: io::buffered::IntoInnerError<u32>"
+
+[[fn]]
+path = "std::buffered::IntoInnerError::new_wrapped"
+kappa = "d5c478812c896f5c9f97a541617a59d347801faf5767b8493b5133a604680c83"
+at = "W=u32, W2=u32"
 status = "residue"
 cause = "mir::Ty: io::buffered::IntoInnerError<u32>"
 
@@ -1065,6 +1072,13 @@ status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
+path = "std::handle_ebadf"
+kappa = "fa4461e72233d43610c4a3c427823d8c5e3ae1993ed18351b0e0007214b71d20"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
 path = "std::impls::<impl at library/std/src/io/impls.rs:120:1: 120:45>::consume"
 kappa = "9de7a78ce1c73fa578e14a224631106cd07b55fec92fe5b032db064f78d13001"
 at = "B=u32"
@@ -1884,15 +1898,15 @@ cause = "mir::Ty: core::fmt::Error"
 path = "std::io::<impl at library/std/src/io/mod.rs:3056:1: 3056:28>::lower_bound"
 kappa = "f3462d5188041cf60fdbf08d33a106bf807d7021ceaaa63325a31becbe4230bd"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::lower_bound"
+status = "translated"
+digest = "ceb1282aee665e411f6cd6f062701d803faedcdba29fe4350d38c7011683f548"
 
 [[fn]]
 path = "std::io::<impl at library/std/src/io/mod.rs:3056:1: 3056:28>::upper_bound"
 kappa = "06ac4e9c5a647e61c9687a8b944a140cfb1f1325444eb1f77365f026813ed0e2"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::upper_bound"
+status = "translated"
+digest = "06a52dd86cb2d2410d930936066cf35baede71e6658272523ad06573a8ef5988"
 
 [[fn]]
 path = "std::io::<impl at library/std/src/io/mod.rs:3080:1: 3080:24>::lower_bound"
@@ -1924,15 +1938,15 @@ cause = "mir::Ty: core::fmt::Error"
 path = "std::io::Box::lower_bound"
 kappa = "13f7fea167835521e6b390c9fc75214a9f0629d416c0fc44957f836675c405b2"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::lower_bound"
+status = "translated"
+digest = "a8e64f76c23f14699f42df4a2f5426393308b8828121bc6ecd15611776b6b1ac"
 
 [[fn]]
 path = "std::io::Box::upper_bound"
 kappa = "293c03faafe5e368aad248eae39edf4a0297e4650c7d6b77351f289536adb576"
 at = "T=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::upper_bound"
+status = "translated"
+digest = "7bcdfafe6724571d43d990424a940cde728258bf934580e7af8993ce83cb9fc4"
 
 [[fn]]
 path = "std::io::BufRead::has_data_left"
@@ -2696,6 +2710,12 @@ status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
+path = "std::io::pipe::PipeReader::try_clone"
+kappa = "778253dc9d4584183c2be3dd5844fdbf784c0a2b471b5778cdd128777a3035bc"
+status = "residue"
+cause = "mir::Ty: io::pipe::PipeReader"
+
+[[fn]]
 path = "std::io::pipe::PipeWriter::flush"
 kappa = "31df766b95685aa3c9146b4a3aeb40e248473a5a57462c44eb17d82e2aed24fb"
 status = "residue"
@@ -2718,6 +2738,12 @@ path = "std::io::pipe::PipeWriter::is_write_vectored"
 kappa = "3931c0da48d24366174af1cdf2e0b73331e2910add84fae95ee183d50978f694"
 status = "residue"
 cause = "mir::Ty: PipeWriter"
+
+[[fn]]
+path = "std::io::pipe::PipeWriter::try_clone"
+kappa = "f01732ce212f307cf82f0a08608f6a0b66ad2411c2d3f881cc41c74bb241efba"
+status = "residue"
+cause = "mir::Ty: io::pipe::PipeWriter"
 
 [[fn]]
 path = "std::io::pipe::PipeWriter::write"
@@ -3925,8 +3951,8 @@ cause = "mir::Ty: io::error::Error"
 [[fn]]
 path = "std::util::<impl at library/std/src/io/util.rs:295:1: 295:21>::is_write_vectored"
 kappa = "be2ad083f136adefc779e75447a58e0eadea29f3c60198545b2233637f815c7e"
-status = "residue"
-cause = "mir::Ty: Sink"
+status = "translated"
+digest = "3936fa71daadc66a5494e32f3005036151dc5ab9b515f4137117462f73f83d5a"
 
 [[fn]]
 path = "std::util::<impl at library/std/src/io/util.rs:295:1: 295:21>::write"
@@ -4177,8 +4203,8 @@ cause = "mir::Ty: io::error::Error"
 [[fn]]
 path = "std::util::Sink::is_write_vectored"
 kappa = "6e045e82e189c9afe28098b66e72e366a3c4ed8d6fc3cc0f60bccdeb3e212548"
-status = "residue"
-cause = "mir::Ty: Sink"
+status = "translated"
+digest = "87a3ce86eedb6dc70ca8c4c7a7d72f4dd7284e92fcc339c9391c7633cfaa9e61"
 
 [[fn]]
 path = "std::util::Sink::write"

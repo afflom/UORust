@@ -43,8 +43,8 @@ cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MAS
 [[fn]]
 path = "std::MIN_ALIGN"
 kappa = "f00b31eafd8a3ffcdba9fb87d4c1896a8691e253555e71a86d8c47732ce36697"
-status = "residue"
-cause = "mir::Ty: core::fmt::Arguments<'_>"
+status = "translated"
+digest = "61ef327be6022acd9f85164109fe4fac1f0a88fee9edc73af44e8eb44a2ec6ee"
 
 [[fn]]
 path = "std::NOT_FILE_ERROR"
@@ -74,7 +74,7 @@ cause = "mir::Operand::Constant: 30_i32 as u32 (IntToInt)"
 path = "std::READ_LIMIT"
 kappa = "3abeae91c9f747f3149d5e4e2d56bd7ed0601d56b8820bc25529783d0f750466"
 status = "residue"
-cause = "mir::Operand::Constant: core::num::<impl i32>::MAX as usize (IntToInt)"
+cause = "mir::Operand::Constant: core::num::<impl isize>::MAX as usize (IntToInt)"
 
 [[fn]]
 path = "std::TIMESPEC_MAX"
@@ -565,6 +565,13 @@ status = "residue"
 cause = "mir::Ty: sys::net::connection::socket::TcpStream"
 
 [[fn]]
+path = "std::connection::socket::TcpListener::bind"
+kappa = "66d6606b6a76baf0341ba05926faa78c9a85b24128cec0d8127c022a1a2395ca"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::TcpListener"
+
+[[fn]]
 path = "std::connection::socket::TcpListener::bind::inner"
 kappa = "58e3ab05ce04a8217e5da26f3dcaad1de6d1c5035470341216739bf958c14309"
 status = "residue"
@@ -647,6 +654,13 @@ path = "std::connection::socket::TcpStream::as_inner"
 kappa = "33f6af73e91936c28484ec40909083b5eacdc0be4ee70008d94c0ba395897966"
 status = "residue"
 cause = "mir::Ty: sys::net::connection::socket::unix::Socket"
+
+[[fn]]
+path = "std::connection::socket::TcpStream::connect"
+kappa = "c346dfd0ae7aa3556514e198e0237fa2482126d6b9e096a61091692288c7ba6d"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::TcpStream"
 
 [[fn]]
 path = "std::connection::socket::TcpStream::connect::inner"
@@ -839,6 +853,13 @@ path = "std::connection::socket::TcpStream::write_vectored"
 kappa = "acc4ce731f8d076b53c3709f4a2e563f1472f460909f3a65170897494bb0ffd6"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::connection::socket::UdpSocket::bind"
+kappa = "061ecff5769f2d9a507166216a8a99d08a43ba2efd3133dfa5da5bc6623f2597"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
 
 [[fn]]
 path = "std::connection::socket::UdpSocket::bind::inner"
@@ -1126,6 +1147,12 @@ status = "residue"
 cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
+path = "std::connection::socket::unix::Socket::duplicate"
+kappa = "7f0a526fe61e7f143d989aba0e6b6cf0f01b84175b38590f80f8ace17d7f8406"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::unix::Socket"
+
+[[fn]]
 path = "std::connection::socket::unix::Socket::from_inner"
 kappa = "418e807691d86ce842a988969c8204bb1633c65da3437efa5e9cc9b58557830e"
 status = "residue"
@@ -1376,6 +1403,13 @@ path = "std::copy_regular_files"
 kappa = "4423175eb686db5d1f30ef36c5583cbd4e67548d28c66b9bac09a6fe9ed4f199"
 status = "residue"
 cause = "mir::Ty: sys::io::kernel_copy::linux::CopyResult"
+
+[[fn]]
+path = "std::copy_regular_files::copy_file_range"
+kappa = "44e2ea05fa31220071ad58bd4b34ee97f3a3c90ebabf694deb5397e97f20681e"
+at = "C=u32"
+status = "residue"
+cause = 'mir::Operand::Constant: {alloc1629: *const core::option::Option<unsafe extern "u32" fn(i32, *mut i64, i32, *mut i64, usize, u32) -> isize>}'
 
 [[fn]]
 path = "std::create"
@@ -1686,13 +1720,13 @@ cause = "mir::Operand::Constant: {alloc669: &LazyKey}"
 path = "std::enable::run"
 kappa = "abe09c32fd757498ca196c9729891fbd9f0153be7985e78dace5f69ef8e7602e"
 status = "residue"
-cause = "mir::TerminatorKind::Call: destructors::list::run"
+cause = "mir::TerminatorKind::Call: sys::thread_local::destructors::list::run: std's MIR stops at mir::Rvalue::Ref"
 
 [[fn]]
 path = "std::exit::exit"
 kappa = "5e3bbf333cacb7c83e98b12aff3656c044c169c94092b901362930a0da6a4284"
 status = "residue"
-cause = "mir::TerminatorKind::Call: unique_thread_exit"
+cause = "mir::TerminatorKind::Call: sys::exit::unique_thread_exit: std's MIR stops at mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
 
 [[fn]]
 path = "std::fallback"
@@ -1724,6 +1758,12 @@ path = "std::find_mountpoint"
 kappa = "3670cef6b9ab7b9724a0d7965f052f7d2c6d6db33fd84635e73dd8d6fd0d2a94"
 status = "residue"
 cause = "mir::Ty: alloc_crate::borrow::Cow<'_, str>"
+
+[[fn]]
+path = "std::futex_wait"
+kappa = "ef6b8e97b3cd8705c77ba4e2d86973ae3ed12aa589d2cee8011c40e87fa9a297"
+status = "residue"
+cause = "mir::Ty: Atomic<u32>"
 
 [[fn]]
 path = "std::futex_wake"
@@ -1760,6 +1800,13 @@ path = "std::get_path_from_fd"
 kappa = "877bb0ef4de55277d2a2f3c099376a168bfc28017a7bf283c8d2dcc9c158cb8c"
 status = "residue"
 cause = "mir::Ty: path::PathBuf"
+
+[[fn]]
+path = "std::get_posix_spawn_addchdir"
+kappa = "a1adb49efa25ffb4034fdf2a88834f245c400d091cae743dec086fa88a817e52"
+at = "C=u32"
+status = "residue"
+cause = 'mir::Ty: unsafe extern "u32" fn(*mut libc::posix_spawn_file_actions_t, *const i8) -> i32'
 
 [[fn]]
 path = "std::get_stack"
@@ -1814,7 +1861,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::init_wrapper"
 kappa = "875a3ba9f4c56f54e01428933c8861da506109c79a3517a5495ba3cce8f439eb"
 status = "residue"
-cause = "mir::TerminatorKind::Call: really_init"
+cause = "mir::TerminatorKind::Call: sys::args::unix::imp::really_init: std's MIR stops at mir::Operand::Constant: {alloc426: &Atomic<isize>}"
 
 [[fn]]
 path = "std::install_main_guard"
@@ -2304,6 +2351,20 @@ status = "residue"
 cause = "mir::Ty: sys::thread_local::native::lazy::State<u32>"
 
 [[fn]]
+path = "std::lazy::Storage::get_or_init"
+kappa = "befa3ed7c7643298db395875a54ade7d44ff33d60ee97ebb027b14737de8ffb3"
+at = "D=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: lazy::Storage<u32, u32>"
+
+[[fn]]
+path = "std::lazy::Storage::get_or_init_slow"
+kappa = "dce566d1358b04ea6fb7ce48ae1ac8518a5e239c137ccbe1e2814a18cf823834"
+at = "D=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: lazy::Storage<u32, u32>"
+
+[[fn]]
 path = "std::lazy::Storage::new"
 kappa = "cb39997829164ee9c2000a7eae300ec0b65aa77fb2f464a21a79f456241ecd3a"
 at = "D=u32, T=u32"
@@ -2348,6 +2409,13 @@ status = "residue"
 cause = "mir::Operand::Constant: libc::UIO_MAXIOV as usize (IntToInt)"
 
 [[fn]]
+path = "std::min_stack_size"
+kappa = "f30eddf3464fdbee37d90d85c819e2e1b153acaeec998dd643470c4d1aa50b4a"
+at = "C=u32"
+status = "residue"
+cause = 'mir::Operand::Constant: {alloc542: &DlsymWeak<unsafe extern "u32" fn(*const pthread_attr_t) -> usize>}'
+
+[[fn]]
 path = "std::mul_div_u64"
 kappa = "83c6cdbbd6d6adccff1dac846f8f6716a32cc827fab0bbf45e5292c7030463bd"
 status = "translated"
@@ -2375,7 +2443,7 @@ cause = "mir::Ty: LocalPointer"
 path = "std::on_resolver_failure"
 kappa = "8472674934514e8e1e53d1d2bf7838caa1e236818e7ecf7e0fa24134646fb8b8"
 status = "residue"
-cause = "mir::TerminatorKind::Call: glibc_version"
+cause = "mir::TerminatorKind::Call: sys::pal::unix::conf::glibc_version: std's MIR stops at mir::TerminatorKind::Call: glibc_version::gnu_get_libc_version"
 
 [[fn]]
 path = "std::once_box::OnceBox::drop"
@@ -2385,8 +2453,22 @@ status = "residue"
 cause = "mir::Ty: OnceBox<u32>"
 
 [[fn]]
+path = "std::once_box::OnceBox::get_or_init"
+kappa = "cc0b681a6036b3641202cbe257bd917c04a130174034e27700cc9f6f00f793ea"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: core::pin::Pin<&u32>"
+
+[[fn]]
 path = "std::once_box::OnceBox::get_unchecked"
 kappa = "a87fd75e57179dc80cbb43220910affd87cb605e8badda31c2210d0843afd857"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: core::pin::Pin<&u32>"
+
+[[fn]]
+path = "std::once_box::OnceBox::initialize"
+kappa = "cb39bae80d8e3f28efe5201b1722abc394544fd20e922d345d914c68ca33a809"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: core::pin::Pin<&u32>"
@@ -2499,7 +2581,7 @@ digest = "604d91da45603edd27aafc054c87bc9b7d394213707deb8ea789ae40cb21ae56"
 path = "std::pal::unix::cleanup"
 kappa = "0c0339d367db5011e82f9f1dff97d7e08edd600574b75507c4b83b5bef6200ab"
 status = "residue"
-cause = "mir::TerminatorKind::Call: pal::unix::stack_overflow::imp::cleanup"
+cause = "mir::TerminatorKind::Call: sys::pal::unix::stack_overflow::imp::cleanup: std's MIR stops at mir::Operand::Constant: {alloc404: &Atomic<*mut libc::c_void>}"
 
 [[fn]]
 path = "std::pal::unix::cvt"
@@ -2525,7 +2607,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::pal::unix::init"
 kappa = "25f7d2f239dfdf99d666db11f2c0e6f5fcc16e4421e082d3416916d551fb95e9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sanitize_standard_fds"
+cause = "mir::TerminatorKind::Call: sys::pal::unix::init::sanitize_standard_fds: std's MIR stops at mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: type outside the lift: {closure@library/std/src/sys/pal/unix/mod.rs:58:32: 58:34}"
 
 [[fn]]
 path = "std::pal::unix::on_broken_pipe_used"
@@ -2667,6 +2749,12 @@ status = "residue"
 cause = "mir::Ty: sys::pal::unix::time::Timespec"
 
 [[fn]]
+path = "std::parse_glibc_version"
+kappa = "d0f77f433391402c7fe2b5e91e1351bc6aa0eedcdf1d92841c4db07a661e4d1b"
+status = "residue"
+cause = "mir::Ty: core::str::Split<'_, char>"
+
+[[fn]]
 path = "std::paths::unix::<impl at library/std/src/sys/paths/unix.rs:79:10: 79:15>::fmt"
 kappa = "0595554842f54fbf0a092019d1bd98bbfe0c14e6fffc81bf314c69e62338d79a"
 status = "residue"
@@ -2697,6 +2785,12 @@ status = "residue"
 cause = "mir::Ty: path::PathBuf"
 
 [[fn]]
+path = "std::paths::unix::home_dir"
+kappa = "a5a5f363ea68259e09a424de9a74878a9ba534416578983e206f151716a563a6"
+status = "residue"
+cause = "mir::Ty: path::PathBuf"
+
+[[fn]]
 path = "std::paths::unix::join_paths"
 kappa = "cabf24f298f80c2637675a8226a2b5511b23a40296cb9daf647b6fff393e28d0"
 at = "I=u32, T=u32"
@@ -2704,10 +2798,22 @@ status = "residue"
 cause = "mir::Ty: ffi::os_str::OsString"
 
 [[fn]]
+path = "std::paths::unix::split_paths"
+kappa = "2234655e074ccbedcfd61631927b3ab0a377c2aef021f2b2e91f78a771facc24"
+status = "residue"
+cause = "mir::Ty: core::slice::Split<'_, u8, for<'a> fn(&'a u8) -> bool {sys::paths::unix::split_paths::is_separator}>"
+
+[[fn]]
 path = "std::paths::unix::split_paths::is_separator"
 kappa = "5540ebbaa33f39f679669ff3d529390260ba243f8b78b53a19d29710a254f73d"
 status = "residue"
 cause = "mir::Operand::Constant: the constant item sys::paths::unix::PATH_SEPARATOR"
+
+[[fn]]
+path = "std::paths::unix::temp_dir"
+kappa = "481f2285401e057c0124465a77e868097e5b801a0d2f7a72f9a9ae07a5f8c556"
+status = "residue"
+cause = "mir::Ty: path::PathBuf"
 
 [[fn]]
 path = "std::pidfd::<impl at library/std/src/sys/pal/unix/linux/pidfd.rs:10:10: 10:15>::fmt"
@@ -2764,6 +2870,13 @@ status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
+path = "std::pidfd::PidFd::pid"
+kappa = "ada7598405761b212ca371f54db3634c2a43aade894ab63876d0bab4c9225535"
+at = "C=u32"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
 path = "std::pidfd::PidFd::send_process_group_signal"
 kappa = "0d1c5c2f0958b12d6785ae6caaf67e08e47d893e365bcbac2c197f291f5bfaa9"
 status = "residue"
@@ -2804,6 +2917,12 @@ path = "std::quota"
 kappa = "5dffee36401d2d994bf925abd2d161b15ad1ab3aeeebd0c2ede14e48db09ddfd"
 status = "residue"
 cause = "mir::Operand::Constant: the constant item core::num::<impl usize>::MAX"
+
+[[fn]]
+path = "std::quota_v1"
+kappa = "ada7be3ab2a699306fbe275bacc5fb48c6de61554019b4ab8de59e75a2e50e89"
+status = "residue"
+cause = "mir::Ty: PathBuf"
 
 [[fn]]
 path = "std::quota_v2"
@@ -2907,6 +3026,20 @@ cause = "mir::Ty: io::error::Error"
 [[fn]]
 path = "std::run_with_cstr"
 kappa = "1a92c81563b895c0036ec8d2cb0d3d5065db59761924b2c6a6c462e8986c8cf7"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::run_with_cstr_allocating"
+kappa = "578f8245c3d08a9ca8ee304231ecc3457260c4666d5531de4f3675575fbe8156"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::run_with_cstr_stack"
+kappa = "0bc45c4ea528b91bf7e003737e4cb664fa607874f0842b4dd10d1fe0e3007278"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
@@ -3042,7 +3175,7 @@ cause = "mir::Ty: sys::pal::unix::stack_overflow::thread_info::UnlockOnDrop"
 path = "std::stack_start_aligned"
 kappa = "25c4fce600c6b8923fa8f0703926b9adce7f84650e0bb0ee7c01e18bfad32996"
 status = "residue"
-cause = "mir::TerminatorKind::Call: get_stack_start"
+cause = "mir::TerminatorKind::Call: sys::pal::unix::stack_overflow::imp::get_stack_start: std's MIR stops at mir::Rvalue::Use"
 
 [[fn]]
 path = "std::sub_ge_to_unsigned"
@@ -3171,13 +3304,13 @@ cause = "mir::Ty: sys::args::common::Args"
 path = "std::sys::args::unix::imp::init"
 kappa = "366971085e7e19557cd368976a6120b0780c6f18717d60d916836d35251925b0"
 status = "residue"
-cause = "mir::TerminatorKind::Call: really_init"
+cause = "mir::TerminatorKind::Call: sys::args::unix::imp::really_init: std's MIR stops at mir::Operand::Constant: {alloc426: &Atomic<isize>}"
 
 [[fn]]
 path = "std::sys::args::unix::init"
 kappa = "ffd721d063092aacc492baf5f96165bc1b4b83db2c0bf9ca9865ed8cc821b873"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sys::args::unix::imp::init"
+cause = "mir::TerminatorKind::Call: sys::args::unix::imp::init: std's MIR stops at mir::TerminatorKind::Call: sys::args::unix::imp::really_init: std's MIR stops at mir::Operand::Constant: {alloc426: &Atomic<isize>}"
 
 [[fn]]
 path = "std::sys::backtrace::BacktraceLock::print"
@@ -3190,6 +3323,12 @@ path = "std::sys::backtrace::BacktraceLock::print::DisplayBacktrace::fmt"
 kappa = "c8b60f67e62f6c92b4633c6864e7e8c591b81a1df9689b8cd5591a3cd82ca215"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::sys::backtrace::lock"
+kappa = "7ffaf57c80571fec275293871b4ee07f588b25b16aa9396bebb67b9be25fcbf3"
+status = "residue"
+cause = "mir::Ty: sys::backtrace::BacktraceLock<'_>"
 
 [[fn]]
 path = "std::sys::env::common::Env::fmt"
@@ -3226,6 +3365,12 @@ path = "std::sys::env::unix::env::parse"
 kappa = "8805b31db85af00295702cd20a1dab613c3403ee3c2f5001e645fce02b7ccc29"
 status = "residue"
 cause = "mir::Ty: ffi::os_str::OsString"
+
+[[fn]]
+path = "std::sys::env::unix::env_read_lock"
+kappa = "3defc5eb7205de3d5ceb05c266b38bbf823ccb48878b1f1a1f61adf2be6e2730"
+status = "residue"
+cause = "mir::Ty: sync::poison::rwlock::RwLockReadGuard<'_, ()>"
 
 [[fn]]
 path = "std::sys::env::unix::environ"
@@ -3748,6 +3893,12 @@ path = "std::sys::fs::unix::File::datasync"
 kappa = "4ae83f8e307e9ff0bc5f7a478a6edaf0ea09b7389199acd91c4493197e93d278"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::sys::fs::unix::File::duplicate"
+kappa = "efe2245b4d50e6448a43071fb7aa2db998e32e140e44c796d9be3ad90bcedcb9"
+status = "residue"
+cause = "mir::Ty: sys::fs::unix::File"
 
 [[fn]]
 path = "std::sys::fs::unix::File::file_attr"
@@ -4294,13 +4445,13 @@ cause = "mir::Ty: io::error::Error"
 path = "std::sys::io::DEFAULT_BUF_SIZE"
 kappa = "52fc120cdd25546d4d77c036991e5933f900772306f15b2d164dc2d4a2536257"
 status = "translated"
-digest = "0f16f47816bab8623f7dff59f44825ed112ce2eabedf152a97d70ab88642d802"
+digest = "addefedbb80a7d41cc56af35168fb08cf26c17f7bbe3955066421efa77eb149b"
 
 [[fn]]
 path = "std::sys::io::error::unix::decode_error_kind"
 kappa = "1fd55e591b0305eac7e26a73479c8d582c6717009c058398085bf5b672b9e59a"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item libc::EAGAIN"
+cause = "mir::Ty: core::io::ErrorKind"
 
 [[fn]]
 path = "std::sys::io::error::unix::errno"
@@ -4325,6 +4476,12 @@ path = "std::sys::io::error::unix::set_errno"
 kappa = "71de043586a642a289274bf8a9e8780581dc52d14f049befe7cad1b603703cc5"
 status = "residue"
 cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
+
+[[fn]]
+path = "std::sys::net::hostname::unix::hostname"
+kappa = "f629972eb5224202b76539d21653684525ae0cbfb940cd06ad7889b7498c2d7f"
+status = "residue"
+cause = "mir::Ty: ffi::os_str::OsString"
 
 [[fn]]
 path = "std::sys::path::unix::SEPARATORS"
@@ -4359,8 +4516,8 @@ digest = "68db3d79b04ec428e71ce1173cc2ba2168184f08ba6059f2bfba0c705e6afe51"
 [[fn]]
 path = "std::sys::path::unix::is_verbatim_sep"
 kappa = "d7798a575cf8c533a07d9bffe069cbb5170298a04de3895a145d52b647e275a8"
-status = "residue"
-cause = "mir::TerminatorKind::Call: sys::path::unix::is_sep_byte"
+status = "translated"
+digest = "d480c411d34fd900801aa1bb827b896d34945b8c973d5bbf0bf5eec147849f1b"
 
 [[fn]]
 path = "std::sys::path::unix::parse_prefix"
@@ -4729,8 +4886,20 @@ status = "residue"
 cause = "mir::Ty: sys::process::unix::common::Command"
 
 [[fn]]
+path = "std::sys::process::unix::common::Command::new"
+kappa = "567378123bc6a8d6c05b5ab9f62909c86b5284a2dcf83ddd02d5aabacc83f587"
+status = "residue"
+cause = "mir::Ty: sys::process::unix::common::Command"
+
+[[fn]]
 path = "std::sys::process::unix::common::Command::pgroup"
 kappa = "6de53d0c63bd746ca96e789757e128d76ea3dae3b3869a3b4a4193847e2ee532"
+status = "residue"
+cause = "mir::Ty: sys::process::unix::common::Command"
+
+[[fn]]
+path = "std::sys::process::unix::common::Command::pre_exec"
+kappa = "1f5ae5e78468b629e24ce01ee088ce4e4b9274d0934082d2c8959f9397ca96fb"
 status = "residue"
 cause = "mir::Ty: sys::process::unix::common::Command"
 
@@ -4939,6 +5108,12 @@ status = "residue"
 cause = "mir::Ty: sys::process::unix::unix::ExitStatusError"
 
 [[fn]]
+path = "std::sys::process::unix::unix::Command::do_exec"
+kappa = "e51bd3e396dc1bb3857a3187002c2684a27481708939836eab5b643cda99153f"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
 path = "std::sys::process::unix::unix::Command::do_exec::Reset::drop"
 kappa = "0ba97427712e798e376a0a6837a86f406f2848510efc8783d98755db6cb3902f"
 status = "residue"
@@ -4955,6 +5130,13 @@ path = "std::sys::process::unix::unix::Command::exec"
 kappa = "f59562830c35197faf21cbd276266169c0a589076feaa258b6c9e7fd85e9e2cd"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::sys::process::unix::unix::Command::posix_spawn"
+kappa = "967624a7ac9792b94cb681daca5a59052072c9a6f7431b3c2d6d78b7627f4bf5"
+at = "C=u32"
+status = "residue"
+cause = "mir::Ty: sys::process::unix::unix::Process"
 
 [[fn]]
 path = "std::sys::process::unix::unix::Command::posix_spawn::PosixSpawnFileActions::drop"
@@ -5140,7 +5322,7 @@ cause = "mir::Ty: sys::process::unix::unix::ExitStatus"
 path = "std::sys::random::linux::fill_bytes"
 kappa = "d879326fab63db927a41c84090ef1dfbf4b0b6a5d6151e8ae44a31958a8bee6e"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom"
+cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom: std's MIR stops at mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
 
 [[fn]]
 path = "std::sys::random::linux::getrandom"
@@ -5149,10 +5331,17 @@ status = "residue"
 cause = "mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
 
 [[fn]]
+path = "std::sys::random::linux::getrandom::getrandom"
+kappa = "5bd1be553a3617b4cfefa64814e3a54e3db6f105cc6e35b28934365f7ae70e46"
+at = "C=u32"
+status = "residue"
+cause = 'mir::Operand::Constant: {alloc1873: *const core::option::Option<unsafe extern "u32" fn(*mut libc::c_void, usize, u32) -> isize>}'
+
+[[fn]]
 path = "std::sys::stdio::unix::STDIN_BUF_SIZE"
 kappa = "de24a32f0887581b23e020c118c2b9b30dd44dcdf66c1b932b94d5e9abe6a734"
 status = "translated"
-digest = "3b5c799a24ca00a037b8ebdf2cdd4444c1ebcac12909d9d9f83d84c5a1e8d742"
+digest = "1c47c6c6d39cd0e14f13a2451be599e334f1f37cb36e5441da7d7e956c1cb6d5"
 
 [[fn]]
 path = "std::sys::stdio::unix::Stderr::flush"
@@ -5431,6 +5620,13 @@ status = "residue"
 cause = "mir::Ty: sys::sync::rwlock::futex::RwLock"
 
 [[fn]]
+path = "std::sys::sync::rwlock::futex::RwLock::spin_until"
+kappa = "ba88123aa4e69c88610d7f5769d27a5e4d33f97c40dbb515d1324b97c5beafc8"
+at = "Primitive=u32"
+status = "residue"
+cause = "mir::Ty: sys::sync::rwlock::futex::RwLock"
+
+[[fn]]
 path = "std::sys::sync::rwlock::futex::RwLock::spin_write"
 kappa = "3fbb741bce72913837d7b33aca5f7697feef27638c28d83df5103ddba867c1e9"
 status = "residue"
@@ -5525,7 +5721,14 @@ cause = "mir::Ty: core::num::NonZero<usize>"
 path = "std::sys::thread::unix::current_os_id"
 kappa = "86b7ac7cb44e93b6b561e807217412fe100f932899af51dee9d82d396e1f19a3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid"
+cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid: std's MIR stops at mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe extern "C" fn() -> i32>}"""
+
+[[fn]]
+path = "std::sys::thread::unix::current_os_id::gettid"
+kappa = "998d643bf0286c3956f8f518dd75a38e98fed3676c78430fafe8e6a950d1c5fa"
+at = "C=u32"
+status = "residue"
+cause = 'mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe extern "u32" fn() -> i32>}'
 
 [[fn]]
 path = "std::sys::thread::unix::set_name"
@@ -5793,6 +5996,13 @@ status = "residue"
 cause = "mir::Ty: sys::fs::unix::FileAttr"
 
 [[fn]]
+path = "std::try_statx::statx"
+kappa = "adfa6178e56094b58b17989e24437fd428eb56411356583009cbdbf019854f87"
+at = "C=u32"
+status = "residue"
+cause = 'mir::Operand::Constant: {alloc1493: *const core::option::Option<unsafe extern "u32" fn(i32, *const i8, i32, u32, *mut statx) -> i32>}'
+
+[[fn]]
 path = "std::unique_thread_exit"
 kappa = "8f4bb22d540eecfe88989938bd5ad970cd7a01eb138a33d6113262adf3d0b3a0"
 status = "residue"
@@ -5859,6 +6069,13 @@ kappa = "c38a8c430624fba5e43a8b520c28fc7f747d7fad6e2f1e11730c6275bd592b00"
 at = "F=u32"
 status = "residue"
 cause = "mir::Ty: sys::pal::unix::weak::weak_linkage::ExternWeak<u32>"
+
+[[fn]]
+path = "std::with_current_info"
+kappa = "ee46cad89606255d1946f428f0c0835b44ab52f35d24561104f8f6dd007803ed"
+at = "R=u32, ThreadInfo=u32"
+status = "residue"
+cause = "mir::Ty: impl FnOnce(Option<&u32>) -> u32"
 
 [[fn]]
 path = "std::wstr::WStrUnits::advance_while"

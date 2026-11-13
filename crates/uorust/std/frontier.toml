@@ -6,9 +6,9 @@
 
 toolchain = "1.97.1"
 instantiation = "u32"
-bodies = 3974
-translated = 37
-residue = 3937
+bodies = 4067
+translated = 46
+residue = 4021
 
 [module.alloc]
 bodies = 20
@@ -31,19 +31,19 @@ translated = 0
 residue = 0
 
 [module.collections]
-bodies = 281
+bodies = 283
 translated = 2
-residue = 279
+residue = 281
 
 [module.env]
-bodies = 52
+bodies = 53
 translated = 0
-residue = 52
+residue = 53
 
 [module.error]
-bodies = 9
+bodies = 10
 translated = 0
-residue = 9
+residue = 10
 
 [module.ffi]
 bodies = 144
@@ -51,9 +51,9 @@ translated = 0
 residue = 144
 
 [module.fs]
-bodies = 140
+bodies = 149
 translated = 0
-residue = 140
+residue = 149
 
 [module.hash]
 bodies = 14
@@ -61,9 +61,9 @@ translated = 0
 residue = 14
 
 [module.io]
-bodies = 658
-translated = 9
-residue = 649
+bodies = 662
+translated = 16
+residue = 646
 
 [module.keyword_docs]
 bodies = 0
@@ -76,9 +76,9 @@ translated = 0
 residue = 0
 
 [module.net]
-bodies = 106
+bodies = 113
 translated = 0
-residue = 106
+residue = 113
 
 [module.num]
 bodies = 0
@@ -86,9 +86,9 @@ translated = 0
 residue = 0
 
 [module.os]
-bodies = 374
+bodies = 379
 translated = 3
-residue = 371
+residue = 376
 
 [module.panic]
 bodies = 21
@@ -106,9 +106,9 @@ translated = 0
 residue = 0
 
 [module.path]
-bodies = 305
+bodies = 312
 translated = 0
-residue = 305
+residue = 312
 
 [module.prelude]
 bodies = 0
@@ -116,9 +116,9 @@ translated = 0
 residue = 0
 
 [module.process]
-bodies = 123
+bodies = 130
 translated = 1
-residue = 122
+residue = 129
 
 [module.random]
 bodies = 5
@@ -126,19 +126,19 @@ translated = 0
 residue = 5
 
 [module.rt]
-bodies = 6
+bodies = 7
 translated = 1
-residue = 5
+residue = 6
 
 [module.sync]
-bodies = 502
+bodies = 508
 translated = 0
-residue = 502
+residue = 508
 
 [module.sys]
-bodies = 971
-translated = 19
-residue = 952
+bodies = 1004
+translated = 21
+residue = 983
 
 [module.test_helpers]
 bodies = 0
@@ -146,30 +146,30 @@ translated = 0
 residue = 0
 
 [module.thread]
-bodies = 111
+bodies = 116
 translated = 1
-residue = 110
+residue = 115
 
 [module.time]
-bodies = 44
+bodies = 49
 translated = 0
-residue = 44
+residue = 49
 
 [[cause]]
 cause = "mir::Ty: io::error::Error"
-bodies = 798
+bodies = 803
 
 [[cause]]
 cause = "mir::Ty: core::fmt::Error"
-bodies = 290
+bodies = 291
 
 [[cause]]
 cause = "mir::Ty: ffi::os_str::OsStr"
-bodies = 63
+bodies = 65
 
 [[cause]]
 cause = "mir::Ty: Path"
-bodies = 59
+bodies = 60
 
 [[cause]]
 cause = "mir::Ty: OsStr"
@@ -177,30 +177,30 @@ bodies = 58
 
 [[cause]]
 cause = "mir::Ty: ffi::os_str::OsString"
-bodies = 49
+bodies = 50
+
+[[cause]]
+cause = "mir::Ty: path::PathBuf"
+bodies = 48
+
+[[cause]]
+cause = "mir::Ty: path::Path"
+bodies = 46
 
 [[cause]]
 cause = "mir::Ty: OsString"
 bodies = 45
 
 [[cause]]
-cause = "mir::Ty: path::Path"
-bodies = 45
-
-[[cause]]
-cause = "mir::Ty: path::PathBuf"
-bodies = 45
-
-[[cause]]
 cause = "mir::Ty: PathBuf"
+bodies = 45
+
+[[cause]]
+cause = "mir::Ty: fs::Metadata"
 bodies = 44
 
 [[cause]]
 cause = "mir::Ty: T"
-bodies = 40
-
-[[cause]]
-cause = "mir::Ty: fs::Metadata"
 bodies = 40
 
 [[cause]]
@@ -217,7 +217,7 @@ bodies = 32
 
 [[cause]]
 cause = "mir::Ty: core::time::Duration"
-bodies = 31
+bodies = 32
 
 [[cause]]
 cause = "mir::Ty: set::HashSet<u32"
@@ -229,7 +229,7 @@ bodies = 29
 
 [[cause]]
 cause = "mir::Ty: sys::process::unix::common::Command"
-bodies = 27
+bodies = 29
 
 [[cause]]
 cause = "mir::Ty: map::HashMap<u32"
@@ -244,6 +244,10 @@ cause = "mir::Ty: sys::process::unix::unix::ExitStatus"
 bodies = 23
 
 [[cause]]
+cause = "mir::Ty: time::SystemTime"
+bodies = 23
+
+[[cause]]
 cause = "mir::Ty: fs::File"
 bodies = 22
 
@@ -252,8 +256,8 @@ cause = "mir::Ty: process::Command"
 bodies = 22
 
 [[cause]]
-cause = "mir::Ty: time::SystemTime"
-bodies = 18
+cause = "mir::Ty: process::ExitStatus"
+bodies = 20
 
 [[cause]]
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
@@ -272,12 +276,32 @@ cause = "mir::Ty: bytes::Buf"
 bodies = 15
 
 [[cause]]
-cause = "mir::Ty: process::ExitStatus"
+cause = "mir::Ty: net::tcp::TcpStream"
 bodies = 15
 
 [[cause]]
 cause = "mir::Ty: process::Stdio"
 bodies = 15
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::unix::Socket"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: sys::sync::rwlock::futex::RwLock"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: thread::thread::Thread"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: time::Instant"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: Components<'_>"
+bodies = 14
 
 [[cause]]
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
@@ -288,15 +312,11 @@ cause = "mir::Ty: process::ExitCode"
 bodies = 14
 
 [[cause]]
-cause = "mir::Ty: sys::net::connection::socket::unix::Socket"
+cause = "mir::Ty: sys::fs::unix::File"
 bodies = 14
 
 [[cause]]
-cause = "mir::Ty: sys::sync::rwlock::futex::RwLock"
-bodies = 14
-
-[[cause]]
-cause = "mir::Ty: thread::thread::Thread"
+cause = "mir::Ty: thread::id::ThreadId"
 bodies = 14
 
 [[cause]]
@@ -304,31 +324,11 @@ cause = "mir::Rvalue::Repeat"
 bodies = 13
 
 [[cause]]
-cause = "mir::Ty: sys::fs::unix::File"
-bodies = 13
-
-[[cause]]
-cause = "mir::Ty: thread::id::ThreadId"
-bodies = 13
-
-[[cause]]
-cause = "mir::Ty: time::Instant"
+cause = "mir::Ty: fs::FileType"
 bodies = 13
 
 [[cause]]
 cause = "mir::Instantiation: a const parameter"
-bodies = 12
-
-[[cause]]
-cause = "mir::Ty: Components<'_>"
-bodies = 12
-
-[[cause]]
-cause = "mir::Ty: fs::FileType"
-bodies = 12
-
-[[cause]]
-cause = "mir::Ty: net::tcp::TcpStream"
 bodies = 12
 
 [[cause]]
@@ -357,6 +357,10 @@ bodies = 11
 
 [[cause]]
 cause = "mir::Ty: mpmc::list::Channel<u32>"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: process::ExitStatusError"
 bodies = 11
 
 [[cause]]
@@ -392,6 +396,10 @@ cause = "mir::Ty: LazyLock<u32"
 bodies = 9
 
 [[cause]]
+cause = "mir::Ty: alloc_crate::collections::TryReserveError"
+bodies = 9
+
+[[cause]]
 cause = "mir::Ty: bytes::Slice"
 bodies = 9
 
@@ -404,7 +412,7 @@ cause = "mir::Ty: collections::hash::map::Iter<'_"
 bodies = 9
 
 [[cause]]
-cause = "mir::Ty: process::ExitStatusError"
+cause = "mir::Ty: sync::mpsc::RecvTimeoutError"
 bodies = 9
 
 [[cause]]
@@ -428,7 +436,11 @@ cause = "mir::Ty: nonpoison::rwlock::RwLock<u32>"
 bodies = 8
 
 [[cause]]
-cause = "mir::Ty: sync::mpsc::RecvTimeoutError"
+cause = "mir::Ty: os::unix::net::stream::UnixStream"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::error::SendTimeoutError<u32>"
 bodies = 8
 
 [[cause]]
@@ -444,6 +456,10 @@ cause = "mir::Ty: sys::args::common::Args"
 bodies = 8
 
 [[cause]]
+cause = "mir::Ty: sys::net::connection::socket::TcpStream"
+bodies = 8
+
+[[cause]]
 cause = "mir::Ty: sys::process::unix::common::ExitCode"
 bodies = 8
 
@@ -453,10 +469,6 @@ bodies = 7
 
 [[cause]]
 cause = "mir::Ty: CommandEnv"
-bodies = 7
-
-[[cause]]
-cause = "mir::Ty: alloc_crate::collections::TryReserveError"
 bodies = 7
 
 [[cause]]
@@ -492,6 +504,10 @@ cause = "mir::Ty: mpmc::Sender<u32>"
 bodies = 7
 
 [[cause]]
+cause = "mir::Ty: net::tcp::TcpListener"
+bodies = 7
+
+[[cause]]
 cause = "mir::Ty: nonpoison::mutex::Mutex<u32>"
 bodies = 7
 
@@ -500,7 +516,7 @@ cause = "mir::Ty: os::linux::process::PidFd"
 bodies = 7
 
 [[cause]]
-cause = "mir::Ty: os::unix::net::stream::UnixStream"
+cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 bodies = 7
 
 [[cause]]
@@ -516,7 +532,7 @@ cause = "mir::Ty: sync::mpsc::TryRecvError"
 bodies = 7
 
 [[cause]]
-cause = "mir::Ty: sys::net::connection::socket::TcpStream"
+cause = "mir::Ty: sync::mpsc::TrySendError<u32>"
 bodies = 7
 
 [[cause]]
@@ -572,10 +588,6 @@ cause = "mir::Ty: mpmc::array::Channel<u32>"
 bodies = 6
 
 [[cause]]
-cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
-bodies = 6
-
-[[cause]]
 cause = "mir::Ty: os::unix::net::ucred::UCred"
 bodies = 6
 
@@ -588,7 +600,11 @@ cause = "mir::Ty: stream::UnixStream"
 bodies = 6
 
 [[cause]]
-cause = "mir::Ty: sync::mpsc::TrySendError<u32>"
+cause = "mir::Ty: sys::net::connection::socket::TcpListener"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
 bodies = 6
 
 [[cause]]
@@ -616,7 +632,15 @@ cause = "mir::Ty: FilePermissions"
 bodies = 5
 
 [[cause]]
+cause = "mir::Ty: LocalKey<Cell<u32>>"
+bodies = 5
+
+[[cause]]
 cause = "mir::Ty: PrefixComponent<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: RefCell<u32>"
 bodies = 5
 
 [[cause]]
@@ -649,6 +673,10 @@ bodies = 5
 
 [[cause]]
 cause = "mir::Ty: fs::FileTimes"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: io::pipe::PipeReader"
 bodies = 5
 
 [[cause]]
@@ -700,7 +728,11 @@ cause = "mir::Ty: map::ValuesMut<'_"
 bodies = 5
 
 [[cause]]
-cause = "mir::Ty: net::tcp::TcpListener"
+cause = "mir::Ty: net::udp::UdpSocket"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::listener::UnixListener"
 bodies = 5
 
 [[cause]]
@@ -708,11 +740,11 @@ cause = "mir::Ty: set::IntoIter<u32"
 bodies = 5
 
 [[cause]]
-cause = "mir::Ty: sync::mpmc::error::SendTimeoutError<u32>"
+cause = "mir::Ty: sync::mpsc::SendError<u32>"
 bodies = 5
 
 [[cause]]
-cause = "mir::Ty: sync::mpsc::SendError<u32>"
+cause = "mir::Ty: sync::poison::rwlock::RwLockReadGuard<'_"
 bodies = 5
 
 [[cause]]
@@ -721,14 +753,6 @@ bodies = 5
 
 [[cause]]
 cause = "mir::Ty: sys::fs::unix::FileTimes"
-bodies = 5
-
-[[cause]]
-cause = "mir::Ty: sys::net::connection::socket::TcpListener"
-bodies = 5
-
-[[cause]]
-cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
 bodies = 5
 
 [[cause]]
@@ -741,6 +765,10 @@ bodies = 5
 
 [[cause]]
 cause = "mir::Ty: sys::process::unix::common::ProgramKind"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::unix::Process"
 bodies = 5
 
 [[cause]]
@@ -812,10 +840,6 @@ cause = "mir::Ty: R"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: RefCell<u32>"
-bodies = 4
-
-[[cause]]
 cause = "mir::Ty: Self"
 bodies = 4
 
@@ -868,7 +892,7 @@ cause = "mir::Ty: io::error::repr_bitpacked::Repr"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: io::pipe::PipeReader"
+cause = "mir::Ty: io::pipe::PipeWriter"
 bodies = 4
 
 [[cause]]
@@ -885,10 +909,6 @@ bodies = 4
 
 [[cause]]
 cause = "mir::Ty: os::unix::net::ancillary::AncillaryData<'_>"
-bodies = 4
-
-[[cause]]
-cause = "mir::Ty: os::unix::net::listener::UnixListener"
 bodies = 4
 
 [[cause]]
@@ -1000,15 +1020,15 @@ cause = "mir::Ty: sys::process::unix::unix::ExitStatusError"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: sys::process::unix::unix::Process"
-bodies = 4
-
-[[cause]]
 cause = "mir::Ty: thread::builder::Builder"
 bodies = 4
 
 [[cause]]
 cause = "mir::Ty: thread::spawnhook::SpawnHooks"
+bodies = 4
+
+[[cause]]
+cause = 'mir::Ty: unsafe extern "u32" fn'
 bodies = 4
 
 [[cause]]
@@ -1032,10 +1052,6 @@ cause = "mir::StatementKind::Assign: a `&mut` parameter rebound to another borro
 bodies = 3
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::lower_bound"
-bodies = 3
-
-[[cause]]
 cause = "mir::Ty: AccessError"
 bodies = 3
 
@@ -1044,11 +1060,11 @@ cause = "mir::Ty: Arc<u32>"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: CStringIter<'_>"
+cause = "mir::Ty: Atomic<u32>"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: Cell<u32>"
+cause = "mir::Ty: CStringIter<'_>"
 bodies = 3
 
 [[cause]]
@@ -1112,11 +1128,11 @@ cause = "mir::Ty: collections::hash::map::IterMut<'_"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: core::fmt::Arguments<'_>"
+cause = "mir::Ty: core::io::Repeat"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: core::io::Repeat"
+cause = "mir::Ty: core::pin::Pin<&u32>"
 bodies = 3
 
 [[cause]]
@@ -1137,6 +1153,10 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: dyn for<'a"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: env::VarError"
 bodies = 3
 
 [[cause]]
@@ -1164,7 +1184,7 @@ cause = "mir::Ty: io::error::Custom"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: io::pipe::PipeWriter"
+cause = "mir::Ty: lazy::Storage<u32"
 bodies = 3
 
 [[cause]]
@@ -1173,10 +1193,6 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: map::VacantEntry<'_"
-bodies = 3
-
-[[cause]]
-cause = "mir::Ty: net::udp::UdpSocket"
 bodies = 3
 
 [[cause]]
@@ -1264,10 +1280,6 @@ cause = "mir::Ty: sync::poison::rwlock::RwLock<u32>"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: sync::poison::rwlock::RwLockReadGuard<'_"
-bodies = 3
-
-[[cause]]
 cause = "mir::Ty: sync::poison::rwlock::RwLockWriteGuard<'_"
 bodies = 3
 
@@ -1308,15 +1320,7 @@ cause = "mir::Ty: thread::join_handle::JoinHandle<u32>"
 bodies = 3
 
 [[cause]]
-cause = 'mir::Ty: unsafe extern "u32" fn'
-bodies = 3
-
-[[cause]]
 cause = "mir::Operand::Constant: 30_i32 as u32"
-bodies = 2
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::upper_bound"
 bodies = 2
 
 [[cause]]
@@ -1344,15 +1348,11 @@ cause = "mir::TerminatorKind::Call: null_mut"
 bodies = 2
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: really_init"
+cause = "mir::TerminatorKind::Call: sys::args::unix::imp::really_init: std's MIR stops at mir::Operand::Constant: {alloc426: &Atomic<isize>}"
 bodies = 2
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: without_provenance_mut"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: Atomic<u32>"
 bodies = 2
 
 [[cause]]
@@ -1401,10 +1401,6 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: Shutdown"
-bodies = 2
-
-[[cause]]
-cause = "mir::Ty: Sink"
 bodies = 2
 
 [[cause]]
@@ -1492,6 +1488,10 @@ cause = "mir::Ty: connection::socket::TcpStream"
 bodies = 2
 
 [[cause]]
+cause = "mir::Ty: core::fmt::Arguments<'_>"
+bodies = 2
+
+[[cause]]
 cause = "mir::Ty: core::num::NonZero<i32>"
 bodies = 2
 
@@ -1520,15 +1520,23 @@ cause = "mir::Ty: env::SplitPaths<'_>"
 bodies = 2
 
 [[cause]]
-cause = "mir::Ty: env::VarError"
-bodies = 2
-
-[[cause]]
 cause = "mir::Ty: fs::DirEntry"
 bodies = 2
 
 [[cause]]
+cause = "mir::Ty: fs::ReadDir"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: impl FnOnce"
+bodies = 2
+
+[[cause]]
 cause = "mir::Ty: io::Bytes<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: io::buffered::IntoInnerError<u32>"
 bodies = 2
 
 [[cause]]
@@ -1597,6 +1605,10 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: poison::rwlock::MappedRwLockWriteGuard<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: process::Child"
 bodies = 2
 
 [[cause]]
@@ -1860,10 +1872,6 @@ cause = "mir::Operand::Constant: the constant item libc::AT_MINSIGSTKSZ"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: the constant item libc::EAGAIN"
-bodies = 1
-
-[[cause]]
 cause = "mir::Operand::Constant: the constant item libc::EINTR"
 bodies = 1
 
@@ -1932,6 +1940,22 @@ cause = "mir::Operand::Constant: {alloc1478: *mut *const *const i8}"
 bodies = 1
 
 [[cause]]
+cause = 'mir::Operand::Constant: {alloc1493: *const core::option::Option<unsafe extern "u32" fn'
+bodies = 1
+
+[[cause]]
+cause = 'mir::Operand::Constant: {alloc1629: *const core::option::Option<unsafe extern "u32" fn'
+bodies = 1
+
+[[cause]]
+cause = 'mir::Operand::Constant: {alloc1873: *const core::option::Option<unsafe extern "u32" fn'
+bodies = 1
+
+[[cause]]
+cause = 'mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe extern "u32" fn'
+bodies = 1
+
+[[cause]]
 cause = "mir::Operand::Constant: {alloc231: &OnceLock<ReentrantLock<RefCell<LineWriter<StdoutRaw>>>>}"
 bodies = 1
 
@@ -1953,6 +1977,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: {alloc429: &Atomic<*mut *const u8>}"
+bodies = 1
+
+[[cause]]
+cause = 'mir::Operand::Constant: {alloc542: &DlsymWeak<unsafe extern "u32" fn'
 bodies = 1
 
 [[cause]]
@@ -2120,27 +2148,11 @@ cause = "mir::TerminatorKind::Call: core::str::make_ascii_uppercase"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: count_is_zero"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: destructors::list::run"
-bodies = 1
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: fdatasync"
 bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: fsync"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: get_stack_start"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: glibc_version"
 bodies = 1
 
 [[cause]]
@@ -2156,7 +2168,7 @@ cause = "mir::TerminatorKind::Call: libc::getppid"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: pal::unix::stack_overflow::imp::cleanup"
+cause = "mir::TerminatorKind::Call: panicking::panic_count::count_is_zero: std's MIR stops at mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 bodies = 1
 
 [[cause]]
@@ -2176,10 +2188,6 @@ cause = "mir::TerminatorKind::Call: rt::cleanup"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sanitize_standard_fds"
-bodies = 1
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: sched_yield"
 bodies = 1
 
@@ -2188,11 +2196,27 @@ cause = "mir::TerminatorKind::Call: set_always_abort"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::args::unix::imp::init"
+cause = "mir::TerminatorKind::Call: sys::args::unix::imp::init: std's MIR stops at mir::TerminatorKind::Call: sys::args::unix::imp::really_init: std's MIR stops at mir::Operand::Constant: {alloc426: &Atomic<isize>}"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::path::unix::is_sep_byte"
+cause = "mir::TerminatorKind::Call: sys::exit::unique_thread_exit: std's MIR stops at mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::pal::unix::conf::glibc_version: std's MIR stops at mir::TerminatorKind::Call: glibc_version::gnu_get_libc_version"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::pal::unix::init::sanitize_standard_fds: std's MIR stops at mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: type outside the lift: {closure@library/std/src/sys/pal/unix/mod.rs:58:32: 58:34}"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::pal::unix::stack_overflow::imp::cleanup: std's MIR stops at mir::Operand::Constant: {alloc404: &Atomic<*mut libc::c_void>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::pal::unix::stack_overflow::imp::get_stack_start: std's MIR stops at mir::Rvalue::Use"
 bodies = 1
 
 [[cause]]
@@ -2204,7 +2228,7 @@ cause = "mir::TerminatorKind::Call: sys::process::unix::common::getppid"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom"
+cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom: std's MIR stops at mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
 bodies = 1
 
 [[cause]]
@@ -2212,7 +2236,7 @@ cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid"
+cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid: std's MIR stops at mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe extern "C" fn"""
 bodies = 1
 
 [[cause]]
@@ -2220,7 +2244,7 @@ cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: unique_thread_exit"
+cause = "mir::TerminatorKind::Call: sys::thread_local::destructors::list::run: std's MIR stops at mir::Rvalue::Ref"
 bodies = 1
 
 [[cause]]
@@ -2500,6 +2524,10 @@ cause = "mir::Ty: core::io::Cursor<u32>"
 bodies = 1
 
 [[cause]]
+cause = "mir::Ty: core::io::ErrorKind"
+bodies = 1
+
+[[cause]]
 cause = "mir::Ty: core::net::Ipv4Addr"
 bodies = 1
 
@@ -2532,15 +2560,23 @@ cause = "mir::Ty: core::panic::PanicInfo<'_>"
 bodies = 1
 
 [[cause]]
-cause = "mir::Ty: core::pin::Pin<&u32>"
-bodies = 1
-
-[[cause]]
 cause = "mir::Ty: core::pin::Pin<alloc_crate::boxed::Box<u32>>"
 bodies = 1
 
 [[cause]]
+cause = "mir::Ty: core::slice::Split<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::str::Split<'_"
+bodies = 1
+
+[[cause]]
 cause = "mir::Ty: dyn core::any::Any"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: dyn core::ops::Fn"
 bodies = 1
 
 [[cause]]
@@ -2568,10 +2604,6 @@ cause = "mir::Ty: ffi::os_str::Display<'_>"
 bodies = 1
 
 [[cause]]
-cause = "mir::Ty: fs::ReadDir"
-bodies = 1
-
-[[cause]]
 cause = "mir::Ty: hashbrown::hash_set::IntoIter<u32>"
 bodies = 1
 
@@ -2588,10 +2620,6 @@ cause = "mir::Ty: impl Distribution<u32>"
 bodies = 1
 
 [[cause]]
-cause = "mir::Ty: impl FnOnce"
-bodies = 1
-
-[[cause]]
 cause = "mir::Ty: io::Guard<'_>"
 bodies = 1
 
@@ -2605,10 +2633,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: io::Split<u32>"
-bodies = 1
-
-[[cause]]
-cause = "mir::Ty: io::buffered::IntoInnerError<u32>"
 bodies = 1
 
 [[cause]]
@@ -2641,10 +2665,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: io::stdio::StdoutRaw"
-bodies = 1
-
-[[cause]]
-cause = "mir::Ty: lazy::Storage<u32"
 bodies = 1
 
 [[cause]]
@@ -2909,6 +2929,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: sync::reentrant_lock::Tid"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::backtrace::BacktraceLock<'_>"
 bodies = 1
 
 [[cause]]

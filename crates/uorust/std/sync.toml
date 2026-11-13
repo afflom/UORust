@@ -425,6 +425,13 @@ status = "residue"
 cause = "mir::Ty: sync::mpsc::RecvTimeoutError"
 
 [[fn]]
+path = "std::mpmc::Receiver::recv_timeout"
+kappa = "92ccac955459fe0a6ad778c82adcb112d29d43c1ddf71534147613e5d0a7f234"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sync::mpsc::RecvTimeoutError"
+
+[[fn]]
 path = "std::mpmc::Receiver::same_channel"
 kappa = "780aa78eee477c1dc18d5703e94674e56bde3a920ea46354c0d3eb603e979fce"
 at = "T=u32"
@@ -522,6 +529,13 @@ status = "residue"
 cause = "mir::Ty: sync::mpmc::error::SendTimeoutError<u32>"
 
 [[fn]]
+path = "std::mpmc::Sender::send_timeout"
+kappa = "e066b17e61ceba53441936b919dc9915c9a696084c0c527872f62108bf9de37b"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sync::mpmc::error::SendTimeoutError<u32>"
+
+[[fn]]
 path = "std::mpmc::Sender::try_send"
 kappa = "cbd14f112cd74af93a023871cb9eb28327be8624f5f578999d4abc6261330cd6"
 at = "T=u32"
@@ -612,6 +626,13 @@ status = "residue"
 cause = "mir::Ty: sync::mpsc::RecvTimeoutError"
 
 [[fn]]
+path = "std::mpmc::array::Channel::send"
+kappa = "865c6c11f2334b8e8c99f5cb25be72b05f5ed46acd1eeeba51533d2e857da606"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sync::mpmc::error::SendTimeoutError<u32>"
+
+[[fn]]
 path = "std::mpmc::array::Channel::start_recv"
 kappa = "a8e0222842c34707a62be24962c970264f3789cfe96e76f934d75fd1d0036630"
 at = "T=u32"
@@ -631,6 +652,13 @@ kappa = "55e3fbe3651daa4ac5b240ff834f922c0af45f5fed9e0877774440abf356e4f4"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: sync::mpsc::TryRecvError"
+
+[[fn]]
+path = "std::mpmc::array::Channel::try_send"
+kappa = "7c061e36a8d539b3ab30d5086c79a7776dea49257beabe8a61f9346d0a9837aa"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sync::mpsc::TrySendError<u32>"
 
 [[fn]]
 path = "std::mpmc::array::Channel::with_capacity"
@@ -807,6 +835,13 @@ kappa = "7385781bc55c2ef035d2cde4ebeb1b5f215a9c252063bc60da52ee2918e58e85"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: sync::mpsc::RecvTimeoutError"
+
+[[fn]]
+path = "std::mpmc::list::Channel::send"
+kappa = "5ab63d685a97f6f91cd47dad63b66e50a935a3e2b5e4012694387a0212692d7f"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sync::mpmc::error::SendTimeoutError<u32>"
 
 [[fn]]
 path = "std::mpmc::list::Channel::start_recv"
@@ -2709,6 +2744,13 @@ kappa = "c873d1207422f26a9fc9d6cc85932e735a12b90933829f8bfaee716f6d7fc0ff"
 at = "T=u32"
 status = "residue"
 cause = "mir::Ty: poison::rwlock::RwLockWriteGuard<'_, u32>"
+
+[[fn]]
+path = "std::poison::rwlock::RwLockWriteGuard::downgrade"
+kappa = "c303cc8fd52f8d13c11e0ffaef59ddad0935e786f22607539b1e5d3d0963afd1"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sync::poison::rwlock::RwLockReadGuard<'_, u32>"
 
 [[fn]]
 path = "std::poison::rwlock::RwLockWriteGuard::drop"

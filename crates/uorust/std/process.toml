@@ -137,6 +137,12 @@ status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
+path = "std::process::Child::from_inner"
+kappa = "9b5204d253ff9075addce25c51d731430fdc537467acd71cb3126add5500c083"
+status = "residue"
+cause = "mir::Ty: process::Child"
+
+[[fn]]
 path = "std::process::Child::id"
 kappa = "11e3d89e0fb6c6a5d3e7fc98cbf9390a8687a2074ad32df371f16aeceb2b17ec"
 status = "residue"
@@ -153,6 +159,18 @@ path = "std::process::Child::kill"
 kappa = "eb74a1bc8aa47dab7272ab0aaceb8aa2a91df2d784efbefa35880cc319bd9ef1"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::process::Child::try_wait"
+kappa = "6a701cec287311bd055ea7860a245782046099d63d89b1ce82009451abedfcc8"
+status = "residue"
+cause = "mir::Ty: process::ExitStatus"
+
+[[fn]]
+path = "std::process::Child::wait"
+kappa = "754ef0216a486f8d40da20727da0c3556224bc3dac9e0cb0d7f3002b1969f1e5"
+status = "residue"
+cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::process::Child::wait_with_output"
@@ -432,6 +450,18 @@ status = "residue"
 cause = "mir::Ty: process::Output"
 
 [[fn]]
+path = "std::process::Command::spawn"
+kappa = "21e54f6f675c440f5baab83357e20811217e03b3938c8939f296f1784bc6b49e"
+status = "residue"
+cause = "mir::Ty: process::Child"
+
+[[fn]]
+path = "std::process::Command::status"
+kappa = "f5df0f5ed76e390880cf18340e30cae30017f558b04cbdb35c9bb4c10b5137fd"
+status = "residue"
+cause = "mir::Ty: process::ExitStatus"
+
+[[fn]]
 path = "std::process::Command::stderr"
 kappa = "4dd0050c825b39134d890d289ced307cfd7a58690e25d14fea6edf9eedbae8ac"
 at = "T=u32"
@@ -579,6 +609,12 @@ status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
+path = "std::process::ExitStatus::exit_ok"
+kappa = "2ab0ea27018563856bb21133e7c83e6e5e9bc368f10236474a9b4f9d31c95454"
+status = "residue"
+cause = "mir::Ty: process::ExitStatusError"
+
+[[fn]]
 path = "std::process::ExitStatus::fmt"
 kappa = "043c9912c9a4ee14ec1cae41f3cb4d6620173f64e392b6946e8ae3c2b01f7836"
 status = "residue"
@@ -601,6 +637,12 @@ path = "std::process::ExitStatus::success"
 kappa = "a51cdb463e522698ed73b257de0a5ef588ef9a0561205c0301fce88bb2251784"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
+
+[[fn]]
+path = "std::process::ExitStatusError::code"
+kappa = "cf6f8defd5ee329aceec726f97e6c0b766c534589eba27bcb4ac0ef7551183f1"
+status = "residue"
+cause = "mir::Ty: process::ExitStatusError"
 
 [[fn]]
 path = "std::process::ExitStatusError::code_nonzero"

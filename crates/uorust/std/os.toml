@@ -408,6 +408,12 @@ status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
+path = "std::datagram::UnixDatagram::try_clone"
+kappa = "232681bfe3afc1c383a82e87802ea1f08ce53dc4990fde29343c1b70ba3c52bb"
+status = "residue"
+cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
+
+[[fn]]
 path = "std::datagram::UnixDatagram::unbound"
 kappa = "798ba1310356ccd6bad54f1dba92e9cb9411f00c0295cc7b25bd914985da8ad6"
 status = "residue"
@@ -581,6 +587,12 @@ path = "std::listener::UnixListener::take_error"
 kappa = "e84d804a248a872765ab1fb2f618afa981c6bb8555a877208af42e8889b4a9ce"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::listener::UnixListener::try_clone"
+kappa = "7801892209845249ab6c42cd5cf3cb2e4114cc10740c86d82a2c5af6ebb41ab9"
+status = "residue"
+cause = "mir::Ty: os::unix::net::listener::UnixListener"
 
 [[fn]]
 path = "std::null_fd"
@@ -957,6 +969,18 @@ path = "std::os::linux::process::PidFd::kill"
 kappa = "e835dcf6f4eb9c5ab9ffdb200da69c691441b827a4755c7db3543bc18474e6af"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::os::linux::process::PidFd::try_wait"
+kappa = "1c4b89475210d10af065fafb5183d5b7795d3caf789ebfdccf6a07490f413dd9"
+status = "residue"
+cause = "mir::Ty: process::ExitStatus"
+
+[[fn]]
+path = "std::os::linux::process::PidFd::wait"
+kappa = "7bb772436cd5d3b8cfc31be9d220f021c1ebdd2091aa7bf90f91e3c9a961eb15"
+status = "residue"
+cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::linux::raw::arch::<impl at library/std/src/os/linux/raw.rs:333:14: 333:19>::clone"
@@ -2275,6 +2299,12 @@ path = "std::stream::UnixStream::take_error"
 kappa = "040164470ae28ae39d326f373554952b82c46155b4151a469e73a14a5b2e67e0"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::stream::UnixStream::try_clone"
+kappa = "2d2394feacaf9cb087b0f59d799fb4ff6bab12504c622528272174c223f82649"
+status = "residue"
+cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::write"

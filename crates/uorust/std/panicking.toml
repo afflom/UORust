@@ -206,7 +206,7 @@ cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 path = "std::panicking::panicking"
 kappa = "31707b0ffdd6ac36d52a2590e04f8db5be27b3bd08d7caf0f9f614a165c95122"
 status = "residue"
-cause = "mir::TerminatorKind::Call: count_is_zero"
+cause = "mir::TerminatorKind::Call: panicking::panic_count::count_is_zero: std's MIR stops at mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 
 [[fn]]
 path = "std::panicking::resume_unwind"
