@@ -3932,6 +3932,71 @@ impl Fun<'_, '_> {
                         _ => Err(kind(k.path(), "between pointers whose metadata differ")),
                     };
                 }
+                // A `char` as an integer: its scalar value, decoded from its
+                // UTF-8 encoding (RFC 3629, section 3: a leading byte of `n`
+                // ones and a zero over the high bits, then continuation
+                // bytes of six bits each), then cast as a `u32` is.
+                if let (spec::MirCastKind::IntToInt, Ty::Char, Some(ti), Some(fi)) = (
+                    k,
+                    &from,
+                    Int::of(&to, self.cx.widths),
+                    Int::of(&Ty::Nat(Some(u32::BITS)), self.cx.widths),
+                ) {
+                    /// The bits each continuation byte carries.
+                    const SIX: u32 = 6;
+                    /// The longest encoding's length in bytes.
+                    const LONGEST: u32 = 4;
+                    let bytes: Vec<(String, String)> = (0..LONGEST)
+                        .map(|j| {
+                            (
+                                self.fresh(Some("byte"), j as usize),
+                                self.fresh(Some("after"), j as usize),
+                            )
+                        })
+                        .collect();
+                    let continuation = 1u64 << (u8::BITS - 1);
+                    // The scalar value of an `n`-byte encoding.
+                    let value = |n: u32| {
+                        let lead = (0..n).fold(0u64, |acc, i| acc | (1u64 << (u8::BITS - 1 - i)));
+                        let mut terms = Vec::new();
+                        for j in 0..n {
+                            let b = &bytes[j as usize].0;
+                            let marker = if j == 0 {
+                                if n == 1 {
+                                    0
+                                } else {
+                                    lead
+                                }
+                            } else {
+                                continuation
+                            };
+                            let bits = format!("(prim subtract {b} {marker} : Nat)");
+                            let scale = 1u64 << (SIX * (n - 1 - j));
+                            terms.push(format!("(prim multiply {bits} {scale} : Nat)"));
+                        }
+                        format!("({})", terms.join(" + "))
+                    };
+                    let mut code = value(LONGEST);
+                    // Each shorter encoding ends where the bytes do.
+                    for n in (1..LONGEST).rev() {
+                        let after = &bytes[(n - 1) as usize].1;
+                        let (b, rest) = &bytes[n as usize];
+                        code = format!(
+                            "(match {after} | List.nil => {} | List.cons {b} {rest} => {code})",
+                            value(n)
+                        );
+                    }
+                    let whole = format!("({}::textBytes {v})", lift::PRELUDE);
+                    let code = format!(
+                        "(match {whole} | List.nil => 0 | List.cons {} {} => {code})",
+                        bytes[0].0, bytes[0].1
+                    );
+                    let (value, holds) = super::int::cast(&code, fi, ti, false);
+                    if let Some(h) = &holds {
+                        self.obligation(st, &format!("({h} = true)"), k.path());
+                    }
+                    return Ok(Val::V(value, to));
+                }
                 match (k, &from, &to) {
                     // Wrap or sign-extend, by the two types' widths and
                     // signedness; where the target's width differs between
