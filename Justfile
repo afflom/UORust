@@ -191,6 +191,8 @@ certified:
     cargo run -q --locked -p uorust -- certify production --projection target/uorust-self --register frontier.toml --targets crates/certified/targets.json --out target/uorust-certify --kept target/uorust-certified
     cargo run -q --locked -p uorust -- certify sync --kept target/uorust-certified --register frontier.toml --mir target/mir --workspace . --dir crates/certified --adapters crates/uorust/src/certified.rs
     rustfmt --edition 2021 crates/uorust/src/certified.rs
+    # The adapters compile, and the switch selects, before export pushes them.
+    cargo test -q --locked -p uorust --lib certif
 
 # The ratchet (loop step 3): the hand-written translator may only shrink.
 # The head's register and the base's are both generated from their sources
