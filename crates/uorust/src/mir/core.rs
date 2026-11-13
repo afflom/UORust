@@ -428,7 +428,40 @@ pub(crate) fn shard(
                 .map(|(b, a)| (b.clone(), a.clone(), String::new())),
         )
         .collect();
-    let explicit = instantiate_structs(&mut types, link, &scanned, &closures);
+    let mut explicit = instantiate_structs(&mut types, link, &scanned, &closures);
+    // The discriminants an enum's declarations set (`cmp::Ordering`'s -1,
+    // 0 and 1), where those whose variants the lift's enum holds agree on
+    // them: a switch reads them, and so does a discriminant read as a
+    // value. One whose declarations disagree, or set them by no literal,
+    // is refused.
+    let enums: Vec<(String, Vec<String>)> = types
+        .enums
+        .iter()
+        .map(|(n, vs)| (n.clone(), vs.clone()))
+        .collect();
+    for (n, vs) in enums {
+        let mut found = link
+            .decls
+            .structs
+            .iter()
+            .filter(|s| s.explicit && s.variants.as_ref() == Some(&vs))
+            .map(|s| s.values.clone());
+        let Some(first) = found.next() else {
+            continue;
+        };
+        let agreed = found.all(|v| v == first);
+        match first {
+            Some(v) if agreed && v.len() == vs.len() => {
+                types
+                    .discriminants
+                    .insert(n.clone(), v.iter().map(|x| i128::from(*x)).collect());
+                explicit.remove(&n);
+            }
+            _ => {
+                explicit.insert(n);
+            }
+        }
+    }
     // A raw pointer: an address, its provenance and its metadata.
     types
         .structs

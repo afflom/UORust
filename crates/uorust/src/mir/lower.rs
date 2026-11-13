@@ -2783,46 +2783,15 @@ impl Fun<'_, '_> {
                 .insert((key, only.variant.to_string()), vec![scrutinee]);
             return self.goto(target, arm);
         }
-        let ctors = constructors(&t, self.cx.types, self.cx.explicit)?;
-        // The discriminants core's source sets for an enum the lift holds
-        // under a name of its own (`cmp::Ordering`'s -1, 0 and 1, as the
-        // lift's `CmpOrdering`): each variant's, where the declarations
-        // whose variants the lift's enum holds agree on them; else its
-        // index.
-        let set: Option<Vec<i128>> = match (&t, self.cx.core) {
-            (Ty::Named(n), Some(link)) => {
-                let vs = self.cx.types.enums.get(n);
-                let mut found = link
-                    .decls
-                    .structs
-                    .iter()
-                    .filter(|s| s.explicit && vs.is_some() && s.variants.as_ref() == vs)
-                    .map(|s| {
-                        s.values
-                            .as_ref()
-                            .map(|v| v.iter().map(|x| i128::from(*x)).collect::<Vec<i128>>())
-                    });
-                match found.next() {
-                    None => None,
-                    Some(first) => {
-                        if found.any(|v| v != first) {
-                            return Err(kind(
-                                spec::MirRvalue::Discriminant.path(),
-                                &format!("{n}, whose declarations set other discriminants"),
-                            ));
-                        }
-                        Some(first.ok_or_else(|| {
-                            kind(
-                                spec::MirRvalue::Discriminant.path(),
-                                &format!("{n}, whose discriminants are no literals"),
-                            )
-                        })?)
-                    }
-                }
-            }
+        // The discriminants core's source sets for an enum (`cmp::Ordering`'s
+        // -1, 0 and 1, as the lift's `CmpOrdering`), where its declarations
+        // agree on them (see `core::census`); else each variant's index.
+        let set: Option<&Vec<i128>> = match &t {
+            Ty::Named(n) => self.cx.types.discriminants.get(n),
             _ => None,
         };
-        if set.as_ref().is_some_and(|v| v.len() != ctors.len()) {
+        let ctors = constructors(&t, self.cx.types, self.cx.explicit)?;
+        if set.is_some_and(|v| v.len() != ctors.len()) {
             return Err(kind(
                 spec::MirRvalue::Discriminant.path(),
                 "of an enum whose variants its source declares by target",
@@ -2839,7 +2808,7 @@ impl Fun<'_, '_> {
         };
         let mut out = Vec::new();
         for (i, (variant, ctor, fields)) in ctors.iter().enumerate() {
-            let value = set.as_ref().map_or(i as i128, |v| v[i]);
+            let value = set.map_or(i as i128, |v| v[i]);
             let target = arms
                 .iter()
                 .find(|(a, _)| same(*a, value))
@@ -3591,6 +3560,44 @@ impl Fun<'_, '_> {
                     ))
                 }
             },
+            // A discriminant read as a value: of an enum of unit variants,
+            // the value its source sets for each variant (its index where
+            // it sets none), at the local's unsigned type.
+            Val::Disc(place) if p.projection.is_empty() => {
+                let k = spec::MirRvalue::Discriminant.path();
+                let as_value = || kind(k, "a discriminant read as a value");
+                let declared = self
+                    .body
+                    .locals
+                    .get(p.local)
+                    .cloned()
+                    .ok_or_else(as_value)?;
+                let dt = ty(&declared, self.cx.types)?;
+                let (x, et) = self.read(&place, st)?;
+                let Ty::Named(n) = &et else {
+                    return Err(as_value());
+                };
+                let vs = self.cx.types.enums.get(n).ok_or_else(as_value)?;
+                let values: Vec<i128> = match self.cx.types.discriminants.get(n) {
+                    Some(v) => v.clone(),
+                    None if !self.cx.explicit.contains(n) => (0..vs.len() as i128).collect(),
+                    None => return Err(as_value()),
+                };
+                let fits = |v: &i128| match dt {
+                    Ty::Nat(Some(bits)) => *v >= 0 && *v < (1i128 << bits),
+                    Ty::Nat(None) => *v >= 0,
+                    _ => false,
+                };
+                if values.len() != vs.len() || !values.iter().all(fits) {
+                    return Err(as_value());
+                }
+                let arms: Vec<String> = vs
+                    .iter()
+                    .zip(&values)
+                    .map(|(v, d)| format!("| {n}.{v} => {d}"))
+                    .collect();
+                return Ok((format!("(match ({x} : {n}) {})", arms.join(" ")), dt));
+            }
             Val::Disc(_) => {
                 return Err(kind(
                     spec::MirRvalue::Discriminant.path(),

@@ -350,6 +350,9 @@ pub(crate) struct Types {
     /// that is a `&mut`, by position, with its type as printed. The lift
     /// holds the borrowed value there, threaded as the borrow is.
     pub(crate) borrowing: BTreeMap<String, Vec<(usize, String)>>,
+    /// The discriminants an enum's source sets, one per variant in order,
+    /// by LexLean name, where they are not the variants' indices alone.
+    pub(crate) discriminants: BTreeMap<String, Vec<i128>>,
 }
 
 /// The strongly connected components of a graph, each one set.
@@ -643,6 +646,7 @@ impl Types {
                 floats: BTreeMap::new(),
                 valid: BTreeMap::new(),
                 borrowing: BTreeMap::new(),
+                discriminants: BTreeMap::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -671,6 +675,7 @@ impl Types {
                     floats: BTreeMap::new(),
                     valid: BTreeMap::new(),
                     borrowing: BTreeMap::new(),
+                    discriminants: BTreeMap::new(),
                 };
             }
             names = lifted.into_keys().collect();
