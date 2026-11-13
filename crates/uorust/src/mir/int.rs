@@ -341,28 +341,6 @@ fn key(x: &str, int: Int) -> String {
     format!("(prim remainder ({x} + {h}) {m} 0 : Nat)")
 }
 
-/// The integer intrinsics whose rule is here, by name.
-pub(crate) const INTRINSICS: &[&str] = &[
-    "wrapping_add",
-    "wrapping_sub",
-    "wrapping_mul",
-    "add_with_overflow",
-    "sub_with_overflow",
-    "mul_with_overflow",
-    "saturating_add",
-    "saturating_sub",
-    "rotate_left",
-    "rotate_right",
-    "ctpop",
-    "ctlz",
-    "ctlz_nonzero",
-    "cttz",
-    "cttz_nonzero",
-    "bswap",
-    "bitreverse",
-    "disjoint_bitor",
-];
-
 /// The rule of the intrinsic `name` at `int`, on the argument terms `a`.
 /// (`unchecked_*` and `exact_div` are the MIR operators' own rules, see
 /// `lower`, with core's precondition as an obligation.)
@@ -516,6 +494,28 @@ pub(crate) fn intrinsic(name: &str, a: &[&str], int: Int) -> Option<Applied> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The integer intrinsics whose rule is `intrinsic`'s, by name.
+    const INTRINSICS: &[&str] = &[
+        "wrapping_add",
+        "wrapping_sub",
+        "wrapping_mul",
+        "add_with_overflow",
+        "sub_with_overflow",
+        "mul_with_overflow",
+        "saturating_add",
+        "saturating_sub",
+        "rotate_left",
+        "rotate_right",
+        "ctpop",
+        "ctlz",
+        "ctlz_nonzero",
+        "cttz",
+        "cttz_nonzero",
+        "bswap",
+        "bitreverse",
+        "disjoint_bitor",
+    ];
 
     fn one() -> Vec<(u32, Vec<String>)> {
         vec![(64, vec!["x86_64-unknown-linux-gnu".into()])]

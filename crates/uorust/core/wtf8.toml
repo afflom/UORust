@@ -8,13 +8,13 @@ digest = "f3872fffe2295decbf7763912e47a725f686b6c59be8ca0393bd084c67d97e1f"
 path = "core::slice_unchecked"
 kappa = "08a00b285fd07b478ab4fa9ac4ed3ae2e1a7ab9edbc7cf868ad650174aabc805"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::write_str_escaped"
 kappa = "996494fc6e1114b387ee313399d580e6a0a28d1ce6247edc0c449714ef023c2f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:126:10: 126:12>::assert_fields_are_eq"
@@ -26,49 +26,49 @@ digest = "597bf6315bab3d8743faf75d94d6a703337691342d7f9b83799f1944e018b2e7"
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:126:14: 126:17>::cmp"
 kappa = "ce347d8c875398e708f9b519f9867ed4118d792c23029f64905456f26e9a38ed"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:38:1: 38:39>::cmp: core's MIR stops at mir::TerminatorKind::Call: <u8 as SliceOrd>::compare"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:38:1: 38:39>::cmp: core's MIR stops at mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:323:1: 323:72>::compare: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:126:19: 126:28>::eq"
 kappa = "cec23ac88ac8060d96ef6cd91146e839e11cfacc2bf62b1b96e226dd3938f017"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:126:30: 126:40>::partial_cmp"
 kappa = "5b2a50e9ff5a263cbe6821037467e1f22e670405337be412d27f19ac4a46ce9f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: <u8 as SlicePartialOrd>::partial_compare"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:251:1: 251:65>::partial_compare: core's MIR stops at mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:323:1: 323:72>::compare: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:36:10: 36:12>::assert_fields_are_eq"
 kappa = "0108117c69a2d8d215733d6c4a41c49c2027993537d66d0903e4a99264d772fc"
-status = "residue"
-cause = "mir::Ty: CodePoint"
+status = "translated"
+digest = "419b8201de4cbc35d2e7774d4e3d06be630f5645044522f1c0167551bc8ad6e9"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:36:14: 36:23>::eq"
 kappa = "2048173d5f2bcdd29bb9cbbef62d2543f8c5b2a845d87e55a97b83ce4a338d38"
-status = "residue"
-cause = "mir::Ty: CodePoint"
+status = "translated"
+digest = "adacacf22bde33e8fe85ca1d8cd549c663a0f5bceca148b6564a7f192b0bb19a"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:36:25: 36:28>::cmp"
 kappa = "4686aad67179b93c7b8693e77a856a53dd445cd4a48b4c066aeb831ca1492a1f"
-status = "residue"
-cause = "mir::Ty: CodePoint"
+status = "translated"
+digest = "fd50a1e7c86b8234568831e1d69c75c865ba1f49c14058a915aa668fa855a15c"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:36:30: 36:40>::partial_cmp"
 kappa = "4b67dbb80d3d89350b6c38826bb8cd83ad95c53b19307945d4aad780daca1e67"
-status = "residue"
-cause = "mir::Ty: CodePoint"
+status = "translated"
+digest = "712b7891888a3e7b9943f00f27ca5b000fe35a230fe8151c06738990853e4eb0"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:36:42: 36:47>::clone"
 kappa = "40175ec80d6caf39f2e47907ac4fe27457adbbe46417248c0793e3e68ea2630c"
-status = "residue"
-cause = "mir::Ty: wtf8::CodePoint"
+status = "translated"
+digest = "b908fa72c785a745cda7c125df247f59cc3b89614cdbb1d8ad4621f4831b8cf2"
 
 [[fn]]
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:494:10: 494:15>::fmt"
@@ -92,74 +92,74 @@ digest = "57284315d7fba78be79e9c8232e9212e94c02a749abef137846fd9edbfdcbcec"
 path = "core::wtf8::<impl at library/core/src/wtf8.rs:653:1: 653:35>::clone_to_uninit"
 kappa = "0d724590f2cdac95fc0e6afacc26e1836387b7bf51a122f6d3f159d9ae0846dc"
 status = "residue"
-cause = "mir::TerminatorKind::Call: clone::<impl at library/core/src/clone.rs:556:1: 556:44>::clone_to_uninit: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: clone::<impl at library/core/src/clone.rs:556:1: 556:44>::clone_to_uninit: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::CodePoint::fmt"
 kappa = "9c927ee64f1572f3808e1b10a404f1d0d8f3a2d58da5fd8d7c973bf34fa68729"
 status = "residue"
-cause = "mir::Ty: CodePoint"
+cause = "mir::TerminatorKind::Call: <u32 as fmt::UpperHex>::fmt"
 
 [[fn]]
 path = "core::wtf8::CodePoint::from_char"
 kappa = "41f1cedbede09214fe61d3c9e72c3360456b0d3f6c4f6bffb15ed87980ab7cd2"
 status = "residue"
-cause = "mir::Ty: wtf8::CodePoint"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::wtf8::CodePoint::from_u32"
 kappa = "cba494c46a8a084000a7b14c6ba0495e4bc6c7d3dc23f70674d024bd92ed6908"
-status = "residue"
-cause = "mir::Ty: wtf8::CodePoint"
+status = "translated"
+digest = "c4527c636fa9e8d2679686448627a47ce3f87f71350ab3d70f262a8f35faa6e3"
 
 [[fn]]
 path = "core::wtf8::CodePoint::from_u32_unchecked"
 kappa = "6bf97691063bf51114053924867be774c4e22f469e495a71019a4bab5c2fcfda"
-status = "residue"
-cause = "mir::Ty: wtf8::CodePoint"
+status = "translated"
+digest = "c148c91c4c8aac8e4d76314af4dcc4e82530df523f21721fb770ab708b54ada3"
 
 [[fn]]
 path = "core::wtf8::CodePoint::hash"
 kappa = "35443e68ed7712d0678b2a7466a50faf3c5e4aebc2c80a565da1c733cd0dac86"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: CodePoint"
+cause = "mir::Ty: mut u32"
 
 [[fn]]
 path = "core::wtf8::CodePoint::to_char"
 kappa = "3ee4ac6edaebff71569e146d8976740b77be568129a8d62efc9a9b95287f2a60"
 status = "residue"
-cause = "mir::Ty: CodePoint"
+cause = "mir::TerminatorKind::Call: char::methods::<impl at library/core/src/char/methods.rs:11:1: 11:10>::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::wtf8::CodePoint::to_char_lossy"
 kappa = "5bfa99dc79b417a0cf0cbf8a3754ff344e3b74a3298de3e4ed553d43c531bd15"
 status = "residue"
-cause = "mir::Ty: CodePoint"
+cause = "mir::TerminatorKind::Call: wtf8::CodePoint::to_char: core's MIR stops at mir::TerminatorKind::Call: char::methods::<impl at library/core/src/char/methods.rs:11:1: 11:10>::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::wtf8::CodePoint::to_lead_surrogate"
 kappa = "6d2e253c3146eb53248f86fd48330055d27b5efe48bfdd78522ada16dadfb8f7"
-status = "residue"
-cause = "mir::Ty: CodePoint"
+status = "translated"
+digest = "5b5ac3c47e84c0b4d4ec45cd934ed639f5205319da6246c9140c48a4a1d06e6d"
 
 [[fn]]
 path = "core::wtf8::CodePoint::to_trail_surrogate"
 kappa = "0728f35e65715e51b85d4a009f32fd80853be2a90c9a6e7b43779325ee1cde03"
-status = "residue"
-cause = "mir::Ty: CodePoint"
+status = "translated"
+digest = "8bc102c971806ec5e7eed6f92ed8a01b7e19df8d29cacc3c124be351884a48f2"
 
 [[fn]]
 path = "core::wtf8::CodePoint::to_u32"
 kappa = "fb565e24246260ccbfe5c586b8ca87863975a8aa935c49afe42dd77af5ef85bf"
-status = "residue"
-cause = "mir::Ty: CodePoint"
+status = "translated"
+digest = "c28ba9a1075b5119c8c65c114ca3fb2862f1bfcfe84a9c4bc65d95e19f58373b"
 
 [[fn]]
 path = "core::wtf8::EncodeWide::fmt"
 kappa = "e8d40cb3a30b08ef1d2a58665ae48d80a3c99b2c60aaffacfe4c86443570d04d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::Arguments::from_str: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: fmt::Arguments::from_str: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_ptr: core's MIR stops at mir::Memory: a value of String, which the memory holds no cells of"
 
 [[fn]]
 path = "core::wtf8::EncodeWide::fmt::CodeUnit::fmt"
@@ -176,8 +176,8 @@ cause = "mir::Rvalue::Repeat"
 [[fn]]
 path = "core::wtf8::EncodeWide::size_hint"
 kappa = "aaeac105b866afee7843a523fef06079c44f530632d9d5b03994afb4324e35da"
-status = "residue"
-cause = "mir::AggregateKind::Closure: wtf8::<impl at library/core/src/wtf8.rs:575:1: 575:33>::size_hint::{closure#0}: type outside the lift: {closure@library/core/src/wtf8.rs:603:35: 603:38}"
+status = "translated"
+digest = "f998ecc832f428220df7bcdf83ed505d7b39c166a674ae288b073d239bd96076"
 
 [[fn]]
 path = "core::wtf8::Wtf8::as_bytes"
@@ -200,14 +200,14 @@ cause = "mir::TerminatorKind::Call: str::converts::from_utf8: core's MIR stops a
 [[fn]]
 path = "core::wtf8::Wtf8::ascii_byte_at"
 kappa = "c284b946f1b4f40c212ed675706591114fc270a65dd747f4c074f20874598d3d"
-status = "residue"
-cause = "mir::Rvalue::RawPtr"
+status = "translated"
+digest = "3889d190ec00a296736ad4912be17c855152ad48596f66b646132b7418f1e0c8"
 
 [[fn]]
 path = "core::wtf8::Wtf8::check_utf8_boundary"
 kappa = "5447a1eaab3d236a8482dc318112cddf5bcb6bda520a13f980eac61d83ef9e65"
 status = "residue"
-cause = "mir::TerminatorKind::Call: wtf8::<impl at library/core/src/wtf8.rs:434:1: 434:10>::try_check_utf8_boundary: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::wtf8::Wtf8::code_points"
@@ -219,7 +219,7 @@ digest = "cca3713a001c8e99afc525367e4cbab61c42a18d5e6acea43fec7efecd49c931"
 path = "core::wtf8::Wtf8::encode_wide"
 kappa = "09cd6a0036d4bf028133b0eec6aa1fdf4e7c891bab834f706db978d0b1f8c845"
 status = "translated"
-digest = "0c2ed63976843c33ec9ea08faa97fec8868f0a0aa1976e2a7f0d418c795fd76f"
+digest = "d191f2be5dfcafc07025d75dc33327b1e83a2d039ee95333d05c942df866b6f5"
 
 [[fn]]
 path = "core::wtf8::Wtf8::eq_ignore_ascii_case"
@@ -230,38 +230,38 @@ cause = "mir::TerminatorKind::Call: slice::ascii::<impl at library/core/src/slic
 [[fn]]
 path = "core::wtf8::Wtf8::final_lead_surrogate"
 kappa = "f28c2f90ada9339a96485f32dadfacafdb79797908ae0a632b9de8a1d55a26e8"
-status = "residue"
-cause = "mir::Rvalue::RawPtr"
+status = "translated"
+digest = "b971b887b170d478abff9c40c23e123ce2e3b48effbfca688c9bc7d0de2fa45f"
 
 [[fn]]
 path = "core::wtf8::Wtf8::fmt"
 kappa = "1f7525c9dbc75d29496a355bc07c74ccf2a88071c4701674f4fe29708c051b1c"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::Write::write_char: core's MIR stops at mir::Rvalue::Repeat"
+cause = "mir::TerminatorKind::Call: wtf8::Wtf8::next_surrogate: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:11:1: 13:32>::index: core's MIR stops at type outside the lift: <ops::range::RangeFrom<usize> as slice::index::SliceIndex<[u8]>>::Output"
 
 [[fn]]
 path = "core::wtf8::Wtf8::fmt#2"
 kappa = "89e6baed9f035f9f54de121f8418a844dfb87a888d863ae5b3f1af8fc11c6a82"
 status = "residue"
-cause = "mir::TerminatorKind::Call: wtf8::<impl at library/core/src/wtf8.rs:203:1: 203:10>::next_surrogate: core's MIR stops at mir::TerminatorKind::Call: <[u8] as Index>::index"
+cause = "mir::TerminatorKind::Call: wtf8::Wtf8::next_surrogate: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:11:1: 13:32>::index: core's MIR stops at type outside the lift: <ops::range::RangeFrom<usize> as slice::index::SliceIndex<[u8]>>::Output"
 
 [[fn]]
 path = "core::wtf8::Wtf8::from_bytes_unchecked"
 kappa = "f21e1c83f6c11302804d3b1666c01be841ea3df2fcf1e4f7c880b990e9996d11"
 status = "residue"
-cause = "mir::Rvalue::RawPtr"
+cause = "mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::Wtf8::from_mut_bytes_unchecked"
 kappa = "d069a0f5b7f9a73768b39d8389712f60528c26c58066b1884b77ca181b4a5503"
 status = "residue"
-cause = "mir::Rvalue::RawPtr"
+cause = "mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::Wtf8::from_str"
 kappa = "1be9bfe2fbe4f43f3d7b52228a44ebfa280ce1099e0197eddc41f642769e336a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::wtf8::Wtf8::hash"
@@ -274,19 +274,19 @@ cause = "mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 do
 path = "core::wtf8::Wtf8::index"
 kappa = "9b31dbcc94692d8e6e1695cc4e3ccf2a9f9a2e2976098ef9ae1e003b9f9fb049"
 status = "residue"
-cause = "mir::TerminatorKind::Call: wtf8::slice_unchecked: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: wtf8::slice_unchecked: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::Wtf8::index#2"
 kappa = "2b2a85dad59809db9fb16e77868cf609fe92cbf2e9ebb1a3ba0a1e8c8a25dcd0"
 status = "residue"
-cause = "mir::TerminatorKind::Call: wtf8::slice_unchecked: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: wtf8::slice_unchecked: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::Wtf8::index#3"
 kappa = "58814b544a46b98ff1109bda62e7b9bb864df1b9cf1216227ebecfd5fcee40be"
 status = "residue"
-cause = "mir::TerminatorKind::Call: wtf8::slice_unchecked: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: wtf8::slice_unchecked: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::wtf8::Wtf8::index#4"
@@ -297,8 +297,8 @@ digest = "4bea94dcdd4b860d60fa655b806e8cca7e4a021f339790db6fb3584a1f93cd7f"
 [[fn]]
 path = "core::wtf8::Wtf8::initial_trail_surrogate"
 kappa = "7ab5df0621adeece02f6261adf638c816dac0628e45938d9de90aee7490b671c"
-status = "residue"
-cause = "mir::Rvalue::RawPtr"
+status = "translated"
+digest = "410c054b8a037a7ec44435c7fd365c27e36bd35e336947ad9952e8fd35b15712"
 
 [[fn]]
 path = "core::wtf8::Wtf8::is_ascii"
@@ -328,37 +328,37 @@ digest = "7ab539fa598e7ac4248644e9088dc6cf0c97e788cfdca80002954e78cd4b6afd"
 path = "core::wtf8::Wtf8::make_ascii_lowercase"
 kappa = "fe406185dafbc4ddb3ebd68daaf97be85c3fd94cc2b49d4a7cafe20ae2bc09b4"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::ascii::<impl at library/core/src/slice/ascii.rs:10:1: 10:10>::make_ascii_lowercase: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::ascii::<impl at library/core/src/slice/ascii.rs:10:1: 10:10>::make_ascii_lowercase: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:581:1: 581:8>::make_ascii_lowercase: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:581:1: 581:8>::to_ascii_lowercase: core's MIR stops at mir::Operand::Constant: the constant item num::ASCII_CASE_MASK"
 
 [[fn]]
 path = "core::wtf8::Wtf8::make_ascii_uppercase"
 kappa = "9ba0fbb6cc5942cb67761b91aebc46b367650aafc0a7a973eeb57b67ed3d22c8"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::ascii::<impl at library/core/src/slice/ascii.rs:10:1: 10:10>::make_ascii_uppercase: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::ascii::<impl at library/core/src/slice/ascii.rs:10:1: 10:10>::make_ascii_uppercase: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:581:1: 581:8>::make_ascii_uppercase: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:581:1: 581:8>::to_ascii_uppercase: core's MIR stops at mir::Operand::Constant: the constant item num::ASCII_CASE_MASK"
 
 [[fn]]
 path = "core::wtf8::Wtf8::next_surrogate"
 kappa = "4b4a5c83ceacb06929b850111e6806e8420f78caae5946e2e79a9457b3589e40"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <[u8] as Index>::index"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:11:1: 13:32>::index: core's MIR stops at type outside the lift: <ops::range::RangeFrom<usize> as slice::index::SliceIndex<[u8]>>::Output"
 
 [[fn]]
 path = "core::wtf8::Wtf8::try_check_utf8_boundary"
 kappa = "59f20084a95be9305bbbe90085061e22056c63426a5aa58e8a92863c9eab87fd"
-status = "residue"
-cause = "mir::Rvalue::RawPtr"
+status = "translated"
+digest = "0dec23e71f30390850c50951f657085799d795ee0c2736a6dd451aed4002b7a2"
 
 [[fn]]
 path = "core::wtf8::Wtf8CodePoints::fmt"
 kappa = "e842f3ea313bb276d59991b1e2eea3c52026995424147c3da98aae517d7f645c"
 status = "residue"
-cause = "mir::Ty: fmt::builders::DebugTuple<'_, '_>"
+cause = "mir::TerminatorKind::Call: slice::iter::Iter::as_slice: core's MIR stops at mir::TerminatorKind::Call: slice::iter::<impl at library/core/src/slice/iter/macros.rs:74:9: 74:33>::make_slice: core's MIR stops at mir::TerminatorKind::Call: slice::raw::from_raw_parts: core's MIR stops at mir::TerminatorKind::Call: ptr::slice_from_raw_parts: core's MIR stops at mir::TerminatorKind::Call: ptr::metadata::from_raw_parts"
 
 [[fn]]
 path = "core::wtf8::Wtf8CodePoints::next"
 kappa = "39a5311c59b7378806e233b987686f148d59e17e5c18005db3e5593c1f0e6c0e"
 status = "residue"
-cause = "mir::Ty: wtf8::CodePoint"
+cause = "mir::TerminatorKind::Call: str::validations::next_code_point: core's MIR stops at mir::TerminatorKind::Call: option::Option::unwrap_unchecked: core's MIR stops at mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::wtf8::Wtf8CodePoints::size_hint"
@@ -370,5 +370,5 @@ digest = "c552be96698db807ef40fde4d6e6251c56d00ecc596d08bf029989a78ab9d7f5"
 path = "core::wtf8::slice_error_fail"
 kappa = "d2fea3770e9342bab6529fa80dd44349c6b1d58a9695d2224220b1f34fbc98f2"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <usize as fmt::Display>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 

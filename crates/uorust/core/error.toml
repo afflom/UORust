@@ -239,7 +239,7 @@ path = "core::request_by_type_tag"
 kappa = "4040d6e61caaf947352f295ced40a57e5ed77661a93f82887625e687245ec751"
 at = "I=u32, Sized=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as error::tags::Type<'_>>::Reified"
+cause = "mir::Ty: impl Error + ?u32"
 
 [[fn]]
 path = "core::request_ref"
@@ -260,19 +260,19 @@ path = "core::tags::<impl at library/core/src/error.rs:982:14: 982:19>::fmt"
 kappa = "7c028ccd1b56efc949db69c13bdc55d4d9fcbb932ea8fd522f87e023935fa88f"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&marker::PhantomData as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::tags::<impl at library/core/src/error.rs:990:14: 990:19>::fmt"
 kappa = "dc45f242100079553ad4a1410858586971f1d91e568e6d2c62b2dfaeeff251ae"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&marker::PhantomData as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::tags::<impl at library/core/src/error.rs:999:14: 999:19>::fmt"
 kappa = "018a2094be22260566d668f36cbc6fe7033a61688dfd8d78f02e4ef4137f822a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&marker::PhantomData as fmt::Debug>::fmt"
 

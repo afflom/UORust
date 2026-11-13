@@ -2,15 +2,15 @@
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:16: 11:21>::clone"
 kappa = "91d7e7d6a9670eb8b396499f1a41e5082f1326d0b6275cf0da3881e50308a326"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: task::poll::Poll<u32>"
+status = "translated"
+digest = "0af91fd6f81ca10132be452faf2be86e7ed92b50211790361460c25725cc3c6e"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:23: 11:28>::fmt"
 kappa = "8ae1f5b2347d18dc19adcd3374302335898629866fe8f834298ea8ae7769ea2c"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Poll<u32>"
+cause = "mir::TerminatorKind::Call: <&u32 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:30: 11:32>::assert_fields_are_eq"
@@ -23,125 +23,126 @@ path = "core::poll::<impl at library/core/src/task/poll.rs:11:34: 11:43>::eq"
 kappa = "14e53ed49933c4761bba4747bf20ac2b33dc902296eec0135e71950673393a3d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Poll<u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:45: 11:48>::cmp"
 kappa = "f9c82c0d01ccb62de5630e19c7d9eb74288a1d9364eeaa8d6b27701a4c1a7420"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Poll<u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:50: 11:60>::partial_cmp"
 kappa = "86af029cc1dc76ea30c278fd0f407a332cbc75a5acc4db1a6e09280359a4d133"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Poll<u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::poll::<impl at library/core/src/task/poll.rs:11:62: 11:66>::hash"
 kappa = "fab14d618ee983b0d3b53d813f432fff0082eed780bebad23bdc8cd6178e6b5d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Poll<u32>"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::poll::Poll::branch"
 kappa = "242b428f13f2295042dbcade18cf89f22cb2d74d35f5d7ac5501d317f864db15"
 at = "E=u32, T=u32"
-status = "residue"
-cause = "mir::Ty: task::poll::Poll<u32>"
+status = "translated"
+digest = "b69b6f226040d32fd61296da68e314d1deca34fd6bb093e652bc446a7cd139ec"
 
 [[fn]]
 path = "core::poll::Poll::branch#2"
 kappa = "2814dbe53a8675dac73855d75690743e404e0b61166abf07a798a2ba4bcf45df"
 at = "E=u32, T=u32"
-status = "residue"
-cause = "mir::Ty: task::poll::Poll<option::Option<u32>>"
+status = "translated"
+digest = "1d5b3a80bf397997d748f495968e2b62b634c2b4150f0db84abf1275e40bf00b"
 
 [[fn]]
 path = "core::poll::Poll::from"
 kappa = "c99149095f4c9f0723e456eb358b815a784258efd14da564ccbcc05b9e6ef8ba"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: task::poll::Poll<u32>"
+status = "translated"
+digest = "a996d94152218033e9ed596170002cf41c3d982298dad3fb1a6d3b8ada45523f"
 
 [[fn]]
 path = "core::poll::Poll::from_output"
 kappa = "dc9f32634941172cf8ba928831cd5309fe78de5cbbbd3ab6b4663f40808aa1e3"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<result::Result<u32, u32>>"
+cause = "mir::Operand::Constant: the constant item result::Result::<u32, u32>::Ok"
 
 [[fn]]
 path = "core::poll::Poll::from_output#2"
 kappa = "6cee139c4bafbb8ea6dd3c5af3f5999f69f72e4f3e0d0b9922bfa90394138e9f"
 at = "E=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<option::Option<result::Result<u32, u32>>>"
+cause = "mir::AggregateKind::Closure: poll::<impl at library/core/src/task/poll.rs:264:1: 264:51>::from_output::{closure#0}: mir::Operand::Constant: the constant item result::Result::<u32, u32>::Ok"
 
 [[fn]]
 path = "core::poll::Poll::from_residual"
 kappa = "3e2b97236b098f3e12bf4acb1596433df4517dce58f4aba7b2ad86b59c978c18"
 at = "E=u32, F=u32, T=u32"
-status = "residue"
-cause = "mir::Ty: task::poll::Poll<result::Result<u32, u32>>"
+status = "translated"
+digest = "6cc1955b3b2e2764d59ee04b082fd14b2a1bfc4a9b289ae075dd186467190e14"
 
 [[fn]]
 path = "core::poll::Poll::from_residual#2"
 kappa = "383d3c6718166b12176da66122e7a5dc885ede136a0dbc07ffba309fd3a5d3bd"
 at = "E=u32, F=u32, T=u32"
-status = "residue"
-cause = "mir::Ty: task::poll::Poll<option::Option<result::Result<u32, u32>>>"
+status = "translated"
+digest = "473554bf8b0487bdc6f705d6cc1e22910da87b532ce5b0f8eba372cfa99ee057"
 
 [[fn]]
 path = "core::poll::Poll::is_pending"
 kappa = "7753a13ec812405dc119d13c1f59aa00640f51c70a44c4b4a8f011f6326b1a6a"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: Poll<u32>"
+status = "translated"
+digest = "81bc74c82435e3ca5b2fb7bb4ee290c30b6c93f212ee4df91869232812716397"
 
 [[fn]]
 path = "core::poll::Poll::is_ready"
 kappa = "f708e3f044fcd54fb466d890f26ca1f90d8a0316bf0bdf18fefb4ae5eba43a1d"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "7fe0dfa69b83909691576b41d5fafeac7e0a3681f5718e908519ce1ed982d8c5"
 
 [[fn]]
 path = "core::poll::Poll::map"
 kappa = "527dd6d0d599629a201f6ccdcda3c259a9bea2de874a2c04923b1733750d8340"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<u32>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::poll::Poll::map_err"
 kappa = "9b3a13979be7c3d94989e0cd379335d3beede639efe5cf9e9cc8530ad119d61c"
 at = "E=u32, F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<result::Result<u32, u32>>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::poll::Poll::map_err#2"
 kappa = "477cd953a224efd064d2b3a1e5ac527505e72a802963ede84b05e089f4c6dcf6"
 at = "E=u32, F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<option::Option<result::Result<u32, u32>>>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::poll::Poll::map_ok"
 kappa = "89c54c776acb5878ee78dcdf843a3c4262c51a34af6d8a889f63adb5462ab12d"
 at = "E=u32, F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<result::Result<u32, u32>>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::poll::Poll::map_ok#2"
 kappa = "600c226db773c8d83d13a7e980240f4e461c61cf7fef59eb200957cbf211958a"
 at = "E=u32, F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<option::Option<result::Result<u32, u32>>>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::wake::<impl at library/core/src/task/wake.rs:108:10: 108:19>::eq"

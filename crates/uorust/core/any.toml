@@ -145,6 +145,7 @@ cause = "mir::Ty: TypeId"
 [[fn]]
 path = "core::any::T::type_id"
 kappa = "5cad1cfa06d412ee172ed491acfa717e487f76df876a9a2db13f8f17bc677d6c"
+at = "T=u32"
 status = "residue"
 cause = "mir::Ty: any::TypeId"
 
@@ -227,6 +228,7 @@ cause = "mir::Operand::Constant: any::try_as_dyn_mut::<u32, u32>::{constant#0}"
 [[fn]]
 path = "core::type_name_of_val"
 kappa = "42e721f24ecdf20324143b004797f98a76ca22675f9d1c6e3be8477c21146c90"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::Call: any::type_name: core's MIR stops at mir::Operand::Constant: any::type_name::<u32>::{constant#0}"
 

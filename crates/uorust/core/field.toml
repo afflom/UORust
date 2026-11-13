@@ -8,36 +8,36 @@ cause = "mir::TerminatorKind::Call: intrinsics::field_offset, an intrinsic the t
 path = "core::field::FieldRepresentingType::clone"
 kappa = "e80848a88f463419e68fc6b70577797f3ebc02b195694f0b756f9146c7ea7d06"
 at = "FIELD=u32, T=u32, VARIANT=u32"
-status = "residue"
-cause = "mir::Ty: field::FieldRepresentingType<u32, u32, u32>"
+status = "translated"
+digest = "35fd4650290ed8ac8368ff56af6b9411ba622162314c7b6d67b5a26850473c6d"
 
 [[fn]]
 path = "core::field::FieldRepresentingType::cmp"
 kappa = "f34d7227b70e93a40ad4fa60cd14af8788ef3db0af332409796f13d93ba2c5e4"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: VARIANT"
+at = "FIELD=u32, T=u32, VARIANT=u32"
+status = "translated"
+digest = "ca8247e30d28e9eb6d0b2cb61f8b7dff617ed6b565c0d0172ae44dc237c74d28"
 
 [[fn]]
 path = "core::field::FieldRepresentingType::default"
 kappa = "6ac32e102e135c82900f10361b76794111a1f494e61c119ee31bed03a86b5725"
 at = "FIELD=u32, T=u32, VARIANT=u32"
 status = "residue"
-cause = "mir::Ty: field::FieldRepresentingType<u32, u32, u32>"
+cause = "mir::Ty: fn(u32) -> u32"
 
 [[fn]]
 path = "core::field::FieldRepresentingType::eq"
 kappa = "0c1198469c882136b19ca3e8e617969b208894f73a5c9664970b13d818c56942"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: VARIANT"
+at = "FIELD=u32, T=u32, VARIANT=u32"
+status = "translated"
+digest = "b15e1c520c3da0cf71be2168f82d05b9edcc824201e418f67277fa195fe1fe85"
 
 [[fn]]
 path = "core::field::FieldRepresentingType::fmt"
 kappa = "5ebdaf73c7046290ccb3f8074d49fbc3a2848069d65e3b3ccbadf777c057c5d2"
 at = "FIELD=u32, T=u32, VARIANT=u32"
 status = "residue"
-cause = "mir::Ty: FieldRepresentingType<u32, u32, u32>"
+cause = "mir::Operand::Constant: <field::FieldRepresentingType<u32, u32, u32> as fmt::Debug>::fmt::{constant#0}"
 
 [[fn]]
 path = "core::field::FieldRepresentingType::fmt::Member::fmt"
@@ -48,14 +48,14 @@ cause = "mir::Ty: Member"
 [[fn]]
 path = "core::field::FieldRepresentingType::hash"
 kappa = "65c1f38f657178bbdf266d2f8133059ea75a17b75185aa1d9d968331430e6e9f"
-at = "H=u32, T=u32"
-status = "residue"
-cause = "mir::Ty: VARIANT"
+at = "FIELD=u32, H=u32, T=u32, VARIANT=u32"
+status = "translated"
+digest = "f77de7e0ebf00bbd3559b9b9253c465ed157e18ce396d6202c826854de2617c6"
 
 [[fn]]
 path = "core::field::FieldRepresentingType::partial_cmp"
 kappa = "dad2703ba90b29704fefd18e110a74046a7ce862f652580f2ed31835ef462054"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: VARIANT"
+at = "FIELD=u32, T=u32, VARIANT=u32"
+status = "translated"
+digest = "845d70ff7976141349d52f6e39e90a7304367ee8ceb5ef69931120acaa1ba341"
 

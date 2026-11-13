@@ -98,19 +98,19 @@ cause = "mir::Ty: char::ToLowercase"
 path = "core::char::<impl at library/core/src/char/mod.rs:384:9: 384:37>::advance_by"
 kappa = "55d986354a055eb16ea697bbc8635e569496dcb3c2f3d35ad467842da5162e20"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::ToUppercase"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:384:9: 384:37>::advance_by#2"
 kappa = "da205918379677d081cc906bd9f00eebe015a4d7ac82859460c1056083200fce"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::ToTitlecase"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:384:9: 384:37>::advance_by#3"
 kappa = "2380347103d50ba98ded0d10e379b88af65d6774a59d3e146837e670a03d1f4a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::ToLowercase"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:384:9: 384:37>::count"
@@ -209,19 +209,19 @@ cause = "mir::Ty: char::ToLowercase"
 path = "core::char::<impl at library/core/src/char/mod.rs:420:9: 420:48>::advance_back_by"
 kappa = "c18ba80c758b336367e20180a9be22fcd6f30d1b3b68e270069959d00942be12"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::ToUppercase"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:420:9: 420:48>::advance_back_by#2"
 kappa = "e2a36e52735a11b3f5f1c21fb0d14a7603037f6d0676601061e1e337674baf7b"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::ToTitlecase"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:420:9: 420:48>::advance_back_by#3"
 kappa = "599bb25d826bf3833cdb4543dc58ff2b8f94e6c80a54c16ada862d9d3ef0e3d4"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::ToLowercase"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:420:9: 420:48>::next_back"
@@ -332,7 +332,7 @@ cause = "mir::Ty: char::CaseMappingIter"
 path = "core::char::<impl at library/core/src/char/mod.rs:630:10: 630:15>::fmt"
 kappa = "4f204a614f7549bfe427a511ed23515700acd2fef5c5f82a2678de29300ce550"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&() as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:630:23: 630:28>::clone"
@@ -367,8 +367,8 @@ cause = "mir::Rvalue::Discriminant: CoreCharCharCase, whose variants set their d
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:653:30: 653:39>::eq"
 kappa = "6798efdd9ca870ceba9c1d5d4995c76026569740b197bc5ac8a4e37c044bc451"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "878740091c44aa52b8ba3732e02db59e8adba92147cd6ee1f625dba645193dd0"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:653:41: 653:43>::assert_fields_are_eq"
@@ -385,14 +385,14 @@ cause = "mir::Ty: __H"
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:653:51: 653:61>::partial_cmp"
 kappa = "d2a2185e0cc3d18374443962d2b05212cef4b0f2c507e4bc407953207efd10d5"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "7c65be8325909a1eb1a5825d8a195cb859599bc7eebcb2b50d88c203d8144ed0"
 
 [[fn]]
 path = "core::char::<impl at library/core/src/char/mod.rs:653:63: 653:66>::cmp"
 kappa = "2fac87d76457386526431401377d6d27027daa61601c6228d99f656cb2f155d9"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "1b40de9074c6159d5ea6472c2d3bc592dbabe74107594b98ec5d8562a63b6a5e"
 
 [[fn]]
 path = "core::char::CaseMappingIter::__iterator_get_unchecked"
@@ -404,13 +404,13 @@ cause = "mir::Ty: char::CaseMappingIter"
 path = "core::char::CaseMappingIter::advance_back_by"
 kappa = "c71257b9a196e883d60e43778057377ca0137b3762a5b34158ec3fcdd23f8abe"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::CaseMappingIter"
 
 [[fn]]
 path = "core::char::CaseMappingIter::advance_by"
 kappa = "a2dc3cca1f521d971bda9170f8e7a01ac35ba624feef8d06bf1f3e43c2be1738"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::CaseMappingIter"
 
 [[fn]]
 path = "core::char::CaseMappingIter::count"
@@ -532,7 +532,7 @@ cause = "mir::Ty: char::EscapeDebug"
 path = "core::char::EscapeDefault::advance_by"
 kappa = "bb7fe2111c7de84fd00ab2085d53bc766798e2c5f79e01038189f35ed6384275"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::EscapeDefault"
 
 [[fn]]
 path = "core::char::EscapeDefault::backslash"
@@ -592,7 +592,7 @@ cause = "mir::Ty: char::EscapeDefault"
 path = "core::char::EscapeUnicode::advance_by"
 kappa = "32ce7388645b223f6170b10c4397d7e38b83c51a88834a0b4465c20bd29410fd"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Ty: char::EscapeUnicode"
 
 [[fn]]
 path = "core::char::EscapeUnicode::count"
@@ -640,7 +640,7 @@ cause = "mir::Ty: char::EscapeUnicode"
 path = "core::char::TryFromCharError::fmt"
 kappa = "289d3a45d41ab32443ce89022fd4c90d6b533b493aff6478ab94cc2812099d35"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:332:1: 332:23>::get_precision: core's MIR stops at type outside the lift: FormattingOptions"
+cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::UNICODE_VERSION"
@@ -658,13 +658,13 @@ digest = "6a734d726d6dbe864512eec3d43adb66c0b482262a056265f51fab0dcdaec14f"
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:238:17: 238:22>::fmt"
 kappa = "3507c9d450531bbe5f18c53e497f5230fd5b2a57cbb81b79c303b20a1ad85858"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&char::convert::CharErrorKind as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:238:24: 238:33>::eq"
 kappa = "7fb07d25ae54d003e0cc49623d43f38e054f8c250d1067d8e09c0ff75e24f20d"
-status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::<impl at library/core/src/char/convert.rs:243:30: 243:39>::eq: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "12c9138d4b15e8ed07fe2e78362e41f3360b155e944d2e9305b3a51513b26b89"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:238:35: 238:37>::assert_fields_are_eq"
@@ -687,8 +687,8 @@ digest = "2ce5a8810bc23b1d5799f0fa2f1c43447507559ff8f11662559c935f6c8eb207"
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:243:30: 243:39>::eq"
 kappa = "cdfff75a4bd6927fd741bc1c45f4159585ad3fc71e0e3e305b92e9fc71cd34b5"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "1c8044c863d18466f29a1c1f1f3f5e78d034a40788555ecaf975e11fbe7c2c1b"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:243:41: 243:43>::assert_fields_are_eq"
@@ -706,7 +706,7 @@ digest = "a9688114dd00c8fd2b6f7020dac7b6af086c0c10a2e5575fe1e3655a99f6566b"
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:317:23: 317:28>::fmt"
 kappa = "2acd38708642a77ab23bb5497b0a4a32ea492f2385935b04ae18f655fe749e14"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&() as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::char::convert::<impl at library/core/src/char/convert.rs:317:30: 317:39>::eq"
@@ -724,13 +724,13 @@ digest = "f57a8715341c89b98a79b4ef6bb62455faaaefd81da34841a9778a175ef773f9"
 path = "core::char::convert::CharTryFromError::fmt"
 kappa = "d6a9d98fe33ea9ce429e45b8da2869fc6ecc6ba650a36c165689b7fd296e31f3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:332:1: 332:23>::get_precision: core's MIR stops at type outside the lift: FormattingOptions"
+cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::convert::ParseCharError::fmt"
 kappa = "dbb00493b822a503459f8f738965fd42221528d8ba58c1691a092fbec22db1bf"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:332:1: 332:23>::get_precision: core's MIR stops at type outside the lift: FormattingOptions"
+cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::convert::char::from"
@@ -742,13 +742,13 @@ cause = "mir::CastKind::IntToInt: from Nat to String"
 path = "core::char::convert::char::from_str"
 kappa = "9fedad260085c8844eddde4a7ff2e800254fae35b32669867576549abed48139"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::convert::char::try_from"
 kappa = "3776c78af7c3530e2eef6cd4a1f2a8e25302db911803e9c0632358b0b2c92363"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl u32>::wrapping_sub"
+cause = "mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::convert::from_digit"
@@ -760,19 +760,19 @@ cause = "mir::CastKind::IntToInt: from Nat to String"
 path = "core::char::convert::from_u32"
 kappa = "8fdf4fb248442a04938fd9f6361c1d0e0556ad6af885ca0157e04db5e055780e"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl u32>::wrapping_sub"
+cause = "mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::convert::from_u32_unchecked"
 kappa = "3b1465cccb70846a6836a1ff45e92b9a21259b35b8a18f8ca50442669a4b3ea3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::convert::from_u32_unchecked::precondition_check"
 kappa = "58369ed22e8e132dfea17f405e3faa92ea4489bf2fc29008a2bee85172b4289f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl u32>::wrapping_sub"
+cause = "mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::convert::u128::from"
@@ -815,7 +815,7 @@ path = "core::char::decode_utf16"
 kappa = "278b6f9243049e97a9e2517feacfb53c28a7ef0027d6211749d566e60f9a4d0a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
+cause = "mir::TerminatorKind::Call: char::decode::decode_utf16: core's MIR stops at type outside the lift: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 
 [[fn]]
 path = "core::char::from_digit"
@@ -827,19 +827,19 @@ cause = "mir::TerminatorKind::Call: char::convert::from_digit: core's MIR stops 
 path = "core::char::from_u32"
 kappa = "bfa0b468a869e27cd6cdcdb89cfdaa66ba89759132716da970e6f5a7abf5c196"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32: core's MIR stops at mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl u32>::wrapping_sub"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32: core's MIR stops at mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char::from_u32_unchecked"
 kappa = "876c7bb96535ae22b9090355799ffef0a97eaaf014ec7f7b51c057ef34670217"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::char_try_from_u32"
 kappa = "84415456f79a4e5af05041de5f400f72e0d1ccef93ec37ac6a467b82f0cdfa75"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl u32>::wrapping_sub"
+cause = "mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::decode::<impl at library/core/src/char/decode.rs:14:10: 14:15>::clone"
@@ -853,13 +853,13 @@ path = "core::decode::<impl at library/core/src/char/decode.rs:14:17: 14:22>::fm
 kappa = "39ca3591455c16d02153f313a8dc68cca8eb038beefad354372a9ac18e506f1a"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::decode::<impl at library/core/src/char/decode.rs:27:10: 27:15>::fmt"
 kappa = "4fdd0111b160c798db3682eeec965eca7719d50f5d29bd0baf448154c138b23c"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&u16 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::decode::<impl at library/core/src/char/decode.rs:27:17: 27:22>::clone"
@@ -884,14 +884,14 @@ path = "core::decode::DecodeUtf16::next"
 kappa = "5d5c98c89cd653241d746256f920cfded5e04973521b9fd5de0924e28df5046b"
 at = "I=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: option::Option::take: core's MIR stops at mir::TerminatorKind::Call: mem::replace"
+cause = "mir::TerminatorKind::Call: option::Option::take: core's MIR stops at mir::TerminatorKind::Call: mem::replace: core's MIR stops at mir::Memory: a value of (Option Nat), which the memory holds no cells of"
 
 [[fn]]
 path = "core::decode::DecodeUtf16::size_hint"
 kappa = "67e9aab3976c8814ff2acfb39ad7343fda407b84a7f0aef8d895a328c561a3c5"
 at = "I=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::div_ceil"
+cause = "mir::Operand::Constant: <char::decode::DecodeUtf16<u32> as iter::traits::iterator::Iterator>::size_hint::promoted[0]"
 
 [[fn]]
 path = "core::decode::DecodeUtf16Error::fmt"
@@ -909,14 +909,14 @@ digest = "bf705a7f6aa90dd14096a95def4a22db39e8e0aed8aeb0a5ecc6bb2a321aefdb"
 path = "core::decode::decode_utf16"
 kappa = "df226db8fa7fa81fd1ec5040557fe84acdad02ba87e65f294bf7efac9892e49b"
 at = "I=u32"
-status = "residue"
-cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
+status = "translated"
+digest = "2ac586bad804fc0c387eadf8c95fc154c9ae91fed070d3c6ed41f44bea4538d4"
 
 [[fn]]
 path = "core::encode_utf16_raw"
 kappa = "d266a204577fac65fd73ff4db9d26594ae7b2b722b654a3caebc2ae14dd8fa5f"
 status = "residue"
-cause = "mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_mut_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::encode_utf16_raw::do_panic"
@@ -934,13 +934,13 @@ digest = "738c9337cc809b1c52a3a37015ec3850b55e01996303f99441bc8ec27a26bb83"
 path = "core::encode_utf16_raw::do_panic::runtime"
 kappa = "dcd7d29e407a132bd0d349ff2dc9f8b47d7cbe94707983e7829fccfbbb61c372"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <usize as fmt::Display>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::encode_utf8_raw"
 kappa = "a2b1aa14f711533c9359c0eb26aa543afa3a277298d76fa407a171a413987434"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_mut_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_mut_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::encode_utf8_raw::do_panic"
@@ -958,7 +958,7 @@ digest = "549dad53c78ab1c71da9c40e43754c10b7e34a4e666cdf6eeaf0ff020cecaf83"
 path = "core::encode_utf8_raw::do_panic::runtime"
 kappa = "d198a43974356dc828671fffd36e01e82352a81aaacd49cf1b488ebf3df5b620"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <usize as fmt::Display>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::encode_utf8_raw_unchecked"
@@ -1019,7 +1019,7 @@ path = "core::methods::char::decode_utf16"
 kappa = "4d99347ab472f6f162fa669c5d5c8dbecdfb95ddaa42fa04f1c66b5ee16be051"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
+cause = "mir::TerminatorKind::Call: char::decode::decode_utf16: core's MIR stops at type outside the lift: <u32 as iter::traits::collect::IntoIterator>::IntoIter"
 
 [[fn]]
 path = "core::methods::char::encode_utf16"
@@ -1073,13 +1073,13 @@ cause = "mir::TerminatorKind::Call: char::convert::from_digit: core's MIR stops 
 path = "core::methods::char::from_u32"
 kappa = "8bffdeb40ef54796a6e2f5d50183a52d622145222badb9ddd93b89cfcec792eb"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32: core's MIR stops at mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl u32>::wrapping_sub"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32: core's MIR stops at mir::TerminatorKind::Call: char::convert::char_try_from_u32: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::methods::char::from_u32_unchecked"
 kappa = "23b7d4c0bbe0fd5caa6caa3b7d1ee447c4dae95cd0ee6cadc053547adecd60be"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::methods::char::is_alphabetic"

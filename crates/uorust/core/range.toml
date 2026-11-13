@@ -124,22 +124,22 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::range::Range::end_bound"
 kappa = "62be9e434472bba9b50355143e2c54dbf4b2f73cb7161ae7a26e1daf257547bf"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "c153e1fb7bfa360a624fc7b6d7a8be2e4098989319870ba1d0f67cae01a0fa06"
 
 [[fn]]
 path = "core::range::Range::end_bound#2"
 kappa = "08000cc506ce41f0cea39a9e099cb6a0544d1069e511ada6c1a2e91bbbc9af41"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "c153e1fb7bfa360a624fc7b6d7a8be2e4098989319870ba1d0f67cae01a0fa06"
 
 [[fn]]
 path = "core::range::Range::fmt"
 kappa = "63b69e3a3cc55b72548df021e3bf04707971f90b334e4fc9745c6074dd6045c7"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::range::Range::from"
@@ -159,8 +159,8 @@ digest = "12a8f278773e7a6068b85b33601da735c2f046ea83ee6a0a0203b661fbfbef0a"
 path = "core::range::Range::into_bounds"
 kappa = "05b2f0d6dba2d6ff7ad2e214d3c0348bfb7245fe972352928a085eeb228ede5f"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "37c524aac441f151a0a00ea174887176647904f8d3c4e5fab1cbd159bfcc3e01"
 
 [[fn]]
 path = "core::range::Range::is_empty"
@@ -180,15 +180,15 @@ digest = "5a0732fda3c811ef6aaf9d1d89d35e1148eb3ea1e71108568a60822ec5827fa9"
 path = "core::range::Range::start_bound"
 kappa = "0b1416bcf2437f349f837c3fd9642e58723013ce338540f925a7118a60116d8d"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "aeb5d2dd943e895a1ce26d761d576725c628554e67561abc10baab87c5a3b90d"
 
 [[fn]]
 path = "core::range::Range::start_bound#2"
 kappa = "9415145e9734c2039279c7657e45ae375d100093db92688ae548f312605a90ff"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "aeb5d2dd943e895a1ce26d761d576725c628554e67561abc10baab87c5a3b90d"
 
 [[fn]]
 path = "core::range::RangeFrom::bound"
@@ -208,22 +208,22 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::range::RangeFrom::end_bound"
 kappa = "d8d5051158f024e9a4a81baa277363ecfc8f285581c079e02b962e46c7ec909e"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "1ba5af213cb1a257d366bfa717567827ce37f2be5c2071590afbd40044d3a9c8"
 
 [[fn]]
 path = "core::range::RangeFrom::end_bound#2"
 kappa = "5bf5db70a6f5cfa4021076a10edba3cc4624acf958ad3147eab48c95997fa42e"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "1ba5af213cb1a257d366bfa717567827ce37f2be5c2071590afbd40044d3a9c8"
 
 [[fn]]
 path = "core::range::RangeFrom::fmt"
 kappa = "dbfe00562552d8cff0718c2bfaa9b59feadb3bfddfa3f966b45f833e27a58fff"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::range::RangeFrom::from"
@@ -243,8 +243,8 @@ digest = "4b8b82c2ec3554f42322c2ee432d40f0edaca03ea6e5c67ee02b26f6a1460f39"
 path = "core::range::RangeFrom::into_bounds"
 kappa = "f0cb37b703d36b8f705dba61677c5dad277575a8f35d982af7617137d4cf25af"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "1b9efb8c28c91707d2794415698efbdcf0b9b9b8ffc44962d79630112117a695"
 
 [[fn]]
 path = "core::range::RangeFrom::iter"
@@ -257,15 +257,15 @@ digest = "51358a9da7076073ddaa73a055d80953bbd54321d6ffc5d87dd067a13f6a8170"
 path = "core::range::RangeFrom::start_bound"
 kappa = "1edea7d930f57b3df28e373397b631ceed92029b4053b4677f8219fa46ed9e3c"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "ff67fdc6cf9f5c81ccaa86b42f19b862508fbebb2da10deaa786c16c4b8de9ff"
 
 [[fn]]
 path = "core::range::RangeFrom::start_bound#2"
 kappa = "8d21c1d80cb65f5863cd469d062bfff8c147d00a295082baad7db8fae89ed7c4"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "ff67fdc6cf9f5c81ccaa86b42f19b862508fbebb2da10deaa786c16c4b8de9ff"
 
 [[fn]]
 path = "core::range::RangeInclusive::contains"
@@ -278,22 +278,22 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::range::RangeInclusive::end_bound"
 kappa = "dbba5f18086d7d652974ae2b9ab98ed3761b5584cb75ae233c882e7bdfd58302"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "fef2c50de3b34e9f7f7eb80c8008f38962c67a8bdbf027db12b7ae02a2f6a2a6"
 
 [[fn]]
 path = "core::range::RangeInclusive::end_bound#2"
 kappa = "4bdf75a27da1d4b685979405423f18236e694fb1c1c291553f2a0f9861d33b9d"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "fef2c50de3b34e9f7f7eb80c8008f38962c67a8bdbf027db12b7ae02a2f6a2a6"
 
 [[fn]]
 path = "core::range::RangeInclusive::fmt"
 kappa = "37b887c6fcf6f56811899db0e48e8a29ea74ae7f0d438520768abed50d43980b"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::range::RangeInclusive::from"
@@ -307,14 +307,14 @@ path = "core::range::RangeInclusive::from#2"
 kappa = "19aa207fcd5a5beeb37f2b82b6313b957a88a53ffb8dbfba9fa5e59eeabad60f"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: panicking::panic_fmt: core's MIR stops at type outside the lift: Arguments<'_>"
+cause = "mir::TerminatorKind::Call: panicking::panic_fmt: core's MIR stops at type outside the lift: panic::location::Location<'_>"
 
 [[fn]]
 path = "core::range::RangeInclusive::into_bounds"
 kappa = "a29647a851e86c885cb6f6dfcb17fcea16132fbab9f34ff4d95f2f3ac06d516b"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "1bb28c1be64846610058ff62309e62b425ed1429b5b7afd082103a7e2b5a890d"
 
 [[fn]]
 path = "core::range::RangeInclusive::is_empty"
@@ -334,15 +334,15 @@ digest = "b6759b4fa57fceafff9b71780bdf2c9644d4dbf88ed4e70ed2525f0e508657d2"
 path = "core::range::RangeInclusive::start_bound"
 kappa = "58ed158f254fdf411bb3072af69ee2cd8eb649bf151c4258178eba7348631974"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "f064b85076b66b03e607e2b352b658e5cb5b55a3e4559dacd720b6eb06f6481d"
 
 [[fn]]
 path = "core::range::RangeInclusive::start_bound#2"
 kappa = "563cc78b26fc87d4a43ec57efe8d86ae98ec8d127a6501cf6b11201436f32525"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "f064b85076b66b03e607e2b352b658e5cb5b55a3e4559dacd720b6eb06f6481d"
 
 [[fn]]
 path = "core::range::RangeToInclusive::bound"
@@ -362,22 +362,22 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::range::RangeToInclusive::end_bound"
 kappa = "e3e9bc8c09ea3eaf4ed48ff2c95ed898bcef163ef8c4bcf566545f104de855cc"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "71432052f6a7bf9aac53afe3a5f160eb7e1da7452c6d436a239fceeed3d863b2"
 
 [[fn]]
 path = "core::range::RangeToInclusive::end_bound#2"
 kappa = "be73e22d44e062063a9b14a7770ae5e38149c3f63d0ea5131a6118a8005134fe"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "71432052f6a7bf9aac53afe3a5f160eb7e1da7452c6d436a239fceeed3d863b2"
 
 [[fn]]
 path = "core::range::RangeToInclusive::fmt"
 kappa = "eb28982c19bf5746e59f48fe2dc716cec0bdffbe1c1144e1d73fcfa7f56875b0"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::Formatter::write_fmt: core's MIR stops at type outside the lift: Arguments<'_>"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::range::RangeToInclusive::from"
@@ -397,29 +397,29 @@ digest = "0708a5373428f4edb0c6bb333dadcff184e89e695f58ab51f0194b14e841b91c"
 path = "core::range::RangeToInclusive::into_bounds"
 kappa = "f7d0775d19d70fbd256d763e46faddde6364412f4d32027a22bc056503ac235f"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "1619ddb7f3a37fa5be3b6a16e63d0c6aea1a230f32bd4c4a2c6df98975b93312"
 
 [[fn]]
 path = "core::range::RangeToInclusive::start_bound"
 kappa = "09b989cc2ed14904c19d99cad44e60554de01d587e8daba359d38560a4f2ddf5"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "dd3395e6d1c2f089c4e614624a6bf5bcd6741aa33f90f3f77aacc557a3a5f957"
 
 [[fn]]
 path = "core::range::RangeToInclusive::start_bound#2"
 kappa = "99a975c9a04a8fc26687464ab2b7f21ebff5e895d414dc705c1e8949be854afb"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "dd3395e6d1c2f089c4e614624a6bf5bcd6741aa33f90f3f77aacc557a3a5f957"
 
 [[fn]]
 path = "core::range::iter::<impl at library/core/src/range/iter.rs:10:10: 10:15>::fmt"
 kappa = "8cf66d34e7de9027211a5a7ad697b5bcfd0426013e10b87acfde009bfc570c7d"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&ops::range::Range as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::range::iter::<impl at library/core/src/range/iter.rs:10:17: 10:22>::clone"
@@ -433,7 +433,7 @@ path = "core::range::iter::<impl at library/core/src/range/iter.rs:171:10: 171:1
 kappa = "e7b7dcde462718f1616502d28c95680f9c9ed48c0586ba96c95e1a79c84abf7a"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&ops::range::RangeInclusive as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::range::iter::<impl at library/core/src/range/iter.rs:171:17: 171:22>::clone"
@@ -447,7 +447,7 @@ path = "core::range::iter::<impl at library/core/src/range/iter.rs:326:10: 326:1
 kappa = "ae53811ecfa53d30af0335b43b67851147cb7501adb451faebd7468d81c22f13"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::range::iter::<impl at library/core/src/range/iter.rs:326:17: 326:22>::clone"
@@ -475,27 +475,28 @@ path = "core::range::iter::RangeFromIter::next"
 kappa = "7756b540902850837485129b8c3a36f0440c5a5de84fa651635f5021d08f3c7b"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::Step::forward: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
+cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
 
 [[fn]]
 path = "core::range::iter::RangeFromIter::nth"
 kappa = "aea035902af2351b7a7c9ba8cf4f4f41b9c3990889534a0ab14aca295704394f"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::Step::forward: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
+cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
 
 [[fn]]
 path = "core::range::iter::RangeFromIter::remainder"
 kappa = "ac1e430ba1e8be5a2906ad1e2d433a4074fa0c623475dd9bd6cb0ce4b8fc253a"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::Step::forward: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
+cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
 
 [[fn]]
 path = "core::range::iter::RangeFromIter::size_hint"
 kappa = "aa3aca24edd32794d1c926942bbb99051356498ed2bff925b7860b31e8b12395"
-status = "residue"
-cause = "mir::Ty: A"
+at = "A=u32"
+status = "translated"
+digest = "c82dce7393aa575c95b18248be5ba678ecec72a0d251406703a858b26e501414"
 
 [[fn]]
 path = "core::range::iter::RangeInclusive::into_iter"
@@ -509,14 +510,14 @@ path = "core::range::iter::RangeInclusiveIter::advance_back_by"
 kappa = "eeeb36357233565489b334d9a9730df8e49dba3ef5ad71e0b3855e1849646466"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: iter::traits::double_ended::DoubleEndedIterator::advance_back_by: core's MIR stops at type outside the lift: ops::range::Range<usize>"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::advance_by"
 kappa = "6fd5dd9845ad49ab5a75da43bb994e36ce121471456634fa1129e7ae59af9903"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: iter::traits::iterator::Iterator::advance_by: core's MIR stops at mir::TerminatorKind::Call: iter::traits::iterator::Iterator::advance_by::<impl at library/core/src/iter/traits/iterator.rs:328:9: 328:46>::spec_advance_by: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::count"
@@ -528,43 +529,44 @@ cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::is_sorted"
 kappa = "1418ab6efb4de7045ca798fd6b12719b8d772ec2a30f791616d642a127c14d80"
-status = "residue"
-cause = "mir::Ty: A"
+at = "A=u32"
+status = "translated"
+digest = "95c31b36c1d471885361aeca4cdf2d4ec200663b8350cb5a22c43322fc7634d6"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::last"
 kappa = "abe070fa6e0f0f85d1921af003f4353f18396b68434023851923f097b2a43a11"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1392:1: 1392:50>::last: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1490:1: 1490:61>::next_back: core's MIR stops at mir::TerminatorKind::Call: <ops::range::RangeInclusive as RangeInclusiveIteratorImpl>::spec_next_back"
+status = "translated"
+digest = "7fa8613acdfa5d281e306069ee1d5fc4077092b948182107421150e8fb184590"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::max"
 kappa = "27cfd19d92fa36b27f4fea7ea2b1771e3996eb744f651c7ca63f99ea6c36b5d5"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1392:1: 1392:50>::max: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1490:1: 1490:61>::next_back: core's MIR stops at mir::TerminatorKind::Call: <ops::range::RangeInclusive as RangeInclusiveIteratorImpl>::spec_next_back"
+status = "translated"
+digest = "7f0468db5c6ee03b13c9968ad371b3eb0d7bbc169ec94bc267c47b6fcd8f87db"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::min"
 kappa = "3c911c2b0bf23676f64726fe33373f009411d187b9a6c7324e2707078ecf6e56"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1392:1: 1392:50>::min: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1392:1: 1392:50>::next: core's MIR stops at mir::TerminatorKind::Call: <ops::range::RangeInclusive as RangeInclusiveIteratorImpl>::spec_next"
+status = "translated"
+digest = "5325116298229273ce6123918337d42e7f09128c3236f9b8720305fffbf36a05"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::next"
 kappa = "7f4314519bb6cfb0698e1d98bed122ae3788809de3596f0d51be9db8577ad4c2"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1392:1: 1392:50>::next: core's MIR stops at mir::TerminatorKind::Call: <ops::range::RangeInclusive as RangeInclusiveIteratorImpl>::spec_next"
+status = "translated"
+digest = "64941bb367a453ef0cebeb85e98f43084a45e53b2c215dbef5d9d8745f626cae"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::next_back"
 kappa = "6d11efbb4b21ba43179474081dff147c5a3255bf24e7d7b08aae5e9502ac4859"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1490:1: 1490:61>::next_back: core's MIR stops at mir::TerminatorKind::Call: <ops::range::RangeInclusive as RangeInclusiveIteratorImpl>::spec_next_back"
+status = "translated"
+digest = "6224a87129419d1b0c8b6016259f0d90781c7485ae504c9c01712bbdd391b338"
 
 [[fn]]
 path = "core::range::iter::RangeInclusiveIter::nth"
@@ -606,14 +608,14 @@ path = "core::range::iter::RangeIter::advance_back_by"
 kappa = "dc2125f5f7ed119172ba84113c808e0ee73b8f19155db97b41b8bdd9963d5a63"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1113:1: 1113:52>::advance_back_by: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:897:1: 897:57>::spec_advance_back_by: core's MIR stops at mir::Operand::Constant: the constant item result::Result::<(), NonZero<usize>>::Err"
 
 [[fn]]
 path = "core::range::iter::RangeIter::advance_by"
 kappa = "0ea215f1ab480a6b033846faf73e259f63f692f81710f5d576638e2f25d1eeaa"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::advance_by: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:897:1: 897:57>::spec_advance_by: core's MIR stops at mir::Operand::Constant: the constant item result::Result::<(), NonZero<usize>>::Err"
 
 [[fn]]
 path = "core::range::iter::RangeIter::count"
@@ -625,57 +627,58 @@ cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/
 [[fn]]
 path = "core::range::iter::RangeIter::is_sorted"
 kappa = "d630e5a6041804e1cd0642df41f51c4b228dc282af35f20cbd351c1f2362ac51"
-status = "residue"
-cause = "mir::Ty: A"
+at = "A=u32"
+status = "translated"
+digest = "8698a5e2c2c6204d1fb88844bdf694daa0e0c00046975456e124ff2562686b0a"
 
 [[fn]]
 path = "core::range::iter::RangeIter::last"
 kappa = "c53b08df6709481c346028b50801e87c89cdb556f9ac1b73f04cf3b1ee149875"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::last: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1113:1: 1113:52>::next_back: core's MIR stops at mir::TerminatorKind::Call: <ops::range::Range as RangeIteratorImpl>::spec_next_back"
+status = "translated"
+digest = "e1e50bcd01ea4397e062f8cf3c4cd32523a37c6bc2b8ea75681b54b7562131fb"
 
 [[fn]]
 path = "core::range::iter::RangeIter::max"
 kappa = "ea7943ba088da3ddcfe952e8bc10650f721bec85ef384f78caf7efc180444c13"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::max: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1113:1: 1113:52>::next_back: core's MIR stops at mir::TerminatorKind::Call: <ops::range::Range as RangeIteratorImpl>::spec_next_back"
+status = "translated"
+digest = "a4b264a3d11dcbd6591059f94fd188d2a8df11d9afea87a3e5bf88a14e60e5a5"
 
 [[fn]]
 path = "core::range::iter::RangeIter::min"
 kappa = "caa72379f199866cc4d450076e8b1143353011e24bc9f57cea2e200bc37d93ba"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::min: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::next: core's MIR stops at mir::TerminatorKind::Call: <ops::range::Range as RangeIteratorImpl>::spec_next"
+status = "translated"
+digest = "f6a3a345a77ed1a6cc20d9305c6a10a78146e5f833e5dbf548a7653384b5ce2f"
 
 [[fn]]
 path = "core::range::iter::RangeIter::next"
 kappa = "8e9eb32db9bbb4b1caf1b210c2a44d2dbae0982acc8a071e482510ff2b5544e4"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::next: core's MIR stops at mir::TerminatorKind::Call: <ops::range::Range as RangeIteratorImpl>::spec_next"
+status = "translated"
+digest = "9f07ce479b5ca95c3fb395154cb534af169f969b25cfeaaca7a497651851bf68"
 
 [[fn]]
 path = "core::range::iter::RangeIter::next_back"
 kappa = "576e588c08d043ab2f106eca07451d94dbaafe6fa499f4c644ecdc32a55b4579"
 at = "A=u32"
-status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1113:1: 1113:52>::next_back: core's MIR stops at mir::TerminatorKind::Call: <ops::range::Range as RangeIteratorImpl>::spec_next_back"
+status = "translated"
+digest = "19bfe3db5a99379bdd76f086bebb22b73428ae02302d3251dcf4f3e40fe400b4"
 
 [[fn]]
 path = "core::range::iter::RangeIter::nth"
 kappa = "49483e3811a3498b4e16efe3a127448cad381a666ad225e9ddec95748fba44f1"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::nth: core's MIR stops at mir::TerminatorKind::Call: <ops::range::Range as RangeIteratorImpl>::spec_nth"
+cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:980:1: 980:41>::nth: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:897:1: 897:57>::spec_nth: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::forward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
 
 [[fn]]
 path = "core::range::iter::RangeIter::nth_back"
 kappa = "23a3136d45d6bdbbf0f892d58a1d66c71bbad0818cbd91b300ddc19f34338313"
 at = "A=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1113:1: 1113:52>::nth_back: core's MIR stops at mir::TerminatorKind::Call: <ops::range::Range as RangeIteratorImpl>::spec_nth_back"
+cause = "mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:1113:1: 1113:52>::nth_back: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:897:1: 897:57>::spec_nth_back: core's MIR stops at mir::TerminatorKind::Call: iter::range::<impl at library/core/src/iter/range.rs:266:13: 266:44>::backward_checked: core's MIR stops at type outside the lift: num::error::TryFromIntError"
 
 [[fn]]
 path = "core::range::iter::RangeIter::remainder"

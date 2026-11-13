@@ -5781,10 +5781,22 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             // A type of the crate by the full path MIR prints, then by name.
             let mut printed: Vec<&str> = segs[..segs.len() - 1].to_vec();
             printed.push(n);
+            // MIR prints a type by its name alone where no other type has
+            // it (`TryFromIntError`): the one alias whose path ends so.
+            let tail = format!("::{n}");
+            let mut ends = types
+                .aliases
+                .iter()
+                .filter(|(k, _)| segs.len() == 1 && k.ends_with(&tail));
+            let bare = match (ends.next(), ends.next()) {
+                (Some((_, v)), None) => Some(v.clone()),
+                _ => None,
+            };
             let r = types
                 .aliases
                 .get(&printed.join("::"))
                 .cloned()
+                .or(bare)
                 .unwrap_or_else(|| types.resolve(n));
             if types.enums.contains_key(&r)
                 || types.structs.contains_key(&r)

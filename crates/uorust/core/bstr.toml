@@ -2,7 +2,7 @@
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:324:1: 324:33>::default"
 kappa = "7316e9c90d9c7ea09b81dafd1a7abab3539f68b01e727c0d5f081912b28eb637"
 status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::TerminatorKind::Call: bstr::ByteStr::from_bytes: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::<impl at library/core/src/bstr/mod.rs:331:1: 331:37>::default"
@@ -98,19 +98,19 @@ cause = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would
 path = "core::bstr::ByteStr::fmt#2"
 kappa = "b47b7bf1aa61e69883b8490120efc34a8d5684159d9df0f540529307b8873d17"
 status = "residue"
-cause = "mir::TerminatorKind::Call: option::<impl at library/core/src/option.rs:612:1: 612:18>::is_none: core's MIR stops at mir::TerminatorKind::Call: Option::is_some"
+cause = "mir::TerminatorKind::Call: bstr::<impl at library/core/src/bstr/mod.rs:175:1: 175:30>::fmt::emit: core's MIR stops at mir::TerminatorKind::Call: str::lossy::<impl at library/core/src/str/lossy.rs:199:1: 199:37>::next: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 
 [[fn]]
 path = "core::bstr::ByteStr::from_bytes"
 kappa = "40c688cabdced0e50f2d41cced1cd040c504150c035f92ab40dc8132ea2001cd"
 status = "residue"
-cause = "mir::Rvalue::RawPtr"
+cause = "mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::ByteStr::from_bytes_mut"
 kappa = "b2ababd83b1a14762f32a98b07d7f2b3bdb73455d96c274dac5535f86696ba15"
 status = "residue"
-cause = "mir::Rvalue::RawPtr"
+cause = "mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::ByteStr::new"
@@ -123,35 +123,35 @@ cause = "mir::Instantiation: u32 for a parameter bounded by AsRef, which u32 doe
 path = "core::bstr::str::as_ref"
 kappa = "a7101c483d3a5dd0455cc760beb25bff3f70a5bc95529449b0d155d3c4b95c8f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: bstr::ByteStr::new: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: bstr::ByteStr::new: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:107:9: 107:54>::eq"
 kappa = "da8e327f0437e28fc13ab64aca81711f60a74c8e55a420c644b8f0ad87978da9"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:107:9: 107:54>::eq#2"
 kappa = "72c457d6312a13ccc83a4d1028e18fe432e5adfb7077ebb8c95c92cc5ceb8b87"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:116:9: 116:54>::eq"
 kappa = "37e761e5529afbb8bf781a26ded5aab2ceb0fafeffbb3cd77f68729e9cc94093"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:116:9: 116:54>::eq#2"
 kappa = "9e87e4eba09304b7e785a2b8c2012de4dd29e30d23e986ce7c5922cc283ac77d"
 at = "N=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:168:1: 168:51>::get"
@@ -229,7 +229,7 @@ cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get"
 kappa = "1f7dce049b85962ea7092b691fdef8260a4936ea13b1722531ea5e00b676406f"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:285:1: 285:57>::get: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:285:1: 285:57>::get: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#10"
@@ -241,7 +241,7 @@ cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slic
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#11"
 kappa = "f5dbd71a79a53da3cfb9db47471c2f11461a06347c6163508afa99476d50d277"
 status = "residue"
-cause = "mir::Ty: Bound<usize>"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:1041:1: 1041:74>::get: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::get: core's MIR stops at mir::Rvalue::Use"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get#2"
@@ -307,7 +307,7 @@ cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#11"
 kappa = "64b4125438df0c6df0bcd27dd9f549b3946d4c483f9a560f0baad69fb7f02206"
 status = "residue"
-cause = "mir::Ty: Bound<usize>"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_mut#2"
@@ -373,7 +373,7 @@ cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#11"
 kappa = "6ed2762b3f978a0719cb2c2ea1501d4ed2a808591b18a9fcd2c8f1a04d2adb0d"
 status = "residue"
-cause = "mir::Ty: Bound<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked#2"
@@ -439,7 +439,7 @@ cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#11"
 kappa = "432a6de8ea4167a7f18901112a06920ed7d99d4b2176b52cda8b9572d7365bcb"
 status = "residue"
-cause = "mir::Ty: Bound<usize>"
+cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::get_unchecked_mut#2"
@@ -493,67 +493,67 @@ cause = "mir::CastKind::PtrToPtr: between pointers whose metadata differ"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index"
 kappa = "f838f35ea10b257e73cf0e48bd72ea80195d5d0a09c9184c88c29afa0a51f879"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:285:1: 285:57>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:285:1: 285:57>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#10"
 kappa = "4f4906cd2a2cc5d5c0d93cbf6a56cd1ff745a773849e3eb801348ad47e2acad3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:806:1: 806:72>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:806:1: 806:72>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#11"
 kappa = "2fb92a9b9ee91cd51a95de0db578927c66fec23eeb401bb5917a159be0b77ae2"
 status = "residue"
-cause = "mir::Ty: Bound<usize>"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:1041:1: 1041:74>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#2"
 kappa = "a3217b6f7c63d34e899c44708e746f83f2a5cdb14616aec65b29cc192240f6ce"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#3"
 kappa = "84815571dec8d161619bcd0220a43ccbbabbe56a0c297b3255745bd0a31774fb"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:463:1: 463:61>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:463:1: 463:61>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#4"
 kappa = "50cd6aa9797a05311b950be71dd7424a3eb341565d15b5eb5a4b08eb412ab825"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:502:1: 502:61>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:502:1: 502:61>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:362:1: 362:59>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#5"
 kappa = "a032fa7c7ab3e46dae5607764fcfff780a4ecc77419ca236d57952143a3974cf"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:541:1: 541:63>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:541:1: 541:63>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#6"
 kappa = "3c5c888a701ec18dff7611b6b76957df36eaee27ee7380e2213b33cd55b285bb"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:593:1: 593:65>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:541:1: 541:63>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:593:1: 593:65>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:541:1: 541:63>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#7"
 kappa = "0b2413ca6bee75abca03b3408d57e4ac26863eefad79ddab9c49d6139b375fe2"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#8"
 kappa = "81efa0f51636bccaf030a9aa6372b8a29eae030357cd78095285cf56734716bd"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:728:1: 728:70>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:728:1: 728:70>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index#9"
 kappa = "cd963af47e80effd21912be21801cbf41546f1876b0f6d6ebdd4d1f969aba3bc"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:767:1: 767:70>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:767:1: 767:70>::index: core's MIR stops at mir::TerminatorKind::Call: slice::index::<impl at library/core/src/slice/index.rs:670:1: 670:68>::index: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut"
@@ -571,7 +571,7 @@ cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#11"
 kappa = "270e3cfc76fd17c7fd56d6aea0f5e6ed91464b2948936c190949e9b96f5e5e83"
 status = "residue"
-cause = "mir::Ty: Bound<usize>"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:230:9: 230:51>::index_mut#2"
@@ -625,92 +625,92 @@ cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq"
 kappa = "d5a4262a4056effccbd23dd81ea9ab02eae4b4cf0478b0a6cb7ba95d9055f14c"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq#2"
 kappa = "738bb7a6b0fcae9d07a7261fa73e01d1f36792eed3b7191cce6a5e1616e0ef72"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq#3"
 kappa = "e7c7ffa04b637645432ede63e444fc118614ef55dffd7d5da078f7356d402895"
 status = "residue"
-cause = "mir::TerminatorKind::Call: convert::<impl at library/core/src/convert/mod.rs:713:1: 715:25>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: convert::<impl at library/core/src/convert/mod.rs:713:1: 715:25>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:48:9: 48:38>::eq#4"
 kappa = "3affac26faa4bd83a43f6ddb37dab6cf418360b891b06c0e73014ebd28b31e13"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq"
 kappa = "021156a696ca880aa6778d5704b571e58ecfb50da846e0fd36dff8c68cb7b27d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq#2"
 kappa = "6898d7df39e4cb26b163d1f15ab6680d4a7043c91a0d61fee3ae2c00447e8bb3"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq#3"
 kappa = "915cf8911e7d19d7ae34c7ae4138f8bbb2c910ee262c65fef39fec8d1407c801"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::bstr::traits::<impl at library/core/src/bstr/traits.rs:56:9: 56:38>::eq#4"
 kappa = "a9e717a05f2f27db753a77cc5a739543463bce98dcadf0e892f8d2a0c3e33009"
 status = "residue"
-cause = "mir::TerminatorKind::Call: convert::<impl at library/core/src/convert/mod.rs:713:1: 715:25>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: convert::<impl at library/core/src/convert/mod.rs:713:1: 715:25>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:3158:1: 3158:31>::as_ref: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::cmp"
 kappa = "5714a4b881df92e9815d53b32001075fdb516c24964cf2ac107be134f9a87cbf"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:38:1: 38:39>::cmp: core's MIR stops at mir::TerminatorKind::Call: <u8 as SliceOrd>::compare"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:38:1: 38:39>::cmp: core's MIR stops at mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:323:1: 323:72>::compare: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::eq"
 kappa = "f2195d5e0cc26ae222ea67b2d98488fb47a49f4a11b7a870d0cb45bcc47d661a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <&[u8] as cmp::PartialEq>::eq"
+cause = "mir::TerminatorKind::Call: cmp::impls::<impl at library/core/src/cmp.rs:2117:5: 2119:33>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:14:1: 16:29>::eq: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::hash"
 kappa = "8d228ac4205df0d500582758e4b43feb61316440c93d3dc820cb0e8e005775ae"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::impls::<impl at library/core/src/hash/mod.rs:931:5: 931:31>::hash: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_length_prefix: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::impls::<impl at library/core/src/hash/mod.rs:931:5: 931:31>::hash: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_length_prefix: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::index"
 kappa = "5879e7dfeb1284b93c93eb2b93037adf5b723de4eb85e325072faf2aca2b6330"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as slice::index::SliceIndex<bstr::ByteStr>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by SliceIndex, which u32 does not implement in core"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::index_mut"
 kappa = "3a6dbf51aced7ceb69ec9ca2021d1656f5684cdb0cb449c07ef037cb34a36868"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as slice::index::SliceIndex<bstr::ByteStr>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by SliceIndex, which u32 does not implement in core"
 
 [[fn]]
 path = "core::bstr::traits::ByteStr::partial_cmp"
 kappa = "ff10b8d8c6b2d036302dcc76a874dc0e089b6d85247474c211a37fc106c8a23d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: <u8 as SlicePartialOrd>::partial_compare"
+cause = "mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:58:1: 58:53>::partial_cmp: core's MIR stops at mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:251:1: 251:65>::partial_compare: core's MIR stops at mir::TerminatorKind::Call: slice::cmp::<impl at library/core/src/slice/cmp.rs:323:1: 323:72>::compare: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::emit"
 kappa = "57c2f2620cedb95a871757196bde3b3f8f1988dfd412fc0e54295a9632b9969a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::lossy::<impl at library/core/src/str/lossy.rs:199:1: 199:37>::next: core's MIR stops at type outside the lift: Utf8Chunks<'_>"
+cause = "mir::TerminatorKind::Call: str::lossy::<impl at library/core/src/str/lossy.rs:199:1: 199:37>::next: core's MIR stops at mir::Rvalue::Discriminant: a discriminant read as a value"
 

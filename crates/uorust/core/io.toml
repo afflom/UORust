@@ -110,7 +110,7 @@ cause = "mir::Ty: BorrowedCursor<'_>"
 path = "core::borrowed_buf::BorrowedCursor::as_mut"
 kappa = "501e38e7150ccec82414729593e8721fc23458a03f7804f54ba850ce930fb6c9"
 status = "residue"
-cause = "mir::Ty: mem::maybe_uninit::MaybeUninit<u8>"
+cause = "mir::Ty: BorrowedCursor<'_>"
 
 [[fn]]
 path = "core::borrowed_buf::BorrowedCursor::capacity"
@@ -160,7 +160,7 @@ path = "core::cursor::<impl at library/core/src/io/cursor.rs:70:10: 70:15>::fmt"
 kappa = "25d8e88159b0875373f2dd6cc5f0e41c4796d2cbd1f45ea2fd5ce7a6a645b7f2"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::cursor::<impl at library/core/src/io/cursor.rs:70:17: 70:24>::default"
@@ -222,7 +222,7 @@ path = "core::cursor::Cursor::into_parts_mut"
 kappa = "56ec3d0656cbbf85d996417c622f85f8bcebdde602ed3660b091413569ea170b"
 at = "T=u32"
 status = "translated"
-digest = "ffc914a0ef0b6bb9825dfa7be24b6f84138a430ada4f36c4ec0efef7aba44c6e"
+digest = "8f43ac5358598dd668fc3f8d62ae7788f8399dcebee6eae141112f24065b9049"
 
 [[fn]]
 path = "core::cursor::Cursor::new"
@@ -234,14 +234,16 @@ digest = "2384f95aac26477fe6d79faac59b8eff49f0268f72a32bdb41d562487e9e4c5f"
 [[fn]]
 path = "core::cursor::Cursor::position"
 kappa = "d70d529e71c6db9acfd939097d426fde41ce60838dfea8c97a8eb044698a41b0"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "f4a7dde9f7879cd6889d436f0e09fae49ad94a8c9cfe2fd37362167c2818d558"
 
 [[fn]]
 path = "core::cursor::Cursor::set_position"
 kappa = "e877bec2e581c563cbdf00b771029dc0b05bfe8f1315f68c33f31b0ac4beedb9"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "61ed897aae34a10ac7f97b3deb1380078b1a51bfb6b1df0d5100e980c3269246"
 
 [[fn]]
 path = "core::cursor::Cursor::split"
@@ -284,20 +286,20 @@ cause = "mir::Ty: __H"
 [[fn]]
 path = "core::io::error::<impl at library/core/src/io/error.rs:40:40: 40:43>::cmp"
 kappa = "c83706cbc0f5af53e5c01c94747d4751cf906cceeb011cef70726bd7d7846e42"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "66403ae9cdb2a6cb19ad2567e4d5b37576c7612197ec3f8f6e14e78c0bd448fe"
 
 [[fn]]
 path = "core::io::error::<impl at library/core/src/io/error.rs:40:45: 40:54>::eq"
 kappa = "ad58b575916638516ae9669c23650619ebafa8b0f16a6424b488fc04c90a8816"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "5ba676667f5d3ab1cad5a6fcdc63fc341321189a46a2a6fe3eb4e3e246d1fc5d"
 
 [[fn]]
 path = "core::io::error::<impl at library/core/src/io/error.rs:40:56: 40:66>::partial_cmp"
 kappa = "386ce0a7400970d4af395482f79b715d4051a9a18bbc84f7eba5550fcf618c08"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "34fa325eed09a75dadf55e9185ed1eb702e28605f5808fa032267e284bf8ae6d"
 
 [[fn]]
 path = "core::io::error::ErrorKind::as_str"
@@ -352,7 +354,7 @@ path = "core::util::<impl at library/core/src/io/util.rs:134:10: 134:15>::fmt"
 kappa = "e43d53be627de75bde4b76f5ed1620e7cd6a5a8a170e9eb42d0fdbd9291b5ff1"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::util::<impl at library/core/src/io/util.rs:13:16: 13:21>::clone"
@@ -377,14 +379,14 @@ path = "core::util::<impl at library/core/src/io/util.rs:242:10: 242:15>::fmt"
 kappa = "9d7174511d1f505079bf9ab63ccd155fbcc6cd547f83e46365ec179981e08bcd"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::util::Chain::get_mut"
 kappa = "3373d5d8bc770a7db40b88fa1d6b55ca199ac40b35e39f93cc90d1027bab613e"
 at = "T=u32, U=u32"
 status = "translated"
-digest = "6bad0c2015cf856f9943050c5df75ba0612b71187de8d15915b25c49ed6393f1"
+digest = "561aca22255665230a8a4e8d1ab3401d89360a4fd8477a535f8230c9835a1fd5"
 
 [[fn]]
 path = "core::util::Chain::get_ref"
@@ -404,7 +406,7 @@ digest = "26d409746140ff2049d2320caac17d48095fe527cdd47b97122ee90c57e94361"
 path = "core::util::Repeat::fmt"
 kappa = "082973e55dd0774059fc6df89619dc75674ce62c7fe13272b1b02a47bb845f6c"
 status = "residue"
-cause = "mir::Ty: fmt::builders::DebugStruct<'_, '_>"
+cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish_non_exhaustive: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 
 [[fn]]
 path = "core::util::Take::get_mut"
@@ -430,20 +432,23 @@ digest = "09107ffb6d976fe5e9a3e9fa416f99c694ff6b9c1231284e996759ec6a0dd7a7"
 [[fn]]
 path = "core::util::Take::limit"
 kappa = "9dbc5b98c407cfbc620d1a71ee0a0ebc638bb0a750681f13a8486bef1b6d992b"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "c31bb5bd0a0f7972c6a726f0d73e26b9edc95147b9dc192b83567cfe9e9bb242"
 
 [[fn]]
 path = "core::util::Take::position"
 kappa = "8bf260359c7330b54c7a86a14ac4f6a44e5da1949936d65ac89cd3343a618a37"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "bd9d5f159741ae7b7d7f904031dd14e3f2096fc0c05c4cfa3b23be1401c803a2"
 
 [[fn]]
 path = "core::util::Take::set_limit"
 kappa = "4abd7e7ccae48d1a630b96f8b4f58efcdb07e0e5428cafd8599c57b504ace93e"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "0297acd2ab11e2a2c4d0229215db6aaa4808efe3dabea403fd19c7155fe7e632"
 
 [[fn]]
 path = "core::util::chain"

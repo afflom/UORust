@@ -1727,8 +1727,8 @@ digest = "7b71d4dc5d38dbd8dfab2e94f639d72e78a5fb555dfc19bf6c15fce8697e8efa"
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:34: 444:43>::eq"
 kappa = "b4142502c7efa7a6924a3481890f411348948248e6575759d89a3d40ef5b695b"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "354f2924c8e532ca6a3d81d76d1fbc5090e65e9366448aa7fd7ebf985ccbaf08"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:45: 444:49>::hash"
@@ -2252,42 +2252,42 @@ path = "core::sync_view::SyncView::async_call"
 kappa = "39ee16fa471a6de40e0ce43f20f4d6a8748376ceeb7b974d5ab18a8766aa2f20"
 at = "Args=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsyncFn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::sync_view::SyncView::async_call_mut"
 kappa = "a187af7b457023f4a4641cf962963ad3af4b394fad4055a6cf1d65e84b3249b8"
 at = "Args=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'_>"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::sync_view::SyncView::async_call_once"
 kappa = "b6772a0853b01f4b37ea1256eb23820d6afc2324ae22f6939557914fff55ca8c"
 at = "Args=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnOnce<u32>>::CallOnceFuture"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsyncFnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::sync_view::SyncView::call"
 kappa = "18505436e4e59945d4ff8fa93b2c62063fd25bed7e8ba3764d30e71950f59e89"
 at = "Args=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by Fn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::sync_view::SyncView::call_mut"
 kappa = "39b48672b813aed30da5c02ff665e8cb4830b99b1b2579346fab67df1704605a"
 at = "Args=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::sync_view::SyncView::call_once"
 kappa = "ad36d122152945c47b520eb7686c6089fe1b7742be81d28bb32bc8f696ca0014"
 at = "Args=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::sync_view::SyncView::clone"
@@ -2320,8 +2320,9 @@ digest = "7df5b8bd35d6b14e489de3ef813c8846eac59e6de0f765a4f3cfcb32452fed0f"
 [[fn]]
 path = "core::sync_view::SyncView::fmt"
 kappa = "93f3d905636421f46ae525ccb3900d3d4e29ffc4784550edd2c7f615c72c1fe9"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish_non_exhaustive: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 
 [[fn]]
 path = "core::sync_view::SyncView::from"
@@ -2335,7 +2336,7 @@ path = "core::sync_view::SyncView::from_mut"
 kappa = "50924d97de8317516f263bcb0b30d5ec776f15e8e9931ccfaf926f6fa010a21e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Rvalue::RawPtr"
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::sync_view::SyncView::from_pin_mut"
@@ -2377,12 +2378,12 @@ path = "core::sync_view::SyncView::poll"
 kappa = "9202fc0b19869f63078005aad954210f424ef52efd7d5d7b5629e386426072b7"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as future::future::Future>::Output"
+cause = "mir::Ty: Context<'_>"
 
 [[fn]]
 path = "core::sync_view::SyncView::resume"
 kappa = "6acae9586d7dde7086945f0f92d1c98d4c114790d3bb9f187f2a9c46b4485a2d"
 at = "G=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::coroutine::Coroutine<u32>>::Yield"
+cause = "mir::TerminatorKind::Call: sync::sync_view::SyncView::as_pin_mut: core's MIR stops at mir::TerminatorKind::Call: pin::Pin::get_unchecked_mut: core's MIR stops at type outside the lift: Pin<&mut sync::sync_view::SyncView<u32>>"
 

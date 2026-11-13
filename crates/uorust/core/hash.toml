@@ -3,7 +3,7 @@ path = "core::BuildHasher::hash_one"
 kappa = "37bff819a244354c5accc6a8fad237ab659dee26f32efeda66c5fb6ad1ca139f"
 at = "Self=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as hash::BuildHasher>::Hasher"
+cause = "mir::Instantiation: u32 for a parameter bounded by BuildHasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::finish"
@@ -24,98 +24,98 @@ path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_
 kappa = "4692fb058be165d7868d83e3dc38c74e22e7c47fb42010590837bffd43bb27d7"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i128: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i128: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_i16"
 kappa = "e39c8c8071cf6a134dd1e30cc39285e92792587d7ef8df269da952e5aa469f65"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i16: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i16: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_i32"
 kappa = "89d046b206ff6aca86a514a9e1752cfdb8be3dfff643539ed44e2f55260f91e5"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i32: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i32: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_i64"
 kappa = "be5ba59624b8ae08eba392008ba73a3a6f73de6fc8f959e2f8fc09b8337dcc5c"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i64: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i64: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_i8"
 kappa = "5572a3191aaca792a188a56ac231f0556d94db4af36ac9c9832462a1c500cf40"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i8: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i8: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_isize"
 kappa = "d655f70276a7fce34ee7a77e2aa33a297dc1251f347a8b396b5cc207090ce97e"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_isize: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_isize: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_length_prefix"
 kappa = "984e38a6d9ef2ff4d8d4b45acc3650a7302e002d43f6836b2f2894b9b1649b87"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_length_prefix: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_length_prefix: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_str"
 kappa = "952b818a47a24faaec5a8a3abc19a104157e5dacbbd42847aa9eb139304e0913"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_str: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_str: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_u128"
 kappa = "9eca83a7bdfb3c925c1f181d4f14db306344ecddd30aa82074caedeecefec288"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_u16"
 kappa = "e092b73ac1e2623fa2839ac8c1b67443ec2537648991ecea1e223af1cd5718b7"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_u32"
 kappa = "b4aee95a4cf0261b90de1c5cf4fe1e1d78ac8504943f267ba8e431e31ec62229"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_u64"
 kappa = "6742a7c0843e799c5d23ec5e53ad5f3d8e90d902bd02195776634641d6596cc1"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_u8"
 kappa = "6da222fad0b0041667ebc3f5d6582e5c9558d5da7c6db49e2facbce57a2c7b5c"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_usize"
 kappa = "d28c7503663060a8bbfcd34c828198fecdf2fb30c30f04613268ec0f9b9a8f5f"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::build_hasher"
@@ -141,14 +141,16 @@ cause = "mir::TerminatorKind::Call: hash::BuildHasherDefault::new: core's MIR st
 [[fn]]
 path = "core::hash::BuildHasherDefault::eq"
 kappa = "6e12bba1d689b3f436186965733785ac5e63e45aedcbf682720845b2b1e60178"
+at = "H=u32"
 status = "translated"
-digest = "bec00b77f1c8958ef8795aa5fe9b85d88a1bec03ac1605afbbec62de1edbaea5"
+digest = "123f7ceb1f77638cd3689f67a51becb164ce8bb3e9afc0ed95e8c81959443d70"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::fmt"
 kappa = "03fe8db4c9a0e6168f010899143dba9450dbfca2c4f780f462e10378f9315277"
+at = "H=u32"
 status = "residue"
-cause = "mir::Ty: fmt::builders::DebugStruct<'_, '_>"
+cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 
 [[fn]]
 path = "core::hash::BuildHasherDefault::new"
@@ -169,266 +171,266 @@ path = "core::hash::Hasher::write_i128"
 kappa = "156eebe3d62f6b0109b0136d0d4cac164812b4307ffec2a83501640f6df014ac"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_i16"
 kappa = "c019ea4f59eafa289671c8ab83874823e4378343e84f85e46af847f3fdaf2a35"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_i32"
 kappa = "b126ce162023f0ac006a43cb55055a6cffb9c2e2650a2076d713abbdb1585f12"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_i64"
 kappa = "e03e730208c83d915ac477a8b07a33ca5faa4a0ee469581183c9e6b1b63f5726"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_i8"
 kappa = "5a5f3ee684078d33e9f36e196ad572428561fdfe1b2f4db6261b60a9c83c5aab"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::Hasher::write_isize"
 kappa = "093837a5fc0f2cbab69d06fdf315381a626a565cbf9b52459ca0313201977262"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_length_prefix"
 kappa = "4c85974221d74138fb60e3753c563f99109648be45775f3e6624a76fe5f28132"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_str"
 kappa = "dcbb8e56f5b0e1eb15df3203b1ec52330ebe9f035310a670877d939cd01b48d5"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_u128"
 kappa = "299e9c2e6221453fa17bfd242308a84f67d9b09aa3e317ae30c8f1931557389a"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_u16"
 kappa = "4fec002f28da838f41e1963e06a20e3f6a9348cd1e6e2a385c38ffc58c2d03de"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_u32"
 kappa = "08d74389a607d6aa5142bc9e78805147cc161fb0c1ff42e200bd806475d3781d"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_u64"
 kappa = "7966eab1a5100d683c69f703ca5c51c3c375355c5850554ab90a404327048697"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::Hasher::write_u8"
 kappa = "a1d6d8fabc20cc44dae0b7b67dc37dbaa262a1c182ee90ad36aae2511550cb26"
 at = "Self=u32"
 status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::Hasher::write_usize"
 kappa = "562cd869c11e2b247954dcc53239a1a97d2d202a440719b5a6871e66e298bd6d"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash"
 kappa = "9506d6f016c718bf93c456d7dbba67daff4f941a92d0043df36bd4abc4f6938a"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#10"
 kappa = "ec6881e61ed250f7a2586eaa4b20130fc5f8b7a2d6e1f4ccb4e1d8789ccb11d6"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#11"
 kappa = "14addb629854baabc1f8ec372e3dabe2025f1163c4c53a053c059c5bdfc02168"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i128: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i128: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u128: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1349:1: 1349:10>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#12"
 kappa = "8ac9cdb3356558150fe654368c0be4bca599d495bf141c457fcd0882465e18b5"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#2"
 kappa = "4c900a23b1b83a1c1ac01795430fa816b393905afe604857704dfd0c876b15b0"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#3"
 kappa = "87be690cb570cd69f6bc2e4031aa0fe6afc9fcd5cb69b2315e058050f09ad8a1"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#4"
 kappa = "485a5f0a88dace071700a5da1198cd9b1db8ff44e8955ffea60c4b7857cfd3cd"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#5"
 kappa = "845a8ce55c07cdef6601c489d6ac36c763bafaf36e49d352c2d9bf9b3009675d"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i8: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i8: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#6"
 kappa = "dd0b16e03a34bdd167a28923f30644e2599d7271a436d13ac0bbab549e738383"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i16: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i16: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u16: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1229:1: 1229:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#7"
 kappa = "6163f69f950523df1e98b8128e1271f5edd23b4268c7a3ed9d4969e6dbb80667"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i32: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i32: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u32: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1285:1: 1285:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#8"
 kappa = "8edae3fb3742444c279911d30f24116b83008d58f4bf699dccd14122359a10ff"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_i64: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_i64: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_u64: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1317:1: 1317:9>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#9"
 kappa = "e2fbb88f4c7724c5be7c9e7567b076cf48d58b47389a5ebae28bf9390d299cd9"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_isize: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_isize: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice"
 kappa = "58d4f0606c5f32eb25f67c0c449f7302b71e7241f509b9204629cf8f7eb9389c"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#10"
 kappa = "158983bf61e271b3cbeba6ef84f6ddbe8e4d3f94527a3f5cb53dc4b3a710ae4f"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#11"
 kappa = "829904b10a244b66ec9fd157acb69874add31deaa1631a69af525a2a6ef03d3a"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: a value of Nat, which the memory holds no cells of"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#12"
 kappa = "5b6481fd23c8192064778758437e5d9d30c0f885de802485f70b17a3fa47679b"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#2"
 kappa = "ec8a6128d323edbdf7ec9059ae686fa4d7c46214182b0dd3094c476afb9922ff"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#3"
 kappa = "9ba404421d9a0eabdf25265cbfa4d8ed3304378d86152da8fa7e83aca895f69a"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#4"
 kappa = "601bb29aed7924176a7908a1a04f4332f668594a6d95a4e24413d84f27c1b882"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#5"
 kappa = "cc373128dd72c6f46397ccf8efe98b3edb7aaea53843b42277783f525d3b179a"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: a value of Nat, which the memory holds no cells of"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#6"
 kappa = "cb2864f7ec9b76868eb0bece4a191de055eec92de5177dcdd8202eec31a444a1"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: a value of Nat, which the memory holds no cells of"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#7"
 kappa = "5d399a26a7bcea1111d6986e032a912773a27b6eb7a3b97115fd9aba5e16a97d"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: a value of Nat, which the memory holds no cells of"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#8"
 kappa = "0af7c68dde32b0187e5f1312ed84a131f9097030160b80a5335813776e044031"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: a value of Nat, which the memory holds no cells of"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#9"
 kappa = "5e5a9ce77d587d74e4c756f6a26e80ee75f209ddc49af3245df6d9f95d70583f"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Memory: a value of Nat, which the memory holds no cells of"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:870:5: 870:20>::hash"
@@ -531,7 +533,7 @@ path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:931:5: 931:31>:
 kappa = "f5c4a8fbccc11430689fd37ec9706e2ce86186042d15252cd471773f7408aa96"
 at = "H=u32, T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_length_prefix: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_length_prefix: core's MIR stops at mir::TerminatorKind::Call: hash::Hasher::write_usize: core's MIR stops at mir::TerminatorKind::Call: num::<impl at library/core/src/num/mod.rs:1447:1: 1447:11>::to_ne_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:940:5: 940:62>::hash"
@@ -566,7 +568,7 @@ path = "core::hash::impls::bool::hash"
 kappa = "d813b54d379150ce1f31e94d00e6d7368d073e9cf1adcd8d483674ad8f8c4669"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_u8: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Hasher, which u32 does not implement in core"
 
 [[fn]]
 path = "core::hash::impls::char::hash"
@@ -580,13 +582,13 @@ path = "core::hash::impls::str::hash"
 kappa = "c1ef7736849004156b7137c4ad89c2dbe0ea1658794e840edbccf2a97f7dab57"
 at = "H=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::Hasher::write_str: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: hash::Hasher::write_str: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:19:10: 19:15>::fmt"
 kappa = "e7a280b64a438b8f9209690cd962a81687f4fc858d3549cd05534b03f6f084a6"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&hash::sip::Hasher as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:19:17: 19:22>::clone"
@@ -598,13 +600,13 @@ digest = "8c3d6dfbb2c4d3df8a7c0990c7173ec6afcc232c2635fdc126c4050b8271b3b2"
 path = "core::sip::<impl at library/core/src/hash/sip.rs:19:24: 19:31>::default"
 kappa = "f2cdd3091d1bae3fbaaa6e53a25ed924e586c4da60911201445193d9af74e279"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as default::Default>::default"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:343:1: 343:41>::default: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:29:10: 29:15>::fmt"
 kappa = "3b67dc9debe70d9f6901f598d050f1a14d75748cec8f06d06672a232366b5692"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&hash::sip::Hasher as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:29:17: 29:22>::clone"
@@ -616,7 +618,7 @@ digest = "575f1fc74ac0759da7df6299d0982240f16881a7cdd96e49bd8cb9a761ebd41a"
 path = "core::sip::<impl at library/core/src/hash/sip.rs:29:24: 29:31>::default"
 kappa = "8b745376784f03fb44dd2cce630d74f032148ed0b21d2d322028f711e5b4814d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as default::Default>::default"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:343:1: 343:41>::default: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:357:10: 357:15>::fmt"
@@ -658,7 +660,7 @@ digest = "7a74fea798b6cd5fcda5ebe99114a95cdd70dd45873a2ab1185f289c5220266e"
 path = "core::sip::<impl at library/core/src/hash/sip.rs:48:10: 48:15>::fmt"
 kappa = "5a84ac0d193b7152a1acd9e82dc8607ab67822525a389f06751a42b07cd24e26"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&hash::sip::SipHasher24 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:48:17: 48:22>::clone"
@@ -670,7 +672,7 @@ digest = "f7df0918bd94eb71d6aa1fc44ab75a18b91ffa75707b1bc7d2adb4248fb41225"
 path = "core::sip::<impl at library/core/src/hash/sip.rs:48:24: 48:31>::default"
 kappa = "723b7f5a992cd666706b58bcf18487beb89d8f497acefdfd871f6c88e93faf8a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:29:24: 29:31>::default: core's MIR stops at mir::TerminatorKind::Call: <sip::Hasher as default::Default>::default"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:29:24: 29:31>::default: core's MIR stops at mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:343:1: 343:41>::default: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:51:10: 51:15>::fmt"
@@ -683,7 +685,7 @@ cause = "mir::Operand::Constant: <hash::sip::Hasher<u32> as fmt::Debug>::fmt::pr
 path = "core::sip::<impl at library/core/src/hash/sip.rs:62:10: 62:15>::fmt"
 kappa = "06db13be70db8f2e3160963a9ec66b2825fd28c575c74ec4f6b81e4d3ae5c525"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::sip::<impl at library/core/src/hash/sip.rs:62:17: 62:22>::clone"
@@ -703,127 +705,130 @@ path = "core::sip::Hasher::default"
 kappa = "586b4d6d285f6874660a8d4f15c7f9ef2fa0371494c08de19091b65e9c7a8b68"
 at = "S=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
+cause = "mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at mir::IrBody: the translation exceeds the projection's file limit"
 
 [[fn]]
 path = "core::sip::Hasher::finish"
 kappa = "64bd9c70e1419ebc2e6136ee5b35eebe2a22ed1ab3d252d9943046d5527fb3a5"
+at = "S=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <S as Sip>::c_rounds"
+cause = "mir::Instantiation: u32 for a parameter bounded by Sip, which u32 does not implement in core"
 
 [[fn]]
 path = "core::sip::Hasher::new_with_keys"
 kappa = "52fef900fd930c4c10eb78d9848143c6d1df4f22b7d983956cc8c513a1f31ca5"
 at = "S=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sip::Hasher::reset"
+cause = "mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at mir::IrBody: the translation exceeds the projection's file limit"
 
 [[fn]]
 path = "core::sip::Hasher::reset"
 kappa = "8468d45fe0f24e14cd9621460c9e08db0214c8f57fbca3b1cf148e47d6d42e3c"
+at = "S=u32"
 status = "residue"
 cause = "mir::IrBody: the translation exceeds the projection's file limit"
 
 [[fn]]
 path = "core::sip::Hasher::write"
 kappa = "0376d560aab85612dd843d054c57fdb581a9b043173bfc63f2f2a89e024e4f10"
+at = "S=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::sip::u8to64_le: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: hash::sip::u8to64_le: core's MIR stops at mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 
 [[fn]]
 path = "core::sip::Hasher::write_str"
 kappa = "7b81d6c0d21482dec626ba3077f99362528f713d34b2cc7e88112bc7859f9332"
 at = "S=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::sip::Sip13Rounds::c_rounds"
 kappa = "701eca8618fa1c1bf8ee03c8abf1a37ab8b4064cf692555e2f58bbfc35866191"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
+cause = "mir::IrBody: the translation exceeds the projection's file limit"
 
 [[fn]]
 path = "core::sip::Sip13Rounds::d_rounds"
 kappa = "7118a0bb4b42bbf722b6045da36883aad796c3b7ec22bd272cacf2bf94b59ff4"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
+cause = "mir::IrBody: the translation exceeds the projection's file limit"
 
 [[fn]]
 path = "core::sip::Sip24Rounds::c_rounds"
 kappa = "fcebe56a0263842e705fb658b2f3199d16a92ae0e18eb298dd58f18ac3fd845d"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
+cause = "mir::IrBody: the translation exceeds the projection's file limit"
 
 [[fn]]
 path = "core::sip::Sip24Rounds::d_rounds"
 kappa = "ccef0943090515e121dc08a24dab616cd8b03b9a6bf574257619b7581a87e1a0"
 status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl u64>::rotate_left"
+cause = "mir::IrBody: the translation exceeds the projection's file limit"
 
 [[fn]]
 path = "core::sip::SipHasher13::finish"
 kappa = "24c809e0d1a60e79bb2fb8d3f6eb890509d55f30cdbc594c7e7dfb2237500313"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as hash::Hasher>::finish"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::finish: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher13::new"
 kappa = "b657b4973ce28782483ead424da212b53ec3d0b2e6431620fcd75594adeba60c"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::sip::SipHasher13::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
+cause = "mir::TerminatorKind::Call: hash::sip::SipHasher13::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher13::new_with_keys"
 kappa = "ae8a622289ac1f77c71cc8343444a1c7b128ebfacddccd6fca6b5b0d51802ffb"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
+cause = "mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher13::write"
 kappa = "a84f781be69954a753a4bb142e0e0966627e732848993c0db721ac4dd581389b"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as hash::Hasher>::write"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher13::write_str"
 kappa = "a6033bdda408bceb1a3d660702f4f02f39cfa1ae1e4bf277301eb8cda83635a1"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as hash::Hasher>::write_str"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write_str: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip13Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::finish"
 kappa = "66951724d1fd1a2980f5c2ba02be4b25fc222f05a59aaafa8477705caaf4d3de"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as hash::Hasher>::finish"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::finish: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::new"
 kappa = "f5ae8e4329de2e15bac6f436339e1d65de9879aed40d19cc436735032da3b608"
 status = "residue"
-cause = "mir::TerminatorKind::Call: hash::sip::SipHasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
+cause = "mir::TerminatorKind::Call: hash::sip::SipHasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::new_with_keys"
 kappa = "8be75fd8fa198ffda91e2a19b9c2bac784b800c2ade914380942936e04a9f6c4"
 status = "residue"
-cause = "mir::TerminatorKind::Call: sip::Hasher::new_with_keys"
+cause = "mir::TerminatorKind::Call: hash::sip::Hasher::new_with_keys: core's MIR stops at mir::TerminatorKind::Call: hash::sip::Hasher::reset: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::write"
 kappa = "30c1e941385c154ccb9cd7b4051286029319a7b9b13b4fde5c461e1c8fb0a789"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as hash::Hasher>::write"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::sip::SipHasher::write_str"
 kappa = "0ee00b377ef36a02aa8c3a0520ad4cf046e95b135218141f28880569e2870464"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <sip::Hasher as hash::Hasher>::write_str"
+cause = "mir::TerminatorKind::Call: hash::sip::<impl at library/core/src/hash/sip.rs:247:1: 247:41>::write_str: core's MIR stops at type outside the lift: sip::Hasher<hash::sip::Sip24Rounds>"
 
 [[fn]]
 path = "core::u8to64_le"
 kappa = "91322c5df1b7ec0d3b0189ff6bdabf8d8f8e23d62aeb220ed21d99a7fd143a0b"
 status = "residue"
-cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: slice::<impl at library/core/src/slice/mod.rs:101:1: 101:12>::as_ptr: core's MIR stops at mir::Memory: an array or slice in memory, read whole"
 

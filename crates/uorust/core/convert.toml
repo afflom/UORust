@@ -72,8 +72,9 @@ cause = "mir::TerminatorKind::Unreachable: a result type with no value to stand 
 [[fn]]
 path = "core::convert::Infallible::hash"
 kappa = "cf2279393e95b149b81b950f27b5df6ad7dec93c3bdfd74f71e1520f3328fb52"
-status = "residue"
-cause = "mir::Ty: H"
+at = "H=u32"
+status = "translated"
+digest = "cbc3e9ec56fa893062af777cd7f2f9a7c92ae3fa911e6d6be5589f25cac8b516"
 
 [[fn]]
 path = "core::convert::Infallible::partial_cmp"
@@ -114,7 +115,7 @@ path = "core::convert::T::try_into"
 kappa = "ca156c6da002d61a2395d10ee61b6ce08e913399aad7be7b89a31d29a6bba218"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as convert::TryFrom<u32>>::Error"
+cause = "mir::TerminatorKind::Call: <u32 as TryFrom>::try_from"
 
 [[fn]]
 path = "core::convert::identity"
@@ -1248,866 +1249,866 @@ digest = "1be5e288a3f26275b8958d96fe1dc3fbe6e69f79484cf13c0f872c247ed1b685"
 [[fn]]
 path = "core::convert::num::NonZero::from"
 kappa = "9e2f8947a81c9025d7f358599273ae4c1e829376282e2f52667322aecab5ca92"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+status = "translated"
+digest = "5579000194c458e5c27e189473ea2705ecab4a2d0a746354fdc78d990b83b636"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#10"
 kappa = "bb39bf880dcf7b1326b1e0820b6a626d3c0e911004c93ef84557aa499c63d666"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+status = "translated"
+digest = "d7e1012a86cd41a4873cb6adf2ec99fdf2ee78fd3a959e592eb499c30729a8ed"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#11"
 kappa = "8f976d330ef1e62fd4ea3a5342dbce239fb049982c9e0700eac6d142e97be22d"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+status = "translated"
+digest = "d127e42c1da1a3e2cd6d0cddc64249364c04fa88a1ee7592f9d089bef6f09f69"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#12"
 kappa = "f6f9d62d22713c0160dce892ac6b719794e2037c5808d4b31e566ca75cd64fb1"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+status = "translated"
+digest = "3352cc5e3f115b3df0c3b9bc5d4234e640b97986136661c37d0c6fa60c8cf016"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#13"
 kappa = "c1dfcaa239b9138e59b97320b9efa987a8a3653fd380ffeac3915b63467768d0"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+status = "translated"
+digest = "e978bd86f19773397a89be97fe8075ea6285b92a6d72c15c11b4f23f6c0a6f44"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#14"
 kappa = "6ebd2e8f48099834d7b58b9e318168f5ced958c69bee3015fe77c7b2c7f74c84"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+status = "translated"
+digest = "03d25cf0ae5e39eb2e72fee059b5b10b66f6dda7d35045bd18c9df002c214a1c"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#15"
 kappa = "a2f451152ec40616402900dfe0a32e25a907fce223217cf2c680f8dfa17201bc"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+status = "translated"
+digest = "498514f4c61bed0a01a52c9fa60f174fb754531908aed6c88b2364d1064ada8c"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#16"
 kappa = "f7ff498739f2dd3c023e36f4b357a37bce6caa0b9652c56ae5850f52d0e5ad49"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#17"
 kappa = "bed81ef0caa777602cac7386b54a900f960bd64fd3f3a6d891a6ec619c493600"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+status = "translated"
+digest = "a7b37d94daf1ab048c8a63c989b2e19eac6233f490d2bad3d3a78d9bf4bcf012"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#18"
 kappa = "d95aa942edec0dde34f3d2fe728b744192ea1f9bf3620f8c7fc49e55133916a9"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+status = "translated"
+digest = "c7fd7d9978cd4579a484cb69120df61c764a6506395a258f0522937460930d58"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#19"
 kappa = "06ff3e65176897fbeaad4bbf07b69869a85b13d3240cb3e8b22b1a164206895f"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+status = "translated"
+digest = "90a6ba29592dd1ea48820f234ba36ad9527f36a5a4d4f099404fa1e92a71b7fb"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#2"
 kappa = "7464fd6b0616fcd5ecbbd0b3012d57223acee6ef5dcd1f6dc9e29af82a3ea489"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+status = "translated"
+digest = "ebbd03a9ad4a82d079f848c933ff2f1a8cf2af7c1df4bdf9ecc0a49cb8ce3b0b"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#20"
 kappa = "285ec6c83066cb0d68eea676732c1d3b6c2bb1d63b33beca802e34167d32af58"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#21"
 kappa = "aab4473e153b4a703c8bc512f1a56572704cd994dffe22bd997e2467d60e563c"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+status = "translated"
+digest = "0f68f9d7f2cb0fa246d02cf708b6b13978eb78c77e246bb4bc547d23898e9a91"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#22"
 kappa = "87b338e2fed77acab9b24fba5435ae4a15f4d1c15b48d6cbfe93d02ea775a839"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+status = "translated"
+digest = "bec161a9dd3e96cf6e308566cb56a5373cc588b3cbae12d6a3d79c56123a17e9"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#23"
 kappa = "de41852317edac8377f85075727cb5e405592a0aa0ac11db2de3f2ef0bad27e9"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#24"
 kappa = "845d206b984d28a0b641151c5a130ce1f9a0bcfb41100c7ae42e24e2b120bb6f"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#25"
 kappa = "2e67eada6aefeef2b9885992143089a045cb2ed0deec47d86eec67e06cdbc9ee"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+status = "translated"
+digest = "0b355a1f15dcb5af9b38beca89b2c88df280c401c3b8ffa3d77665b3ed44c786"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#26"
 kappa = "a70b5d14d35b9d914b137f451e8deb4a3272be4461c8ada3428f9c86bcb4f9f4"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+status = "translated"
+digest = "49dfe1914f16874be9d7b7b0d252ab476c25072c23d1f41e1c7396a825c9df93"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#27"
 kappa = "475e90785d0d41770223b5035cd735ccb5422b500092de75a4357e50e66211d8"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+status = "translated"
+digest = "76b891dba3dbd6a032b090775dfe4aa32e22322e6ec7f08848cc49101e13a0df"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#28"
 kappa = "95b0553283b9af5d71a9ac10f0e164fbb0220519fc31e7af59c0b12ea6696765"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#29"
 kappa = "5fd6255f0d9b337cc670a33e1492297afe0770567558167031756ed5d9ad054c"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+status = "translated"
+digest = "f0f5b2622a282adc13233fdff88849d18916be8b53d80df4688af728696f0889"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#3"
 kappa = "f8043131a748d17b6d5e15e13a61a9b0c07a6bcf4d25598296a931a49c7bc108"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+status = "translated"
+digest = "9be0a0cda493e24fa7d89e48c37e46352026d633aa916bc881b35cbfd05bf232"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#30"
 kappa = "7b3120b697015cb535c6080afb84b0aecd463623a741a625d682c1d5fc3fe5e9"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+status = "translated"
+digest = "52457605be295830a6893332a7c1cc56f647ffa2e81c74891ab305072118ccea"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#31"
 kappa = "561af4a1e81dfb105300c3320f562f412e2db1d44ed73b954a5216e072eca169"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+status = "translated"
+digest = "86f85f8d24f2ee736b2ba270ceaeafef8154ed3e54802aa653c6387b10367310"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#32"
 kappa = "5133881cd55f90597e525d8508beafa45813eded396a4c92b0cea57704dc26d6"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#33"
 kappa = "454b3c3ccc0e1c64c688a1083bcdc28e13c5876cbdd2619ac577448bde217481"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+status = "translated"
+digest = "8999c51378c9fb958c5b21de618a3162f349cedb153802cd9d0b63739699289b"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#34"
 kappa = "069e895e13d30c53b1eec1523de729709621ec09c26d0f5feee44029474ed225"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#35"
 kappa = "a0b63d3551d7a756d982270bd2f9248e5d91638c398eb1afe949fab668f1d6dd"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#4"
 kappa = "16f3311a7e1d9ac2870f47208ca29b0752f94558914a72e5f6b0860fada6fe1b"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+status = "translated"
+digest = "fbd14948add07075da9afd6a45be2555e00213374a67876c05a81b4c591956c1"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#5"
 kappa = "732034263ad96cbe4e2a0e205f9a5cf4afedfb4f12b342b458140d4152897f06"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+status = "translated"
+digest = "75d550e68556bc65735b46e818ac5bde8ac09dc80bb8d740c539d229ded595e7"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#6"
 kappa = "18720d220214932df86ce1a8f2e1f3613587ad02d4566acd8845a42e8af682e5"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+status = "translated"
+digest = "21bc838242b0b3af28dea89f31c049c0a0caae2d985b31946d117b3d962dd187"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#7"
 kappa = "5bd69fc835d8ea445f3e9394f1c39b64720d85ab5660cd9a5b52dd683e1ab33f"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+status = "translated"
+digest = "69d3889ff304b9a133d790309ad61594a7d3ce090e1fbd77df4db17d29b0c2c3"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#8"
 kappa = "7234290fed81ed5101cf38c9aad2cac6dcceac10eb9653bd900a4bb8dd51549e"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+status = "translated"
+digest = "6e9d9dba1cd4df4ac080f1c60311b9a174aa4e5853ff6f5225ce3a70aade3dba"
 
 [[fn]]
 path = "core::convert::num::NonZero::from#9"
 kappa = "bf1e89f0a5feb5a0768ae8a6d67005c5fa5227559e5a8e024bf2454aa17d2ae8"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+status = "translated"
+digest = "ed91513761db47f2bb082baa495852ea630fbd162b4944e212b43f70cf21ed81"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from"
 kappa = "901c2cb642bae2f6c068ee7f61f0d366d1dd6e9f75025a1d35edb9e6ecaa0ce6"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+status = "translated"
+digest = "baff9364e21c7fe4f70e02386eeef7c3838e262fc2f51254eb7d10c0cee777a1"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#10"
 kappa = "293f214dabad2b836039c99280a1a80dcb3a12e5d6c4dc79151bfabd5e4958a2"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+status = "translated"
+digest = "0c6c3090a0d242434eda82cca2772047886ff5ef65b03c855b761237acedd30f"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#100"
 kappa = "f26450a0137f9474edd37a76df1d948d14932218583b42567fda515974c187a7"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#101"
 kappa = "d493c21692cc12887bc5cacdb99c5421fd0c1fa52dd5f42143ba0ff73f70ab99"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#102"
 kappa = "ae207fee64917fe533eac6e603516f207832cb784a40d31729a7f31b77749979"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#103"
 kappa = "3a8b450d3801bf5553e51493898407fd285566ac1acbf34d16a4af252b2201c6"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#104"
 kappa = "1633e8cf0ee9c05dfadbf5b6c5979f3af5b708d6167c5fd6e62ebe3d729dcba8"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#105"
 kappa = "d197c317fbbd220d4bfa8420ac58a0d2f35f87ada64d49cf4ec28113f707f056"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#106"
 kappa = "47297a56b1ff1bb14c87993eb35e16491e558a9dc7e6feb427304d5ef0017651"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#107"
 kappa = "22a9c0bc689a6aeb19304f129118456c2ee45430c0eeab06663019f752fd1df1"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#108"
 kappa = "da18b7c05c7efd4f5a3cfc833b891ea4967d9e82ad77406c61728edbe32c6d3d"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#109"
 kappa = "9ac1480dad1ecfca10e6ba85404c77255863f22c1d6461c5e765a7ce76621679"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#11"
 kappa = "52c2cb164c7f307424241f473cccee45ff04053921157716292e33f6572b9e8a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#12"
 kappa = "a85e557300aab33105a422a5e46550155785b1056b25b0b74c825ac44ff3a789"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+status = "translated"
+digest = "7886c0d0d6415ae1614c63afc8405d307411a11f7420be8c0d95c7153a6a2f4e"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#13"
 kappa = "70e07d8f297e0eeafb73162ff3ca5fd66e010ee2f590fc1ec767b61f6ed25b92"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#14"
 kappa = "77aad6cbeb7ecad6c2451eaed88f8fa57f23c69ba54511a171611dd858b42462"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#15"
 kappa = "f81dc841e3946a0705c54fec2ed4239738a533750bd4a6c319413f40251894f1"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#16"
 kappa = "6bdc08cc9f1a68d0809598ff534e45a4a4444b631273dd947f4572f4fdeb8fee"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#17"
 kappa = "42b7ad8b795ae4c469cc62ba6a81ec709fcc8735167bc5e9e40bc9c38073eeac"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#18"
 kappa = "4adecc71c7aaf59419804105824c806ac3e1374c16b6de7c5c25d1d50d31daee"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#19"
 kappa = "587630985d0d12080af877cd71bcde769c8b6923d3ef436898934b9b5e2a760a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#2"
 kappa = "41c2d5f2700dfb3422b41430916e47367ac5c7417e81be4a79ec53b4fed43c9d"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+status = "translated"
+digest = "ff5b271748a613f1410aa070b0ce69008a4f06deb577d9095f186c07dd377ae4"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#20"
 kappa = "bf5818f8da42f97b2af0a667d1a0c6123b98e00c2aa80926ca57fb2d9c757c25"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#21"
 kappa = "11c1e19b1953d1d78e830abaafdeadbf6e0fae9cb072f1c21517f28d809f4b86"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#22"
 kappa = "1ebcdd51c2c0f03199e252f4305d37165a9ea823e6807a141e4e988b437aeaa0"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#23"
 kappa = "6093ec5829a61b09b6a126b2299dee38c44399e336ca0ac9d1aa5439783e6aca"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#24"
 kappa = "a09aa695ef9d12f20d2af0d77707478666582d2768839c1662e8a6be70e8e836"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#25"
 kappa = "0fce2d4a0273e8998722bd57ee7b622f566c814a0a2e77a05e2ca737b3d817eb"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#26"
 kappa = "fd991fb945c971ed5796e3330497ddaca390119ca3520f8b768576bccb0e4993"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#27"
 kappa = "d07dd83c22abe652341d9073520803df628c310d3dfb380144505c1aba859986"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#28"
 kappa = "6e3999940005ddfd78f58d76c271bd4999daea6ffdd0ccd94661c94b575d57b1"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#29"
 kappa = "8a17f2ee75f9eb2f93f860ec6d3cc777a8b7f817dfd10651f00c57731bcad956"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#3"
 kappa = "5b2c53c4e7d5bdab06ee5e438341ad5a99a3933f3a039add75fb9280ef013a4e"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+status = "translated"
+digest = "b138c6ee89467c4613dda3f280d23be42911e025bb4fe1e41e1ced6457685597"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#30"
 kappa = "8f227eb232524e44d8a34f929abdf24f8f82db8af46338f73a7c0dfdd7e5b933"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#31"
 kappa = "96c0a321cf8936e57102f832ff343d4de485e21cea9c0d1b13ea4d01555c188e"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#32"
 kappa = "fa106d81bd4259c3297cb812e85b129c719bdffa18e4660c5d30bb220b01a490"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#33"
 kappa = "ce65e64fe568f2fbae7baea9a57218eda009401ff856fe4c3fe7cb27daba856b"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#34"
 kappa = "9f38f311da5b603b61fed39d6324ccf60b2f2082e27dbca0d4b26388a5fd9db2"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#35"
 kappa = "bd2443514c833860f72fa60788964efe7218d6c90d3a35fb0484f0927803f292"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#36"
 kappa = "4222a3d065c8279099cd8dff485a3e144518843c2ba8b859771e03e3bbb81123"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#37"
 kappa = "1ad67bd693c5a49487ca37ec4f159745a6470ece3c418ac81cbd0f73f4302452"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#38"
 kappa = "9baede3c4d126bf1aecec8af96990ecc5a65e9c07778741dd905de0b6004e65a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#39"
 kappa = "1698d8e8c3a0f05659ed1889c049a7b160457ca7d54c6e8d31e022e4051f0e69"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#4"
 kappa = "d0ffaea74db3262ca2014bc681526141d4defd6599173d22072cb5c0ae5ebf32"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+status = "translated"
+digest = "7046b1e7086af94421d433839c8fb8f60923b536623b041d7c1d52730a15647a"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#40"
 kappa = "8478df3ab08ccde63bd675b0660ba060f2a476dcf669322a914673b8405f0263"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#41"
 kappa = "bb7404c6fe952bede1cb6183d4a961117c57b19154006ed5e4ab86170b44a5aa"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#42"
 kappa = "d6e7e6bd215d2edb7157a404d48dc48c316b6db2cd2aa30c803d0966fa065e54"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#43"
 kappa = "3295d1780e45b74750bb28f70c3d1db4cacf1b42e6f3c94ffeae8d50b585b6a8"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#44"
 kappa = "a6106fe42183d35f16eb06d72bab958d8b7e64b140376d24abca74b339cdf382"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#45"
 kappa = "9df8d23834570b1b8a85f8b0aa53e07d072f7789199b6acc6cfda54a2fed63e3"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#46"
 kappa = "d469383dac4e410cde441d5f7c590c6ae2cf628b11fda16ed2ff120fa6582c54"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#47"
 kappa = "be567625a4bae589d9e7b22f127abce49503a3778b59cbe440d6cddeded9429a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#48"
 kappa = "467404d605fb80de21af81ea4e7b991279d090117fa341502fa1b9f993d702f1"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#49"
 kappa = "ce6868e57289a311fa0a88816de8fc0c1550b1ec4680bf831ebe6a324675ee49"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#5"
 kappa = "756594bf95b4d275611830cc7a367faebe4714da6157897d5dbcbd92c55cb1fb"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+status = "translated"
+digest = "0e6d09fb9a904bfe8d069c190ecd7bde0c8852cd630e03389be2bb78cab5a95f"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#50"
 kappa = "fe368370dda29a81678144b8b87dbf49000ffdc6637d91e71878d4320c2b89b9"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#51"
 kappa = "4754126a9e6e3b3a34b4c2de2f7225ea844bd0a9922656a499da7ff90758877b"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#52"
 kappa = "19820d8db8515f82fcad45d049bf33ebbf02d36c91e0e01032002a82f7c316dd"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#53"
 kappa = "2ae785a0b39275e8a5fad8356f49d09c329a03d8a2a80de44eb9670c3c88c027"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#54"
 kappa = "6894754d71806fde9cfc04962067a020aea0f3dc98ae731d1b6512ea043cf3a0"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#55"
 kappa = "b934a5e6bcf6b140e63ff1fc76725b8c1641dce86212aa52dce7723964fb5028"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#56"
 kappa = "1bda4b2583112647a93b5b355aa604b12612736c2d00736ac661cec959e6b1b8"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#57"
 kappa = "3f3aef4c332058f431e92bf8a83364cccb45bbaa176ee5ce68459f37f733ebab"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#58"
 kappa = "4261f1acf04af7f19fb0ef5fb89f6c04af857dcb108818bf9e3bfd2285c86f33"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#59"
 kappa = "f3c7831d2fa2628d0a64459553e400238639ad58ab1365deab30820db5bd73be"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#6"
 kappa = "f5e442d03b3344310e64cd768c6920efe3461fdbc42a7fbe48a1137b1429f045"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+status = "translated"
+digest = "6a2455e053e665468851a62ec24c5ed7c9e99ff1606ec0de22b3a7f3c3cd2670"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#60"
 kappa = "0a9e5ecea532f0a9b854457bd6b382fa6f8461342fbfe241aad79e7f05164343"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#61"
 kappa = "c1336bc304a9fa936578021a2e88f5a9acf630a9eca9d2780971a382b6ab4d26"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#62"
 kappa = "39c014067d49bf18343275a81403aa46af68efb94c45b5ee3dcef1297850edf1"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#63"
 kappa = "8b3d57c5784f11537e21af6dc0542e11e688625261dccf2b1a38b1db9a2878ba"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#64"
 kappa = "67a3ebbdb96b04d705a3b2a400a47cd7db9727dd25d17b54639ded0ad1f82cb8"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#65"
 kappa = "2e734879d105b4b9ff6d35d7aa4560667127e6a65251e3683ed4dd9118bd7506"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#66"
 kappa = "4137c1fc7021e1f240049e33f3f37a3618ba2e1bbbd0feaa831505d8aef65041"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#67"
 kappa = "bdee4c2bc7ee3a9baf6ccdcf7bd0b0c71c41cddbdd9e00d4cd93541fa467ad83"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#68"
 kappa = "dc0e2edd84926f2d83b9dff6cc7ff70959a4f8b2f2b7b14214a9c32be7c70a94"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#69"
 kappa = "c6c306fea8d3f07b235c356e11dc5755faf7efbe8d057b971b12c4099b544966"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#7"
 kappa = "51d7ad1f86e2998f284c5a9aac66c63f95b39693a9bd3b63cbff974a9bc87e9e"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i8>"
+status = "translated"
+digest = "9fb4856e9acc18e7c56164933c43dc3f4676b746e48eca96c6e82f4e55882f6c"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#70"
 kappa = "cf202b3dc5d0e9aafe96fbeac949f39016cdeb5c89a906b96fd27c3635cec2c6"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#71"
 kappa = "f083f3035ac94c1c707c60f3e40193320ad8b81ac9d78eddeb085995473c4682"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#72"
 kappa = "b34c2669d69bd640bef812803d16ef5d1a4faa1342dc4a2c7f8267d48501352a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i128>"
+cause = "mir::Translator: panicked"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#73"
 kappa = "5f76dffeda806e335a0c1356e2629b6eee3d49ab9640af3332e7b7634711f1fc"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<isize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#74"
 kappa = "335616b344b6d96b36950b2a9ae84f3a9fdad6581d420c09bb7698399eafa881"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#75"
 kappa = "755cd118181decebe36e58e3e375b4ef6a9eba7602476ea60d0f4bf8d50c1010"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#76"
 kappa = "4886f0814e89e72b59dccc3fc0dfe4fdef0b666355dba29ed598f8ecb50d986b"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#77"
 kappa = "584d60d9597639ef9e38d4e54bbdbaaa5e2f40c4fceb4516743d37a46473604f"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#78"
 kappa = "6444f8290ea0cf7fb91944b08f0ed7c31fcbf5cbca8f5c7002e861129c22ce13"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#79"
 kappa = "0d88d23a1555a3d967518b246adf4dd1044f186d09d85680309dd44260876584"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#8"
 kappa = "bdea87b6b1092164b3fb5cef30224891afb0f1e6a158b081e67b8bf5748b458a"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i16>"
+status = "translated"
+digest = "326d8a885fce3c13aa7923d24bc89d5a091079d4e58005e0cb6563477c98ff0b"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#80"
 kappa = "d3f2014f206e74b67a64bdc05182ae1cc9a2fb587c74f47423bcad3a8959ea43"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#81"
 kappa = "b4a74b0e66737428bbcddc7dc5a10858040fd294e81836f18f3456ca255aea35"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#82"
 kappa = "13f25ec98a08a8a64eb2ce61156fa610ef84233c4fb1e5e624e801966495fb98"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#83"
 kappa = "fdb5d0f810a013ed801ad491d6abc7da1d56900ff51770bd050a46c4a0b7e19d"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#84"
 kappa = "82affaae6c71e6ab7b986737aafa95c12bcc320f8d15a08b86e9334c5c38aa22"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#85"
 kappa = "7fa8bfbce65e8be699c73ae7935e8d93a3eaba043242d56d2f39f5af94b3175a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#86"
 kappa = "d7e56b068a3e78226f3ef91c0440cb355f4a96737b99fcea10f71712438df7ad"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#87"
 kappa = "f00b37367eb9320729919e44193ca74a7c92a6fc8148b8f2256d112c461274cb"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#88"
 kappa = "049e48b327b49e7eeea48b0a596656ba3c32abe2664a3f250310319722ba696a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#89"
 kappa = "f62f782962963a6a8e39a0f53dcdd8829e30cf58ac6d47dbdb5321e20e422a7a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#9"
 kappa = "ce96bbdcbab38a5e157381dceaf92028164523d06cb1b972f5d70f7b9d6ac521"
-status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<i32>"
+status = "translated"
+digest = "32057b89196a9437c2dcec98a94494036a077b383c8df1850830ba784a99526d"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#90"
 kappa = "0ba920b63fe0ed8bc3dfead63605cc08b785f70a063ea09ba452e6ffb50d0959"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#91"
 kappa = "1ba761b97702e045ffc9d26ee16337f35aa163d1cdee9b737dd2c1be64bd2ff9"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#92"
 kappa = "0ec3a94d1a2563127007cebd337198c53f88d44b2b4c947dde12c091096a8907"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#93"
 kappa = "9e4892e80a64f7edfcb5189c50d92d1e5d1316ed6146917df23fc56a22fba162"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#94"
 kappa = "03be2ab0beea6a3165b6349f6598d7fa2fdc2a4886532804fdcbd646f1385564"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u32>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#95"
 kappa = "b75150d5d7b9acfc00974b9e61790545c0d21d4794e5e79c4128ea068a795898"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u64>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#96"
 kappa = "4815d66d1e68b9abf0ab7e62f15f66ea02ae9e20085b311cb4b99ef7abb9621a"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u128>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#97"
 kappa = "fec272a8815d475fcf9f764336fcbe04c37587f906544baaaa1d7a42a919f9c8"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#98"
 kappa = "5619de90aa8909622e8fd433e489e87e4a8d95a3996440740a8750fae15c6999"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u8>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::NonZero::try_from#99"
 kappa = "97d1b0a5e9ad2ff33e53f9c9077d90f141275ca7ab6be0c7aa5a77d112b34b72"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<u16>"
+cause = "mir::TerminatorKind::Call: result::<impl at library/core/src/result.rs:2182:1: 2183:21>::from_residual: core's MIR stops at mir::TerminatorKind::Unreachable: a result type with no value to stand for a path proved unreachable"
 
 [[fn]]
 path = "core::convert::num::bool::try_from"

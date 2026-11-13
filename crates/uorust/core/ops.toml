@@ -3,21 +3,21 @@ path = "core::IntoBounds::intersect"
 kappa = "f5a3bcf39111df44ab32a7473d61db18d8eab515ecf73a9fd6221c72f01663b3"
 at = "R=u32, Self=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+cause = "mir::Instantiation: u32 for a parameter bounded by IntoBounds, which u32 does not implement in core"
 
 [[fn]]
 path = "core::RangeBounds::contains"
 kappa = "0677e83dc8565b910ecd33106d034261a4b3ede2a2e2f83b187a05f64fd156f3"
 at = "Self=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+cause = "mir::Instantiation: u32 for a parameter bounded by RangeBounds, which u32 does not implement in core"
 
 [[fn]]
 path = "core::RangeBounds::is_empty"
 kappa = "f18b38e28577c8b3361fe4629c419100e7176477bcb4c0b9861bbc163357c53d"
 at = "Self=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+cause = "mir::Instantiation: u32 for a parameter bounded by RangeBounds, which u32 does not implement in core"
 
 [[fn]]
 path = "core::arith::<impl at library/core/src/internal_macros.rs:22:9: 22:36>::add"
@@ -3024,35 +3024,35 @@ path = "core::async_function::impls::<impl at library/core/src/ops/async_functio
 kappa = "5520fabbe38c0a53ff7a6a19af6a5faa6593ba17db1c2fdb8322d37ad8ba5772"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsyncFnMut, which u32 does not implement in core"
 
 [[fn]]
 path = "core::async_function::impls::<impl at library/core/src/ops/async_function.rs:118:5: 120:26>::async_call_once"
 kappa = "b3b8ceda31ca00977c30de291666fa8398aa5258f0e469897810f7f17c475333"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsyncFnMut, which u32 does not implement in core"
 
 [[fn]]
 path = "core::async_function::impls::<impl at library/core/src/ops/async_function.rs:65:5: 67:23>::async_call"
 kappa = "6edd79a406d89477354103803de57e4bf52608986473d4d6efd09e45ce0b8d28"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsyncFn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::async_function::impls::<impl at library/core/src/ops/async_function.rs:75:5: 77:23>::async_call_mut"
 kappa = "24fbb2543f059223dd4d924a52e32532cf7c608b2baff6a2bc4c9c5d71c6f1d2"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsyncFn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::async_function::impls::<impl at library/core/src/ops/async_function.rs:90:5: 92:23>::async_call_once"
 kappa = "d33354941719c0028b352e1c018c8b95232e0ff709b1b25b2d5f3924f0615331"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::async_function::AsyncFnMut<u32>>::CallRefFuture<'_>"
+cause = "mir::Instantiation: u32 for a parameter bounded by AsyncFn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::bit::<impl at library/core/src/internal_macros.rs:22:9: 22:36>::bitand"
@@ -15039,9 +15039,9 @@ cause = "mir::Ty: ControlFlow<u32, u32>"
 [[fn]]
 path = "core::control_flow::ControlFlow::break_value"
 kappa = "04bbd5fb528332013865b376397f960bd078acee3cd0cc100a99f06fbad9cabc"
-at = "B=u32"
+at = "B=u32, C=u32"
 status = "residue"
-cause = "mir::Ty: C"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::continue_ok"
@@ -15053,16 +15053,16 @@ cause = "mir::Ty: ControlFlow<u32, u32>"
 [[fn]]
 path = "core::control_flow::ControlFlow::continue_value"
 kappa = "418ab17d9e7edf03e227e4e4bc61c37bb1231133740c9a71996b646570afcaad"
-at = "C=u32"
+at = "B=u32, C=u32"
 status = "residue"
-cause = "mir::Ty: B"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::from_output"
 kappa = "a5346457007c05410d464350debe9ef2630e54f2fcb3555ffcd162247f70ad42"
 at = "B=u32, C=u32"
-status = "residue"
-cause = "mir::Rvalue::Aggregate: a Result variant"
+status = "translated"
+digest = "a0a31394a433aea0f1702b01617170a46f3042e6bb13b575c91e75a9e1b08039"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::from_residual"
@@ -15076,14 +15076,14 @@ path = "core::control_flow::ControlFlow::from_try"
 kappa = "7ee8c7dabde1f29a8f8bf40df8f78e273bb54d2190edcfc9ee81413e469f8970"
 at = "R=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::try_trait::Try>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by Try, which u32 does not implement in core"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::into_try"
 kappa = "5fad5571fe2453d80f0e5cbf4d5bb59b5823c52e8487d29db169a53109afaa07"
 at = "R=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as Try>::Output"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::into_value"
@@ -15095,14 +15095,16 @@ cause = "mir::Ty: ControlFlow<u32, u32>"
 [[fn]]
 path = "core::control_flow::ControlFlow::is_break"
 kappa = "f52bf46f1b302fd6bf11222da429519ec217e17763207ce2f683e49a32d1c040"
+at = "B=u32, C=u32"
 status = "residue"
-cause = "mir::Ty: B"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::is_continue"
 kappa = "eb47fbf15051a0d40d6731e3ac899e110d5da08ff439f7f6803d6288a65f7ff3"
+at = "B=u32, C=u32"
 status = "residue"
-cause = "mir::Ty: B"
+cause = "mir::Ty: ControlFlow<u32, u32>"
 
 [[fn]]
 path = "core::control_flow::ControlFlow::map_break"
@@ -15123,28 +15125,28 @@ path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:133:1: 133:6
 kappa = "ff42e7399eba8b43b961f0396b8cf4835d0de0aff7d3f3cc7e8e8f216fc93c8a"
 at = "G=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::coroutine::Coroutine<u32>>::Yield"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1742:1: 1745:86>::deref_mut: core's MIR stops at type outside the lift: <&mut &mut u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:10: 8:15>::clone"
 kappa = "32731994a3373631257f81f3a843f7e9429ac268a38b27b7cdbf93c3a9551e83"
 at = "R=u32, Y=u32"
-status = "residue"
-cause = "mir::Ty: ops::coroutine::CoroutineState<u32, u32>"
+status = "translated"
+digest = "43a596d16e0689f4f58cdb6ac39ec13d1d63d813dc0a3c0deb2595846c314397"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:23: 8:32>::eq"
 kappa = "60d45bd690c9d05b9c2a44cac2c66acaec04b14d10f3a40a42110cb99ab8cbc1"
 at = "R=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: CoroutineState<u32, u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:34: 8:44>::partial_cmp"
 kappa = "1abeae6b012f55dffc507635009813c4d619dbf430590edebe61830d58e679d6"
 at = "R=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: CoroutineState<u32, u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:46: 8:48>::assert_fields_are_eq"
@@ -15157,35 +15159,35 @@ path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:50: 8:53>:
 kappa = "cb0814bb591eee1403ba5e84dc9ed53f31819f67d2a9b2d6367d005834c13a76"
 at = "R=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: CoroutineState<u32, u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:55: 8:60>::fmt"
 kappa = "7f27871f03ee4e49e3fbfa86f59a3960b3875a0715025441ab62fa56b114581d"
 at = "R=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: CoroutineState<u32, u32>"
+cause = "mir::TerminatorKind::Call: <&u32 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::coroutine::<impl at library/core/src/ops/coroutine.rs:8:62: 8:66>::hash"
 kappa = "6732fd421508e920c2d52d88f6f87fce230de505df2f8b7c85ab7c39d04c3970"
 at = "R=u32, Y=u32"
 status = "residue"
-cause = "mir::Ty: CoroutineState<u32, u32>"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::coroutine::Pin::resume"
 kappa = "95b8e8abf314d247e8e7b19f589570779af29c6bac1b5fb4bc322dbe3b265ba6"
 at = "G=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::coroutine::Coroutine<u32>>::Yield"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1742:1: 1745:86>::deref_mut: core's MIR stops at type outside the lift: <&mut pin::Pin<&mut u32> as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::drop::Drop::drop"
 kappa = "7b723990c184394afa51116a480a0dc5a61fbdcb0e9ba166aff90a8c52805301"
 at = "Self=u32"
 status = "translated"
-digest = "84ef1d5856290585fd10d65da6f4cba642561bdf0edbbfca8947d4b5ebb206a3"
+digest = "fbb9c9f2bf9740977deb9cd7c902aea2bdfee94318602bb2cc22e57c10aeda41"
 
 [[fn]]
 path = "core::drop::Drop::pin_drop"
@@ -15205,41 +15207,41 @@ path = "core::function::impls::<impl at library/core/src/ops/function.rs:258:5: 
 kappa = "412d28bbd3be65a7110962807c6a11984254ab41b7d61e069a0710da6a2012a2"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by Fn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::function::impls::<impl at library/core/src/ops/function.rs:269:5: 271:26>::call_mut"
 kappa = "2ba3a989dcb0ceb630bf114f9eb712ffd80240a930e1bb4ac8d83ed76b225405"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by Fn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::function::impls::<impl at library/core/src/ops/function.rs:280:5: 282:26>::call_once"
 kappa = "7d834d51f6ee80bbf7216a90ffaab9b68164c19eb1bf809da663c75460deca8e"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by Fn, which u32 does not implement in core"
 
 [[fn]]
 path = "core::function::impls::<impl at library/core/src/ops/function.rs:293:5: 295:29>::call_mut"
 kappa = "55092e5fa4b86bfc6351c572e21e724b138d34cd9dbafc8befebad9ca726bec1"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnMut, which u32 does not implement in core"
 
 [[fn]]
 path = "core::function::impls::<impl at library/core/src/ops/function.rs:304:5: 306:29>::call_once"
 kappa = "fbbd4cc15995d6603ea0e5755ef0e54cb5cff57cf4ef5fc885f284bb5c6df399"
 at = "A=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::function::FnOnce<u32>>::Output"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnMut, which u32 does not implement in core"
 
 [[fn]]
 path = "core::index_range::<impl at library/core/src/ops/index_range.rs:12:10: 12:15>::fmt"
 kappa = "ce12b14f8b1e2a204b0772d3ad832f0e256a33369dd6d3cbffc1c6cf43f520bf"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::index_range::<impl at library/core/src/ops/index_range.rs:13:16: 13:21>::clone"
@@ -15263,13 +15265,13 @@ digest = "d5bff8bdb59a6b006e7756677abf210005b5575de2d14a3820f44c6dd165d94a"
 path = "core::index_range::IndexRange::advance_back_by"
 kappa = "4413d258daba25223ac2fe1fbdccc3276a5f90464706321b0c156697a644fb2e"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Operand::Constant: the constant item result::Result::<(), NonZero<usize>>::Err"
 
 [[fn]]
 path = "core::index_range::IndexRange::advance_by"
 kappa = "0876c1977e0a0704588f35838f46b57c0f97cef342878f3536ce4db55f25206b"
 status = "residue"
-cause = "mir::Ty: num::nonzero::NonZero<usize>"
+cause = "mir::Operand::Constant: the constant item result::Result::<(), NonZero<usize>>::Err"
 
 [[fn]]
 path = "core::index_range::IndexRange::assume_range"
@@ -15288,7 +15290,7 @@ path = "core::index_range::IndexRange::fold"
 kappa = "34c5390b03a1a8ff4ad25f57c1d5f1e20321669cdcf9f5d2c14edba0a819487a"
 at = "B=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: {closure@library/core/src/ops/try_trait.rs:420:9: 420:20}"
+cause = "mir::Ty: impl FnMut(u32, u32) -> u32"
 
 [[fn]]
 path = "core::index_range::IndexRange::len"
@@ -15317,33 +15319,33 @@ digest = "62fdeecf4307970f94423824acf3954b208bd26ae4b25e4777032813c2b3449e"
 [[fn]]
 path = "core::index_range::IndexRange::next"
 kappa = "aff3f34949d864ca1f5f102c05520b6e6d27204818221d1d8e885a9e6c99517c"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ops::index_range::<impl at library/core/src/ops/index_range.rs:19:1: 19:16>::next_unchecked: core's MIR stops at mir::TerminatorKind::Call: num::<impl usize>::unchecked_add"
+status = "translated"
+digest = "f72d3b85b3e0cb082a45da17ce60b3430572b9cc0d2b8549db45ee7d387c9f4c"
 
 [[fn]]
 path = "core::index_range::IndexRange::next_back"
 kappa = "aceffcb9fa9cb7a482c0cdf006af002cba0b519467585212d816107a082845da"
-status = "residue"
-cause = "mir::TerminatorKind::Call: ops::index_range::IndexRange::next_back_unchecked: core's MIR stops at mir::TerminatorKind::Call: num::<impl usize>::unchecked_sub"
+status = "translated"
+digest = "cce144ce05c715564bed897a9027b9336dc1787b5a2ca758a361c3610b578551"
 
 [[fn]]
 path = "core::index_range::IndexRange::next_back_unchecked"
 kappa = "f847e8bdb6e6e1dfdb309d61c8fbac6b9ade84acdcd5550eafe58a1b4dbd3f48"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::unchecked_sub"
+status = "translated"
+digest = "84a5eb0e604f3a608b805adb3ca6c812e8f7b52809e1245f94205bee0a2e1dac"
 
 [[fn]]
 path = "core::index_range::IndexRange::next_unchecked"
 kappa = "647adf2725830276ad5c6feec71a2a51694a90598ac36c62851ac28429298c9f"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::unchecked_add"
+status = "translated"
+digest = "b92e5e6f5ef20e312737326010fe4b2b70b9dd24848d65cf6306aaf5628b08ce"
 
 [[fn]]
 path = "core::index_range::IndexRange::rfold"
 kappa = "78048542f05af3dafe73d6ed29f254ec31de2b13e5b2182cbeb97192dfb983df"
 at = "B=u32, F=u32"
 status = "residue"
-cause = "mir::Ty: {closure@library/core/src/ops/try_trait.rs:420:9: 420:20}"
+cause = "mir::Ty: impl FnMut(u32, u32) -> u32"
 
 [[fn]]
 path = "core::index_range::IndexRange::size_hint"
@@ -15414,36 +15416,36 @@ digest = "7556ca44bc84e61c1fb1212ca3995beecb9373f59e7c8e9ab98b1ab66a54f471"
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:1177:1: 1177:54>::end_bound"
 kappa = "cda0dfcdac3cd9ec43950a4008aa6866ab6ff3e8fd4dfa87abec95e038ba12b0"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "0b06b12d6897693f926d4759d0e79e1f6d7d9a95ed9dcdbe7577e5d65f132b99"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:1177:1: 1177:54>::start_bound"
 kappa = "25ffb9ba933b02c4a6cb075ddd9205019bc83abf1abf0d7087c7791c6c059c63"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "d4543aff6a043a993eb9596e23d4571e6c7088dc857b85bfc42efd7bd2d35d33"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:1197:1: 1197:53>::into_bounds"
 kappa = "4f35726a02c543eea12d7c5ef24d122d3f143cf0ae508c448ca2f4e7d8452382"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "8049d84e1459759f6dcaee43a83fce85b0046a5af787ca6bb8899ca945c38415"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:1205:1: 1205:79>::end_bound"
 kappa = "ab0e9354ca1e65296f4ff4b3ad9f6288f445d1603d4182d3807ccc9765ac26d3"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "f310dc62d98d04cd358a9474e5886a146ff12f5b8d1aa24504e0a4ea066a6759"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:1205:1: 1205:79>::start_bound"
 kappa = "5a38aa28c822a843dc7a14282ec612fc57de202ed258b7a2617bc02714148791"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "be83b1af99c4bc075be77b0473802babb43f36fdf999a17c0f9c3b56cf591935"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:194:10: 194:12>::assert_fields_are_eq"
@@ -15588,21 +15590,21 @@ path = "core::ops::range::<impl at library/core/src/ops/range.rs:690:16: 690:21>
 kappa = "db2e8e1a2ff7cf27022ab2c0504a732cb873a5783991c4ba3c458d84eaf749af"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Bound<u32>"
+cause = "mir::TerminatorKind::Call: <&u32 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:690:23: 690:27>::hash"
 kappa = "01ee425bfaec2322b574dd096e9fb85f5d182562717005e05a1af6e4eedeb679"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Bound<u32>"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:691:16: 691:21>::clone"
 kappa = "d76cbb194b551c83adf4995bb0035f071480ccaed11dd6428f2a2a83797e8039"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "227cd589e75f61838ffa42d13cd8615ed9352ed1317e698243d63eee7d444ce1"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:691:23: 691:25>::assert_fields_are_eq"
@@ -15615,7 +15617,7 @@ path = "core::ops::range::<impl at library/core/src/ops/range.rs:691:27: 691:36>
 kappa = "5ab0c237fbab00bdcd629d495d8c30b094f15085d7506acc0475c13bbb6affcc"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Bound<u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::ops::range::<impl at library/core/src/ops/range.rs:79:10: 79:12>::assert_fields_are_eq"
@@ -15656,35 +15658,35 @@ path = "core::ops::range::Bound::as_mut"
 kappa = "f779770a3d8859d030a22ce0a18def44b37ad72be8963741e1efb6e38aef68aa"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: ops::range::Bound<&mut u32>"
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
 
 [[fn]]
 path = "core::ops::range::Bound::as_ref"
 kappa = "691c97ce1b8771abcaebfc5839be3f87460f9a8ae6b72a9d4dfdd0036bb09c67"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "893e2a20969d470ba20ff2913aa7513fb4956a2cf8f0fdfe126273136ca17a38"
 
 [[fn]]
 path = "core::ops::range::Bound::cloned"
 kappa = "d3f93f0a95cfa64e371e090b504b9dd6fa7f675038307b39502b3b5c04eeb23f"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "113cda2c82dc519ec5fd29b64d6a2884006c897dc1158bf407a642b79838f036"
 
 [[fn]]
 path = "core::ops::range::Bound::copied"
 kappa = "e5b22937226b3837b835a83e299b83bf0b11827b7205cb58c4ab56240542aed0"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "fac13b1c62c8ddaadeba9f71ddd065caadd379c39b08179efdbf29139e62d607"
 
 [[fn]]
 path = "core::ops::range::Bound::map"
 kappa = "cc547239878eee1a100b4632736d39e8adb8f9c5a92b3151b3a789f6a0cbdf8a"
 at = "F=u32, T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+cause = "mir::Instantiation: u32 for a parameter bounded by FnOnce, which u32 does not implement in core"
 
 [[fn]]
 path = "core::ops::range::Range::contains"
@@ -15697,29 +15699,29 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::ops::range::Range::end_bound"
 kappa = "d0fc55d5da77089edc1e42b236769a316734208e93eb4b3658e4c68ecfd38e22"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "a88df4da1429deb05765e3d421eba72f99ccdd942a43fbd51bfa4c2c7e9cc758"
 
 [[fn]]
 path = "core::ops::range::Range::end_bound#2"
 kappa = "89bdff0ebe3e30dff1f95f8024a359e7eb26c99cee7b7c34810794ef9b564c0b"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "a88df4da1429deb05765e3d421eba72f99ccdd942a43fbd51bfa4c2c7e9cc758"
 
 [[fn]]
 path = "core::ops::range::Range::fmt"
 kappa = "b8539f66287aacf444e1534d2cdfb7419c3eb61414ae6ecd9d3601656af130e9"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ops::range::Range::into_bounds"
 kappa = "f883c81dbbe0331039d86f676e62b462232605ca1a29e1967236c734e4ac553d"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "73a4a8a1550ec12b9b88caad7ac5fe4285e097d4b1ba03ce5f44f707ec2d9a09"
 
 [[fn]]
 path = "core::ops::range::Range::is_empty"
@@ -15732,15 +15734,15 @@ digest = "269db1732b024f466b305336a7c1fd62a0d1f24cd9c5689b2beca2be1fd87546"
 path = "core::ops::range::Range::start_bound"
 kappa = "7dca69207c6fd3731aca2e27724d0cd62622fb4ef5ed75779746b1594615c3ef"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "06bee92a41f72bcd84663777624a95893cb96406687736bbecb89fa698b2a7f7"
 
 [[fn]]
 path = "core::ops::range::Range::start_bound#2"
 kappa = "fcec529ef3916b5142f8d919472a905d651dc8c60c9e2509a41b36ae759eed4a"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "06bee92a41f72bcd84663777624a95893cb96406687736bbecb89fa698b2a7f7"
 
 [[fn]]
 path = "core::ops::range::RangeFrom::bound"
@@ -15760,70 +15762,70 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::ops::range::RangeFrom::end_bound"
 kappa = "27d73ba691e526d31c41b1c2f4b28d87a8148acefb65435875d40e1eb590afe0"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "1729036228f258fa52f67407578371833e583b37308ab2c4d66de1f35d666f14"
 
 [[fn]]
 path = "core::ops::range::RangeFrom::end_bound#2"
 kappa = "c04e0720fe935a0b3aa594ea50fc7aae1a3128a6768ccc1cbff90aa5110d7f6e"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "1729036228f258fa52f67407578371833e583b37308ab2c4d66de1f35d666f14"
 
 [[fn]]
 path = "core::ops::range::RangeFrom::fmt"
 kappa = "7089f36dac048941e37d0a7c4afbf39cf905ed2d1fad7a5caf7225286b6e8983"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ops::range::RangeFrom::into_bounds"
 kappa = "ba485e75492f289d7a8ad879ef3850213cbc1a64835a3cd49837aa7f5cc89a70"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "b0ec49bcaa7bfb57e2865946575b12efba5a793cd7af52480e633ed600ad607b"
 
 [[fn]]
 path = "core::ops::range::RangeFrom::start_bound"
 kappa = "66fb6d906f868c9fc6ec0d9fa4143596fe17e75289169db6d256969002bd661f"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "7dcc64bfd100171c35e88bbc0fd533c8344cee0342fb252393fc875edc257eef"
 
 [[fn]]
 path = "core::ops::range::RangeFrom::start_bound#2"
 kappa = "9ffcfe5872749bf5f7268983b3e564a9d4731bcd3bdc6dd67621cfd4eb4f0db6"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "7dcc64bfd100171c35e88bbc0fd533c8344cee0342fb252393fc875edc257eef"
 
 [[fn]]
 path = "core::ops::range::RangeFull::end_bound"
 kappa = "258ed1a3eaaf9ac2b8cb392d160e47dda15a8f4129f6f41f2167d6247e487ba8"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "4c08d5afc34cb455d25c733532b7ba3959ca3e7386b5ab3ecdac2008f2a084b5"
 
 [[fn]]
 path = "core::ops::range::RangeFull::fmt"
 kappa = "66c4c4576ff0a8f4af185c3a36ad7594e4e8bf768386a878819d3835c8ac1e40"
-status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::Formatter::write_fmt: core's MIR stops at type outside the lift: Arguments<'_>"
+status = "translated"
+digest = "99eb819373ad0e64833f8c976ba4ba59fb5c9e4336b93f190d188abc4eff6edb"
 
 [[fn]]
 path = "core::ops::range::RangeFull::into_bounds"
 kappa = "83c5e4aff9e477cf35221f952c8082161b4487718758eacb940eb64bf74b9898"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "83bfdfbe403cbe0f5cc4b3cc5cb5c67ec2b81cabae1cdd3ae6de4985a5c73dff"
 
 [[fn]]
 path = "core::ops::range::RangeFull::start_bound"
 kappa = "60c3b350564e12f49e1d0f7b14cf3fda16df55e37d32a4e7d29032a64917e7b7"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "9a98c066fc43c2be96f922bc978718d5baa936cb8c73e383eeeec2b67f6ce85f"
 
 [[fn]]
 path = "core::ops::range::RangeInclusive::contains"
@@ -15843,29 +15845,29 @@ digest = "3b05065c5bced77af2cddec713c0359f6989a46e3fe18b72852149d001474775"
 path = "core::ops::range::RangeInclusive::end_bound"
 kappa = "60e9220230ec6c9aa8b224a312114c70e705319a491a1d2a8a6a5d6f1f7d100d"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "6b6c829b15eaa658c02490a828b24a6df9edc839b39e7e534922d5b467c90ce8"
 
 [[fn]]
 path = "core::ops::range::RangeInclusive::end_bound#2"
 kappa = "7adde1642302cbe7e699023a08d40487d7763e72e5c6fb6870889ea00e3eb616"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "b572a25d8a6ab81823eaa5139e67329e5089271a2b2f38506c05b0a4b5490156"
 
 [[fn]]
 path = "core::ops::range::RangeInclusive::fmt"
 kappa = "401293e0d36f1a406d7b603907962c30714c9a5829c2d35de00e423a56bf1857"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ops::range::RangeInclusive::into_bounds"
 kappa = "71704eb17d60514ca76dedeb43379ba4346647f89de6e54324b824133986dc46"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "32d7d98e5942a4e0974d771e495c2b9bbd4c2263d766a4054d2a3ef356b30ad0"
 
 [[fn]]
 path = "core::ops::range::RangeInclusive::into_inner"
@@ -15905,15 +15907,15 @@ digest = "bd8b95df23d0c18637cb85eb32715e2196b1b81434b4701d3d7333552d815544"
 path = "core::ops::range::RangeInclusive::start_bound"
 kappa = "879ead6412e93e0fb26b218b25b46baffab0fdd031b18d43ae8dda7d75760044"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "047b31ccb96d567e4296ed67de9a333ad229961227a9c6dc86366223f9ee73b4"
 
 [[fn]]
 path = "core::ops::range::RangeInclusive::start_bound#2"
 kappa = "4488d1b3dab70fb7d24ea851bbf482e22a76a5572695c26b3ad2b9e6b62cc6d1"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "047b31ccb96d567e4296ed67de9a333ad229961227a9c6dc86366223f9ee73b4"
 
 [[fn]]
 path = "core::ops::range::RangeTo::bound"
@@ -15933,43 +15935,43 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::ops::range::RangeTo::end_bound"
 kappa = "d69563d1ad1d119efe4c85adc733ee4f206cddc7b86eaa89f5af803161dccf0d"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "e6f2962b20e75e002249fdbe1b20bf4341f62a07b902246f5996bad6ab77cdc9"
 
 [[fn]]
 path = "core::ops::range::RangeTo::end_bound#2"
 kappa = "d00795fac068f0e5f77ce4f4dcb83974a01089d5a51d21e1bc143b50317fa26b"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "e6f2962b20e75e002249fdbe1b20bf4341f62a07b902246f5996bad6ab77cdc9"
 
 [[fn]]
 path = "core::ops::range::RangeTo::fmt"
 kappa = "ec2eff205172056150013c2aa145f085964aca174d98acd4fa5226dff63cd2bb"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::Formatter::write_fmt: core's MIR stops at type outside the lift: Arguments<'_>"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ops::range::RangeTo::into_bounds"
 kappa = "08cf3981258a35c0ed2d1ad67c2efbcc99e18d95e69cde7feaeb77d6194fa8f9"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "29aa41d7bc2701064d133ca0e1d895ac8c338de74d949d5af0085415e82e5ad8"
 
 [[fn]]
 path = "core::ops::range::RangeTo::start_bound"
 kappa = "4005ce0e6c2ca11b1c7bd323b351422fc12d86961eda35f0bfa222f00de46f76"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "8587c08a864ecbc9fea7f44b38f3bae8ae6f77f2f92d06812d4a6bb3ae09072f"
 
 [[fn]]
 path = "core::ops::range::RangeTo::start_bound#2"
 kappa = "1166eb26090d2789002d4087957aa6ced8c4a98390f8fb6bfb4123ce4c9fc348"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "8587c08a864ecbc9fea7f44b38f3bae8ae6f77f2f92d06812d4a6bb3ae09072f"
 
 [[fn]]
 path = "core::ops::range::RangeToInclusive::bound"
@@ -15989,64 +15991,64 @@ cause = "mir::TerminatorKind::Call: ops::range::RangeBounds::contains: core's MI
 path = "core::ops::range::RangeToInclusive::end_bound"
 kappa = "4f1674d1ff329e280b46e8cc735ed4168beb837e87c090278e44ac19b9653ad3"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "2d23f1956aa0484eedf62aea58a87b448d525e109468d1f8ad5de34e9f4928af"
 
 [[fn]]
 path = "core::ops::range::RangeToInclusive::end_bound#2"
 kappa = "6ec9fe49a205f1f1015baece93c0d82b9a78b9e1d13ed9169476afcaa72120b6"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "2d23f1956aa0484eedf62aea58a87b448d525e109468d1f8ad5de34e9f4928af"
 
 [[fn]]
 path = "core::ops::range::RangeToInclusive::fmt"
 kappa = "e54d7ad825c639fe3e6c041e4edc5235518200992e830e387e638286c54f4a99"
 at = "Idx=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::Formatter::write_fmt: core's MIR stops at type outside the lift: Arguments<'_>"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::ops::range::RangeToInclusive::into_bounds"
 kappa = "3a151f7d8506ace28bebbbeb894b42c26599e11ed8a272880940f3a2ed328824"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<u32>"
+status = "translated"
+digest = "456c126c6af2a1d686e13c7f324564b9851edb29765f859396023593a1e90615"
 
 [[fn]]
 path = "core::ops::range::RangeToInclusive::start_bound"
 kappa = "f40bc378d938eebbd59e27c0239a032700840899e75a50ca5cf4a5faca9f54a3"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "93932fd11a612f2305b986cb9da5eb15d4a9f1b35342ef95a11a1af578b74bdb"
 
 [[fn]]
 path = "core::ops::range::RangeToInclusive::start_bound#2"
 kappa = "5abefd698a653f57924415264d5eecd4f4b42146186cf8a144b8d3434c2f6db0"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: ops::range::Bound<&u32>"
+status = "translated"
+digest = "93932fd11a612f2305b986cb9da5eb15d4a9f1b35342ef95a11a1af578b74bdb"
 
 [[fn]]
 path = "core::residual_into_try_type"
 kappa = "ff27425f0c6f63094e4d5605e4742960bac17c302fe92d4b2d72eeb84072f74f"
 at = "O=u32, R=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::try_trait::Residual<u32>>::TryType"
+cause = "mir::Instantiation: u32 for a parameter bounded by FromResidual, which u32 does not implement in core"
 
 [[fn]]
 path = "core::try_trait::<impl at library/core/src/ops/try_trait.rs:456:10: 456:15>::fmt"
 kappa = "05cbcfc1ea873aa6cdfd25451a8a529f91c2e8c47f8aa5ac5e5876b884b79f91"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&u32 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::try_trait::NeverShortCircuit::branch"
 kappa = "14b9f196f936bd5a90776be10d4402bd722942a3b84693c078eff662a398607e"
 at = "T=u32"
-status = "residue"
-cause = "mir::Rvalue::Aggregate: a Result variant"
+status = "translated"
+digest = "89292df8203aa3d0aa71c6486432611977027051e3bf22dcf72189c0f890d34a"
 
 [[fn]]
 path = "core::try_trait::NeverShortCircuit::from_output"
@@ -16065,12 +16067,14 @@ digest = "387be095c3cdd97978cbac51e5e8a4776184cda46191ab986d2c050c21a4e289"
 [[fn]]
 path = "core::try_trait::NeverShortCircuit::wrap_mut_1"
 kappa = "eb29e7ddbb526eb423f0b1b77100fc7040f93dc4e1d861539a76c18d75db0962"
+at = "F=u32"
 status = "residue"
-cause = "mir::Ty: {closure@library/core/src/ops/try_trait.rs:415:9: 415:23}"
+cause = "mir::AggregateKind::Closure: try_trait::<impl at library/core/src/ops/try_trait.rs:402:1: 402:29>::wrap_mut_1::{closure#0}: mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
 
 [[fn]]
 path = "core::try_trait::NeverShortCircuit::wrap_mut_2"
 kappa = "e8df0f55f2e73da9459bfa680298525f13061212aa6f0bb94b369e41906b772c"
+at = "A=u32, B=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: {closure@library/core/src/ops/try_trait.rs:420:9: 420:20}"
+cause = "mir::Ty: impl FnMut(u32, u32) -> u32"
 

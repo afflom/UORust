@@ -1,38 +1,38 @@
 [[fn]]
 path = "core::NORMAL0"
 kappa = "a2ec16f558866a21655dabdcf3f66c82e13c8a04b0a47a0b8c1778803e04a131"
-status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+status = "translated"
+digest = "384d21d7467298175807c6cbe8435efd9e79beb1ea4a34e23cffa671b35ecaa3"
 
 [[fn]]
 path = "core::NORMAL1"
 kappa = "21072aa3067b96109c480a2bf98ccb56e0574236b27b9cfe33c7761841653603"
-status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+status = "translated"
+digest = "42e82655120d0dc769ecb4fe650dde0a5a40b508118270e31f98c6f9b05e88ef"
 
 [[fn]]
 path = "core::SINGLETONS0L"
 kappa = "45eb176d868faeaae91e9b7f3120dabe0c5f022e7a2f1b3923f4b9339a1eec66"
-status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+status = "translated"
+digest = "b007b7bbe4a88a6232f3688d9e9b44f3782f091d45dc7114b009d1c7fe264f2a"
 
 [[fn]]
 path = "core::SINGLETONS0U"
 kappa = "b4b6d5265a043ac06bab75c0f507e4770533db6392398433ab89b09314367a49"
-status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List TupleNatNat) to (List TupleNatNat)"
+status = "translated"
+digest = "88bf9edd4b5f04a426506855f8a4574f6f47de64cfc110793185d31962e15363"
 
 [[fn]]
 path = "core::SINGLETONS1L"
 kappa = "8063ace897fb0b65213bf8338049a40779e6c853c055f37f1df639408bae3b39"
-status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List Nat) to (List Nat)"
+status = "translated"
+digest = "0ed4a33d83ed6063744965cdff9784ed96d4acea308a8aebd7398fb0a80f38f6"
 
 [[fn]]
 path = "core::SINGLETONS1U"
 kappa = "d755fbc31179f50d59ac0d9d27d7de84f359ee6821181f7726ba35db730d018d"
-status = "residue"
-cause = "mir::CastKind::PointerCoercion: from (List TupleNatNat) to (List TupleNatNat)"
+status = "translated"
+digest = "080a843d86dd6df791d40beee55f580838fbdd2b6e2bba70b220053d39f091eb"
 
 [[fn]]
 path = "core::alphabetic::lookup"
@@ -49,9 +49,9 @@ cause = "mir::Operand::Constant: unicode::unicode_data::alphabetic::lookup_slow:
 [[fn]]
 path = "core::bitset_search"
 kappa = "3fdeac1738d8b88d3e1c9691548fc04695cbcd4c5d6a9a2f92574dd0edd900a6"
-at = "CANONICAL=#, N=#"
+at = "CANONICAL=#, CANONICALIZED=#, CHUNK_SIZE=#, N=#, N1=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::Operand::Constant: a const parameter's value"
 
 [[fn]]
 path = "core::case_ignorable::lookup"
@@ -86,8 +86,8 @@ digest = "c27e6f8b3142a388a8f9e9b829c0675576b4ef6af65b9b1f7ec1145af0b71ff5"
 [[fn]]
 path = "core::conversions::Range::singleton"
 kappa = "6ae2f06bdf765175e4d27811cd2be431fa370e9985d53218401cff0774485daa"
-status = "residue"
-cause = "mir::TerminatorKind::Call: conversions::Range::new"
+status = "translated"
+digest = "a01df5c4f61896fefaf86b3b1dcb4c91314fcf28e7fb615e65f5416b30d33693"
 
 [[fn]]
 path = "core::conversions::Range::start"
@@ -98,14 +98,14 @@ digest = "6869dfc6dc9babc985d0641f8730cbce8b1b4d0f0501261396101d049934de26"
 [[fn]]
 path = "core::conversions::Range::step_by_1"
 kappa = "51ee1c04be413b885afd2abf079980b6eb5a03846fb2c4d7f73148a8b9581a51"
-status = "residue"
-cause = "mir::TerminatorKind::Call: conversions::Range::new"
+status = "translated"
+digest = "0bb8a4971bd4c7fbd25f4d62ecac21fd64dee92933c0516a077559d44c35ac79"
 
 [[fn]]
 path = "core::conversions::Range::step_by_2"
 kappa = "7dcbb8a4bc0c71cd1698fab3aa80cc96a2bf1cf0512e090467a7cb5162413085"
-status = "residue"
-cause = "mir::TerminatorKind::Call: conversions::Range::new"
+status = "translated"
+digest = "1e54ad60fa510d92421971d31795a5d26e157dfec2676fec7dea4780c4510cae"
 
 [[fn]]
 path = "core::conversions::lookup"
@@ -177,14 +177,14 @@ cause = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would
 path = "core::reconstruct"
 kappa = "15470772406e00c9f2906a8bf51c16d4f4fe2d0aa5772dd68ae225974fede688"
 status = "residue"
-cause = "mir::TerminatorKind::Call: char::methods::<impl at library/core/src/char/methods.rs:11:1: 11:10>::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: char::methods::<impl at library/core/src/char/methods.rs:11:1: 11:10>::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: char::convert::from_u32_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to String, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::skip_search"
 kappa = "3424074758d3dc366a43611af28fe066dec5891ea04643a3ef0b15724cc5a252"
 at = "OFFSETS=#, SOR=#"
 status = "residue"
-cause = "mir::Instantiation: a const parameter"
+cause = "mir::CastKind::IntToInt: from String to Nat"
 
 [[fn]]
 path = "core::to_lower"

@@ -3,20 +3,20 @@ path = "core::assert_failed"
 kappa = "754a346b046033f7fc9a4381c220668fcba8730c6e323417cbb3678e2266d466"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+cause = "mir::TerminatorKind::Call: <&u32 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::assert_failed_inner"
 kappa = "ef81737ae82a03547ee448836d22d542a40cddfdb60b9b5737b5e6801516bbe6"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&str as fmt::Display>::fmt"
 
 [[fn]]
 path = "core::assert_matches_failed"
 kappa = "11ef87e23f2003b25ee733b651f6fffa4cb5e7761491a26749d742b61bbfe6f4"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+cause = "mir::TerminatorKind::Call: <&u32 as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::assert_matches_failed::Pattern::fmt"
@@ -27,14 +27,14 @@ cause = "mir::Ty: assert_matches_failed::Pattern<'_>"
 [[fn]]
 path = "core::const_panic_fmt"
 kappa = "fea88de07149a20831609d2a806e6037c73bab139c3c9fc03c20d68ba6e06f3f"
-status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+status = "translated"
+digest = "6002bfde50d5aaba87905bea87c2099fdd73d025de3e95c8896b58f4adf9259c"
 
 [[fn]]
 path = "core::panic_bounds_check"
 kappa = "5d06d5ce585e21630f13d8b21f61296d15cd3431dffa479ca365f236379ce923"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <usize as fmt::Display>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::panic_cannot_unwind"
@@ -179,7 +179,7 @@ path = "core::panic_display"
 kappa = "e61b6e3e2177cf75df53f05a55f5c17b4b78df1a6146da533057286d1988e1c0"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Display>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::panic_in_cleanup"
@@ -208,20 +208,20 @@ digest = "42d2867087328a4e6ee1dbe9e7806dbfeedac4696da3a006707844b00ae3b7df"
 [[fn]]
 path = "core::panic_nounwind_fmt"
 kappa = "4591f49dd4c57cd4a0c483b3450bccc45a8bb866d6b4ba400f4786198d043b5f"
-status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+status = "translated"
+digest = "4e95f6cd292172c3327cb0ae46dc4a3100e11aade11a5719bb3ffbccf3624354"
 
 [[fn]]
 path = "core::panic_nounwind_fmt::compiletime"
 kappa = "e900e01bdeeebd69c471597874e1efad2b5efd24d47e7b37436564b8b32b0639"
-status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+status = "translated"
+digest = "16e9ac7e305adbff6b8147ab3a7d65965a3ca6733a86655ea5ee94cf0050e704"
 
 [[fn]]
 path = "core::panic_nounwind_fmt::runtime"
 kappa = "b2554cbcd231c3e5ef690fd593f5e2039b7840417e462ce593072fd102e953ab"
 status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+cause = "mir::Ty: panic::location::Location<'_>"
 
 [[fn]]
 path = "core::panic_nounwind_nobacktrace"
@@ -257,12 +257,12 @@ digest = "97bb7ea2305a95b449f894d4144dcdfbbd3ea6d15c21761b21474c3026bc451b"
 path = "core::panicking::panic_fmt"
 kappa = "4ae03d6e6ed134a24a4ff3894255f2aa81c0ce4fbc24a24ad9d3365cc15c08dd"
 status = "residue"
-cause = "mir::Ty: Arguments<'_>"
+cause = "mir::Ty: panic::location::Location<'_>"
 
 [[fn]]
 path = "core::unreachable_display"
 kappa = "2a4298a5eb1550d3184612a44575a52d60b8a7e521f406590776ccbb59320124"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Display>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 

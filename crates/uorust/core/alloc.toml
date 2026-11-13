@@ -3,7 +3,7 @@ path = "core::Allocator::allocate_zeroed"
 kappa = "b575982be6f634d60beccbcaed389bc2a347a41f8fe5bb444189c3f6a8ad7336"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::Allocator::by_ref"
@@ -17,21 +17,21 @@ path = "core::Allocator::grow"
 kappa = "5086551c620fc320a2ca91a9b3353967c6f3d46f030c2ceef258e957a118b6b3"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::Allocator::grow_zeroed"
 kappa = "25e48b8f491cad92c9c78379601dc08758726314ade0f8470c7e0bcb03a36e85"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::allocate_zeroed: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::Allocator::shrink"
 kappa = "a9faa56df333598e0b2c419b743c3e1ca5be3899a480b8fb2fed255ab9599e15"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::GlobalAlloc::alloc_zeroed"
@@ -45,7 +45,7 @@ path = "core::GlobalAlloc::realloc"
 kappa = "aadd176fca280ccf3277cfc0f791fca75acb467bae361e0cf44c6ca00821bb2c"
 at = "Self=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::alignment"
+cause = "mir::Instantiation: u32 for a parameter bounded by GlobalAlloc, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:31:16: 31:21>::clone"
@@ -76,84 +76,84 @@ path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::allo
 kappa = "cfc35ca594f2022e9b126b18fc19b2546666334a2b64342f45f52c971320d498"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::allocate_zeroed"
 kappa = "bbb2607f104fe4f772b0eb6e68d2559f390e83207522f7af5bbce6835c3b6654"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::allocate_zeroed: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::deallocate"
 kappa = "20623e1bd352b09e96efbbb616202cb5f5c1c8f9f3c612e5d81298081cc0bc30"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: NonNull<u8>"
+cause = "mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::grow"
 kappa = "4cff643555af698e4daddf453ebc493ec72307a679e256f341becf9575be88ec"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::grow: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::grow_zeroed"
 kappa = "ec8cee86e096ab39e2d7a4643197061daf62cd03252c8ed6c26a4ae70481f913"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::grow_zeroed: core's MIR stops at mir::TerminatorKind::Call: alloc::Allocator::allocate_zeroed: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:380:1: 382:35>::shrink"
 kappa = "e9f98084f87c7924cec7a0c94dd76d03b8287e7bed3875583afa700cfdc2f4f5"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::shrink: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::allocate"
 kappa = "d9e258ca9b8ab539926ed7a1ac26402248c1be660f6b42871666115fac3d9440"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::allocate_zeroed"
 kappa = "eac73d06447caa85633ae61f06bfebcbb396fbc4d6c7be7ce9b0b8dc7193e614"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::allocate_zeroed: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::deallocate"
 kappa = "c04475c6b344d5533f0d257414c0b1bd2b564b1d2c9a1d5e7b92c2b3faabefe6"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: NonNull<u8>"
+cause = "mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::grow"
 kappa = "8da5105d664c4ac7b664669b12eb62adb56f89ae5ccb67dc4037f0977c394d0c"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::grow: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::grow_zeroed"
 kappa = "3c090edd04689532aa7356bb4bc84d49125f1b67d91ab923355c4ab993c780d1"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::grow_zeroed: core's MIR stops at mir::TerminatorKind::Call: alloc::Allocator::allocate_zeroed: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::<impl at library/core/src/alloc/mod.rs:435:1: 437:27>::shrink"
 kappa = "5edb9acbd001332c052e522aef92a9d54b3cf639254ba40a1cdef407ecc872e7"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<[u8]>"
+cause = "mir::TerminatorKind::Call: alloc::Allocator::shrink: core's MIR stops at mir::Instantiation: u32 for a parameter bounded by Allocator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::alloc::AllocError::fmt"
@@ -165,7 +165,7 @@ digest = "0771a2db50ad32bc5ff6122efcbb10d8c984045cc9cf735d4cd9321b9556ae68"
 path = "core::inner"
 kappa = "ad91324b9eb50964db0336e1564a5b1e956008ac11cb3080b44812727023a8de"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::max_size_for_alignment"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::max_size_for_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:16: 28:21>::clone"
@@ -177,13 +177,13 @@ digest = "990f2f8503423480a3abda7c73f760605ffd363ac9c90935c1f334c67cf3a1e3"
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:23: 28:28>::fmt"
 kappa = "d6ed07336fd3d2eeb04f73b917f82757fe86683766b4174c842c741efa01878e"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:30: 28:39>::eq"
 kappa = "4cf87614574409ba2438621489745bcd62a5c6fa8dc78edb19f98de53c6d7e5b"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <alignment::Alignment as cmp::PartialEq>::eq"
+cause = "mir::TerminatorKind::Call: mem::alignment::<impl at library/core/src/mem/alignment.rs:15:23: 15:32>::eq: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::<impl at library/core/src/mem/alignment.rs:405:23: 405:32>::eq: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value of AlignmentEnum, whose variants its source declares by target"
 
 [[fn]]
 path = "core::layout::<impl at library/core/src/alloc/layout.rs:28:41: 28:43>::assert_fields_are_eq"
@@ -225,19 +225,19 @@ digest = "4fea91c6565eb2b7a4f5759a7ff879b9904b1a1439d30bd19df3fbb7538749d6"
 path = "core::layout::Layout::adjust_alignment_to"
 kappa = "7b0609d36198dc78f2eaa392d521b4a201cfd8157db69bcea67a9fa8ec3603f1"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::max"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::max: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::align"
 kappa = "fd2592345b77ace114dfd978c9c02a37545b9907079875e392daa9463f4a77f8"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::align_to"
 kappa = "71036e29598db16523ca0e47301b608405703a8a8a1f876ff8b02f6af0ecdbed"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to CoreMemAlignmentAlignment, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::alignment"
@@ -249,63 +249,63 @@ digest = "369773d800a9bbbdbdbb73be9edb0f98f1d25a77997c11e5a181c641f9bf5ebe"
 path = "core::layout::Layout::array"
 kappa = "714f789016235e4210a994033cacdafb3ef15b0e2b9fb2070dbcdcacd2431119"
 status = "residue"
-cause = "mir::Operand::Constant: <T as mem::SizedTypeProperties>::LAYOUT: mir::Operand::Constant: <T as mem::SizedTypeProperties>::SIZE: type outside the lift: T"
+cause = "mir::Operand::Constant: <T as mem::SizedTypeProperties>::LAYOUT: mir::Operand::Constant: <T as mem::SizedTypeProperties>::SIZE: mir::TerminatorKind::Call: intrinsics::size_of, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::layout::Layout::dangling_ptr"
 kappa = "df905390658fee5d677d5826b91ede486f7fa82c3a49cfef7715ff8b9641f374"
 status = "residue"
-cause = "mir::Ty: ptr::non_null::NonNull<u8>"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::extend"
 kappa = "b9b8d539a92909324670fda481cba0baa2c816e85fe197f3b97de08abd21186e"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::max"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::max: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::extend_packed"
 kappa = "2fe89e4673d3a0d078b1134841c2c3b1e87b89c235d97e6128371531141fb149"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::from_size_alignment"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::from_size_alignment: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::is_size_alignment_valid: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::max_size_for_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::for_value"
 kappa = "c10a96355bc6d833f1d870689048f308d0889512e8fc587a42deb15835337bdd"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::size_of_val: core's MIR stops at mir::Rvalue::RawPtr"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::of_val: core's MIR stops at mir::TerminatorKind::Call: mem::align_of_val: core's MIR stops at mir::TerminatorKind::Call: intrinsics::align_of_val, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::layout::Layout::for_value_raw"
 kappa = "9e38b8a2eac1cb3587500b7b5e4b317a4cd5d6d42582504d54eecf9592f3ea01"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::of_val_raw"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::of_val_raw: core's MIR stops at mir::TerminatorKind::Call: mem::align_of_val_raw: core's MIR stops at mir::TerminatorKind::Call: intrinsics::align_of_val, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::layout::Layout::from_size_align"
 kappa = "57abcf2f370d636b663aceb0bb39adcba71f4df06a0c0784008e6f780c03e578"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alloc::layout::<impl at library/core/src/alloc/layout.rs:44:1: 44:12>::is_size_align_valid: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::is_size_align_valid: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to CoreMemAlignmentAlignment, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::from_size_align_unchecked"
 kappa = "948a2d93a43b37748969ff89c11bf7264de47c96f01cf9d92d6f10ad2585c8f8"
 status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::transmute, an intrinsic the table does not model"
+cause = "mir::TerminatorKind::Call: intrinsics::transmute from Nat to CoreMemAlignmentAlignment, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::from_size_align_unchecked::precondition_check"
 kappa = "bd8448565ef2a4f550683974557dbb871efc9e0e9a74b847949c036be398c021"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alloc::layout::<impl at library/core/src/alloc/layout.rs:44:1: 44:12>::is_size_align_valid: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::is_size_align_valid: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to CoreMemAlignmentAlignment, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::from_size_alignment"
 kappa = "d7490469d2ca79e2ad6eb8b20d48a0bd27a8fc69d0aff914246c75aed97d5e68"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::is_size_alignment_valid"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::is_size_alignment_valid: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::max_size_for_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::from_size_alignment_unchecked"
@@ -317,55 +317,55 @@ digest = "f8ccb4d7ff808208f66d1ef2134651bfe3644130b45200bebb6022824257987b"
 path = "core::layout::Layout::from_size_alignment_unchecked::precondition_check"
 kappa = "d5dec3a284d77f074ef64438fd45cd4b8885b1ff9fc28d48c557cab0dfd32755"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::is_size_alignment_valid"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::is_size_alignment_valid: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::max_size_for_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::is_size_align_valid"
 kappa = "44be45b21c1853245f55c23008dae8eb093f6e642498850821ffde7df0ac811b"
 status = "residue"
-cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: alignment::Alignment::new_unchecked"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::new: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::new_unchecked: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from Nat to CoreMemAlignmentAlignment, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::is_size_alignment_valid"
 kappa = "1197ff765439f1fb4a93b0c32a0f8dcfd52d8f177b10288846c1245656c06a92"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::max_size_for_alignment"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::max_size_for_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::max_size_for_alignment"
 kappa = "a148db3f7e51e6705047a24f56af4a1fc86282ae0411fe3b61e5d93e4cb8279a"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::new"
 kappa = "285f0fdfabc07d458333d9c22e39ce8189dc0c9b0d1cb715a966c1cbd7368b83"
 status = "residue"
-cause = "mir::Operand::Constant: <T as mem::SizedTypeProperties>::LAYOUT: mir::Operand::Constant: <T as mem::SizedTypeProperties>::SIZE: type outside the lift: T"
+cause = "mir::Operand::Constant: <T as mem::SizedTypeProperties>::LAYOUT: mir::Operand::Constant: <T as mem::SizedTypeProperties>::SIZE: mir::TerminatorKind::Call: intrinsics::size_of, an intrinsic the table does not model"
 
 [[fn]]
 path = "core::layout::Layout::pad_to_align"
 kappa = "00bb851e46b64b3ec3ebf4bc18a501dd2e1e38103db6dcc0e8fb440839a29741"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::size_rounded_up_to_custom_alignment"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::size_rounded_up_to_custom_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::padding_needed_for"
 kappa = "3252b80e93dd409aa355147b0bd9bc94567b2c766dde16e2d7da9fbd51b6bdc9"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::size_rounded_up_to_custom_alignment"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::size_rounded_up_to_custom_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::repeat"
 kappa = "9d01e1750c7542baec0199f303031fb1a74192f6de3c9511a6dc78e99e8591f6"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alloc::layout::<impl at library/core/src/alloc/layout.rs:44:1: 44:12>::pad_to_align: core's MIR stops at mir::TerminatorKind::Call: Layout::size_rounded_up_to_custom_alignment"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::pad_to_align: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::size_rounded_up_to_custom_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::repeat_packed"
 kappa = "e039e0f6c9c69b00c64b0da660b1c9feabd9483f76e2b8be9ec892abd02332a5"
 status = "residue"
-cause = "mir::TerminatorKind::Call: Layout::from_size_alignment"
+cause = "mir::TerminatorKind::Call: alloc::layout::Layout::from_size_alignment: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::is_size_alignment_valid: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::max_size_for_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::Layout::size"
@@ -377,7 +377,7 @@ digest = "f53991eedf9a6e8c12544255b11652c6553c6b0a4acba722811694bd6df2e2cc"
 path = "core::layout::Layout::size_rounded_up_to_custom_alignment"
 kappa = "2b245982d3008c0678e6908014cb9315f675926c6310769f847cb1be95259269"
 status = "residue"
-cause = "mir::TerminatorKind::Call: alignment::Alignment::as_usize"
+cause = "mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize, of layouts the lift does not relate"
 
 [[fn]]
 path = "core::layout::LayoutError::fmt"

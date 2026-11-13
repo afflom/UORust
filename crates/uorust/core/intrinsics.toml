@@ -13,23 +13,23 @@ digest = "5be8d41e61e0e7ac7b688a113be3f7c9e9fc5b06efc34e1a5addeb29c1f7fe1a"
 [[fn]]
 path = "core::CastPtrToPtr"
 kappa = "564aacb6410aeac977c92b09ac031cddcb3917f90ef00845ecde0d46496374b7"
-at = "U=u32"
+at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::CastTransmute"
 kappa = "fd5bb875ab35379dda6d7d53fbb97e92b66e2a1b4d2c965b9d8350ce54e07377"
-at = "U=u32"
+at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::CastUnsize"
 kappa = "fc5a129c0076df82d351b61b09f4b75380a1e85b534e6c572b364aa063782327"
-at = "U=u32"
+at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::Checked"
@@ -43,7 +43,7 @@ path = "core::Discriminant"
 kappa = "a66c7a8013492689d833902356174ec04bed49cc90ec1a8d7155b02b0a25858e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as marker::DiscriminantKind>::Discriminant"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::Field"
@@ -68,16 +68,16 @@ cause = "mir::TerminatorKind::UnwindResume"
 [[fn]]
 path = "core::Offset"
 kappa = "facce8c98ad6796bd354ae6ee393f0b1f8cd1df3b01c474e624b07a59429736b"
-at = "T=u32"
+at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: U"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::PtrMetadata"
 kappa = "1feeb74ede555a2fc0c7798c4ebd0bb78f1e39f44863f93fd76601cb2434e7a0"
 at = "P=u32"
-status = "residue"
-cause = "mir::Ty: <u32 as ptr::metadata::Pointee>::Metadata"
+status = "translated"
+digest = "c6206cbeef617999c6ada5ce8e038442dc2690207a509ab17824dd03dfd06f2f"
 
 [[fn]]
 path = "core::Return"
@@ -94,8 +94,9 @@ digest = "5e1aa2e04682cbdb7e77c95473f092993ba89ca03c7b9f0f5ebcf3bf9695ab4f"
 [[fn]]
 path = "core::SetDiscriminant"
 kappa = "e41933f894ace10c25e201da7bdabced2a66170c12f1b5e66594d4333a41af89"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::Static"
@@ -114,20 +115,23 @@ cause = "mir::TerminatorKind::UnwindResume"
 [[fn]]
 path = "core::StorageDead"
 kappa = "09a0c9026c78249a79f8b4455dbbbfacecfed6da96a42f73ebe1322dfa576522"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::StorageLive"
 kappa = "810984e67fa2c35b7ee8bbddb59e8b2e81341c12094d9410375d6e0394a613ac"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::TailCall"
 kappa = "3a9b41638ad56b3e5ea907fc7a23d076cb2b32f6c2ca80a31ac1f5914567c1d7"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::Unreachable"
@@ -168,14 +172,16 @@ digest = "d5b2e829ab3ba202ab8f0eb9269e6aa4f1661b11108883522add3e697ffe26b8"
 [[fn]]
 path = "core::Variant"
 kappa = "11dbe073600cd17d5ae1487fed399b4ac2141b8400f689302db24131808df6f7"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::__debuginfo"
 kappa = "89cc93ec3b234f89bdc7afbac78c761a6aa0ae2149faeae88e731db508c2d338"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::__internal_make_place"
@@ -200,9 +206,9 @@ digest = "bdd67bec7d9856dee621a4aa60788317056e31fb946d4ceb798a3c7fcc3497c9"
 [[fn]]
 path = "core::aggregate_raw_ptr"
 kappa = "ce815395d0ef31d3f90522793f48d2d0b7e6ad75449ae96cbb90811556beca00"
-at = "P=u32"
-status = "residue"
-cause = "mir::Ty: D"
+at = "D=u32, M=u32, P=u32"
+status = "translated"
+digest = "ef81dcd65fa56a1f50d679c1a11482ebec12315c105ba1482656fac0eec1c7a8"
 
 [[fn]]
 path = "core::arith_offset"
@@ -264,9 +270,9 @@ digest = "55be75792c6f0626ea27e5455043aa38d182dedda76448c590c84c6a44a778ab"
 [[fn]]
 path = "core::atomic_xadd"
 kappa = "b4f250d4ff86bf1b1bb5da6e52704e866b6f462297953bb2eac8bb669d06eee7"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "d2f78e0c51e01f9c0e72edff261547c48f5ce23c31d6f7c71274ad350b68e9a0"
 
 [[fn]]
 path = "core::atomic_xchg"
@@ -278,16 +284,16 @@ digest = "6bfb918745e6b331c556a09b8d320ff175d6567d42eeb7fb75eab6f7cc854f4c"
 [[fn]]
 path = "core::atomic_xsub"
 kappa = "22f8ccc475be65e37d85f6a4d6937737b7cc453e6ab3f75738140851bd2efa42"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "c1c50b49f1ed6b9f729fe0094319c9d347a25aadc522bc0a8ecef04f22476427"
 
 [[fn]]
 path = "core::autodiff"
 kappa = "00d6e5e400d975a19cf73b63ec9a43b0bab9d5e6b268733fa8ec63352dbc8450"
-at = "R=u32"
-status = "residue"
-cause = "mir::Ty: F"
+at = "F=u32, G=u32, R=u32, T=u32"
+status = "translated"
+digest = "85dd3216561c68a037f8430d73030a5161e94016193c1a2d8f0db660c0e5e720"
 
 [[fn]]
 path = "core::bitreverse"
@@ -374,9 +380,9 @@ digest = "f3af8acac022c4b3f3c480e8411fabe6eb27ff6106d1e69124b10db648525fb1"
 [[fn]]
 path = "core::const_eval_select"
 kappa = "f71948815514c7d51b87ba69cf54035ce3420aa790f6bb6a95da8a1544747c8c"
-at = "RET=u32"
-status = "residue"
-cause = "mir::Ty: ARG"
+at = "ARG=u32, F=u32, G=u32, RET=u32"
+status = "translated"
+digest = "805d94f944dcfb37c6f211747a66f8416b5c423e9ec597168b6842fb3f5bf40f"
 
 [[fn]]
 path = "core::const_make_global"
@@ -476,39 +482,44 @@ digest = "5164767699f3275255f875e66f58ec5c6dfb19bac594d26836b4c0d3265a4824"
 [[fn]]
 path = "core::ctlz"
 kappa = "c9516a418aa3f43b77edd17e18719e445e9cc4ff0368f536ea47e904da167fc1"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "70b763c1a5aa1fea4a7d465ee90ad13280fbf859cc2300dc4ca7e7c8326993a3"
 
 [[fn]]
 path = "core::ctlz_nonzero"
 kappa = "ffeaa0b18937eab388ba17878756dc05a3a6b177e453ba11f4a022116a5b2a04"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "b9a0d9f385c338545be4b3562e4942ed4444f6bd241a9b730d601609fe83b464"
 
 [[fn]]
 path = "core::ctpop"
 kappa = "7a733bce2eebda2353f9da596de6184e593474c7e0a418a8824f835797c84757"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "07ec5b4bc3044161c0f013e8b09c81c77a1dcb8d1e41ee3f8f740eabc0f9ab39"
 
 [[fn]]
 path = "core::cttz"
 kappa = "23fecb41412407964c1faea1262725679d7d4f5fcd19d2748ba3588e787fb8aa"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "eaf2f19669d43aa2645ca7794b1fff7c77e4629c81079b365cafa9591c6969ab"
 
 [[fn]]
 path = "core::cttz_nonzero"
 kappa = "d857e7684679948295f1abeb8636eb62112f8409b64fc616b40b6e2bcd7b0ee1"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "0d0175701fb5ff8d30ef37e91090a20477472767a3c211716501e95692007f42"
 
 [[fn]]
 path = "core::discriminant_value"
 kappa = "a94e49b59f9e2a5ddbd811e339e37e28582952f72918faaec55c737298679c84"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: <u32 as marker::DiscriminantKind>::Discriminant"
+status = "translated"
+digest = "fa532f0d4bb32c85e1eac9f396e1974f8c92737ab2b319b62da6f81accdc3bc2"
 
 [[fn]]
 path = "core::disjoint_bitor"
@@ -874,9 +885,9 @@ digest = "5d0a83b3b709784598fb77f9454d0e21f4564ebdc8dda704eb9d841a7a58ba66"
 [[fn]]
 path = "core::float_to_int_unchecked"
 kappa = "c2f9a035cb9b5cee2f980210681becccef7477d2dc6da4e9433786cb6e4362e8"
-at = "Int=u32"
+at = "Float=u32, Int=u32"
 status = "translated"
-digest = "660ceeb7173e1e00875ecb11d07b1c17a6129dbb1fbf6d0d833710ac22eeda1d"
+digest = "03895e7b0d8ad959a00a8dbc9c9205697c9dc52705d78256c51115b6f4d2ff03"
 
 [[fn]]
 path = "core::floorf128"
@@ -1007,8 +1018,8 @@ cause = "mir::Rvalue::Discriminant: CoreIntrinsicsAtomicOrdering, whose variants
 [[fn]]
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:31: 75:40>::eq"
 kappa = "2e2aa386adacbdd4bdfdfead8b4048376bb0e629cbc486986f091b6597c0a89a"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "6e67d7d317dcc656bf0476b6f6e5479a86cdbb2a3eff6b93e2c80a1bd43557a9"
 
 [[fn]]
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:42: 75:44>::assert_fields_are_eq"
@@ -1025,15 +1036,16 @@ digest = "ed422ec7246c0f4b29a426ac7bbc6232c369aaebb055e1564dacb15a0f4465b6"
 [[fn]]
 path = "core::intrinsics::align_of_val"
 kappa = "ee41ec4b9e2597372c760a331884a5f224cce8761b61e47ca8f94f43287598b2"
+at = "T=u32"
 status = "translated"
 digest = "e8f48c270f246217400997cc1f13c019d0c08b8bbc1495795b031fbd7a70a6ab"
 
 [[fn]]
 path = "core::intrinsics::atomic_and"
 kappa = "3b3c16df6ef4823a4c8c0624360845b035be7442a7af81a80fbb8c08d5b6c1d2"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "6698bcf3100890ba12853e53d6288f9a5c34d408a91b2228323d622f762dfa61"
 
 [[fn]]
 path = "core::intrinsics::atomic_load"
@@ -1059,22 +1071,23 @@ digest = "f3ddff42d266e4c4bb49d709d21830f6babe11085dfc31e216d43cde8124a19a"
 [[fn]]
 path = "core::intrinsics::atomic_nand"
 kappa = "e6a3f4b9ea6434044447cb9ca84cf39f3d37e69543af7919dc323cdabb449870"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "c6f31e92fa2a01569a2d8c01259db3e0cbebe3e2f9b7c43dcd9e29edefa714ea"
 
 [[fn]]
 path = "core::intrinsics::atomic_or"
 kappa = "17628d0eee835c1c2bc6fa39c2eca58e746b6c56e21bc7d8260045383cc3e228"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "59d3192765b2397f546290f0be225904b4c428e78a905b87895552051db7f7c0"
 
 [[fn]]
 path = "core::intrinsics::atomic_store"
 kappa = "91cc4558bf7decc66140815a75f4a3524d0da99cec7e204534a71193ea8be3a5"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "3f5c8b2604f0676853b5e3e82fea8b276e4de84d10bdd94fcaa572f10b008927"
 
 [[fn]]
 path = "core::intrinsics::atomic_umax"
@@ -1093,9 +1106,9 @@ digest = "666e4ffb462507f13bb657b8d7805d05545d48eaac3bb92157d5bd81b6879a82"
 [[fn]]
 path = "core::intrinsics::atomic_xor"
 kappa = "a5c387a07697cdfee801163c3883bfa1a85a5d466cd42daabfaa2d2a3e7aa5a9"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "953d8d707badbf993f7aa6267593272fa45d6de532bac0681403e7eb08d638f9"
 
 [[fn]]
 path = "core::intrinsics::black_box"
@@ -1119,20 +1132,23 @@ digest = "d457b5f94d4c7ae7882dd1c828990a6e7d6be551ac0d0ec55a2df9a665a98ab0"
 [[fn]]
 path = "core::intrinsics::copy"
 kappa = "f52030041a0b170d792d8b5a188c2c8418089977e737eea5b49ce8181a72774a"
+at = "T=u32"
 status = "translated"
 digest = "de7bcc04a2c742b15065899cb2cbbd38fc3fcf4c8f0b8d4e3e4489425c8bf4d7"
 
 [[fn]]
 path = "core::intrinsics::copy_nonoverlapping"
 kappa = "db26901f76aa5724b13493b3460e3feba95dc5a23edd0f0282dc09d48324d7b3"
+at = "T=u32"
 status = "translated"
 digest = "2e7a0d9759cf42c9d168ebfd174816fafe02a3ad90b0fa90f086b8ebb94adc9e"
 
 [[fn]]
 path = "core::intrinsics::forget"
 kappa = "8f22391f42e1a40fc0369a1a4b6ce99797d7cd9b89804742c5cf7b6aa5eb68be"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "f930ccccf189a7b5cfa6504bf185cdfdb22d8419f7820a890e1909eaf55328c0"
 
 [[fn]]
 path = "core::intrinsics::likely"
@@ -1149,6 +1165,7 @@ digest = "3bd17fb6dcc32c3686292413ba94d1ff74c44763d32b0b4725db20cd889de24f"
 [[fn]]
 path = "core::intrinsics::prefetch_read_instruction"
 kappa = "2f1b12aa82932849a05dd35eb5b3a52005d87ce0df5862360a9be1d7610c83db"
+at = "T=u32"
 status = "translated"
 digest = "423898e0a423cc64834bfe9082d4c027a9afa4730b9de1dd055a59b52be1ced9"
 
@@ -1168,8 +1185,8 @@ cause = "mir::Rvalue::Discriminant: CoreIntrinsicsSimdSimdAlign, whose variants 
 [[fn]]
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:31: 407:40>::eq"
 kappa = "9ac31061e26b246723b7db47f1836b8703d0fc9e35b8fd5f5bb146053ba25b2a"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "dbc9e22eead885128f06f940f721d4ed1382c57d491628b29cc1fa681fcd6e79"
 
 [[fn]]
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:42: 407:44>::assert_fields_are_eq"
@@ -1194,16 +1211,16 @@ digest = "bc0c1bb55a46ac729aef4962985c160c4baef8ce84b2172957220620f00f8090"
 [[fn]]
 path = "core::intrinsics::simd::simd_bitmask"
 kappa = "ccf04d58727a5d69b72ea4ac4ca985ad2de4c8c643cd42d16dd949129a1ca123"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "97cfab3e414c54032cd177d97a70e19bc3da1561deddededf4cf54a09ab2c32c"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_cast"
 kappa = "ee93da0467a3e14d6f98b3cd58502de50c1f57e468ad881c9ff75b9965d9d498"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "1f0517d52eb3b7bd658f8f8e2dd81a43397d288cd33bc66803d44fd73e67a57d"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_ceil"
@@ -1229,16 +1246,16 @@ digest = "01d297aad677b7866de27782e339d9cd4f68307de36888797cdec6de402e8bc2"
 [[fn]]
 path = "core::intrinsics::simd::simd_eq"
 kappa = "b64f0c4dc3f2f730f0dbff72fbda7fc3d30c9b98de6ca60bddd12bb8ec1690e4"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "165d01ce267a099275dc40481daf3e90fb7d0d704b4ded443cc7dabbefbac6ad"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_extract"
 kappa = "dc77201573cbad2ac987d1e6fd4213b6a191836abb5bc18442d56815bc7184a3"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "e239b2ed9d4f50db68e9873fcb914fc81d842f6d5ebcff7dfe76f83c35d8b311"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_fabs"
@@ -1285,30 +1302,30 @@ digest = "cdf4f30aeab7ece5b86a15e4344b142d19a5b8c9b0f3d3aa6c283292fb5251c9"
 [[fn]]
 path = "core::intrinsics::simd::simd_ge"
 kappa = "6f5f1e77d24902a33b5dd9f204344f3baf0adf1f858bc2d762579d9ce8e5c38b"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "5518d6bff708768362f59f2ad3f59f3bb12e4d1e1b566175578a3f898c8b8207"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_gt"
 kappa = "61e15cec19ecbcbfd7b3f84a746eef916007a0f196055cde88af0a59a0bf6192"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "f121f877f4761ce44d06100c4ecc373175481dc2add624b1a957166641694f07"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_le"
 kappa = "d714b8196d4d9e3b4713819437868264384e2b73ce5fad062bcc89288cf0068f"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "1524ac11f1de6fbe9544b05fcbbfbe8ef107b66c4b0089190e600f02db5e40f3"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_lt"
 kappa = "36dfafc5459bf334198889a55ae1622d91381a599784be6536faad9bfbb466dd"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "7e721a36a0959cfb17bd7559b05bac9be446f6b6aed42577f54b2d1437041d84"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_mul"
@@ -1320,9 +1337,9 @@ digest = "465d3af2468c8dea3c5c302094f54fa18b6f4ac4b072e7c32f186472db3228ef"
 [[fn]]
 path = "core::intrinsics::simd::simd_ne"
 kappa = "ac39105feafbd5682355553ca7e9b20d676ca93c22494f92f9a4f4b497bdcac5"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "a83e846b699f22cb99b8c9530aff5883c1c21777502d08fe19e21d67ede9a1e1"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_neg"
@@ -1341,44 +1358,44 @@ digest = "d61731b53a3b2bd169fd865a93b7b108ce92571453473384af0609d0d18f1477"
 [[fn]]
 path = "core::intrinsics::simd::simd_reduce_add_ordered"
 kappa = "84aef2bef6c4474a6d502771b74d1b55a0a9e68e93a9d47927ac76d08ec26117"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "ed5c9039819398f9e9089600a05dc2f841be46aef93610c52c5d56bd643ada15"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_reduce_and"
 kappa = "7d3a9e96afca5d93dcc2ea06c6ee50bd2088cbbf968e3e9b7363054cf50acd6f"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "e6443a4fa27596cba82fdc8705ab03ab6b008f2d45421d6e648367c6ccd62cec"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_reduce_max"
 kappa = "56ebb502868fd1f432d00e7555d63e3fd1046db15c97da77931370c151062752"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "77e3c24d40cd4790c9cf83ee5f5e7ad23317d016b934f98cb1e4a2319b9b1399"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_reduce_min"
 kappa = "14b82a21cca06a09f8351394303de04958166e9058bdaca1eefa3ea7e1a867ae"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "690e5040a75fd0283d89f3025e7196f112612357541fb906826291c86f8b0d5f"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_reduce_mul_ordered"
 kappa = "9f2c505e86f2b89379541c4c45b868c773c12c726a36eec9596882d372a00729"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "43a85da69bcf7f2411a48d438eb435888f0c523e939ee60c80e82a68de2b5dd8"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_reduce_or"
 kappa = "1c8372c88247ea803c3b1e61c982811b61bc8cdb6411fc44e1829c074c969658"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "099c06d75809f8e5635bb4f3d02bc1045c683f9f2ab80b7b3b928b987b28099e"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_saturating_add"
@@ -1397,16 +1414,16 @@ digest = "276c782dc4a052c9d786fa66f7677e2fb7bb7d4d750ed8d19f1abb109cbe79ec"
 [[fn]]
 path = "core::intrinsics::simd::simd_select"
 kappa = "8a4ba4d75abb58edde95e6a0eeec1409f8339e2a66fefc2bac0a7b434584b84f"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: M"
+at = "M=u32, T=u32"
+status = "translated"
+digest = "43e35ba3f3e191eb0a71cba6fac1a37bc6d3f927f5844b3e821becc5ea13d4aa"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_select_bitmask"
 kappa = "a3b32091a68f12ac0f64284285d9897276ee30c3fa737da952fc8f4a005840c7"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: M"
+at = "M=u32, T=u32"
+status = "translated"
+digest = "d152258c2028f3c2a40030f3269c9e940bbd10e19237268b2b78747a543014ad"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_shl"
@@ -1425,9 +1442,9 @@ digest = "04cc41d963d4a011fc944d6f83e171e5618e635f7119a0508ed533367facd236"
 [[fn]]
 path = "core::intrinsics::simd::simd_splat"
 kappa = "0a063a520d4f60e96bcc2934d9539773a2b0e3f3c7e48c84420f89718f864d5d"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "4ea995231c9b75c7f979e496c34324263b4375b678570598ab1d4db6d9be606d"
 
 [[fn]]
 path = "core::intrinsics::simd::simd_sub"
@@ -1452,15 +1469,16 @@ digest = "00b445fb014cc0b32865eaebd6c580f475682b1c728e930e0c777827fb7e8f4b"
 [[fn]]
 path = "core::intrinsics::size_of_val"
 kappa = "e16eb4698ad1524fa368b682f1d2ce32491a3170432ef615577284c03c40ca6b"
+at = "T=u32"
 status = "translated"
 digest = "a4b25870bc6cfcf11280408fe96eaf853dbf2611330117abd41b6fc21f5096dc"
 
 [[fn]]
 path = "core::intrinsics::transmute"
 kappa = "df85a8c3498c8278d6414bc5435734d6bb6a0dc8f6a8d7c4abc745386c1f1033"
-at = "Dst=u32"
-status = "residue"
-cause = "mir::Ty: Src"
+at = "Dst=u32, Src=u32"
+status = "translated"
+digest = "758bb67faae709d24a5f72eabc385276b5fcaf752615df6ae2f9393f1e2281b4"
 
 [[fn]]
 path = "core::intrinsics::type_name"
@@ -1489,14 +1507,16 @@ digest = "5c386fda6e8f8644d28ec62c0ebb25fcb5f70010a52eca5529dae1fd64dcbdf2"
 [[fn]]
 path = "core::intrinsics::write_bytes"
 kappa = "39c08c6929f08705a40a6f9a14cb69c65a70deced1a7561e89a7abbfbb065893"
+at = "T=u32"
 status = "translated"
 digest = "dd05470504d0275f722e6039b00d8471dc892bc1cf218da86f2fc8e733718351"
 
 [[fn]]
 path = "core::is_val_statically_known"
 kappa = "d4114baa8c1c72698d81a86ecc7fc099cd440f4e364db8b5b1718d5c0a5158fd"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "cb0e54488f97ed1907237c37f7cecb65597da07a83f9a358304b9a8cecd945ca"
 
 [[fn]]
 path = "core::log10f128"
@@ -1669,8 +1689,9 @@ digest = "6802fb90ff8589587f9c04dfac4e8198a9789c5e5f4be842d51a5541a92d80c9"
 [[fn]]
 path = "core::mir::Drop"
 kappa = "f017c86ccdd2c8fc534853d7eb4a53c9384450c3eb552cd05ad24ccd89d1a388"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::UnwindResume"
 
 [[fn]]
 path = "core::mul_with_overflow"
@@ -1682,22 +1703,23 @@ digest = "74f940b52f6770b125c5e90f236042e469dc8a2ff75a79dd629b08fe1250b0e3"
 [[fn]]
 path = "core::nontemporal_store"
 kappa = "0189b130ee06c490b086d295e2c09c6c49924aeb2c75f207423ae142adea54c3"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "8d51b69929a0ac3bd095067104882711527c1bdcdccf000421a1163b2d4a07cd"
 
 [[fn]]
 path = "core::offload"
 kappa = "e8be84c42ac2c314ef895c41a78edd14e1e65b631f3a027fce1e2e7bba384fa5"
-at = "R=u32"
-status = "residue"
-cause = "mir::Ty: F"
+at = "F=u32, R=u32, T=u32"
+status = "translated"
+digest = "514ba785217bbdc0316eded122e92d99e8867a189535a187385602db2a44a6d6"
 
 [[fn]]
 path = "core::offset"
 kappa = "32d8b4ac7fabb9d79fbf8d14f5c8181965b5e082c2181d9b187fe8566acba141"
-at = "Ptr=u32"
-status = "residue"
-cause = "mir::Ty: Delta"
+at = "Delta=u32, Ptr=u32"
+status = "translated"
+digest = "5aa7603dc05b6f2e4eddcc2ab83678c8a862278eca40c3f87c2b5350fbb5f085"
 
 [[fn]]
 path = "core::offset_of"
@@ -1762,18 +1784,21 @@ digest = "c46140e3479ec02aba4c6fcfb0cf0bd0af4d18d851959966357cf4449a5ccddf"
 [[fn]]
 path = "core::prefetch_read_data"
 kappa = "a6d0b305c3bafc03f8ba661caae8eaca1cd27dccd06f1faf4d7e82dc175a9270"
+at = "T=u32"
 status = "translated"
 digest = "80bc32135865f4a68fc36db15c914b47fc14450c769dce23056d1b977e9297bd"
 
 [[fn]]
 path = "core::prefetch_write_data"
 kappa = "5044ef1c744de9518165f096a61d8d4b12719d60ca86049c59cc6c25f2cdae36"
+at = "T=u32"
 status = "translated"
 digest = "54cbadfb8137ddfd36d6aac7f99fd799994627d3b0742cb181e87fda7491d6bc"
 
 [[fn]]
 path = "core::prefetch_write_instruction"
 kappa = "2327cb19cdf1e495bc06721c33b58c56f99a2aa999a034bc7a9e4691bb248412"
+at = "T=u32"
 status = "translated"
 digest = "b2e1795960bef323a2cd73a6bbb19c8d28725bac93f7dc6a09c29efd0c90f1fe"
 
@@ -1794,27 +1819,30 @@ digest = "fd66f90ab4b2d5033a8a0175d1098cfc12f7e0e54454e29c6900a1715ccf798d"
 [[fn]]
 path = "core::ptr_metadata"
 kappa = "14922234f3023309013ee5e77bde3471f64402c6a3b363664cfaf7a6537cf4ae"
-at = "M=u32"
+at = "M=u32, P=u32"
 status = "translated"
 digest = "fffdd65aae6fa1a8eca0c09a1e7af2b54263d682f17156248b83db8643d6afc8"
 
 [[fn]]
 path = "core::ptr_offset_from"
 kappa = "0f725378e2b39f6ccc2e0f8996c7563584c405b373c0690d01a8715033f7fd5b"
+at = "T=u32"
 status = "translated"
 digest = "1bfefecbac566dda6bbaa4404cd0f1f8547039b6eaedf8b0f7539ead5fe995f2"
 
 [[fn]]
 path = "core::ptr_offset_from_unsigned"
 kappa = "ce3912979d1cbfb2d4794273e53899146f4a12a77beaa535912d4c80b234c052"
+at = "T=u32"
 status = "translated"
 digest = "c37197933778cb7bf8dce068e74c866dcf97f09bf0691bb7a61e6e3ac5658a3e"
 
 [[fn]]
 path = "core::raw_eq"
 kappa = "11650fbe53de536187a50b60c9d101f3223a37ea5b4f52ddec6f722dcd7b0cab"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "64dd7ad96edf34e3ce6640d7d6a0930813c004f16ad84052149f50221315a043"
 
 [[fn]]
 path = "core::read_via_copy"
@@ -1921,16 +1949,16 @@ digest = "bb00636fa32d55d20b4777e818f8be0194a55064e49c8c4644de83646505dec8"
 [[fn]]
 path = "core::simd_arith_offset"
 kappa = "bde1866051087c0f01164f099850e531f55332962177655270d046487e1ba899"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "6a992da1ca7b59bb7410d6bd72ce93752297c50c4b7df19de306130d27fec1fd"
 
 [[fn]]
 path = "core::simd_as"
 kappa = "c2ba75900d7d2f5da164068304e62202f37a7f0f2dcd7853f0ddd193abe04d43"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "7a10c1065f587981906f64912e7f05adb0d18745cdfb8cc74e552633c64eb68b"
 
 [[fn]]
 path = "core::simd_bitreverse"
@@ -1956,9 +1984,9 @@ digest = "8bcb13f1357f7c8295d3c29c1719c107bb748963ca5d09ded44b1228bb35b960"
 [[fn]]
 path = "core::simd_cast_ptr"
 kappa = "8a4d4902285719ea86c03543f80a82253c2531de9f88bb202e703cf8af9544d6"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "43c88a061b7c54fd9f2cb2a9075a96c8b7c060c42bc2f9fe5f157cbe6d74d8c9"
 
 [[fn]]
 path = "core::simd_ctpop"
@@ -1977,16 +2005,16 @@ digest = "1201d451bd394dc5e165eeffd30b398c56f75687a1a75124adfbfd0662d6091e"
 [[fn]]
 path = "core::simd_expose_provenance"
 kappa = "4eaaf44ee13261d40803950831e247cbe7f16d14f5481bac7925d05fa32e73e4"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "3a86208db147673ef902a5449a146b2176770b310e54e9c0f00464e0f9a30240"
 
 [[fn]]
 path = "core::simd_extract_dyn"
 kappa = "5398fc73dcd6aab5ea602e8d08e303abef32d0c584fc764032a31a8fc1bad937"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "8c52bc3693437ae51461b09e038459d99623da3e348f26f87de814a9ab6ae311"
 
 [[fn]]
 path = "core::simd_fcos"
@@ -2040,36 +2068,37 @@ digest = "cac66fc3221bb6516a1f1b8c8e830f055ada26a083b112543f24aee4a0198352"
 [[fn]]
 path = "core::simd_gather"
 kappa = "102c5cf69eb197b34b89b928b75d474abbcf7f4e2a40edd9ebb92a3d94e56bc6"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32, V=u32"
+status = "translated"
+digest = "839b45528316064aa5c545fe964d9c4a7df21ad0e163c9750f6e11f4ff42916b"
 
 [[fn]]
 path = "core::simd_insert"
 kappa = "86668c199e90b303d81ec51f3ef4974023a9edec98a0472339a45d0773ea46c8"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "5829344c55a04cffafce345d2a958ffaa5dfc809ef7583d85f50e3d0de7e3238"
 
 [[fn]]
 path = "core::simd_insert_dyn"
 kappa = "41afc92ceb34f94c8dbf20e7a6d76fc381cdca28e76894cc9085c7fdc70b5be5"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "bdc3692aa6db162837e7d758dfecbd295ac46711c2cae39b4bc563f8f03346b1"
 
 [[fn]]
 path = "core::simd_masked_load"
 kappa = "a961ee4e9b7c01869a9e8c621d7bf8b04d63e47a8339b7720944f6a7f1247dc8"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: V"
+at = "T=u32, U=u32, V=u32"
+status = "translated"
+digest = "73f529a62ae62d7e254cac3d53ee93b59cf934e51d2840b2945c178060de3e90"
 
 [[fn]]
 path = "core::simd_masked_store"
 kappa = "a11154a274ea330a36c001efce03c53ea31f0b336527bc2907dd0af25a33435b"
-status = "residue"
-cause = "mir::Ty: V"
+at = "T=u32, U=u32, V=u32"
+status = "translated"
+digest = "7ee3fce391a8ccb59eb745050a55c22b084a9d1144a1ab51ea416046d5db9e09"
 
 [[fn]]
 path = "core::simd_maximum_number_nsz"
@@ -2088,35 +2117,37 @@ digest = "fb7afe8a9f89b06d02399a45209f7fdb1f4c16273be4845296fc1665bc0e5569"
 [[fn]]
 path = "core::simd_reduce_add_unordered"
 kappa = "3cefd650edb3170e85688b677b620f36bf2cc6dfa2532e04cf09884fb75b668e"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "19ca4024c3dd548107a7375e95af535963862848b6e47cc19f2ac8640ffecb37"
 
 [[fn]]
 path = "core::simd_reduce_all"
 kappa = "9971fad7ae92065fc850e58ebacfdfd766fd18da02533079b752665be4ed701f"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "174e1e2f0ec960077dc37b2c5087f0882e1b9a727ff6a694cba0b1f67e22da11"
 
 [[fn]]
 path = "core::simd_reduce_any"
 kappa = "69f2f01ce7e21d44b70942f244a3870184ecbd1c13db77ab8b0e2cc78b332d0b"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "37eac4eae4d5dc847a5c15d74ead9fa82c0bd8dd473cd7bacede39b4027bd5e2"
 
 [[fn]]
 path = "core::simd_reduce_mul_unordered"
 kappa = "1e69844653ccd94ec70d13c016d69470ee628bd6b1bf292546d9e830a65031f8"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "71a2dfb485c0ea26817a2fce9c4f67d58fe7aa8c68fccdaf68012caec74edca3"
 
 [[fn]]
 path = "core::simd_reduce_xor"
 kappa = "b122e2f33b5836534c50d28536e488be4b5595e5ac86851e6e0057500973bf88"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "f5c2709cb3bad0f1e577b73cce93b1475c4eb3ac0467637694513f0d66a00042"
 
 [[fn]]
 path = "core::simd_relaxed_fma"
@@ -2149,15 +2180,16 @@ digest = "b27cfa24fd8227b5858629027b4def126143b1787b4b05bcb15ce4f4512d97c6"
 [[fn]]
 path = "core::simd_scatter"
 kappa = "fbeddd2f73b308956c149d40e2db2daadca23798962f7b0bacac52098840ba01"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32, V=u32"
+status = "translated"
+digest = "87d1847582b9e409c12367b9d2f112d4059aafdb11dfbfa24b81721beb883f32"
 
 [[fn]]
 path = "core::simd_shuffle"
 kappa = "9530161f30c797cc4f333a6ca2aaa8f8d250bf6f161b599ad5e86e736752cc4f"
-at = "V=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32, V=u32"
+status = "translated"
+digest = "1c1ae3905b596b8b3156747ee9ce4bfc6d1a563b8088e5780bc41a42ec97dce5"
 
 [[fn]]
 path = "core::simd_trunc"
@@ -2169,9 +2201,9 @@ digest = "4aaf76432abdc3c97a8899d786684d209ddeda03d37e5ad26d071ce9da21f16a"
 [[fn]]
 path = "core::simd_with_exposed_provenance"
 kappa = "5baf48fe95677ac1ace4c628b3a634aab98e94e5973512d3bafff73b3d2fb87c"
-at = "U=u32"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "cbe1257ca924fa448040681abc683b0023455e79cb19bb1eb3d08d37df04d7fc"
 
 [[fn]]
 path = "core::sinf128"
@@ -2206,9 +2238,9 @@ cause = "mir::Ty: TypeId"
 [[fn]]
 path = "core::slice_get_unchecked"
 kappa = "11625bb35fcc96a3703c300f93ab5df1ef8baa0601a8c13b8eaca4d16ee908d5"
-at = "ItemPtr=u32"
-status = "residue"
-cause = "mir::Ty: SlicePtr"
+at = "ItemPtr=u32, SlicePtr=u32"
+status = "translated"
+digest = "335f9398f6f7a15fe991fba3cb84a183a3cd56d794b597b437fd77c72f08d29e"
 
 [[fn]]
 path = "core::sqrtf128"
@@ -2244,43 +2276,44 @@ digest = "b602d2f99347e68d387ee37d65be909cb539e82736bb9de46836431c91bdb1ee"
 [[fn]]
 path = "core::sve_tuple_create2"
 kappa = "61cb30456053877c81b38fadce7ca8107bef3ad1773119eddf81a47b452c5a61"
-at = "SVecTup=u32"
-status = "residue"
-cause = "mir::Ty: SVec"
+at = "SVec=u32, SVecTup=u32"
+status = "translated"
+digest = "90bc517b06989a3aa66d090327b331752e801e3a3635badefa583311fc333ecb"
 
 [[fn]]
 path = "core::sve_tuple_create3"
 kappa = "073c6ed9a44af510c6fb0febe3b5f2491459d3de3790f59ea4ddc9b62471ee24"
-at = "SVecTup=u32"
-status = "residue"
-cause = "mir::Ty: SVec"
+at = "SVec=u32, SVecTup=u32"
+status = "translated"
+digest = "22d26cc814d351dd8baac0f0cec5964fb98f2e5b10aecb3a4fb190463cca6ef3"
 
 [[fn]]
 path = "core::sve_tuple_create4"
 kappa = "11b1db520f5daf00729ee8b13d48ba05cc83a1d0069f805a8aed8353d25810b9"
-at = "SVecTup=u32"
-status = "residue"
-cause = "mir::Ty: SVec"
+at = "SVec=u32, SVecTup=u32"
+status = "translated"
+digest = "53ab338c64a13721adc08ca99f40455b68bd22b7e863209761826c312fe579f8"
 
 [[fn]]
 path = "core::sve_tuple_get"
 kappa = "78e0443db7e1c8fe671a5457be0d000a79db882015fd618327214a376333f507"
-at = "SVec=u32"
-status = "residue"
-cause = "mir::Ty: SVecTup"
+at = "SVec=u32, SVecTup=u32"
+status = "translated"
+digest = "959e2fc10fd71860f70066049242d04b29f805034fab0337c23015ee6b900ef4"
 
 [[fn]]
 path = "core::sve_tuple_set"
 kappa = "92125927fc82812370e73b93449ad7dcf2c0f051fa239cf01aa2d88459fb3931"
-at = "SVecTup=u32"
-status = "residue"
-cause = "mir::Ty: SVec"
+at = "SVec=u32, SVecTup=u32"
+status = "translated"
+digest = "0dc94063f0eddea7f83973c8b32e03acaa0624f1339c5c6cc8b1c39f9f129574"
 
 [[fn]]
 path = "core::three_way_compare"
 kappa = "89f750d37891ca5b34f191661112b95ddbeb0cd38466f836a2f530b200e5b215"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "87643b88bac337880350e84bef1de5cdc4778ec13529e9be409051ccd00a5b2c"
 
 [[fn]]
 path = "core::to_low_high"
@@ -2297,9 +2330,9 @@ digest = "4f4b544250c7926591400307afccd96d81fb18a2ea822e770138a732c69d4c74"
 [[fn]]
 path = "core::transmute_unchecked"
 kappa = "d3e56e863ada189b8a74bcc176204e1e572b9a5ef958e19afa76513ff0ae7281"
-at = "Dst=u32"
-status = "residue"
-cause = "mir::Ty: Src"
+at = "Dst=u32, Src=u32"
+status = "translated"
+digest = "4deee12b1e29217583afcd34829fae5e42c46066334e341e496a45a543286483"
 
 [[fn]]
 path = "core::truncf128"
@@ -2366,8 +2399,9 @@ digest = "cb65cd77ca80dbd0bcfdbb965361942c5ccbd3bfc1cbbab5ca01d7dc276099b0"
 [[fn]]
 path = "core::unaligned_volatile_store"
 kappa = "70db21d08ed0bf4f1e8728388e2c73986589452ad5cc86ab48c45fc411559505"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "a50d19264bb9063096faab7b2c76935d3d3b90574f5a2f0a1185ce97ff02e52e"
 
 [[fn]]
 path = "core::unchecked_add"
@@ -2414,16 +2448,16 @@ digest = "565bc1683d28a8795da923a6ee3a96a95f09d41db4b785a6098698530bdb1530"
 [[fn]]
 path = "core::unchecked_shl"
 kappa = "7b00e20c1579dbd5761199f1ff2f8a3010af1d44bd8d3424eb29c58a0d64fa91"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "4b543993d2e0cba66ac8c9d553cf03ef457bb1434c62f6f93644b9c57a389d42"
 
 [[fn]]
 path = "core::unchecked_shr"
 kappa = "2d28e2673f2e7365207cd599519e354193321b27e1fced196e5aab7d4537fa95"
-at = "T=u32"
-status = "residue"
-cause = "mir::Ty: U"
+at = "T=u32, U=u32"
+status = "translated"
+digest = "20be66006006c27a7d650eb90a0dd55bc7791a00d0e5671054005c410f5af153"
 
 [[fn]]
 path = "core::unchecked_sub"
@@ -2460,12 +2494,14 @@ cause = "mir::Ty: VaList<'_>"
 [[fn]]
 path = "core::volatile_copy_memory"
 kappa = "c0502c50e5267ac7827f37304c1ebce69efda436ae8223810bd3065bfc03eda2"
+at = "T=u32"
 status = "translated"
 digest = "8e766fd215ca8f0aaee852aca477d8a23b5ee0ff51fc3ffe83c8f0cbdcd1d282"
 
 [[fn]]
 path = "core::volatile_copy_nonoverlapping_memory"
 kappa = "19c6470be453e73a6c9bee6816e9e30150bad8a2bfc16a0d82e31ee0688fb9d1"
+at = "T=u32"
 status = "translated"
 digest = "50c178b342550f634884d16cecb93e3cb2bd14ecc055e78522608a5f0cc7491a"
 
@@ -2479,14 +2515,16 @@ digest = "34821613428abd0786b4efdb9accf59a81bf1bb8e27fbcc7e8c58956005a423f"
 [[fn]]
 path = "core::volatile_set_memory"
 kappa = "584c2f170d7cf1993a50aae242997886ce599ac7cf59536b1eb5ac0cc61623bf"
+at = "T=u32"
 status = "translated"
 digest = "9c9b2d2e678709dc3b51549cefdf8b0eadd054613fc4e3766b60aa5103f3cbed"
 
 [[fn]]
 path = "core::volatile_store"
 kappa = "27a5716ec54796ad2ffde6ab9749a8cc527893c872aff734144fa702d728c4f2"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "7e1183342f0c745efcfc9058214419f693cc3775cba63553bdfc96fc9791a6e1"
 
 [[fn]]
 path = "core::vtable_align"
@@ -2530,6 +2568,7 @@ digest = "6439ad1416a57ce732d03f6d113d5fb159814854631cb17c3f610c5c19c750f2"
 [[fn]]
 path = "core::write_via_move"
 kappa = "ca66d7f12a9301b1ab5f8d6a99e8f277ffd760ea1c7327ee95e4e225a576c886"
-status = "residue"
-cause = "mir::Ty: T"
+at = "T=u32"
+status = "translated"
+digest = "33121e4cd5922c40ff3669f540c10723e50e82795d7ba5e1da096ba9d373d718"
 

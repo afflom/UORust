@@ -3,7 +3,7 @@ path = "core::helper::PinHelper::deref_mut"
 kappa = "06b983576cad397a407440d411df68d3a8e210d8366149342a7e504ddf703103"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::Instantiation: u32 for a parameter bounded by DerefMut, which u32 does not implement in core"
 
 [[fn]]
 path = "core::pin::<impl at library/core/src/pin.rs:1091:16: 1091:21>::clone"
@@ -17,63 +17,63 @@ path = "core::pin::Pin::as_deref_mut"
 kappa = "d1c9c9e8575964e259cd70751e14a07e0584992636c6bf7980a0995422a50758"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::Pin::get_unchecked_mut: core's MIR stops at type outside the lift: Pin<&mut pin::Pin<u32>>"
 
 [[fn]]
 path = "core::pin::Pin::as_mut"
 kappa = "b66050f0f6da9c688ce193f1be0fcc612834a8f1b69ccdb9f25a765731d62782"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::Instantiation: u32 for a parameter bounded by DerefMut, which u32 does not implement in core"
 
 [[fn]]
 path = "core::pin::Pin::as_ref"
 kappa = "1a18f00516a454c69395e8c010ea20dc63008e54fd02a4c62c13b0e583fcddcf"
 at = "Ptr=u32"
-status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+status = "translated"
+digest = "ea9d4725e5456c722c1b0ff89e47e03db55817338053bcf95e789fdfb825b4d0"
 
 [[fn]]
 path = "core::pin::Pin::cmp"
 kappa = "edbd31386806c2b64291e12765edb6b4056002a566111385c7255e9cb766b6ca"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::deref"
 kappa = "302e377b77e2694f5ca0af3faa50d55d21421ece8aab8c9a359cb1061d58ac0a"
 at = "Ptr=u32"
-status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+status = "translated"
+digest = "919969826470ac7dc5461efee9f384e83babe0ca4903c8b9e03611cddae06871"
 
 [[fn]]
 path = "core::pin::Pin::deref_mut"
 kappa = "fa19b0acc7347af21e75d0a0d18705e0fa9cd1e9c7a9d74933645fa72a23498d"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::Memory: a value of CorePinPinU32, which the memory holds no cells of"
 
 [[fn]]
 path = "core::pin::Pin::eq"
 kappa = "7750208358f81caf0513baea933d64fe6ec689435c8bdb8e4942000dba0d8a1b"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::fmt"
 kappa = "de060e64fd2c169e51920e466d1bb34b8b77c451674f6ce1713d27f7dd6a0a6a"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Debug>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::pin::Pin::fmt#2"
 kappa = "a5f5544b490f1ce68c8ebf531ca63654f8160c47cf6a6ec8a52e91062f91cd0a"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: <u32 as fmt::Display>::fmt"
+cause = "mir::Ty: mut fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::pin::Pin::fmt#3"
@@ -87,7 +87,7 @@ path = "core::pin::Pin::ge"
 kappa = "0fe67fdfef4bfe305d885c1c6864fcfc3f34047b55af5e8678558d33fc506fac"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::get_mut"
@@ -115,14 +115,14 @@ path = "core::pin::Pin::gt"
 kappa = "4b29de8b36a281d5e3353a58de892048391868fba7b7e916853e78b4aca89ae3"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::hash"
 kappa = "088489f46c10d3ea8536f2b47342ca7f5b93a5a7d117e31caa36548683d0497b"
 at = "H=u32, Ptr=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::into_inner"
@@ -150,14 +150,14 @@ path = "core::pin::Pin::le"
 kappa = "7ff420444093d3ebd6470d947dd4b0106ea8b9fc1c36283b9432d8e0f9eee82c"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::lt"
 kappa = "8902f419ce399c79027e42d3c1965dda755a4dccbd1910628e581b1028990367"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::map_unchecked"
@@ -178,7 +178,7 @@ path = "core::pin::Pin::ne"
 kappa = "f1431f2c21e66e3ff3268c28391218172d0dad241f5c2adcc72b4681a4de0dfa"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::new"
@@ -199,21 +199,21 @@ path = "core::pin::Pin::partial_cmp"
 kappa = "6fa5a69942a7c839e8bf04af16ec40268644f713394b985d912c7c2b6b0a5cf0"
 at = "Ptr=u32, Q=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as ops::deref::Deref>::Target"
+cause = "mir::TerminatorKind::Call: pin::<impl at library/core/src/pin.rs:1683:1: 1683:50>::deref: core's MIR stops at type outside the lift: <u32 as ops::deref::Deref>::Target"
 
 [[fn]]
 path = "core::pin::Pin::set"
 kappa = "d69cf5c31d0e2b47b350c29e0bf535ca6e6045e6fd44254017b8f3ff6cbc0e00"
 at = "Ptr=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as Deref>::Target"
+cause = "mir::Instantiation: u32 for a parameter bounded by DerefMut, which u32 does not implement in core"
 
 [[fn]]
 path = "core::pin::Pin::static_mut"
 kappa = "004a43ac289d3e720b1e7e64c619444e26f1168997b4ae7599129e0b1c510dee"
 at = "T=u32"
 status = "translated"
-digest = "daad622f07f3dad8b51a966f911a3df0459126df37ae41f4c0924fc49620ea08"
+digest = "d58e015b10004fd27790c3761a3e68482de19ee1029ba01a4d7c7c6bf03e5631"
 
 [[fn]]
 path = "core::pin::Pin::static_ref"
@@ -239,8 +239,9 @@ digest = "17c629e05c5957e1f7843853dbec17e687dfda445339cbe11850dcc844c13b85"
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::fmt"
 kappa = "a7e710dd41030e4e5540438148460888f5fbb719692fed6d3a90d84b939dcad8"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish_non_exhaustive: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::from"
@@ -268,7 +269,7 @@ path = "core::unsafe_pinned::UnsafePinned::get_mut_unchecked"
 kappa = "35269733569bf6e1c217e8f6f97b7c58e3004cf16e39587093b79ce247b2dc7f"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: ptr::from_mut"
+cause = "mir::TerminatorKind::Call: ptr::from_mut: core's MIR stops at mir::Memory: a value of CorePinUnsafePinnedUnsafePinnedU32, which the memory holds no cells of"
 
 [[fn]]
 path = "core::unsafe_pinned::UnsafePinned::into_inner"

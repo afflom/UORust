@@ -22,21 +22,21 @@ path = "core::future::future::<impl at library/core/src/future/future.rs:117:1: 
 kappa = "0ad2ab50b22ebe8549ed2bc566c860553545c4eaeceed8ba6d0e0b8a42eaef8f"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as future::future::Future>::Output"
+cause = "mir::Ty: Context<'_>"
 
 [[fn]]
 path = "core::future::future::Pin::poll"
 kappa = "2588d5bf71d03d04d763278d7a240cfcbb2037389dfe8a6210c1484be6300e87"
 at = "P=u32"
 status = "residue"
-cause = "mir::Ty: <<u32 as ops::deref::Deref>::Target as future::future::Future>::Output"
+cause = "mir::Ty: Context<'_>"
 
 [[fn]]
 path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:10: 10:15>::fmt"
 kappa = "0d098e04d46b0b565533dd7de8c8b8accfa68e20f34754990b8664cbed6fc166"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&option::Option as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::future::ready::<impl at library/core/src/future/ready.rs:10:17: 10:22>::clone"
@@ -57,7 +57,7 @@ path = "core::future::ready::Ready::poll"
 kappa = "1cd32f82629333e7329e1903948ff7207902bcca38597b00140f9ddd5d547c71"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<u32>"
+cause = "mir::Ty: Context<'_>"
 
 [[fn]]
 path = "core::get_context"
@@ -77,14 +77,14 @@ path = "core::join::MaybeDone::poll"
 kappa = "f7bf1e80bdb7aa5375fd7d78c562f18245abb5fb65564492e4b8baea67117315"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<()>"
+cause = "mir::Ty: MaybeDone<u32>"
 
 [[fn]]
 path = "core::join::MaybeDone::take_output"
 kappa = "8b48397d45d3b9c32161e4df2a08383d0cb2b0701eebe6b287a25b78a769cdfd"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: <u32 as future::future::Future>::Output"
+cause = "mir::Ty: MaybeDone<u32>"
 
 [[fn]]
 path = "core::pending"
@@ -103,15 +103,16 @@ cause = "mir::TerminatorKind::Call: future::pending::pending: core's MIR stops a
 [[fn]]
 path = "core::pending::Pending::fmt"
 kappa = "79e561f8369af1df3e97d155175969a0d55262e870ad8aedebd729409741e57b"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: fmt::builders::DebugStruct<'_, '_>"
+cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 
 [[fn]]
 path = "core::pending::Pending::poll"
 kappa = "b87ed8ceb5fd41dd2f7229ec7a72a0e42ccb6248a1708334ea4105690409b66a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<u32>"
+cause = "mir::Ty: Context<'_>"
 
 [[fn]]
 path = "core::poll_fn"
@@ -123,15 +124,16 @@ digest = "d7535914b739944be81d1c7d1517657483efd3571d39e34fc670ce8ecd167234"
 [[fn]]
 path = "core::poll_fn::PollFn::fmt"
 kappa = "51f640c1cdaa74aa7bc7337c03bfc9bf7433bde164fc1afdbdebf8bc8fbb0b38"
+at = "F=u32"
 status = "residue"
-cause = "mir::Ty: F"
+cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 
 [[fn]]
 path = "core::poll_fn::PollFn::poll"
 kappa = "d69d8208d0b22d7ed79e308d46a5d9ffd5eb5c1fbd8c7e42e27e1c989722bd78"
 at = "F=u32, T=u32"
 status = "residue"
-cause = "mir::Ty: task::poll::Poll<u32>"
+cause = "mir::Ty: Context<'_>"
 
 [[fn]]
 path = "core::ready"

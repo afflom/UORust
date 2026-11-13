@@ -8,7 +8,7 @@ cause = "mir::Rvalue::Repeat"
 path = "core::time::<impl at library/core/src/time.rs:1605:10: 1605:15>::fmt"
 kappa = "b5600949d7e733a26dc204ab20e1bc3b16aa947a5508d3ada8f3c0a4f4ec3d8c"
 status = "residue"
-cause = "mir::Ty: dyn fmt::Debug"
+cause = "mir::TerminatorKind::Call: <&time::TryFromFloatSecsErrorKind as fmt::Debug>::fmt"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:17: 1605:22>::clone"
@@ -19,8 +19,8 @@ digest = "df1c47d89fc9f096bf06935e7e9b5bf61bd385a7e800b091328d750268606bd3"
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:24: 1605:33>::eq"
 kappa = "36e7bbd31c6a22539e8c50906e847f5943cf9588c7eb50bc416400719f4d38b3"
-status = "residue"
-cause = "mir::TerminatorKind::Call: time::<impl at library/core/src/time.rs:1626:24: 1626:33>::eq: core's MIR stops at mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "6b665ef05ec67aab45c9b29426b45dd6ca4a1b9dca642cb3609c148653838372"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1605:35: 1605:37>::assert_fields_are_eq"
@@ -43,8 +43,8 @@ digest = "5195c5127e463b3e749f61df428ef2002c82c78dff327a25034a46baf6cf4d93"
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:24: 1626:33>::eq"
 kappa = "178fe6a03d3c9bde5beadd727079f3c3fe3870f2ad35c38caadeafdb02c53018"
-status = "residue"
-cause = "mir::TerminatorKind::Call: intrinsics::discriminant_value, an intrinsic the table does not model"
+status = "translated"
+digest = "5cf59903de102c009b0047580af76ef2e50eb2a09b5f632bf53e86284ed18768"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:1626:35: 1626:37>::assert_fields_are_eq"
@@ -55,260 +55,260 @@ digest = "9c942d51ea66bf3fc6959f91addacfcf7494f319add98b39161178cdbb45ccef"
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:10: 79:15>::clone"
 kappa = "459a1a88c6afd397bc3fa8b3fa2a9902bf1030dc24729d857bbe37424a0992b8"
-status = "residue"
-cause = "mir::Ty: time::Duration"
+status = "translated"
+digest = "db53c3e57a32a7ac5f79a8e358fde5a08b4051b6b9faafc8e8a21e4b85339152"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:23: 79:32>::eq"
 kappa = "d9184eafbec3dfcbf8bfa253634471542b47ccac5634d49786564dc13b294b3b"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "43375ed50f2d1eab4d5ddd0fee1379d0ffa626bba9489e1e3d34c0059c0d6d3e"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:34: 79:36>::assert_fields_are_eq"
 kappa = "221c155510a9a7054daea2e1b39f34e7b2866d883b331ff5d8aa2e4075e21506"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "0bb136f851391b43965f125505b65b77c2abef1f1c4d02a034c9c08429308672"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:38: 79:48>::partial_cmp"
 kappa = "65435dc928813f2a2065152e968080558a8e6ffac8b1ee51d01560311f368088"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "99b4279a157eda1c16bd2ee02e6a0ada7ff46b0f593d917e6bf88382ddd9342a"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:50: 79:53>::cmp"
 kappa = "e849af79b190074ef600cb507faac577c7b2195ec9e21e93d66729c5e6af75dc"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "fceeea378b537ff7b1d5084b1895c24a5dd9a7cefdeecf1a8aedb3cf21d46d35"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:55: 79:59>::hash"
 kappa = "a7c477ff390ff39452bd0f3c12987c770bad957479337b0581487bc92d9359af"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Ty: __H"
 
 [[fn]]
 path = "core::time::<impl at library/core/src/time.rs:79:61: 79:68>::default"
 kappa = "7520646913d93dba793dd008c86afb9c705ed5d6b668c4632a7de29c3cb56012"
-status = "residue"
-cause = "mir::Ty: time::Duration"
+status = "translated"
+digest = "20d7b55c6b11f345b09306002fba7d9a4ab89bf7ec3fe569323676955272c213"
 
 [[fn]]
 path = "core::time::Duration::MAX"
 kappa = "f247ced87855514eaeb3bf84be0b69fa783af343c08b15cbfc3924e1305245a5"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::MICROSECOND"
 kappa = "34f1f3a61e3e84d759379ef4148f728d83d67990b7d025507f7ca5d4158e90f2"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::from_micros: core's MIR stops at mir::Operand::Constant: the constant item time::MICROS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::MILLISECOND"
 kappa = "b002b65b9bd5690c1b7bc69d1c3245083f133c6ec983f1f7830caa968a708a2c"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::from_millis: core's MIR stops at mir::Operand::Constant: the constant item time::MILLIS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::NANOSECOND"
 kappa = "b87eb6234f18b03912c44eda06af94cf970d49462e6bd335c8f44548a72078a2"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::from_nanos: core's MIR stops at mir::Operand::Constant: time::Duration::from_nanos::NANOS_PER_SEC: mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::SECOND"
 kappa = "5b112c942a68ca6493961b102b14484dc3df2a27df82a6ce50160607eb42fd13"
-status = "residue"
-cause = "mir::Ty: time::Duration"
+status = "translated"
+digest = "61972bb3595207a241827a98cb6aaace236f851f28cf8529e19593ea9dbb53ef"
 
 [[fn]]
 path = "core::time::Duration::ZERO"
 kappa = "30fcb5534a4dcef300a2c4c31f4228e369d071e89d236f0609b82809ea42ceb3"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::from_nanos: core's MIR stops at mir::Operand::Constant: time::Duration::from_nanos::NANOS_PER_SEC: mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::abs_diff"
 kappa = "c94bd09168fd8da241631e3e2f5f24d6b461fe8831a4f189a1ca4e5956fc3392"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_sub: core's MIR stops at mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::add"
 kappa = "f410391e3b2064106d859955cb20c524308b1fd26a01379e5eb7ecacd437a9e1"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_add: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::add_assign"
 kappa = "f69513bf51ed1fcb06121d39554524ea450cd49b7ab4afdd8e75e2f89bbc18a6"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: time::<impl at library/core/src/time.rs:1252:1: 1252:28>::add: core's MIR stops at mir::TerminatorKind::Call: time::Duration::checked_add: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::as_micros"
 kappa = "6a1fe890adffc3b5b00fb4c81ec05a2a7462da50ae6b38557cff4ca9d76f66bb"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::MICROS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::as_millis"
 kappa = "e96bae4f679dc12e29c6287a152c6cec5d33f5582823ffa5763fe30a5ee4d1e8"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::MILLIS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::as_millis_f32"
 kappa = "3ce7637968d1df80e38ec1e2062ec09970ba2488a142e3353d072e6ffb31e107"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::MILLIS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::as_millis_f64"
 kappa = "43115d371a034930224516f3c932e8cefd95638ce9b778586596879a78a65de4"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::MILLIS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::as_nanos"
 kappa = "659c95da89169ca15795421e8a708e49b9ec425afac48dc62439e2063626bc0f"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::as_secs"
 kappa = "d9f243a901f6f0ed252a0d531cd2f86f716b80e0146e58d808d2e12e1b315ade"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "e814f07fc7dc25f97bcbdd00943f7f0c1a9de194c277dce15f8f29d232a24374"
 
 [[fn]]
 path = "core::time::Duration::as_secs_f32"
 kappa = "f975955b91105fec2b3129907f93310d867df72ac272469046e2d6527099f1c7"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::as_secs_f64"
 kappa = "31555417364741d52b5f2c1304b7a8ae680e262401bde666daa4c9ce84bd5e08"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::checked_add"
 kappa = "59bdd06635a3f4a75cdc6f4c7483d7f76d5a0e87cb83e657cddbd8e2b880aa05"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::checked_div"
 kappa = "ed91c11f77416faf624a37a68d6ffa2a808870c769f8b6035b521a8c0171ba58"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::checked_mul"
 kappa = "1046d10f7859beae648f5cd92606e99cf9b49830187c674c4e932b1af0938695"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::checked_sub"
 kappa = "5dfa2e0ded52a8b3567c15322a839c0c247106d7b9a976c2a1307b69eb9f00f7"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div"
 kappa = "ece708b9ac01abf1414a98ece8032fd9f55fd1328526398c8f48466be5f30b91"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_div: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div_assign"
 kappa = "c7a1c59c19181fb5fa7d2559d4e2a6db2aedde6e44ded765d4e9ec160d81de3a"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: time::<impl at library/core/src/time.rs:1323:1: 1323:33>::div: core's MIR stops at mir::TerminatorKind::Call: time::Duration::checked_div: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div_duration_ceil"
 kappa = "3d258e52442c2a107c49e6e74e4f1f949bbc5ebe50a2be74b9a3d1de3ba7b729"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::as_nanos: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div_duration_f32"
 kappa = "b7c86a48da42fdd82219727a068be955038698771d298420ef3909fbdb8d0c51"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div_duration_f64"
 kappa = "34121b2449fc2d241cfd71734eebaa42337fbb53f8b55dbeab6dedbd45046bb0"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div_duration_floor"
 kappa = "e663c2d2665fca551540945bfb4dc91b24a57014b1a3bd28eae87b4ce701e150"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::as_nanos: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div_f32"
 kappa = "96cf09717c3dd5596700ddaaec88c4fe9ace487d28b715675c7c139e6f293e77"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::div_f64: core's MIR stops at mir::TerminatorKind::Call: time::Duration::as_secs_f64: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::div_f64"
 kappa = "ca9510799b0f9035cd090f45f864fd3e381a14c77f70bffbfe0fd49ff7447d26"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::as_secs_f64: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::fmt"
 kappa = "e9b166311216dccccc20eaeae8e0a4f6e37c81c37dfbc5b723c2ac4b71b60339"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_days"
 kappa = "1ba2dc8d78cb17a51d2dfc7a0f9d50a41e6c8e8bd897d487fd87ea3b4e35e479"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::SECS_PER_MINUTE"
 
 [[fn]]
 path = "core::time::Duration::from_hours"
 kappa = "2a5033af37d5e7dd6919f9708bb63fbff8bf0d3aeb792457d6a7fc83b326a813"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::SECS_PER_MINUTE"
 
 [[fn]]
 path = "core::time::Duration::from_micros"
 kappa = "8f0e3bf9ef434fe0a30ee5b9554c1c8fbbe2825aa82e71a816b2e86466d754d2"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::MICROS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_millis"
 kappa = "a82f414f909434b3da71c58ccd87632e0b8814308b605958d0d3fa1ddab66423"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::MILLIS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_mins"
 kappa = "c43d4992b778fd6923890c5ae8b75879d66eb63ab4bbc74fe348b6ba937988ba"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::SECS_PER_MINUTE"
 
 [[fn]]
 path = "core::time::Duration::from_nanos"
 kappa = "67701059b0ad300a0bd69870bcd44d0eb1a7e224483bf0dfb9aa41c1c48989fd"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: time::Duration::from_nanos::NANOS_PER_SEC: mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_nanos::NANOS_PER_SEC"
@@ -320,7 +320,7 @@ cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 path = "core::time::Duration::from_nanos_u128"
 kappa = "eddbe1679d11207f2be99ec52db8399594d740448bd0a0752cd25025828e7d30"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: time::Duration::from_nanos_u128::NANOS_PER_SEC: mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_nanos_u128::NANOS_PER_SEC"
@@ -331,130 +331,130 @@ cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 [[fn]]
 path = "core::time::Duration::from_secs"
 kappa = "e799157616499ce65faaa277cbbda014fc8a608685acc7ad0e13021efb21583e"
-status = "residue"
-cause = "mir::Ty: time::Duration"
+status = "translated"
+digest = "5ab44e9c92d86146268763a8e2ca675f173e09669b3105ce6d7da0187b4160d4"
 
 [[fn]]
 path = "core::time::Duration::from_secs_f32"
 kappa = "8e24ef077248d6db3b2aa93cfe55b6f9b6899d9931ac53cf9e9bfde3f11be5fb"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::try_from_secs_f32: core's MIR stops at mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_secs_f64"
 kappa = "f189cbf750a228744a1f0e7eaf81cc5fdfda8183d32b3d78a013eb574cb94714"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::try_from_secs_f64: core's MIR stops at mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::from_weeks"
 kappa = "2829e2cb74220bc011a40c445d55c5fcc2238c26ab93ed1f271bc3f82d08f4d6"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::SECS_PER_MINUTE"
 
 [[fn]]
 path = "core::time::Duration::is_zero"
 kappa = "011304f4160a96fc57d7d3578d48e0dbf5ff920afcabf3408b67252945bb0366"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "8577e5ff6145c234514932b2af8879161d06f05b9867b08b2a419416b90ad26d"
 
 [[fn]]
 path = "core::time::Duration::mul"
 kappa = "e0b5d1902cf015534391978fa0db9d8a078dce08de23b7b41bcebcaefc3d9070"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_mul: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::mul_assign"
 kappa = "353ebaecb49078bd65cc160f9a31df7cc285c5cbaf70dfba238ab990122a626f"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: time::<impl at library/core/src/time.rs:1292:1: 1292:33>::mul: core's MIR stops at mir::TerminatorKind::Call: time::Duration::checked_mul: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::mul_f32"
 kappa = "f2ea7f2389ea2b1f97bc0a0219b897b22135721daa99dbda284e955c47ba7900"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::mul_f64: core's MIR stops at mir::TerminatorKind::Call: time::Duration::as_secs_f64: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::mul_f64"
 kappa = "9d4b840fc2fa9ff22706308d1ffb3939c62794630f09b5bc99941bce9c22015f"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::as_secs_f64: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::new"
 kappa = "e6b377f13cd82020148efb99b70b28f27c5c6a853076b7b97cb846b84c804810"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::saturating_add"
 kappa = "da6415fa371e217d1cc827eda273ad273c27b72cc8a4e562dd58c51694d629f7"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_add: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::saturating_mul"
 kappa = "e73d7348d39383e53204f62bcec5ecf77e1eec4a01cc6aa4c5becfa257abdb1d"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_mul: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::saturating_sub"
 kappa = "1cac01767c7806b8a1296178ca4dc7800dfc591f5e2cc68a58fa8817573b975c"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_sub: core's MIR stops at mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::sub"
 kappa = "cf745c3a6a2f49a1a456d78cdf3ca9c0f7e7824be1ad8ddb3d9aa2891f478d1b"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::checked_sub: core's MIR stops at mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::sub_assign"
 kappa = "df7cb3ca65b0a43c79ef1fa93637f19e24bc0ac9699a521c82c8f0ce6a6cf105"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::TerminatorKind::Call: time::<impl at library/core/src/time.rs:1272:1: 1272:28>::sub: core's MIR stops at mir::TerminatorKind::Call: time::Duration::checked_sub: core's MIR stops at mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::subsec_micros"
 kappa = "e8d8d96b221c0866fed60f697228ecc1a260e575efae5f7afe1bad9c043fd0eb"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_MICRO"
 
 [[fn]]
 path = "core::time::Duration::subsec_millis"
 kappa = "1fd579d79e0809e25a44f4d5af8122344ae3f58f93205e16149ec19084894a8a"
 status = "residue"
-cause = "mir::Ty: Duration"
+cause = "mir::Operand::Constant: the constant item time::NANOS_PER_MILLI"
 
 [[fn]]
 path = "core::time::Duration::subsec_nanos"
 kappa = "6c95d5d4c2e5c54dc2058c5ae5ecade80a2d6aa83a9f8a9f44805015b33f1887"
-status = "residue"
-cause = "mir::Ty: Duration"
+status = "translated"
+digest = "0c44b859cdf07fe8f74f45798a5066c14198358a835fe98b6eaa2598024d04ec"
 
 [[fn]]
 path = "core::time::Duration::sum"
 kappa = "9f28c1aeca6360f270a23db26b5b279f97c9c7a7aaa67478640020d5f9ff3ddf"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Instantiation: u32 for a parameter bounded by Iterator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::time::Duration::sum#2"
 kappa = "75abf3076eb2806357864630ff63dc9bd118f8bc55403995bb88777e126cb0d4"
 at = "I=u32"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::Instantiation: u32 for a parameter bounded by Iterator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f32"
 kappa = "34ab941de816297c6664aca74e2a20f58aab6db50ca255719d591866aa5c5aa6"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f32::EXP_MASK"
@@ -478,7 +478,7 @@ digest = "24ae2ba764fa6c0a964505f8ae4df2462fb357589065d441fcf7eb68f910fd17"
 path = "core::time::Duration::try_from_secs_f64"
 kappa = "5507c8d17ff7a4a4c58f15a7df792b6937fee3293517d5c7beb26b34d008049a"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::Duration::new: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
 [[fn]]
 path = "core::time::Duration::try_from_secs_f64::EXP_MASK"
@@ -502,11 +502,11 @@ digest = "b630793b15142c2e89113d4b7694d39144d70c0af60f4aad797f164ad95c8bd8"
 path = "core::time::TryFromFloatSecsError::fmt"
 kappa = "2721d9b0f7407dd1a5788dc2887f13dcfd073ac576f8d5ad61994b3556b675c7"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:332:1: 332:23>::get_precision: core's MIR stops at type outside the lift: FormattingOptions"
+cause = "mir::TerminatorKind::Call: fmt::<impl at library/core/src/fmt/mod.rs:2965:1: 2965:21>::fmt: core's MIR stops at mir::TerminatorKind::Call: fmt::Formatter::pad: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::chars: core's MIR stops at mir::TerminatorKind::Call: str::<impl at library/core/src/str/mod.rs:130:1: 130:9>::as_bytes: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from String to (List Nat), of layouts the lift does not relate"
 
 [[fn]]
 path = "core::time::u32::mul"
 kappa = "fd1e357b4f56b34206c9d6a62a3cfca5f77cd11ab344c277997947876742ae01"
 status = "residue"
-cause = "mir::Ty: time::Duration"
+cause = "mir::TerminatorKind::Call: time::<impl at library/core/src/time.rs:1292:1: 1292:33>::mul: core's MIR stops at mir::TerminatorKind::Call: time::Duration::checked_mul: core's MIR stops at mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 
