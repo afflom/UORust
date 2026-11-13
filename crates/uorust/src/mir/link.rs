@@ -37,6 +37,9 @@ pub(crate) struct CoreLink {
     /// For each impl, the methods its block declares `default fn`, which
     /// an impl that specializes it replaces.
     defaults: BTreeMap<String, std::collections::BTreeSet<String>>,
+    /// The paths of inherent methods named by their impl's type
+    /// (`time::Duration::saturating_sub`): methods, not free functions.
+    methods: std::collections::BTreeSet<String>,
 }
 
 impl CoreLink {
@@ -127,7 +130,9 @@ impl CoreLink {
                 }
             }
         }
+        let mut methods = std::collections::BTreeSet::new();
         for (resolved, texts) in aliases {
+            methods.insert(resolved.clone());
             bodies.entry(resolved).or_insert(texts);
         }
         // Each impl's header, read from the source its span names.
@@ -308,6 +313,7 @@ impl CoreLink {
             impls,
             wild,
             defaults,
+            methods,
         }
     }
 
@@ -330,6 +336,7 @@ impl CoreLink {
         if !erased.contains("::") {
             let mut free = self.decls.generics.keys().filter(|p| {
                 split_path(p).last() == Some(&erased)
+                    && !self.methods.contains(*p)
                     && (self.bodies.contains_key(*p) || self.decls.intrinsics.contains(*p))
             });
             if let (Some(p), None) = (free.next(), free.next()) {
