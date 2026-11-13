@@ -1,0 +1,217 @@
+[[fn]]
+path = "hashbrown::ALIGNED_TAGS"
+kappa = "9e581fa4be6b6f6d764cfb952bb69343db221aa639c8802b756ed01ffe129990"
+status = "residue"
+cause = "mir::Ty: control::group::sse2::Group::static_empty::AlignedTags"
+
+[[fn]]
+path = "hashbrown::BITMASK_ITER_MASK"
+kappa = "81a3b69fe227626fd09b84853c4f32612ef0d65f65fe69adcf8c1f3699460942"
+status = "translated"
+digest = "e9a24d7cb4210b7dd9768b44db8059694f8d4ad8c5a0fd829e870fef68eaa3ee"
+
+[[fn]]
+path = "hashbrown::MIN_HASH_LEN"
+kappa = "ace1e7bd7bf6168a783d2503715eb7622bfa90efc40b8d04b6c75ac80d4ac652"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::mem::size_of"
+
+[[fn]]
+path = "hashbrown::TagSliceExt::fill_empty"
+kappa = "956e31a7ffaa422c2f322fdc1e25c0f7b43f91a9bda231bce9cb3936d62702f8"
+at = "Self=u32"
+status = "residue"
+cause = "mir::Operand::Constant: the constant item control::tag::Tag::EMPTY"
+
+[[fn]]
+path = "hashbrown::bitmask::<impl at src/control/bitmask.rs:19:16: 19:21>::clone"
+kappa = "a84560e35de2546b4457a477e05feaa4d98046ba42d639c2c7219aef15ff6efe"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMask"
+
+[[fn]]
+path = "hashbrown::bitmask::<impl at src/control/bitmask.rs:95:10: 95:15>::clone"
+kappa = "3061628d192efac23b24b5f29d1c55b67ffe0e33c13f8e56a9c6e149324f93e7"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMaskIter"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMask::any_bit_set"
+kappa = "f310fbd62275f0fbe6e6df82f1831221a03323161f21c34ce518d442508d818d"
+status = "residue"
+cause = "mir::Ty: BitMask"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMask::into_iter"
+kappa = "aa7e9fcc05581ea8ef2fcae2c3c8a5d89ab6355b624af68e98d358745f3f1dbd"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMaskIter"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMask::leading_zeros"
+kappa = "276e512a7a36a4a954df38dd9fa7bba04602a4bfce06724a95cdc1ed3d42d05b"
+status = "residue"
+cause = "mir::Ty: BitMask"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMask::lowest_set_bit"
+kappa = "ab467b895afccf3eaf18ebc5e88e5318bca515ee742bb96d475610eefde89591"
+status = "residue"
+cause = "mir::Ty: BitMask"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMask::nonzero_trailing_zeros"
+kappa = "32ef4ae65544bca716957d9c9eb815bf451a593a6a42624e1ad187b74a6dbd68"
+status = "residue"
+cause = "mir::Ty: NonZero<u16>"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMask::remove_lowest_bit"
+kappa = "9d6f6ee4bb6642b66438d1d3cdb5c9a61ea17bd99d72f851e2a17635c4c494ed"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMask"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMask::trailing_zeros"
+kappa = "19a9d54eaee1faa77509e2564f1b2fa51f25cfa974e0b0c0988a0bfd4c7a670d"
+status = "residue"
+cause = "mir::Ty: BitMask"
+
+[[fn]]
+path = "hashbrown::bitmask::BitMaskIter::next"
+kappa = "ee63f8b171adae51ad8f42f6bd8b5dd225cf42cb9bbf4a6e8f34064c38b4ec43"
+status = "residue"
+cause = "mir::Ty: BitMaskIter"
+
+[[fn]]
+path = "hashbrown::sse2::<impl at src/control/group/sse2.rs:19:16: 19:21>::clone"
+kappa = "8f5d54696faa4df324c32ce0f79f737bcf14445a3150e57cdecddb9f2c640b5e"
+status = "residue"
+cause = "mir::Ty: control::group::sse2::Group"
+
+[[fn]]
+path = "hashbrown::sse2::Group::WIDTH"
+kappa = "42627c2a18c652ad6767853ed80fe3d5575a021fd48920c154d737ccef8a4cca"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::mem::size_of"
+
+[[fn]]
+path = "hashbrown::sse2::Group::convert_special_to_empty_and_full_to_deleted"
+kappa = "fa3ebf9e544745c0e4fd10bc23daa16da1f120815b5f6eed2ccb91d66b12c08f"
+status = "residue"
+cause = "mir::Ty: control::group::sse2::Group"
+
+[[fn]]
+path = "hashbrown::sse2::Group::load"
+kappa = "d59f180a6f7d36630b44e9a1b69c0857b022061e25aae847aaad3a5e68ed2be2"
+status = "residue"
+cause = "mir::Ty: control::group::sse2::Group"
+
+[[fn]]
+path = "hashbrown::sse2::Group::load_aligned"
+kappa = "54bd61eea4b9626be83fb7d3a4c59fecea2be7ba782be8c7d8ebbf992e7f9f3b"
+status = "residue"
+cause = "mir::Ty: control::group::sse2::Group"
+
+[[fn]]
+path = "hashbrown::sse2::Group::match_empty"
+kappa = "fd09c7bb30777fd656a557ec5ff07ac2fba9b3be1a12dc77ae30812df6027307"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMask"
+
+[[fn]]
+path = "hashbrown::sse2::Group::match_empty_or_deleted"
+kappa = "20ba75a50f32c5c1cac87034fe28009dc6ab9cb997348771ab711c82ac9ed522"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMask"
+
+[[fn]]
+path = "hashbrown::sse2::Group::match_full"
+kappa = "93db7c7f1cf83c94391f8bd845cc869a730510bc9586ba9c7f4b8975fe2895ad"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMask"
+
+[[fn]]
+path = "hashbrown::sse2::Group::match_tag"
+kappa = "3b4727454c0a8302270039be375b71521240a1a832ab5e65f049b43fb5adac30"
+status = "residue"
+cause = "mir::Ty: control::bitmask::BitMask"
+
+[[fn]]
+path = "hashbrown::sse2::Group::static_empty"
+kappa = "f223dc5b210b86ada54b00887516b9039e6f6e70b13368f22ff0cf28881e9e1f"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::sse2::Group::store_aligned"
+kappa = "17409851280986f0884d50f00e77497bff7928ee21cea1ff4604952f5e9b93bf"
+status = "residue"
+cause = "mir::Ty: Group"
+
+[[fn]]
+path = "hashbrown::tag::<impl at src/control/tag.rs:4:16: 4:21>::clone"
+kappa = "66e6e1e21d930b18a16a8665d49ef3f41ae56763d5a30a2f6f637d81c5ba4b05"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::tag::<impl at src/control/tag.rs:4:23: 4:32>::eq"
+kappa = "ccf79b940e9fc3c8604f590cf878a05a2347ced37013e9f0273f81839f8ff658"
+status = "residue"
+cause = "mir::Ty: Tag"
+
+[[fn]]
+path = "hashbrown::tag::<impl at src/control/tag.rs:4:34: 4:36>::assert_fields_are_eq"
+kappa = "25d7a342639ccc1afaed4675cb5073dcfabcd4ca62ca48ccc4afdcbee97dd05b"
+status = "residue"
+cause = "mir::Ty: Tag"
+
+[[fn]]
+path = "hashbrown::tag::MaybeUninit::fill_tag"
+kappa = "e05f657e0bbee1ebd75bb1dda25ec9e6bce0e0289117e961a3ad0ea703e0afdd"
+status = "residue"
+cause = "mir::Ty: Tag"
+
+[[fn]]
+path = "hashbrown::tag::Tag::DELETED"
+kappa = "db67204e2af55833fe983cceb8977d8375ca8973f3f24af4f21473d21418f900"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::tag::Tag::EMPTY"
+kappa = "4b54998fb4a438573abbfd675e79ac40e47acdc2a545f79404e7682b31d75e39"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::tag::Tag::fmt"
+kappa = "42208cd4275a88ac2c16ca37f649fbcf579d9f6b0a1472ab34c5a40069ff89a5"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "hashbrown::tag::Tag::full"
+kappa = "5a4954fe8d72c4c9154ddc2f711686f251cc53726be057124b3949fc33af8193"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::tag::Tag::is_full"
+kappa = "6b653fe5da1ae1b71442ff77947709ddb914b0f419a44f3fe14726c104e4011a"
+status = "residue"
+cause = "mir::Ty: Tag"
+
+[[fn]]
+path = "hashbrown::tag::Tag::is_special"
+kappa = "b0430c1d3a83ec5c20faa46376bc5ebc83acf63478afa0c03191831be5c00c3a"
+status = "residue"
+cause = "mir::Ty: Tag"
+
+[[fn]]
+path = "hashbrown::tag::Tag::special_is_empty"
+kappa = "82df3f54588624ee5730d8bd455015f06e911943a3692b3db9cf4dc1668ece38"
+status = "residue"
+cause = "mir::Ty: Tag"
+

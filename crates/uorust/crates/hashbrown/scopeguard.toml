@@ -1,0 +1,35 @@
+[[fn]]
+path = "hashbrown::guard"
+kappa = "362f00fcd0bb33794ce4e6d6b6371706aa015eb318b4a833930479035c945a04"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: scopeguard::ScopeGuard<u32, u32>"
+
+[[fn]]
+path = "hashbrown::scopeguard::ScopeGuard::deref"
+kappa = "c050d1c1353bfee8d30a6d7753613ec2751c6c9b0c3cf77fdf12c22b5d367063"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: F"
+
+[[fn]]
+path = "hashbrown::scopeguard::ScopeGuard::deref_mut"
+kappa = "f64566a59a13e80c0b579b73a4d90e27d2f7b093243d96c45739cce3b8637e4f"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: F"
+
+[[fn]]
+path = "hashbrown::scopeguard::ScopeGuard::drop"
+kappa = "6566d172760cac39d271c9e05540cf1b38d98b8847672daeddded4429d47217f"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: ScopeGuard<u32, u32>"
+
+[[fn]]
+path = "hashbrown::scopeguard::ScopeGuard::into_inner"
+kappa = "e027f44fb726f88cc61ddb7049a47d58e478a2ef2db83671319516f9f57151f0"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: ScopeGuard<u32, u32>"
+

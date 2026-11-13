@@ -1,0 +1,586 @@
+# The hashbrown register (written by `uorust crate hashbrown@0.17.1`; do not edit): every body of
+# hashbrown's MIR at hashbrown 0.17.1, translated by the MIR path with each
+# type parameter bound to `u32`, by module. A translated body lowers
+# to LexLean; the residue stops at the causes listed last. Rows, by κ, are
+# in each module's own file, and none recorded translated may regress.
+
+toolchain = "1.97.1"
+instantiation = "u32"
+bodies = 705
+translated = 9
+residue = 696
+
+[module.alloc]
+bodies = 1
+translated = 0
+residue = 1
+
+[module.control]
+bodies = 36
+translated = 1
+residue = 35
+
+[module.crate]
+bodies = 5
+translated = 0
+residue = 5
+
+[module.hasher]
+bodies = 19
+translated = 0
+residue = 19
+
+[module.map]
+bodies = 194
+translated = 1
+residue = 193
+
+[module.raw]
+bodies = 161
+translated = 2
+residue = 159
+
+[module.raw_entry]
+bodies = 38
+translated = 0
+residue = 38
+
+[module.scopeguard]
+bodies = 5
+translated = 0
+residue = 5
+
+[module.set]
+bodies = 120
+translated = 1
+residue = 119
+
+[module.table]
+bodies = 122
+translated = 0
+residue = 122
+
+[module.util]
+bodies = 4
+translated = 4
+residue = 0
+
+[[cause]]
+cause = "mir::Ty: core::fmt::Error"
+bodies = 51
+
+[[cause]]
+cause = "mir::Ty: HashSet<u32"
+bodies = 32
+
+[[cause]]
+cause = "mir::Ty: RawTableInner"
+bodies = 25
+
+[[cause]]
+cause = "mir::Ty: S"
+bodies = 24
+
+[[cause]]
+cause = "mir::Ty: HashMap<u32"
+bodies = 20
+
+[[cause]]
+cause = "mir::Ty: HashTable<u32"
+bodies = 20
+
+[[cause]]
+cause = "mir::Ty: RawTable<u32"
+bodies = 20
+
+[[cause]]
+cause = "mir::Instantiation: a const parameter"
+bodies = 18
+
+[[cause]]
+cause = "mir::Ty: raw::Bucket<u32>"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: DefaultHasher"
+bodies = 14
+
+[[cause]]
+cause = "mir::Ty: T"
+bodies = 14
+
+[[cause]]
+cause = "mir::Ty: map::HashMap<u32"
+bodies = 14
+
+[[cause]]
+cause = "mir::Ty: map::Iter<'_"
+bodies = 13
+
+[[cause]]
+cause = "mir::Ty: hasher::DefaultHashBuilder"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: map::OccupiedEntry<'_"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: set::HashSet<u32"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: table::Iter<'_"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: control::tag::Tag"
+bodies = 10
+
+[[cause]]
+cause = "mir::Ty: map::Entry<'_"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: map::Keys<'_"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: map::Values<'_"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: set::Iter<'_"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: table::OccupiedEntry<'_"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: A"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: table::HashTable<u32"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: Bucket<u32>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: map::IterMut<'_"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: raw_entry::RawEntryMut<'_"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: table::IterMut<'_"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: Tag"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: control::bitmask::BitMask"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: map::Drain<'_"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: map::IntoIter<u32"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: map::IntoKeys<u32"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: map::IntoValues<u32"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: map::ValuesMut<'_"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: raw::RawIter<u32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: raw::RawTableInner"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: set::Drain<'_"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: set::IntoIter<u32"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: table::IntoIter<u32"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: EntryRef<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: F"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: raw::RawTable<u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: set::Difference<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: set::SymmetricDifference<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: set::Union<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: table::Drain<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::mem::size_of"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: BitMask"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: RawEntryBuilder<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: control::group::sse2::Group"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: core::ptr::NonNull<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: raw::FullBucketsIndices"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: raw::RawIterHash<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: raw::RawIterHashIndices"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: set::Intersection<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: set::OccupiedEntry<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: FullBucketsIndices"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: RawOccupiedEntryMut<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: TableLayout"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: UnsafeIter<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: VacantEntryRef<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: raw::RawIntoIter<u32"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: raw::TableLayout"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: set::Entry<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: table::Entry<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: table::IterBuckets<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: table::IterHash<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: table::IterHashBuckets<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: Fallibility"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: IterHash<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: IterHashMut<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: K"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: RawEntryMut<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: RawIter<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: RawVacantEntryMut<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: ScopeGuard<u32"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: V"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: control::bitmask::BitMaskIter"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: core::ptr::NonNull<u8>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: hasher::DefaultHasher"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: map::EntryRef<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: map::ExtractIf<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: raw::ProbeSeq"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: raw::RawDrain<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: raw::RawIterRange<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: raw::RawTable<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: raw_entry::RawOccupiedEntryMut<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::ExtractIf<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::HashSet<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::VacantEntry<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: table::ExtractIf<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: table::HashTable<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: table::IterHashMut<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: table::UnsafeIter<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item control::tag::Tag::EMPTY"
+bodies = 1
+
+[[cause]]
+cause = "mir::Rvalue::Discriminant: of Nat"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as BuildHasher>::hash_one"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::mem::needs_drop"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::ptr::const_ptr::offset_from"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: discriminant_value"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: BitMaskIter"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Group"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: NonZero<u16>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ProbeSeq"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: RawExtractIf<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: RawIntoIter<u32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: RawIterHashIndices"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: RawIterRange<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: TryReserveError"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: control::group::sse2::Group::static_empty::AlignedTags"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::alloc::Layout"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: map::HashMap<&str"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: map::HashMap<u8"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: map::IntoIter<&str"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: map::IntoIter<u8"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: map::OccupiedError<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: map::VacantEntry<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: raw::Fallibility"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: raw_entry::RawEntryBuilder<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: raw_entry::RawEntryBuilderMut<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: scopeguard::ScopeGuard<u32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: set::HashSet<&str>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: set::IntoIter<&str"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: table::VacantEntry<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: {closure@src/map.rs:211:5: 211:15}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: {closure@src/map.rs:221:5: 221:13}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: {closure@src/map.rs:232:5: 232:13}"
+bodies = 1

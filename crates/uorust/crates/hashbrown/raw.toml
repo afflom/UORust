@@ -1,0 +1,1065 @@
+[[fn]]
+path = "hashbrown::SizedTypeProperties::IS_ZERO_SIZED"
+kappa = "f3d72feb738d415d200cd7d8979b72f7caabb6bbb255c8be1e4b56bc60adf331"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::mem::size_of"
+
+[[fn]]
+path = "hashbrown::SizedTypeProperties::NEEDS_DROP"
+kappa = "8d79d25f55b9cfbf51398488864dac7977058c3ba33b12eb7d53a120352f2f14"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::mem::needs_drop"
+
+[[fn]]
+path = "hashbrown::bucket_mask_to_capacity"
+kappa = "591a9e5ffe872844d484bff1542c65270cb5e2afde73854551acdb7833a82b0b"
+status = "translated"
+digest = "d9394e36d254b2ef087280a940a93671150b4d6b238023e74ad34feedbba9bd7"
+
+[[fn]]
+path = "hashbrown::capacity_to_buckets"
+kappa = "eb1368e276f332679b15f406b08ecbd07be39c160b26cf7d8e26ac0fc288568b"
+status = "residue"
+cause = "mir::Ty: TableLayout"
+
+[[fn]]
+path = "hashbrown::ensure_bucket_bytes_at_least_ctrl_align"
+kappa = "6b883c50ad57cca3fb302dd34e17efecf52275c7c2186a56cbe5126004b9f4ef"
+status = "residue"
+cause = "mir::Ty: TableLayout"
+
+[[fn]]
+path = "hashbrown::h1"
+kappa = "00d8901fb2a8998ace299889239021f3eecbb0630b75cb5442fed97adda1a8e5"
+status = "translated"
+digest = "90ecef47db71abdec64b0a0fc1fcf84532dcf76c6166e7511f3c138f876922f8"
+
+[[fn]]
+path = "hashbrown::maximum_buckets_in"
+kappa = "94d24371a8e8142faca998546b3a511545e96c57a8ef0e62b650d601670d9756"
+status = "residue"
+cause = "mir::Ty: TableLayout"
+
+[[fn]]
+path = "hashbrown::offset_from"
+kappa = "6b233a9e3e93c1c8337b8e523d9162744b6818577c395b6ba9faa5e79834780c"
+at = "T=u32"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::ptr::const_ptr::<impl *const u32>::offset_from"
+
+[[fn]]
+path = "hashbrown::prev_pow2"
+kappa = "6b8e1af1d63b9d312d255702ab983924641c7105d9f15bc28f2b9b6c51343afd"
+status = "residue"
+cause = "mir::TerminatorKind::Call: core::mem::size_of"
+
+[[fn]]
+path = "hashbrown::raw::<impl at src/raw.rs:195:16: 195:21>::clone"
+kappa = "7eafabb589b7b4583106130f7a9875f6c3388a05b49baeb53a49ae975419172a"
+status = "residue"
+cause = "mir::Ty: raw::TableLayout"
+
+[[fn]]
+path = "hashbrown::raw::<impl at src/raw.rs:24:16: 24:21>::clone"
+kappa = "b9d4b5c8fc75a51cc79689f75879b00d177196456ef3fabcba1ebe20e23699e5"
+status = "residue"
+cause = "mir::Ty: raw::Fallibility"
+
+[[fn]]
+path = "hashbrown::raw::<impl at src/raw.rs:3898:10: 3898:15>::clone"
+kappa = "3903ceb52ffe27d77621879d47575dda75a2bde589cfd5507fc7ade6e1da89bc"
+status = "residue"
+cause = "mir::Ty: raw::FullBucketsIndices"
+
+[[fn]]
+path = "hashbrown::raw::<impl at src/raw.rs:4195:10: 4195:15>::clone"
+kappa = "6b934ae33ec7a2939fcf3926c7b2be1eb236a435962954bc6f98821fcc286291"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHashIndices"
+
+[[fn]]
+path = "hashbrown::raw::<impl at src/raw.rs:74:10: 74:15>::clone"
+kappa = "4db48da2600dfc552c148d8aa20284eabd0e1b3f0be4bb45d16db86e8534a48a"
+status = "residue"
+cause = "mir::Ty: raw::ProbeSeq"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::as_mut"
+kappa = "5eb5bb51773f59b7fad64cc2d3ce1f4190c4d12c2f99cb59c238e84329d2149b"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::as_non_null"
+kappa = "03d74d9e08d7911ac896473f126fdfa56c44a0cf80cc55494c0dd7227712299d"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: core::ptr::NonNull<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::as_ptr"
+kappa = "dc87a9fdc011c7db64bebaac35f8cd9c1ddf46ffa131bea9a6c9cd91afda5d18"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::as_ref"
+kappa = "1ec224284e0f77ea6fd9119d9f95a4db18884b5ecbb2ab54f56be81c714bf9d2"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::clone"
+kappa = "00eeca4ebfba5097087f805cdbd09c429afe375711763606a866bb9a7a753e46"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::drop"
+kappa = "42d8ec1742a6a18d9882106d82a34238aa7b8038f5329049f86f263af7569367"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::from_base_index"
+kappa = "e531c83f86f4071fc997f89e6ec6149341a20c29b465c0060f862ff48a99beda"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::next_n"
+kappa = "e8622e21fd9b12be6cce9f24bce1767756f5541dfce1a95bdc5d6019d356b9d5"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::read"
+kappa = "e7599f5ce3a3b1083e31522472e1efa1a78d76160765753479fe585ed2452ffc"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::to_base_index"
+kappa = "1088ce2fe81b0ff49d962d39173f338662097c76f66e0021823346373d1bf872"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Bucket::write"
+kappa = "98ba5474c28818d82c1b03ce66a47557eb45ccb73d8f15f2cb537fdf6652add9"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::Fallibility::alloc_err"
+kappa = "86ea136e7296438cdcc202ce7f4945e989cdf3ef2ed9b893ab6283179dbcba77"
+at = "TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: Fallibility"
+
+[[fn]]
+path = "hashbrown::raw::Fallibility::capacity_overflow"
+kappa = "a09e5a274a9068e9223caf35c678ca48c37101a0b73a1b670075ab54733c36af"
+at = "TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: Fallibility"
+
+[[fn]]
+path = "hashbrown::raw::FullBucketsIndices::default"
+kappa = "8094f4950b99917af57f489ca2136380d41e226ccabeafb4999d2b634cf649ef"
+status = "residue"
+cause = "mir::Ty: raw::FullBucketsIndices"
+
+[[fn]]
+path = "hashbrown::raw::FullBucketsIndices::next"
+kappa = "af8a6bac2f406643774c2e58fbd9e915467bf87d6dd5bb99293cc1228e65d653"
+status = "residue"
+cause = "mir::Ty: FullBucketsIndices"
+
+[[fn]]
+path = "hashbrown::raw::FullBucketsIndices::next_impl"
+kappa = "288ee029831091ca94c387dd38fc9686e35f11b7d6fe5505bf34e9b156dc8b9f"
+status = "residue"
+cause = "mir::Ty: FullBucketsIndices"
+
+[[fn]]
+path = "hashbrown::raw::FullBucketsIndices::size_hint"
+kappa = "a532e666c3bcbe07561ba5170b704f690c3c462613cda6b99d93735e3d30cd68"
+status = "residue"
+cause = "mir::Ty: FullBucketsIndices"
+
+[[fn]]
+path = "hashbrown::raw::ProbeSeq::move_next"
+kappa = "a4eced641b74d76b12ac7669e95cef33f4035ec06ca36a6689c38927d97f93ed"
+status = "residue"
+cause = "mir::Ty: ProbeSeq"
+
+[[fn]]
+path = "hashbrown::raw::RawDrain::drop"
+kappa = "c3b47b2567cddc75bc7ab9c8104b2c57c5d3a896a57ba7ed12df1a83a1e7f4e9"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: A"
+
+[[fn]]
+path = "hashbrown::raw::RawDrain::iter"
+kappa = "d341281934d0aa85b508e0c2a89d45ae384b00d57c0bb4748a042737906f3097"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawDrain::next"
+kappa = "b2629570fc61b5d4f7ca59291234f078e967ae0a59e04e4bd5ac8519ddc6b9a4"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: A"
+
+[[fn]]
+path = "hashbrown::raw::RawDrain::size_hint"
+kappa = "c3ea505826103520a75735061a1e82dc95907a7a68c2a97b4e3569ee2efd68e4"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: A"
+
+[[fn]]
+path = "hashbrown::raw::RawExtractIf::next"
+kappa = "7354e553ffc778300ea790db8b41d3c37b074c780e6e83b3cd12ea4a15e44c09"
+at = "A=u32, F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawExtractIf<'_, u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIntoIter::default"
+kappa = "9427775e10ce35f292b1bdf37b95081c8be3c739799fe4a43eb0d5429cd7cd55"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIntoIter<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIntoIter::drop"
+kappa = "b89b854c2d05fc52e66c43a26e4c5879709dfabf01070963fc526f144d4e892d"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawIntoIter<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIntoIter::iter"
+kappa = "f18eb6d97f42aae9a7c15a84539b235f8143be25d318edb335505c00872b6f07"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIntoIter::next"
+kappa = "2d99e3a2b6b0cd056f19bae82843d01e71be9da9413ed8179273ee6b8a1a899c"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: A"
+
+[[fn]]
+path = "hashbrown::raw::RawIntoIter::size_hint"
+kappa = "4fdd3d700dc55ee468ff476dcaac3b5969fb5357a970dda1a2dfe0b41e1fb5f8"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: A"
+
+[[fn]]
+path = "hashbrown::raw::RawIter::clone"
+kappa = "c1819738e283e52d7e9e24c4950ca3fa4b885516262d3898b009cd3f91ce93bd"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIter::default"
+kappa = "d0f026c876195a00e428c2a26f9015d51382f158d78e4a30cc221b14c1a48dcb"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIter::drop_elements"
+kappa = "7c353a7cefbe81bb24304b976e7ac891490946b86e68df09d96833ce15962377"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIter::fold"
+kappa = "5f47fbd861f4e09e2d1c089ab28e502c1fcc668194b9fbcc1dbfe2c813873c4f"
+at = "B=u32, F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIter::next"
+kappa = "46568236716383bbb922ff047a2b3a03fa51722485dfa2bf680bbe9c2a7cd4c4"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIter::size_hint"
+kappa = "cca481d94de12b16ea4d1d04a2e5ea7e3e60dd57b3fc83f70e782a4a4ef4d1c6"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawIterHash::clone"
+kappa = "a670ee6f6dbcee52672ebd2a6c863bed1be76ddf5ad6db7f905a7feeaf9699d1"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHash<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterHash::default"
+kappa = "311c2608fef3613f91de20f4cf4edbdb2b6d0c575d68226239e8349b44e4c2f1"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHash<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterHash::new"
+kappa = "9a4bd00b1d53c493678b40bffc96ed0e26dea1215d63dd834c0ff48c8a49198a"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHash<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterHash::next"
+kappa = "12aaec957d522359eedf8b110e50fb1588f64747532a0dd1178990a0119c8ab4"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterHashIndices::default"
+kappa = "7dfd6bd1242b3db30bfc690ebca50e409b7c024cab6f62770b5dfbb29ddd4ad9"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHashIndices"
+
+[[fn]]
+path = "hashbrown::raw::RawIterHashIndices::new"
+kappa = "38e6980fc8e7e164db890db47d8980553fd19cedeb182b0904023b5752c770c3"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHashIndices"
+
+[[fn]]
+path = "hashbrown::raw::RawIterHashIndices::next"
+kappa = "f761defe2a5559e966817918adcaf66a3c5de9c0801b570d6cc06182c684603a"
+status = "residue"
+cause = "mir::Ty: RawIterHashIndices"
+
+[[fn]]
+path = "hashbrown::raw::RawIterRange::clone"
+kappa = "fe25b3aaab5beee08b54d9b34a0a62adcd4cbda2c09e93b3da27e9cab63aad58"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIterRange<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterRange::fold_impl"
+kappa = "76c4543855bfedfafb6d0d161bbf8eb5bf486d833c8b8bd3f851960510dcff8f"
+at = "B=u32, F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawIterRange<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterRange::new"
+kappa = "b87844a8e9e9b31056ab6911f392db1af75b01d85dcd4167923a4e9ec0928803"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIterRange<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterRange::next"
+kappa = "1208f163096323e6bd0a1378d1567bcbd162df548b3a02e31647561eaa7fbe2c"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterRange::next_impl"
+kappa = "f6770537b39c2dbb811960f923ac1ea10272130b7ebed058ded43e8c5e2ad3cb"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawIterRange::size_hint"
+kappa = "89ca0bffc63013c3bed83efc9b47ae144e25a7c921cd84a20b43c3b9ffa6603d"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::TABLE_LAYOUT"
+kappa = "e3521b044d98b10b82cb7ff0f2e55c1aae728da7b160f13ec5c9c0cbc079dc24"
+status = "residue"
+cause = "mir::Ty: raw::TableLayout"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::allocation_size"
+kappa = "a78e4fde9923780767c1722033a23a7c167d1ff394c4274840a0636816ebddca"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::allocator"
+kappa = "830b6a39f90a07800c1b8751019dad3e832d6ded79beacb93806c2d070ab971c"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::bucket"
+kappa = "cb20fb347b84565c99a190924e9d4440f0d8fb8372afec0aedf65acb98ed1779"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::bucket_index"
+kappa = "0e2053b781703335f7a647c15d1b269203954d074f9e12cf7c918c672c371277"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::capacity"
+kappa = "6e0ea1b29861abd91f0fc23a2e7499905035be37e0419251fedf7045b7e2775f"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::checked_bucket"
+kappa = "7a47a20f5ecd51ee79762a552cc825e51c5f6c630b61f6100c8c71f1a501a34c"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::clear"
+kappa = "3777605530fde14088ea284fae09496f2a7dc215acc1f5b4b336d81f507b9d4f"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::clear_no_drop"
+kappa = "45f0fc1104681866dc768b4bd15290938e3863ac509a6e9fef8e84bf3a6f78bb"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::clone"
+kappa = "2cc21c2eaec22719f2e3846090cb352211fe0a222d3844239f6fe729afa22643"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::clone_from"
+kappa = "770d302abb88fdb34ca2b61a9ce91385cb9ab4670344f49cb75410332b5361c7"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::clone_from_impl"
+kappa = "27f6925c59d4ea9f925f9771419551348f0daa19d8e090b489ff2be81a5786ea"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::clone_from_spec"
+kappa = "4d2cf94a2a22d5128677cf6b2a6e6a24e9fc51dbcbef89ef2184eddcb046247c"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::data_end"
+kappa = "4427c84670401556e1f55e4679665d0c4bb59a748936b8f70c3e8d3620bf5c19"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: core::ptr::NonNull<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::default"
+kappa = "4b733ab35fd5490d00ebf717530c633e3dfcb193e648757da34ac07523b7384b"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::drain"
+kappa = "f13df0c4ea88653ac176e2af11cbe637030d1a5e7e2d8c06853e711c076bf3bf"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawDrain<'_, u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::drain_iter_from"
+kappa = "1604fe6851b8759648fba85e54422c846027df2d91cb3d2ffdffab5064f301ac"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawDrain<'_, u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::drop"
+kappa = "a07d3df8cdd4fa44b172a55e5e02093145e5d5119af01b3af014cf471709b1d4"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::erase"
+kappa = "02d5e0949384710c93b019588bb0e989048e1f39fbc6309de59da435b99614d4"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::erase_no_drop"
+kappa = "d3b1c07e971c304eb0d66b69da6963db1e8245e7e65ef896e2c087f1b080195e"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::find"
+kappa = "57453a2f187968e960c7745cf239a4464dfb9bc058116cfb0d7dcaa5aabee8e0"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::find_or_find_insert_index"
+kappa = "deded54d4e073592ece6fa37aded6db1e9b964731a9e8891b3330f6f72b5c940"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::full_buckets_indices"
+kappa = "02f4eb49d50bc0e6a7a3b9d1fbe6e9e03f31498a7da2fac102155e4993deba79"
+status = "residue"
+cause = "mir::Ty: raw::FullBucketsIndices"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::get"
+kappa = "6792131bcc8edd118ef04a8db8c1d28b27326994f54fba979b786bc821df7446"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::get_bucket"
+kappa = "14f521702e83d65ce118984b61940c63b4e8d84f59286e84852b705635083e13"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::get_bucket_mut"
+kappa = "2f7e605b78e740210fe78a0ef87e3861d14551704ac0fdfafbb5adc27e646437"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::get_disjoint_mut"
+kappa = "d6d7af5933cb40a81028b17b4e0df40fa8dca8ae48df750f7ec05f65654404d7"
+at = "A=u32, N=#, T=u32"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::get_disjoint_mut_pointers"
+kappa = "583f6c8e98c7d2c4d60d76ff884de2f49a78f5e7fe7b6c994674d90b14140849"
+at = "A=u32, N=#, T=u32"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::get_disjoint_unchecked_mut"
+kappa = "9f6dc95329104c0d37d69fd9bf00f066677b75d5f2d5bcee6db1a08870bb5709"
+at = "A=u32, N=#, T=u32"
+status = "residue"
+cause = "mir::Instantiation: a const parameter"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::get_mut"
+kappa = "7653d5c4b94d2d1328cf62c11e8d550f787c3ea7461d3be41523b9250ed5ae24"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::insert"
+kappa = "0ded20178db2432e0716feb21781c4c64431925d0f5dc107e7f12534a0257acb"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::insert_at_index"
+kappa = "3ec56664450a0d374d3ead0e730c1a930fbf905af23690e3da0c3c216b934e6b"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::insert_entry"
+kappa = "d8b46546b6967ae6640211b758408364afd1c80d5acd96d0549ba5519c0cb17f"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::insert_tagged_at_index"
+kappa = "6d5cb7f36315c26a534b0bd223745b364f99cf96d32c1f0b4bced1c8949101bd"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::into_allocation"
+kappa = "128c74693de31879babfa2d41aa416dfae7413b781c9c43ea1a95b7857a52da8"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: core::ptr::NonNull<u8>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::into_iter"
+kappa = "883b7ba0c8661db97c5170e277f91c150b3adccffe51f200ade72b64bf4b2690"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIntoIter<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::into_iter_from"
+kappa = "98ce2d26745bef55eddab371cb086b4ef9410a268232b61dcca6577e702aabd1"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIntoIter<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::is_bucket_full"
+kappa = "e2c9dcc27d24b70d6161b2f4937f172259f34d801cc97d4b0f8a4a43bd26ba88"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::is_empty"
+kappa = "0421b6b9d076322be5c93f6ffc4433b3ad22f911301052052654dccbcafafc84"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::iter"
+kappa = "e7537be2ec3134e004cf635b4c71055dd1843e7532b3be699fe21a45802828d4"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::iter_hash"
+kappa = "65d9c5d77e39c9524a1277cbdd14d231124706baf29f5f1b1a66d95f50b5ccd2"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHash<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::iter_hash_buckets"
+kappa = "d9447fb934f9090d0b88203501b0dfb9eeab63ed876469ff5930a93e87eaac92"
+status = "residue"
+cause = "mir::Ty: raw::RawIterHashIndices"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::len"
+kappa = "558b65329319375155b14bde490b73ae8496bb337f62d78d5d2c83a2dc1851ee"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::new"
+kappa = "a0df2f7771a8549eb9e013f89c44f1506685f7a63953e3f7d37cf5e1e52d127d"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTable<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::new_in"
+kappa = "6b619d88c72728c5f46929da158f928cb545033e643b98cc8f74b441aa6dd9aa"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::new_uninitialized"
+kappa = "5d0998ae5b98006a3613dfbcc08c29984495cb86d4105a6ca75d47d426122ebb"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::num_buckets"
+kappa = "4b9b9f90a0a0280e87d793f89a9950e198b3907ef4660c5a836ee380533dccee"
+status = "residue"
+cause = "mir::Ty: T"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::remove"
+kappa = "a3b6b727fd4e2fce3cc3f6a2ba0c96e986cbe29f79b1c2fbf8536be15850a0cd"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::remove_entry"
+kappa = "6dc464a0702f5190d18b3ed571df8719f726d7ca04b5f053d460da8c94c23665"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::remove_tagged"
+kappa = "4308c1c720977237c16a8a20ffcefd85705b0567a93cd90c70ebf22356a15d7f"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::replace_bucket_with"
+kappa = "d66d8897bd6e99c3c46b11fbba76bbfaa37229559cf82728954a418a3695fb02"
+at = "A=u32, F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::reserve"
+kappa = "3b819d1fcfe88e838634b4f290cfcda355f1e24b1519feb7bc46272901aba54e"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::reserve_rehash"
+kappa = "6ec66ec10d443e6f057631f14f14dd962b4f5f877137c035ddc5c9d9ec183831"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::resize"
+kappa = "df07ee50821610a8f63acfe4664f32b108ab9388b20f7d2fd1c56a40aa356dbc"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::shrink_to"
+kappa = "fbad942481fbe6d265a9ef8ddcf5d4c391805f12d5f5ddb78cf82a392dd71dbd"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::try_reserve"
+kappa = "4679e1546280115c092bf116e93e9c0329c03686855ede76300412b2f45128bc"
+at = "A=u32, T=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::with_capacity"
+kappa = "6a1d64489719285cbd9257d59aa09396abb66ae5b7111c3f80077a720c12f560"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTable<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTable::with_capacity_in"
+kappa = "27fab34a287848dc96f2d0c8db6d14f8b6ce73b1e8da10f4a16f0a9c890ee030"
+at = "A=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTable<u32, u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::NEW"
+kappa = "30972a5fc2638ffb575b94ab48487fd680a4e51c313822044036d74eea1b1c70"
+status = "residue"
+cause = "mir::Ty: raw::RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::allocation_info"
+kappa = "7d4d8810ed8a26dadc5658280264a6b3ebeda19026f716fd4edf21430dc35cae"
+status = "residue"
+cause = "mir::Ty: core::ptr::NonNull<u8>"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::allocation_size_or_zero"
+kappa = "525836be93d2059a856ac57920646a57d8bae29ce390b69137abd5049cfaa657"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::bucket"
+kappa = "cd78db7b7e8feeb37704864c84f9ea36673fc883a2449d7c49a691443ab3e3c0"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::Bucket<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::bucket_ptr"
+kappa = "a3294474dc4f552e2579a3ab6312f47414120ed55a2d100fab59dc97f79ecdc6"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::clear_no_drop"
+kappa = "f40ba425cc270ad647e906a45868e4d0c5f2dc7e291c71e53dccf74169fa79a7"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::ctrl"
+kappa = "ab841fe4e7e0935027f4f08322387ca7b01188aa99184c0509bda16c7a278ad3"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::ctrl_slice"
+kappa = "e06bf1701a7bf796e3c8152162c1687750a35d67030b873b30f5f3c199455a12"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::data_end"
+kappa = "834b1babb359d340e52110275bebd3a35f9b4f6a5d0cd5c1c05f20ee968d462a"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: core::ptr::NonNull<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::drop_elements"
+kappa = "6d3947e9c8feff274c2591baf76d6482ad10b7a4d37f8be5f2b5d37a6156ec0d"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::drop_inner_table"
+kappa = "3067ad83162e9043baba991d46a620dd60d6fd13c622c975da1524da6f1829a8"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::erase"
+kappa = "314ff96d85261506fe09c9b8dc0263ea57c6a23a19cd0aaae79aa16c040aa176"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::fallible_with_capacity"
+kappa = "d0724a1ef32d7794f98df6ea9c38eb5a51eb137921a8b3a27e58bce421cedebc"
+at = "A=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::find_inner"
+kappa = "ae36f72c0cfb753e037d3d3f58005a137cc22797014ca45dcd23d9736503c501"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::find_insert_index"
+kappa = "b355922d03f108fdc5ad75e727c3526f4455e03753e3bf8cdc1a67cffc6f1dbb"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::find_insert_index_in_group"
+kappa = "384ac0351955909ac7b0cc489edcecf316fc4434ba3dd4c0ca0e0a222caab33d"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::find_or_find_insert_index_inner"
+kappa = "4b13fa92738adb3fa5626664beb82b325189df3ad23ae507b15701813777e581"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::fix_insert_index"
+kappa = "dee8ec4bf1701b2e606b2b444dc23f979cb63884a6a81353f254d18b9bfc1466"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::free_buckets"
+kappa = "0dc56c1f8c644c4cad90e6cce5bf4275fa182be81bd45b06c648201cb1266bab"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::full_buckets_indices"
+kappa = "b284525a048940a044e988ff27c0961dc5cf8a6723a7bec722e9e3870b4c6bd8"
+status = "residue"
+cause = "mir::Ty: raw::FullBucketsIndices"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::is_bucket_full"
+kappa = "56d6d8bfac6d9319796ef70bbc6ba343b8d2dabd43e6400e02e5af96bbe3ccef"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::is_empty_singleton"
+kappa = "59ba4c0b55485577073d6d2c6d88baa1825852a8dd8de296d721cd909693144c"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::is_in_same_group"
+kappa = "75af118373a809330f5bd1768f7dc4769f3dcff8ae9a36984816edeb1dded740"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::iter"
+kappa = "ae605623c826129ac310739d311ff507902976731529d043b382b1b11104c7fd"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawIter<u32>"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::new"
+kappa = "9ee780bad6bddfaad65f582044bad15239e417e9823f4e18b948d7843b023891"
+status = "residue"
+cause = "mir::Ty: raw::RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::new_uninitialized"
+kappa = "f5af59d38bb686a25433fc393a0f12003f6a690a7295d3b6bdf3dd4060d6b735"
+at = "A=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::num_buckets"
+kappa = "3d02801c0727bacfa656c5bc3458f93ba93fe04313e1c53aa3af5b4a519b2810"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::num_ctrl_bytes"
+kappa = "81b711794dbe176f1a1244517f5d77669007a95c2353102d9d59a2ff9810f8cf"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::prepare_insert_index"
+kappa = "1bbbb3a5b16418270c12ffe3bc73fa0a3d88e264294e323b1445cb73f3d25561"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::prepare_rehash_in_place"
+kappa = "3c6daa9851185e3de9c646df6b7b7dd29d71d4b8b15c9653bdf9457bf741eaac"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::prepare_resize"
+kappa = "935ac8b168cdaf306134015f7e33d2a42e685366b5dbb0e1e88e0db04264d5dd"
+at = "A=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::probe_seq"
+kappa = "526dad586aabd05e06e5100298338b2a2917406a3b0c975f424e4044363b4145"
+status = "residue"
+cause = "mir::Ty: raw::ProbeSeq"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::record_item_insert_at"
+kappa = "24a354aefa02f63fbdc36f8c10aa4b0e435a8db27389e641d45a6703a167e7a0"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::rehash_in_place"
+kappa = "26fe3e74bf713f64a4f1f525977d450244ce39cd63ea59ddc79378df3c279e5b"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::replace_ctrl_hash"
+kappa = "4468a1158a6dc5d84e8df1bc73279054a0ad6a74a950f002074efd22c276af35"
+status = "residue"
+cause = "mir::Ty: control::tag::Tag"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::reserve_rehash_inner"
+kappa = "a0f8363583f76d0993c489ab1094988dcbd8ffd27af344decbbc66f32748ae57"
+at = "A=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::resize_inner"
+kappa = "82af17e66869a0bb98668056b5b24dd37a1a326db417fffc5c4f824ebab78e3d"
+at = "A=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::set_ctrl"
+kappa = "e610eceb7341b927d888e822c0945145e376a7c7635202f8bc2933372224b4c8"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::set_ctrl_hash"
+kappa = "b78c5068e6bfd170e8aad831de087cfa602097bc55b9184b8f51446323b3308b"
+status = "residue"
+cause = "mir::Ty: RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::RawTableInner::with_capacity"
+kappa = "7bac2924007a1dd7ac342ec83e1e95ba0f110652f066fe013345b53919212ed0"
+at = "A=u32, TryReserveError=u32"
+status = "residue"
+cause = "mir::Ty: raw::RawTableInner"
+
+[[fn]]
+path = "hashbrown::raw::TableLayout::calculate_layout_for"
+kappa = "46d02ab47e83259b9b92b12792e2f34e42e86c99e1f23ab564c1be9d80423e14"
+status = "residue"
+cause = "mir::Ty: core::alloc::Layout"
+
+[[fn]]
+path = "hashbrown::raw::TableLayout::new"
+kappa = "5bf586d9cf595d4593bc019050e22bb2ee62228a5e739b3fe4e725db747523df"
+status = "residue"
+cause = "mir::Ty: raw::TableLayout"
+
