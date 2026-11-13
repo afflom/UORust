@@ -4103,6 +4103,75 @@ impl Fun<'_, '_> {
             }
             // `transmute` between two types the lift holds alike.
             (Some(M::Transmute), [(v, t)], [_, _]) if t == dt => Ok(v.clone()),
+            // `discriminant_value` of an enum whose variants set no
+            // discriminant of their own: the index of `v`'s variant, read by
+            // a match on it.
+            (Some(M::Discriminant), [(v, vt)], [printed])
+                if Int::of(dt, self.cx.widths).is_some() =>
+            {
+                let name = printed.split('<').next().unwrap_or(printed);
+                let tail = format!("::{name}");
+                // The discriminants its source sets, where it sets any.
+                let set = link
+                    .decls
+                    .structs
+                    .iter()
+                    .find(|s| s.explicit && (s.path == name || s.path.ends_with(&tail)));
+                let values = match set {
+                    Some(s) => Some(s.values.clone().ok_or_else(|| {
+                        kind(
+                            k,
+                            &format!("{path} of {printed}, whose discriminants are no literals"),
+                        )
+                    })?),
+                    None => None,
+                };
+                let int = Int::of(dt, self.cx.widths).ok_or_else(unmodeled)?;
+                let ctors = match (vt, values.is_some()) {
+                    // The source's own variants, in order, where the lift's
+                    // enum holds them (as `CmpOrdering` holds `Ordering`'s).
+                    (Ty::Named(n), true) => self
+                        .cx
+                        .types
+                        .enums
+                        .get(n)
+                        .ok_or_else(unmodeled)?
+                        .iter()
+                        .map(|v| (v.clone(), format!("{n}.{v}"), Vec::new()))
+                        .collect(),
+                    _ => constructors(vt, self.cx.types, self.cx.explicit)?,
+                };
+                if values.as_ref().is_some_and(|vs| vs.len() != ctors.len()) {
+                    // A variant the source declares under a `cfg` the
+                    // census's target leaves out.
+                    return Err(kind(
+                        k,
+                        &format!(
+                            "{path} of {printed}, whose variants its source declares by target"
+                        ),
+                    ));
+                }
+                let mut arms = Vec::new();
+                for (i, (variant, ctor, fields)) in ctors.iter().enumerate() {
+                    let n = match &values {
+                        Some(vs) => Some(vs[i]),
+                        None => i128::try_from(i).ok(),
+                    };
+                    let value = n
+                        .and_then(|n| super::int::literal(n, int))
+                        .ok_or_else(unmodeled)?;
+                    let mut pattern = ctor.clone();
+                    for j in 0..fields.len() {
+                        pattern.push(' ');
+                        pattern.push_str(
+                            &self.fresh(Some(&format!("{}{j}", variant.to_lowercase())), j),
+                        );
+                    }
+                    arms.push(format!("| {pattern} => {value}"));
+                }
+                self.mention(vt);
+                Ok(format!("(match {v} {})", arms.join(" ")))
+            }
             // `three_way_compare` of two integers: `Less` where `a < b` by
             // the type's order, `Equal` where they are equal.
             (Some(M::Compare), [(a, at), (b, bt)], [_])

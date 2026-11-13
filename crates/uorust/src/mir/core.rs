@@ -413,7 +413,10 @@ pub(crate) struct CoreStruct {
     /// has no fields.
     variants: Option<Vec<String>>,
     /// Whether such an enum's variants set their own discriminants.
-    explicit: bool,
+    pub(crate) explicit: bool,
+    /// Such an enum's discriminants, in its variants' order, where each is
+    /// a literal or follows one.
+    pub(crate) values: Option<Vec<i128>>,
 }
 
 impl CoreStruct {
@@ -561,6 +564,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         fields,
                         variants: None,
                         explicit: false,
+                        values: None,
                     });
                 }
                 syn::Item::Enum(e)
@@ -573,6 +577,47 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         fields: Vec::new(),
                         variants: Some(e.variants.iter().map(|v| v.ident.to_string()).collect()),
                         explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
+                        // Each variant's discriminant, as Rust assigns them:
+                        // the literal it sets, or one past the previous.
+                        values: {
+                            let mut next = Some(0i128);
+                            let mut out = Vec::new();
+                            for v in &e.variants {
+                                let set = v.discriminant.as_ref().map(|(_, x)| {
+                                    let text = quote::quote!(#x).to_string().replace(' ', "");
+                                    let (neg, digits) = match text.strip_prefix('-') {
+                                        Some(d) => (true, d.to_string()),
+                                        None => (false, text),
+                                    };
+                                    let digits = digits.replace('_', "");
+                                    // `1 << k`, as an enum of powers sets.
+                                    let shifted = digits.split_once("<<").and_then(|(a, b)| {
+                                        let (a, b) =
+                                            (a.parse::<i128>().ok()?, b.parse::<u32>().ok()?);
+                                        a.checked_shl(b).filter(|v| v >> b == a)
+                                    });
+                                    let n = if shifted.is_some() {
+                                        shifted
+                                    } else if let Some(h) = digits.strip_prefix("0x") {
+                                        i128::from_str_radix(h, 16).ok()
+                                    } else if let Some(b) = digits.strip_prefix("0b") {
+                                        i128::from_str_radix(b, 2).ok()
+                                    } else if let Some(o) = digits.strip_prefix("0o") {
+                                        i128::from_str_radix(o, 8).ok()
+                                    } else {
+                                        digits.parse::<i128>().ok()
+                                    };
+                                    n.map(|n| if neg { -n } else { n })
+                                });
+                                let value = match set {
+                                    Some(n) => n,
+                                    None => next,
+                                };
+                                out.push(value);
+                                next = value.and_then(|n| n.checked_add(1));
+                            }
+                            out.into_iter().collect::<Option<Vec<i128>>>()
+                        },
                     });
                 }
                 // An inherent impl's methods, by the impl's type: their

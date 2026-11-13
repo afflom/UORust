@@ -48,6 +48,9 @@ pub(crate) enum Model {
     /// `three_way_compare::<T>(a, b) -> Ordering`: `Less`, `Equal` or
     /// `Greater` by `T`'s order.
     Compare,
+    /// `discriminant_value::<T>(&v)`: the discriminant of `v`'s variant,
+    /// its index where `T`'s variants set none of their own.
+    Discriminant,
     /// An integer operation, parameterized by (bits, signed): its rule in
     /// `mir::int`, with core's precondition as an obligation.
     Int,
@@ -65,6 +68,7 @@ pub(crate) const TABLE: &[(&str, Model)] = &[
     ("assert_mem_uninitialized_valid", Model::UninitValid),
     ("transmute", Model::Transmute),
     ("three_way_compare", Model::Compare),
+    ("discriminant_value", Model::Discriminant),
     ("wrapping_add", Model::Int),
     ("wrapping_sub", Model::Int),
     ("wrapping_mul", Model::Int),
