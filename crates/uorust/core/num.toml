@@ -371,55 +371,55 @@ cause = "mir::TerminatorKind::Call: str::<impl str>::as_bytes"
 path = "core::dec2flt::f16::from_u64"
 kappa = "1387eac8dc44c6872d0d102cae6af2271c17d2b7331ef72414cbc0b86fcec34c"
 status = "residue"
-cause = "mir::Ty: f16"
+cause = "mir::Operand::Constant: the constant item <f16 as num::imp::dec2flt::Lemire>::MAX_MANTISSA_FAST_PATH"
 
 [[fn]]
 path = "core::dec2flt::f16::pow10_fast_path"
 kappa = "880a35e57ddc9a01b16eb7b441effbe84fa044aa2f0b27f2bf71fae79f9ebba8"
 status = "residue"
-cause = "mir::Ty: f16"
+cause = "mir::Operand::Constant: the constant item <f16 as num::imp::dec2flt::Lemire>::pow10_fast_path::TABLE"
 
 [[fn]]
 path = "core::dec2flt::f16::pow10_fast_path::TABLE"
 kappa = "f2e7c987ec2080f7fdef61b8a3a7934c3b412d8bb0594974aa87031d2a7795c9"
-status = "residue"
-cause = "mir::Ty: f16"
+status = "translated"
+digest = "a4e8fe4049f86657dd71a9a3fdbecb66b5b2919ca731b45e0f301a7a0715c863"
 
 [[fn]]
 path = "core::dec2flt::f32::from_u64"
 kappa = "f2d1e83af3a08f92044f88e3f5eb2e968e1df2f9ffe4bd6ccbc6216bb0f1af11"
 status = "residue"
-cause = "mir::Ty: f32"
+cause = "mir::Operand::Constant: the constant item <f32 as num::imp::dec2flt::Lemire>::MAX_MANTISSA_FAST_PATH"
 
 [[fn]]
 path = "core::dec2flt::f32::pow10_fast_path"
 kappa = "9321bd1ff7e29c19b867e571ade5f5b4022be5060a099c58c3fc2f8cefb046c3"
 status = "residue"
-cause = "mir::Ty: f32"
+cause = "mir::Operand::Constant: the constant item <f32 as num::imp::dec2flt::Lemire>::pow10_fast_path::TABLE"
 
 [[fn]]
 path = "core::dec2flt::f32::pow10_fast_path::TABLE"
 kappa = "3ec47346b738e79cae191caedea2e95ab3d06cd7185833ad951b58345f9188f4"
-status = "residue"
-cause = "mir::Ty: f32"
+status = "translated"
+digest = "0033410f3179291a3405e50105e6fc102a0202336cc030c24194d96cb9274da1"
 
 [[fn]]
 path = "core::dec2flt::f64::from_u64"
 kappa = "c1ba08d82f704751bd49febf581d1202889e33d0993d2678e66bb010a09999f7"
 status = "residue"
-cause = "mir::Ty: f64"
+cause = "mir::Operand::Constant: the constant item <f64 as num::imp::dec2flt::Lemire>::MAX_MANTISSA_FAST_PATH"
 
 [[fn]]
 path = "core::dec2flt::f64::pow10_fast_path"
 kappa = "7e3a358fea224605d95839c0d1d2e9793cd3f913c7df5012c1840d6c2a948be7"
 status = "residue"
-cause = "mir::Ty: f64"
+cause = "mir::Operand::Constant: the constant item <f64 as num::imp::dec2flt::Lemire>::pow10_fast_path::TABLE"
 
 [[fn]]
 path = "core::dec2flt::f64::pow10_fast_path::TABLE"
 kappa = "998b17d7ad67fdc171274d741a86e1c7a9f2888f7c8fc89146c96832ece48775"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "a2807877f26c6057e3221ee0de34d61b3e21bbb700c33d426cb0c9b011277152"
 
 [[fn]]
 path = "core::decimal::<impl at library/core/src/num/imp/dec2flt/decimal.rs:28:10: 28:15>::clone"
@@ -576,20 +576,20 @@ cause = "mir::Ty: FullDecoded"
 [[fn]]
 path = "core::decoder::f16::min_pos_norm_value"
 kappa = "39fe441a09d243fe9675d7dc1d2fbdbc42a56b795df2a6bc7bc0e584abc77206"
-status = "residue"
-cause = "mir::Ty: f16"
+status = "translated"
+digest = "ba4754491df9a10d7bae1a920eb6b11fd5df93085373f37620dd1fa3e682ecf2"
 
 [[fn]]
 path = "core::decoder::f32::min_pos_norm_value"
 kappa = "8e450fb1ae02ee792946c845ec7f2d5fcffe32709036bef029a3c71d2ec69cb9"
-status = "residue"
-cause = "mir::Ty: f32"
+status = "translated"
+digest = "7ad01548ead4da9734274c36bf1fe9dfc8fdc3f7c1ea1f7dcfc02a74b378785f"
 
 [[fn]]
 path = "core::decoder::f64::min_pos_norm_value"
 kappa = "bff252e3e11ab33384d4beddc86b4bb0185f63842f5f652f9df64560729168c6"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "28f49d2717a6c08859dfd68badfdf326115039acd61ddd451823188cf4000447"
 
 [[fn]]
 path = "core::determine_sign"
@@ -733,19 +733,19 @@ digest = "c7d66ca50e8911bf4f78a1bce3c0d6457e4d1beb4efba32d962a70c5cf334b31"
 path = "core::float_parse::<impl at library/core/src/num/float_parse.rs:11:9: 11:28>::from_str"
 kappa = "f4b567e4b40dc949f124d15bdd9db947e44c888fde41fa543eb25c38b7937dba"
 status = "residue"
-cause = "mir::Ty: f16"
+cause = "mir::TerminatorKind::Call: dec2flt"
 
 [[fn]]
 path = "core::float_parse::<impl at library/core/src/num/float_parse.rs:11:9: 11:28>::from_str#2"
 kappa = "a8bb4bbc474d7e549c36c0c2528801c5f3b6f8a2bcc45829dcb08c49a137b017"
 status = "residue"
-cause = "mir::Ty: f32"
+cause = "mir::TerminatorKind::Call: dec2flt"
 
 [[fn]]
 path = "core::float_parse::<impl at library/core/src/num/float_parse.rs:11:9: 11:28>::from_str#3"
 kappa = "0adbd7680d441714d78df9d63fd7afe555a385f80cc6ec0daa214b1cc883b07a"
 status = "residue"
-cause = "mir::Ty: f64"
+cause = "mir::TerminatorKind::Call: dec2flt"
 
 [[fn]]
 path = "core::float_parse::ParseFloatError::fmt"
@@ -10740,128 +10740,128 @@ cause = "mir::Operand::Constant: the constant item <Self as num::imp::traits::Fl
 [[fn]]
 path = "core::num::imp::traits::f16::INFINITY"
 kappa = "b55490bfe2b2c9bcf007a5ece696a6da441c0ce1be54a4e8bdf9ee61cb3c72a7"
-status = "residue"
-cause = "mir::Ty: f16"
+status = "translated"
+digest = "be76f3b20567978cd84bc7af66537a57824588df1654c7efd528529e5c83b313"
 
 [[fn]]
 path = "core::num::imp::traits::f16::NAN"
 kappa = "87c15c17f32bd6e0db0eac707b4266b0c01b7982dc4162ec4282d0508c112270"
-status = "residue"
-cause = "mir::Ty: f16"
+status = "translated"
+digest = "06f2e9255c8ef372c601b3536b6a2b8ecc6bef78620caa98ea66b32861bfa0bf"
 
 [[fn]]
 path = "core::num::imp::traits::f16::NEG_INFINITY"
 kappa = "5d4a4e46e4c2512795013272addec25e323b10ee7564bded7598773c529f3c6e"
-status = "residue"
-cause = "mir::Ty: f16"
+status = "translated"
+digest = "7c31e21747b1b36456a348ac860490e38beb96140810566dc1d7661357f91d81"
 
 [[fn]]
 path = "core::num::imp::traits::f16::NEG_NAN"
 kappa = "b572dad85d1b1c3d9a0713ab92e04cc7faf18a0f0deee3771b7f26d475e2678a"
-status = "residue"
-cause = "mir::Ty: f16"
+status = "translated"
+digest = "f0b3d74819d086be5d7cc92b91bf78a961c7819c6d42e2274e82527cf8d68f53"
 
 [[fn]]
 path = "core::num::imp::traits::f16::classify"
 kappa = "5fda6db6f83f0dd394be31e113aeac149b45274dae60ff97786141f372511817"
 status = "residue"
-cause = "mir::Ty: f16"
+cause = "mir::TerminatorKind::Call: f16::<impl f16>::classify"
 
 [[fn]]
 path = "core::num::imp::traits::f16::from_u64_bits"
 kappa = "6a8cc4f3085cb614d2055f7e5c77148b8ea14150623b604178b8a614ae5641cf"
 status = "residue"
-cause = "mir::Ty: f16"
+cause = "mir::BinOp::BitAnd: on Nat and Nat"
 
 [[fn]]
 path = "core::num::imp::traits::f16::to_bits"
 kappa = "86f48d2790dd34818d331784ba86936ae62be05c7121381e5c9feab1ffa9a295"
-status = "residue"
-cause = "mir::Ty: f16"
+status = "translated"
+digest = "249947322a7329cb174270218bfd442c455235e6e66813c77eaef1c3d6f5c0b3"
 
 [[fn]]
 path = "core::num::imp::traits::f32::INFINITY"
 kappa = "3ff076c1946b9de9d71ea5728201179a14c7796f008287223dd3d26d35c965bf"
-status = "residue"
-cause = "mir::Ty: f32"
+status = "translated"
+digest = "8318eef2b686898d943daa8da70f67db2d910289c8e59434d2fb4484e92b08f1"
 
 [[fn]]
 path = "core::num::imp::traits::f32::NAN"
 kappa = "23696aff8aa554bc90b0d68f5f191028cbb0ccaf0f10eb144d14a4802dd71374"
-status = "residue"
-cause = "mir::Ty: f32"
+status = "translated"
+digest = "cbece9a5c9cb517c9c41d3def1e67d473735bd243c1f0b32b5137da7d3cd8e97"
 
 [[fn]]
 path = "core::num::imp::traits::f32::NEG_INFINITY"
 kappa = "c44274c8d012c5eb281e7bba1208e8853d1c4469994d9ef3885f8a59a6328765"
-status = "residue"
-cause = "mir::Ty: f32"
+status = "translated"
+digest = "c51014a09f10947e5b48773c67d2d8c84795a2d8986b14ce694ac197e7f3cb6b"
 
 [[fn]]
 path = "core::num::imp::traits::f32::NEG_NAN"
 kappa = "c5cfa35251b6a9e6f36703ebaf57fce909ece76b0b5dcb592733db88c38dc16b"
-status = "residue"
-cause = "mir::Ty: f32"
+status = "translated"
+digest = "ea8b65690aeed3f08ee1f79df12b264dff1c4342bbb525baaa7f23ee0c0c1ace"
 
 [[fn]]
 path = "core::num::imp::traits::f32::classify"
 kappa = "79b7eadbd0cfd5983e9ce297785cdff4286ff89501d51e1237c1b255b213b965"
 status = "residue"
-cause = "mir::Ty: f32"
+cause = "mir::TerminatorKind::Call: f32::<impl f32>::classify"
 
 [[fn]]
 path = "core::num::imp::traits::f32::from_u64_bits"
 kappa = "3178805c4d4b5e309e4973d1d6bf73c2d8932d3d753aca1cc7b6a83aa2b349a3"
 status = "residue"
-cause = "mir::Ty: f32"
+cause = "mir::BinOp::BitAnd: on Nat and Nat"
 
 [[fn]]
 path = "core::num::imp::traits::f32::to_bits"
 kappa = "56b94d967af733e7485fbd37e17c561dec9e4071ad086333eeca2372639d1594"
-status = "residue"
-cause = "mir::Ty: f32"
+status = "translated"
+digest = "95cdd984051e99343c40d758f4dec58661df970bd8c1c4180a844daa3b587a5f"
 
 [[fn]]
 path = "core::num::imp::traits::f64::INFINITY"
 kappa = "cf9c1de91da228c5b2646c7a3745760ac00737888b34c26bcd6df226a71719d0"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "209e4e66045cd8ed5c5b9954b15e92ae95188ad448f7bab36dba164ecb64f12f"
 
 [[fn]]
 path = "core::num::imp::traits::f64::NAN"
 kappa = "4f6bb94f82e561765e2e7aa898fa18eb20d620934ef8bc9c58a903e86270f0d3"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "293f66d6f76fd629a6a10cf14c633fbe055f2db634127ed7403f3c04ba1c0dd1"
 
 [[fn]]
 path = "core::num::imp::traits::f64::NEG_INFINITY"
 kappa = "f08c879a0033cf09c9f1080275885c3627fae51b292fe6b6315e1894110bdfcd"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "d4db2838b338e7f732a4e68f5558515b08b0690368663416f9407e92e65308a8"
 
 [[fn]]
 path = "core::num::imp::traits::f64::NEG_NAN"
 kappa = "25aef50eaa4e3a444b68a0307cfb6cbd58d1a165c27c5be14eb0a2e022e153ba"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "373a245815cf04bdf83b7931f2b4b3b9c4b43bcd38f0bb74953617f44ba18658"
 
 [[fn]]
 path = "core::num::imp::traits::f64::classify"
 kappa = "8be58a3edf179939df064d55f58df8ce82fddb064bb6b83897100629f5848c9a"
 status = "residue"
-cause = "mir::Ty: f64"
+cause = "mir::TerminatorKind::Call: f64::<impl f64>::classify"
 
 [[fn]]
 path = "core::num::imp::traits::f64::from_u64_bits"
 kappa = "518c01513656775db72fb9776a41c53a731421f13aa815971740506eb22d10a1"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "9ccad6f26a8ae0fa0c9dd218509a75bda9a7e055dd751c1e03155fd5d15c702b"
 
 [[fn]]
 path = "core::num::imp::traits::f64::to_bits"
 kappa = "474a5856cd8893bf029295293bee306bf389ba9ba0fbfebab30484f804195d44"
-status = "residue"
-cause = "mir::Ty: f64"
+status = "translated"
+digest = "6ac9c291563d914e2a893017784b32a0086274c593098b9a812a3a2088f08c52"
 
 [[fn]]
 path = "core::num::isize::BITS"
@@ -19092,7 +19092,7 @@ cause = "mir::Ty: maybe_uninit::MaybeUninit<u8>"
 path = "core::pow2_to_pow10"
 kappa = "20d8aab163b9b319c55957977f6e30c0f8937fdb7598415c542a5e4edb88407b"
 status = "residue"
-cause = "mir::Ty: f64"
+cause = "mir::CastKind::IntToFloat: from Int64 to Nat"
 
 [[fn]]
 path = "core::power"

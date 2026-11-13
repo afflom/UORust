@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 15584
-translated = 829
-residue = 14755
+translated = 1106
+residue = 14478
 
 [module.alloc]
 bodies = 61
@@ -72,13 +72,13 @@ residue = 198
 
 [module.clone]
 bodies = 35
-translated = 14
-residue = 21
+translated = 18
+residue = 17
 
 [module.cmp]
 bodies = 347
-translated = 89
-residue = 258
+translated = 117
+residue = 230
 
 [module.contracts]
 bodies = 1
@@ -87,13 +87,13 @@ residue = 0
 
 [module.convert]
 bodies = 397
-translated = 6
-residue = 391
+translated = 26
+residue = 371
 
 [module.default]
 bodies = 20
-translated = 14
-residue = 6
+translated = 18
+residue = 2
 
 [module.error]
 bodies = 38
@@ -117,8 +117,8 @@ residue = 8
 
 [module.fmt]
 bodies = 497
-translated = 19
-residue = 478
+translated = 22
+residue = 475
 
 [module.future]
 bodies = 21
@@ -147,8 +147,8 @@ residue = 0
 
 [module.intrinsics]
 bodies = 395
-translated = 99
-residue = 296
+translated = 187
+residue = 208
 
 [module.io]
 bodies = 74
@@ -182,13 +182,13 @@ residue = 227
 
 [module.num]
 bodies = 5497
-translated = 262
-residue = 5235
+translated = 284
+residue = 5213
 
 [module.ops]
 bodies = 2658
-translated = 59
-residue = 2599
+translated = 167
+residue = 2491
 
 [module.option]
 bodies = 95
@@ -330,7 +330,7 @@ bodies = 810
 
 [[cause]]
 cause = "mir::Ty: fmt::Formatter<'_>"
-bodies = 262
+bodies = 275
 
 [[cause]]
 cause = "mir::CastKind::IntToInt: from Int64 to Nat"
@@ -345,12 +345,12 @@ cause = "mir::Instantiation: a const parameter"
 bodies = 187
 
 [[cause]]
-cause = "mir::Ty: *mut u32"
-bodies = 168
+cause = "mir::StatementKind::Assign: a write into a place of an rvalue other than a value"
+bodies = 185
 
 [[cause]]
-cause = "mir::StatementKind::Assign: a write into a place of an rvalue other than a value"
-bodies = 165
+cause = "mir::Ty: *mut u32"
+bodies = 168
 
 [[cause]]
 cause = "mir::Ty: !"
@@ -381,14 +381,6 @@ cause = "mir::Ty: &mut [u32]"
 bodies = 114
 
 [[cause]]
-cause = "mir::Ty: f64"
-bodies = 112
-
-[[cause]]
-cause = "mir::Ty: f32"
-bodies = 108
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: mem::size_of"
 bodies = 105
 
@@ -401,14 +393,6 @@ cause = "mir::Ty: *const u32"
 bodies = 103
 
 [[cause]]
-cause = "mir::Ty: f16"
-bodies = 101
-
-[[cause]]
-cause = "mir::Ty: f128"
-bodies = 94
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: check_language_ub"
 bodies = 85
 
@@ -418,7 +402,11 @@ bodies = 78
 
 [[cause]]
 cause = "mir::BinOp::BitAnd: on Nat and Nat"
-bodies = 66
+bodies = 68
+
+[[cause]]
+cause = "mir::Rvalue::Aggregate: a Result variant"
+bodies = 65
 
 [[cause]]
 cause = "mir::CastKind::IntToInt: a cast that may truncate"
@@ -523,10 +511,6 @@ bodies = 50
 [[cause]]
 cause = "mir::TerminatorKind::Call: <Wrapping as bit::BitXor>::bitxor"
 bodies = 50
-
-[[cause]]
-cause = "mir::Rvalue::Aggregate: a Result variant"
-bodies = 49
 
 [[cause]]
 cause = "mir::Ty: num::nonzero::NonZero<i16>"
@@ -773,6 +757,10 @@ cause = "mir::TerminatorKind::Call: three_way_compare"
 bodies = 26
 
 [[cause]]
+cause = "mir::Ty: Duration"
+bodies = 26
+
+[[cause]]
 cause = "mir::Ty: NonNull<u32>"
 bodies = 26
 
@@ -937,6 +925,10 @@ cause = "mir::TerminatorKind::Call: <Wrapping as SubAssign>::sub_assign"
 bodies = 20
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: float_to_int_unchecked"
+bodies = 20
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: num::count_zeros"
 bodies = 20
 
@@ -966,10 +958,6 @@ bodies = 20
 
 [[cause]]
 cause = "mir::Ty: &mut <u32 as iter::adapters::SourceIter>::Source"
-bodies = 20
-
-[[cause]]
-cause = "mir::Ty: Duration"
 bodies = 20
 
 [[cause]]
@@ -1315,6 +1303,14 @@ bodies = 12
 [[cause]]
 cause = "mir::Ty: take::Take<u32>"
 bodies = 12
+
+[[cause]]
+cause = "mir::CastKind::IntToInt: from Bool to Nat"
+bodies = 11
+
+[[cause]]
+cause = "mir::Operand::Constant: f128::MIN as i128"
+bodies = 11
 
 [[cause]]
 cause = "mir::Rvalue::Repeat"
@@ -1701,6 +1697,10 @@ cause = 'mir::Operand::Constant: b"0123456789abcdef"'
 bodies = 8
 
 [[cause]]
+cause = "mir::Operand::Constant: f64::MIN as i128"
+bodies = 8
+
+[[cause]]
 cause = "mir::Rvalue::Discriminant: a discriminant read as a value"
 bodies = 8
 
@@ -1827,10 +1827,6 @@ bodies = 8
 [[cause]]
 cause = "mir::Ty: task::wake::LocalWaker"
 bodies = 8
-
-[[cause]]
-cause = "mir::CastKind::IntToInt: from Bool to Nat"
-bodies = 7
 
 [[cause]]
 cause = "mir::Operand::Constant: num::MAX as u64"
@@ -2205,6 +2201,10 @@ cause = "mir::Operand::Constant: 29_i32 as u32"
 bodies = 5
 
 [[cause]]
+cause = "mir::Operand::Constant: f32::MIN as i128"
+bodies = 5
+
+[[cause]]
 cause = "mir::Operand::Constant: num::MAX as u32"
 bodies = 5
 
@@ -2371,6 +2371,22 @@ bodies = 5
 [[cause]]
 cause = "mir::Ty: wtf8::CodePoint"
 bodies = 5
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: accum::product::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/accum.rs:177:21: 177:27}"
+bodies = 4
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: accum::product::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/accum.rs:199:21: 199:27}"
+bodies = 4
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: accum::sum::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/accum.rs:166:21: 166:27}"
+bodies = 4
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: accum::sum::{closure#0}: type outside the lift: {closure@library/core/src/iter/traits/accum.rs:188:21: 188:27}"
+bodies = 4
 
 [[cause]]
 cause = "mir::BinOp::Lt: on String and String"
@@ -3129,6 +3145,10 @@ cause = "mir::TerminatorKind::Call: alignment::Alignment::new"
 bodies = 3
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: dec2flt"
+bodies = 3
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: intrinsics::cold_path"
 bodies = 3
 
@@ -3582,6 +3602,10 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Operand::Constant: 23_i32 as u32"
+bodies = 2
+
+[[cause]]
+cause = "mir::Operand::Constant: f16::MIN as i128"
 bodies = 2
 
 [[cause]]
@@ -4501,6 +4525,10 @@ cause = "mir::BinOp::Lt: on Bool and Bool"
 bodies = 1
 
 [[cause]]
+cause = "mir::CastKind::IntToFloat: from Int64 to Nat"
+bodies = 1
+
+[[cause]]
 cause = "mir::CastKind::IntToInt: from Nat to String"
 bodies = 1
 
@@ -4698,6 +4726,38 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item <char as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f16 as num::imp::dec2flt::Lemire>::MAX_MANTISSA_FAST_PATH"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f16 as num::imp::dec2flt::Lemire>::pow10_fast_path::TABLE"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f32 as num::imp::dec2flt::Lemire>::MAX_MANTISSA_FAST_PATH"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f32 as num::imp::dec2flt::Lemire>::pow10_fast_path::TABLE"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f32 as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f64 as num::imp::dec2flt::Lemire>::MAX_MANTISSA_FAST_PATH"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f64 as num::imp::dec2flt::Lemire>::pow10_fast_path::TABLE"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item <f64 as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
 bodies = 1
 
 [[cause]]
@@ -6154,6 +6214,18 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: core_arch::x86::sse2::_mm_pause"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f16::classify"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f32::classify"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f64::classify"
 bodies = 1
 
 [[cause]]
