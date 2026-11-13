@@ -161,7 +161,7 @@ path = "core::non_null::NonNull::byte_offset_from"
 kappa = "5c44c36dc7e75fe73e2eec871d4ba848013f7c68eba0dce012ecddccda94f9f0"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: NonNull<u32>"
 
 [[fn]]
 path = "core::non_null::NonNull::byte_offset_from_unsigned"
@@ -412,7 +412,7 @@ path = "core::non_null::NonNull::offset_from"
 kappa = "77c58d0e3f5a8576dcc78210d600679687c55038f2dd8f50ce92eec21954d413"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: NonNull<u32>"
 
 [[fn]]
 path = "core::non_null::NonNull::offset_from_unsigned"
@@ -790,14 +790,14 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "a7da6a68e43d94fc8dc36f3b080144b4a4d3c68b4132f57b450b0f8dab366a13"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::byte_offset_from"
 kappa = "bc06d9b8450584e270f32954c33da2e9103c75604af1fb58e124595c29ca116f"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::byte_offset_from_unsigned"
@@ -907,38 +907,38 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "33e2029ab0e7061e661a15f372e79aa7393f2d4b03dea6e1c8a36f7a19586508"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: check_language_ub"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::precondition_check"
 kappa = "3c631e032cd2059ee582b98319c377b78c6c5e5f87aaa4d739c4ad4b8451e428"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const T>::offset::runtime_offset_nowrap"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap"
 kappa = "ac95604f3aa44e58c77ba32aa599716e2d0f2f546e8d88eb156a91a5d2bd65cd"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Operand::Constant: the constant item *const ()"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap::compiletime"
 kappa = "306a9c425061265ae6595c3a1497ae0f5c9b0da6e065dcb7601f99b4a8a91970"
-status = "residue"
-cause = "mir::Ty: isize"
+status = "translated"
+digest = "8706180f36fab839e3bb060067abfc8c7b764c5f0ebaab28aecce62224ed2da5"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset::runtime_offset_nowrap::runtime"
 kappa = "d30a3fc4ca987a7f33745cbcdff081dad5da621d1747ad438ac02efd2f73d261"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: num::<impl isize>::checked_mul"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from"
 kappa = "31dcd149cc53afd912f68d2e7fd4a761e3bc6156d4615a1b9d312f642e9a5416"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: mem::size_of"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::offset_from_unsigned"
@@ -1014,7 +1014,7 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "d88d9b379e173d171764646292f93306e124fb7d00f276ef42c7c2fd6602ab7a"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::wrapping_offset"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_byte_add"
@@ -1028,7 +1028,7 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "2af7efdb02ad5232115709bda7696c953dae8c9cd7636bd35f1441187e38c030"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::cast"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_byte_sub"
@@ -1042,14 +1042,14 @@ path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:
 kappa = "8b5eb72a33b44f4de85d1bebc8bcceb5b4a6d1db24ba18e15bb2559efa40ff3e"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: arith_offset"
 
 [[fn]]
 path = "core::ptr::const_ptr::<impl at library/core/src/ptr/const_ptr.rs:7:1: 7:31>::wrapping_sub"
 kappa = "a469c1c15c4a8fc9f850eedc166ff2af40bf7fbb5fde920ab24e6c6273c770cf"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: num::<impl isize>::wrapping_neg"
 
 [[fn]]
 path = "core::ptr::copy"
@@ -1425,14 +1425,14 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "11733b01e414fb9d199dcd67d64207b342a920e0daaff78f27a86347dfd923e2"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::byte_offset_from"
 kappa = "eb5e3df0c7806924990841e870cb9ca47b3bf90431a669a232a1948e1fec8c49"
 at = "T=u32, U=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::byte_offset_from_unsigned"
@@ -1551,38 +1551,38 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "51f20d5d2dd8cc6f4d7c961f3834c14430de8fed37d9e1fb9ec1cdd5a77dcb1d"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: check_language_ub"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::precondition_check"
 kappa = "85ddb1e54bda0c9046245638a7bd6c6016a6b2187d579b58dbc1aad31ad1962b"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut T>::offset::runtime_offset_nowrap"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap"
 kappa = "246a4e139765a0a2f0c415e5fefcd99a8be9a825895f63cec53b96e9abfef3e5"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Operand::Constant: the constant item *const ()"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap::compiletime"
 kappa = "6e0a616d6fa3603f712af648becdf574276fb723805ac8f2eb42823445117981"
-status = "residue"
-cause = "mir::Ty: isize"
+status = "translated"
+digest = "de594d2f8aff85dad771175c6a57d040f7e58ce4b134dfbdff3b25d1ba67b255"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset::runtime_offset_nowrap::runtime"
 kappa = "ece77a69f53dea4d64055e33084479917a7b81b20e232f64b305b5cfddab6310"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: num::<impl isize>::checked_mul"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset_from"
 kappa = "79f5aab0911888fde543a1a6cbcc913e763d4d292cf04c589cc7534ec9189f04"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::const_ptr::<impl *const u32>::offset_from"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::offset_from_unsigned"
@@ -1666,7 +1666,7 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "d5d7a2b482c7e3255bf753c0ab612bd439de97c53c13cbd6ee9877d07a97fd91"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::wrapping_offset"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_byte_add"
@@ -1680,7 +1680,7 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "35a323c96f3d91cf5142de6315fee1b53bf01434dde5904be45001023b5f0b41"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: ptr::mut_ptr::<impl *mut u32>::cast"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_byte_sub"
@@ -1694,14 +1694,14 @@ path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>:
 kappa = "ed4b0197ca289f1f7b5b1bc2ed696e739d94d3f0c2d16c275ea63e0dc98a06d0"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: arith_offset"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::wrapping_sub"
 kappa = "4b2b310b1ccd548c1370367bb729b57979a23ae1edd7e802c1e9830d0469f06b"
 at = "T=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: num::<impl isize>::wrapping_neg"
 
 [[fn]]
 path = "core::ptr::mut_ptr::<impl at library/core/src/ptr/mut_ptr.rs:8:1: 8:29>::write"

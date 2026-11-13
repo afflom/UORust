@@ -2,7 +2,7 @@
 path = "core::decode_surrogate"
 kappa = "b1acf15de48bfcb63685f3bdbdd0ea5e04e6a38418d7d581b60245a954122b1b"
 status = "residue"
-cause = "mir::BinOp::BitAnd: on Nat and Nat"
+cause = "mir::Operand::Constant: 6_i32 as u32 (IntToInt)"
 
 [[fn]]
 path = "core::slice_unchecked"
@@ -304,7 +304,7 @@ cause = "mir::TerminatorKind::Call: slice::ascii::<impl [u8]>::is_ascii"
 path = "core::wtf8::Wtf8::is_code_point_boundary"
 kappa = "f261179b1e9f7617ab562da17adf2b4c0155c40c09faffa8d347996cba98f93c"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Nat to Int64"
+cause = "mir::TerminatorKind::Call: Wtf8::len"
 
 [[fn]]
 path = "core::wtf8::Wtf8::is_empty"
@@ -340,7 +340,7 @@ cause = "mir::Ty: ops::range::RangeFrom<usize>"
 path = "core::wtf8::Wtf8::try_check_utf8_boundary"
 kappa = "59f20084a95be9305bbbe90085061e22056c63426a5aa58e8a92863c9eab87fd"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Nat to Int64"
+cause = "mir::Rvalue::RawPtr"
 
 [[fn]]
 path = "core::wtf8::Wtf8CodePoints::fmt"
@@ -357,8 +357,8 @@ cause = "mir::Ty: wtf8::CodePoint"
 [[fn]]
 path = "core::wtf8::Wtf8CodePoints::size_hint"
 kappa = "4bfbc9acf16bd37ef7e385dcc3670a94e749331fc2c19c824a93b9187e4d78c8"
-status = "residue"
-cause = "mir::TerminatorKind::Call: num::<impl usize>::saturating_add"
+status = "translated"
+digest = "c552be96698db807ef40fde4d6e6251c56d00ecc596d08bf029989a78ab9d7f5"
 
 [[fn]]
 path = "core::wtf8::slice_error_fail"

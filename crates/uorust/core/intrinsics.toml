@@ -208,8 +208,8 @@ cause = "mir::Ty: D"
 path = "core::arith_offset"
 kappa = "3869e64693742e797706967a42f0765efb184249b06be9e0f3574bb87535644c"
 at = "T=u32"
-status = "residue"
-cause = "mir::Ty: isize"
+status = "translated"
+digest = "391714b86b127bec8d299a454a3292aa209fe03610b6cc30ac8b72d1f8aaefce"
 
 [[fn]]
 path = "core::assert_inhabited"
@@ -357,7 +357,7 @@ digest = "14061b3790f7aac6f2f6bfabf31e9432fec410f701a616013cb9c5dc670971ad"
 path = "core::compare_bytes"
 kappa = "9dffa823027622297e0848e7a569dab7ecf02238dd2bb4e575587578fd17e023"
 status = "translated"
-digest = "d3f107a6a1884f2cdb4f26175d3c0dee330311573afd948a22d5cd9d6ae1ce70"
+digest = "0b635c4845cfc48f4f4fdcfb3e289e53353d3831302af6d0605ab7f4db6e0e0b"
 
 [[fn]]
 path = "core::const_allocate"
@@ -603,25 +603,25 @@ cause = "mir::TerminatorKind::Call: assume"
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#10"
 kappa = "36f912fa371583214e956ccaae65318dcb0ebe0801637206edc95309aafde860"
 status = "residue"
-cause = "mir::BinOp::BitAnd: on Int64 and Int64"
+cause = "mir::BinOp::BitAnd: on i32 and i32"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#11"
 kappa = "c3bfeb5bcea7bcb4583cdd6e07f570010c6bcff574a43945152ad9bc4bd4ab5b"
 status = "residue"
-cause = "mir::BinOp::BitAnd: on Int64 and Int64"
+cause = "mir::BinOp::BitAnd: on i64 and i64"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#12"
 kappa = "8ba83e5f49d88ecdf18894090c79897cba277ca3e90dc5042175aa6ca35ed87a"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::BinOp::BitAnd: on i128 and i128"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#13"
 kappa = "f2a7ef73831caccc46abda8a435dc86d53bdbaa33496a4ae91d56b94c87a7df8"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::BinOp::BitAnd: on isize and isize"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#2"
@@ -663,187 +663,187 @@ cause = "mir::BinOp::BitAnd: on Nat and Nat"
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#8"
 kappa = "bf73771e59e45d82225f029724feac15dcadfc0567544b20862bf8041d29446f"
 status = "residue"
-cause = "mir::BinOp::BitAnd: on Int64 and Int64"
+cause = "mir::BinOp::BitAnd: on i8 and i8"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:130:9: 130:40>::disjoint_bitor#9"
 kappa = "c432c827b44e749570f1ba380d249d9c0b57aac404e11e7656ef7adf35e7a19f"
 status = "residue"
-cause = "mir::BinOp::BitAnd: on Int64 and Int64"
+cause = "mir::BinOp::BitAnd: on i16 and i16"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl"
 kappa = "74db1c4ef76f92131b48f3e602d9e7a48d32ab3b52efc795abdcdb0d2a4fd51a"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#2"
 kappa = "f34bc1e4a5f47c8dc3a570e49944c7c717798771c012d75a065a1242ec29d4b9"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#3"
 kappa = "b78e1ebeba9df2f4433505f312fdf39f26e7a18fe0b8643d633a1ca79b8b0d02"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#4"
 kappa = "225dd76a969d57acc81d9ef0bcb633d2ec66317ffd4ad06fa096eda5736488a9"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#5"
 kappa = "915f5cafa3f5aea139c4d842bf266ba8bb77246ab0b3de48999067fa49c0434d"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shl#6"
 kappa = "c661dcc1effdfc57932ec7c791de7277ee34c4a23ca493d25622a4ac536ce48a"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr"
 kappa = "9dda2c2f96191141c45c82def079778b4bbb83d01c1e59ede03960c0c5f4e7c7"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#2"
 kappa = "dcd70a928e3fb54f097c6c2c681a271dd01e4b79e56cfbf6178ec2bf3f955b88"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#3"
 kappa = "9b90a2545e50e633b04b5e0ff1740b073e57a65cd3aa129388d68458ad5f3271"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#4"
 kappa = "13cb7b026b64730f3f4d8ad20d367a6a128ba8c3d2c4d9ba3664513f4daff8d2"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#5"
 kappa = "ea5a9c574eb3f1cb729dee2c0316819c4c6897fffce8266ec5814c80abf0f53c"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:164:9: 164:41>::unchecked_funnel_shr#6"
 kappa = "3f0e8b1ee0f239ca9560ae12773d74e834d1e12e6d862ccacb7d6ba0c96545a7"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::BITS"
+cause = "mir::TerminatorKind::Call: assume"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul"
 kappa = "12789b33d447e35fd864b645f46584f6bec88e6853c01460e98ec54aacdd9673"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::BITS"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul#2"
 kappa = "d115a4ba283c9c316b955a6e784a5547cd1a868352f4a5433a0948198abdc2aa"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::BITS"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul#3"
 kappa = "9ef58cf37deaf4bd0d885e059761f00bfc8258244c4f5c818fc5f112786f72aa"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::BITS"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul#4"
 kappa = "14a80124b683701c17d5e4ca4f3a566891510ea7a11d4a749e24275cd102b7f7"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::BITS"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul#5"
 kappa = "46666b267835827130d0cff18c4b89a12d0c4954b6780e39c984ada9583b579d"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::BITS"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:232:9: 232:42>::carryless_mul#6"
 kappa = "abcb5d8a917cec8b6f570e4f8b69544c8c7a994142ddc4e5a8d8cc3556238c1a"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::BITS"
+cause = "mir::BinOp::BitXor: on Nat and Nat"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add"
 kappa = "cd25a938f02a2e99d8b64fb3fd07833f11ac7f1d77b95d165cabfab361d6efd0"
-status = "residue"
-cause = "mir::Ty: i128"
+status = "translated"
+digest = "3a745124995799549a6d9761fe16bc4460c8b7a57e7bb82efd521208f74c8809"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#10"
 kappa = "5a9fa6864936fe30e4983baad71c6e10472d3d92ae9d5d56601531bfa3480227"
-status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Int64"
+status = "translated"
+digest = "34359c224c0d0d08832b7083d426a45dad8da7bc06d27ae14d089c14daf346cc"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#2"
 kappa = "10703d8166a5d155c5f57cdecfba2e60c64c7d9953fb0856aa796b10261e777e"
-status = "residue"
-cause = "mir::Ty: isize"
+status = "translated"
+digest = "3c04531e9713bc7c5cb26887eaef840eb4a55da16d5a4e08afb7f75dcc0af797"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#3"
 kappa = "a19906167bb4b364fc45111d5469ca04d96dec89f33947dc2ad93ccf0ac3ea8c"
-status = "residue"
-cause = "mir::CastKind::IntToInt: a cast that may truncate"
+status = "translated"
+digest = "638190b231b2d1b2505ce5dcf9298d6cc9e2335a18f036c8d201d336fd0405f6"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#4"
 kappa = "ca9d4e73e44f6403897ec44cbe32533c9205e2b32d86202a7654ed14947dd2fe"
-status = "residue"
-cause = "mir::CastKind::IntToInt: a cast that may truncate"
+status = "translated"
+digest = "0665fefdcf45c959c7d7a88968a1e4ebe2addd362713b20e2997c568640a3dd1"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#5"
 kappa = "30d447b2e636148877577c3c49ad6da561d6497f2f2d04a77b8d24f504348a80"
-status = "residue"
-cause = "mir::CastKind::IntToInt: a cast that may truncate"
+status = "translated"
+digest = "cb2cc1a529a6e1c2a8b29fddca8a82762a05953134aa01a5a158424092ba83bf"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#6"
 kappa = "a598cbcf6aec962973f1dbd005abdba50d07e0650f278c54ade73b6c89b6fc73"
-status = "residue"
-cause = "mir::CastKind::IntToInt: a cast that may truncate"
+status = "translated"
+digest = "30df22b10cf8ca21c6e136229011e80eef3277bbf3499fc87dc192450bb514d2"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#7"
 kappa = "bad959fc620c8aaad5820a190f13f01db6a2be53f1ce6282302967e7b480de45"
-status = "residue"
-cause = "mir::CastKind::IntToInt: a cast that may truncate"
+status = "translated"
+digest = "c86a3a402f20746a7eae7b593d92aaca35e9f80e3673d3c28218bb5b0f5accc4"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#8"
 kappa = "f16ee32e024f060c93038fcd6e4fda1e64fa664f4697a3f06b6d0261ecbba41b"
-status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Int64"
+status = "translated"
+digest = "9e3c90865e2acc1a4e5c27eff45153c2520f445c3bf3fbe072b7c44a4cf2d318"
 
 [[fn]]
 path = "core::fallback::<impl at library/core/src/intrinsics/fallback.rs:24:9: 24:41>::carrying_mul_add#9"
 kappa = "4244e7679fe7e83f92c911efbe68b76fdb12734dd86b6bd3e51e79550d6c8b1a"
-status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Int64"
+status = "translated"
+digest = "46067c1af3bf16ee7af74be442b703322498100cf54da5c1e49f59aa4de935ec"
 
 [[fn]]
 path = "core::fallback::i128::carrying_mul_add"
 kappa = "c1b9e7bbfc5104c491b48234b93eb02faf663150a127c22cc91a2bfb5468093e"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::TerminatorKind::Call: wide_mul_u128"
 
 [[fn]]
 path = "core::fallback::u128::carrying_mul_add"
@@ -1008,7 +1008,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:31: 75:40>::eq"
 kappa = "2e2aa386adacbdd4bdfdfead8b4048376bb0e629cbc486986f091b6597c0a89a"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::intrinsics::<impl at library/core/src/intrinsics/mod.rs:75:42: 75:44>::assert_fields_are_eq"
@@ -1169,7 +1169,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:31: 407:40>::eq"
 kappa = "9ac31061e26b246723b7db47f1836b8703d0fc9e35b8fd5f5bb146053ba25b2a"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::intrinsics::simd::<impl at library/core/src/intrinsics/simd/mod.rs:407:42: 407:44>::assert_fields_are_eq"
@@ -1739,25 +1739,25 @@ digest = "951025f76c36b4ef158a2865af3be0731de80f851f23cb9b423bf92bfa33963a"
 path = "core::powif128"
 kappa = "7e6fd95d27f1f42f9b3a7877145b8eb65321ce499dd93349846f5b925616e05c"
 status = "translated"
-digest = "c4041581b9e7aa7a5b1c12660e4104f8e68f0c5aa4355b8396ddd050c9e89dce"
+digest = "3feb3446e6b7d6793b106a338da68b944199591e3a3376656e0a4f78479d1215"
 
 [[fn]]
 path = "core::powif16"
 kappa = "f217bc15c7a6e42a4faee71a61ef16743a94457eddd69fc41baf12f477fd301f"
 status = "translated"
-digest = "4a3fb7bc1ace7acb6f8ab8a968e519d7c68617757cc6200d2c28e5259fc122b8"
+digest = "4c4e2af381ea531dd2a340e03344a387f80a80644f03aeea39421221b85182c3"
 
 [[fn]]
 path = "core::powif32"
 kappa = "12111c2043cb11d6dd6bbaad56f8f348e35bce5e054d8b19bf9bba0e463f6ecf"
 status = "translated"
-digest = "05c725267f2e98589e33f893161fb408cc539736a0e8122f39f6a583980592df"
+digest = "3b9b9a94e09434fb16ebd3daa467f13558e526a70f1780a83b4a0f46a992b3fa"
 
 [[fn]]
 path = "core::powif64"
 kappa = "8ff1f00b6f819f238e8b3cb618f33edab65151c2ab7dc40bbe380b1df3e1a94a"
 status = "translated"
-digest = "61482cea4b4251b01a1b5ec05becf87ac71ff741bfa0e31b05ef7111cd8284e7"
+digest = "c46140e3479ec02aba4c6fcfb0cf0bd0af4d18d851959966357cf4449a5ccddf"
 
 [[fn]]
 path = "core::prefetch_read_data"
@@ -1781,8 +1781,8 @@ digest = "b2e1795960bef323a2cd73a6bbb19c8d28725bac93f7dc6a09c29efd0c90f1fe"
 path = "core::ptr_guaranteed_cmp"
 kappa = "65cf95c16e4d2ad11de9002114ce5d3881c191e5c2701940cac95f780a838fcd"
 at = "T=u32"
-status = "residue"
-cause = "mir::CastKind::IntToInt: from Bool to Nat"
+status = "translated"
+digest = "d455594e0d08f3338b9ba4cbd23d58da58ddb24b6a25dc0a2cbf8b21d0f04a73"
 
 [[fn]]
 path = "core::ptr_mask"
@@ -1801,8 +1801,8 @@ digest = "fffdd65aae6fa1a8eca0c09a1e7af2b54263d682f17156248b83db8643d6afc8"
 [[fn]]
 path = "core::ptr_offset_from"
 kappa = "0f725378e2b39f6ccc2e0f8996c7563584c405b373c0690d01a8715033f7fd5b"
-status = "residue"
-cause = "mir::Ty: isize"
+status = "translated"
+digest = "1bfefecbac566dda6bbaa4404cd0f1f8547039b6eaedf8b0f7539ead5fe995f2"
 
 [[fn]]
 path = "core::ptr_offset_from_unsigned"
@@ -2292,7 +2292,7 @@ cause = "mir::Operand::Constant: the constant item intrinsics::fallback::wide_mu
 path = "core::to_low_high::MASK"
 kappa = "9528aecaf798ba196165c84b998f8a6471ef0fed6bcca5d31cf7f8b4f41e1bfe"
 status = "residue"
-cause = "mir::Operand::Constant: num::<impl u64>::MAX as u128 (IntToInt)"
+cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX as u128 (IntToInt)"
 
 [[fn]]
 path = "core::transmute_unchecked"

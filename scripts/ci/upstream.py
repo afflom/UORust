@@ -5,7 +5,10 @@
 Prints one line per patch. With --act (upstream.yml), a patch whose fix has
 shipped gets an issue titled for that exact release, opened once, and a
 mechanical re-pin is dispatched when the issue is first opened; a pull request
-closed without merging gets an issue too. Reads PrismPM history with git, pull
+closed without merging gets an issue too. Prints one line per gap too: the
+MIR register rows whose residue stops at it, and its upstream PR once `pull`
+names one; with --act each open gap has one issue carrying its plan, and a gap
+whose PR merged gets an issue to turn it into a [[patch]] row. Reads PrismPM history with git, pull
 requests and issues with `gh`, images from the registry's public API and
 packages from npm, so it needs no credential beyond the workflow token.
 """
@@ -131,9 +134,50 @@ def template_update(release):
         "-f", f"template-revision={lock['template_revision']}")
 
 
+def stopped_at(causes):
+    """The MIR register rows (crates/uorust/core, std, crates) whose residue
+    cause starts with one of `causes`."""
+    rows = 0
+    for register in sorted((ROOT / "crates" / "uorust").glob("*/*.toml")):
+        if register.name == "frontier.toml":
+            continue
+        try:
+            doc = tomllib.loads(register.read_text())
+        except tomllib.TOMLDecodeError:
+            continue
+        for row in doc.get("fn", []):
+            cause = row.get("cause", "")
+            rows += row.get("status") == "residue" and any(cause.startswith(c) for c in causes)
+    return rows
+
+
+def gaps(act, rows):
+    """Report every gap, and with --act track each by an issue."""
+    for gap in rows:
+        repository, number = gap["repository"], gap.get("pull")
+        held = stopped_at(gap.get("causes", []))
+        pr = pull(repository, number) if number else None
+        if pr and pr["merged_at"]:
+            line = f"{gap['id']}: {repository}#{number} merged; {held} register rows stop at it"
+            print(line)
+            if act:
+                issue(f"Upstream gap fixed: {gap['id']}",
+                      f"{line}. Record it as a [[patch]] row of upstream.toml, pinned to "
+                      f"{pr['merge_commit_sha']}, and delete the `{gap['id']}` gap.\n\n{gap['what']}")
+            continue
+        state = f"{repository}#{number} is {pr['state']}" if pr else "no upstream PR yet"
+        print(f"{gap['id']}: {state}; {held} register rows stop at it")
+        if act:
+            issue(f"Upstream gap: {gap['id']}",
+                  f"{gap['what']}\n\nPlan: {gap['plan']}\n\nResidue: {gap['residue']}\n\n"
+                  f"Open the upstream PR and record it as `pull` on the gap's row of upstream.toml.")
+
+
 def main():
     act = "--act" in sys.argv[1:]
-    patches = tomllib.loads((ROOT / "upstream.toml").read_text())["patch"]
+    doc = tomllib.loads((ROOT / "upstream.toml").read_text())
+    gaps(act, doc.get("gap", []))
+    patches = doc["patch"]
     for patch in patches:
         repository = patch["repository"]
         fix = patch.get("fix")

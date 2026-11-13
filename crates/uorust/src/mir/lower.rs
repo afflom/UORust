@@ -2339,6 +2339,28 @@ impl Fun<'_, '_> {
                             _ => Err(kind(op.path(), &format!("of {}", mt.render()))),
                         }
                     }
+                    // `!x` is `2^w - 1 - x` at the width the value is held
+                    // at, and `-x` is `2^w - x` wrapped (MIR asserts that
+                    // `x` is not `MIN` first): a signed value's at any width,
+                    // an unsigned one's where the width is the same on every
+                    // declared target.
+                    (spec::MirUnOp::Not | spec::MirUnOp::Neg, Ty::Nat(_) | Ty::Signed(_)) => {
+                        let int = Int::of(&t, self.cx.widths)
+                            .filter(|i| i.signed || i.width.is_some())
+                            .filter(|i| i.signed || *op == spec::MirUnOp::Not)
+                            .ok_or_else(|| kind(op.path(), &format!("on {}", t.render())))?;
+                        let m = super::int::pow2(int.held);
+                        Ok(Val::V(
+                            if *op == spec::MirUnOp::Not {
+                                format!("(prim subtract {m} ({v} + 1) : Nat)")
+                            } else {
+                                format!(
+                                    "(prim remainder (prim subtract {m} {v} : Nat) {m} 0 : Nat)"
+                                )
+                            },
+                            t,
+                        ))
+                    }
                     (spec::MirUnOp::PtrMetadata, Ty::List(elem)) => {
                         let len = format!("(prim length {v} : Nat)");
                         self.length_fact(&len, elem, st);
@@ -2667,6 +2689,179 @@ impl Fun<'_, '_> {
             // A divisor of zero is excluded by the assert before it.
             B::Div if nat => v(format!("(prim quotient {x} {y} 0 : Nat)"), xt),
             B::Rem if nat => v(format!("(prim remainder {x} {y} 0 : Nat)"), xt),
+            // Signed arithmetic on bit patterns. The key `x + 2^(w-1)` (mod
+            // `2^w`) is the value offset by `2^(w-1)`, so sums, differences
+            // and products of values are sums, differences and products of
+            // keys, offset; the result is in range when its offset value is
+            // within `2^(n-1)` of the offset, `n` the narrowest width, and
+            // its pattern is the patterns' sum, difference or product,
+            // wrapped (they agree with the values mod `2^w`). Division
+            // truncates: magnitudes divide, and the sign is the signs'.
+            B::AddWithOverflow
+            | B::SubWithOverflow
+            | B::MulWithOverflow
+            | B::Add
+            | B::AddUnchecked
+            | B::Sub
+            | B::SubUnchecked
+            | B::Mul
+            | B::MulUnchecked
+            | B::Div
+            | B::Rem
+                if matches!(xt, Ty::Signed(_)) && xt == yt =>
+            {
+                let int = Int::of(&xt, self.cx.widths).ok_or_else(bad)?;
+                let pow2 = super::int::pow2;
+                let (m, h, hn) = (pow2(int.held), pow2(int.held - 1), pow2(int.check - 1));
+                let (lo, hi) = (
+                    format!("(prim subtract {m} {hn} : Nat)"),
+                    format!("({m} + {hn})"),
+                );
+                let key = |t: &str| {
+                    format!("(if ({t} <? {h}) then ({t} + {h}) else (prim subtract {t} {h} : Nat))")
+                };
+                let (kx, ky) = (key(&x), key(&y));
+                let wrap = |t: String| format!("(prim remainder {t} {m} 0 : Nat)");
+                let (value, fits) = match op {
+                    B::AddWithOverflow | B::Add | B::AddUnchecked => {
+                        let s = format!("({kx} + {ky})");
+                        (
+                            wrap(format!("({x} + {y})")),
+                            format!("(({lo} <=? {s}) && ({s} <? {hi}))"),
+                        )
+                    }
+                    B::SubWithOverflow | B::Sub | B::SubUnchecked => {
+                        let d = format!("(prim subtract ({kx} + {m}) {ky} : Nat)");
+                        (
+                            wrap(format!("(prim subtract ({x} + {m}) {y} : Nat)")),
+                            format!("(({lo} <=? {d}) && ({d} <? {hi}))"),
+                        )
+                    }
+                    B::Div | B::Rem => {
+                        let abs = |t: &str| {
+                            format!("(if ({t} <? {h}) then {t} else (prim subtract {m} {t} : Nat))")
+                        };
+                        let (ax, ay) = (abs(&x), abs(&y));
+                        let negate = |t: String| wrap(format!("(prim subtract {m} {t} : Nat)"));
+                        let value = if op == B::Div {
+                            let q = format!("(prim quotient {ax} {ay} 0 : Nat)");
+                            format!(
+                                "(if (if ({x} <? {h}) then ({h} <=? {y}) else ({y} <? {h})) then {} else {q})",
+                                negate(q.clone())
+                            )
+                        } else {
+                            let r = format!("(prim remainder {ax} {ay} 0 : Nat)");
+                            format!("(if ({x} <? {h}) then {r} else {})", negate(r.clone()))
+                        };
+                        // Its divisor and overflow are the asserts before it.
+                        return v(value, xt);
+                    }
+                    _ => {
+                        let p = format!(
+                            "((prim multiply {kx} {ky} : Nat) + {})",
+                            pow2(2 * int.held - 2)
+                        );
+                        let q = format!("(prim multiply {h} ({kx} + {ky}) : Nat)");
+                        (
+                            wrap(format!("(prim multiply {x} {y} : Nat)")),
+                            format!("(({q} <=? ({p} + {hn})) && ({p} <? ({q} + {hn})))"),
+                        )
+                    }
+                };
+                if matches!(
+                    op,
+                    B::AddWithOverflow | B::SubWithOverflow | B::MulWithOverflow
+                ) {
+                    return Ok(Val::Checked(value, format!("(not {fits})"), xt));
+                }
+                self.obligation(st, &format!("({fits} = true)"), op.path());
+                v(value, xt)
+            }
+            // A shift by `k`, which MIR asserts is below the width: `x *
+            // 2^k` wrapped where the width is the same on every target, `x /
+            // 2^k`, and for a signed value the sign's bits shifted in. `2^k`
+            // is a literal for a literal `k`, else `mirPowTwo k`, the power
+            // by its recursion on `k`.
+            B::Shl | B::ShlUnchecked | B::Shr | B::ShrUnchecked
+                if Int::of(&xt, self.cx.widths).is_some()
+                    && Int::of(&yt, self.cx.widths).is_some() =>
+            {
+                let int = Int::of(&xt, self.cx.widths).ok_or_else(bad)?;
+                let pow2 = super::int::pow2;
+                let m = pow2(int.held);
+                let (pk, fill) = match y.parse::<u32>() {
+                    Ok(k) if k < int.held => (pow2(k), pow2(int.held - k)),
+                    Ok(_) => return Err(bad()),
+                    Err(_) => {
+                        let name = "mirPowTwo".to_string();
+                        if !self.aux.contains_key(&name) {
+                            let evidence = format!("decreases_{name}_0");
+                            self.aux.insert(
+                                evidence.clone(),
+                                Decl::Theorem {
+                                    name: evidence.clone(),
+                                    parameters: vec![("k".into(), "Nat".into())],
+                                    statement: implication(
+                                        &["((k =? 0) = false)".to_string()],
+                                        "((prim subtract k 1 : Nat) < k)",
+                                    ),
+                                    proof: "linear_arithmetic{}".into(),
+                                    axioms: vec!["Quot.sound".into(), "propext".into()],
+                                },
+                            );
+                            self.aux.insert(
+                                name.clone(),
+                                Decl::Definition {
+                                    name: name.clone(),
+                                    parameters: vec![("k".into(), "Nat".into())],
+                                    result: "Nat".into(),
+                                    body: Expr::Flat(format!(
+                                        "(if (k =? 0) then 1 else (prim multiply 2 ({name} (prim subtract k 1 : Nat)) : Nat))"
+                                    )),
+                                    axioms: vec!["Quot.sound".into(), "propext".into()],
+                                    recursive: None,
+                                    termination: Some(("k".into(), vec![evidence])),
+                                    mutual: None,
+                                },
+                            );
+                        }
+                        self.calls.insert(name.clone());
+                        let pk = format!("({name} {y})");
+                        (pk.clone(), format!("(prim quotient {m} {pk} 0 : Nat)"))
+                    }
+                };
+                let value = match op {
+                    B::Shl | B::ShlUnchecked if int.width.is_some() || int.signed => {
+                        format!("(prim remainder (prim multiply {x} {pk} : Nat) {m} 0 : Nat)")
+                    }
+                    B::Shl | B::ShlUnchecked => return Err(bad()),
+                    _ if int.signed => {
+                        let q = format!("(prim quotient {x} {pk} 0 : Nat)");
+                        format!(
+                            "(if ({x} <? {}) then {q} else ({q} + (prim subtract {m} {fill} : Nat)))",
+                            pow2(int.held - 1)
+                        )
+                    }
+                    _ => format!("(prim quotient {x} {pk} 0 : Nat)"),
+                };
+                v(value, xt)
+            }
+            // A mask of the low bits by a literal `2^k - 1`: the value
+            // modulo `2^k`.
+            B::BitAnd
+                if xt == yt
+                    && Int::of(&xt, self.cx.widths).is_some()
+                    && [&x, &y].iter().any(|t| {
+                        t.parse::<u128>()
+                            .is_ok_and(|c| c.checked_add(1).is_some_and(u128::is_power_of_two))
+                    }) =>
+            {
+                let (c, other) = match x.parse::<u128>() {
+                    Ok(c) if c.checked_add(1).is_some_and(u128::is_power_of_two) => (c, &y),
+                    _ => (y.parse::<u128>().map_err(|_| bad())?, &x),
+                };
+                v(format!("(prim remainder {other} {} 0 : Nat)", c + 1), xt)
+            }
             _ => Err(bad()),
         }
     }

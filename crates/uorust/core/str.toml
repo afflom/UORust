@@ -60,7 +60,7 @@ cause = "mir::AggregateKind::Closure: char_count_general_case::{closure#0}: type
 path = "core::contains_non_continuation_byte"
 kappa = "9238cc5888f51ff742b5453fcbae54c6131c538e520c5122b4355e6199480dbb"
 status = "residue"
-cause = "mir::UnOp::Not: on Nat"
+cause = "mir::Operand::Constant: 7_i32 as u32 (IntToInt)"
 
 [[fn]]
 path = "core::contains_nonascii"
@@ -1030,8 +1030,8 @@ cause = "mir::Ty: str::pattern::StrSearcher<'_, '_>"
 [[fn]]
 path = "core::pattern::TwoWaySearcher::byteset_contains"
 kappa = "926edbab09cc67523759faf10e76c18f7d21d58d9c6d37cf6a33b4d298b6cf2f"
-status = "residue"
-cause = "mir::BinOp::BitAnd: on Nat and Nat"
+status = "translated"
+digest = "a5cf80c9d12ae2e3c190bbc551275ce049b05baa06c281d8719820e769967a3a"
 
 [[fn]]
 path = "core::pattern::TwoWaySearcher::byteset_create"
@@ -1128,8 +1128,8 @@ cause = "mir::TerminatorKind::Call: mem::size_of"
 [[fn]]
 path = "core::run_utf8_validation::compiletime"
 kappa = "56ac00f0c37e960b146ea2c1eec5955f52417ce712d0402a4864c59f8f34394e"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+status = "translated"
+digest = "422b7774e2e32a53f3e8b17ba59002621a2e52da44b34f900e8c9b8b7cc0d2bc"
 
 [[fn]]
 path = "core::run_utf8_validation::runtime"
@@ -3490,13 +3490,13 @@ cause = "mir::Operand::Constant: the constant item str::validations::UTF8_CHAR_W
 path = "core::utf8_first_byte"
 kappa = "af76c893efb94851c9f676303d2b71b468759cd9b2772b7749d53941b60b5cf8"
 status = "residue"
-cause = "mir::BinOp::Shr: on Nat and Nat"
+cause = "mir::BinOp::BitAnd: on Nat and Nat"
 
 [[fn]]
 path = "core::utf8_is_cont_byte"
 kappa = "aecb24178939b65e276990f0e66bf4bf12acce7f89100e9e966f9a0691c23e3f"
-status = "residue"
-cause = "mir::CastKind::IntToInt: from Nat to Int64"
+status = "translated"
+digest = "70463c916c2129d6fbe9798e16c63beda72ea4ea28523139910402dcdc7865c9"
 
 [[fn]]
 path = "core::validations::NONASCII_MASK"

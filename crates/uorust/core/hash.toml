@@ -24,7 +24,7 @@ path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_
 kappa = "4692fb058be165d7868d83e3dc38c74e22e7c47fb42010590837bffd43bb27d7"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i128"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_i16"
@@ -59,7 +59,7 @@ path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_
 kappa = "d655f70276a7fce34ee7a77e2aa33a297dc1251f347a8b396b5cc207090ce97e"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_isize"
 
 [[fn]]
 path = "core::hash::<impl at library/core/src/hash/mod.rs:557:1: 557:43>::write_length_prefix"
@@ -169,42 +169,42 @@ path = "core::hash::Hasher::write_i128"
 kappa = "156eebe3d62f6b0109b0136d0d4cac164812b4307ffec2a83501640f6df014ac"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_u128"
 
 [[fn]]
 path = "core::hash::Hasher::write_i16"
 kappa = "c019ea4f59eafa289671c8ab83874823e4378343e84f85e46af847f3fdaf2a35"
 at = "Self=u32"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Nat"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_u16"
 
 [[fn]]
 path = "core::hash::Hasher::write_i32"
 kappa = "b126ce162023f0ac006a43cb55055a6cffb9c2e2650a2076d713abbdb1585f12"
 at = "Self=u32"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Nat"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_u32"
 
 [[fn]]
 path = "core::hash::Hasher::write_i64"
 kappa = "e03e730208c83d915ac477a8b07a33ca5faa4a0ee469581183c9e6b1b63f5726"
 at = "Self=u32"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Nat"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_u64"
 
 [[fn]]
 path = "core::hash::Hasher::write_i8"
 kappa = "5a5f3ee684078d33e9f36e196ad572428561fdfe1b2f4db6261b60a9c83c5aab"
 at = "Self=u32"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Nat"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_u8"
 
 [[fn]]
 path = "core::hash::Hasher::write_isize"
 kappa = "093837a5fc0f2cbab69d06fdf315381a626a565cbf9b52459ca0313201977262"
 at = "Self=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_usize"
 
 [[fn]]
 path = "core::hash::Hasher::write_length_prefix"
@@ -281,7 +281,7 @@ path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>
 kappa = "14addb629854baabc1f8ec372e3dabe2025f1163c4c53a053c059c5bdfc02168"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_i128"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash#12"
@@ -344,7 +344,7 @@ path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>
 kappa = "e2fbb88f4c7724c5be7c9e7567b076cf48d58b47389a5ebae28bf9390d299cd9"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_isize"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice"
@@ -365,7 +365,7 @@ path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>
 kappa = "829904b10a244b66ec9fd157acb69874add31deaa1631a69af525a2a6ef03d3a"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>::hash_slice#12"
@@ -428,7 +428,7 @@ path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:810:13: 810:30>
 kappa = "5e5a9ce77d587d74e4c756f6a26e80ee75f209ddc49af3245df6d9f95d70583f"
 at = "H=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: mem::size_of_val"
 
 [[fn]]
 path = "core::hash::impls::<impl at library/core/src/hash/mod.rs:870:5: 870:20>::hash"
@@ -566,7 +566,7 @@ path = "core::hash::impls::bool::hash"
 kappa = "d813b54d379150ce1f31e94d00e6d7368d073e9cf1adcd8d483674ad8f8c4669"
 at = "H=u32"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Bool to Nat"
+cause = "mir::TerminatorKind::Call: <u32 as hash::Hasher>::write_u8"
 
 [[fn]]
 path = "core::hash::impls::char::hash"

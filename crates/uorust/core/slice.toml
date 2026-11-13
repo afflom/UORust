@@ -89,8 +89,8 @@ cause = "mir::Operand::Constant: 1_i32 as u32 (IntToInt)"
 [[fn]]
 path = "core::drift::DriftsortRun::sorted"
 kappa = "a0a7dc5df71cacc5c570ca89c8008f130b5c8026c78ad048d4f9c630cfbd00e3"
-status = "residue"
-cause = "mir::BinOp::BitAnd: on Nat and Nat"
+status = "translated"
+digest = "3954dbadf34472c72e5954c91b0743c04536407fdc1a64ee6be15ac969713c36"
 
 [[fn]]
 path = "core::drift::sort"
@@ -228,8 +228,8 @@ cause = "mir::Operand::Constant: the constant item &'a [u8]) -> bool {is_ascii::
 [[fn]]
 path = "core::is_ascii::NONASCII_MASK"
 kappa = "d9f50f2bfb266c4ea88bb061846b880666dbf832d5c09a64dd7072e8be4226d8"
-status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+status = "translated"
+digest = "19ca314af7682ff6a43b6be36e404fe507fcd71f2ed4287ac0adf555dd7d01b6"
 
 [[fn]]
 path = "core::is_ascii::USIZE_SIZE"
@@ -368,7 +368,7 @@ cause = "mir::TerminatorKind::Call: slice::<impl [u8]>::as_ptr"
 path = "core::memchr_naive"
 kappa = "ba18a4a29d7f13a0ed1c73c62c6c15afc903e8a2116d555a288a8031ecf0e050"
 status = "translated"
-digest = "b9229d5daa6b1fd0afdb857dc390d9672b466789b080392a7c3e324c7c542295"
+digest = "7c24ed898d59ad1e6348bf29dc7680b8a022d04373bcee6d8a4097fa0544dad2"
 
 [[fn]]
 path = "core::memrchr"
@@ -421,7 +421,7 @@ cause = "mir::BinOp::BitXor: on Nat and Nat"
 path = "core::merge_tree_scale_factor"
 kappa = "a1393a0ac38272c0b7ac43e8ba0a4a0ff3f9fecd0e4ce9908581d955f0152978"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::BITS"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::merge_up"
@@ -1787,7 +1787,7 @@ cause = "mir::Operand::Constant: the constant item <u16 as slice::cmp::SliceCont
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:417:13: 417:38>::slice_contains#10"
 kappa = "dc2800584b36ac12d52b2bf157876c8c8fd0b13d952ccdf02ca650606198c042"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Operand::Constant: the constant item <isize as slice::cmp::SliceContains>::slice_contains::LANE_COUNT"
 
 [[fn]]
 path = "core::slice::cmp::<impl at library/core/src/slice/cmp.rs:417:13: 417:38>::slice_contains#11"
@@ -2033,7 +2033,7 @@ path = "core::slice::cmp::A::compare"
 kappa = "0c42beaa193b84bb386b6a0064bcc6f728df929edba4006699aac4a0fd261cd9"
 at = "A=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: slice::<impl [u32]>::as_ptr"
 
 [[fn]]
 path = "core::slice::cmp::A::compare#2"
@@ -2081,7 +2081,7 @@ cause = "mir::AggregateKind::Closure: slice::cmp::<impl at library/core/src/slic
 path = "core::slice::cmp::i8::slice_contains"
 kappa = "bd40263e7186bc2a6638516fde24e32b2a769465454f199422de1610aee651ad"
 status = "residue"
-cause = "mir::CastKind::IntToInt: from Int64 to Nat"
+cause = "mir::TerminatorKind::Call: slice::<impl [i8]>::as_ptr"
 
 [[fn]]
 path = "core::slice::cmp::u8::slice_contains"
@@ -2183,7 +2183,7 @@ path = "core::slice::index::<impl at library/core/src/slice/index.rs:214:1: 214:
 kappa = "35267820e0020d91870fcda368bfec45863f9605b5e8a4b6da459c9d04e0feb9"
 at = "T=u32"
 status = "translated"
-digest = "2cdfeb3879e863b22e85e82e45d73cf4243b732ad6437cdf3d95d4bda4e67ee6"
+digest = "2271d37413cb4b8cdde42b00f3a627c1dbd13dcd52234c3bd565920e7399b14e"
 
 [[fn]]
 path = "core::slice::index::<impl at library/core/src/slice/index.rs:214:1: 214:47>::index_mut"
@@ -3600,7 +3600,7 @@ path = "core::slice::iter::ChunksExact::size_hint"
 kappa = "f48478e414706c6c73ed19b4466696f2b6979800f19101c42e9916bdfce974fe"
 at = "T=u32"
 status = "translated"
-digest = "081378a033528c3a8302b52474c2436e0c3f3f65880ef56ce90696b6dfebe2ee"
+digest = "99e1d32233de3581b78ac2f2e668f8853d2b9e2a46edba39e477bf89013831b3"
 
 [[fn]]
 path = "core::slice::iter::ChunksExactMut::__iterator_get_unchecked"
@@ -3985,7 +3985,7 @@ path = "core::slice::iter::RChunksExact::size_hint"
 kappa = "08d8ccdb9531d0c4b1dd91d6707fc4a84e2fd3f17b0d54e8ea6e0ae254ca95eb"
 at = "T=u32"
 status = "translated"
-digest = "34db3c775a2e79d2473dfbf6f64d79a441592be1ebbf164ace6f8d0c5d4473fd"
+digest = "69a0e0030dd1a1c7fb325f508b2958b049f992c8ebfd27a76aed1ef56343a2fa"
 
 [[fn]]
 path = "core::slice::iter::RChunksExactMut::__iterator_get_unchecked"
@@ -4696,7 +4696,7 @@ cause = "mir::TerminatorKind::Call: num::<impl i64>::to_ne_bytes"
 path = "core::specialize::<impl at library/core/src/slice/specialize.rs:50:9: 50:41>::spec_fill#2"
 kappa = "7d5524c465f6a577bc9b15fd54e2ea5adbc83ed343520bc2ada10c5398c524e0"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::TerminatorKind::Call: num::<impl i128>::to_ne_bytes"
 
 [[fn]]
 path = "core::specialize::<impl at library/core/src/slice/specialize.rs:50:9: 50:41>::spec_fill#3"
@@ -4708,7 +4708,7 @@ cause = "mir::TerminatorKind::Call: num::<impl usize>::to_ne_bytes"
 path = "core::specialize::<impl at library/core/src/slice/specialize.rs:50:9: 50:41>::spec_fill#4"
 kappa = "dd4648b91b47da83adef5392cc1e6f65c799b5428126d35941eff61257c7c3e1"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: num::<impl isize>::to_ne_bytes"
 
 [[fn]]
 path = "core::specialize::<impl at library/core/src/slice/specialize.rs:50:9: 50:41>::spec_fill#5"

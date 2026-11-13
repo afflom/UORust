@@ -46,12 +46,24 @@ release = { kind = "branch" }
 repin = "frame"
 
 # Gaps: an upstream limit that residue stops at and that no patch carries
-# yet, with the plan for the patch. upstream.py reads only [[patch]], and a
-# gap becomes a [[patch]] row when its upstream PR opens.
+# yet, with the plan for the patch. upstream.py counts, per gap, the rows of
+# the MIR registers (crates/uorust/core, std, crates) whose cause starts with
+# one of its `causes`, and with --act opens one issue per gap carrying its
+# plan; once `pull` names the upstream PR it follows it, and the gap becomes
+# a [[patch]] row when the PR merges.
 
 [[gap]]
 id = "lexlean-nat-to-signed"
 repository = "UOR-Foundation/LexLean"
 what = "LexLean 0.4.0 converts no Nat to another integer family: checked_convert takes Int and the fixed-width families but not Nat, to_int takes only the fixed widths, and Int64 has no arithmetic beyond the checked_* primitives (src/ir/semantic.rs, infer_primitive). So the MIR path holds every Rust integer as Nat, with signed ones as their two's-complement bit patterns (crates/uorust/src/mir/int.rs). An AST-lifted Int64 value can flow into Nat (to_int, then emod, then UInt64 limbs, then to_nat), but a Nat can never flow back: a MIR-path call to an AST-lifted function with an Int64 parameter, or a struct with an Int64 field, stays residue."
 plan = "Admit Nat as checked_convert's input (Option of any fixed width, none outside its range) and as to_int's (exact), with both elaborating in linking as to_nat does. Then the AST path's Int64 and the MIR path's bit patterns meet in a cast, and the boundary residue closes."
-residue = "mir::TerminatorKind::Call and mir::Rvalue::Aggregate rows that pass a signed value to an AST-lifted Int64 parameter or field"
+residue = "mir::TerminatorKind::Call and mir::Rvalue::Aggregate rows that pass a signed value to an AST-lifted Int64 parameter or field: the workspace's own register, since core, std and crates have no AST-lifted callee"
+causes = []
+
+[[gap]]
+id = "lexlean-nat-bitwise"
+repository = "UOR-Foundation/LexLean"
+what = "LexLean 0.4.0's bit_and, bit_or, bit_xor, bit_not, shift_left and shift_right take only the fixed-width families, and Nat has no power. The MIR path holds every integer as Nat (gap lexlean-nat-to-signed), so it writes NOT, negation and shifts arithmetically (a shift by a variable amount through mirPowTwo, a power by recursion with a linear_arithmetic measure) and a mask by a literal 2^k - 1 as a remainder, but an AND, OR or XOR of two values stays residue."
+plan = "Admit Nat in bit_and, bit_or and bit_xor (Lean's Nat.land, Nat.lor and Nat.xor), and in shift_left and shift_right with a Nat amount and a Nat result (Nat.shiftLeft and Nat.shiftRight). The MIR path then writes x & y as (prim bit_and x y : Nat), wrapped at the width where the operation can leave it."
+residue = "mir::BinOp::BitAnd, mir::BinOp::BitOr and mir::BinOp::BitXor on two values"
+causes = ["mir::BinOp::BitAnd: on ", "mir::BinOp::BitOr: on ", "mir::BinOp::BitXor: on "]

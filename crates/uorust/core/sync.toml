@@ -8,7 +8,7 @@ cause = "mir::Ty: sync::atomic::Atomic<bool>"
 path = "core::ATOMIC_ISIZE_INIT"
 kappa = "41fcfd3f9a5c3ec6e54b34f73ee9d14e594d9fd3611be682dba000e1960dd47b"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: sync::atomic::Atomic<isize>"
 
 [[fn]]
 path = "core::ATOMIC_USIZE_INIT"
@@ -74,7 +74,7 @@ cause = "mir::Ty: sync::atomic::Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2592:9: 2592:38>::default#9"
 kappa = "97740f4dc25fdfa2e8150c258b958c8fe6cb7354883bf71bcc1ab375203861d9"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: sync::atomic::Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2601:9: 2601:52>::from"
@@ -134,7 +134,7 @@ cause = "mir::Ty: sync::atomic::Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2601:9: 2601:52>::from#9"
 kappa = "e7b37069d12c16a045a26ee7d4d49e6e534cdf0e390d41d28e177f2cb0513361"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: sync::atomic::Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt"
@@ -194,7 +194,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2608:9: 2608:41>::fmt#9"
 kappa = "7820711a3d7455331797d804dff49939395dd09cd6443bfe92efbd01665a8bda"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::as_ptr"
@@ -254,7 +254,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::as_ptr#9"
 kappa = "b875936d3c8924c8d61f39fc6180446f9af6dcc16cedaa0f3f198734658f611e"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::compare_and_swap"
@@ -314,7 +314,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::compare_and_swap#9"
 kappa = "d43cb0b354308f8d0aa55396f69324d172e8d403467b2f358ff2b0ba745f3e5c"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::compare_exchange"
@@ -374,7 +374,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::compare_exchange#9"
 kappa = "f2c54e9cbb3c60a38b57c440d663a84ccbf0c50d9f9794207e049271ba89624a"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::compare_exchange_weak"
@@ -434,7 +434,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::compare_exchange_weak#9"
 kappa = "2602f836f5f7b4a58b6179544dcb14cc407cd240561ab96cc7369c5f288ab744"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_add"
@@ -494,7 +494,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_add#9"
 kappa = "8ea72a86a23c5bc86bc8f200c20864660f7a49974a12908ec36b2323a61416e3"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_and"
@@ -554,7 +554,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_and#9"
 kappa = "7d2fdef489985a25a6fd1b8a34e41e0ad60ce5db01501fd608ca6d44bdea7bd3"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_max"
@@ -614,7 +614,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_max#9"
 kappa = "7e3b136e036804664feff3dd27eea7d96e0413ea7303f7e0df4ec1f46977cc42"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_min"
@@ -674,7 +674,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_min#9"
 kappa = "be8afc0b74b3fe3e1cfeda30f2402c6667996d6c10d3aa07fd4110238d290924"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_nand"
@@ -734,7 +734,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_nand#9"
 kappa = "b5cf4d7cf17625841d1c00b182c92dc971b8503433311897a4ac9856f5f5862d"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_or"
@@ -794,7 +794,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_or#9"
 kappa = "e2bebc44d89d24dd10d266de038b50a10a3c47a4acc434d67ded1677f7aae907"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_sub"
@@ -854,7 +854,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_sub#9"
 kappa = "50e92ff16cbf8de00156a3e8776e00d9ca6b62772d49d8db30aeb8305e326c73"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_update"
@@ -924,7 +924,7 @@ path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>:
 kappa = "504b07a9e18cb75f22ff612e064497287b0f6fe86d2778a1f749404e3c39f8c7"
 at = "F=u32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_xor"
@@ -984,7 +984,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::fetch_xor#9"
 kappa = "1bf1fb6e4c2b5e28b8bafa6da353292a5dbd6d1d6c42a2c10aa915359f2681e1"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::from_mut"
@@ -1044,7 +1044,7 @@ cause = "mir::Ty: sync::atomic::Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::from_mut#9"
 kappa = "a9ea0c59c42f0836b5e1d71cc5077816666aa95b0a9ecb6345d0d650d5aebfce"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: sync::atomic::Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::from_mut_slice"
@@ -1104,7 +1104,7 @@ cause = "mir::Ty: sync::atomic::Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::from_mut_slice#9"
 kappa = "3cde9cd845a320cd2a5c573d0e902b887dd750896bbb20c04cc8018b5e4b21a3"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: sync::atomic::Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::from_ptr"
@@ -1164,7 +1164,7 @@ cause = "mir::Ty: sync::atomic::Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::from_ptr#9"
 kappa = "2697635147161f39d1c7ff8f0d15ccf7f47f1763dd3fa760387d232682e02275"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: sync::atomic::Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::get_mut"
@@ -1224,7 +1224,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::get_mut#9"
 kappa = "d18cd4916bf55b5a921765dcd1b59b2de67f563d83eee108c67f0847c300cbc7"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::get_mut_slice"
@@ -1284,7 +1284,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::get_mut_slice#9"
 kappa = "1f09526c7e996e2a72c70322d44c8f006277efb1f92fc8e63e900c724934feab"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::into_inner"
@@ -1344,7 +1344,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::into_inner#9"
 kappa = "1fc5626b6f04e5b2bf584a75d7d018ea859ba43b28d0f079ce222ddaa507641a"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::load"
@@ -1404,7 +1404,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::load#9"
 kappa = "887ebbfe0c0a95d82b83df593772a708a4b28d0cd4229e5e85a2a98f4f261d32"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::new"
@@ -1464,7 +1464,7 @@ cause = "mir::Ty: sync::atomic::Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::new#9"
 kappa = "b87bf74c58cdc1ce6791141bab22230d5af1abd2c7f5babe37a2744ce7a771d3"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: sync::atomic::Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::store"
@@ -1524,7 +1524,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::store#9"
 kappa = "f9e6e0f707ff6077d6b855875c85767d38273aae85d14749ad168f63cb49b49b"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::swap"
@@ -1584,7 +1584,7 @@ cause = "mir::Ty: Atomic<u64>"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:2614:9: 2614:26>::swap#9"
 kappa = "a0e464fdb14e1c6c83929c24eeeb289f6b1aef55c247dddb818db45f53cbcd28"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: Atomic<isize>"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:16: 444:21>::clone"
@@ -1608,7 +1608,7 @@ digest = "cc1213c5a22fbc7352f6a73aafb4a3c95d44e2071998c4c11ba57571497db35d"
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:34: 444:43>::eq"
 kappa = "b4142502c7efa7a6924a3481890f411348948248e6575759d89a3d40ef5b695b"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::atomic::<impl at library/core/src/sync/atomic.rs:444:45: 444:49>::hash"

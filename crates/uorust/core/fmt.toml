@@ -74,7 +74,7 @@ cause = "mir::Operand::Constant: 21_i32 as u32 (IntToInt)"
 path = "core::U128_MAX_DEC_N"
 kappa = "5f2c8ef117d61589e4ee7af7d9d068ac556a0c3496e1d9e63cc6dbee06ec8d15"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u128>::ilog10"
 
 [[fn]]
 path = "core::WIDTH_FLAG"
@@ -376,7 +376,7 @@ cause = "mir::Operand::Constant: the constant item fmt::num::exp_u128::MAX_DEC_N
 path = "core::exp_u128::MAX_DEC_N"
 kappa = "ce0a3119eac1ea6530a22829fba174097a546d4902e4c6c736457e5151bcd1f7"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u128>::ilog10"
 
 [[fn]]
 path = "core::exp_u128::MAX_TEXT_LEN"
@@ -400,7 +400,7 @@ cause = "mir::Operand::Constant: the constant item fmt::num::imp::exp_u64::MAX_D
 path = "core::exp_u64::MAX_DEC_N"
 kappa = "858ae4498dcb656128866fd139f0c42b0bb9bc4b53e8b0c501c8dc4746ee46ad"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::ilog10"
 
 [[fn]]
 path = "core::exp_u64::MAX_TEXT_LEN"
@@ -542,7 +542,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:261:30: 261:39>::eq"
 kappa = "8d6edf82917519e1620cd9b4bce9745c4daf818880d8eaf8e40ae19609c13af2"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:261:41: 261:43>::assert_fields_are_eq"
@@ -566,7 +566,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:26:30: 26:39>::eq"
 kappa = "1da2ca0e1e933c6a2b1b6f0a0d46f525a105ba7cc47af60b15f1c1d413f6d5c4"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:26:41: 26:43>::assert_fields_are_eq"
@@ -590,7 +590,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:272:30: 272:39>::eq"
 kappa = "f1a186acaef130a3f70e69905998c93c15d856fa79414981794a8f5540386fa3"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::TerminatorKind::Call: discriminant_value"
 
 [[fn]]
 path = "core::fmt::<impl at library/core/src/fmt/mod.rs:272:41: 272:43>::assert_fields_are_eq"
@@ -1276,7 +1276,7 @@ cause = "mir::Operand::Constant: the constant item fmt::flags::DEBUG_LOWER_HEX_F
 path = "core::fmt::FormattingOptions::get_fill"
 kappa = "d8e16625e6bcb8a9811db512af72af4bd20713c45ba1b0256692d427d2bde405"
 status = "residue"
-cause = "mir::BinOp::BitAnd: on Nat and Nat"
+cause = "mir::TerminatorKind::Call: methods::<impl char>::from_u32_unchecked"
 
 [[fn]]
 path = "core::fmt::FormattingOptions::get_precision"
@@ -1967,151 +1967,151 @@ cause = 'mir::Operand::Constant: b"0123456789ABCDEF"'
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N"
 kappa = "33c99aa854a0d20ed2837dd2c5aad017c73ce1e4c0d5cebebd46827f2711b6a9"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::UpperHex for usize>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#10"
 kappa = "9afadd66426fffb72f2d88bcfc86be4a597b80500f9bf77b055631caeeb1aa97"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Binary for u32>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#11"
 kappa = "fdcdfa4bbacdef07fa06cbfdee10ba2b78fa13f3f45143d7a684e7394551d34e"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Octal for u32>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#12"
 kappa = "8c9cfb89d69b88e4b57f5b181f3c42cfb78ff80a8ede1ec0ca3772a93c3d8a6a"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::LowerHex for u32>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#13"
 kappa = "e1e7fbed04f59508aa4ad36036025d4b20363c8e48d8401b1caf0b847441e919"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::UpperHex for u32>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#14"
 kappa = "fcc285b7e72982e16e0ed826f6a6a50391279f8cf94f6877d26eb1ca23e406f3"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Binary for u64>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#15"
 kappa = "08781fdad531fae67d2a37b66a445eb8e288a7626fca65bc069bdd2b075fcbdf"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Octal for u64>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#16"
 kappa = "63fa864f1b46f49d48cdb9e089e2078c3777b441f76b57471b4b2b336366f5cf"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::LowerHex for u64>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#17"
 kappa = "91d5bcbe3aa5ac2847f4fec35f048c248278fc397cc652ad67a884aec23e9441"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::UpperHex for u64>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#18"
 kappa = "44e8a665bd8fa4aaf870ff330818213b13503dbb2e420d57e8c4c8679465240f"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Binary for u128>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#19"
 kappa = "5e2923c8fe372ab133311f950d17ff45e2be9a93d0b6768ef5165053de1253d3"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Octal for u128>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#2"
 kappa = "b35ba060768fa0c6581229d2346803ddc967a143334f18e2829f5339ff7f073a"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Binary for u8>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#20"
 kappa = "e3a7e659473f67608cb1b717536d4cf7203d3e1a1af119f81e289eec8d282590"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::LowerHex for u128>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#21"
 kappa = "b763d5458b56dcccb89d0f97f4346e583784414f2a7740d8323c1142b1359d8c"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Binary for usize>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#22"
 kappa = "1a76cd99534651e6e01fd61e5499a72192d2e9ca1e759a0434c5bfb127c19ce6"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::UpperHex for u128>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#23"
 kappa = "093d693ca28ad371dacf1eea61346f22deb7a262c371a9451d9fe567d7d78e4b"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Octal for usize>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#24"
 kappa = "659fe64eccef6cc58f4d954478b343a3cd8ca798db61bd808e482d077d4b26a5"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::LowerHex for usize>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#3"
 kappa = "a84d681702f995c3e9e74444c39f4aef55737140e8f4647264acf1d2260c2976"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Octal for u8>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#4"
 kappa = "0a9339018af27585b53d1acd9ea6765458d64fffc1411752e4c47184d790a5c1"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::LowerHex for u8>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#5"
 kappa = "48626060276242787840b9254a92e23fecf163ff1dec2dc3d12d79a82d4d069c"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::UpperHex for u8>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#6"
 kappa = "b92efe85d0091b08151da84fb5197ab643f7922c1a7e7f8cc3b0a648c5f49120"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Binary for u16>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#7"
 kappa = "706ca5df746def8362569b81af7738b55b150db2797521de79b710ab8e18b1cf"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::Octal for u16>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#8"
 kappa = "e7e74e28c7de9f3155146401eac0412cd4970d604ff8a4c6928fabdff9359e7e"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::LowerHex for u16>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:12:9: 12:39>::fmt::MAX_DIG_N#9"
 kappa = "8dc1c3ec35689401cc358444f2a9e4ebb7eb4066f70de1ab7f6c5ff06a2c5117"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
+cause = "mir::Operand::Constant: the constant item fmt::num::<impl fmt::UpperHex for u16>::fmt::BASE"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt"
 kappa = "293b12cc7c32b9f62030f8fc816d5080722b8c34204ef446d331b8666a3f1d95"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#10"
@@ -2165,13 +2165,13 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#18"
 kappa = "8a558a78ba9ca6126d6151ca3708dc78c416250e835c1a60f565817049387f81"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#19"
 kappa = "600645d3080cf06531ac716b4e669bc79e8bd57ae070629b1dbe226c86a61b53"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#2"
@@ -2183,31 +2183,31 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#20"
 kappa = "afeb80b0e053a6c437b8794ffb2deec89d61bc69ce1e1ee481bbe2c0d530336b"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#21"
 kappa = "e28fa7df2d9b75fd4f49c900df5a12879a9889214eb09740e4a023702156d39e"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#22"
 kappa = "7a335b5ca17b1b920148e210348138b4585ce05b85a83d703bb1672d143bfa88"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#23"
 kappa = "75d2c2c21ab0c73d98735ba11ee2c58baadb514db1246334f1323996457a3297"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#24"
 kappa = "2d74653d9d932537be190331273e73efdcc31482153eccd881af8c19f1dc6e66"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:54:9: 54:37>::fmt#3"
@@ -2255,7 +2255,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt"
 kappa = "70ed1e13997fd8bc7936d824c8d721d6425f5f5e45e3e1a0e49258577c0a4f93"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt"
@@ -2267,7 +2267,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt"
 kappa = "70f1dbf5553f109b893c9bcd01ea84543ca493a3686ff9aa2f2fa96c0c5174bd"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt"
@@ -2321,13 +2321,13 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#5"
 kappa = "08fc6d31fcbd061ffd5f754ccf0cf6b25a9b808fe8f1406a4789144a6a548109"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#6"
 kappa = "057c4fcd54cae9e6728d7dc4eb150145afc2ea3e6c396b84e891e85c05c8bf51"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::<impl at library/core/src/fmt/num.rs:83:13: 83:35>::fmt#7"
@@ -2351,25 +2351,25 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::_"
 kappa = "3d8dcb13c097eb1d78e47831e67a27485967f48b2233ea5a96ac00c8195323cd"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i128>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::_#2"
 kappa = "f4c913348241152012db9da7aaa8c8a12a5e523a19988a66cb4f5b4fb4a0a499"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::i128::fmt"
 kappa = "3fd102698efe97e4555fc137e8b52a59e46241cfad4623bbd58f082cc6028ec2"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::i128::format_into"
 kappa = "1b326610969a8a3c9a75683b219a4f5dab9a0384153790618d8df217b088428e"
 status = "residue"
-cause = "mir::Ty: i128"
+cause = "mir::Ty: num_buffer::NumBuffer<i128>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt"
@@ -2405,31 +2405,31 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt::MAX_DEC_N"
 kappa = "5f057a3c9faa2aa2ee91b646254a62302a15c52479d967d2b68169fc09f49fac"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u8>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt::MAX_DEC_N#2"
 kappa = "b7752fc6ccdf43a999867002606d111a1c9ad85f96952442eef75a0ffe30ede5"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u32>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt::MAX_DEC_N#3"
 kappa = "23b781e51f94f40e0bcaab0d906dd5b235782e5e21ce1a959cf7bc8789aff4a2"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt::MAX_DEC_N#4"
 kappa = "ffe1a2771c2258a1b82cc5969f9ba5e4d800ffd555a5ca2e3defe92cb1af6897"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl usize>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:134:9: 134:40>::fmt::MAX_DEC_N#5"
 kappa = "37a42a3981c2a23038e971483b89fd8e99ee376589da0e0e25652cd1119d9f3b"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u16>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt"
@@ -2453,7 +2453,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt#4"
 kappa = "c5aeb33577ffb250d8ff852b6992535d4a8e0bed603240d9b73b3f219177b1cc"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt#5"
@@ -2465,31 +2465,31 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt::MAX_DEC_N"
 kappa = "b67316848543a761afbeb3b03c2525400763cfb2613cc62866fe7325fc0f0ce4"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u32>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt::MAX_DEC_N#2"
 kappa = "e7bc4df0845f40852f3b6bb3a01f70bb545f40a31a762b47dcdf4fc3f4fa49bc"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt::MAX_DEC_N#3"
 kappa = "54472899337b07610e458732bf549d7be4b679682d6cd1e4ecf18d99604a2a09"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u8>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt::MAX_DEC_N#4"
 kappa = "b3bc779736807816f548182113def0f2cfedfb578d55a1aa631304a6405649be"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl usize>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:155:9: 155:38>::fmt::MAX_DEC_N#5"
 kappa = "29900e7a113873b325c334df22e2a3f2ce91553712862e591f4c66e7e57cc974"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u16>::ilog10"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:176:9: 176:23>::_fmt"
@@ -2567,7 +2567,7 @@ cause = "mir::Ty: num_buffer::NumBuffer<i64>"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:256:9: 256:21>::format_into#3"
 kappa = "2b8ac54988d1d725d6a696441a582c4f793bce6fad031c1191025cf7acadcb99"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: num_buffer::NumBuffer<isize>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:256:9: 256:21>::format_into#4"
@@ -2639,7 +2639,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:561:9: 561:39>::fmt#5"
 kappa = "e6e55d7b81da127327851f1642203abfc9198ea210340c9b59b2bf0f4791a4d2"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:567:9: 567:41>::fmt"
@@ -2699,7 +2699,7 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:573:9: 573:39>::fmt#5"
 kappa = "5c3c83831e03cd6247578d52e71e943926be47d24f18e3bcf7dba2d915fc6b72"
 status = "residue"
-cause = "mir::Ty: isize"
+cause = "mir::Ty: fmt::Formatter<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::<impl at library/core/src/fmt/num.rs:579:9: 579:41>::fmt"
@@ -2735,67 +2735,67 @@ cause = "mir::Ty: fmt::Formatter<'_>"
 path = "core::fmt::num::imp::_"
 kappa = "50775f9252f2816b3463ac5ebc84129aa4c152baaa7dcc334e566c3d78b841be"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i16>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#10"
 kappa = "8c7d5d03b06ad9c25e92e2e6bdbc0d7f6a3f1ec10432e3417bcc730fc2d7b03d"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i64>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#11"
 kappa = "cd41d55b513eba206e465e48802c2df24acf97533dcace9cb0a469ee962c527c"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i8>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#2"
 kappa = "905a64ed6f6599381ae503c84b0bc2af5a2d40ed3b14a3c61e03ee798599dc67"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl isize>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#3"
 kappa = "fb96e360aa7a455910b2bc6150fba12d88acd34f2bf7f0c01f03a9d62a320154"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i32>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#4"
 kappa = "8c7d5d03b06ad9c25e92e2e6bdbc0d7f6a3f1ec10432e3417bcc730fc2d7b03d"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i64>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#5"
 kappa = "905a64ed6f6599381ae503c84b0bc2af5a2d40ed3b14a3c61e03ee798599dc67"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl isize>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#6"
 kappa = "25fc73a359221a6fb0c44d029e36f6c7495fed453033f1562a55812f7c775226"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#7"
 kappa = "cd41d55b513eba206e465e48802c2df24acf97533dcace9cb0a469ee962c527c"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i8>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#8"
 kappa = "50775f9252f2816b3463ac5ebc84129aa4c152baaa7dcc334e566c3d78b841be"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i16>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::imp::_#9"
 kappa = "fb96e360aa7a455910b2bc6150fba12d88acd34f2bf7f0c01f03a9d62a320154"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i32>::MIN"
+cause = "mir::Ty: fmt::Arguments<'_>"
 
 [[fn]]
 path = "core::fmt::num::slice_buffer_to_str"
@@ -2855,73 +2855,73 @@ cause = "mir::Ty: dyn fmt::Write"
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:14:13: 14:44>::BUF_SIZE"
 kappa = "90ac7e6cc01fd8357a22143973641a7bfd92afb69d6051550ae70e9b5b2d871c"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl isize>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl isize>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:14:13: 14:44>::BUF_SIZE#2"
 kappa = "2d84ebae9ee84557425d5d4ddc3d07c60c1e3b1d76b4fc7f7f623e78a75e3a4d"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i128>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl i128>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:14:13: 14:44>::BUF_SIZE#3"
 kappa = "7757be46b3c26ef2cbe6bd69473080db0f80b7cc249a1f6fa006250b9eb71553"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i8>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl i8>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:14:13: 14:44>::BUF_SIZE#4"
 kappa = "886eb5592b63eb41d2cf46f76738ab910cc29dfa71832d7c0700171ea403ba2c"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i16>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl i16>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:14:13: 14:44>::BUF_SIZE#5"
 kappa = "a570028221dfa6e6e003aac4c005545acb83e03129937b8e7f0a89b89066f445"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i32>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl i32>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:14:13: 14:44>::BUF_SIZE#6"
 kappa = "400055f33ba6261134d0ce9c911ab0554db61e33b0965335b4a12075d1ebc481"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl i64>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl i64>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:19:13: 19:46>::BUF_SIZE"
 kappa = "2212edd9eda0fd6f5b1e29771b6a50d10acfd54cbd9f5906201b8b265057f53d"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl usize>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl usize>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:19:13: 19:46>::BUF_SIZE#2"
 kappa = "0f7ff38951de09dff65c01e7b0b37df94a30ae5ea8a63f745612fed5a93208be"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u128>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u128>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:19:13: 19:46>::BUF_SIZE#3"
 kappa = "db3d593e4693cfea2240e7f412a359b9fb39239e4f394ec927a151abacfaa205"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u8>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u8>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:19:13: 19:46>::BUF_SIZE#4"
 kappa = "491768327bed0fcf60364b2abe173439d32cbbcd8b606e39f3cbc5a96546986a"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u16>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u16>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:19:13: 19:46>::BUF_SIZE#5"
 kappa = "799229f7fd841341c7c019d4ac53f7d46c53e5b22b753ffd5daeef5cd6c57c5b"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u32>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u32>::ilog"
 
 [[fn]]
 path = "core::num_buffer::<impl at library/core/src/fmt/num_buffer.rs:19:13: 19:46>::BUF_SIZE#6"
 kappa = "4333d23c0926898e3d8137c01289918c7d6d23f988d694d70dbc3f9cdaebb1a0"
 status = "residue"
-cause = "mir::Operand::Constant: the constant item num::<impl u64>::MAX"
+cause = "mir::TerminatorKind::Call: num::<impl u64>::ilog"
 
 [[fn]]
 path = "core::num_buffer::NumBuffer::capacity"
