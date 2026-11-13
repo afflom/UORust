@@ -929,7 +929,7 @@ fn call_sites(
     let entries = std::fs::read_dir(dir).map_err(|e| io(dir, e))?;
     let mut paths: Vec<PathBuf> = entries
         .map(|e| e.map(|e| e.path()).map_err(|e| io(dir, e)))
-        .collect::<Result<_, _>>()?;
+        .collect::<Result<_, UorustError>>()?;
     paths.sort();
     for path in paths {
         if path.is_dir() {
