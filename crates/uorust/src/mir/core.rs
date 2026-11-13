@@ -167,7 +167,7 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
     }
     // Every module's bodies, which each module's calls name.
     let link =
-        super::link::CoreLink::new(core_decls(root), read.iter().flat_map(|(_, texts)| texts));
+        super::link::CoreLink::new(core_decls(root), root, read.iter().flat_map(|(_, texts)| texts));
     Ok(read
         .iter()
         .map(|(module, texts)| shard(scope, root, module, texts, &widths, &link))

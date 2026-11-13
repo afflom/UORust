@@ -2420,6 +2420,27 @@ impl Fun<'_, '_> {
             IrRvalue::Binary(op, a, b) => self.binary(*op, a, b, st),
             IrRvalue::Aggregate(IrAggregate::Closure(ct), ops) => self.closure_value(ct, ops, st),
             IrRvalue::Aggregate(agg, ops) => {
+                // A mutable borrow of a writer held in a value (a
+                // `Formatter` built of the `&mut dyn Write` it is given, a
+                // builder of the `&mut Formatter`): the lift holds the
+                // value it borrows, so a write through the held borrow
+                // would not reach the place it borrows.
+                if ops.iter().any(|(_, o)| match o {
+                    IrOperand::Copy(q) | IrOperand::Move(q) => {
+                        q.projection.is_empty()
+                            && (matches!(st.env.get(&q.local), Some(Val::Mut(_)))
+                                || self.mut_params.contains(&q.local))
+                            && self.body.locals.get(q.local).and_then(|t| mut_target(t)).is_some_and(
+                                |t| t.contains("dyn ") || t.contains("fmt::Formatter"),
+                            )
+                    }
+                    _ => false,
+                }) {
+                    return Err(kind(
+                        spec::MirRvalue::Aggregate.path(),
+                        "a mutable borrow held in a value, whose writes would not reach the place it borrows",
+                    ));
+                }
                 let t = self.local_ty(dest.local, &dest.projection)?;
                 let mut vals = Vec::new();
                 for (_, o) in ops {

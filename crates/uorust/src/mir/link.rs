@@ -28,7 +28,11 @@ pub(crate) struct CoreLink {
 impl CoreLink {
     /// The link of core's dumps `texts` (one body each), with core's
     /// declarations.
-    pub(crate) fn new<'t>(decls: CoreDecls, texts: impl IntoIterator<Item = &'t String>) -> Self {
+    pub(crate) fn new<'t>(
+        decls: CoreDecls,
+        root: &std::path::Path,
+        texts: impl IntoIterator<Item = &'t String>,
+    ) -> Self {
         let mut bodies: BTreeMap<String, Vec<String>> = BTreeMap::new();
         let mut lasts: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for text in texts {
@@ -51,6 +55,58 @@ impl CoreLink {
                 lasts.entry(last).or_default().push(path.to_string());
             }
             same.push(text.clone());
+        }
+        // A method of an inherent impl, as MIR prints its calls: by the
+        // impl's type (`fmt::Formatter::write_str`), where its dump names it
+        // by the impl's span. A trait's impl keeps its span alone: its calls
+        // name the trait.
+        let mut sources: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut aliases: Vec<(String, Vec<String>)> = Vec::new();
+        for (path, texts) in &bodies {
+            let mut inherent = path.contains("<impl at ");
+            let mut rest = path.as_str();
+            while let Some(at) = rest.find("<impl at ") {
+                let after = &rest[at + "<impl at ".len()..];
+                let Some(end) = after.find('>') else {
+                    inherent = false;
+                    break;
+                };
+                let span = &after[..end];
+                rest = &after[end + 1..];
+                let header = span.split_once(':').and_then(|(file, range)| {
+                    let (from, to) = range.split_once(": ")?;
+                    let (l1, c1) = from.split_once(':')?;
+                    let (l2, c2) = to.split_once(':')?;
+                    let (l1, c1, l2, c2): (usize, usize, usize, usize) =
+                        (l1.parse().ok()?, c1.parse().ok()?, l2.parse().ok()?, c2.parse().ok()?);
+                    let lines = sources.entry(file.to_string()).or_insert_with(|| {
+                        std::fs::read_to_string(root.join(file))
+                            .map(|t| t.lines().map(str::to_string).collect())
+                            .unwrap_or_default()
+                    });
+                    let mut text = String::new();
+                    for l in l1..=l2 {
+                        let chars: Vec<char> = lines.get(l.checked_sub(1)?)?.chars().collect();
+                        let from = if l == l1 { c1.saturating_sub(1) } else { 0 };
+                        let to = if l == l2 { c2.saturating_sub(1).min(chars.len()) } else { chars.len() };
+                        text.extend(chars.get(from..to)?);
+                        text.push(' ');
+                    }
+                    Some(text)
+                });
+                match header {
+                    Some(h) if h.trim_start().starts_with("impl") && !h.contains(" for ") => {}
+                    _ => inherent = false,
+                }
+            }
+            if inherent {
+                if let Some(resolved) = super::resolve_impls(root, path) {
+                    aliases.push((resolved, texts.clone()));
+                }
+            }
+        }
+        for (resolved, texts) in aliases {
+            bodies.entry(resolved).or_insert(texts);
         }
         CoreLink {
             decls,
