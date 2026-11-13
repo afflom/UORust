@@ -8,7 +8,7 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/model" "$work/scripts"
-cp "$root/model/routes.toml" "$work/model/"
+cp "$root/model/routes.toml" "$root/model/cadence.toml" "$work/model/"
 cp "$root/Cargo.toml" "$work/"
 cp -r "$root/scripts/self-model" "$work/scripts/"
 tar -C "$root" --exclude=app/.lexlean --exclude=app/.prism --exclude=app/target --exclude=app/.lake -cf - app | tar -C "$work" -xf -
@@ -17,11 +17,13 @@ python3 -I "$work/scripts/self-model/facets.py" "$work" "$root" >/dev/null
 python3 -I "$work/scripts/self-model/release.py" "$work" "$root" >/dev/null
 python3 -I "$root/scripts/experience/authority.py" "$root" --check
 python3 -I "$root/scripts/self-model/engine.py" "$root" --check
+python3 -I "$root/scripts/self-model/cadence.py" "$root" --check
+python3 -I "$work/scripts/self-model/cadence.py" "$work" >/dev/null
 python3 -I "$root/scripts/experience/experience.py" "$work" "$root" >/dev/null
 (cd "$work/app" && lexlean fmt >/dev/null)
 status=0
 for file in model/routes.toml app/src/Routes.lex.tex app/src/Guide.lex.tex app/src/Architecture.lex.tex \
-  app/src/Design.lex.tex app/src/Features.lex.tex app/src/Security.lex.tex app/src/Quality.lex.tex \
+  app/src/Design.lex.tex app/src/Features.lex.tex app/src/Cadence.lex.tex app/src/Security.lex.tex app/src/Quality.lex.tex \
   app/src/Release.lex.tex README.md \
   app/src/Brand.lex.tex app/src/Users.lex.tex app/src/Foundation/Experience/V1/Model.lex.tex \
   app/language/prism.arch/entries/brand-design-and-context-of-use.toml \

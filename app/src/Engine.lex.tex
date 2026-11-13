@@ -4,6 +4,31 @@
 \title{Boolean}
 \begin{semanticmodule}
 structure{
+  name: ReleaseState,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: major, type: Nat},
+    {name: minor, type: Nat},
+    {name: patch, type: Nat},
+    {name: translated, type: Nat},
+    {name: certified, type: Nat}
+  ]
+}
+
+structure{
+  name: ReleaseObservation,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: green, type: Nat},
+    {name: translated, type: Nat},
+    {name: certified, type: Nat},
+    {name: coreBodies, type: Nat}
+  ]
+}
+
+structure{
   name: Workload,
   type_parameters: [],
   parameters: [],
@@ -78,7 +103,7 @@ definition{
   name: workloads,
   parameters: [],
   result: (List Workload),
-  body: (cons (record Workload {id := "core", file := ".github/workflows/core.yml", cronHour := 5, cronMinute := 17, group := "core", cancel := false, onPush := true}) (cons (record Workload {id := "std", file := ".github/workflows/std.yml", cronHour := 5, cronMinute := 47, group := "std", cancel := false, onPush := true}) (nil Workload))),
+  body: (cons (record Workload {id := "core", file := ".github/workflows/core.yml", cronHour := 5, cronMinute := 17, group := "core", cancel := false, onPush := true}) (cons (record Workload {id := "std", file := ".github/workflows/std.yml", cronHour := 5, cronMinute := 47, group := "std", cancel := false, onPush := true}) (cons (record Workload {id := "release", file := ".github/workflows/release-bump.yml", cronHour := 7, cronMinute := 13, group := "release-bump", cancel := false, onPush := false}) (nil Workload)))),
   axioms: []
 }
 
@@ -86,7 +111,7 @@ definition{
   name: stages,
   parameters: [],
   result: (List Stage),
-  body: (cons (record Stage {workload := "core", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "core", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "core", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "std", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "std", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "std", id := "merge", budget := 30, writes := true}) (nil Stage))))))),
+  body: (cons (record Stage {workload := "core", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "core", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "core", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "std", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "std", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "std", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "release", id := "cut", budget := 90, writes := true}) (nil Stage)))))))),
   axioms: []
 }
 
@@ -530,6 +555,206 @@ theorem{
   name: aKappaIsMintedOnce,
   parameters: [],
   statement: ((admitRegister (registerFixture) (remintedFixture)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: grew,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: Bool,
+  body: (((project last translated) <? (project now translated)) || ((project last certified) <? (project now certified))),
+  axioms: []
+}
+
+definition{
+  name: cuts,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: Bool,
+  body: (((project now green) =? 1) && (grew last now)),
+  axioms: []
+}
+
+definition{
+  name: coreComplete,
+  parameters: [now : ReleaseObservation],
+  result: Bool,
+  body: ((project now coreBodies) <=? (project now translated)),
+  axioms: []
+}
+
+definition{
+  name: largerOf,
+  parameters: [left : Nat, right : Nat],
+  result: Nat,
+  body: (if (left <=? right) then right else left),
+  axioms: []
+}
+
+definition{
+  name: nextMajor,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: Nat,
+  body: (if ((cuts last now) && ((coreComplete now) && ((project last major) =? 0))) then 1 else (project last major)),
+  axioms: []
+}
+
+definition{
+  name: nextMinor,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: Nat,
+  body: (if (cuts last now) then (if ((coreComplete now) && ((project last major) =? 0)) then 0 else ((project last minor) + 1)) else (project last minor)),
+  axioms: []
+}
+
+definition{
+  name: nextPatch,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: Nat,
+  body: (if (cuts last now) then 0 else (project last patch)),
+  axioms: []
+}
+
+definition{
+  name: nextTranslated,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: Nat,
+  body: (if (cuts last now) then (largerOf (project last translated) (project now translated)) else (project last translated)),
+  axioms: []
+}
+
+definition{
+  name: nextCertified,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: Nat,
+  body: (if (cuts last now) then (largerOf (project last certified) (project now certified)) else (project last certified)),
+  axioms: []
+}
+
+definition{
+  name: nextRelease,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  result: ReleaseState,
+  body: (record ReleaseState {major := (nextMajor last now), minor := (nextMinor last now), patch := (nextPatch last now), translated := (nextTranslated last now), certified := (nextCertified last now)}),
+  axioms: []
+}
+
+definition{
+  name: versionAtLeast,
+  parameters: [later : ReleaseState, earlier : ReleaseState],
+  result: Bool,
+  body: (((project earlier major) <? (project later major)) || (((project earlier major) =? (project later major)) && (((project earlier minor) <? (project later minor)) || (((project earlier minor) =? (project later minor)) && ((project earlier patch) <=? (project later patch)))))),
+  axioms: []
+}
+
+definition{
+  name: sameRelease,
+  parameters: [left : ReleaseState, right : ReleaseState],
+  result: Bool,
+  body: (((project left major) =? (project right major)) && (((project left minor) =? (project right minor)) && (((project left patch) =? (project right patch)) && (((project left translated) =? (project right translated)) && ((project left certified) =? (project right certified)))))),
+  axioms: []
+}
+
+definition{
+  name: firstReleaseFixture,
+  parameters: [],
+  result: ReleaseState,
+  body: (record ReleaseState {major := 0, minor := 1, patch := 1, translated := 0, certified := 0}),
+  axioms: []
+}
+
+theorem{
+  name: aRedMainNeverCuts,
+  parameters: [last : ReleaseState, translated : Nat, certified : Nat, coreBodies : Nat],
+  statement: ((nextRelease last (record ReleaseObservation {green := 0, translated := translated, certified := certified, coreBodies := coreBodies})) = last),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: theVersionNeverFalls,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  statement: ((versionAtLeast (nextRelease last now) last) = true),
+  proof: linear_arithmetic{
+    definitions: [
+      coreComplete,
+      cuts,
+      grew,
+      largerOf,
+      nextCertified,
+      nextMajor,
+      nextMinor,
+      nextPatch,
+      nextRelease,
+      nextTranslated,
+      versionAtLeast
+    ]
+  },
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: theCountsNeverFall,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  statement: ((((project last translated) <=? (project (nextRelease last now) translated)) && ((project last certified) <=? (project (nextRelease last now) certified))) = true),
+  proof: linear_arithmetic{
+    definitions: [
+      coreComplete,
+      cuts,
+      grew,
+      largerOf,
+      nextCertified,
+      nextMajor,
+      nextMinor,
+      nextPatch,
+      nextRelease,
+      nextTranslated
+    ]
+  },
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: oneReleasePerGrowth,
+  parameters: [last : ReleaseState, now : ReleaseObservation],
+  statement: ((cuts (nextRelease last now) now) = false),
+  proof: linear_arithmetic{
+    definitions: [
+      coreComplete,
+      cuts,
+      grew,
+      largerOf,
+      nextCertified,
+      nextMajor,
+      nextMinor,
+      nextPatch,
+      nextRelease,
+      nextTranslated
+    ]
+  },
+  axioms: [Quot.sound, propext]
+}
+
+theorem{
+  name: growthOnGreenCutsAMinor,
+  parameters: [],
+  statement: ((sameRelease (nextRelease (firstReleaseFixture) (record ReleaseObservation {green := 1, translated := 2304, certified := 120, coreBodies := 15584})) (record ReleaseState {major := 0, minor := 2, patch := 0, translated := 2304, certified := 120})) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: noGrowthCutsNothing,
+  parameters: [],
+  statement: ((sameRelease (nextRelease (record ReleaseState {major := 0, minor := 2, patch := 0, translated := 2304, certified := 120}) (record ReleaseObservation {green := 1, translated := 2304, certified := 120, coreBodies := 15584})) (record ReleaseState {major := 0, minor := 2, patch := 0, translated := 2304, certified := 120})) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: aCompleteCoreCutsTheFirstMajor,
+  parameters: [],
+  statement: ((project (nextRelease (firstReleaseFixture) (record ReleaseObservation {green := 1, translated := 15584, certified := 120, coreBodies := 15584})) major) = 1),
   proof: decide{},
   axioms: []
 }

@@ -23,6 +23,7 @@ cd "$root"
 python3 -I scripts/self-model/routes.py "$root"
 python3 -I scripts/self-model/facets.py "$root" "$root" >/dev/null
 python3 -I scripts/self-model/release.py "$root" "$root" >/dev/null
+python3 -I scripts/self-model/cadence.py "$root" >/dev/null
 python3 -I scripts/experience/authority.py "$root" --check >/dev/null
 python3 -I scripts/experience/experience.py "$root" "$root"
 (cd app && lexlean lock >/dev/null && lexlean fmt >/dev/null)

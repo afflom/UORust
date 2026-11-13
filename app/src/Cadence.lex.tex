@@ -1,0 +1,21 @@
+\begin{lexlean}{Cadence}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Engine}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: release0x1x1,
+  parameters: [],
+  result: Engine::ReleaseState,
+  body: (record Engine::ReleaseState {major := 0, minor := 1, patch := 1, translated := 0, certified := 0})
+}
+
+definition{
+  name: releases,
+  parameters: [],
+  result: (List Engine::ReleaseState),
+  body: (cons (release0x1x1) (nil Engine::ReleaseState))
+}
+\end{semanticmodule}
+\end{lexlean}

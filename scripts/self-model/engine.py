@@ -444,7 +444,83 @@ jobs:
 """
 
 
-RENDER = {"core": library, "std": library, "crates": crates}
+# ---------------------------------------------------------------- release
+def release(w):
+    wid = w["id"]
+    (cut,) = stage_ids(wid)
+    return HEADER + f"""# Cuts UORust's releases on the cadence the model decides. When the gate
+# (bootstrap) passes on main, or daily, or on demand, this observes main:
+# whether its gate passed, core's translated bodies (crates/uorust/core) and
+# the translator functions the self-register lifts (frontier.toml). The rule
+# is Engine::nextRelease in app/src/Engine.lex.tex: cut only on green, only
+# when a count grew since the last release, a minor while core is
+# incomplete, one release per growth. scripts/self-model/cadence.py applies
+# it and appends the release to model/cadence.toml; then, through the locked
+# SDK, scripts/release/bump.py moves every file that names the version, the
+# lock and every generated file are rewritten (scripts/self-model/write.sh),
+# and `lexlean verify` must decide the new release from the rule
+# (app/src/Cadence.lex.tex) before anything is pushed. The push dispatches
+# the gate; when it passes on the new version, release-tag.yml tags it and
+# release.yml builds it. Nothing is pushed when main moved: the newer
+# commit's gate decides again.
+name: {wid}
+
+on:
+  workflow_run:
+    workflows: [bootstrap]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: '{w['cronMinute']} {w['cronHour']} * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: {w['group']}
+  cancel-in-progress: {'true' if w['cancel'] else 'false'}
+
+jobs:
+  {cut}:
+    name: cut a release when the model decides one
+    runs-on: {RUNNER}
+    timeout-minutes: {stage(wid, cut)['budget']}
+    permissions:
+{writer_permissions()}    steps:
+{checkout().replace("          persist-credentials: false", "          persist-credentials: false" + chr(10) + "          ref: main")}      - name: Observe main and apply the cadence
+        id: cadence
+        shell: bash
+        env:
+          GH_TOKEN: ${{{{ github.token }}}}
+          REPOSITORY: ${{{{ github.repository }}}}
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          # Green is the gate's verdict on this exact commit, never a run's exit.
+          conclusion=$(gh run list --repo "$REPOSITORY" --workflow bootstrap.yml --commit "$sha" --limit 1 --json conclusion --jq '.[0].conclusion // ""')
+          green=0
+          if [[ $conclusion == success ]]; then green=1; fi
+          version=$(python3 -I scripts/self-model/cadence.py . --propose "$green")
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+          echo "main $sha: gate ${{conclusion:-pending}}; release ${{version:-none}}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Move the version, rewrite what follows from it, and decide the release
+        if: steps.cadence.outputs.version != ''
+        shell: bash
+        env:
+          VERSION: ${{{{ steps.cadence.outputs.version }}}}
+        run: scripts/ci/sdk.sh "python3 -I scripts/release/bump.py . $VERSION && cargo update -q -w --offline && bash scripts/self-model/write.sh && cd app && lexlean verify src/Engine.lex.tex src/Cadence.lex.tex"
+      - name: Push the release and dispatch its gate
+        if: steps.cadence.outputs.version != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{{{ github.token }}}}
+          VERSION: ${{{{ steps.cadence.outputs.version }}}}
+        run: scripts/ci/push.sh "Release $VERSION" "Cargo.toml Cargo.lock README.md install.sh install.ps1 model/cadence.toml app" bootstrap.yml
+"""
+
+
+RENDER = {"core": library, "std": library, "crates": crates, "release": release}
 drift = []
 for w in data["workloads"]:
     text = RENDER[w["id"]](w)
