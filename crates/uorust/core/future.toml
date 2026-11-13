@@ -50,7 +50,7 @@ path = "core::future::ready::Ready::into_inner"
 kappa = "82437f0fff457d4e905c1b708f901a13796a5c0570128496a8bca04e33abb4ce"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: option::Option::expect: core's MIR stops at mir::TerminatorKind::UnwindResume"
+cause = "mir::TerminatorKind::Call: Option::expect"
 
 [[fn]]
 path = "core::future::ready::Ready::poll"
@@ -105,7 +105,7 @@ path = "core::pending::Pending::fmt"
 kappa = "79e561f8369af1df3e97d155175969a0d55262e870ad8aedebd729409741e57b"
 at = "T=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
+cause = "mir::TerminatorKind::Call: fmt::Formatter::debug_struct"
 
 [[fn]]
 path = "core::pending::Pending::poll"
@@ -126,7 +126,7 @@ path = "core::poll_fn::PollFn::fmt"
 kappa = "51f640c1cdaa74aa7bc7337c03bfc9bf7433bde164fc1afdbdebf8bc8fbb0b38"
 at = "F=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
+cause = "mir::TerminatorKind::Call: fmt::Formatter::debug_struct"
 
 [[fn]]
 path = "core::poll_fn::PollFn::poll"

@@ -3,7 +3,7 @@ path = "core::unit::<impl at library/core/src/unit.rs:15:1: 15:29>::from_iter"
 kappa = "1ac1560c60e681d7057831e35fff8e9097c127c37a7d8189eda27ec80f9367b3"
 at = "I=u32"
 status = "residue"
-cause = "mir::TerminatorKind::Call: iter::traits::iterator::Iterator::for_each: core's MIR stops at type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:884:13: 884:28}"
+cause = "mir::Instantiation: u32 for a parameter bounded by Iterator, which u32 does not implement in core"
 
 [[fn]]
 path = "core::unit::<impl at library/core/src/unit.rs:31:1: 31:19>::is_unit"

@@ -401,12 +401,12 @@ cause = "mir::Ty: mut u8"
 bodies = 36
 
 [[cause]]
-cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
-bodies = 34
+cause = "mir::Instantiation: u32 for a parameter bounded by Iterator"
+bodies = 33
 
 [[cause]]
-cause = "mir::Instantiation: u32 for a parameter bounded by Iterator"
-bodies = 32
+cause = "mir::ProjectionElem::Downcast: a variant's field read outside a match on it"
+bodies = 33
 
 [[cause]]
 cause = "mir::Ty: mut i128"
@@ -765,10 +765,6 @@ cause = "mir::Operand::Constant: the constant item <I as iter::traits::marker::I
 bodies = 14
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: option::Option::expect: core's MIR stops at mir::TerminatorKind::UnwindResume"
-bodies = 14
-
-[[cause]]
 cause = "mir::Ty: ArrayChunks<u32"
 bodies = 14
 
@@ -790,6 +786,10 @@ bodies = 13
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: iter::traits::iterator::Iterator::nth: core's MIR stops at type outside the lift: <u32 as iter::traits::iterator::Iterator>::Item"
+bodies = 13
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: option::Option::expect: core's MIR stops at mir::TerminatorKind::UnwindResume"
 bodies = 13
 
 [[cause]]
@@ -1013,10 +1013,6 @@ cause = "mir::TerminatorKind::Call: <u32 as fmt::LowerHex>::fmt"
 bodies = 8
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
-bodies = 8
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: intrinsics::slice_get_unchecked"
 bodies = 8
 
@@ -1214,6 +1210,10 @@ bodies = 6
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: cell::once::OnceCell::get: core's MIR stops at mir::TerminatorKind::Call: cell::UnsafeCell::get: core's MIR stops at type outside the lift: UnsafeCell<option::Option<u32>>"
+bodies = 6
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: fmt::builders::DebugStruct::finish: core's MIR stops at mir::AggregateKind::Closure: a closure whose body the dump does not hold"
 bodies = 6
 
 [[cause]]
@@ -1705,10 +1705,6 @@ cause = "mir::Ty: cell::RefCell<u32>"
 bodies = 4
 
 [[cause]]
-cause = "mir::Ty: fn"
-bodies = 4
-
-[[cause]]
 cause = "mir::Ty: impl [const] FnOnce"
 bodies = 4
 
@@ -2013,10 +2009,6 @@ cause = "mir::Ty: 1"
 bodies = 3
 
 [[cause]]
-cause = "mir::Ty: 16"
-bodies = 3
-
-[[cause]]
 cause = "mir::Ty: C"
 bodies = 3
 
@@ -2094,6 +2086,10 @@ bodies = 3
 
 [[cause]]
 cause = "mir::Ty: fmt::rt::ArgumentType<'_>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: fn"
 bodies = 3
 
 [[cause]]
@@ -2462,6 +2458,10 @@ bodies = 2
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: fmt::Arguments::from_str: core's MIR stops at mir::TerminatorKind::Call: str::as_ptr: core's MIR stops at mir::Memory: a value of String"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: fmt::Formatter::debug_struct"
 bodies = 2
 
 [[cause]]
@@ -2922,6 +2922,10 @@ bodies = 2
 
 [[cause]]
 cause = "mir::Ty: 0"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: 16"
 bodies = 2
 
 [[cause]]
@@ -4225,7 +4229,15 @@ cause = "mir::TerminatorKind::Call: <isize as WidenTarget>::internal_widen"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: <isize as cmp::Ord>::cmp"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: <isize as fmt::LowerHex>::fmt"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <marker::PhantomData as default::Default>::default"
 bodies = 1
 
 [[cause]]
@@ -4377,7 +4389,15 @@ cause = "mir::TerminatorKind::Call: NonNull::as_ptr"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: Option::expect"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: alloc::layout::Layout::pad_to_align: core's MIR stops at mir::TerminatorKind::Call: alloc::layout::Layout::size_rounded_up_to_custom_alignment: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_usize: core's MIR stops at mir::TerminatorKind::Call: mem::alignment::Alignment::as_nonzero_usize: core's MIR stops at mir::TerminatorKind::Call: intrinsics::transmute from CoreMemAlignmentAlignment to CoreNumNonzeroNonZeroUsize"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: array::ascii::as_ascii"
 bodies = 1
 
 [[cause]]
@@ -5162,10 +5182,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: iter::traits::iterator::Iterator::fold: core's MIR stops at type outside the lift: <iter::sources::repeat_n::RepeatN<u32> as iter::traits::iterator::Iterator>::Item"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: iter::traits::iterator::Iterator::for_each: core's MIR stops at type outside the lift: {closure@library/core/src/iter/traits/iterator.rs:884:13: 884:28}"
 bodies = 1
 
 [[cause]]
