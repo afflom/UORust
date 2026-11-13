@@ -1950,6 +1950,17 @@ impl Fun<'_, '_> {
             {
                 Ok(p.clone())
             }
+            // Through a raw pointer: the place in memory it points to.
+            (Some(Val::V(..)), Some((IrProjection::Deref, _)))
+                if self
+                    .body
+                    .locals
+                    .get(p.local)
+                    .and_then(|t| pointee(t))
+                    .is_some() =>
+            {
+                Ok(p.clone())
+            }
             // Through a `&mut` a threaded value or a lending local holds:
             // the part of the value that holds what it borrows.
             // A variant's field the value is matched as, too.
@@ -7493,15 +7504,20 @@ impl Fun<'_, '_> {
     fn load(&mut self, view: &View, steps: &[IrProjection], st: &State) -> Lift<(String, Ty)> {
         let m = self.memory_at(st)?;
         let s = view.stride;
-        // A placed array or slice, read whole: every cell of a placement is
-        // defined when it is made, and a store keeps it so.
-        if steps.is_empty()
-            && view.shape == Shape::Items
-            && matches!(view.elem, Ty::Nat(_))
-            && st.placed.values().any(|p| p.pointer == view.pointer)
-        {
+        // An array or slice read whole. Every cell of a placement is
+        // defined when it is made, and a store keeps it so; through any
+        // other pointer, each item must be readable.
+        if steps.is_empty() && view.shape == Shape::Items && matches!(view.elem, Ty::Nat(_)) {
             let p = &view.pointer;
-            let out = format!("(mirLoadItems {m} {p} {s} (project {p} metadata))");
+            let count = format!("(project {p} metadata)");
+            if !st.placed.values().any(|q| q.pointer == view.pointer) {
+                self.obligation(
+                    st,
+                    &format!("((mirReadableItems {m} {p} {s} {count}) = true)"),
+                    "a slice read whole through a pointer",
+                );
+            }
+            let out = format!("(mirLoadItems {m} {p} {s} {count})");
             self.grow(&out)?;
             return Ok((out, Ty::List(Box::new(view.elem.clone()))));
         }
