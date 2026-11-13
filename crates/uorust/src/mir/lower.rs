@@ -2426,11 +2426,30 @@ impl Fun<'_, '_> {
                     // `as` on floats: IEEE 754's conversions, rounded to
                     // nearest, and toward zero with saturation into an
                     // integer (the Reference, "Numeric cast").
-                    (spec::MirCastKind::IntToFloat, Ty::Nat(_), Ty::Float(f)) => {
-                        Ok(Val::V(f.term("OfNat", &[&v]), to))
+                    // A signed integer is its two's-complement bit pattern
+                    // at a width every target agrees on.
+                    (spec::MirCastKind::IntToFloat, i, Ty::Float(f)) => {
+                        match Int::of(i, self.cx.widths) {
+                            Some(Int { signed: false, .. }) => {
+                                Ok(Val::V(f.term("OfNat", &[&v]), to))
+                            }
+                            Some(Int { width: Some(w), .. }) => {
+                                Ok(Val::V(f.term("OfInt", &[&w.to_string(), &v]), to))
+                            }
+                            _ => Err(kind(k.path(), "from a pointer-sized signed integer")),
+                        }
                     }
-                    (spec::MirCastKind::FloatToInt, Ty::Float(f), Ty::Nat(Some(w))) => {
-                        Ok(Val::V(f.term("ToNat", &[&w.to_string(), &v]), to))
+                    (spec::MirCastKind::FloatToInt, Ty::Float(f), i) => {
+                        let Some(Int {
+                            signed,
+                            width: Some(w),
+                            ..
+                        }) = Int::of(i, self.cx.widths)
+                        else {
+                            return Err(kind(k.path(), "into a pointer-sized integer"));
+                        };
+                        let op = if signed { "ToInt" } else { "ToNat" };
+                        Ok(Val::V(f.term(op, &[&w.to_string(), &v]), to))
                     }
                     (spec::MirCastKind::FloatToFloat, Ty::Float(f), Ty::Float(g)) => {
                         let (e, m) = (f.exp.to_string(), f.frac.to_string());
@@ -3139,10 +3158,19 @@ impl Fun<'_, '_> {
         let name = segs.last().copied().unwrap_or("");
         // `float_to_int_unchecked`: its result where it is defined, a value
         // in the target's range, is the truncation `as` gives.
-        if let (true, "float_to_int_unchecked", [(v, Ty::Float(f))], Ty::Nat(Some(w))) =
-            (intrinsic, name, args.as_slice(), dt)
-        {
-            return Ok(Called::value(f.term("ToNat", &[&w.to_string(), v])));
+        if let (
+            true,
+            "float_to_int_unchecked",
+            [(v, Ty::Float(f))],
+            Some(i @ Int { width: Some(w), .. }),
+        ) = (
+            intrinsic,
+            name,
+            args.as_slice(),
+            Int::of(dt, self.cx.widths),
+        ) {
+            let op = if i.signed { "ToInt" } else { "ToNat" };
+            return Ok(Called::value(f.term(op, &[&w.to_string(), v])));
         }
         let found = if intrinsic {
             floats.iter().find_map(|(t, f)| {

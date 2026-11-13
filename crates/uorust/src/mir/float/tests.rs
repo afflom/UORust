@@ -550,6 +550,12 @@ fn samples32() -> Vec<f32> {
         f32::INFINITY,
         f32::NEG_INFINITY,
         f32::NAN,
+        // The ends of the signed ranges `as` saturates to.
+        127.5,
+        -128.5,
+        -129.0,
+        2_147_483_648.0,
+        -2_147_483_648.0,
         -f32::NAN,
         f32::from_bits(0x7fa0_0001),
         16_777_216.0,
@@ -667,6 +673,16 @@ fn f32_unary_operations_are_the_hosts() {
                 u128::from(a as u8),
                 "{a} as u8"
             );
+            assert_eq!(
+                ev.nat(F32, "ToInt", &[32, x]),
+                u128::from((a as i32) as u32),
+                "{a} as i32"
+            );
+            assert_eq!(
+                ev.nat(F32, "ToInt", &[8, x]),
+                u128::from((a as i8) as u8),
+                "{a} as i8"
+            );
         }
     });
 }
@@ -727,6 +743,17 @@ fn conversions_are_the_hosts() {
                 ev.nat(F32, "OfNat", &[u128::from(n)]),
                 bits(n as f32),
                 "{n} as f32"
+            );
+            let i = n as i64;
+            assert_eq!(
+                ev.nat(F32, "OfInt", &[64, u128::from(i as u64)]),
+                bits(i as f32),
+                "{i} as f32"
+            );
+            assert_eq!(
+                ev.nat(F32, "OfInt", &[64, u128::from(i.wrapping_neg() as u64)]),
+                bits(i.wrapping_neg() as f32),
+                "-{i} as f32"
             );
         }
     });
@@ -881,7 +908,15 @@ fn every_operation_the_tables_name_is_defined() {
         .map(|(_, op, _)| *op)
         .chain(METHODS.iter().map(|m| m.2).filter(|op| !op.is_empty()))
         .chain(NAMED.iter().map(|(_, op)| *op))
-        .chain(["Convert", "OfNat", "ToNat", "OfDecimal", "Signed"]);
+        .chain([
+            "Convert",
+            "OfNat",
+            "ToNat",
+            "OfInt",
+            "ToInt",
+            "OfDecimal",
+            "Signed",
+        ]);
     for op in named {
         assert!(defs.contains_key(&format!("float{op}")), "float{op}");
     }

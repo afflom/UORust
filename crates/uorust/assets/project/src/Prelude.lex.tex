@@ -1487,6 +1487,20 @@ definition{
 }
 
 definition{
+  name: floatToInt,
+  parameters: [e : Nat, m : Nat, width : Nat, x : Nat],
+  result: Nat,
+  body: (let h : Nat := (prim subtract width 1 : Nat); (if (floatIsNan e m x) then 0 else (if (floatNegative e m x) then (let a : Nat := (floatToNat e m width (floatAbs e m x)); (let c : Nat := (if ((floatPow2 h) <=? a) then (floatPow2 h) else a); (if (c =? 0) then 0 else (prim subtract (floatPow2 width) c : Nat)))) else (floatToNat e m h x))))
+}
+
+definition{
+  name: floatOfInt,
+  parameters: [e : Nat, m : Nat, width : Nat, x : Nat],
+  result: Nat,
+  body: (let h : Nat := (prim subtract width 1 : Nat); (if ((floatPow2 h) <=? x) then (floatSigned e m true (floatOfNat e m (prim subtract (floatPow2 width) x : Nat))) else (floatOfNat e m x)))
+}
+
+definition{
   name: floatConvert,
   parameters: [e : Nat, m : Nat, se : Nat, sm : Nat, x : Nat],
   result: Nat,
