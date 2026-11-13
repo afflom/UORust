@@ -1784,7 +1784,7 @@ cause = "mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: mir::T
 bodies = 1
 
 [[cause]]
-cause = "mir::AggregateKind::Closure: thread_cleanup::{closure#0}: mir::TerminatorKind::Call: drop_current"
+cause = "mir::AggregateKind::Closure: thread_cleanup::{closure#0}: mir::TerminatorKind::Call: thread::current::drop_current: std's MIR stops at mir::Rvalue::Ref"
 bodies = 1
 
 [[cause]]
@@ -1820,11 +1820,11 @@ cause = "mir::Operand::Constant: panicking::panic_count::is_zero_slow_path::prom
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: path::SEPARATORS: mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS"
+cause = "mir::Operand::Constant: path::SEPARATORS: mir::Operand::Constant: sys::path::unix::SEPARATORS: mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]"
 bodies = 1
 
 [[cause]]
-cause = "mir::Operand::Constant: path::SEPARATORS_STR: mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS_STR"
+cause = "mir::Operand::Constant: path::SEPARATORS_STR: mir::Operand::Constant: sys::path::unix::SEPARATORS_STR: mir::Operand::Constant: sys::path::unix::SEPARATORS_STR::promoted[0]"
 bodies = 1
 
 [[cause]]
@@ -1836,7 +1836,15 @@ cause = "mir::Operand::Constant: sync::mpmc::waker::current_thread_id::promoted[
 bodies = 1
 
 [[cause]]
+cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS: mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]"
+bodies = 1
+
+[[cause]]
 cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::CastKind::IntToInt: from Nat to String"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS_STR: mir::Operand::Constant: sys::path::unix::SEPARATORS_STR::promoted[0]"
 bodies = 1
 
 [[cause]]
@@ -1885,14 +1893,6 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Operand::Constant: the constant item sys::io::DEFAULT_BUF_SIZE"
-bodies = 1
-
-[[cause]]
-cause = "mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS"
-bodies = 1
-
-[[cause]]
-cause = "mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS_STR"
 bodies = 1
 
 [[cause]]
@@ -2128,6 +2128,10 @@ cause = "mir::TerminatorKind::Call: panicking::panic_count::count_is_zero: std's
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: panicking::panic_count::set_always_abort: std's MIR stops at mir::Operand::Constant: {alloc735: &Atomic<usize>}"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: panicking::panicking"
 bodies = 1
 
@@ -2140,15 +2144,11 @@ cause = "mir::TerminatorKind::Call: pthread_setspecific"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: rt::cleanup"
+cause = "mir::TerminatorKind::Call: rt::cleanup: std's MIR stops at mir::Operand::Constant: {alloc61: &sync::once::Once}"
 bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: sched_yield"
-bodies = 1
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: set_always_abort"
 bodies = 1
 
 [[cause]]
@@ -2176,11 +2176,11 @@ cause = "mir::TerminatorKind::Call: sys::pal::unix::stack_overflow::imp::get_sta
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::process::unix::common::getpid"
+cause = "mir::TerminatorKind::Call: sys::process::unix::common::getpid: std's MIR stops at mir::TerminatorKind::Call: libc::getpid"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: sys::process::unix::common::getppid"
+cause = "mir::TerminatorKind::Call: sys::process::unix::common::getppid: std's MIR stops at mir::TerminatorKind::Call: libc::getppid"
 bodies = 1
 
 [[cause]]

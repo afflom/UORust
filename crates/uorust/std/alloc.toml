@@ -47,6 +47,18 @@ status = "residue"
 cause = "mir::Ty: alloc::System"
 
 [[fn]]
+path = "std::alloc::<impl at library/std/src/alloc.rs:141:1: 141:12>::alloc_impl"
+kappa = "12e45b7439685d8e0d520694e87add05686e68a0b62f7dadd8b594d802c09525"
+status = "residue"
+cause = "mir::Ty: core::alloc::AllocError"
+
+[[fn]]
+path = "std::alloc::<impl at library/std/src/alloc.rs:141:1: 141:12>::grow_impl"
+kappa = "4f8badea82c1e08781fff9db4e3c700ca97e646174279e68ff5c4ed2ca17642e"
+status = "residue"
+cause = "mir::Ty: core::alloc::AllocError"
+
+[[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::allocate"
 kappa = "d3f905f226164687a13ece9af636bc993c4cd24195efd4223e80b5facd04f8ae"
 status = "residue"
@@ -79,18 +91,6 @@ cause = "mir::Ty: core::alloc::AllocError"
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::shrink"
 kappa = "f66efda9f185e47d5259ed3169fda5de04cd7492630fbff2379dcddd6c26a111"
-status = "residue"
-cause = "mir::Ty: core::alloc::AllocError"
-
-[[fn]]
-path = "std::alloc::System::alloc_impl"
-kappa = "12e45b7439685d8e0d520694e87add05686e68a0b62f7dadd8b594d802c09525"
-status = "residue"
-cause = "mir::Ty: core::alloc::AllocError"
-
-[[fn]]
-path = "std::alloc::System::grow_impl"
-kappa = "4f8badea82c1e08781fff9db4e3c700ca97e646174279e68ff5c4ed2ca17642e"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 

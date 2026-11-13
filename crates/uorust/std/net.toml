@@ -29,8 +29,44 @@ status = "residue"
 cause = "mir::Ty: ffi::os_str::OsString"
 
 [[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:1089:1: 1089:35>::next"
+kappa = "8405d90a7354f781bd58ad91754c0981b9aa911b4faa5af53629ae47f680ed43"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpStream"
+
+[[fn]]
 path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:108:10: 108:15>::fmt"
 kappa = "df585aef815508819c994b5be9f3ba78a12ee9b0fa6447ab72b78421308a6235"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:1100:1: 1100:31>::next"
+kappa = "a219f6445874324a65fd6d20e3ac405733624ec7a0af56e54a388d538e9cec20"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpStream"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:1110:1: 1110:51>::as_inner"
+kappa = "6de94ce5e015fd121f4b666ad045d224c6f8e3067a08ef8f75d19284a7510b59"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::TcpListener"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:1117:1: 1117:53>::from_inner"
+kappa = "13f4e768a87893d9c19564004635505e0ab5bbf72d63a4c0b2cbd22a0aa48b40"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpListener"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:1123:1: 1123:53>::into_inner"
+kappa = "f52fc8178ae8940fa7d25d13e75ce07631ed5db0df2806e910ca948f06d9f68b"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::TcpListener"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:1130:1: 1130:32>::fmt"
+kappa = "d5caa2d037fcb4c328737509a1c79723c73bf5af01606d7dc0c00b63924226c2"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
@@ -39,6 +75,181 @@ path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:119:10: 119:15>::fmt"
 kappa = "a9ef88d9369a5ce9c22f84addfed5212c76cc356f1298e890e9ce2e44c983eb1"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::connect"
+kappa = "eda355654d3ac72dfbbf1d7239939cca9d331039ded47bab9bdb09de6d16055d"
+at = "A=u32"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpStream"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::connect_timeout"
+kappa = "465b69f6303a7f19841b85e0977bd9c08d3ab66d2b1a2ac51381c7b827e9a112"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpStream"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::keepalive"
+kappa = "cd240e69e07af46968e63491af7c409b5526e5552cf08e296e501dea82c5c6d1"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::linger"
+kappa = "2fae02d7be03dd7970da83a2c3eb79058454c88c30ee90261c5ddaaec8d9434c"
+status = "residue"
+cause = "mir::Ty: core::time::Duration"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::local_addr"
+kappa = "14b7b3f75d93a42cbe26c5e54d1d126f3d7d6ab4311984da3c42f33c80dfdc45"
+status = "residue"
+cause = "mir::Ty: core::net::SocketAddr"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::nodelay"
+kappa = "f6f28d96836ace965d58acc11a3adbd2ef7492e5a2e40db2f81a25fa6a38a400"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::peek"
+kappa = "a9e52edfa5d741d3ead72b0d93c1c1f23f15aa1260ade6c6f1533d7ff163e9ba"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::peer_addr"
+kappa = "3940b77d90caedff62baeebcb3fe2a95fb8cbe1778a3932a8532e24208b64ab0"
+status = "residue"
+cause = "mir::Ty: core::net::SocketAddr"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::read_timeout"
+kappa = "2ac60656363ea455e6413fcf215dd79d648ce909890d8a52c9c247dd055305b3"
+status = "residue"
+cause = "mir::Ty: core::time::Duration"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::set_keepalive"
+kappa = "a954942fc841814c2bc88268dfa3b9ca125589566dd70bb394b6234552460be1"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::set_linger"
+kappa = "61fdbe0647bd86f806af51096712bdf1ed230489df5ca307356f60778194fd0a"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::set_nodelay"
+kappa = "202e5baa1f74a0bb3e878bfc14c308ca38c6e41d635b9ebd91b49f81e575ea94"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::set_nonblocking"
+kappa = "74432d88e0e3801e8d1d09080b43ec4dc01d343133ab9b874228d67977ac3af6"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::set_read_timeout"
+kappa = "b86c0383d02a80180bf518e5449bfe26ae509f923b637fe454cfdf0b1ea42175"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::set_ttl"
+kappa = "bad17d6c9c7dae3ba3dc03888404343dbb0818b70f016651e24fd93d80f03b5a"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::set_write_timeout"
+kappa = "8aa53eab84a551774e4657911228c34a369ef67b4d927208be0a4b57dc779899"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::shutdown"
+kappa = "450331c511334cbc25d52896fe8b8894a1a78fec1294ccfae31c07e3839008e8"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::take_error"
+kappa = "0e3959641d67b9d486a6e00713bbb2ba9b0641c79568f3e339a70b21057cd0da"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::try_clone"
+kappa = "a23bc8e3ef99b81b01761e8d413e4e00ec2d25949bf856daf88fed3a07461a37"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpStream"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::ttl"
+kappa = "d24402f926e5202fb3fc4653e6ab527a04a633dccbfff436890c18a560f9b3b6"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:125:1: 125:15>::write_timeout"
+kappa = "a50eb0692bb7ab0315fdaa2169f3befe19717ac6cbcbf87293fe9bba71fcd1a1"
+status = "residue"
+cause = "mir::Ty: core::time::Duration"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:680:1: 680:24>::is_read_vectored"
+kappa = "7a3340fcd136f33d3e144c7d2fd81579e9a4172a23b889dffc9a2abb7cd827cc"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpStream"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:680:1: 680:24>::read"
+kappa = "ce1612a45576d6a00f7db82e531572cac906da7a3e6c89863fbbb6b0a9167bd6"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:680:1: 680:24>::read_buf"
+kappa = "651a2a0e363bae6a6caf8d8cefdb95bdd9100f8a733fd8ad52aa2b4c86354f9c"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:680:1: 680:24>::read_vectored"
+kappa = "62a118d2353fe0e1f981b5f546052d05aebd9b5e5481c9c3f4b2434ef9c39e35"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:699:1: 699:25>::flush"
+kappa = "2338ce033cc9e64831370131f132ad82db92708936e10421c04bc2ea50e357ff"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:699:1: 699:25>::is_write_vectored"
+kappa = "c4ea93653b41ed028e79bbbb97d13ebfaf4601b3a817f4b54bcfa8b8e8c38430"
+status = "residue"
+cause = "mir::Ty: net::tcp::TcpStream"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:699:1: 699:25>::write"
+kappa = "1cf9a76c7351dc9c28ae2118b83196f06b41f27e0e5b05b516762a92968f70ec"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:699:1: 699:25>::write_vectored"
+kappa = "de0114ee3468e12b77aee2ac06a53cb4beba41cbb3dd628b6978bd40348ec0a0"
+status = "residue"
+cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:719:1: 719:25>::is_read_vectored"
@@ -89,312 +300,119 @@ status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::net::tcp::Incoming::next"
-kappa = "8405d90a7354f781bd58ad91754c0981b9aa911b4faa5af53629ae47f680ed43"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:758:1: 758:47>::as_inner"
+kappa = "9ae65445b644e9ca224a4245c6b9c5d5676677a20aa1a8f2aab17702e55f516d"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::TcpStream"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:765:1: 765:49>::from_inner"
+kappa = "9312eba20cf591651ed5f9bb33883d2210af994c951808b272159e7fff2ae00c"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpStream"
 
 [[fn]]
-path = "std::net::tcp::IntoIncoming::next"
-kappa = "a219f6445874324a65fd6d20e3ac405733624ec7a0af56e54a388d538e9cec20"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:771:1: 771:49>::into_inner"
+kappa = "a92d39c3e0b7f26ae9621e135bd40c460e3b1531ea2c0cfbdc58c2756a08af0f"
 status = "residue"
-cause = "mir::Ty: net::tcp::TcpStream"
+cause = "mir::Ty: sys::net::connection::socket::TcpStream"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::accept"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:778:1: 778:30>::fmt"
+kappa = "8115b95773a286624276da7fcfe0c199eb16af781946c0cb4532e3e6d7010aa7"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::accept"
 kappa = "8772fc3ca40513e5724736fa9997d06de5c5714e95fd3b658dd16789929d6e04"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpStream"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::as_inner"
-kappa = "6de94ce5e015fd121f4b666ad045d224c6f8e3067a08ef8f75d19284a7510b59"
-status = "residue"
-cause = "mir::Ty: sys::net::connection::socket::TcpListener"
-
-[[fn]]
-path = "std::net::tcp::TcpListener::bind"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::bind"
 kappa = "847d125bfe4b88d63cc333a0cc1c6f1935717254852e1e224bb3f7ec01ab1921"
 at = "A=u32"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpListener"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::fmt"
-kappa = "d5caa2d037fcb4c328737509a1c79723c73bf5af01606d7dc0c00b63924226c2"
-status = "residue"
-cause = "mir::Ty: core::fmt::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpListener::from_inner"
-kappa = "13f4e768a87893d9c19564004635505e0ab5bbf72d63a4c0b2cbd22a0aa48b40"
-status = "residue"
-cause = "mir::Ty: net::tcp::TcpListener"
-
-[[fn]]
-path = "std::net::tcp::TcpListener::incoming"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::incoming"
 kappa = "0ef687f6952645967e161701abbf548dcd2ed4d52cdccfd207deb001062ca719"
 status = "residue"
 cause = "mir::Ty: net::tcp::Incoming<'_>"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::into_incoming"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::into_incoming"
 kappa = "36b36fafb129d0fb522813c09df0eb35a943949bd56bb31f39fa9d967963855c"
 status = "residue"
 cause = "mir::Ty: net::tcp::IntoIncoming"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::into_inner"
-kappa = "f52fc8178ae8940fa7d25d13e75ce07631ed5db0df2806e910ca948f06d9f68b"
-status = "residue"
-cause = "mir::Ty: sys::net::connection::socket::TcpListener"
-
-[[fn]]
-path = "std::net::tcp::TcpListener::local_addr"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::local_addr"
 kappa = "e2afc5c9e901cf1e4c7b4f2bb2b4be1759ab43a3f0c2a6653b1d58adbc406980"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::only_v6"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::only_v6"
 kappa = "3b1229827b838e4a608347a4bf72beead3edb4e2bab742b2bf666a960750c93a"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::set_nonblocking"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::set_nonblocking"
 kappa = "0c9280422a2a43e7d006ddef2bb5f66e9721dcf97b26baa23faa832e7cca2780"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::set_only_v6"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::set_only_v6"
 kappa = "87c37a8bc65447cde2db616fbc775ce9e30e4b577b3314e13112892415b08535"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::set_ttl"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::set_ttl"
 kappa = "0979d77051ea364eca06a2cb2871d6a6adbf912e6429e214f90056bcd492c049"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::take_error"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::take_error"
 kappa = "219db15a24034b72b773b777f2fece735006ce181f0601822c05bf21ea82dd9f"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::try_clone"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::try_clone"
 kappa = "371b435764b511b0e9994d434f69e84e81692aab32d2af3977158180dd2627cc"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpListener"
 
 [[fn]]
-path = "std::net::tcp::TcpListener::ttl"
+path = "std::net::tcp::<impl at library/std/src/net/tcp.rs:784:1: 784:17>::ttl"
 kappa = "699d6b43c8c4f72829eaad4e2db9898b41cc3642c260ef284755f07d1ba466ab"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::net::tcp::TcpStream::as_inner"
-kappa = "9ae65445b644e9ca224a4245c6b9c5d5676677a20aa1a8f2aab17702e55f516d"
-status = "residue"
-cause = "mir::Ty: sys::net::connection::socket::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::connect"
-kappa = "eda355654d3ac72dfbbf1d7239939cca9d331039ded47bab9bdb09de6d16055d"
-at = "A=u32"
-status = "residue"
-cause = "mir::Ty: net::tcp::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::connect_timeout"
-kappa = "465b69f6303a7f19841b85e0977bd9c08d3ab66d2b1a2ac51381c7b827e9a112"
-status = "residue"
-cause = "mir::Ty: net::tcp::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::flush"
-kappa = "2338ce033cc9e64831370131f132ad82db92708936e10421c04bc2ea50e357ff"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::fmt"
-kappa = "8115b95773a286624276da7fcfe0c199eb16af781946c0cb4532e3e6d7010aa7"
-status = "residue"
-cause = "mir::Ty: core::fmt::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::from_inner"
-kappa = "9312eba20cf591651ed5f9bb33883d2210af994c951808b272159e7fff2ae00c"
-status = "residue"
-cause = "mir::Ty: net::tcp::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::into_inner"
-kappa = "a92d39c3e0b7f26ae9621e135bd40c460e3b1531ea2c0cfbdc58c2756a08af0f"
-status = "residue"
-cause = "mir::Ty: sys::net::connection::socket::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::is_read_vectored"
-kappa = "7a3340fcd136f33d3e144c7d2fd81579e9a4172a23b889dffc9a2abb7cd827cc"
-status = "residue"
-cause = "mir::Ty: net::tcp::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::is_write_vectored"
-kappa = "c4ea93653b41ed028e79bbbb97d13ebfaf4601b3a817f4b54bcfa8b8e8c38430"
-status = "residue"
-cause = "mir::Ty: net::tcp::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::keepalive"
-kappa = "cd240e69e07af46968e63491af7c409b5526e5552cf08e296e501dea82c5c6d1"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::linger"
-kappa = "2fae02d7be03dd7970da83a2c3eb79058454c88c30ee90261c5ddaaec8d9434c"
-status = "residue"
-cause = "mir::Ty: core::time::Duration"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::local_addr"
-kappa = "14b7b3f75d93a42cbe26c5e54d1d126f3d7d6ab4311984da3c42f33c80dfdc45"
+path = "std::socket_addr::<impl at library/std/src/net/socket_addr.rs:139:1: 139:34>::to_socket_addrs"
+kappa = "79a71271c441fbace8246af2be45cc43d24a257f512300654c3850798af958f0"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::net::tcp::TcpStream::nodelay"
-kappa = "f6f28d96836ace965d58acc11a3adbd2ef7492e5a2e40db2f81a25fa6a38a400"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::peek"
-kappa = "a9e52edfa5d741d3ead72b0d93c1c1f23f15aa1260ade6c6f1533d7ff163e9ba"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::peer_addr"
-kappa = "3940b77d90caedff62baeebcb3fe2a95fb8cbe1778a3932a8532e24208b64ab0"
+path = "std::socket_addr::<impl at library/std/src/net/socket_addr.rs:147:1: 147:36>::to_socket_addrs"
+kappa = "ae1badf1c8e1c1dd69fd7091b8bde21b85f7b60e06bf1bf63b5e62853f450234"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::net::tcp::TcpStream::read"
-kappa = "ce1612a45576d6a00f7db82e531572cac906da7a3e6c89863fbbb6b0a9167bd6"
+path = "std::socket_addr::<impl at library/std/src/net/socket_addr.rs:155:1: 155:36>::to_socket_addrs"
+kappa = "e3982f85ae33acb349ee1d02987fda9ba53b83f3e1bcf4fe45146c2b797533d1"
 status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::read_buf"
-kappa = "651a2a0e363bae6a6caf8d8cefdb95bdd9100f8a733fd8ad52aa2b4c86354f9c"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::read_timeout"
-kappa = "2ac60656363ea455e6413fcf215dd79d648ce909890d8a52c9c247dd055305b3"
-status = "residue"
-cause = "mir::Ty: core::time::Duration"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::read_vectored"
-kappa = "62a118d2353fe0e1f981b5f546052d05aebd9b5e5481c9c3f4b2434ef9c39e35"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::set_keepalive"
-kappa = "a954942fc841814c2bc88268dfa3b9ca125589566dd70bb394b6234552460be1"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::set_linger"
-kappa = "61fdbe0647bd86f806af51096712bdf1ed230489df5ca307356f60778194fd0a"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::set_nodelay"
-kappa = "202e5baa1f74a0bb3e878bfc14c308ca38c6e41d635b9ebd91b49f81e575ea94"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::set_nonblocking"
-kappa = "74432d88e0e3801e8d1d09080b43ec4dc01d343133ab9b874228d67977ac3af6"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::set_read_timeout"
-kappa = "b86c0383d02a80180bf518e5449bfe26ae509f923b637fe454cfdf0b1ea42175"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::set_ttl"
-kappa = "bad17d6c9c7dae3ba3dc03888404343dbb0818b70f016651e24fd93d80f03b5a"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::set_write_timeout"
-kappa = "8aa53eab84a551774e4657911228c34a369ef67b4d927208be0a4b57dc779899"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::shutdown"
-kappa = "450331c511334cbc25d52896fe8b8894a1a78fec1294ccfae31c07e3839008e8"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::take_error"
-kappa = "0e3959641d67b9d486a6e00713bbb2ba9b0641c79568f3e339a70b21057cd0da"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::try_clone"
-kappa = "a23bc8e3ef99b81b01761e8d413e4e00ec2d25949bf856daf88fed3a07461a37"
-status = "residue"
-cause = "mir::Ty: net::tcp::TcpStream"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::ttl"
-kappa = "d24402f926e5202fb3fc4653e6ab527a04a633dccbfff436890c18a560f9b3b6"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::write"
-kappa = "1cf9a76c7351dc9c28ae2118b83196f06b41f27e0e5b05b516762a92968f70ec"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::write_timeout"
-kappa = "a50eb0692bb7ab0315fdaa2169f3befe19717ac6cbcbf87293fe9bba71fcd1a1"
-status = "residue"
-cause = "mir::Ty: core::time::Duration"
-
-[[fn]]
-path = "std::net::tcp::TcpStream::write_vectored"
-kappa = "de0114ee3468e12b77aee2ac06a53cb4beba41cbb3dd628b6978bd40348ec0a0"
-status = "residue"
-cause = "mir::Ty: io::error::Error"
+cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
 path = "std::socket_addr::<impl at library/std/src/net/socket_addr.rs:163:1: 163:37>::to_socket_addrs"
@@ -427,6 +445,12 @@ status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
+path = "std::socket_addr::<impl at library/std/src/net/socket_addr.rs:219:1: 219:27>::to_socket_addrs"
+kappa = "519ab0fc00df9725213517797461db9e0618b8ba99b18469d22b377f987a4da8"
+status = "residue"
+cause = "mir::Ty: core::net::SocketAddr"
+
+[[fn]]
 path = "std::socket_addr::<impl at library/std/src/net/socket_addr.rs:233:1: 233:44>::to_socket_addrs"
 kappa = "c294e35af00cbf542aceb49ff018e2ef1fe204ecaa5a443ef5312c033ae23ffc"
 status = "residue"
@@ -440,245 +464,221 @@ status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::socket_addr::SocketAddr::to_socket_addrs"
-kappa = "79a71271c441fbace8246af2be45cc43d24a257f512300654c3850798af958f0"
-status = "residue"
-cause = "mir::Ty: core::net::SocketAddr"
-
-[[fn]]
-path = "std::socket_addr::SocketAddrV4::to_socket_addrs"
-kappa = "ae1badf1c8e1c1dd69fd7091b8bde21b85f7b60e06bf1bf63b5e62853f450234"
-status = "residue"
-cause = "mir::Ty: core::net::SocketAddr"
-
-[[fn]]
-path = "std::socket_addr::SocketAddrV6::to_socket_addrs"
-kappa = "e3982f85ae33acb349ee1d02987fda9ba53b83f3e1bcf4fe45146c2b797533d1"
-status = "residue"
-cause = "mir::Ty: core::net::SocketAddr"
-
-[[fn]]
-path = "std::socket_addr::String::to_socket_addrs"
+path = "std::socket_addr::<impl at library/std/src/net/socket_addr.rs:250:1: 250:30>::to_socket_addrs"
 kappa = "3b9fe97e576e2d4b82088c62f1ea6a77f08e0bc66d00db2dd88eb85e95f096c5"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::socket_addr::str::to_socket_addrs"
-kappa = "519ab0fc00df9725213517797461db9e0618b8ba99b18469d22b377f987a4da8"
-status = "residue"
-cause = "mir::Ty: core::net::SocketAddr"
-
-[[fn]]
-path = "std::udp::UdpSocket::as_inner"
-kappa = "dbff92528147f599b143a7ffc8cce980e310f5a6af5e351d6ee64806745b92d7"
-status = "residue"
-cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
-
-[[fn]]
-path = "std::udp::UdpSocket::bind"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::bind"
 kappa = "2b22417b8d8bbcc12138c9924be23da67fea907c64fdcbfe4a4bae295d4bda51"
 at = "A=u32"
 status = "residue"
 cause = "mir::Ty: net::udp::UdpSocket"
 
 [[fn]]
-path = "std::udp::UdpSocket::broadcast"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::broadcast"
 kappa = "1cb383a751112c43d65428fa5a8fb472344bc197788a06d3083a8af7d27d1198"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::connect"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::connect"
 kappa = "35c9ef2faa697b24ce0a7c8cc96b9bd2db7d0c54831e92f17d4a777dce1d7cef"
 at = "A=u32"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::fmt"
-kappa = "eb062a8f829e65637656a9fa8220ec774a2be067576d77d58c723f2682e22a18"
-status = "residue"
-cause = "mir::Ty: core::fmt::Error"
-
-[[fn]]
-path = "std::udp::UdpSocket::from_inner"
-kappa = "6b824a24f672adb5aa75ac23387cecb658b5b2fcf9d82fb29c47972907b975b7"
-status = "residue"
-cause = "mir::Ty: net::udp::UdpSocket"
-
-[[fn]]
-path = "std::udp::UdpSocket::into_inner"
-kappa = "92b6f1e26ca55008215084ec1d757fcec6eb6fb233e5aab4798f8e15bc9ded44"
-status = "residue"
-cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
-
-[[fn]]
-path = "std::udp::UdpSocket::join_multicast_v4"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::join_multicast_v4"
 kappa = "39de9acae4dce2d4be34ee442ce06e4568e8de99382d90e3b96ba8e6e38ed3f5"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::join_multicast_v6"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::join_multicast_v6"
 kappa = "0be2a94826e42e05510758682975049d5c7feb03ae5e4c975849277e726514f3"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::leave_multicast_v4"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::leave_multicast_v4"
 kappa = "0c6ae2e7040f3dcc39068e8ba74d9984f5ba1795e4dbc5cfbd6eacf2ea005389"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::leave_multicast_v6"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::leave_multicast_v6"
 kappa = "95821e239620ad9286eae1e55c36e3602509f3b487e2cdd30cfff22574d93614"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::local_addr"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::local_addr"
 kappa = "5b5256c45f8dfdfb958335c339e4932ea2a2abb7dd74933a441dd07fad18da4c"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::udp::UdpSocket::multicast_loop_v4"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::multicast_loop_v4"
 kappa = "1d23a4425337040ee4885f39ba87e52a0bfd115029d556c7361751a258d23bbf"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::multicast_loop_v6"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::multicast_loop_v6"
 kappa = "ff2ef035c3c17639d98731d37617101e88705ad60c427d123ecb2af906e2f921"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::multicast_ttl_v4"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::multicast_ttl_v4"
 kappa = "e6b3203b10cfa27c14d1b720d80fcf95339b731e371dd4bc52e5bb1bce8f7589"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::peek"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::peek"
 kappa = "d1d3c2ff14623fc26653e25f1dc94ccfbc14adb40f31dbefc25d21510feb83f9"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::peek_from"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::peek_from"
 kappa = "e9995e97d75860a7771305185aa6fddf031d077cd68e949d87701e8f52982392"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::udp::UdpSocket::peer_addr"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::peer_addr"
 kappa = "b54a19d5f1c34b83247412c1a8824da11accf528ea4c02a4a6ec8f328bbaeba4"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::udp::UdpSocket::read_timeout"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::read_timeout"
 kappa = "f21b5c0e0bcb48778620779c64379e497421f9b3c965fa4304846ca0fa3eabf6"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
-path = "std::udp::UdpSocket::recv"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::recv"
 kappa = "fdf54833e40eaaff25b57adafd6955cf349c639db74858f26101eaf9e352c17d"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::recv_from"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::recv_from"
 kappa = "430015d1c7cfdbaf0663b41d4541ea86131ffb67f8aa757d53a4cec927d59d07"
 status = "residue"
 cause = "mir::Ty: core::net::SocketAddr"
 
 [[fn]]
-path = "std::udp::UdpSocket::send"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::send"
 kappa = "297e7b213a3f331939d660ac6351b41b6f67885a340165f2388a449a96176f33"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::send_to"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::send_to"
 kappa = "b1fc24e6febf2e3653edeec98bc960736ddd188e20ee18647e6070bd3e8517ca"
 at = "A=u32"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_broadcast"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_broadcast"
 kappa = "7ad602757fb2b963e9afd99a2fc220757c7b2697a8fee6cb2a86b68c7708ca54"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_multicast_loop_v4"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_multicast_loop_v4"
 kappa = "c8a018c1b8ea4da9439716d8c544a23aae83416e70a25ff898561aa15bc704b0"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_multicast_loop_v6"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_multicast_loop_v6"
 kappa = "09e8da382be8115da74931a9c43a1cf47456e42027080fc165193698378f462b"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_multicast_ttl_v4"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_multicast_ttl_v4"
 kappa = "22fd9369f29836a70ec6b347ce0f217847b03586b87c889694b6a6620fd88f6e"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_nonblocking"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_nonblocking"
 kappa = "db16062cdf0748e13796458dce7e27966d9bc4918d70da65ecd06a5a855b0dfd"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_read_timeout"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_read_timeout"
 kappa = "bfb0a187a9d8988cba4a06721d5a6df9cabf87af7593649da747501bc203d714"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_ttl"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_ttl"
 kappa = "7b92f186cc3f8a2c0f522d83d07a542ead2b04f7aab4fd4cf0e9b4b0b3361dad"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::set_write_timeout"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::set_write_timeout"
 kappa = "d3f0456c914eaf87128677070bf634217d57d47d8eebacd02bbda8b14b9e4711"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::take_error"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::take_error"
 kappa = "585d0ebb18cec9acd3b1f0d82d8453d9a40f345553a6d5350df8c94585a63bc6"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::try_clone"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::try_clone"
 kappa = "6e3e4a89bfc4aae58833082e75b04e749a42af09bc22132a7e884bbe03e243fe"
 status = "residue"
 cause = "mir::Ty: net::udp::UdpSocket"
 
 [[fn]]
-path = "std::udp::UdpSocket::ttl"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::ttl"
 kappa = "7e8844f5d848efe75acbaf6d9ce83c064cffdd779d4590685144f7aaf4f908a3"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
-path = "std::udp::UdpSocket::write_timeout"
+path = "std::udp::<impl at library/std/src/net/udp.rs:68:1: 68:15>::write_timeout"
 kappa = "0c9460cebeca2437c03de1c74b2e71fc280c3fdd3c7be704bbc474d549816c03"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
+
+[[fn]]
+path = "std::udp::<impl at library/std/src/net/udp.rs:832:1: 832:47>::as_inner"
+kappa = "dbff92528147f599b143a7ffc8cce980e310f5a6af5e351d6ee64806745b92d7"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
+
+[[fn]]
+path = "std::udp::<impl at library/std/src/net/udp.rs:839:1: 839:49>::from_inner"
+kappa = "6b824a24f672adb5aa75ac23387cecb658b5b2fcf9d82fb29c47972907b975b7"
+status = "residue"
+cause = "mir::Ty: net::udp::UdpSocket"
+
+[[fn]]
+path = "std::udp::<impl at library/std/src/net/udp.rs:845:1: 845:49>::into_inner"
+kappa = "92b6f1e26ca55008215084ec1d757fcec6eb6fb233e5aab4798f8e15bc9ded44"
+status = "residue"
+cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
+
+[[fn]]
+path = "std::udp::<impl at library/std/src/net/udp.rs:852:1: 852:30>::fmt"
+kappa = "eb062a8f829e65637656a9fa8220ec774a2be067576d77d58c723f2682e22a18"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
 
