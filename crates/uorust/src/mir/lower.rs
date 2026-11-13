@@ -5901,11 +5901,22 @@ impl Fun<'_, '_> {
             // `e * (n - 1 - i)` (big-endian), `e` its width. An array's
             // length is its printed type's; a scalar side's width is both.
             //
-            // Into a `char`, the value is a scalar value: core's
-            // precondition, an obligation.
+            // Into a `char`, the value is a scalar value, and into a `str`,
+            // the bytes are UTF-8: core's preconditions, obligations.
             (Some(M::Transmute), [(v, src)], [ps, pd]) => {
                 if *dt == Ty::Scalar && *src != Ty::Scalar {
                     self.obligation(st, &format!("({} = true)", scalar_value(v)), k);
+                }
+                // Into a `str`, the bytes are UTF-8: they decode.
+                if *dt == Ty::Str && matches!(src, Ty::List(b) if **b == Ty::Nat(Some(u8::BITS))) {
+                    self.obligation(
+                        st,
+                        &format!(
+                            "((prim equal (prim utf8_decode ({}::shaBytesOf {v}) : (Option String)) (ctor Option.none [String]) : Bool) = false)",
+                            lift::PRELUDE
+                        ),
+                        k,
+                    );
                 }
                 let st = src;
                 let unrelated = || {
@@ -6232,7 +6243,8 @@ impl Fun<'_, '_> {
                 Some(format!("({}::textBytes {v})", lift::PRELUDE))
             }
             // `&[u8]` read as `&str`, whose bytes the caller vouches are
-            // UTF-8 (`from_utf8_unchecked`): the text they decode to.
+            // UTF-8 (`from_utf8_unchecked`, an obligation of the call): the
+            // text they decode to.
             (Ty::List(b), Ty::Str) if **b == Ty::Nat(Some(u8::BITS)) => {
                 Some(decoded(&format!("({}::shaBytesOf {v})", lift::PRELUDE)))
             }

@@ -89,6 +89,53 @@ pub(crate) fn bodies(text: &str) -> Vec<IrBody> {
         blocks.sort_by_key(|(id, _)| *id);
         if blocks.iter().enumerate().all(|(i, (id, _))| i == *id) {
             body.blocks = blocks.into_iter().map(|(_, b)| b).collect();
+            // A local of a function item's type (`fn(u64) -> u32
+            // {int_log10::u64}`) is zero-sized: its type names the one
+            // function it holds. A call through it is a call of that
+            // function, and the local, never read otherwise, holds `()`.
+            let items: std::collections::BTreeMap<IrLocal, String> = body
+                .locals
+                .iter()
+                .enumerate()
+                // Not an argument: the signature keeps its types.
+                .filter(|(i, t)| *i > body.arity && t.starts_with("fn(") && t.ends_with('}'))
+                .filter_map(|(i, t)| {
+                    let item = &t[t.rfind(" {")? + 2..t.len() - 1];
+                    (!item.contains('{')).then(|| (i, item.to_string()))
+                })
+                .collect();
+            // Only where it is assigned whole and called, never passed.
+            let passed = body.blocks.iter().any(|b| {
+                let IrTerminator::Call { args, .. } = &b.terminator else {
+                    return false;
+                };
+                args.iter().any(|a| {
+                    matches!(a, IrOperand::Copy(p) | IrOperand::Move(p) if items.contains_key(&p.local))
+                })
+            });
+            if !items.is_empty() && !passed {
+                for block in &mut body.blocks {
+                    for s in &mut block.statements {
+                        if let IrStatement::Assign(p, _) = s {
+                            if items.contains_key(&p.local) {
+                                *s = IrStatement::Marker(spec::MirStatementKind::Nop);
+                            }
+                        }
+                    }
+                    if let IrTerminator::Call { callee, .. } = &mut block.terminator {
+                        let operand = callee
+                            .strip_prefix("move ")
+                            .or(callee.strip_prefix("copy "))
+                            .unwrap_or(callee);
+                        if let Some(item) = local_of(operand).and_then(|l| items.get(&l)) {
+                            *callee = item.clone();
+                        }
+                    }
+                }
+                for l in items.keys() {
+                    body.locals[*l] = "()".to_string();
+                }
+            }
             out.push(body);
         }
     }
