@@ -249,8 +249,8 @@ certified-gate out="target/certified-gate":
     cat {{out}}/kappa.txt
 
 # Install the repository's hooks: the pre-commit ratchet, and the pre-push
-# gate (rustfmt, xtask validate, and `core-gate` when the push touches the
-# MIR path).
+# gate (rustfmt, xtask's R1/R4/R5 gates, and `core-gate` when the push
+# touches the MIR path).
 hooks:
     git config core.hooksPath scripts/hooks
 

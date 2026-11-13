@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Refuse a push to main that bootstrap or core.yml would refuse, before it
-# lands: rustfmt and xtask validate (R1, R4, R5, the bootstrap root), and,
+# lands: rustfmt and xtask's R1, R4 and R5 gates (validate's but
+# audit-bootstrap, which needs the SDK), and,
 # when the push touches the MIR path (crates/uorust/src/mir), the core
 # register's ratchet on CI's own MIR (scripts/mir/core-gate.sh). Runs in the
 # pushing worktree with that lane's own build. Installed by
@@ -18,8 +19,12 @@ while read -r _lref lsha rref rsha; do
   cd "$root"
   . "$root/scripts/hooks/lane-cfg.sh"
   cargo fmt --all -- --check >/dev/null || { echo "pre-push: cargo fmt --check fails; run cargo fmt" >&2; exit 1; }
-  cargo run -q --locked -p xtask "${cfg[@]}" -- validate \
-    || { echo "pre-push: xtask validate (R1/R4/R5) refuses this tree" >&2; exit 1; }
+  # validate's gates but audit-bootstrap, which reads the SDK's inventory
+  # and so runs only inside the SDK (bootstrap runs it).
+  for gate in check-model audit-limits audit-deferral audit-dependency-updates; do
+    cargo run -q --locked -p xtask "${cfg[@]}" -- "$gate" \
+      || { echo "pre-push: xtask $gate refuses this tree" >&2; exit 1; }
+  done
   # What the push adds to main: from the remote's main when this clone has
   # it, else from the last fetched origin/main.
   base=$rsha
