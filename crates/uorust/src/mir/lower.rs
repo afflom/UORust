@@ -158,10 +158,11 @@ struct Called {
     threads: Option<(Ty, Vec<usize>)>,
     /// The callee takes the memory, and gives it back last in its tuple.
     memory: bool,
-    /// A callee that returns a borrow into its one `&mut` argument: its
-    /// backward function applied to the call's arguments, and that
-    /// argument's position.
-    backward: Option<(String, usize)>,
+    /// A callee that returns a borrow into its `&mut` arguments: its
+    /// backward function applied to the call's arguments, the positions of
+    /// the arguments it gives back, and its tuple's type where it gives
+    /// several.
+    backward: Option<(String, Vec<usize>, Option<Ty>)>,
 }
 
 impl Called {
@@ -210,8 +211,15 @@ struct State {
     /// writes the place. A borrow a call returns lends through the callee's
     /// backward function, applied to the call's arguments: the place takes
     /// that function's value at the part's value.
-    lends: BTreeMap<IrLocal, Vec<(Vec<IrProjection>, IrPlace, Option<String>)>>,
+    /// The function is applied to the part's value, and where it gives
+    /// the last values of several arguments, its item of this argument's.
+    lends: BTreeMap<IrLocal, Vec<(Vec<IrProjection>, IrPlace, Option<Transform>)>>,
 }
+
+/// A backward function applied to a call's arguments, and, where it gives
+/// the last values of several arguments, its tuple's type and the item of
+/// the argument a lend writes.
+type Transform = (String, Option<(Ty, usize)>);
 
 /// A loop: its helper's name and parameters (the locals live at its header).
 #[derive(Clone, Debug)]
@@ -793,13 +801,16 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
     // The backward function takes the returned borrow's new value last, and
     // gives the last value of the one `&mut` parameter it threads.
     if cx.backward {
-        let ([one], false) = (threads_ty.as_slice(), memory) else {
+        let (false, false) = (threads_ty.is_empty(), memory) else {
             return Err(kind(
                 "TerminatorKind::Return",
-                "a backward function of a body that threads other than one borrow",
+                "a backward function of a body that threads no borrow, or the memory",
             ));
         };
-        let one = one.clone();
+        let one = match threads_ty.as_slice() {
+            [one] => one.clone(),
+            several => cx.types.tuple(several.to_vec()),
+        };
         let rt = f.ret.clone();
         let n = f.fresh(Some("new"), 0);
         f.params.push((n.clone(), rt.clone()));
@@ -1734,11 +1745,18 @@ impl Fun<'_, '_> {
                         super::closure_type(self.body).is_some(),
                         self.cx.types,
                     );
-                    let place = IrPlace {
-                        local: threads[0],
-                        projection: Vec::new(),
+                    let mut items = Vec::new();
+                    for l in threads {
+                        let place = IrPlace {
+                            local: l,
+                            projection: Vec::new(),
+                        };
+                        items.push(self.read(&place, &st)?.0);
+                    }
+                    let v = match items.as_slice() {
+                        [one] => one.clone(),
+                        _ => lift::tuple_value(&self.result, &items),
                     };
-                    let v = self.read(&place, &st)?.0;
                     self.grow(&v)?;
                     return Ok(Expr::Flat(v));
                 }
@@ -1952,7 +1970,8 @@ impl Fun<'_, '_> {
         // local now holds there.
         for (path, place, back) in st.lends.get(&p.local).cloned().unwrap_or_default() {
             let apply = |v: &str| match &back {
-                Some(b) => format!("({b} {v})"),
+                Some((b, None)) => format!("({b} {v})"),
+                Some((b, Some((rt, k)))) => lift::tuple_item(rt, &format!("({b} {v})"), *k),
                 None => v.to_string(),
             };
             // A borrow `Some` holds lends while the value holds `Some`:
@@ -2337,9 +2356,12 @@ impl Fun<'_, '_> {
             }
             // A borrow the call returns into a `&mut` argument lends that
             // argument's place, through the callee's backward function.
-            if let Some((back, i)) = backward {
-                if let (true, Some(place)) = (lends.is_empty(), borrowed_places.get(&i)) {
-                    lends.push((Vec::new(), place.clone(), Some(back)));
+            if let (Some((back, positions, rt)), true) = (backward, lends.is_empty()) {
+                for (k, i) in positions.iter().enumerate() {
+                    if let Some(place) = borrowed_places.get(i) {
+                        let item = rt.clone().map(|t| (t, k));
+                        lends.push((Vec::new(), place.clone(), Some((back.clone(), item))));
+                    }
                 }
             }
             if !lends.is_empty() {
@@ -2650,6 +2672,74 @@ impl Fun<'_, '_> {
             IrStatement::Marker(_) | IrStatement::Assume(_) => Ok(()),
             IrStatement::Other(k, _) => Err(kind(k.path(), "")),
             IrStatement::Assign(p, rv) => {
+                // A `&mut` writer coerced to `&mut dyn fmt::Write`: the
+                // object is the text written through it, from none, and
+                // lends the writer the value its `write_str` of that text
+                // gives from the writer's value at the coercion (a text
+                // written in pieces is written whole: the writer's
+                // chunking theorem).
+                if let (
+                    true,
+                    IrRvalue::Cast(
+                        spec::MirCastKind::PointerCoercion,
+                        IrOperand::Copy(q) | IrOperand::Move(q),
+                        target,
+                    ),
+                ) = (p.projection.is_empty(), rv)
+                {
+                    let source = self
+                        .body
+                        .locals
+                        .get(q.local)
+                        .and_then(|t| mut_target(t))
+                        .map(|t| t.trim().to_string());
+                    if let (true, true, Some(source), Some(Val::Mut(place))) = (
+                        q.projection.is_empty(),
+                        target.trim() == "&mut dyn fmt::Write",
+                        source.filter(|t| !t.starts_with("dyn ") && t != "String" && t != "str"),
+                        st.env.get(&q.local).cloned(),
+                    ) {
+                        let k = spec::MirCastKind::PointerCoercion.path();
+                        let (snapshot, wt) = self.read(&place, st)?;
+                        let to = self.local_ty(p.local, &[])?;
+                        let hole = self.fresh(Some("text"), p.local);
+                        let rt_text = "Result<(), fmt::Error>";
+                        let rt = ty(rt_text, self.cx.types)?;
+                        let called = self.call(
+                            &format!("<{source} as fmt::Write>::write_str"),
+                            vec![(snapshot, wt), (hole.clone(), to.clone())],
+                            &[Some(format!("&mut {source}")), Some("&str".into())],
+                            rt_text,
+                            &rt,
+                            st,
+                        )?;
+                        let prefix = called
+                            .term
+                            .strip_prefix('(')
+                            .and_then(|t| t.strip_suffix(&format!(" {hole})")))
+                            .map(str::to_string);
+                        let (Some(prefix), Some((tt, positions))) = (prefix, called.threads) else {
+                            return Err(kind(
+                                k,
+                                &format!("from {source} to a writer, whose write_str gives no writer back"),
+                            ));
+                        };
+                        if positions != [0] || !called.updates.is_empty() || called.memory {
+                            return Err(kind(
+                                k,
+                                &format!("from {source} to a writer, whose write_str gives no writer back"),
+                            ));
+                        }
+                        let empty = lift::default_of(&to, self.cx.types)
+                            .ok_or_else(|| kind(k, "to a writer with no empty text"))?;
+                        st.env.insert(p.local, Val::V(empty, to));
+                        st.lends.insert(
+                            p.local,
+                            vec![(Vec::new(), place, Some((prefix, Some((tt, 1)))))],
+                        );
+                        return Ok(());
+                    }
+                }
                 if p.projection.is_empty() && !st.placed.contains_key(&p.local) {
                     let v = self.rvalue(rv, p, st)?;
                     // The borrows the new value holds: each mutable borrow
@@ -2783,7 +2873,71 @@ impl Fun<'_, '_> {
                     }
                     other => other,
                 };
-                self.write(p, v, st)
+                self.write(p, v, st)?;
+                // In a backward function, a borrow written into a place
+                // (`*self = Some(value)`, `value` holding borrows) lends
+                // from there: the returned borrow's new value reaches it.
+                if self.backward.is_some() {
+                    let (path, o) = match rv {
+                        IrRvalue::Use(o) => (Vec::new(), o),
+                        IrRvalue::Aggregate(IrAggregate::Adt(_, Some(variant)), ops)
+                            if variant == "Some" && ops.len() == 1 =>
+                        {
+                            let text = match &ops[0].1 {
+                                IrOperand::Copy(q) | IrOperand::Move(q) => {
+                                    self.body.locals.get(q.local).cloned().unwrap_or_default()
+                                }
+                                IrOperand::Constant(_) | IrOperand::Check(_) => String::new(),
+                            };
+                            (
+                                vec![
+                                    IrProjection::Downcast(variant.clone()),
+                                    IrProjection::Field(0, text),
+                                ],
+                                &ops[0].1,
+                            )
+                        }
+                        _ => return Ok(()),
+                    };
+                    let (IrOperand::Copy(q) | IrOperand::Move(q)) = o else {
+                        return Ok(());
+                    };
+                    if !q.projection.is_empty() {
+                        return Ok(());
+                    }
+                    let held =
+                        self.mut_params.contains(&p.local) || st.lends.contains_key(&p.local);
+                    let mut at: Vec<IrProjection> = p
+                        .projection
+                        .iter()
+                        .filter(|s| !(held && matches!(s, IrProjection::Deref)))
+                        .cloned()
+                        .collect();
+                    at.extend(path);
+                    let mut lends = Vec::new();
+                    match st.env.get(&q.local) {
+                        Some(Val::Mut(place)) => lends.push((at, place.clone(), None)),
+                        _ if self.mut_params.contains(&q.local) => lends.push((
+                            at,
+                            IrPlace {
+                                local: q.local,
+                                projection: Vec::new(),
+                            },
+                            None,
+                        )),
+                        _ => {
+                            for (inner, place, back) in
+                                st.lends.get(&q.local).cloned().unwrap_or_default()
+                            {
+                                let mut part = at.clone();
+                                part.extend(inner);
+                                lends.push((part, place, back));
+                            }
+                        }
+                    }
+                    st.lends.entry(p.local).or_default().extend(lends);
+                }
+                Ok(())
             }
         }
     }
@@ -5749,8 +5903,8 @@ impl Fun<'_, '_> {
         let returns_borrow = body.locals.first().is_some_and(|t| {
             threaded(&[String::new(), t.clone()], 1, false, self.cx.types).len() == 1
         });
-        let backward = match (returns_borrow, positions.as_slice(), takes_memory) {
-            (true, [i], false) => {
+        let backward = match (returns_borrow, positions.is_empty(), takes_memory) {
+            (true, false, false) => {
                 let back = format!("{name}Back");
                 if !self.aux.contains_key(&back) {
                     let mut active = self.cx.active.to_vec();
@@ -5768,6 +5922,7 @@ impl Fun<'_, '_> {
                         self.types.extend(lowered.types);
                     }
                 }
+                let rt = (rest.len() > 1).then(|| self.cx.types.tuple(rest.clone()));
                 self.aux.contains_key(&back).then(|| {
                     self.calls.insert(back.clone());
                     (
@@ -5775,7 +5930,8 @@ impl Fun<'_, '_> {
                             .chain(a.iter().cloned())
                             .collect::<Vec<_>>()
                             .join(" "),
-                        *i,
+                        positions.clone(),
+                        rt,
                     )
                 })
             }
