@@ -292,6 +292,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{{{ github.token }}}}
+          REBASE: '1'
         run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE crates/uorust/ledger" generate.yml
       - name: Fail when a shard failed
         if: ${{{{ needs.{shard}.result != 'success' }}}}
@@ -438,6 +439,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{{{ github.token }}}}
+          REBASE: '1'
         run: scripts/ci/push.sh "Regenerate the crates' registers" "crates/uorust/crates crates/uorust/ledger" generate.yml
 """
 

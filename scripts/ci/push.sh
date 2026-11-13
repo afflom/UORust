@@ -10,6 +10,12 @@
 # ran on: the newer push carries its own run. The checkout keeps no
 # credentials (persist-credentials: false); the token is passed to this one
 # push as a header and to `gh` through GH_TOKEN.
+#
+# With REBASE=1 the writer owns its paths (a register workflow, the only
+# writer of its register): when main moved, its commit is rebased onto the
+# new main and pushed, as long as no newer commit touched those paths, since
+# the newer commit may start no run of that workflow and the result would be
+# lost. A rebase that conflicts pushes nothing.
 set -euo pipefail
 subject=$1
 read -r -a paths <<<"$2"
@@ -28,13 +34,41 @@ git -c user.name='github-actions[bot]' \
 auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
 remote="https://github.com/${GITHUB_REPOSITORY:?}.git"
 head=$(git -c "http.extraheader=AUTHORIZATION: basic $auth" ls-remote "$remote" refs/heads/main | cut -f1)
-if [[ $head != "$base" ]]; then
-  echo "push: main moved from $base to $head; its own run regenerates"
-  exit 0
-fi
-if ! git -c "http.extraheader=AUTHORIZATION: basic $auth" push "$remote" HEAD:refs/heads/main; then
-  echo "push: main moved while pushing; its own run regenerates"
-  exit 0
+if [[ ${REBASE:-0} != 1 ]]; then
+  if [[ $head != "$base" ]]; then
+    echo "push: main moved from $base to $head; its own run regenerates"
+    exit 0
+  fi
+  if ! git -c "http.extraheader=AUTHORIZATION: basic $auth" push "$remote" HEAD:refs/heads/main; then
+    echo "push: main moved while pushing; its own run regenerates"
+    exit 0
+  fi
+else
+  for attempt in 1 2 3 4 5; do
+    if [[ $head != "$base" ]]; then
+      git -c "http.extraheader=AUTHORIZATION: basic $auth" fetch -q "$remote" "+refs/heads/main:refs/remotes/upstream/main"
+      if [[ -n $(git diff --name-only "$base" upstream/main -- "${paths[@]}") ]]; then
+        echo "push: main moved from $base and a newer commit wrote ${paths[*]}; nothing pushed"
+        exit 0
+      fi
+      if ! git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+        rebase -q upstream/main; then
+        git rebase --abort
+        echo "push: the rebase onto main conflicts; nothing pushed"
+        exit 0
+      fi
+      echo "push: main moved from $base; rebased onto $(git rev-parse upstream/main)"
+      base=$(git rev-parse upstream/main)
+    fi
+    if git -c "http.extraheader=AUTHORIZATION: basic $auth" push "$remote" HEAD:refs/heads/main; then
+      break
+    fi
+    if [[ $attempt == 5 ]]; then
+      echo "push: main kept moving; nothing pushed"
+      exit 0
+    fi
+    head=$(git -c "http.extraheader=AUTHORIZATION: basic $auth" ls-remote "$remote" refs/heads/main | cut -f1)
+  done
 fi
 for workflow in "$@"; do
   gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref main
