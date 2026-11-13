@@ -1,0 +1,69 @@
+# Pins the translator holo UORust's model builds, so nobody pins it by hand.
+#
+# TRANSLATOR_REV names the holo the app/ model builds: its first line is the
+# commit it was built from, its second the archive fingerprint `prismpm
+# verify` records (blake3:...). When the model or the SDK changes on main, or
+# on demand, this builds and verifies the holo through the locked SDK exactly
+# as the gate does (`just app`: the acceptance vectors replayed in the
+# compiled guest, then every theorem checked by the Lean kernel and
+# leanchecker), reads the fingerprint, and commits the new pin itself when it
+# moved; nothing is pushed when the pin is current. The pin is the identity
+# the translator's later stages compare against: the holo that translates is
+# the one this commit verified, not one built by hand.
+name: translator-pin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'prismpm.lock'
+      - '.github/workflows/translator-pin.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: translator-pin
+  cancel-in-progress: true
+
+jobs:
+  pin:
+    name: pin the translator holo app/ builds
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build and verify the holo through the locked SDK
+        shell: bash
+        run: scripts/ci/sdk.sh 'just app'
+      - name: Read the holo's fingerprint and write the pin
+        id: holo
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          holos=(app/.prism/build/*/*.holo)
+          if [[ ${#holos[@]} -ne 1 ]]; then
+            printf 'expected one holo, found %d\n' "${#holos[@]}" >&2
+            exit 64
+          fi
+          fingerprint=$(python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["archive_fingerprint"])' "$(dirname "${holos[0]}")/application/holo-identities.json")
+          pinned=$(sed -n 2p TRANSLATOR_REV 2>/dev/null || true)
+          echo "built blake3:$fingerprint, pinned ${pinned:-nothing}" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [[ $pinned != "blake3:$fingerprint" ]]; then
+            printf '%s\nblake3:%s\n' "$(git rev-parse HEAD)" "$fingerprint" >TRANSLATOR_REV
+          fi
+      - name: Push the pin
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/ci/push.sh "Pin the translator holo app/ builds" "TRANSLATOR_REV"
