@@ -655,6 +655,14 @@ pub(crate) struct CoreDecls {
     /// by the function's path as [`CoreDecls::parameters`] takes it: the
     /// bound as a type, `impl FnOnce(A) -> R`.
     pub(crate) fn_bounds: BTreeMap<String, BTreeMap<String, String>>,
+    /// Each struct's or enum's type parameters' defaults, in order, by its
+    /// name (`ControlFlow`: `[None, Some("()")]`): MIR prints a type
+    /// without the trailing arguments its defaults give. A name two
+    /// declarations give other defaults has none.
+    pub(crate) defaults: BTreeMap<String, Option<Vec<Option<String>>>>,
+    /// Each trait's type parameters, in order, by its path: a call of its
+    /// default method, `<X as Trait<A>>::m`, binds them.
+    pub(crate) trait_params: BTreeMap<String, Vec<String>>,
 }
 
 impl CoreDecls {
@@ -975,6 +983,18 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                     );
                 }
                 syn::Item::Struct(st) => {
+                    let ds: Vec<Option<String>> = st
+                        .generics
+                        .type_params()
+                        .map(|t| t.default.as_ref().map(|(_, d)| text(d)))
+                        .collect();
+                    if ds.iter().any(Option::is_some) {
+                        let entry = out.defaults.entry(st.ident.to_string());
+                        let was = entry.or_insert_with(|| Some(ds.clone()));
+                        if was.as_ref() != Some(&ds) {
+                            *was = None;
+                        }
+                    }
                     let params = generic_names(&st.generics);
                     out.consts
                         .entry(at(st.ident.to_string()))
@@ -1059,6 +1079,8 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                 }
                 syn::Item::Trait(t) => {
                     out.traits.insert(at(t.ident.to_string()));
+                    out.trait_params
+                        .insert(at(t.ident.to_string()), generic_names(&t.generics));
                 }
                 syn::Item::Union(u) => {
                     out.unions.insert(at(u.ident.to_string()));
@@ -1071,6 +1093,18 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                 }
                 // An enum whose variants hold data, over its parameters.
                 syn::Item::Enum(e) => {
+                    let ds: Vec<Option<String>> = e
+                        .generics
+                        .type_params()
+                        .map(|t| t.default.as_ref().map(|(_, d)| text(d)))
+                        .collect();
+                    if ds.iter().any(Option::is_some) {
+                        let entry = out.defaults.entry(e.ident.to_string());
+                        let was = entry.or_insert_with(|| Some(ds.clone()));
+                        if was.as_ref() != Some(&ds) {
+                            *was = None;
+                        }
+                    }
                     let data = e
                         .variants
                         .iter()
@@ -1176,6 +1210,26 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                             .or_default()
                             .extend(const_types(&f.sig.generics));
                         out.generics.insert(path, signature_generic_names(&f.sig));
+                    }
+                    // A `const trait`, which syn reads as tokens: the trait
+                    // with `const` left out.
+                    let ts: Vec<proc_macro2::TokenTree> = tokens.clone().into_iter().collect();
+                    let word = |t: &proc_macro2::TokenTree, s: &str| matches!(t, proc_macro2::TokenTree::Ident(i) if i == s);
+                    let at_const = ts
+                        .windows(2)
+                        .position(|w| word(&w[0], "const") && word(&w[1], "trait"));
+                    if let Some(c) = at_const {
+                        let rest: proc_macro2::TokenStream = ts
+                            .iter()
+                            .enumerate()
+                            .filter(|(i, _)| *i != c)
+                            .map(|(_, t)| t.clone())
+                            .collect();
+                        if let Ok(t) = syn::parse2::<syn::ItemTrait>(rest) {
+                            out.traits.insert(at(t.ident.to_string()));
+                            out.trait_params
+                                .insert(at(t.ident.to_string()), generic_names(&t.generics));
+                        }
                     }
                 }
                 syn::Item::Use(u) => {

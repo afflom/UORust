@@ -655,6 +655,79 @@ impl CoreLink {
                 unify(ret, dest, &mut generics)?;
             }
         }
+        // A trait's default method: the trait's parameters, which the
+        // call's `<X as Trait<A>>` binds.
+        let as_trait = callee
+            .strip_prefix('<')
+            .and_then(|r| r.rsplit_once(">::"))
+            .and_then(|(q, _)| q.split_once(" as "))
+            .map(|(_, tr)| tr);
+        if let (Some(names), Some(tr)) = (
+            path.rsplit_once("::")
+                .and_then(|(t, _)| self.decls.trait_params.get(t)),
+            as_trait,
+        ) {
+            let last = split_path(tr).last().copied().unwrap_or(tr);
+            let args: Vec<String> = last
+                .find('<')
+                .and_then(|at| last[at + 1..].strip_suffix('>'))
+                .map(|r| {
+                    split_top(r, ',')
+                        .into_iter()
+                        .map(|a| a.trim().to_string())
+                        .filter(|a| !a.is_empty() && !a.starts_with('\''))
+                        .collect()
+                })
+                .unwrap_or_default();
+            if names.len() == args.len() {
+                for (n, a) in names.iter().zip(args) {
+                    generics.entry(n.clone()).or_insert(a);
+                }
+            }
+        }
+        // MIR prints a type without the trailing arguments its defaults
+        // give (`ControlFlow<bool>` for `ControlFlow<bool, ()>`): a
+        // parameter the signature names in their place takes the default.
+        if let Some((params, ret)) = head {
+            let mut work: Vec<(String, String)> = params
+                .iter()
+                .zip(arg_texts)
+                .filter_map(|(p, a)| Some((p.split_once(": ")?.1.to_string(), a.clone()?)))
+                .collect();
+            if !dest.is_empty() {
+                work.push((ret.to_string(), dest.to_string()));
+            }
+            let parts = |t: &str| -> Option<(String, Vec<String>)> {
+                let t = t.trim().trim_start_matches('&').trim_start_matches("mut ");
+                let last = split_path(t).last().copied()?;
+                let at = last.find('<')?;
+                let args = split_top(last[at + 1..].strip_suffix('>')?, ',')
+                    .into_iter()
+                    .map(|x| x.trim().to_string())
+                    .filter(|x| !x.is_empty() && !x.starts_with('\''))
+                    .collect();
+                Some((last[..at].trim_end_matches("::").to_string(), args))
+            };
+            while let Some((p, a)) = work.pop() {
+                let (Some((pn, pa)), Some((an, aa))) = (parts(&p), parts(&a)) else {
+                    continue;
+                };
+                if pn != an {
+                    continue;
+                }
+                work.extend(pa.iter().cloned().zip(aa.iter().cloned()));
+                let Some(Some(ds)) = self.decls.defaults.get(&pn) else {
+                    continue;
+                };
+                for (j, x) in pa.iter().enumerate().skip(aa.len()) {
+                    let bare = x.chars().all(|c| c.is_ascii_alphanumeric() || c == '_');
+                    if let (true, Some(Some(d))) = (bare && !generics.contains_key(x), ds.get(j)) {
+                        let d = super::stdlib::substitute(d, &generics);
+                        generics.insert(x.clone(), d);
+                    }
+                }
+            }
+        }
         // A type the signature names by its own name (`Argument<'_>`,
         // printed `fmt::rt::Argument<'_>` at the call) binds no parameter.
         generics.retain(|k, v| split_path(v).last().copied() != Some(k.as_str()));
@@ -859,6 +932,13 @@ impl CoreLink {
                     let mut own = super::core::canonical_bindings(text, &|_| false, &|_| None);
                     own.extend(super::core::canonical_bindings(&sig, &|_| false, &|_| None));
                     let declares = self.decls.generics.get(p.as_str());
+                    // A default method's trait's parameters, which bind
+                    // only where the body names them.
+                    let traits = p
+                        .rsplit_once("::")
+                        .and_then(|(t, _)| self.decls.trait_params.get(t));
+                    let mut g = g;
+                    g.retain(|k, _| !traits.is_some_and(|d| d.contains(k)) || own.contains_key(k));
                     let param = |k: &String| {
                         own.contains_key(k)
                             || k == "Self"
@@ -875,7 +955,6 @@ impl CoreLink {
                         !itself(k, v)
                             && (!param(k) || self.decls.structs.iter().any(|s| s.name() == k))
                     });
-                    let mut g = g;
                     g.retain(|k, v| param(k) && !itself(k, v));
                     // A type the signature prints by its path is the type of that
                     // path: `range::RangeInclusive<T>` is not

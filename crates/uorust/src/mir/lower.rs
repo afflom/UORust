@@ -7388,14 +7388,15 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     // core's paths there without the crate.
     let std = segs.len() > 1 && (matches!(segs[0], "std" | "core" | "alloc") || types.core);
     match (name, raw.as_slice()) {
-        ("ControlFlow", [b, c]) if std => {
+        // In core's scope a signature prints it by its name alone.
+        ("ControlFlow", [b, c]) if std || types.core => {
             return Ok(Ty::Outcome(
                 Box::new(ty(c, types)?),
                 Box::new(ty(b, types)?),
             ))
         }
         // `ControlFlow<B>`, its continue value the unit by default.
-        ("ControlFlow", [b]) if std => {
+        ("ControlFlow", [b]) if std || types.core => {
             return Ok(Ty::Outcome(Box::new(Ty::Unit), Box::new(ty(b, types)?)))
         }
         // `ManuallyDrop<T>` holds a `T`, which it only keeps from dropping;
