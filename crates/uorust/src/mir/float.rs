@@ -230,4 +230,928 @@ pub(crate) const METHODS: &[(&str, &str, &str, usize, Kind)] = &[
 ];
 
 #[cfg(test)]
-mod tests;
+mod tests {
+    //! The differential oracle: the prelude's `float*` definitions, read from
+    //! its own text and evaluated exactly, against the host's arithmetic.
+
+    use std::collections::BTreeMap;
+
+    use super::*;
+
+    // ---------------------------------------------------------------------------
+    // Natural numbers of any size.
+
+    /// A natural number, little-endian base `2^32`.
+    #[derive(Clone, Debug, PartialEq, Eq, Default)]
+    struct Big(Vec<u32>);
+
+    impl From<u128> for Big {
+        fn from(mut n: u128) -> Self {
+            let mut v = Vec::new();
+            while n > 0 {
+                v.push(n as u32);
+                n >>= 32;
+            }
+            Big(v)
+        }
+    }
+
+    impl Big {
+        fn trim(mut self) -> Self {
+            while self.0.last() == Some(&0) {
+                self.0.pop();
+            }
+            self
+        }
+        fn pow2(k: u32) -> Big {
+            let mut v = vec![0u32; (k / 32) as usize + 1];
+            v[(k / 32) as usize] = 1 << (k % 32);
+            Big(v).trim()
+        }
+        fn is_zero(&self) -> bool {
+            self.0.is_empty()
+        }
+        fn to_u128(&self) -> Option<u128> {
+            if self.0.len() > 4 {
+                return None;
+            }
+            Some(
+                self.0
+                    .iter()
+                    .rev()
+                    .fold(0u128, |acc, &d| (acc << 32) | u128::from(d)),
+            )
+        }
+        fn bits(&self) -> u32 {
+            match self.0.last() {
+                None => 0,
+                Some(top) => 32 * (self.0.len() as u32 - 1) + (32 - top.leading_zeros()),
+            }
+        }
+        fn bit(&self, i: u32) -> bool {
+            self.0
+                .get((i / 32) as usize)
+                .is_some_and(|d| d >> (i % 32) & 1 == 1)
+        }
+        fn add(&self, o: &Big) -> Big {
+            let mut v = Vec::new();
+            let mut carry = 0u64;
+            for i in 0..self.0.len().max(o.0.len()) {
+                let s = u64::from(*self.0.get(i).unwrap_or(&0))
+                    + u64::from(*o.0.get(i).unwrap_or(&0))
+                    + carry;
+                v.push(s as u32);
+                carry = s >> 32;
+            }
+            v.push(carry as u32);
+            Big(v).trim()
+        }
+        /// Truncated subtraction, as `Nat`'s.
+        fn sub(&self, o: &Big) -> Big {
+            if self <= o {
+                return Big::default();
+            }
+            let mut v = Vec::new();
+            let mut borrow = 0i64;
+            for i in 0..self.0.len() {
+                let mut d = i64::from(self.0[i]) - i64::from(*o.0.get(i).unwrap_or(&0)) - borrow;
+                borrow = i64::from(d < 0);
+                if d < 0 {
+                    d += 1 << 32;
+                }
+                v.push(d as u32);
+            }
+            Big(v).trim()
+        }
+        fn mul(&self, o: &Big) -> Big {
+            let mut v = vec![0u64; self.0.len() + o.0.len() + 1];
+            for (i, &a) in self.0.iter().enumerate() {
+                let mut carry = 0u64;
+                for (j, &b) in o.0.iter().enumerate() {
+                    let t = v[i + j] + u64::from(a) * u64::from(b) + carry;
+                    v[i + j] = t & 0xffff_ffff;
+                    carry = t >> 32;
+                }
+                let mut k = i + o.0.len();
+                while carry > 0 {
+                    let t = v[k] + carry;
+                    v[k] = t & 0xffff_ffff;
+                    carry = t >> 32;
+                    k += 1;
+                }
+            }
+            Big(v.into_iter().map(|d| d as u32).collect()).trim()
+        }
+        fn shl(&self, k: u32) -> Big {
+            self.mul(&Big::pow2(k))
+        }
+        /// Quotient and remainder; a zero divisor gives `(0, self)`, as `prim
+        /// quotient` and `prim remainder` with their zero case.
+        fn divmod(&self, d: &Big) -> (Big, Big) {
+            if d.is_zero() {
+                return (Big::default(), self.clone());
+            }
+            let mut q = Big::default();
+            let mut r = Big::default();
+            for i in (0..self.bits()).rev() {
+                r = r.shl(1);
+                if self.bit(i) {
+                    r = r.add(&Big::from(1));
+                }
+                if *d <= r {
+                    r = r.sub(d);
+                    q = q.add(&Big::pow2(i));
+                }
+            }
+            (q, r)
+        }
+        fn decimal(&self) -> String {
+            if self.is_zero() {
+                return "0".into();
+            }
+            let mut digits = Vec::new();
+            let mut n = self.clone();
+            let ten18 = Big::from(1_000_000_000_000_000_000u128);
+            while !n.is_zero() {
+                let (q, r) = n.divmod(&ten18);
+                digits.push(r.to_u128().unwrap_or(0));
+                n = q;
+            }
+            let mut out = digits.pop().unwrap_or(0).to_string();
+            for d in digits.iter().rev() {
+                out.push_str(&format!("{d:018}"));
+            }
+            out
+        }
+    }
+
+    impl PartialOrd for Big {
+        fn partial_cmp(&self, o: &Self) -> Option<std::cmp::Ordering> {
+            Some(self.cmp(o))
+        }
+    }
+    impl Ord for Big {
+        fn cmp(&self, o: &Self) -> std::cmp::Ordering {
+            self.0
+                .len()
+                .cmp(&o.0.len())
+                .then_with(|| self.0.iter().rev().cmp(o.0.iter().rev()))
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // The LexLean the prelude's float definitions are written in: a reader
+    // and an exact evaluator of that subset.
+
+    #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+    enum V {
+        N(Big),
+        B(bool),
+    }
+
+    impl V {
+        fn n(self) -> Big {
+            match self {
+                V::N(b) => b,
+                V::B(_) => panic!("a Bool where a Nat is due"),
+            }
+        }
+        fn b(self) -> bool {
+            match self {
+                V::B(b) => b,
+                V::N(_) => panic!("a Nat where a Bool is due"),
+            }
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    enum T {
+        Num(Big),
+        Var(String),
+        App(String, Vec<T>),
+        Prim(String, Vec<T>),
+        Bin(String, Box<T>, Box<T>),
+        Not(Box<T>),
+        If(Box<T>, Box<T>, Box<T>),
+        Let(String, Box<T>, Box<T>),
+        /// `match x | Nat.zero => z | Nat.succ r => s`.
+        Match(Box<T>, Box<T>, String, Box<T>),
+    }
+
+    fn tokens(s: &str) -> Vec<String> {
+        let cs: Vec<char> = s.chars().collect();
+        let mut out = Vec::new();
+        let mut i = 0;
+        while i < cs.len() {
+            let c = cs[i];
+            if c.is_whitespace() {
+                i += 1;
+            } else if c == '|' && cs.get(i + 1) == Some(&'|') {
+                out.push("||".into());
+                i += 2;
+            } else if "();|,".contains(c) {
+                out.push(c.to_string());
+                i += 1;
+            } else if c.is_ascii_alphanumeric() || c == '_' {
+                let start = i;
+                while i < cs.len()
+                    && (cs[i].is_ascii_alphanumeric()
+                        || cs[i] == '_'
+                        || cs[i] == '.'
+                        || (cs[i] == ':' && cs.get(i + 1) == Some(&':'))
+                        || (cs[i] == ':' && i > 0 && cs[i - 1] == ':'))
+                {
+                    i += 1;
+                }
+                out.push(cs[start..i].iter().collect());
+            } else {
+                let start = i;
+                while i < cs.len() && "<=?:+&>".contains(cs[i]) {
+                    i += 1;
+                }
+                assert!(
+                    i > start,
+                    "a character LexLean's float subset has none of: {c:?}"
+                );
+                out.push(cs[start..i].iter().collect());
+            }
+        }
+        out
+    }
+
+    struct Reader {
+        toks: Vec<String>,
+        at: usize,
+    }
+
+    impl Reader {
+        fn next(&mut self) -> String {
+            self.at += 1;
+            self.toks[self.at - 1].clone()
+        }
+        fn peek(&self) -> &str {
+            &self.toks[self.at]
+        }
+        fn expect(&mut self, t: &str) {
+            let got = self.next();
+            assert_eq!(got, t, "at token {}", self.at);
+        }
+        fn term(&mut self) -> T {
+            let t = self.next();
+            if t != "(" {
+                return match t.parse::<u128>() {
+                    Ok(n) => T::Num(Big::from(n)),
+                    Err(_) => T::Var(t),
+                };
+            }
+            match self.peek() {
+                "match" => {
+                    self.next();
+                    let x = self.term();
+                    self.expect("|");
+                    self.expect("Nat.zero");
+                    self.expect("=>");
+                    let z = self.term();
+                    self.expect("|");
+                    self.expect("Nat.succ");
+                    let r = self.next();
+                    self.expect("=>");
+                    let s = self.term();
+                    self.expect(")");
+                    T::Match(Box::new(x), Box::new(z), r, Box::new(s))
+                }
+                "if" => {
+                    self.next();
+                    let c = self.term();
+                    self.expect("then");
+                    let a = self.term();
+                    self.expect("else");
+                    let b = self.term();
+                    self.expect(")");
+                    T::If(Box::new(c), Box::new(a), Box::new(b))
+                }
+                "let" => {
+                    self.next();
+                    let x = self.next();
+                    self.expect(":");
+                    self.next();
+                    self.expect(":=");
+                    let v = self.term();
+                    self.expect(";");
+                    let b = self.term();
+                    self.expect(")");
+                    T::Let(x, Box::new(v), Box::new(b))
+                }
+                "prim" => {
+                    self.next();
+                    let op = self.next();
+                    let mut args = Vec::new();
+                    while self.peek() != ":" {
+                        args.push(self.term());
+                    }
+                    self.next();
+                    self.next();
+                    self.expect(")");
+                    T::Prim(op, args)
+                }
+                "not" => {
+                    self.next();
+                    let a = self.term();
+                    self.expect(")");
+                    T::Not(Box::new(a))
+                }
+                _ => {
+                    let first = self.term();
+                    if ["+", "<?", "<=?", "=?", "&&", "||"].contains(&self.peek()) {
+                        let op = self.next();
+                        let b = self.term();
+                        self.expect(")");
+                        return T::Bin(op, Box::new(first), Box::new(b));
+                    }
+                    let T::Var(f) = first else {
+                        panic!("an application of a non-name")
+                    };
+                    let mut args = Vec::new();
+                    while self.peek() != ")" {
+                        args.push(self.term());
+                    }
+                    self.next();
+                    T::App(f.trim_start_matches("Prelude::").to_string(), args)
+                }
+            }
+        }
+    }
+
+    fn read(text: &str) -> T {
+        let mut r = Reader {
+            toks: tokens(text),
+            at: 0,
+        };
+        r.term()
+    }
+
+    /// The prelude's float definitions: each one's parameters and body.
+    type Defs = BTreeMap<String, (Vec<String>, T)>;
+
+    fn prelude() -> Defs {
+        let mut out = Defs::new();
+        for chunk in crate::lift::PRELUDE_SOURCE.split("definition{").skip(1) {
+            // A definition ends at its own closing brace: on a line of its own,
+            // or the last character of a one-line definition.
+            let chunk = match chunk.strip_prefix('\n') {
+                Some(rest) => &rest[..rest.find("\n}").unwrap_or(rest.len()) + 2],
+                None => chunk.lines().next().unwrap_or(chunk),
+            };
+            let field = |key: &str| chunk.split_once(key).map(|(_, r)| r);
+            let name = field("name: ").unwrap().split(',').next().unwrap().trim();
+            if !name.starts_with("float") {
+                continue;
+            }
+            let params = field("parameters: [").unwrap().split(']').next().unwrap();
+            let params = params
+                .split(',')
+                .map(|p| p.split(':').next().unwrap().trim().to_string())
+                .collect();
+            let body = field("body: ").unwrap();
+            let end = body
+                .find(",\n  recursive_argument")
+                .or_else(|| body.find(", recursive_argument"))
+                .unwrap_or_else(|| body.rfind('}').unwrap());
+            out.insert(name.to_string(), (params, read(&body[..end])));
+        }
+        out
+    }
+
+    struct Eval {
+        defs: Defs,
+        memo: std::cell::RefCell<BTreeMap<(String, Vec<V>), V>>,
+    }
+
+    impl Eval {
+        fn new() -> Eval {
+            Eval {
+                defs: prelude(),
+                memo: Default::default(),
+            }
+        }
+        fn eval(&self, t: &T, env: &BTreeMap<String, V>) -> V {
+            let e = |t: &T| self.eval(t, env);
+            match t {
+                T::Num(b) => V::N(b.clone()),
+                T::Var(x) if x == "true" => V::B(true),
+                T::Var(x) if x == "false" => V::B(false),
+                T::Var(x) => env.get(x).cloned().unwrap_or_else(|| panic!("unbound {x}")),
+                T::Not(a) => V::B(!e(a).b()),
+                T::If(c, a, b) => {
+                    if e(c).b() {
+                        e(a)
+                    } else {
+                        e(b)
+                    }
+                }
+                T::Let(x, v, b) => {
+                    let mut inner = env.clone();
+                    inner.insert(x.clone(), e(v));
+                    self.eval(b, &inner)
+                }
+                T::Match(x, z, r, s) => {
+                    let n = e(x).n();
+                    if n.is_zero() {
+                        e(z)
+                    } else {
+                        let mut inner = env.clone();
+                        inner.insert(r.clone(), V::N(n.sub(&Big::from(1))));
+                        self.eval(s, &inner)
+                    }
+                }
+                T::Bin(op, a, b) => match op.as_str() {
+                    "&&" => V::B(e(a).b() && e(b).b()),
+                    "||" => V::B(e(a).b() || e(b).b()),
+                    _ => {
+                        let (x, y) = (e(a).n(), e(b).n());
+                        match op.as_str() {
+                            "+" => V::N(x.add(&y)),
+                            "<?" => V::B(x < y),
+                            "<=?" => V::B(x <= y),
+                            "=?" => V::B(x == y),
+                            _ => panic!("operator {op}"),
+                        }
+                    }
+                },
+                T::Prim(op, args) => {
+                    let a: Vec<Big> = args.iter().map(|t| e(t).n()).collect();
+                    V::N(match op.as_str() {
+                        "subtract" => a[0].sub(&a[1]),
+                        "multiply" => a[0].mul(&a[1]),
+                        // The third operand is the value at a zero divisor.
+                        "quotient" if a[1].is_zero() => a[2].clone(),
+                        "remainder" if a[1].is_zero() => a[2].clone(),
+                        "quotient" => a[0].divmod(&a[1]).0,
+                        "remainder" => a[0].divmod(&a[1]).1,
+                        _ => panic!("primitive {op}"),
+                    })
+                }
+                T::App(f, args) => {
+                    let vals: Vec<V> = args.iter().map(e).collect();
+                    self.call(f, vals)
+                }
+            }
+        }
+        fn call(&self, f: &str, vals: Vec<V>) -> V {
+            let key = (f.to_string(), vals);
+            if let Some(v) = self.memo.borrow().get(&key) {
+                return v.clone();
+            }
+            let (params, body) = self
+                .defs
+                .get(f)
+                .unwrap_or_else(|| panic!("no definition {f}"));
+            let env = params.iter().cloned().zip(key.1.iter().cloned()).collect();
+            let v = self.eval(body, &env);
+            // The format's constants: calls on small arguments only, so the
+            // table stays small.
+            let small = key.1.iter().all(|a| match a {
+                V::N(n) => n.bits() <= 16,
+                V::B(_) => true,
+            });
+            if small {
+                self.memo.borrow_mut().insert(key, v.clone());
+            }
+            v
+        }
+        /// An operation of `f` on bit patterns.
+        fn op(&self, f: Format, op: &str, args: &[u128]) -> V {
+            let mut vals = vec![
+                V::N(Big::from(u128::from(f.exp))),
+                V::N(Big::from(u128::from(f.frac))),
+            ];
+            vals.extend(args.iter().map(|a| V::N(Big::from(*a))));
+            self.call(&format!("float{op}"), vals)
+        }
+        fn nat(&self, f: Format, op: &str, args: &[u128]) -> u128 {
+            self.op(f, op, args).n().to_u128().unwrap()
+        }
+        fn term(&self, text: &str) -> u128 {
+            self.eval(&read(text), &BTreeMap::new())
+                .n()
+                .to_u128()
+                .unwrap()
+        }
+    }
+
+    /// Run on a thread whose stack holds the evaluator's recursion.
+    fn deep(f: impl FnOnce() + Send + 'static) {
+        std::thread::Builder::new()
+            .stack_size(1 << 26)
+            .spawn(f)
+            .unwrap()
+            .join()
+            .unwrap();
+    }
+
+    const F16: Format = Format { exp: 5, frac: 10 };
+    const F32: Format = Format { exp: 8, frac: 23 };
+    const F64: Format = Format { exp: 11, frac: 52 };
+
+    fn xorshift(seed: &mut u64) -> u64 {
+        *seed ^= *seed << 13;
+        *seed ^= *seed >> 7;
+        *seed ^= *seed << 17;
+        *seed
+    }
+
+    /// Values that reach every branch: zeros, subnormals, the normal
+    /// boundaries, infinities, NaNs, and a spread of ordinary values.
+    fn samples32() -> Vec<f32> {
+        let mut out = vec![
+            0.0,
+            -0.0,
+            1.0,
+            -1.0,
+            0.5,
+            1.5,
+            2.5,
+            -2.5,
+            3.0,
+            1e-45,
+            -1e-45,
+            1.175_494_4e-38,
+            1.175_494_2e-38,
+            f32::MAX,
+            f32::MIN,
+            f32::EPSILON,
+            f32::INFINITY,
+            f32::NEG_INFINITY,
+            f32::NAN,
+            // The ends of the signed ranges `as` saturates to.
+            127.5,
+            -128.5,
+            -129.0,
+            2_147_483_648.0,
+            -2_147_483_648.0,
+            -f32::NAN,
+            f32::from_bits(0x7fa0_0001),
+            16_777_216.0,
+            16_777_217.0,
+            1e10,
+            123.456,
+            0.1,
+            1.0 + f32::EPSILON,
+            8_388_607.5,
+            4_294_967_295.0,
+            4_294_967_296.0,
+        ];
+        let mut seed = 0x2545_f491_u64;
+        for _ in 0..50 {
+            out.push(f32::from_bits(xorshift(&mut seed) as u32));
+        }
+        out
+    }
+
+    fn same32(model: u128, host: f32) -> bool {
+        if host.is_nan() {
+            f32::from_bits(model as u32).is_nan()
+        } else {
+            model == u128::from(host.to_bits())
+        }
+    }
+
+    fn bits(x: f32) -> u128 {
+        u128::from(x.to_bits())
+    }
+
+    #[test]
+    fn formats_are_read_from_cores_constants() {
+        let src = "impl f32 {\n    pub const BITS: u32 = 32;\n    pub const MANTISSA_DIGITS: u32 = 24;\n    pub const MAX_EXP: i32 = 128;\n}";
+        assert_eq!(format_of(src), Some(F32));
+        let f128 = "pub const BITS: u32 = 128;\npub const MANTISSA_DIGITS: u32 = 113;\npub const MAX_EXP: i32 = 16_384;";
+        assert_eq!(format_of(f128), Some(Format { exp: 15, frac: 112 }));
+        assert_eq!(Format::from_core(32, 24, 127), None);
+    }
+
+    #[test]
+    fn f32_arithmetic_is_the_hosts() {
+        deep(|| {
+            let ev = Eval::new();
+            let xs = samples32();
+            for &a in &xs {
+                for &b in xs.iter().step_by(3) {
+                    let (x, y) = (bits(a), bits(b));
+                    for (op, host) in [
+                        ("Add", a + b),
+                        ("Sub", a - b),
+                        ("Mul", a * b),
+                        ("Div", a / b),
+                        ("Rem", a % b),
+                    ] {
+                        let got = ev.nat(F32, op, &[x, y]);
+                        assert!(
+                            same32(got, host),
+                            "{op} {a:e} {b:e}: model {got:#x}, host {:#x}",
+                            host.to_bits()
+                        );
+                    }
+                    for (op, host) in [
+                        ("Eq", a == b),
+                        ("Ne", a != b),
+                        ("Lt", a < b),
+                        ("Le", a <= b),
+                        ("Gt", a > b),
+                        ("Ge", a >= b),
+                    ] {
+                        assert_eq!(ev.op(F32, op, &[x, y]).b(), host, "{op} {a} {b}");
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn f32_unary_operations_are_the_hosts() {
+        deep(|| {
+            let ev = Eval::new();
+            for a in samples32() {
+                let x = bits(a);
+                for (op, host) in [
+                    ("Trunc", a.trunc()),
+                    ("Floor", a.floor()),
+                    ("Ceil", a.ceil()),
+                    ("RoundHalfAway", a.round()),
+                    ("RoundTiesEven", a.round_ties_even()),
+                    ("Sqrt", a.sqrt()),
+                    ("Abs", a.abs()),
+                    ("Neg", -a),
+                ] {
+                    let got = ev.nat(F32, op, &[x]);
+                    assert!(same32(got, host), "{op} {a:e}: model {got:#x}");
+                }
+                for (op, host) in [
+                    ("IsNan", a.is_nan()),
+                    ("IsInfinite", a.is_infinite()),
+                    ("IsFinite", a.is_finite()),
+                    ("IsNormal", a.is_normal()),
+                    ("IsSubnormal", a.is_subnormal()),
+                    ("IsSignNegative", a.is_sign_negative()),
+                    ("IsSignPositive", a.is_sign_positive()),
+                ] {
+                    assert_eq!(ev.op(F32, op, &[x]).b(), host, "{op} {a}");
+                }
+                assert_eq!(
+                    ev.nat(F32, "ToNat", &[32, x]),
+                    u128::from(a as u32),
+                    "{a} as u32"
+                );
+                assert_eq!(
+                    ev.nat(F32, "ToNat", &[8, x]),
+                    u128::from(a as u8),
+                    "{a} as u8"
+                );
+                assert_eq!(
+                    ev.nat(F32, "ToInt", &[32, x]),
+                    u128::from((a as i32) as u32),
+                    "{a} as i32"
+                );
+                assert_eq!(
+                    ev.nat(F32, "ToInt", &[8, x]),
+                    u128::from((a as i8) as u8),
+                    "{a} as i8"
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn f32_binary_and_fused_operations_are_the_hosts() {
+        deep(|| {
+            let ev = Eval::new();
+            let xs = samples32();
+            // The sign of a zero result is either, for the host's `min` and for
+            // `minimumNumber`'s `nsz` form; the model puts -0 below +0.
+            let zeros = |m: u128, h: f32| h == 0.0 && f32::from_bits(m as u32) == 0.0;
+            for &a in &xs {
+                for &b in xs.iter().step_by(4) {
+                    let (x, y) = (bits(a), bits(b));
+                    assert_eq!(ev.nat(F32, "CopySign", &[x, y]), bits(a.copysign(b)));
+                    let (lo, hi) = (
+                        ev.nat(F32, "MinNum", &[x, y]),
+                        ev.nat(F32, "MaxNum", &[x, y]),
+                    );
+                    assert!(same32(lo, a.min(b)) || zeros(lo, a.min(b)), "min {a} {b}");
+                    assert!(same32(hi, a.max(b)) || zeros(hi, a.max(b)), "max {a} {b}");
+                    for &c in xs.iter().step_by(13) {
+                        let got = ev.nat(F32, "Fma", &[x, y, bits(c)]);
+                        assert!(
+                            same32(got, a.mul_add(b, c)),
+                            "fma {a:e} {b:e} {c:e}: {got:#x}"
+                        );
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn conversions_are_the_hosts() {
+        deep(|| {
+            let ev = Eval::new();
+            let (e32, m32, e64, m64) = (8, 23, 11, 52);
+            for a in samples32() {
+                let wide = ev.nat(F64, "Convert", &[e32, m32, bits(a)]);
+                assert!(
+                    same32(ev.nat(F32, "Convert", &[e64, m64, wide]), a),
+                    "{a} through f64"
+                );
+                if !a.is_nan() {
+                    assert_eq!(wide, u128::from(f64::from(a).to_bits()), "{a} as f64");
+                }
+            }
+            let mut seed = 0x9e37_79b9_7f4a_7c15_u64;
+            for _ in 0..200 {
+                let r = xorshift(&mut seed);
+                let d = f64::from_bits(r);
+                let got = ev.nat(F32, "Convert", &[e64, m64, u128::from(r)]);
+                assert!(same32(got, d as f32), "{d:e} as f32: {got:#x}");
+                let n = r >> (r % 64);
+                assert_eq!(
+                    ev.nat(F32, "OfNat", &[u128::from(n)]),
+                    bits(n as f32),
+                    "{n} as f32"
+                );
+                let i = n as i64;
+                assert_eq!(
+                    ev.nat(F32, "OfInt", &[64, u128::from(i as u64)]),
+                    bits(i as f32),
+                    "{i} as f32"
+                );
+                assert_eq!(
+                    ev.nat(F32, "OfInt", &[64, u128::from(i.wrapping_neg() as u64)]),
+                    bits(i.wrapping_neg() as f32),
+                    "-{i} as f32"
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn f64_arithmetic_is_the_hosts() {
+        deep(|| {
+            let ev = Eval::new();
+            let mut seed = 0x1234_5678_9abc_def1_u64;
+            let mut xs: Vec<f64> = vec![
+                0.0,
+                -0.0,
+                1.0,
+                0.1,
+                5e-324,
+                f64::MAX,
+                f64::INFINITY,
+                f64::NAN,
+                2.0f64.powi(-1022),
+            ];
+            for _ in 0..20 {
+                let r = xorshift(&mut seed);
+                xs.push(f64::from_bits(r));
+                xs.push(f64::from_bits(r >> 2));
+            }
+            for &a in &xs {
+                for &b in &xs {
+                    let (x, y) = (u128::from(a.to_bits()), u128::from(b.to_bits()));
+                    for (op, host) in [
+                        ("Add", a + b),
+                        ("Sub", a - b),
+                        ("Mul", a * b),
+                        ("Div", a / b),
+                        ("Rem", a % b),
+                    ] {
+                        let got = ev.nat(F64, op, &[x, y]);
+                        let ok = if host.is_nan() {
+                            f64::from_bits(got as u64).is_nan()
+                        } else {
+                            got == u128::from(host.to_bits())
+                        };
+                        assert!(
+                            ok,
+                            "{op} {a:e} {b:e}: model {got:#x}, host {:#x}",
+                            host.to_bits()
+                        );
+                    }
+                }
+                let x = u128::from(a.to_bits());
+                let got = ev.nat(F64, "Sqrt", &[x]);
+                assert!(
+                    f64::from_bits(got as u64).to_bits() == a.sqrt().to_bits() || a.sqrt().is_nan(),
+                    "sqrt {a:e}"
+                );
+            }
+        });
+    }
+
+    /// `f16` against the host's `f32` rounded to `f16`: the exact result of
+    /// two `f16`s rounded to `f32` and then to `f16` is rounded once, since
+    /// `24 >= 2 * 11 + 2`.
+    #[test]
+    fn f16_arithmetic_is_the_hosts_rounded_twice() {
+        deep(|| {
+            let ev = Eval::new();
+            let to32 = |x: u128| f32::from_bits(ev.nat(F32, "Convert", &[5, 10, x]) as u32);
+            let narrow = |h: f32| ev.nat(F16, "Convert", &[8, 23, bits(h)]);
+            let nan = |b: u128| (b & 0x7fff) > 0x7c00;
+            let mut xs: Vec<u128> = (0..1u128 << 16).step_by(1597).collect();
+            xs.extend([
+                0, 0x8000, 0x7c00, 0xfc00, 0x0001, 0x03ff, 0x0400, 0x7bff, 0x3c00,
+            ]);
+            for &x in &xs {
+                let a = to32(x);
+                let same = |got: u128, h: f32| {
+                    let want = narrow(h);
+                    if nan(want) {
+                        nan(got)
+                    } else {
+                        got == want
+                    }
+                };
+                assert!(same(ev.nat(F16, "Sqrt", &[x]), a.sqrt()), "sqrt {x:#x}");
+                for &y in xs.iter().step_by(3) {
+                    let b = to32(y);
+                    for (op, h) in [
+                        ("Add", a + b),
+                        ("Sub", a - b),
+                        ("Mul", a * b),
+                        ("Div", a / b),
+                    ] {
+                        assert!(same(ev.nat(F16, op, &[x, y]), h), "{op} {x:#x} {y:#x}");
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn literals_and_named_constants_round_to_nearest() {
+        deep(|| {
+            let ev = Eval::new();
+            for text in [
+                "0",
+                "-0",
+                "1",
+                "0.1",
+                "9.99999974E-5",
+                "1.0E+10",
+                "3.4028235E+38",
+                "1.0E-45",
+                "1.0E+39",
+                "+Inf",
+                "-Inf",
+            ] {
+                let host: f32 = text.replace("Inf", "inf").parse().unwrap();
+                assert_eq!(ev.term(&literal(F32, text).unwrap()), bits(host), "{text}");
+            }
+            for text in [
+                "1.0E+22",
+                "1.0E-4",
+                "2.2250738585072014E-308",
+                "5.0E-324",
+                "0.30000000000000004",
+            ] {
+                let host: f64 = text.parse().unwrap();
+                let got = ev.term(&literal(F64, text).unwrap());
+                assert_eq!(got, u128::from(host.to_bits()), "{text}");
+            }
+            assert!(f32::from_bits(ev.term(&literal(F32, "NaN").unwrap()) as u32).is_nan());
+            for (name, host) in [
+                ("NAN", f32::NAN),
+                ("INFINITY", f32::INFINITY),
+                ("NEG_INFINITY", f32::NEG_INFINITY),
+                ("MAX", f32::MAX),
+                ("MIN", f32::MIN),
+                ("MIN_POSITIVE", f32::MIN_POSITIVE),
+                ("EPSILON", f32::EPSILON),
+            ] {
+                assert_eq!(ev.term(&literal(F32, name).unwrap()), bits(host), "{name}");
+            }
+        });
+    }
+
+    /// Every operation the lowering names is a definition of the prelude.
+    #[test]
+    fn every_operation_the_tables_name_is_defined() {
+        let defs = prelude();
+        let named = INTRINSICS
+            .iter()
+            .map(|(_, op, _)| *op)
+            .chain(METHODS.iter().map(|m| m.2).filter(|op| !op.is_empty()))
+            .chain(NAMED.iter().map(|(_, op)| *op))
+            .chain([
+                "Convert",
+                "OfNat",
+                "ToNat",
+                "OfInt",
+                "ToInt",
+                "OfDecimal",
+                "Signed",
+            ]);
+        for op in named {
+            assert!(defs.contains_key(&format!("float{op}")), "float{op}");
+        }
+    }
+}
