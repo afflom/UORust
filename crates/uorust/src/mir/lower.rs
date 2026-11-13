@@ -61,6 +61,8 @@ pub(crate) struct Cx<'a> {
     /// The crate's constant bodies (promoted constants and constant
     /// items), by the path MIR prints for them.
     pub(crate) consts: &'a BTreeMap<String, IrBody>,
+    /// The closures' bodies, by the closure's type as MIR prints it.
+    pub(crate) closures: &'a BTreeMap<String, IrBody>,
     /// The std instances being translated, outermost first: one that would
     /// translate itself again is residue.
     pub(crate) active: &'a [String],
@@ -81,6 +83,7 @@ impl<'a> Cx<'a> {
             explicit: self.explicit,
             limit: self.limit,
             consts: self.consts,
+            closures: self.closures,
             active,
         }
     }
@@ -107,9 +110,13 @@ enum Val {
     Checked(String, String, Ty),
     /// The discriminant of the value at a place.
     Disc(IrPlace),
-    /// A mutable borrow of a whole local: a call that takes it returns the
-    /// local's new value as well (its backward function, as in Aeneas).
-    Mut(IrLocal),
+    /// A mutable borrow of a place (a local or a part of one): a call that
+    /// takes it returns the place's new value as well (its backward
+    /// function, as in Aeneas), and a write through it writes the place.
+    Mut(IrPlace),
+    /// A closure's environment `_1`, the first parameter of the closure's
+    /// definition: its name, its type, and the type of each capture.
+    Env(String, Ty, Vec<Ty>),
     /// An `Option` of an item type that is `Some(value)` exactly where
     /// `guard` holds: a switch on its discriminant is an `if` on the guard,
     /// so a loop that runs while an iterator yields exits on an order of
@@ -193,6 +200,20 @@ struct Fun<'a, 'c> {
     /// Terms of a fixed-width unsigned type, with its width on every
     /// declared target: a value of `u32` is at most `u32::MAX`.
     ranged: BTreeMap<String, u32>,
+    /// The `&mut` parameters of a body the path translates for its caller
+    /// (a std instance or a closure): each holds the borrowed value, which
+    /// writes through it replace.
+    mut_params: BTreeSet<IrLocal>,
+}
+
+/// The type a `&mut T` (or `&'a mut T`) points to, as printed.
+fn mut_target(text: &str) -> Option<&str> {
+    let rest = text.trim().strip_prefix('&')?;
+    let rest = match rest.strip_prefix('\'') {
+        Some(r) => r.split_once(' ').map_or(r, |(_, r)| r),
+        None => rest,
+    };
+    rest.strip_prefix("mut ")
 }
 
 /// The residue a kind of MIR becomes where it is not lowered.
@@ -234,11 +255,41 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         evidence: Vec::new(),
         measure: None,
         ranged: BTreeMap::new(),
+        mut_params: BTreeSet::new(),
     };
     f.used.insert(name.to_string());
     f.result = f.local_ty(0)?;
     let mut st = State::default();
+    // A closure's definition takes its environment first (the struct of its
+    // captures), then its arguments.
+    let closure = super::closure_type(body);
+    if let Some(ct) = &closure {
+        let mut captures = Vec::new();
+        for (k, up) in body.upvars.iter().enumerate() {
+            let Some((_, t)) = up else {
+                return Err(kind(
+                    spec::MirAggregateKind::Closure.path(),
+                    &format!("a capture {k} debug info does not name"),
+                ));
+            };
+            captures.push(ty(t, cx.types)?);
+        }
+        let et = ty(ct, cx.types)?;
+        let p = f.fresh(Some("env"), 1);
+        f.params.push((p.clone(), et.clone()));
+        st.env.insert(1, Val::Env(p, et, captures));
+    }
+    let closure = closure.is_some();
+    // A body translated for its caller reads its `&mut` parameters as the
+    // values they borrow.
+    let internal = !cx.active.is_empty();
     for l in 1..=body.arity {
+        if closure && l == 1 {
+            continue;
+        }
+        if internal && body.locals.get(l).and_then(|t| mut_target(t)).is_some() {
+            f.mut_params.insert(l);
+        }
         let ty = f.local_ty(l)?;
         let p = f.fresh(body.names.get(l).cloned().flatten().as_deref(), l);
         st.env.insert(l, Val::V(p.clone(), ty.clone()));
@@ -310,7 +361,10 @@ impl Fun<'_, '_> {
             .locals
             .get(l)
             .ok_or_else(|| kind("IrBody", "a local without a declaration"))?;
-        ty(text, self.cx.types)
+        match mut_target(text) {
+            Some(target) if self.mut_params.contains(&l) => ty(target, self.cx.types),
+            _ => ty(text, self.cx.types),
+        }
     }
 
     /// The width `usize` has on the narrowest declared target.
@@ -649,7 +703,7 @@ impl Fun<'_, '_> {
                     args,
                     target: Some(n),
                 } if destination.projection.is_empty() && !self.loops.contains_key(n) => {
-                    self.call_into(destination, callee, args, &mut st)?;
+                    self.call_into(destination, callee, args, *n, &mut st)?;
                     b = *n;
                 }
                 IrTerminator::Switch(op, arms, otherwise) => {
@@ -830,10 +884,146 @@ impl Fun<'_, '_> {
                     // path to it must be unreachable.
                     return self.unreachable(&st, callee);
                 };
-                self.call_into(destination, callee, args, &mut st)?;
+                self.call_into(destination, callee, args, *target, &mut st)?;
                 self.goto(*target, st)
             }
             IrTerminator::Other(k, _) => Err(kind(k.path(), "")),
+        }
+    }
+
+    /// The place a mutable borrow of `p` borrows: through a borrow it
+    /// reborrows, the place that borrow borrows; a `&mut` parameter is the
+    /// value it holds.
+    fn borrowed(&self, p: &IrPlace, st: &State) -> Lift<IrPlace> {
+        match (st.env.get(&p.local), p.projection.split_first()) {
+            (Some(Val::Mut(q)), Some((IrProjection::Deref, rest))) => {
+                let mut q = q.clone();
+                q.projection.extend(rest.iter().cloned());
+                Ok(q)
+            }
+            (_, Some((IrProjection::Deref, rest))) if self.mut_params.contains(&p.local) => {
+                Ok(IrPlace {
+                    local: p.local,
+                    projection: rest.to_vec(),
+                })
+            }
+            (Some(Val::V(..)), _)
+                if p.projection
+                    .iter()
+                    .all(|s| matches!(s, IrProjection::Field(..))) =>
+            {
+                Ok(p.clone())
+            }
+            _ => Err(kind(
+                spec::MirRvalue::Ref.path(),
+                "BorrowKind::Mut of a place behind a shared reference",
+            )),
+        }
+    }
+
+    /// Write `v` into the place `p`: a local takes it, a part of a local's
+    /// value is replaced in a new value of the local, and a write through a
+    /// mutable borrow writes the place it borrows.
+    fn write(&mut self, p: &IrPlace, v: Val, st: &mut State) -> Lift<()> {
+        let k = spec::MirStatementKind::Assign.path();
+        if let (Some(Val::Mut(q)), Some((IrProjection::Deref, rest))) =
+            (st.env.get(&p.local), p.projection.split_first())
+        {
+            let mut q = q.clone();
+            q.projection.extend(rest.iter().cloned());
+            return self.write(&q, v, st);
+        }
+        let steps: Vec<IrProjection> = p
+            .projection
+            .iter()
+            .filter(|s| !(matches!(s, IrProjection::Deref) && self.mut_params.contains(&p.local)))
+            .cloned()
+            .collect();
+        if steps.is_empty() {
+            st.env.insert(p.local, v);
+            return Ok(());
+        }
+        let Val::V(new, _) = v else {
+            return Err(kind(k, "a pair or a borrow written into a part of a value"));
+        };
+        let Some(Val::V(whole, wt)) = st.env.get(&p.local).cloned() else {
+            return Err(kind(
+                k,
+                "a write into a part of a local that holds no value",
+            ));
+        };
+        let updated = self.replace(&whole, &wt, &steps, &new)?;
+        self.grow(&updated)?;
+        st.env.insert(p.local, Val::V(updated, wt));
+        Ok(())
+    }
+
+    /// `whole` with the part `steps` reach replaced by `new`.
+    fn replace(&mut self, whole: &str, t: &Ty, steps: &[IrProjection], new: &str) -> Lift<String> {
+        let k = spec::MirStatementKind::Assign.path();
+        let Some((step, rest)) = steps.split_first() else {
+            return Ok(new.to_string());
+        };
+        let IrProjection::Field(i, _) = step else {
+            let step = match step {
+                IrProjection::Deref => spec::MirProjectionElem::Deref,
+                IrProjection::Index(_) => spec::MirProjectionElem::Index,
+                IrProjection::Downcast(_) => spec::MirProjectionElem::Downcast,
+                IrProjection::Other(k, _) => *k,
+                IrProjection::Field(..) => spec::MirProjectionElem::Field,
+            };
+            return Err(kind(k, &format!("a write through {}", step.path())));
+        };
+        let part = self.field(whole, t, *i)?;
+        let pt = self.field_ty(t, *i)?;
+        let inner = self.replace(&part, &pt, rest, new)?;
+        match t {
+            Ty::Tuple(ts) | Ty::Pair(ts) => {
+                let items: Vec<String> = (0..ts.len())
+                    .map(|j| {
+                        if j == *i {
+                            inner.clone()
+                        } else {
+                            lift::tuple_item(t, whole, j)
+                        }
+                    })
+                    .collect();
+                Ok(lift::tuple_value(t, &items))
+            }
+            Ty::Named(n) => {
+                let fields = self.cx.types.structs.get(n).cloned().unwrap_or_default();
+                let mut parts = Vec::new();
+                for (j, (f, _)) in fields.iter().enumerate() {
+                    let v = if j == *i {
+                        inner.clone()
+                    } else {
+                        self.field(whole, t, j)?
+                    };
+                    parts.push((f, v));
+                }
+                Ok(lift::struct_value(n, &parts, self.cx.types))
+            }
+            _ => Err(kind(k, &format!("a write into a field of {}", t.render()))),
+        }
+    }
+
+    /// The type of the `i`-th field of a struct or tuple type.
+    fn field_ty(&self, t: &Ty, i: usize) -> Lift<Ty> {
+        let k = spec::MirProjectionElem::Field.path();
+        match t {
+            Ty::Tuple(ts) | Ty::Pair(ts) => ts
+                .get(i)
+                .cloned()
+                .ok_or_else(|| kind(k, "a field past the tuple's")),
+            Ty::Named(n) => self
+                .cx
+                .types
+                .structs
+                .get(n)
+                .and_then(|fs| fs.get(i))
+                .map(|(_, t)| t.clone())
+                .ok_or_else(|| kind(k, &format!("a field of {n}, which is not a struct"))),
+            _ => Err(kind(k, &format!("a field of {}", t.render()))),
         }
     }
 
@@ -844,6 +1034,7 @@ impl Fun<'_, '_> {
         destination: &IrPlace,
         callee: &str,
         args: &[IrOperand],
+        target: IrBlockId,
         st: &mut State,
     ) -> Lift<()> {
         if !destination.projection.is_empty() {
@@ -854,7 +1045,7 @@ impl Fun<'_, '_> {
         }
         let mut vals = Vec::new();
         let mut texts = Vec::new();
-        let mut borrowed: BTreeMap<usize, IrLocal> = BTreeMap::new();
+        let mut borrowed: BTreeMap<usize, IrPlace> = BTreeMap::new();
         for (i, a) in args.iter().enumerate() {
             let whole = match a {
                 IrOperand::Copy(p) | IrOperand::Move(p) if p.projection.is_empty() => Some(p.local),
@@ -862,14 +1053,10 @@ impl Fun<'_, '_> {
             };
             texts.push(whole.and_then(|l| self.body.locals.get(l).cloned()));
             match whole.and_then(|l| st.env.get(&l)) {
-                Some(Val::Mut(l)) => {
-                    let l = *l;
-                    borrowed.insert(i, l);
-                    let through = IrPlace {
-                        local: l,
-                        projection: Vec::new(),
-                    };
-                    vals.push(self.read(&through, st)?);
+                Some(Val::Mut(place)) => {
+                    let place = place.clone();
+                    vals.push(self.read(&place, st)?);
+                    borrowed.insert(i, place);
                 }
                 _ => vals.push(self.operand(a, st)?),
             }
@@ -879,8 +1066,12 @@ impl Fun<'_, '_> {
         let called = self.call(callee, vals.clone(), &texts, &dest_text, &dt, st)?;
         // Each mutably borrowed local takes the value the call's backward
         // function gives it.
-        for (i, l) in borrowed {
+        for (i, place) in borrowed {
             let Some(new) = called.updates.get(&i) else {
+                // A borrowed value no one reads again needs no new value.
+                if !self.live_at(target).contains(&place.local) {
+                    continue;
+                }
                 return Err(kind(
                     spec::MirRvalue::Ref.path(),
                     &format!(
@@ -890,7 +1081,7 @@ impl Fun<'_, '_> {
                 ));
             };
             self.grow(new)?;
-            st.env.insert(l, Val::V(new.clone(), vals[i].1.clone()));
+            self.write(&place, Val::V(new.clone(), vals[i].1.clone()), st)?;
         }
         let v = called.term;
         let value = match (called.guard, &dt) {
@@ -1129,22 +1320,29 @@ impl Fun<'_, '_> {
             IrStatement::Marker(_) | IrStatement::Assume(_) => Ok(()),
             IrStatement::Other(k, _) => Err(kind(k.path(), "")),
             IrStatement::Assign(p, rv) => {
-                if !p.projection.is_empty() {
-                    let step = match &p.projection[0] {
-                        IrProjection::Deref => spec::MirProjectionElem::Deref,
-                        IrProjection::Field(..) => spec::MirProjectionElem::Field,
-                        IrProjection::Index(_) => spec::MirProjectionElem::Index,
-                        IrProjection::Downcast(_) => spec::MirProjectionElem::Downcast,
-                        IrProjection::Other(k, _) => *k,
-                    };
-                    return Err(kind(
-                        spec::MirStatementKind::Assign.path(),
-                        &format!("a write through {}", step.path()),
-                    ));
+                if p.projection.is_empty() {
+                    let v = self.rvalue(rv, p.local, st)?;
+                    st.env.insert(p.local, v);
+                    return Ok(());
                 }
-                let v = self.rvalue(rv, p.local, st)?;
-                st.env.insert(p.local, v);
-                Ok(())
+                // A write into a place: the rvalue at the place's type.
+                let v = match rv {
+                    IrRvalue::Use(o) => {
+                        let (v, t) = self.operand(o, st)?;
+                        Val::V(v, t)
+                    }
+                    IrRvalue::Ref(spec::MirBorrowKind::Shared, q) | IrRvalue::CopyForDeref(q) => {
+                        let (v, t) = self.read(q, st)?;
+                        Val::V(v, t)
+                    }
+                    _ => {
+                        return Err(kind(
+                            spec::MirStatementKind::Assign.path(),
+                            "a write into a place of an rvalue other than a value",
+                        ))
+                    }
+                };
+                self.write(p, v, st)
             }
         }
     }
@@ -1306,13 +1504,46 @@ impl Fun<'_, '_> {
                     "a discriminant read as a value",
                 ))
             }
-            // Through a mutable borrow: the borrowed local's current value.
-            Val::Mut(l) => match p.projection.split_first() {
+            // A capture of a closure's environment: the environment itself
+            // where it is the one capture, else that item of it.
+            Val::Env(env, et, captures) => {
+                let mut rest = p.projection.as_slice();
+                if let Some((IrProjection::Deref, r)) = rest.split_first() {
+                    rest = r;
+                }
+                let Some((IrProjection::Field(k, _), rest)) = rest.split_first() else {
+                    return Err(kind(
+                        spec::MirAggregateKind::Closure.path(),
+                        "a closure's environment read whole",
+                    ));
+                };
+                let t = captures.get(*k).cloned().ok_or_else(|| {
+                    kind(
+                        spec::MirAggregateKind::Closure.path(),
+                        "a capture past the environment's",
+                    )
+                })?;
+                let n = if captures.len() == 1 {
+                    env.clone()
+                } else {
+                    lift::tuple_item(&et, &env, *k)
+                };
+                // The capture as a local of its own, read on through the
+                // rest of the place.
+                let id = self.body.locals.len() + 1 + *k;
+                let mut inner = st.clone();
+                inner.env.insert(id, Val::V(n, t));
+                let through = IrPlace {
+                    local: id,
+                    projection: rest.to_vec(),
+                };
+                return self.read(&through, &inner);
+            }
+            // Through a mutable borrow: the borrowed place's current value.
+            Val::Mut(q) => match p.projection.split_first() {
                 Some((IrProjection::Deref, rest)) => {
-                    let through = IrPlace {
-                        local: l,
-                        projection: rest.to_vec(),
-                    };
+                    let mut through = q.clone();
+                    through.projection.extend(rest.iter().cloned());
                     return self.read(&through, st);
                 }
                 _ => {
@@ -1477,7 +1708,6 @@ impl Fun<'_, '_> {
     }
 
     fn rvalue(&mut self, rv: &IrRvalue, dest: IrLocal, st: &mut State) -> Lift<Val> {
-        use spec::MirRvalue as R;
         match rv {
             IrRvalue::Use(o) => {
                 let (v, t) = self.operand(o, st)?;
@@ -1488,18 +1718,7 @@ impl Fun<'_, '_> {
                 let (v, t) = self.read(p, st)?;
                 Ok(Val::V(v, t))
             }
-            IrRvalue::Ref(spec::MirBorrowKind::Mut, p) => match p.projection.as_slice() {
-                [] => Ok(Val::Mut(p.local)),
-                // A reborrow through a mutable borrow is that borrow.
-                [IrProjection::Deref] => match st.env.get(&p.local) {
-                    Some(Val::Mut(l)) => Ok(Val::Mut(*l)),
-                    _ => Err(kind(
-                        R::Ref.path(),
-                        "BorrowKind::Mut of a place behind a reference",
-                    )),
-                },
-                _ => Err(kind(R::Ref.path(), "BorrowKind::Mut of a part of a value")),
-            },
+            IrRvalue::Ref(spec::MirBorrowKind::Mut, p) => self.borrowed(p, st).map(Val::Mut),
             IrRvalue::Discriminant(p) => Ok(Val::Disc(p.clone())),
             IrRvalue::Unary(op, o) => {
                 let (v, t) = self.operand(o, st)?;
@@ -1514,6 +1733,7 @@ impl Fun<'_, '_> {
                 }
             }
             IrRvalue::Binary(op, a, b) => self.binary(*op, a, b, st),
+            IrRvalue::Aggregate(IrAggregate::Closure(ct), ops) => self.closure_value(ct, ops, st),
             IrRvalue::Aggregate(agg, ops) => {
                 let t = self.local_ty(dest)?;
                 let mut vals = Vec::new();
@@ -1684,6 +1904,8 @@ impl Fun<'_, '_> {
         match (agg, t) {
             (IrAggregate::Tuple, Ty::Unit) if vals.is_empty() => Ok("()".into()),
             (IrAggregate::Tuple, Ty::Tuple(_) | Ty::Pair(_)) => Ok(lift::tuple_value(t, &vals)),
+            // A tuple of one item is the item.
+            (IrAggregate::Tuple, _) if vals.len() == 1 => Ok(vals[0].clone()),
             (IrAggregate::Array, Ty::List(e)) => {
                 let mut out = format!("(nil {})", e.render());
                 for v in vals.iter().rev() {
@@ -1746,8 +1968,89 @@ impl Fun<'_, '_> {
                 Ok(lift::struct_value(n, &parts, self.cx.types))
             }
             (IrAggregate::Other(a), _) => Err(kind(a.path(), "")),
+            (IrAggregate::Closure(_), _) => Err(kind(
+                spec::MirAggregateKind::Closure.path(),
+                "a closure built where its type is not a function",
+            )),
             _ => Err(kind(k, &format!("of {}", t.render()))),
         }
+    }
+
+    /// The definition a closure's MIR body lifts to (its captures as its
+    /// first parameters, then its arguments), lowered on first use: its
+    /// name and the number of captures.
+    fn closure_def(&mut self, closure: &str) -> Lift<(String, usize)> {
+        let k = spec::MirAggregateKind::Closure.path();
+        let body = self
+            .cx
+            .closures
+            .get(closure)
+            .ok_or_else(|| kind(k, "a closure whose body the dump does not hold"))?;
+        let segs: Vec<String> = std::iter::once("closure".to_string())
+            .chain(
+                body.path
+                    .split(|c: char| !c.is_ascii_alphanumeric())
+                    .filter(|s| !s.is_empty() && *s != "closure")
+                    .map(str::to_string),
+            )
+            .collect();
+        let parts: Vec<&str> = segs.iter().map(String::as_str).collect();
+        let name = crate::lex::camel(&parts);
+        if self.cx.active.contains(&name) {
+            return Err(kind(k, &format!("{}, which calls itself", body.path)));
+        }
+        if !self.aux.contains_key(&name) {
+            let mut active = self.cx.active.to_vec();
+            active.push(name.clone());
+            let cx = self.cx.within(&active);
+            let lowered = lower(&cx, body, &name)
+                .map_err(|r| kind(k, &format!("{}: {}", body.path, r.detail())))?;
+            for d in lowered.decls {
+                self.aux.insert(d.name().to_string(), d);
+            }
+            for (n, d) in lowered.aux {
+                self.aux.entry(n).or_insert(d);
+            }
+            self.calls.extend(lowered.calls);
+            self.types.extend(lowered.types);
+        }
+        self.calls.insert(name.clone());
+        Ok((name, body.upvars.len()))
+    }
+
+    /// A closure's value: its environment, the values it captures (as Rust
+    /// holds them, a closure is the struct of its captures), whose type is
+    /// the closure's type; a call of it applies the closure's definition to
+    /// them and to the arguments.
+    fn closure_value(
+        &mut self,
+        closure: &str,
+        ops: &[(Option<String>, IrOperand)],
+        st: &State,
+    ) -> Lift<Val> {
+        let k = spec::MirAggregateKind::Closure.path();
+        self.closure_def(closure)?;
+        let upvars = self.cx.closures[closure].upvars.clone();
+        let mut values = Vec::new();
+        for (j, up) in upvars.iter().enumerate() {
+            let by_name = up.as_ref().and_then(|(n, _)| {
+                ops.iter()
+                    .find(|(f, _)| f.as_deref() == Some(n.as_str()))
+                    .map(|(_, o)| o)
+            });
+            let o = by_name
+                .or_else(|| ops.get(j).map(|(_, o)| o))
+                .ok_or_else(|| kind(k, "a capture the closure is not given"))?;
+            values.push(self.operand(o, st)?.0);
+        }
+        let t = ty(closure, self.cx.types)?;
+        self.mention(&t);
+        let term = match values.len() {
+            0 => "()".to_string(),
+            1 => values.remove(0),
+            _ => lift::tuple_value(&t, &values),
+        };
+        Ok(Val::V(term, t))
     }
 
     /// A call: a function the lift has, or one of the standard library's
@@ -1762,6 +2065,47 @@ impl Fun<'_, '_> {
         st: &mut State,
     ) -> Lift<Called> {
         let k = spec::MirTerminatorKind::Call.path();
+        // A call of a closure through `Fn`, `FnMut` or `FnOnce`: its
+        // definition applied to the captures its environment holds and to
+        // the arguments, which MIR passes as one tuple. The environment is
+        // unchanged by the call.
+        let erased = erase(callee);
+        let through_fn = erased
+            .strip_prefix('<')
+            .and_then(|r| r.rsplit_once(">::"))
+            .and_then(|(q, m)| {
+                let (on, tr) = q.split_once(" as ")?;
+                let fun = matches!(split_path(tr).last(), Some(&("Fn" | "FnMut" | "FnOnce")))
+                    && matches!(m, "call" | "call_mut" | "call_once");
+                fun.then(|| {
+                    on.trim_start_matches('&')
+                        .trim_start_matches("mut ")
+                        .to_string()
+                })
+            });
+        if let Some(closure) = through_fn.filter(|c| c.starts_with("{closure@")) {
+            let (name, captured) = self.closure_def(&closure)?;
+            let [(env, et), (a, at)] = args.as_slice() else {
+                return Err(kind(k, "a closure called without its arguments' tuple"));
+            };
+            let _ = (captured, et);
+            let mut items: Vec<String> = vec![env.clone()];
+            let inputs = self.cx.closures[&closure].arity.saturating_sub(1);
+            match (inputs, at) {
+                (0, _) => {}
+                (1, _) => items.push(a.clone()),
+                (n, Ty::Tuple(ts) | Ty::Pair(ts)) if ts.len() == n => {
+                    items.extend((0..n).map(|j| lift::tuple_item(at, a, j)));
+                }
+                _ => return Err(kind(k, "a closure applied to another arity")),
+            }
+            let term = format!("({name} {})", items.join(" "));
+            return Ok(Called {
+                term,
+                updates: BTreeMap::from([(0, env.clone())]),
+                guard: None,
+            });
+        }
         let key = format!("{}::{callee}", self.cx.krate);
         // A trait method of one of the crate's types is its impl's method.
         let own = callee
@@ -2288,6 +2632,16 @@ fn inhabited_variant(text: &str) -> Option<Inhabited> {
     }
 }
 
+/// A std type as std's own bodies print it, without its crate
+/// (`slice::iter::Iter<'_, T>` inside core): the table's model of it.
+fn std_printed(segs: &[&str], name: &str, args: &[Ty]) -> Option<Ty> {
+    if segs.len() < 2 {
+        return None;
+    }
+    let head: Vec<&str> = segs[..segs.len() - 1].to_vec();
+    stdlib::model_type(&format!("{}::{name}", head.join("::")), args)
+}
+
 /// A type as MIR prints it, as the lift names it.
 pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     let t = text.trim();
@@ -2319,6 +2673,22 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
     }
     if t == "()" {
         return Ok(Ty::Unit);
+    }
+    // A closure is the struct of its captures, as Rust holds it: the unit,
+    // the one value it captures, or the tuple of them.
+    if t.starts_with("{closure@") {
+        let Some(captures) = types.closures.get(t) else {
+            return bad();
+        };
+        let mut ts = Vec::new();
+        for c in captures {
+            ts.push(ty(c, types)?);
+        }
+        return Ok(match ts.len() {
+            0 => Ty::Unit,
+            1 => ts.remove(0),
+            _ => Ty::Tuple(ts),
+        });
     }
     if let Some(inner) = t.strip_prefix('(').and_then(|r| r.strip_suffix(')')) {
         let parts: Vec<&str> = split_top(inner, ',')
@@ -2403,10 +2773,10 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             {
                 Ty::Named(r)
             } else {
-                return bad();
+                return std_printed(&segs, name, &args).ok_or_else(|| Residue::Type(t.to_string()));
             }
         }
-        _ => return bad(),
+        _ => return std_printed(&segs, name, &args).ok_or_else(|| Residue::Type(t.to_string())),
     })
 }
 

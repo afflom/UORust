@@ -225,6 +225,21 @@ pub(crate) struct Dumps {
     /// The constants' bodies (promoted constants and constant items), by
     /// crate and the path MIR prints for them where they are used.
     pub(crate) consts: BTreeMap<String, BTreeMap<String, IrBody>>,
+    /// The closures' bodies, by crate and the closure's type as MIR prints
+    /// it, `{closure@file:l:c: l:c}`.
+    pub(crate) closures: BTreeMap<String, BTreeMap<String, IrBody>>,
+}
+
+/// The type of the closure whose body this is: its environment `_1`'s type,
+/// by value or behind a reference.
+pub(crate) fn closure_type(body: &IrBody) -> Option<String> {
+    if !body.path.contains("{closure#") {
+        return None;
+    }
+    let env = body.locals.get(1)?;
+    let at = env.find("{closure@")?;
+    let end = at + env[at..].find('}')?;
+    Some(env[at..=end].to_string())
 }
 
 /// Read the dumps under `dir`, resolving each `<impl at file:l:c: l:c>` to
@@ -275,6 +290,13 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
                         .entry(krate.clone())
                         .or_default()
                         .insert(body.path.clone(), body.clone());
+                }
+                if let Some(t) = closure_type(&body) {
+                    dumps
+                        .closures
+                        .entry(krate.clone())
+                        .or_default()
+                        .insert(t, body.clone());
                 }
                 let Some(path) = resolve_impls(root, &body.path) else {
                     continue;

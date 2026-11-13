@@ -156,9 +156,8 @@ fn aggregate(k: MirAggregateKind) -> Coverage {
         A::Tuple => Coverage::Lowered("the lift's tuple"),
         A::Array => Coverage::Lowered("the list of its items"),
         A::Adt => Coverage::Lowered("a struct record, or a variant's constructor"),
-        A::Closure | A::Coroutine | A::CoroutineClosure => {
-            Coverage::Residue("a closure or coroutine value")
-        }
+        A::Closure => Coverage::Lowered("the value of its captures, its body a definition"),
+        A::Coroutine | A::CoroutineClosure => Coverage::Residue("a coroutine value"),
         A::RawPtr => Coverage::Residue(BORROWS),
     }
 }

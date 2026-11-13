@@ -1283,6 +1283,10 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
         "name: walkFirstRiseLoop2,",
         "measure: (prim subtract (project iter item2) (project iter item1) : Nat)",
         "name: stdAtNat,",
+        // A closure: a definition over the value of its captures, called
+        // from std's `find`, which is lifted from std's own MIR.
+        "name: closureFirstNamed0,",
+        "name: stdSliceIterIterFindClosure",
     ] {
         assert!(behavior.contains(decl), "the trial projection lacks {decl}");
     }
@@ -1313,6 +1317,8 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
         "walk::first_rise",
         "walk::sum_until",
         "walk::second_known",
+        // A closure passed to std's `find`.
+        "walk::first_named",
     ] {
         assert!(
             lifted_functions(&decided).contains(&f.to_string()),
@@ -1323,6 +1329,10 @@ fn the_mir_path_translates_and_admits_on_verdicts_ue_17() {
     assert!(!decided.contains_key(uorust::mir::CANDIDATES));
     let count = residue_detail(&decided, "walk::count").expect("count is residue");
     assert!(count.starts_with("mir::Verdict: LLV"), "{count}");
+    // A loop helper whose fixed parameter only a closure's capture uses:
+    // Lean's `decreasing_by` context drops it, so the verifier refuses.
+    let any = residue_detail(&decided, "walk::any_above").expect("any_above is residue");
+    assert!(any.starts_with("mir::Verdict: LLV"), "{any}");
     // The MIR path only adds: whatever lifts without it lifts with it.
     let surface = project(&mir_fixture(), "walk");
     for f in lifted_functions(&surface) {

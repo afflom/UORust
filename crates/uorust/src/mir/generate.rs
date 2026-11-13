@@ -142,7 +142,14 @@ pub(crate) fn std_mir(dumps: &std::path::Path, lift: &[String]) -> String {
             if line.starts_with("// MIR for") || (out.is_empty() && line.is_empty()) {
                 continue;
             }
-            let line = named_impls(line);
+            let mut line = named_impls(line);
+            // An impl a macro writes (`impl Iterator for $name<'a, T>`) is
+            // named by the type of the body's receiver.
+            if line.starts_with("fn ") && line.contains("<impl ?>") {
+                if let Some(t) = receiver_type(&line) {
+                    line = line.replacen("<impl ?>", &format!("<impl {t}>"), 1);
+                }
+            }
             if let Some(head) = line.strip_prefix("fn ") {
                 path = format!("{krate}::{}", head.split('(').next().unwrap_or(head));
                 out.push_str(&format!("fn {krate}::{head}\n"));
@@ -156,6 +163,24 @@ pub(crate) fn std_mir(dumps: &std::path::Path, lift: &[String]) -> String {
         }
     }
     bodies.into_values().collect::<Vec<_>>().join("\n")
+}
+
+/// The name of the type of a body's receiver `_1`, from its header:
+/// `Iter` of `fn f(_1: &mut slice::iter::Iter<'_, T>)`.
+fn receiver_type(header: &str) -> Option<String> {
+    let at = header.find("(_1: ")? + "(_1: ".len();
+    let rest = &header[at..];
+    let end = rest.find([',', ')']).unwrap_or(rest.len());
+    let mut t = rest[..end].trim();
+    t = t.trim_start_matches('&');
+    if let Some(r) = t.strip_prefix('\'') {
+        t = r.split_once(' ').map_or(r, |(_, r)| r);
+    }
+    t = t.strip_prefix("mut ").unwrap_or(t);
+    let head = t.split('<').next().unwrap_or(t);
+    let name = head.rsplit("::").next()?.trim();
+    (!name.is_empty() && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
+        .then(|| name.to_string())
 }
 
 /// `line` with each `<impl at file:span>` named by the type it implements.

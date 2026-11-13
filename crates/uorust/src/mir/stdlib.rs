@@ -275,18 +275,52 @@ pub(crate) fn key(path: &str) -> String {
                     t.split('<').next().unwrap_or(t).to_string()
                 };
             }
-            // `<&[X] as Trait>`: the trait's impl on (references to)
-            // slices of any item type.
-            match s.strip_prefix('<').and_then(|r| r.split_once(" as ")) {
-                Some((on, tr)) if on.trim_start_matches('&').starts_with('[') => {
-                    let refs = on.len() - on.trim_start_matches('&').len();
-                    format!("<{}[] as {tr}", "&".repeat(refs))
+            // `<X as Trait>`: by X's module and name and the trait's name,
+            // so a type std re-exports at a shorter path than the module
+            // that defines it (`std::slice::Iter`, `core::slice::iter::Iter`
+            // inside core), and an impl on slices of any item, key alike.
+            match s
+                .strip_prefix('<')
+                .and_then(|r| r.strip_suffix('>'))
+                .and_then(|r| r.split_once(" as "))
+            {
+                Some((on, tr)) => {
+                    let tr = super::parse::split_path(tr);
+                    format!(
+                        "<{} as {}>",
+                        canon(on),
+                        tr.last().copied().unwrap_or_default()
+                    )
                 }
-                _ => (*s).to_string(),
+                None => (*s).to_string(),
             }
         })
         .collect::<Vec<_>>()
         .join("::")
+}
+
+/// A std type's path by its first module and its name, references and
+/// slices kept: `std::slice::Iter`, `core::slice::iter::Iter` and
+/// `slice::iter::Iter` (as core prints its own) are all `slice::Iter`.
+pub(crate) fn canon(path: &str) -> String {
+    let t = path.trim();
+    let bare = t.trim_start_matches('&');
+    let (refs, bare) = match bare.strip_prefix("mut ") {
+        Some(b) => (format!("{}mut ", &t[..t.len() - bare.len()]), b),
+        None => (t[..t.len() - bare.len()].to_string(), bare),
+    };
+    if bare.starts_with('[') {
+        return format!("{refs}[]");
+    }
+    let segs = super::parse::split_path(bare);
+    let segs: &[&str] = match segs.first() {
+        Some(&("core" | "alloc" | "std")) => &segs[1..],
+        _ => &segs[..],
+    };
+    match segs {
+        [first, .., last] => format!("{refs}{first}::{last}"),
+        _ => format!("{refs}{}", segs.join("::")),
+    }
 }
 
 /// Bind `p` against `t`.
@@ -359,7 +393,10 @@ fn vars(p: &StdPattern, out: &mut Vec<String>) {
 /// The lift's type for a std type the table models, by the path MIR prints
 /// and its type arguments.
 pub(crate) fn model_type(path: &str, args: &[Ty]) -> Option<Ty> {
-    let (_, pat) = table().types.iter().find(|(p, _)| key(p) == key(path))?;
+    let (_, pat) = table()
+        .types
+        .iter()
+        .find(|(p, _)| canon(p) == canon(path))?;
     let mut names = Vec::new();
     vars(pat, &mut names);
     if names.len() != args.len() {
@@ -619,8 +656,13 @@ pub(crate) fn instance(callee: &str, arg_texts: &[Option<String>], dest: &str) -
     let t = table();
     let mut generics: BTreeMap<String, String> = BTreeMap::new();
     let k = key(&super::lower::erase(callee));
-    let (k, text) = match t.bodies.get(&k) {
-        Some(b) => (k, b),
+    let (k, text) = match t
+        .bodies
+        .get(&k)
+        .map(|b| (k.clone(), b))
+        .or_else(|| implementor(&k))
+    {
+        Some((k, b)) => (k, b),
         None => {
             let inner = callee.strip_prefix('<')?;
             let (self_ty, rest) = inner.split_once(" as ")?;
@@ -657,6 +699,31 @@ pub(crate) fn instance(callee: &str, arg_texts: &[Option<String>], dest: &str) -
         path: k,
         text: out,
         bound: generics.into_iter().collect(),
+    })
+}
+
+/// The body of `<X as Trait>::m` that X's own impl of the trait gives, by
+/// the module X is in and X's name: `<std::slice::Iter as Iterator>::any`
+/// is `core::slice::iter::<impl Iter>::any` (std re-exports a type at a
+/// shorter path than the module that defines it).
+fn implementor(k: &str) -> Option<(String, &'static String)> {
+    let inner = k.strip_prefix('<')?;
+    let (on, rest) = inner.split_once(" as ")?;
+    let (_, method) = rest.split_once(">::")?;
+    let segs = super::parse::split_path(on.trim_start_matches('&'));
+    let segs: &[&str] = match segs.first() {
+        Some(&("core" | "alloc" | "std")) => &segs[1..],
+        _ => &segs[..],
+    };
+    let (module, name) = (segs.first()?, segs.last()?);
+    if segs.len() < 2 {
+        return None;
+    }
+    table().bodies.iter().find_map(|(bk, b)| {
+        let bs = super::parse::split_path(bk);
+        let n = bs.len();
+        (n >= 3 && bs[0] == *module && bs[n - 2] == *name && bs[n - 1] == method)
+            .then(|| (bk.clone(), b))
     })
 }
 

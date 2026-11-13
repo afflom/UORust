@@ -25,6 +25,10 @@ pub(crate) struct IrBody {
     pub(crate) locals: Vec<String>,
     /// The source name of a local, where debug info gives one.
     pub(crate) names: Vec<Option<String>>,
+    /// A closure's captures, by their index in its environment `_1`: the
+    /// source name and the type of the field that holds it, as debug info
+    /// gives them.
+    pub(crate) upvars: Vec<Option<(String, String)>>,
     pub(crate) blocks: Vec<IrBlock>,
 }
 
@@ -104,6 +108,9 @@ pub(crate) enum IrAggregate {
     /// A struct, or a variant of an enum: the type's path, its generic
     /// arguments as printed, and the variant.
     Adt(String, Option<String>),
+    /// A closure, by its type as printed (`{closure@file:l:c: l:c}`); its
+    /// operands are its captures, named.
+    Closure(String),
     /// Any other aggregate kind.
     Other(spec::MirAggregateKind),
 }

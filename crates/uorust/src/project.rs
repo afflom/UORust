@@ -3605,6 +3605,29 @@ fn mir_lift(
 ) -> MirOut {
     use crate::mir::lower;
     use crate::mir::verdict::Decision;
+    // Every crate's closures, by the type MIR prints for each: a closure's
+    // type is the struct of the values it captures.
+    let closures: BTreeMap<String, crate::mir::IrBody> = dumps
+        .closures
+        .values()
+        .flat_map(|c| c.iter().map(|(t, b)| (t.clone(), b.clone())))
+        .collect();
+    let signatures: BTreeMap<String, Vec<String>> = closures
+        .iter()
+        .filter(|(_, b)| b.upvars.iter().all(Option::is_some))
+        .map(|(t, b)| {
+            let captures = b.upvars.iter().flatten().map(|(_, t)| t.clone()).collect();
+            (t.clone(), captures)
+        })
+        .collect();
+    let scopes: Vec<Types> = scopes
+        .iter()
+        .map(|s| Types {
+            closures: signatures.clone(),
+            ..s.clone()
+        })
+        .collect();
+    let scopes = scopes.as_slice();
     let widths = lift::pointer_widths(&ctx.ws.targets);
     // Enums whose variants set their discriminants, by LexLean name.
     let mut explicit: BTreeSet<String> = BTreeSet::new();
@@ -3699,6 +3722,7 @@ fn mir_lift(
             explicit: &explicit,
             limit: MAX_FILE_BYTES,
             consts: dumps.consts.get(&ctx.crate_ident(r)).unwrap_or(&no_consts),
+            closures: &closures,
             active: &[],
         };
         match lower::lower(&cx, body, &name) {
@@ -3885,12 +3909,54 @@ fn mir_lift(
                 .insert(t.path.clone(), (span, Residue::Mir(cause.clone())));
         }
     }
-    out.decls.extend(aux.into_values());
+    out.decls.extend(in_dependency_order(aux));
     out.decls.extend(body_decls);
     if options.trial != crate::mir::Trial::Off {
         out.listing = Some(listing);
     }
     out
+}
+
+/// Auxiliary declarations, each after every other one its text names (a
+/// helper after the definitions it applies, a theorem after the
+/// definitions it states), in name order otherwise.
+fn in_dependency_order(aux: BTreeMap<String, Decl>) -> Vec<Decl> {
+    let texts: BTreeMap<String, String> = aux
+        .iter()
+        .map(|(n, d)| (n.clone(), crate::lex::render_decl(d)))
+        .collect();
+    let names: Vec<String> = aux.keys().cloned().collect();
+    let mentions = |text: &str, name: &str| {
+        text.match_indices(name).any(|(i, _)| {
+            let word = |c: Option<char>| c.is_some_and(|c| c.is_alphanumeric() || c == '_');
+            !word(text[..i].chars().next_back()) && !word(text[i + name.len()..].chars().next())
+        })
+    };
+    let mut placed: BTreeSet<String> = BTreeSet::new();
+    let mut order: Vec<String> = Vec::new();
+    fn visit(
+        n: &str,
+        names: &[String],
+        texts: &BTreeMap<String, String>,
+        mentions: &dyn Fn(&str, &str) -> bool,
+        placed: &mut BTreeSet<String>,
+        order: &mut Vec<String>,
+    ) {
+        if !placed.insert(n.to_string()) {
+            return;
+        }
+        for m in names {
+            if m != n && mentions(&texts[n], m) {
+                visit(m, names, texts, mentions, placed, order);
+            }
+        }
+        order.push(n.to_string());
+    }
+    for n in &names {
+        visit(n, &names, &texts, &mentions, &mut placed, &mut order);
+    }
+    let mut aux = aux;
+    order.into_iter().filter_map(|n| aux.remove(&n)).collect()
 }
 
 /// A translation's residue: a type the lift does not name is a MIR type

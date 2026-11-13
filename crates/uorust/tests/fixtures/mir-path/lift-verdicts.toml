@@ -21,11 +21,25 @@ status = "proved"
 axioms = { secondKnown = ["Quot.sound", "propext"] }
 
 [[verdict]]
+kappa = "23ecb9f545055ae9c2ea1b8a779173dae935bbdb90a90c4ddcf79c5a4d8eb32f"
+function = "walk::any_above"
+digest = "b97ebf68b4bb4ef316abd128537cc09516fd7e2ae5ebb0aa691d4754706371e5"
+status = "refused"
+cause = "LLV7002: Lean rejected `Walk.Behavior` (error lean.unknownIdentifier): Unknown identifier `limit`"
+
+[[verdict]]
 kappa = "594db3015dad06f3b27fdd5213540c6a8f8d55ce86d6fd985e76139f7ef4b6ef"
 function = "walk::first_blank"
 digest = "02f13efe3cad7005c524259abbea06e417287e308df28ab8eaf03b20a7684bed"
 status = "proved"
 axioms = { decreases_walkFirstBlankLoop1_0 = ["Classical.choice", "Quot.sound", "propext"], holds_walkFirstBlank_0 = ["propext"], holds_walkFirstBlank_1 = ["Classical.choice", "Quot.sound", "propext"], walkFirstBlank = ["Classical.choice", "Quot.sound", "propext"], walkFirstBlankLoop1 = ["Classical.choice", "Quot.sound", "propext"] }
+
+[[verdict]]
+kappa = "6783f5d021c2a4f1192e0b3979ca4ca082085b84380e1c2d2abaa545cc4019e0"
+function = "walk::first_named"
+digest = "98b9fdae47e3a07c77cb80bb8008e7024cefb39492515818b2731744f6e7e2b8"
+status = "proved"
+axioms = { closureFirstNamed0 = ["Classical.choice", "Quot.sound", "propext"], decreases_stdSliceIterIterFindClosureSrcLibRs1802318026StrLoop1_0 = ["Classical.choice", "Quot.sound", "propext"], holds_walkFirstNamed_0 = ["propext"], stdSliceIterIterFindClosureSrcLibRs1802318026Str = ["Classical.choice", "Quot.sound", "propext"], stdSliceIterIterFindClosureSrcLibRs1802318026StrLoop1 = ["Classical.choice", "Quot.sound", "propext"], walkFirstNamed = ["Classical.choice", "Quot.sound", "propext"], walkFirstNamedLoop1 = ["Classical.choice", "Quot.sound", "propext"] }
 
 [[verdict]]
 kappa = "8ae97d071c314712f0ba17c7bf819fffc13f176a947d64f0e0240081af0d8bfd"

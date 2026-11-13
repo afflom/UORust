@@ -34,7 +34,7 @@ toolchain = "1.97.1"
 # rust-src of that toolchain, as its channel manifest pins it, and the
 # vendored std.mir that fetch-std.sh dumped from it.
 rust_src_xz_sha256 = "e9a1e616d04c6845895c827a178b9227f7c7199f3f4a80af81ab3aff7b80156b"
-std_mir_sha256 = "2a11a6c82945ac736dd92619ea2682bdd8eb064bbe3670eac71110229731d528"
+std_mir_sha256 = "8b1292a5735f3d4e3fd33af218aea54e3ab8256181ef515efdd8565ad9994730"
 
 # The std items whose own MIR the path lifts (step 2), by the path rustc
 # prints for their definition.
@@ -46,6 +46,11 @@ lift = [
   "core::result::Result::is_err",
   "core::result::Result::ok",
   "core::cmp::PartialEq::ne",
+  # slice::Iter's own short-circuiting searches (core/src/slice/iter/macros.rs):
+  # each loops on `next`, which the cursor model guards.
+  "core::slice::iter::<impl Iter>::any",
+  "core::slice::iter::<impl Iter>::all",
+  "core::slice::iter::<impl Iter>::find",
 ]
 
 # Types whose representation bottoms out in raw pointers, as the lift's

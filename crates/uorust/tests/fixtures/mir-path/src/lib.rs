@@ -150,3 +150,32 @@ pub fn second_known(names: &[&str], known: &std::collections::BTreeSet<String>) 
     }
     Some(false)
 }
+
+/// Whether any item after the leading zeros is above the floor plus a
+/// margin: a closure that captures the limit, passed to `Iterator::any`,
+/// which slice::Iter defines as a loop on `next`, lifted from std's own MIR
+/// with the closure lifted from its own body.
+pub fn any_above(xs: &[u32], floor: u32, margin: u32) -> bool {
+    let limit = floor.saturating_add(margin);
+    let mut zeros = 0usize;
+    while zeros < xs.len() {
+        if xs[zeros] != 0 {
+            break;
+        }
+        zeros += 1;
+    }
+    zeros < xs.len() && xs.iter().any(|x| *x > limit)
+}
+
+/// The first name that is not blank after a scan for an empty one:
+/// `Iterator::find` with a closure.
+pub fn first_named<'a>(names: &[&'a str]) -> Option<&'a str> {
+    let mut i = 0usize;
+    while i < names.len() {
+        if names[i].is_empty() {
+            return None;
+        }
+        i += 1;
+    }
+    names.iter().find(|n| !n.trim().is_empty()).copied()
+}

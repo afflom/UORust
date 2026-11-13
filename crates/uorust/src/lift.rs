@@ -314,6 +314,9 @@ pub(crate) struct Types {
     /// The traits each type derives (`Ord`, `PartialEq`, ...), by LexLean
     /// name: a derived order or equality is the structural one.
     pub(crate) derives: BTreeMap<String, BTreeSet<String>>,
+    /// The MIR path's closures, by their type as MIR prints it: the types
+    /// of their captures, as printed.
+    pub(crate) closures: BTreeMap<String, Vec<String>>,
 }
 
 /// The strongly connected components of a graph, each one set.
@@ -602,6 +605,7 @@ impl Types {
                 datas: BTreeMap::new(),
                 families: Vec::new(),
                 derives: BTreeMap::new(),
+                closures: BTreeMap::new(),
             };
             let mut lifted = BTreeMap::new();
             for name in &names {
@@ -625,6 +629,7 @@ impl Types {
                     datas: BTreeMap::new(),
                     families: Vec::new(),
                     derives: BTreeMap::new(),
+                    closures: BTreeMap::new(),
                 };
             }
             names = lifted.into_keys().collect();

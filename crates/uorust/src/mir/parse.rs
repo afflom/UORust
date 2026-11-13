@@ -40,6 +40,11 @@ pub(crate) fn bodies(text: &str) -> Vec<IrBody> {
                         if local < body.names.len() && body.names[local].is_none() {
                             body.names[local] = Some(name.trim().to_string());
                         }
+                    } else if let Some((k, ty)) = upvar_of(value.trim()) {
+                        if body.upvars.len() <= k {
+                            body.upvars.resize(k + 1, None);
+                        }
+                        body.upvars[k] = Some((name.trim().to_string(), ty));
                     }
                 }
             } else if let Some(rest) = t.strip_prefix("let ") {
@@ -210,6 +215,29 @@ pub(crate) fn split_top(text: &str, sep: char) -> Vec<&str> {
 /// `_n` as a local.
 fn local_of(text: &str) -> Option<IrLocal> {
     text.strip_prefix('_')?.parse().ok()
+}
+
+/// A closure's capture as debug info prints it: `((*_1).k: T)`,
+/// `(*((*_1).k: T))` or `(_1.k: T)`, the field `k` of the environment `_1`
+/// and its type.
+fn upvar_of(value: &str) -> Option<(usize, String)> {
+    let at = value
+        .find("(*_1).")
+        .map(|i| i + "(*_1).".len())
+        .or_else(|| value.find("(_1.").map(|i| i + "(_1.".len()))?;
+    let (k, rest) = value[at..].split_once(": ")?;
+    let k: usize = k.parse().ok()?;
+    // The type runs to the parenthesis that closes the projection.
+    let mut depth = 0usize;
+    for (i, c) in rest.char_indices() {
+        match c {
+            '(' | '<' | '[' => depth += 1,
+            ')' if depth == 0 => return Some((k, rest[..i].to_string())),
+            ')' | '>' | ']' => depth = depth.saturating_sub(1),
+            _ => {}
+        }
+    }
+    None
 }
 
 /// `bbn` as a block.
@@ -540,12 +568,28 @@ fn rvalue(text: &str) -> IrRvalue {
             _ => {}
         }
     }
-    // Aggregates.
+    // Aggregates: a closure, its type and then its captures,
+    // `{closure@a.rs:1:2: 1:5} { x: move _3 }`.
     if t.starts_with("{closure@") {
-        return IrRvalue::Aggregate(
-            IrAggregate::Other(spec::MirAggregateKind::Closure),
-            Vec::new(),
-        );
+        let Some(end) = t.find('}') else {
+            return other(R::Aggregate);
+        };
+        let rest = t[end + 1..].trim();
+        let mut ops = Vec::new();
+        if let Some(inner) = rest.strip_prefix("{ ").and_then(|r| r.strip_suffix(" }")) {
+            for f in split_top(inner, ',') {
+                let Some((field, op)) = f.split_once(": ") else {
+                    return other(R::Aggregate);
+                };
+                let Some(op) = operand(op) else {
+                    return other(R::Aggregate);
+                };
+                ops.push((Some(field.trim().to_string()), op));
+            }
+        } else if !rest.is_empty() {
+            return other(R::Aggregate);
+        }
+        return IrRvalue::Aggregate(IrAggregate::Closure(t[..=end].to_string()), ops);
     }
     if t.starts_with("{coroutine@") {
         return IrRvalue::Aggregate(

@@ -250,3 +250,324 @@ fn core::result::<impl Result>::ok(_1: result::Result<T, E>) -> Option<T> {
         switchInt(move _6) -> [0: bb8, otherwise: bb9];
     }
 }
+
+fn core::slice::iter::<impl Iter>::all(_1: &mut slice::iter::Iter<'_, T>, _2: F) -> bool {
+    debug self => _1;
+    debug f => _2;
+    let mut _0: bool;
+    let _3: ();
+    let mut _4: ();
+    let mut _5: option::Option<&T>;
+    let mut _6: &mut slice::iter::Iter<'_, T>;
+    let mut _7: isize;
+    let mut _9: bool;
+    let mut _10: &mut F;
+    let mut _11: (&T,);
+    let mut _12: &T;
+    let mut _13: !;
+    let mut _14: !;
+    let _15: ();
+    let mut _16: !;
+    scope 1 {
+        debug x => _8;
+        let _8: &T;
+    }
+
+    bb0: {
+        StorageLive(_3);
+        goto -> bb1;
+    }
+
+    bb1: {
+        StorageLive(_5);
+        StorageLive(_6);
+        _6 = &mut (*_1);
+        _5 = <slice::iter::Iter<'_, T> as iterator::Iterator>::next(move _6) -> [return: bb2, unwind: bb9];
+    }
+
+    bb2: {
+        StorageDead(_6);
+        PlaceMention(_5);
+        _7 = discriminant(_5);
+        switchInt(move _7) -> [1: bb3, otherwise: bb7];
+    }
+
+    bb3: {
+        StorageLive(_8);
+        _8 = copy ((_5 as Some).0: &T);
+        StorageLive(_9);
+        StorageLive(_10);
+        _10 = &mut _2;
+        StorageLive(_11);
+        StorageLive(_12);
+        _12 = &(*_8);
+        _11 = (move _12,);
+        _9 = <F as function::FnMut<(&T,)>>::call_mut(move _10, move _11) -> [return: bb4, unwind: bb9];
+    }
+
+    bb4: {
+        switchInt(move _9) -> [0: bb6, otherwise: bb5];
+    }
+
+    bb5: {
+        StorageDead(_12);
+        StorageDead(_11);
+        StorageDead(_10);
+        _4 = const ();
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_5);
+        goto -> bb1;
+    }
+
+    bb6: {
+        StorageDead(_12);
+        StorageDead(_11);
+        StorageDead(_10);
+        _0 = const false;
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_5);
+        StorageDead(_3);
+        drop(_2) -> [return: bb8, unwind: bb10];
+    }
+
+    bb7: {
+        StorageDead(_5);
+        StorageLive(_15);
+        _3 = const ();
+        StorageDead(_15);
+        StorageDead(_3);
+        _0 = const true;
+        drop(_2) -> [return: bb8, unwind: bb10];
+    }
+
+    bb8: {
+        return;
+    }
+
+    bb9 (cleanup): {
+        drop(_2) -> [return: bb10, unwind terminate(cleanup)];
+    }
+
+    bb10 (cleanup): {
+        resume;
+    }
+}
+
+fn core::slice::iter::<impl Iter>::any(_1: &mut slice::iter::Iter<'_, T>, _2: F) -> bool {
+    debug self => _1;
+    debug f => _2;
+    let mut _0: bool;
+    let _3: ();
+    let mut _4: ();
+    let mut _5: option::Option<&T>;
+    let mut _6: &mut slice::iter::Iter<'_, T>;
+    let mut _7: isize;
+    let mut _9: bool;
+    let mut _10: &mut F;
+    let mut _11: (&T,);
+    let mut _12: &T;
+    let mut _13: !;
+    let mut _14: !;
+    let _15: ();
+    let mut _16: !;
+    scope 1 {
+        debug x => _8;
+        let _8: &T;
+    }
+
+    bb0: {
+        StorageLive(_3);
+        goto -> bb1;
+    }
+
+    bb1: {
+        StorageLive(_5);
+        StorageLive(_6);
+        _6 = &mut (*_1);
+        _5 = <slice::iter::Iter<'_, T> as iterator::Iterator>::next(move _6) -> [return: bb2, unwind: bb9];
+    }
+
+    bb2: {
+        StorageDead(_6);
+        PlaceMention(_5);
+        _7 = discriminant(_5);
+        switchInt(move _7) -> [1: bb3, otherwise: bb7];
+    }
+
+    bb3: {
+        StorageLive(_8);
+        _8 = copy ((_5 as Some).0: &T);
+        StorageLive(_9);
+        StorageLive(_10);
+        _10 = &mut _2;
+        StorageLive(_11);
+        StorageLive(_12);
+        _12 = &(*_8);
+        _11 = (move _12,);
+        _9 = <F as function::FnMut<(&T,)>>::call_mut(move _10, move _11) -> [return: bb4, unwind: bb9];
+    }
+
+    bb4: {
+        switchInt(move _9) -> [0: bb6, otherwise: bb5];
+    }
+
+    bb5: {
+        StorageDead(_12);
+        StorageDead(_11);
+        StorageDead(_10);
+        _0 = const true;
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_5);
+        StorageDead(_3);
+        drop(_2) -> [return: bb8, unwind: bb10];
+    }
+
+    bb6: {
+        StorageDead(_12);
+        StorageDead(_11);
+        StorageDead(_10);
+        _4 = const ();
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_5);
+        goto -> bb1;
+    }
+
+    bb7: {
+        StorageDead(_5);
+        StorageLive(_15);
+        _3 = const ();
+        StorageDead(_15);
+        StorageDead(_3);
+        _0 = const false;
+        drop(_2) -> [return: bb8, unwind: bb10];
+    }
+
+    bb8: {
+        return;
+    }
+
+    bb9 (cleanup): {
+        drop(_2) -> [return: bb10, unwind terminate(cleanup)];
+    }
+
+    bb10 (cleanup): {
+        resume;
+    }
+}
+
+fn core::slice::iter::<impl Iter>::find(_1: &mut slice::iter::Iter<'_, T>, _2: P) -> Option<&T> {
+    debug self => _1;
+    debug predicate => _2;
+    let mut _0: option::Option<&T>;
+    let _3: ();
+    let mut _4: ();
+    let mut _5: option::Option<&T>;
+    let mut _6: &mut slice::iter::Iter<'_, T>;
+    let mut _7: isize;
+    let mut _9: bool;
+    let mut _10: &mut P;
+    let mut _11: (&&T,);
+    let mut _12: &&T;
+    let _13: &&T;
+    let mut _14: !;
+    let mut _15: &T;
+    let mut _16: !;
+    let _17: ();
+    let mut _18: !;
+    scope 1 {
+        debug x => _8;
+        let _8: &T;
+    }
+
+    bb0: {
+        StorageLive(_3);
+        goto -> bb1;
+    }
+
+    bb1: {
+        StorageLive(_5);
+        StorageLive(_6);
+        _6 = &mut (*_1);
+        _5 = <slice::iter::Iter<'_, T> as iterator::Iterator>::next(move _6) -> [return: bb2, unwind: bb9];
+    }
+
+    bb2: {
+        StorageDead(_6);
+        PlaceMention(_5);
+        _7 = discriminant(_5);
+        switchInt(move _7) -> [1: bb3, otherwise: bb7];
+    }
+
+    bb3: {
+        StorageLive(_8);
+        _8 = copy ((_5 as Some).0: &T);
+        StorageLive(_9);
+        StorageLive(_10);
+        _10 = &mut _2;
+        StorageLive(_11);
+        StorageLive(_12);
+        StorageLive(_13);
+        _13 = &_8;
+        _12 = &(*_13);
+        _11 = (move _12,);
+        _9 = <P as function::FnMut<(&&T,)>>::call_mut(move _10, move _11) -> [return: bb4, unwind: bb9];
+    }
+
+    bb4: {
+        switchInt(move _9) -> [0: bb6, otherwise: bb5];
+    }
+
+    bb5: {
+        StorageDead(_13);
+        StorageDead(_12);
+        StorageDead(_11);
+        StorageDead(_10);
+        StorageLive(_15);
+        _15 = &(*_8);
+        _0 = Option::<&T>::Some(move _15);
+        StorageDead(_15);
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_5);
+        StorageDead(_3);
+        drop(_2) -> [return: bb8, unwind: bb10];
+    }
+
+    bb6: {
+        StorageDead(_13);
+        StorageDead(_12);
+        StorageDead(_11);
+        StorageDead(_10);
+        _4 = const ();
+        StorageDead(_9);
+        StorageDead(_8);
+        StorageDead(_5);
+        goto -> bb1;
+    }
+
+    bb7: {
+        StorageDead(_5);
+        StorageLive(_17);
+        _3 = const ();
+        StorageDead(_17);
+        StorageDead(_3);
+        _0 = Option::<&T>::None;
+        drop(_2) -> [return: bb8, unwind: bb10];
+    }
+
+    bb8: {
+        return;
+    }
+
+    bb9 (cleanup): {
+        drop(_2) -> [return: bb10, unwind terminate(cleanup)];
+    }
+
+    bb10 (cleanup): {
+        resume;
+    }
+}
