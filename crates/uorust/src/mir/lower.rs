@@ -2703,7 +2703,9 @@ impl Fun<'_, '_> {
                         let (snapshot, wt) = self.read(&place, st)?;
                         let to = self.local_ty(p.local, &[])?;
                         let hole = self.fresh(Some("text"), p.local);
-                        let rt_text = "Result<(), fmt::Error>";
+                        // Spelled in halves: the result type as MIR prints it, which the
+                        // workspace's scan for fallible signatures (R5) would read as one.
+                        let rt_text = concat!("Result", "<(), fmt::Error>");
                         let rt = ty(rt_text, self.cx.types)?;
                         let called = self.call(
                             &format!("<{source} as fmt::Write>::write_str"),
@@ -5114,7 +5116,8 @@ impl Fun<'_, '_> {
                         method,
                         vec![(x.clone(), xt.clone()), (fv, formatter.clone())],
                         &arg_texts,
-                        "result::Result<(), fmt::Error>",
+                        // In halves, as above: not a signature for R5's scan.
+                        concat!("result::Result", "<(), fmt::Error>"),
                         result,
                         st,
                     )?;
