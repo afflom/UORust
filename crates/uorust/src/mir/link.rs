@@ -34,6 +34,9 @@ pub(crate) struct CoreLink {
     /// mention: among them, the types a macro's or a derive's impls are
     /// for.
     pub(crate) wild: BTreeMap<String, std::collections::BTreeSet<String>>,
+    /// For each impl, the methods its block declares `default fn`, which
+    /// an impl that specializes it replaces.
+    defaults: BTreeMap<String, std::collections::BTreeSet<String>>,
 }
 
 impl CoreLink {
@@ -129,6 +132,7 @@ impl CoreLink {
         }
         // Each impl's header, read from the source its span names.
         let mut impls = BTreeMap::new();
+        let mut defaults: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
         for path in bodies.keys() {
             let mut rest = path.as_str();
             while let Some(at) = rest.find("<impl at ") {
@@ -172,6 +176,43 @@ impl CoreLink {
                     };
                     src.extend(chars.get(from.min(to)..to).into_iter().flatten());
                     src.push(' ');
+                }
+                // The methods the impl's block declares `default`: an impl
+                // another specializes.
+                let mut block = String::new();
+                let mut depth = 0i64;
+                'scan: for (n, line) in lines.iter().enumerate().skip(l2 - 1) {
+                    let from = if n + 1 == *l2 { c2 - 1 } else { 0 };
+                    for c in line.chars().skip(from) {
+                        match c {
+                            '{' => depth += 1,
+                            '}' => {
+                                depth -= 1;
+                                if depth == 0 {
+                                    break 'scan;
+                                }
+                            }
+                            _ => {}
+                        }
+                        if depth > 0 {
+                            block.push(c);
+                        }
+                    }
+                    block.push(' ');
+                }
+                let words: Vec<&str> = block.split_whitespace().collect();
+                for (i, w) in words.iter().enumerate() {
+                    if *w == "default" {
+                        let rest = &words[i + 1..];
+                        let at = rest.iter().position(|w| *w == "fn").filter(|at| *at <= 2);
+                        if let Some(name) = at.and_then(|at| rest.get(at + 1)) {
+                            let name = name.split(['(', '<']).next().unwrap_or(name);
+                            defaults
+                                .entry(span.to_string())
+                                .or_default()
+                                .insert(name.to_string());
+                        }
+                    }
                 }
                 let head = src.trim();
                 let head = head.strip_prefix("unsafe ").unwrap_or(head);
@@ -266,6 +307,7 @@ impl CoreLink {
             lasts,
             impls,
             wild,
+            defaults,
         }
     }
 
@@ -465,6 +507,23 @@ impl CoreLink {
                 if found.iter().any(|p| !blanket(p)) {
                     found.retain(|p| !blanket(p));
                 }
+                // An impl of the trait the call names is chosen over one of
+                // a trait a macro names by a metavariable.
+                let named =
+                    |p: &String| impl_of(p).is_some_and(|(_, (t, _))| t.as_deref() != Some("_"));
+                if found.iter().any(named) {
+                    found.retain(named);
+                }
+                // A specializing impl is chosen over the impl whose
+                // `default fn` it replaces.
+                let general = |p: &String| {
+                    impl_of(p).is_some_and(|(span, _)| {
+                        self.defaults.get(&span).is_some_and(|d| d.contains(method))
+                    })
+                };
+                if found.iter().any(|p| !general(p)) {
+                    found.retain(|p| !general(p));
+                }
                 // An impl that does not define `m` has the trait's provided
                 // body, its `Self` the impl's type.
                 if let (true, Some((x, tr))) = (found.is_empty(), &qualified) {
@@ -502,7 +561,19 @@ impl CoreLink {
                     // parameters, the bare names its locals' types mention, not
                     // a type rustc prints by its bare name, or one the source
                     // declares it with.
-                    let own = super::core::canonical_bindings(text);
+                    // The bare names of its signature's types too, which a
+                    // body may mention nowhere else.
+                    let mut sig = String::new();
+                    for t in params
+                        .iter()
+                        .filter_map(|p| p.split_once(": "))
+                        .map(|(_, t)| t)
+                    {
+                        sig.push_str(&format!("let _: {t};\n"));
+                    }
+                    sig.push_str(&format!("let _: {ret};\n"));
+                    let mut own = super::core::canonical_bindings(text);
+                    own.extend(super::core::canonical_bindings(&sig));
                     let declares = self.decls.generics.get(p.as_str());
                     let param = |k: &String| {
                         own.contains_key(k)
@@ -517,14 +588,11 @@ impl CoreLink {
                         v.rsplit("::").next() == Some(k.as_str())
                     };
                     let declared = g.iter().any(|(k, v)| {
-                        if param(k) {
-                            self.decls.structs.iter().any(|s| s.name() == k)
-                        } else {
-                            !itself(k, v)
-                        }
+                        !itself(k, v)
+                            && (!param(k) || self.decls.structs.iter().any(|s| s.name() == k))
                     });
                     let mut g = g;
-                    g.retain(|k, _| param(k));
+                    g.retain(|k, v| param(k) && !itself(k, v));
                     // A type the signature prints by its path is the type of that
                     // path: `range::RangeInclusive<T>` is not
                     // `ops::range::RangeInclusive<usize>`.
@@ -535,7 +603,22 @@ impl CoreLink {
                             .trim_start_matches("mut ")
                             .trim();
                         let name = &t[..t.find('<').unwrap_or(t.len())];
-                        name.contains("::").then(|| name.to_string())
+                        if !name.contains("::") {
+                            return None;
+                        }
+                        // The struct core declares at that path, or the one
+                        // whose path it ends: `alignment::Alignment` is
+                        // `mem::alignment::Alignment`.
+                        let tail = format!("::{name}");
+                        let structs = &self.decls.structs;
+                        if structs.iter().any(|s| s.path == name) {
+                            return Some(name.to_string());
+                        }
+                        let mut ends = structs.iter().filter(|s| s.path.ends_with(&tail));
+                        Some(match (ends.next(), ends.next()) {
+                            (Some(s), None) => s.path.clone(),
+                            _ => name.to_string(),
+                        })
                     };
                     let pairs = params
                         .iter()

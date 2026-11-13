@@ -396,7 +396,7 @@ fn without_def_ids(text: &str) -> String {
 /// type as written.
 #[derive(Clone, Debug)]
 pub(crate) struct CoreStruct {
-    path: String,
+    pub(crate) path: String,
     params: Vec<String>,
     fields: Vec<(Option<String>, String)>,
     /// For an enum whose variants hold no data, its variants; such an enum

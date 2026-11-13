@@ -838,9 +838,30 @@ pub(crate) fn unify(
         && p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
         && p.starts_with(|c: char| c.is_ascii_uppercase())
         && !PRIMITIVES.contains(&p.as_str());
+    // A type printed with or without its path is one type: `Option<u16>`
+    // is `option::Option<u16>`.
+    let unpathed = |t: &str| -> String {
+        let mut out = String::new();
+        for (i, part) in t.split("::").enumerate() {
+            if i > 0 {
+                // The segment before `::` was a path's, not the type's.
+                let keep = out
+                    .rfind(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+                    .map_or(0, |at| at + 1);
+                out.truncate(keep);
+            }
+            out.push_str(part);
+        }
+        out
+    };
+    // A projection `<X as Trait>::Assoc` names a type the link does not
+    // normalize: it matches any type and binds none.
+    if p.starts_with('<') && p.contains(" as ") {
+        return Some(());
+    }
     if bare {
         return match generics.get(&p) {
-            Some(b) if plain(b) != a => None,
+            Some(b) if unpathed(&plain(b)) != unpathed(&a) => None,
             Some(_) => Some(()),
             None => {
                 generics.insert(p, a);
