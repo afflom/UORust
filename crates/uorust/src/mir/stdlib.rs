@@ -870,9 +870,12 @@ pub(crate) fn unify(
         };
     }
     if let (Some(p), Some(a)) = (p.strip_prefix('&'), a.strip_prefix('&')) {
-        let p = p.strip_prefix("mut ").unwrap_or(p);
-        let a = a.strip_prefix("mut ").unwrap_or(a);
-        return unify(p, a, generics);
+        // A shared and a mutable borrow are two types.
+        let (pm, am) = (p.strip_prefix("mut "), a.strip_prefix("mut "));
+        if pm.is_some() != am.is_some() {
+            return None;
+        }
+        return unify(pm.unwrap_or(p), am.unwrap_or(a), generics);
     }
     // A raw pointer, a slice, an array or a tuple: its parts, in order.
     for k in ["*const ", "*mut "] {
@@ -925,7 +928,10 @@ pub(crate) fn unify(
         }
     };
     let ((pn, pa), (an, aa)) = (split(&p), split(&a));
-    if pn != an || pa.len() != aa.len() {
+    // MIR prints a type without the trailing arguments its defaults give
+    // (`ControlFlow<B>` for `ControlFlow<B, ()>`): the arguments printed
+    // are the first ones.
+    if pn != an || pa.len() < aa.len() {
         return None;
     }
     for (x, y) in pa.iter().zip(&aa) {

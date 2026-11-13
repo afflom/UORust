@@ -257,7 +257,10 @@ impl CoreLink {
                                 let blanket = params
                                     .split(|c: char| !(c.is_alphanumeric() || c == '_'))
                                     .any(|w| !w.is_empty() && w == ty);
-                                let ty = if ty.contains('$') {
+                                // A macro's type is `_` where its head is a
+                                // metavariable; `NonZero<$Int>` keeps its own.
+                                let meta = ty.split('<').next().unwrap_or(ty).contains('$');
+                                let ty = if meta {
                                     "_"
                                 } else if blanket {
                                     "*"
@@ -266,7 +269,9 @@ impl CoreLink {
                                 };
                                 (Some(tr.to_string()), ty.to_string())
                             }
-                            None if h.contains('$') => (None, "_".to_string()),
+                            None if h.split('<').next().unwrap_or(h).contains('$') => {
+                                (None, "_".to_string())
+                            }
                             None => (None, h.to_string()),
                         }
                     }
@@ -601,7 +606,8 @@ impl CoreLink {
                     // A type the signature prints by its path is the type of that
                     // path: `range::RangeInclusive<T>` is not
                     // `ops::range::RangeInclusive<usize>`.
-                    let head = |t: &str| -> Option<String> {
+                    // With whether it is a struct core declares.
+                    let head = |t: &str| -> Option<(String, bool)> {
                         let t = t
                             .trim()
                             .trim_start_matches('&')
@@ -617,12 +623,12 @@ impl CoreLink {
                         let tail = format!("::{name}");
                         let structs = &self.decls.structs;
                         if structs.iter().any(|s| s.path == name) {
-                            return Some(name.to_string());
+                            return Some((name.to_string(), true));
                         }
                         let mut ends = structs.iter().filter(|s| s.path.ends_with(&tail));
                         Some(match (ends.next(), ends.next()) {
-                            (Some(s), None) => s.path.clone(),
-                            _ => name.to_string(),
+                            (Some(s), None) => (s.path.clone(), true),
+                            _ => (name.to_string(), false),
                         })
                     };
                     let pairs = params
@@ -633,8 +639,12 @@ impl CoreLink {
                         .chain(std::iter::once((ret.as_str(), dest)));
                     let mut differ = false;
                     for (p, a) in pairs {
-                        if let (Some(x), Some(y)) = (head(p), head(a)) {
-                            differ |= x != y;
+                        // A type that is no struct (a union, a type a macro
+                        // declares) is the one its shorter path ends.
+                        if let (Some((x, kx)), Some((y, ky))) = (head(p), head(a)) {
+                            let ends =
+                                x.ends_with(&format!("::{y}")) || y.ends_with(&format!("::{x}"));
+                            differ |= x != y && (kx && ky || !ends);
                         }
                     }
                     (!declared && !differ).then(|| (p.clone(), text, g))
