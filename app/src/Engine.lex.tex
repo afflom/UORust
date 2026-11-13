@@ -78,7 +78,7 @@ definition{
   name: workloads,
   parameters: [],
   result: (List Workload),
-  body: (cons (record Workload {id := "core", file := ".github/workflows/core.yml", cronHour := 5, cronMinute := 17, group := "core", cancel := false, onPush := true}) (cons (record Workload {id := "std", file := ".github/workflows/std.yml", cronHour := 5, cronMinute := 47, group := "std", cancel := false, onPush := true}) (cons (record Workload {id := "crates", file := ".github/workflows/crates.yml", cronHour := 6, cronMinute := 29, group := "crates", cancel := false, onPush := false}) (nil Workload)))),
+  body: (cons (record Workload {id := "core", file := ".github/workflows/core.yml", cronHour := 5, cronMinute := 17, group := "core", cancel := false, onPush := true}) (cons (record Workload {id := "std", file := ".github/workflows/std.yml", cronHour := 5, cronMinute := 47, group := "std", cancel := false, onPush := true}) (nil Workload))),
   axioms: []
 }
 
@@ -86,7 +86,7 @@ definition{
   name: stages,
   parameters: [],
   result: (List Stage),
-  body: (cons (record Stage {workload := "core", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "core", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "core", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "std", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "std", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "std", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "crates", id := "list", budget := 60, writes := false}) (cons (record Stage {workload := "crates", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "crates", id := "merge", budget := 30, writes := true}) (nil Stage)))))))))),
+  body: (cons (record Stage {workload := "core", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "core", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "core", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "std", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "std", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "std", id := "merge", budget := 30, writes := true}) (nil Stage))))))),
   axioms: []
 }
 
