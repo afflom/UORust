@@ -23,7 +23,9 @@ mod lift;
 pub mod mir;
 mod order;
 mod project;
+pub mod queue;
 pub mod register;
+pub mod registry;
 mod route;
 mod wf;
 

@@ -2,8 +2,8 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 230 of 762 functions of product code are lifted; 443
-# are residue, 34 foreign and 55 effect rows.
+# Honesty report: 232 of 783 functions of product code are lifted; 450
+# are residue, 36 foreign and 65 effect rows.
 # Residue by cause:
 #   arithmetic: 3
 #   call: 7
@@ -43,12 +43,13 @@
 #   mir::CastKind::PointerCoercion: 4
 #     3 from (List String) to (List String)
 #     1 from (List Ty) to (List Ty)
-#   mir::Operand::Constant: 14
+#   mir::Operand::Constant: 15
 #     1 a string LexLean source cannot write
 #     1 lift::Ctx::returning::promoted[0]
 #     1 lift::default_in::promoted[0]: mir::Operand::Constant: the constant item lift::PRELUDE
 #     1 lift::loop_exit::promoted[0]: mir::Operand::Constant: the constant item lift::BREAK
 #     1 lift::prelude_calls::promoted[0]: mir::Operand::Constant: the constant item lift::PRELUDE
+#     1 mir::core::Scope::library::promoted[0]
 #     1 mir::lower::max_of::promoted[0]: mir::Operand::Constant: the constant item core::num::<impl u128>::MAX
 #     1 mir::verdict::Verdicts::to_text::promoted[0]
 #     1 route::REQUEST_LIMIT: mir::Operand::Constant: route::ROUTES: mir::CastKind::PointerCoercion: from (List Route) to (List Route)
@@ -70,7 +71,7 @@
 #     4 a discriminant read as a value
 #   mir::Rvalue::RawPtr: 5
 #   mir::Rvalue::Use: 9
-#   mir::TerminatorKind::Call: 97
+#   mir::TerminatorKind::Call: 100
 #     1 <bool as std::string::ToString>::to_string
 #     1 <lift::Ty as std::cmp::PartialEq>::eq
 #     1 <std::collections::BTreeMap as std::convert::From>::from
@@ -95,7 +96,7 @@
 #     1 core::slice::<impl [lift::Ty]>::contains
 #     2 core::str::<impl str>::as_bytes
 #     1 core::str::<impl str>::rsplit_once
-#     1 core::str::<impl str>::split_once
+#     3 core::str::<impl str>::split_once
 #     1 lift::Split::reach
 #     1 lift::pat_head
 #     1 lift::refused
@@ -128,15 +129,17 @@
 #     2 uorust::lift::take_first, whose translation is not admitted
 #     7 uorust::lift::take_try, whose translation is not admitted
 #     1 uorust::lift::wrapped_method, whose translation is not admitted
+#     1 uorust::mir::core::Scope::library, whose translation is not admitted
 #     1 uorust::order::derived_in, whose translation is not admitted
-#   mir::TerminatorKind::Goto: 25
-#     25 a loop nested in a loop, whose helpers would call each other
-#   mir::Ty: 126
+#   mir::TerminatorKind::Goto: 24
+#     24 a loop nested in a loop, whose helpers would call each other
+#   mir::Ty: 130
 #     2 &mut project::Notes
 #     1 &mut std::collections::BTreeMap<std::string::String, lift::Ty>
 #     1 &mut std::collections::BTreeMap<std::string::String, std::string::String>
 #     2 &mut std::collections::BTreeSet<lift::Ty>
 #     1 &mut std::collections::BTreeSet<std::string::String>
+#     1 &mut std::process::Command
 #     1 &mut std::vec::Vec<(std::string::String, lex::Decl)>
 #     1 &mut std::vec::Vec<std::string::String>
 #     3 T
@@ -146,6 +149,8 @@
 #     1 dyn quote::ToTokens
 #     1 dyn std::error::Error
 #     1 impl Into<String>
+#     1 impl std::fmt::Display
+#     1 lift::Lifted
 #     1 mir::ir::IrAggregate
 #     4 mir::ir::IrBody
 #     1 mir::ir::IrConstant
@@ -200,7 +205,7 @@
 #     1 std::ops::RangeFull
 #     3 std::ops::RangeTo<usize>
 #     1 std::option::IntoIter<&std::vec::Vec<(std::string::String, std::vec::Vec<(std::option::Option<std::string::String>, lift::Ty)>)>>
-#     1 std::path::Path
+#     2 std::path::Path
 #     1 std::path::PathBuf
 #     2 std::str::CharIndices<'_>
 #     8 std::str::Chars<'_>
@@ -1167,7 +1172,7 @@ detail = "mir::Ty: std::iter::Rev<std::vec::IntoIter<(std::string::String, std::
 kappa = "25d688237667bf01f8450e1e28ef41df06540679e77e0aa10ba81212c58da3ab"
 function = "uorust::lift::lift_all"
 reason = "mir"
-detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
+detail = "mir::Ty: lift::Lifted"
 
 [[residue]]
 kappa = "e88a3e1d2a56fb960052ba0ef1234e6054ecc39c2e30b5cda1eff70dfdf2bca3"
@@ -1846,6 +1851,18 @@ kappa = "6ca2855cf1f85379c0e91cdfeac0a3904c96f588f29f1f7fa17cf8364e671acd"
 function = "uorust::mir::closure_type"
 reason = "mir"
 detail = "mir::Ty: mir::ir::IrBody"
+
+[[residue]]
+kappa = "2f710f9795d1157050e1b5b9b9f44232cebce14fbd19d55b15ec6a11ceefef4b"
+function = "uorust::mir::core::Scope::core"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: uorust::mir::core::Scope::library, whose translation is not admitted"
+
+[[residue]]
+kappa = "413b18e4b11e5cf9e1bedb93c067ac8593ca94fb2e97204fe6b5a26506eb42b6"
+function = "uorust::mir::core::Scope::library"
+reason = "mir"
+detail = "mir::Operand::Constant: mir::core::Scope::library::promoted[0]"
 
 [[residue]]
 kappa = "6446be8c046557b11343627abb840137fa873fe722e908054069fab79320c736"
@@ -2856,6 +2873,12 @@ reason = "mir"
 detail = "mir::Ty: &mut std::collections::BTreeSet<lift::Ty>"
 
 [[residue]]
+kappa = "32f540e330344f10efa97e8456914778545d4d73323f8cfafcd1ed7cf348c830"
+function = "uorust::queue::io"
+reason = "mir"
+detail = "mir::Ty: std::path::Path"
+
+[[residue]]
 kappa = "e3a1d8e3fcade9374d63aa5e928e3a39970658b71b183376319514efea51a868"
 function = "uorust::register::Register::honesty"
 reason = "statements"
@@ -2884,6 +2907,30 @@ kappa = "ba728721e691d03e6fe9564039921e2d9a87d67ee9ac29ee454cbd67ce25f955"
 function = "uorust::register::quoted"
 reason = "mir"
 detail = "mir::Ty: toml::Value"
+
+[[residue]]
+kappa = "e3aa42170a7dac42717ac5dac8ed4b17f76c5745329a305f22084c7e3777fa1c"
+function = "uorust::registry::dump_module"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: core::str::<impl str>::split_once"
+
+[[residue]]
+kappa = "ad4ee9b0b835ee6086bf6036268b2ee24a06de03ea7b6d581a5c1c6ec015de14"
+function = "uorust::registry::parse_spec"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: core::str::<impl str>::split_once"
+
+[[residue]]
+kappa = "527e85043f26eeed667ecfea30a51fe90a0c3e5970272cb47555cad8fcec3128"
+function = "uorust::registry::run"
+reason = "mir"
+detail = "mir::Ty: &mut std::process::Command"
+
+[[residue]]
+kappa = "e49ccd6555596c31ea4eb94d6f7d2f76a540fa3f156f5090e7451be7909fc552"
+function = "uorust::registry::tool"
+reason = "mir"
+detail = "mir::Ty: impl std::fmt::Display"
 
 [[residue]]
 kappa = "c1580136bb502df057f2969490ce53c39767789a61de787c9f2e20425391256d"
@@ -3159,6 +3206,16 @@ function = "uorust::ingest::use_paths"
 detail = "takes or returns syn::UseTree, a type of the syn crate with no LexLean model"
 
 [[foreign]]
+kappa = "ec61b8b077391b38467202cf1841d2ac41b306d0356a9988da1ae9057eddff15"
+function = "uorust::queue::field"
+detail = "takes or returns toml::Value, a type of the toml crate with no LexLean model"
+
+[[foreign]]
+kappa = "db8ce9699d0516ed0bddfb94279f7baa7be79945d83e5a9c1c64369d256c173f"
+function = "uorust::queue::regressions"
+detail = "takes or returns toml::Value, a type of the toml crate with no LexLean model"
+
+[[foreign]]
 kappa = "540ca4889f33ed9054727dce400ae758300dab2d48c9c078e5060ebca1967b6a"
 function = "xtask::bootstrap::compare_sdk_inventory"
 detail = "takes or returns serde_json::Value, a type of the serde_json crate with no LexLean model"
@@ -3254,14 +3311,24 @@ function = "uorust::ingest::workspace"
 effect = "Fs effect: Path::canonicalize"
 
 [[effect]]
+kappa = "0fc5bac62314699d9dd6e9737461facb9cd414917ad7ab06c7639de511634a96"
+function = "uorust::library"
+effect = "calls uorust::mir::core::census, which performs a Fs effect: std::fs::read_dir"
+
+[[effect]]
 kappa = "47d4aef366345e98da7ff5e2b826d0e55a3224eb0583a4d7e29987280f691692"
 function = "uorust::main"
 effect = "calls uorust::run, which reaches an effect"
 
 [[effect]]
-kappa = "25e8cc9ffbfe995584294a23aba57afa93c4c2313047ad9842ec020946495434"
-function = "uorust::mir::core::core_census"
+kappa = "3046bed4afeb118ec243d6c0c07ab908c9a947046ffb49ea7a6ee64997a94fe9"
+function = "uorust::mir::core::census"
 effect = "Fs effect: std::fs::read_dir"
+
+[[effect]]
+kappa = "557bcc5d63675be906cce76924ab80b22326c9393f307f887f678dc72805b182"
+function = "uorust::mir::core::core_census"
+effect = "calls uorust::mir::core::census, which performs a Fs effect: std::fs::read_dir"
 
 [[effect]]
 kappa = "622a204f6bb663477c97da98bacc5b861c0d1c512833ab9761b891602f38732b"
@@ -3269,18 +3336,28 @@ function = "uorust::mir::core::core_regressions"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "958790540465b1429a3afc971dd50b3a198daecc84250ba8ba1b0a35f43e0cb7"
-function = "uorust::mir::core::core_shard"
+kappa = "64aa5576a556468891ed4c4dc25dc41754dae6de76b549bbeead43a2c43ee689"
+function = "uorust::mir::core::shard"
 effect = "calls uorust::mir::resolve_impls, which reaches an effect"
 
 [[effect]]
-kappa = "a924ca5bfd2a33dff06f6a908f29bc26c744a06ca95b48602fa64c8a94a8c299"
+kappa = "bf56bf165a78fd2e85a81e1c999533f6393f4ca42ee4cedb8cc67dc3d6d5a51b"
 function = "uorust::mir::core::summarize_core_register"
+effect = "calls uorust::mir::core::summarize_register, which performs a Fs effect: std::fs::read_dir"
+
+[[effect]]
+kappa = "09397bd28fd5213e27dfe7126d7f139714094d9053e9b2b7c52971dbdcd4e745"
+function = "uorust::mir::core::summarize_register"
 effect = "Fs effect: std::fs::read_dir"
 
 [[effect]]
-kappa = "546f26530183dc5dc83b74a994bfb66c63befa47b9336ed6b0e95292eb041ee5"
+kappa = "cbdd858d24d12a2a9291f7a984133a2907e06fcbf7ac34d745c6b482417760ea"
 function = "uorust::mir::core::write_core_register"
+effect = "calls uorust::mir::core::write_register, which performs a Fs effect: std::fs::create_dir_all"
+
+[[effect]]
+kappa = "db9a083b50955e17e92bb9f5384e874ed5e8b560783e7e6e2bf1f1871056e36b"
+function = "uorust::mir::core::write_register"
 effect = "Fs effect: std::fs::create_dir_all"
 
 [[effect]]
@@ -3344,7 +3421,37 @@ function = "uorust::project_workspace"
 effect = "calls uorust::ingest::workspace, which performs a Fs effect: Path::canonicalize"
 
 [[effect]]
-kappa = "604a2e0cf93c27847443d72eb46f660732a063afa77dffd4d1e28bbbcd12e16d"
+kappa = "e0e2974654307fb19af0fa92a083444b402b981e57f9692c2548f2eb2c9d6945"
+function = "uorust::queue::merge"
+effect = "Fs effect: std::fs::create_dir_all"
+
+[[effect]]
+kappa = "958133110721ccba9676cfb130d5c2f1fcceb3d8768c88d69c45604f3667d25a"
+function = "uorust::queue::module_files"
+effect = "Fs effect: std::fs::read_dir"
+
+[[effect]]
+kappa = "651ba8bb5fdeaaf1984f5e384ad7438227898cd39bc72819ed36735e2597edb9"
+function = "uorust::queue::rows"
+effect = "Fs effect: std::fs::read_to_string"
+
+[[effect]]
+kappa = "66dde5e5d684367fa7b63f3db0be2ea562c3f73d4804d29ddae214adfbc8dab4"
+function = "uorust::registry::dump"
+effect = "Fs effect: std::fs::create_dir_all"
+
+[[effect]]
+kappa = "665a7b6c418bfcbd5cec80f1ca31dc0860b63f5ddc94b158786d6817827999f2"
+function = "uorust::registry::fetch"
+effect = "Process effect: Command::new"
+
+[[effect]]
+kappa = "8c4713e42550ee6ec67914ffa12fe3278c061ac2850cf55338ec22e22cb8db9d"
+function = "uorust::registry::lift_crate"
+effect = "Env effect: std::env::temp_dir"
+
+[[effect]]
+kappa = "b7d87c3315588e33d3a7ab589f4a9632cb445063242397e037c1b4bf3309bb20"
 function = "uorust::run"
 effect = "calls uorust::project_workspace, which reaches an effect"
 
@@ -4114,6 +4221,11 @@ function = "uorust::mir::core::CoreShard::translated_count"
 definition = "Behavior::coreShardTranslatedCount"
 
 [[lifted]]
+kappa = "d93ee866e5746e929da97ea6dc939bf1db9975f1a9dda63a7041932cd5553e0b"
+function = "uorust::mir::core::Scope::registry"
+definition = "Behavior::scopeRegistry"
+
+[[lifted]]
 kappa = "543c25ee1fd0ef04e75f2516fc02a396466c33eef9dfbf7d6ce4e8f431cae0c8"
 function = "uorust::mir::coverage::aggregate"
 definition = "Behavior::aggregate"
@@ -4467,6 +4579,11 @@ definition = "Behavior::describe"
 kappa = "77eabfa864a0fb22a793b4b706b3c03708e3271ca85bf5e9699a75f9def74780"
 function = "uorust::register::kappa"
 definition = "Behavior::kappa"
+
+[[lifted]]
+kappa = "7cda4e1403c33e570851eff8fa73749351efe9329fadabdc6222d3fc3e72bc6d"
+function = "uorust::registry::dump_item"
+definition = "Behavior::dumpItem"
 
 [[lifted]]
 kappa = "9d814fb0efc2849af878f17543c0938b637ae4ec10f4f1cd0bb820232f777904"

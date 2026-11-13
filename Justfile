@@ -101,6 +101,17 @@ core:
     scripts/mir/dump-core.sh target/core-mir
     cargo run -q --locked -p uorust -- core --mir target/core-mir --library target/rust-src-`sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml`/library --register crates/uorust/core
 
+# Rewrite the std register, crates/uorust/std, as `core` does core's.
+std:
+    scripts/mir/dump-lib.sh std target/std-mir
+    cargo run -q --locked -p uorust -- std --mir target/std-mir --library target/rust-src-`sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml`/library --register crates/uorust/std
+
+# Rewrite the register of a crate of crates.io, crates/uorust/crates/<name>:
+#
+#     just crate itoa@1.0.15
+crate spec:
+    cargo run -q --locked -p uorust -- crate {{quote(spec)}}
+
 # Only the meta-gate, while iterating on a scenario. `test` already runs it.
 bdd:
     cargo test --locked -p repo-conformance

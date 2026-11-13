@@ -32,6 +32,16 @@ enum Command {
     /// Translate every body of core's MIR, as `scripts/mir/dump-core.sh`
     /// dumps it one module at a time, and write the core register.
     Core(CoreArgs),
+    /// Translate every body of std's MIR, as `scripts/mir/dump-lib.sh std`
+    /// dumps it one module at a time, and write the std register.
+    Std(CoreArgs),
+    /// Fetch a crate of crates.io, dump the MIR of its library, translate
+    /// every body and write its register, `crates/uorust/crates/<name>`.
+    Crate(CrateArgs),
+    /// Merge the module files a sharded run wrote into a register, refused
+    /// when a body it records as translated is residue in one, and rewrite
+    /// its summary.
+    Merge(MergeArgs),
     /// Print the route table.
     Routes,
 }
@@ -54,6 +64,30 @@ struct CoreArgs {
     #[arg(long)]
     library: PathBuf,
     /// The register directory: `frontier.toml` and one file per module.
+    #[arg(long)]
+    register: PathBuf,
+}
+
+#[derive(clap::Args)]
+struct CrateArgs {
+    /// The crate and its version, `<name>@<version>`.
+    spec: String,
+    /// The directory the crates' registers are in; the register is its
+    /// `<name>` directory.
+    #[arg(long, default_value = "crates/uorust/crates")]
+    registers: PathBuf,
+}
+
+#[derive(clap::Args)]
+struct MergeArgs {
+    /// The crate the register is of: `core`, `std`, or `<name>@<version>`
+    /// for a crate of crates.io.
+    #[arg(long = "crate")]
+    krate: String,
+    /// The module files to merge.
+    #[arg(long)]
+    shards: PathBuf,
+    /// The register directory.
     #[arg(long)]
     register: PathBuf,
 }
@@ -183,22 +217,31 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             );
             Ok(())
         }
-        Command::Core(args) => {
-            let shards = uorust::mir::core::core_census(&args.library, &args.mir)?;
-            let regressed = uorust::mir::core::core_regressions(&args.register, &shards);
-            if !regressed.is_empty() {
-                return Err(UorustError::Tool(format!(
-                    "a body the core register records as translated is now residue: {}",
-                    regressed.join("; ")
-                )));
-            }
-            uorust::mir::core::write_core_register(&args.register, &shards)?;
-            let (all, done) = shards.iter().fold((0, 0), |(a, d), s| {
-                (a + s.rows.len(), d + s.translated_count())
-            });
+        Command::Core(args) => library("core", &args),
+        Command::Std(args) => library("std", &args),
+        Command::Crate(args) => {
+            let (name, version) = uorust::registry::parse_spec(&args.spec)?;
+            let register = args.registers.join(&name);
+            let lifted = uorust::registry::lift_crate(&name, &version, &register)?;
             println!(
-                "core: {done} of {all} bodies translated in {} modules; register in {}",
-                shards.len(),
+                "{name}@{version}: {} of {} bodies translated in {} modules; register in {}",
+                lifted.translated,
+                lifted.bodies,
+                lifted.modules,
+                register.display()
+            );
+            Ok(())
+        }
+        Command::Merge(args) => {
+            let scope = match uorust::registry::parse_spec(&args.krate) {
+                Ok((name, version)) => uorust::mir::core::Scope::registry(&name, &version),
+                Err(_) => uorust::mir::core::Scope::library(&args.krate),
+            };
+            let merged = uorust::queue::merge(&scope, &args.register, &args.shards)?;
+            println!(
+                "{}: merged {} modules into {}",
+                scope.krate,
+                merged.len(),
                 args.register.display()
             );
             Ok(())
@@ -213,6 +256,32 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             Ok(())
         }
     }
+}
+
+/// Translate the module shards of `krate`, a crate of the pinned
+/// toolchain's rust-src, and write its register.
+fn library(krate: &str, args: &CoreArgs) -> Result<(), UorustError> {
+    let scope = uorust::mir::core::Scope::library(krate);
+    // The dumps name sources `library/<crate>/src/..`.
+    let root = args.library.parent().unwrap_or(&args.library);
+    let shards = uorust::mir::core::census(&scope, root, &args.mir)?;
+    let regressed = uorust::mir::core::core_regressions(&args.register, &shards);
+    if !regressed.is_empty() {
+        return Err(UorustError::Tool(format!(
+            "a body the {krate} register records as translated is now residue: {}",
+            regressed.join("; ")
+        )));
+    }
+    uorust::mir::core::write_register(&scope, &args.register, &shards)?;
+    let (all, done) = shards.iter().fold((0, 0), |(a, d), s| {
+        (a + s.rows.len(), d + s.translated_count())
+    });
+    println!(
+        "{krate}: {done} of {all} bodies translated in {} modules; register in {}",
+        shards.len(),
+        args.register.display()
+    );
+    Ok(())
 }
 
 fn main() -> ExitCode {
