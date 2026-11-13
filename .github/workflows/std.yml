@@ -1,0 +1,167 @@
+# Keeps the std register current: every body of Rust's `std`, at the
+# rust-src of the pinned toolchain, translated by the MIR path and recorded
+# by κ (crates/uorust/std). std stands on core, so std's residue is what
+# core's translation leaves plus what std adds. The run is sharded by std's
+# own top-level modules, read from library/std/src by the first job
+# (scripts/mir/dump-lib.sh std --modules), never listed here: each shard
+# dumps its module's MIR, translates it with the uorust the first job built,
+# and refuses a body the register records as translated that is now residue.
+# The last job merges the shards' module files (`uorust merge`, which checks
+# the same monotonicity over the whole register), rewrites the summary whose
+# ranked causes the Quality facet reads as the cause queue, pushes the
+# register and dispatches the generate workflow, so the model follows.
+# It runs on every push to main that changes the translator or the toolchain,
+# daily, and on demand.
+name: std
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'crates/uorust/src/**'
+      - 'crates/uorust/Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'prismpm.lock'
+      - 'scripts/mir/dump-lib.sh'
+      - '.github/workflows/std.yml'
+  schedule:
+    - cron: '47 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: std
+  cancel-in-progress: true
+
+env:
+  CRATE: std
+
+jobs:
+  modules:
+    name: build uorust and read std's modules
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      modules: ${{ steps.modules.outputs.modules }}
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build uorust and list the modules through the locked SDK
+        shell: bash
+        run: |
+          scripts/ci/sdk.sh 'cargo build --locked -p uorust && mkdir -p target/bin && cp target/debug/uorust target/bin/ && scripts/mir/dump-lib.sh "$CRATE" --modules >target/modules.json'
+      - name: Publish the module matrix
+        id: modules
+        shell: bash
+        run: |
+          echo "modules=$(cat target/modules.json)" >>"$GITHUB_OUTPUT"
+          echo "$CRATE: $(python3 -I -c 'import json, sys; print(len(json.load(open(sys.argv[1]))))' target/modules.json) module shards" >>"$GITHUB_STEP_SUMMARY"
+      - name: Keep the built uorust for the shards
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: uorust-${{ env.CRATE }}
+          path: target/bin/uorust
+          retention-days: 1
+
+  shard:
+    name: translate ${{ matrix.module }}
+    needs: modules
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.modules.outputs.modules) }}
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the built uorust
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: uorust-${{ env.CRATE }}
+          path: target/bin
+      - name: Dump and translate the module through the locked SDK
+        shell: bash
+        env:
+          MODULE: ${{ matrix.module }}
+        run: |
+          chmod +x target/bin/uorust
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          scripts/ci/sdk.sh "scripts/mir/dump-lib.sh $CRATE target/mir '$MODULE' && target/bin/uorust $CRATE --mir target/mir --library target/rust-src-$channel/library --register crates/uorust/$CRATE"
+          mkdir -p target/shard
+          cp "crates/uorust/$CRATE/$MODULE.toml" target/shard/
+      - name: Keep the module's register file
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ env.CRATE }}-register-${{ matrix.module }}
+          path: target/shard
+          retention-days: 1
+      - name: Keep the module's MIR
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ env.CRATE }}-mir-${{ matrix.module }}
+          path: target/mir
+          retention-days: 7
+
+  merge:
+    name: merge the std register and push it
+    needs: [modules, shard]
+    if: ${{ always() && needs.modules.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out the exact event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the built uorust
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: uorust-${{ env.CRATE }}
+          path: target/bin
+      - name: Fetch every shard's module file
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: ${{ env.CRATE }}-register-*
+          merge-multiple: true
+          path: target/shards
+      - name: Merge the shards into the register through the locked SDK
+        shell: bash
+        run: |
+          chmod +x target/bin/uorust
+          scripts/ci/sdk.sh "target/bin/uorust merge --crate $CRATE --shards target/shards --register crates/uorust/$CRATE"
+      - name: Publish the register's counts and ranked causes
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## The $CRATE register"
+            echo
+            echo '```'
+            cat "crates/uorust/$CRATE/frontier.toml" 2>/dev/null || echo "no register yet"
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+      - name: Push the merged register and regenerate the model from it
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE" generate.yml
+      - name: Fail when a shard failed
+        if: ${{ needs.shard.result != 'success' }}
+        shell: bash
+        run: |
+          echo "a shard of $CRATE failed; its module file was left as the register records it" >&2
+          exit 1
