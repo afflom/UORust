@@ -26,6 +26,7 @@ python3 -I scripts/self-model/release.py "$root" "$root" >/dev/null
 python3 -I scripts/experience/authority.py "$root" --check >/dev/null
 python3 -I scripts/experience/experience.py "$root" "$root"
 (cd app && lexlean lock >/dev/null && lexlean fmt >/dev/null)
+python3 -I scripts/self-model/engine.py "$root"
 if ! out=$(prismpm --project app check 2>&1); then
   old=$(sed -n 's/.*binds application model "\(sha256:[0-9a-f]*\)".*/\1/p' <<<"$out")
   new=$(sed -n 's/.*imported application model is \(sha256:[0-9a-f]*\).*/\1/p' <<<"$out")

@@ -1,18 +1,20 @@
+# Rendered from app/src/Engine.lex.tex by scripts/self-model/engine.py; do not edit.
 # Keeps a register for each of crates.io's most-downloaded crates, so the MIR
 # path grows against the code Rust developers depend on, as it does against
-# core and std. The first job reads the ranking from crates.io's own API
+# core and std. The first stage reads the ranking from crates.io's own API
 # (scripts/mir/top-crates.py, `sort=downloads`), each crate at its newest
 # stable version; how many crates is the `count` input, and when it is not
 # given (the daily run), one more than crates/uorust/crates holds registers
 # for, so each run takes on the next crate of the ranking and none is chosen
-# here. Each shard runs `uorust crate <name>@<version>`: it fetches the crate,
-# checks it against crates.io's checksum, dumps its library's MIR on the
-# pinned toolchain, translates every body and refuses a body the register
-# records as translated that is now residue. The last job copies each
-# crate's register into crates/uorust/crates/<name>, pushes them and
-# dispatches the generate workflow, so the Quality facet's cause queue counts
-# them. A crate that does not build here (one that needs a system library,
-# say) is reported in the summary and left as its register records it.
+# here. The attempt ledger keeps only the crates whose (crate@version,
+# translator κ, toolchain κ) it has not seen. Each shard runs `uorust crate
+# <name>@<version>`: it fetches the crate, checks it against crates.io's
+# checksum, dumps its library's MIR on the pinned toolchain, translates every
+# body and refuses a body the register records as translated that is now
+# residue. The writing stage copies each crate's register into
+# crates/uorust/crates/<name>, records the attempts, pushes and dispatches
+# the generate workflow. A crate that does not build here (one that needs a
+# system library, say) is reported in the summary and retried next tick.
 name: crates
 
 on:
@@ -45,13 +47,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Rank the crates by downloads
+      - name: Rank the crates by downloads and keep those the ledger has not attempted
         id: crates
         shell: bash
         env:
           COUNT: ${{ inputs.count }}
         run: |
-          crates=$(python3 -I scripts/mir/top-crates.py crates/uorust/crates "$COUNT")
+          python3 -I scripts/mir/top-crates.py crates/uorust/crates "$COUNT" >"$RUNNER_TEMP/ranked.json"
+          crates=$(python3 -I scripts/mir/ledger.py stale-crates crates/uorust/crates "$RUNNER_TEMP/ranked.json")
           echo "crates=$crates" >>"$GITHUB_OUTPUT"
           echo "crates: $crates" >>"$GITHUB_STEP_SUMMARY"
       - name: Build uorust through the locked SDK
@@ -67,6 +70,7 @@ jobs:
   shard:
     name: lift ${{ matrix.crate.name }}@${{ matrix.crate.version }}
     needs: list
+    if: ${{ needs.list.outputs.crates != '[]' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     strategy:
@@ -105,7 +109,7 @@ jobs:
   merge:
     name: push the crates' registers
     needs: [list, shard]
-    if: ${{ always() && needs.list.result == 'success' }}
+    if: ${{ always() && needs.list.result == 'success' && needs.list.outputs.crates != '[]' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -123,12 +127,12 @@ jobs:
           pattern: crate-register-*
           merge-multiple: true
           path: target/registers
-      - name: Replace each lifted crate's register
+      - name: Replace each lifted crate's register and record its attempt
         shell: bash
         env:
           CRATES: ${{ needs.list.outputs.crates }}
         run: |
-          mkdir -p crates/uorust/crates
+          mkdir -p crates/uorust/crates target/registers
           {
             echo '## Crate registers'
             echo
@@ -142,8 +146,9 @@ jobs:
               echo "- $name: not lifted in this run (see its shard)" >>"$GITHUB_STEP_SUMMARY"
             fi
           done
+          python3 -I scripts/mir/ledger.py record-crates crates/uorust/crates "$CRATES"
       - name: Push the registers and regenerate the model from them
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: scripts/ci/push.sh "Regenerate the crates' registers" "crates/uorust/crates" generate.yml
+        run: scripts/ci/push.sh "Regenerate the crates' registers" "crates/uorust/crates crates/uorust/ledger" generate.yml

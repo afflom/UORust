@@ -16,6 +16,7 @@ python3 -I "$work/scripts/self-model/routes.py" "$work"
 python3 -I "$work/scripts/self-model/facets.py" "$work" "$root" >/dev/null
 python3 -I "$work/scripts/self-model/release.py" "$work" "$root" >/dev/null
 python3 -I "$root/scripts/experience/authority.py" "$root" --check
+python3 -I "$root/scripts/self-model/engine.py" "$root" --check
 python3 -I "$root/scripts/experience/experience.py" "$work" "$root" >/dev/null
 (cd "$work/app" && lexlean fmt >/dev/null)
 status=0

@@ -1,16 +1,18 @@
+# Rendered from app/src/Engine.lex.tex by scripts/self-model/engine.py; do not edit.
 # Keeps the core register current: every body of Rust's `core`, at the
 # rust-src of the pinned toolchain, translated by the MIR path and recorded
-# by κ (crates/uorust/core). The run is sharded by core's own
-# top-level modules, read from library/core/src by the first job
-# (scripts/mir/dump-lib.sh core --modules), never listed here: each shard
-# dumps its module's MIR, translates it with the uorust the first job built,
-# and refuses a body the register records as translated that is now residue.
-# The last job merges the shards' module files (`uorust merge`, which checks
-# the same monotonicity over the whole register), rewrites the summary whose
-# ranked causes the Quality facet reads as the cause queue, pushes the
-# register and dispatches the generate workflow, so the model follows.
-# It runs on every push to main that changes the translator or the toolchain,
-# daily, and on demand.
+# by κ (crates/uorust/core). The run is sharded by core's own top-level
+# modules, read from library/core/src by the first stage
+# (scripts/mir/dump-lib.sh core --modules), never listed here; the attempt
+# ledger (scripts/mir/ledger.py, Engine::staleModules) keeps only the modules
+# whose (module, translator κ, toolchain κ) it has not seen, so a tick with
+# nothing new is idle and settles. Each shard dumps its module's MIR,
+# translates it with the uorust the first stage built, and refuses a body
+# the register records as translated that is now residue. The writing stage
+# merges the shards' module files (`uorust merge`, the same monotonicity over
+# the whole register), records the attempts, pushes the register and
+# dispatches the generate workflow, so the Quality facet's cause queue
+# follows.
 name: core
 
 on:
@@ -23,6 +25,7 @@ on:
       - 'rust-toolchain.toml'
       - 'prismpm.lock'
       - 'scripts/mir/dump-lib.sh'
+      - 'scripts/mir/ledger.py'
       - '.github/workflows/core.yml'
   schedule:
     - cron: '17 5 * * *'
@@ -40,7 +43,7 @@ env:
 
 jobs:
   modules:
-    name: build uorust and read core's modules
+    name: build uorust and find core's stale modules
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     outputs:
@@ -55,12 +58,13 @@ jobs:
         shell: bash
         run: |
           scripts/ci/sdk.sh 'cargo build --locked -p uorust && mkdir -p target/bin && cp target/debug/uorust target/bin/ && scripts/mir/dump-lib.sh "$CRATE" --modules >target/modules.json'
-      - name: Publish the module matrix
+      - name: Keep the modules the ledger has not attempted
         id: modules
         shell: bash
         run: |
-          echo "modules=$(cat target/modules.json)" >>"$GITHUB_OUTPUT"
-          echo "$CRATE: $(python3 -I -c 'import json, sys; print(len(json.load(open(sys.argv[1]))))' target/modules.json) module shards" >>"$GITHUB_STEP_SUMMARY"
+          stale=$(python3 -I scripts/mir/ledger.py stale "crates/uorust/$CRATE" target/modules.json)
+          echo "modules=$stale" >>"$GITHUB_OUTPUT"
+          echo "$CRATE: stale module shards $stale" >>"$GITHUB_STEP_SUMMARY"
       - name: Keep the built uorust for the shards
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -71,6 +75,7 @@ jobs:
   shard:
     name: translate ${{ matrix.module }}
     needs: modules
+    if: ${{ needs.modules.outputs.modules != '[]' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     strategy:
@@ -114,7 +119,7 @@ jobs:
   merge:
     name: merge the core register and push it
     needs: [modules, shard]
-    if: ${{ always() && needs.modules.result == 'success' }}
+    if: ${{ always() && needs.modules.result == 'success' && needs.modules.outputs.modules != '[]' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -141,7 +146,11 @@ jobs:
         shell: bash
         run: |
           chmod +x target/bin/uorust
+          mkdir -p target/shards
           scripts/ci/sdk.sh "target/bin/uorust merge --crate $CRATE --shards target/shards --register crates/uorust/$CRATE"
+      - name: Record the attempts the shards made
+        shell: bash
+        run: python3 -I scripts/mir/ledger.py record "crates/uorust/$CRATE" target/shards
       - name: Publish the register's counts and ranked causes
         if: always()
         shell: bash
@@ -157,7 +166,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE" generate.yml
+        run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE crates/uorust/ledger" generate.yml
       - name: Fail when a shard failed
         if: ${{ needs.shard.result != 'success' }}
         shell: bash

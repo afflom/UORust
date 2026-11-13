@@ -1,0 +1,526 @@
+\begin{lexlean}{Engine}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: Workload,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: file, type: String},
+    {name: cronHour, type: Nat},
+    {name: cronMinute, type: Nat},
+    {name: group, type: String},
+    {name: cancel, type: Bool},
+    {name: onPush, type: Bool}
+  ]
+}
+
+structure{
+  name: Stage,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: workload, type: String},
+    {name: id, type: String},
+    {name: budget, type: Nat},
+    {name: writes, type: Bool}
+  ]
+}
+
+structure{
+  name: Action,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: name, type: String}, {name: revision, type: String}]
+}
+
+structure{
+  name: Retention,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: artifact, type: String}, {name: days, type: Nat}]
+}
+
+structure{
+  name: Attempt,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: module, type: String},
+    {name: translator, type: String},
+    {name: toolchain, type: String}
+  ]
+}
+
+structure{
+  name: Row,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: kappa, type: String}, {name: translated, type: Bool}]
+}
+
+definition{name: runner, parameters: [], result: String, body: "ubuntu-24.04", axioms: []}
+
+definition{name: jobTimeoutCap, parameters: [], result: Nat, body: 360, axioms: []}
+
+definition{
+  name: secrets,
+  parameters: [],
+  result: (List String),
+  body: (cons "GITHUB_TOKEN" (nil String)),
+  axioms: []
+}
+
+definition{
+  name: workloads,
+  parameters: [],
+  result: (List Workload),
+  body: (cons (record Workload {id := "core", file := ".github/workflows/core.yml", cronHour := 5, cronMinute := 17, group := "core", cancel := true, onPush := true}) (cons (record Workload {id := "std", file := ".github/workflows/std.yml", cronHour := 5, cronMinute := 47, group := "std", cancel := true, onPush := true}) (cons (record Workload {id := "crates", file := ".github/workflows/crates.yml", cronHour := 6, cronMinute := 29, group := "crates", cancel := true, onPush := false}) (nil Workload)))),
+  axioms: []
+}
+
+definition{
+  name: stages,
+  parameters: [],
+  result: (List Stage),
+  body: (cons (record Stage {workload := "core", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "core", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "core", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "std", id := "modules", budget := 60, writes := false}) (cons (record Stage {workload := "std", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "std", id := "merge", budget := 30, writes := true}) (cons (record Stage {workload := "crates", id := "list", budget := 60, writes := false}) (cons (record Stage {workload := "crates", id := "shard", budget := 90, writes := false}) (cons (record Stage {workload := "crates", id := "merge", budget := 30, writes := true}) (nil Stage)))))))))),
+  axioms: []
+}
+
+definition{
+  name: writeScopes,
+  parameters: [],
+  result: (List String),
+  body: (cons "contents" (cons "actions" (nil String))),
+  axioms: []
+}
+
+definition{
+  name: pushPaths,
+  parameters: [],
+  result: (List String),
+  body: (cons "crates/uorust/src/**" (cons "crates/uorust/Cargo.toml" (cons "Cargo.lock" (cons "rust-toolchain.toml" (cons "prismpm.lock" (cons "scripts/mir/dump-lib.sh" (cons "scripts/mir/ledger.py" (nil String)))))))),
+  axioms: []
+}
+
+definition{
+  name: actions,
+  parameters: [],
+  result: (List Action),
+  body: (cons (record Action {name := "actions/checkout", revision := "3d3c42e5aac5ba805825da76410c181273ba90b1"}) (cons (record Action {name := "actions/upload-artifact", revision := "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"}) (cons (record Action {name := "actions/download-artifact", revision := "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"}) (nil Action)))),
+  axioms: []
+}
+
+definition{
+  name: retentions,
+  parameters: [],
+  result: (List Retention),
+  body: (cons (record Retention {artifact := "uorust", days := 1}) (cons (record Retention {artifact := "register", days := 1}) (cons (record Retention {artifact := "mir", days := 7}) (nil Retention)))),
+  axioms: []
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => ((not (memberString head tail)) && (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: memberNat,
+  parameters: [value : Nat, values : (List Nat)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (value =? head) then true else (memberNat value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctNats,
+  parameters: [values : (List Nat)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => ((not (memberNat head tail)) && (distinctNats tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: workloadIdsOf,
+  parameters: [xs : (List Workload)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (workloadIdsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: workloadFilesOf,
+  parameters: [xs : (List Workload)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head file) (workloadFilesOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: workloadGroupsOf,
+  parameters: [xs : (List Workload)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head group) (workloadGroupsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: stageWorkloadsOf,
+  parameters: [xs : (List Stage)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head workload) (stageWorkloadsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: cronSlotsOf,
+  parameters: [xs : (List Workload)],
+  result: (List Nat),
+  body: (match xs
+    | List.nil => (nil Nat)
+    | List.cons head tail => (cons ((prim multiply (project head cronHour) 60 : Nat) + (project head cronMinute)) (cronSlotsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: cronsInRange,
+  parameters: [xs : (List Workload)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => ((((project head cronHour) <? 24) && ((project head cronMinute) <? 60)) && (cronsInRange tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: budgetsFit,
+  parameters: [xs : (List Stage), cap : Nat],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => (((0 <? (project head budget)) && ((project head budget) <=? cap)) && (budgetsFit tail cap))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: writersOf,
+  parameters: [xs : (List Stage)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (if (project head writes) then (cons (project head workload) (writersOf tail)) else (writersOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: attemptSame,
+  parameters: [a : Attempt, b : Attempt],
+  result: Bool,
+  body: (((prim equal (project a module) (project b module) : Bool) && (prim equal (project a translator) (project b translator) : Bool)) && (prim equal (project a toolchain) (project b toolchain) : Bool)),
+  axioms: []
+}
+
+definition{
+  name: attempted,
+  parameters: [a : Attempt, ledger : (List Attempt)],
+  result: Bool,
+  body: (match ledger
+    | List.nil => false
+    | List.cons head tail => (if (attemptSame a head) then true else (attempted a tail))),
+  axioms: [],
+  recursive_argument: ledger
+}
+
+definition{
+  name: stale,
+  parameters: [a : Attempt, ledger : (List Attempt)],
+  result: Bool,
+  body: (not (attempted a ledger)),
+  axioms: []
+}
+
+definition{
+  name: staleModules,
+  parameters: [attempts : (List Attempt), ledger : (List Attempt)],
+  result: (List String),
+  body: (match attempts
+    | List.nil => (nil String)
+    | List.cons head tail => (if (stale head ledger) then (cons (project head module) (staleModules tail ledger)) else (staleModules tail ledger))),
+  axioms: [],
+  recursive_argument: attempts
+}
+
+definition{
+  name: settled,
+  parameters: [attempts : (List Attempt), ledger : (List Attempt)],
+  result: Bool,
+  body: (match attempts
+    | List.nil => true
+    | List.cons head tail => ((attempted head ledger) && (settled tail ledger))),
+  axioms: [],
+  recursive_argument: attempts
+}
+
+definition{
+  name: kappaPreimage,
+  parameters: [krate : String, path : String, text : String],
+  result: String,
+  body: (prim join (cons (prim join (cons krate (cons path (nil String))) "::" : String) (cons text (nil String))) "\n" : String),
+  axioms: [propext]
+}
+
+definition{
+  name: recordedTranslated,
+  parameters: [kappa : String, old : (List Row)],
+  result: Bool,
+  body: (match old
+    | List.nil => false
+    | List.cons head tail => (if ((prim equal (project head kappa) kappa : Bool) && (project head translated)) then true else (recordedTranslated kappa tail))),
+  axioms: [],
+  recursive_argument: old
+}
+
+definition{
+  name: admitRow,
+  parameters: [old : (List Row), row : Row],
+  result: Bool,
+  body: (if (recordedTranslated (project row kappa) old) then (project row translated) else true),
+  axioms: []
+}
+
+definition{
+  name: kappasOf,
+  parameters: [xs : (List Row)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head kappa) (kappasOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: monotone,
+  parameters: [old : (List Row), new : (List Row)],
+  result: Bool,
+  body: (match new
+    | List.nil => true
+    | List.cons head tail => ((admitRow old head) && (monotone old tail))),
+  axioms: [],
+  recursive_argument: new
+}
+
+definition{
+  name: admitRegister,
+  parameters: [old : (List Row), new : (List Row)],
+  result: Bool,
+  body: ((monotone old new) && (distinctStrings (kappasOf new))),
+  axioms: []
+}
+
+definition{
+  name: ledgerFixture,
+  parameters: [],
+  result: (List Attempt),
+  body: (cons (record Attempt {module := "bool", translator := "t1", toolchain := "rust-src"}) (cons (record Attempt {module := "char", translator := "t1", toolchain := "rust-src"}) (nil Attempt))),
+  axioms: []
+}
+
+definition{
+  name: idleAttemptsFixture,
+  parameters: [],
+  result: (List Attempt),
+  body: (cons (record Attempt {module := "bool", translator := "t1", toolchain := "rust-src"}) (cons (record Attempt {module := "char", translator := "t1", toolchain := "rust-src"}) (nil Attempt))),
+  axioms: []
+}
+
+definition{
+  name: movedAttemptsFixture,
+  parameters: [],
+  result: (List Attempt),
+  body: (cons (record Attempt {module := "bool", translator := "t2", toolchain := "rust-src"}) (cons (record Attempt {module := "char", translator := "t2", toolchain := "rust-src"}) (nil Attempt))),
+  axioms: []
+}
+
+definition{
+  name: registerFixture,
+  parameters: [],
+  result: (List Row),
+  body: (cons (record Row {kappa := "k1", translated := true}) (cons (record Row {kappa := "k2", translated := false}) (nil Row))),
+  axioms: []
+}
+
+definition{
+  name: grownFixture,
+  parameters: [],
+  result: (List Row),
+  body: (cons (record Row {kappa := "k1", translated := true}) (cons (record Row {kappa := "k2", translated := true}) (cons (record Row {kappa := "k3", translated := false}) (nil Row)))),
+  axioms: []
+}
+
+definition{
+  name: regressedFixture,
+  parameters: [],
+  result: (List Row),
+  body: (cons (record Row {kappa := "k1", translated := false}) (cons (record Row {kappa := "k2", translated := true}) (nil Row))),
+  axioms: []
+}
+
+definition{
+  name: remintedFixture,
+  parameters: [],
+  result: (List Row),
+  body: (cons (record Row {kappa := "k1", translated := true}) (cons (record Row {kappa := "k1", translated := true}) (nil Row))),
+  axioms: []
+}
+
+theorem{
+  name: onlyGithubToken,
+  parameters: [],
+  statement: ((allMembers (secrets) (cons "GITHUB_TOKEN" (nil String))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: workloadsDistinct,
+  parameters: [],
+  statement: (((distinctStrings (workloadIdsOf (workloads))) && ((distinctStrings (workloadFilesOf (workloads))) && (distinctStrings (workloadGroupsOf (workloads))))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: cronsDistinctAndInRange,
+  parameters: [],
+  statement: (((distinctNats (cronSlotsOf (workloads))) && (cronsInRange (workloads))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: stageBudgetsFitTheJobCap,
+  parameters: [],
+  statement: ((budgetsFit (stages) (jobTimeoutCap)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyStageIsOfAWorkload,
+  parameters: [],
+  statement: ((allMembers (stageWorkloadsOf (stages)) (workloadIdsOf (workloads))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: oneWriterPerWorkload,
+  parameters: [],
+  statement: (((distinctStrings (writersOf (stages))) && (allMembers (workloadIdsOf (workloads)) (writersOf (stages)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: anIdleTickSettles,
+  parameters: [],
+  statement: ((settled (idleAttemptsFixture) (ledgerFixture)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: anIdleTickRetriesNothing,
+  parameters: [],
+  statement: ((staleModules (idleAttemptsFixture) (ledgerFixture)) = (nil String)),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: aNewTranslatorRetriesEveryModule,
+  parameters: [],
+  statement: ((staleModules (movedAttemptsFixture) (ledgerFixture)) = (cons "bool" (cons "char" (nil String)))),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: growthIsAdmitted,
+  parameters: [],
+  statement: ((admitRegister (registerFixture) (grownFixture)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: aRegressionIsRefused,
+  parameters: [],
+  statement: ((admitRegister (registerFixture) (regressedFixture)) = false),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: aKappaIsMintedOnce,
+  parameters: [],
+  statement: ((admitRegister (registerFixture) (remintedFixture)) = false),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}
