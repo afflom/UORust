@@ -5748,6 +5748,14 @@ impl Fun<'_, '_> {
             (Ty::Str, Ty::List(b)) if **b == Ty::Nat(Some(u8::BITS)) => {
                 Some(format!("({}::textBytes {v})", lift::PRELUDE))
             }
+            // `&[u8]` read as `&str`, whose bytes the caller vouches are
+            // UTF-8 (`from_utf8_unchecked`): the text they decode to.
+            (Ty::List(b), Ty::Str) if **b == Ty::Nat(Some(u8::BITS)) => {
+                Some(decoded(&format!("({}::shaBytesOf {v})", lift::PRELUDE)))
+            }
+            // A `u32` read as a `char`, a scalar value the caller vouches
+            // for (`from_u32_unchecked`): the text of its UTF-8 encoding.
+            (Ty::Nat(Some(u32::BITS)), Ty::Char) => Some(decoded(&utf8_encoded(v))),
             (_, Ty::Option(inner)) => {
                 let (is, ic) = peel(inner);
                 if !one(&fs, &is) || !fc.is_empty() {
@@ -6225,6 +6233,60 @@ fn comparison(cond: &str) -> Option<(&'static str, String, String)> {
         }
     }
     None
+}
+
+/// The text `bytes` (a `Bytes` term) decode to as UTF-8, where they are
+/// UTF-8; the caller's precondition leaves no other case, which reads as
+/// the empty text.
+fn decoded(bytes: &str) -> String {
+    format!("(match (prim utf8_decode {bytes} : (Option String)) | Option.none => \"\" | Option.some text => text)")
+}
+
+/// The UTF-8 encoding of the scalar value `code` (a `Nat` term), as a
+/// `Bytes` term (RFC 3629, section 3): a code point below `2^7` is one
+/// byte; below `2^11`, `2^16` and past them, two, three and four bytes,
+/// the first holding the leading marker of its length and the high bits,
+/// each later one the continuation marker and six bits more.
+fn utf8_encoded(code: &str) -> String {
+    /// The bits each continuation byte carries.
+    const SIX: u32 = 6;
+    /// Each shorter encoding's length in bytes, and the bits of a code
+    /// point it holds.
+    const LIMITS: [(u32, u32); 3] = [(1, 7), (2, 11), (3, 16)];
+    /// The longest encoding's length in bytes.
+    const LONGEST: u32 = 4;
+    let byte = |n: String| format!("({}::shaByte {n})", lift::PRELUDE);
+    // Bits `6 * k` up of `code`, and their low six.
+    let shifted = |k: u32| match k {
+        0 => code.to_string(),
+        _ => format!("(prim quotient {code} {} 0 : Nat)", 1u64 << (SIX * k)),
+    };
+    let low = |k: u32| format!("(prim remainder {} {} 0 : Nat)", shifted(k), 1u64 << SIX);
+    // A continuation byte: `10` and six bits.
+    let more = |k: u32| byte(format!("({} + {})", 1u64 << (u8::BITS - 1), low(k)));
+    // The `n`-byte encoding: its leading byte, `n` ones and a zero over
+    // the high bits, then `n - 1` continuation bytes.
+    let of = |n: u32| {
+        let lead = (0..n).fold(0u64, |acc, i| acc | (1u64 << (u8::BITS - 1 - i)));
+        let mut out = byte(format!("({lead} + {})", shifted(n - 1)));
+        for k in (0..n - 1).rev() {
+            out = format!("(prim append {out} {} : Bytes)", more(k));
+        }
+        out
+    };
+    let mut out = of(LONGEST);
+    for (n, bits) in LIMITS.iter().rev() {
+        let encoded = if *n == 1 {
+            byte(code.to_string())
+        } else {
+            of(*n)
+        };
+        out = format!(
+            "(if ({code} <? {}) then {encoded} else {out})",
+            1u64 << bits
+        );
+    }
+    out
 }
 
 /// The width of a fixed-width unsigned type. A `usize` has none: its range
