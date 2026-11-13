@@ -235,6 +235,9 @@ struct Loop {
     /// value it has. The helper takes them as given, and each call of it
     /// carries the theorem that they hold of its arguments.
     invariants: Vec<(String, bool)>,
+    /// In a backward function, the parameter that takes the returned
+    /// borrow's new value, last.
+    new: Option<String>,
 }
 
 struct Fun<'a, 'c> {
@@ -818,12 +821,6 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         f.result = one;
     }
     f.find_loops()?;
-    if f.backward.is_some() && !f.loops.is_empty() {
-        return Err(kind(
-            "TerminatorKind::Goto",
-            "a backward function of a body with a loop",
-        ));
-    }
     f.scope = f.params.clone();
     // A float intrinsic core declares without a body (it is `unreachable`,
     // the compiler supplying it) is the prelude's model of it, as a call
@@ -1221,6 +1218,9 @@ impl Fun<'_, '_> {
         if lp.memory.is_some() {
             args.push(self.memory_at(&st)?);
         }
+        if let (Some(_), Some((n, _))) = (&lp.new, &self.backward) {
+            args.push(n.clone());
+        }
         let call = if args.is_empty() {
             lp.name.clone()
         } else {
@@ -1294,6 +1294,10 @@ impl Fun<'_, '_> {
             }
             None => None,
         };
+        // A backward function's helper takes the returned borrow's new
+        // value last, and its body writes it at each return.
+        let outer = self.backward.clone();
+        let new = outer.clone().map(|(_, t)| (self.fresh(Some("new"), 0), t));
         let saved = (
             std::mem::take(&mut self.scope),
             std::mem::take(&mut self.evidence),
@@ -1308,6 +1312,7 @@ impl Fun<'_, '_> {
                     .iter()
                     .map(|m| (m.clone(), super::memory::memory_ty())),
             )
+            .chain(new.iter().cloned())
             .collect();
         // A loop whose header does not exit on an order of naturals: its
         // measure a natural every write in the loop makes smaller (`x / c`,
@@ -1428,6 +1433,7 @@ impl Fun<'_, '_> {
             carried: carried.clone(),
             memory: memory.clone(),
             invariants: invariants.clone(),
+            new: new.as_ref().map(|(n, _)| n.clone()),
         };
         self.loops.insert(h, Some(lp.clone()));
         self.measure = Some(measure.clone());
@@ -1435,7 +1441,12 @@ impl Fun<'_, '_> {
         for (c, holds) in &invariants {
             st.path.push(MirStep::If(c.clone(), *holds));
         }
-        let mut body = self.block(h, st)?;
+        if new.is_some() {
+            self.backward = new.clone();
+        }
+        let body = self.block(h, st);
+        self.backward = outer;
+        let mut body = body?;
         // Where an invariant fails the helper is never called: its value
         // there stands for no path.
         if let Some(d) = lift::default_of(&self.result, self.cx.types) {
@@ -4673,9 +4684,11 @@ impl Fun<'_, '_> {
             // inside the arguments' tuple, whose places the call does not
             // hold apart. One whose environment holds a mutable borrow
             // gives its environment back, after its value.
-            let cb = &self.cx.closures[&closure];
+            // A closure of one input gives that input back as the
+            // arguments' tuple, which lifts as the input.
+            let cb = self.cx.closures[&closure].clone();
             let threads = threaded(&cb.locals, cb.arity, true, self.cx.types);
-            if threads.iter().any(|l| *l != 1) {
+            if threads.iter().any(|l| *l != 1 && !(inputs == 1 && *l == 2)) {
                 return Err(kind(
                     k,
                     "a closure that writes through a `&mut` argument, passed in the arguments' tuple",
@@ -4683,9 +4696,48 @@ impl Fun<'_, '_> {
             }
             let term = format!("({name} {})", items.join(" "));
             if !threads.is_empty() {
-                let full = threaded_result(dt, &[et.clone()], self.cx.types);
+                let positions: Vec<usize> = threads.iter().map(|l| l - 1).collect();
+                let rest: Vec<Ty> = threads
+                    .iter()
+                    .map(|l| if *l == 1 { et.clone() } else { at.clone() })
+                    .collect();
+                let full = threaded_result(dt, &rest, self.cx.types);
+                // A closure that returns a borrow into what it threads: its
+                // backward function, lowered from the same body.
+                let returns_borrow = cb.locals.first().is_some_and(|t| {
+                    threaded(&[String::new(), t.clone()], 1, false, self.cx.types).len() == 1
+                });
+                let back = format!("{name}Back");
+                if returns_borrow && !self.aux.contains_key(&back) {
+                    let mut active = self.cx.active.to_vec();
+                    active.push(back.clone());
+                    let mut cx = self.cx.within(&active);
+                    cx.backward = true;
+                    if let Ok(lowered) = lower(&cx, &cb, &back) {
+                        for d in lowered.decls {
+                            self.aux.insert(d.name().to_string(), d);
+                        }
+                        for (n, d) in lowered.aux {
+                            self.aux.entry(n).or_insert(d);
+                        }
+                        self.calls.extend(lowered.calls);
+                        self.types.extend(lowered.types);
+                    }
+                }
+                let backward = (returns_borrow && self.aux.contains_key(&back)).then(|| {
+                    self.calls.insert(back.clone());
+                    (
+                        std::iter::once(back.clone())
+                            .chain(items.iter().cloned())
+                            .collect::<Vec<_>>()
+                            .join(" "),
+                        positions.clone(),
+                        (rest.len() > 1).then(|| self.cx.types.tuple(rest.clone())),
+                    )
+                });
                 return Ok(Called {
-                    threads: Some((full, vec![0])),
+                    threads: Some((full, positions)),
+                    backward,
                     ..Called::value(term)
                 });
             }
