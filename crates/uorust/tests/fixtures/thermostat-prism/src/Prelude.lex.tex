@@ -1028,5 +1028,484 @@ definition{
   body: (hexBytes (cons value (nil Nat))),
   axioms: [Classical.choice, Quot.sound, propext]
 }
+
+definition{
+  name: floatPow2,
+  parameters: [k : Nat],
+  result: Nat,
+  body: (match k | Nat.zero => 1 | Nat.succ r => (prim multiply 2 (floatPow2 r) : Nat)),
+  recursive_argument: k
+}
+
+definition{
+  name: floatBits,
+  parameters: [fuel : Nat, x : Nat],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => 0
+    | Nat.succ r => (if (x =? 0) then 0 else (1 + (floatBits r (prim quotient x 2 0 : Nat))))),
+  recursive_argument: fuel
+}
+
+definition{
+  name: floatPowMod,
+  parameters: [fuel : Nat, k : Nat, md : Nat],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => (prim remainder 1 md 0 : Nat)
+    | Nat.succ r => (if (k =? 0) then (prim remainder 1 md 0 : Nat) else (let h : Nat := (floatPowMod r (prim quotient k 2 0 : Nat) md); (let sq : Nat := (prim remainder (prim multiply h h : Nat) md 0 : Nat); (if ((prim remainder k 2 0 : Nat) =? 1) then (prim remainder (prim multiply sq 2 : Nat) md 0 : Nat) else sq))))),
+  recursive_argument: fuel
+}
+
+definition{
+  name: floatRoot,
+  parameters: [fuel : Nat, r : Nat, x : Nat],
+  result: Nat,
+  body: (match fuel
+    | Nat.zero => r
+    | Nat.succ i => (let c : Nat := (r + (floatPow2 i)); (floatRoot i (if ((prim multiply c c : Nat) <=? x) then c else r) x))),
+  recursive_argument: fuel
+}
+
+definition{name: floatSign, parameters: [e : Nat, m : Nat], result: Nat, body: (floatPow2 (e + m))}
+
+definition{name: floatUnit, parameters: [m : Nat], result: Nat, body: (floatPow2 m)}
+
+definition{
+  name: floatEmax,
+  parameters: [e : Nat],
+  result: Nat,
+  body: (prim subtract (floatPow2 e) 1 : Nat)
+}
+
+definition{
+  name: floatBias,
+  parameters: [e : Nat],
+  result: Nat,
+  body: (prim subtract (floatPow2 (prim subtract e 1 : Nat)) 1 : Nat)
+}
+
+definition{name: floatBm, parameters: [e : Nat, m : Nat], result: Nat, body: ((floatBias e) + m)}
+
+definition{
+  name: floatInf,
+  parameters: [e : Nat, m : Nat],
+  result: Nat,
+  body: (prim multiply (floatEmax e) (floatUnit m) : Nat)
+}
+
+definition{
+  name: floatQuietBit,
+  parameters: [m : Nat],
+  result: Nat,
+  body: (floatPow2 (prim subtract m 1 : Nat))
+}
+
+definition{
+  name: floatNan,
+  parameters: [e : Nat, m : Nat],
+  result: Nat,
+  body: ((floatInf e m) + (floatQuietBit m))
+}
+
+definition{
+  name: floatNegInf,
+  parameters: [e : Nat, m : Nat],
+  result: Nat,
+  body: ((floatSign e m) + (floatInf e m))
+}
+
+definition{
+  name: floatMax,
+  parameters: [e : Nat, m : Nat],
+  result: Nat,
+  body: (prim subtract (floatInf e m) 1 : Nat)
+}
+
+definition{
+  name: floatMin,
+  parameters: [e : Nat, m : Nat],
+  result: Nat,
+  body: ((floatSign e m) + (floatMax e m))
+}
+
+definition{name: floatMinPositive, parameters: [e : Nat, m : Nat], result: Nat, body: (floatUnit m)}
+
+definition{
+  name: floatEpsilon,
+  parameters: [e : Nat, m : Nat],
+  result: Nat,
+  body: (prim multiply (prim subtract (floatBias e) m : Nat) (floatUnit m) : Nat)
+}
+
+definition{
+  name: floatMag,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (prim remainder x (floatSign e m) 0 : Nat)
+}
+
+definition{
+  name: floatNegative,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: ((floatSign e m) <=? x)
+}
+
+definition{
+  name: floatField,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (prim quotient (floatMag e m x) (floatUnit m) 0 : Nat)
+}
+
+definition{
+  name: floatFraction,
+  parameters: [m : Nat, x : Nat],
+  result: Nat,
+  body: (prim remainder x (floatUnit m) 0 : Nat)
+}
+
+definition{
+  name: floatSig,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (if ((floatField e m x) =? 0) then (floatFraction m x) else ((floatFraction m x) + (floatUnit m)))
+}
+
+definition{
+  name: floatExp,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (let f : Nat := (floatField e m x); (if (f =? 0) then 1 else f))
+}
+
+definition{
+  name: floatIsNan,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: ((floatInf e m) <? (floatMag e m x))
+}
+
+definition{
+  name: floatIsInfinite,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: ((floatMag e m x) =? (floatInf e m))
+}
+
+definition{
+  name: floatIsFinite,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: ((floatField e m x) <? (floatEmax e))
+}
+
+definition{
+  name: floatIsNormal,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: ((0 <? (floatField e m x)) && ((floatField e m x) <? (floatEmax e)))
+}
+
+definition{
+  name: floatIsSubnormal,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: (((floatField e m x) =? 0) && (0 <? (floatFraction m x)))
+}
+
+definition{
+  name: floatIsSignNegative,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: (floatNegative e m x)
+}
+
+definition{
+  name: floatIsSignPositive,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Bool,
+  body: (not (floatNegative e m x))
+}
+
+definition{
+  name: floatQuiet,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (if ((prim remainder (prim quotient x (floatQuietBit m) 0 : Nat) 2 0 : Nat) =? 1) then x else (x + (floatQuietBit m)))
+}
+
+definition{
+  name: floatNeg,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (if (floatNegative e m x) then (prim subtract x (floatSign e m) : Nat) else (x + (floatSign e m)))
+}
+
+definition{
+  name: floatSigned,
+  parameters: [e : Nat, m : Nat, s : Bool, x : Nat],
+  result: Nat,
+  body: ((if s then (floatSign e m) else 0) + x)
+}
+
+definition{
+  name: floatAbs,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (floatMag e m x)
+}
+
+definition{
+  name: floatCopySign,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (floatSigned e m (floatNegative e m b) (floatMag e m a))
+}
+
+definition{
+  name: floatRound,
+  parameters: [e : Nat, m : Nat, s : Bool, n0 : Nat, tp : Nat, tn0 : Nat, st : Bool],
+  result: Nat,
+  body: (let p : Nat := (m + 1); (let l0 : Nat := (floatBits n0 n0); (let w : Nat := (prim subtract p l0 : Nat); (let n : Nat := (prim multiply n0 (floatPow2 w) : Nat); (let tn : Nat := (tn0 + w); (let l : Nat := (l0 + w); (let k1 : Nat := (prim subtract l p : Nat); (let k2 : Nat := (prim subtract (1 + tn) tp : Nat); (let k : Nat := (if (k2 <=? k1) then k1 else k2); (if ((l + 2) <=? k) then (floatSigned e m s 0) else (let pk : Nat := (floatPow2 k); (let q : Nat := (prim quotient n pk 0 : Nat); (let r : Nat := (prim remainder n pk 0 : Nat); (let h : Nat := (prim quotient pk 2 0 : Nat); (let up : Bool := ((1 <=? k) && ((h <? r) || ((r =? h) && (st || ((prim remainder q 2 0 : Nat) =? 1))))); (let q2 : Nat := (q + (if up then 1 else 0)); (let carry : Bool := (q2 =? (floatPow2 p)); (let q3 : Nat := (if carry then (floatUnit m) else q2); (let el : Nat := ((tp + k) + (if carry then 1 else 0)); (if (q3 <? (floatUnit m)) then (floatSigned e m s q3) else (let ef : Nat := (prim subtract el tn : Nat); (if ((floatEmax e) <=? ef) then (floatSigned e m s (floatInf e m)) else (floatSigned e m s ((prim multiply ef (floatUnit m) : Nat) + (prim subtract q3 (floatUnit m) : Nat)))))))))))))))))))))))))
+}
+
+definition{
+  name: floatSumCore,
+  parameters: [
+    e : Nat,
+    m : Nat,
+    guard : Nat,
+    shift : Nat,
+    tn : Nat,
+    s1 : Bool,
+    g1 : Nat,
+    e1 : Nat,
+    s2 : Bool,
+    g2 : Nat,
+    e2 : Nat
+  ],
+  result: Nat,
+  body: (let d : Nat := (prim subtract e1 e2 : Nat); (let same : Bool := (if s1 then s2 else (not s2)); (if (d <=? guard) then (let x : Nat := (prim multiply g1 (floatPow2 d) : Nat); (if same then (floatRound e m s1 (x + g2) e2 tn false) else (if (x =? g2) then 0 else (if (g2 <? x) then (floatRound e m s1 (prim subtract x g2 : Nat) e2 tn false) else (floatRound e m s2 (prim subtract g2 x : Nat) e2 tn false))))) else (let w : Nat := (prim multiply g1 (floatPow2 shift) : Nat); (if same then (floatRound e m s1 w e1 (tn + shift) true) else (floatRound e m s1 (prim subtract w 1 : Nat) e1 (tn + shift) true))))))
+}
+
+definition{
+  name: floatAdd,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (floatQuiet e m a) else (if (floatIsNan e m b) then (floatQuiet e m b) else (let sa : Bool := (floatNegative e m a); (let sb : Bool := (floatNegative e m b); (let ma : Nat := (floatMag e m a); (let mb : Nat := (floatMag e m b); (if (floatIsInfinite e m a) then (if ((floatIsInfinite e m b) && (if sa then (not sb) else sb)) then (floatNan e m) else a) else (if (floatIsInfinite e m b) then b else (if ((ma =? 0) && (mb =? 0)) then (floatSigned e m (sa && sb) 0) else (if (ma =? 0) then b else (if (mb =? 0) then a else (let ga : Nat := (floatSig e m a); (let gb : Nat := (floatSig e m b); (let ea : Nat := (floatExp e m a); (let eb : Nat := (floatExp e m b); (if (eb <=? ea) then (floatSumCore e m (m + 3) 2 0 sa ga ea sb gb eb) else (floatSumCore e m (m + 3) 2 0 sb gb eb sa ga ea)))))))))))))))))
+}
+
+definition{
+  name: floatSub,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m b) then (floatAdd e m a b) else (floatAdd e m a (floatNeg e m b)))
+}
+
+definition{
+  name: floatMul,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (floatQuiet e m a) else (if (floatIsNan e m b) then (floatQuiet e m b) else (let s : Bool := (if (floatNegative e m a) then (not (floatNegative e m b)) else (floatNegative e m b)); (let zero : Bool := (((floatMag e m a) =? 0) || ((floatMag e m b) =? 0)); (if ((floatIsInfinite e m a) || (floatIsInfinite e m b)) then (if zero then (floatNan e m) else (floatSigned e m s (floatInf e m))) else (if zero then (floatSigned e m s 0) else (floatRound e m s (prim multiply (floatSig e m a) (floatSig e m b) : Nat) ((floatExp e m a) + (floatExp e m b)) (floatBm e m) false)))))))
+}
+
+definition{
+  name: floatDiv,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (floatQuiet e m a) else (if (floatIsNan e m b) then (floatQuiet e m b) else (let s : Bool := (if (floatNegative e m a) then (not (floatNegative e m b)) else (floatNegative e m b)); (if (floatIsInfinite e m a) then (if (floatIsInfinite e m b) then (floatNan e m) else (floatSigned e m s (floatInf e m))) else (if (floatIsInfinite e m b) then (floatSigned e m s 0) else (if ((floatMag e m b) =? 0) then (if ((floatMag e m a) =? 0) then (floatNan e m) else (floatSigned e m s (floatInf e m))) else (if ((floatMag e m a) =? 0) then (floatSigned e m s 0) else (let shift : Nat := ((prim multiply 2 m : Nat) + 3); (let gb : Nat := (floatSig e m b); (let num : Nat := (prim multiply (floatSig e m a) (floatPow2 shift) : Nat); (floatRound e m s (prim quotient num gb 0 : Nat) ((floatExp e m a) + (floatBm e m)) ((floatExp e m b) + shift) (0 <? (prim remainder num gb 0 : Nat)))))))))))))
+}
+
+definition{
+  name: floatRem,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (floatQuiet e m a) else (if (floatIsNan e m b) then (floatQuiet e m b) else (if ((floatIsInfinite e m a) || ((floatMag e m b) =? 0)) then (floatNan e m) else (if ((floatIsInfinite e m b) || ((floatMag e m a) =? 0)) then a else (let sa : Bool := (floatNegative e m a); (let ga : Nat := (floatSig e m a); (let gb : Nat := (floatSig e m b); (let ea : Nat := (floatExp e m a); (let eb : Nat := (floatExp e m b); (if (eb <=? ea) then (let d : Nat := (prim subtract ea eb : Nat); (floatRound e m sa (prim remainder (prim multiply ga (floatPowMod d d gb) : Nat) gb 0 : Nat) eb 0 false)) else (let d : Nat := (prim subtract eb ea : Nat); (if ((m + 1) <=? d) then a else (floatRound e m sa (prim remainder ga (prim multiply gb (floatPow2 d) : Nat) 0 : Nat) ea 0 false)))))))))))))
+}
+
+definition{
+  name: floatKey,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (if (floatNegative e m x) then (prim subtract (floatSign e m) (floatMag e m x) : Nat) else ((floatSign e m) + x))
+}
+
+definition{
+  name: floatOrdered,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: ((not (floatIsNan e m a)) && (not (floatIsNan e m b)))
+}
+
+definition{
+  name: floatEq,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: ((floatOrdered e m a b) && ((floatKey e m a) =? (floatKey e m b)))
+}
+
+definition{
+  name: floatNe,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: (not (floatEq e m a b))
+}
+
+definition{
+  name: floatLt,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: ((floatOrdered e m a b) && ((floatKey e m a) <? (floatKey e m b)))
+}
+
+definition{
+  name: floatLe,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: ((floatOrdered e m a b) && ((floatKey e m a) <=? (floatKey e m b)))
+}
+
+definition{
+  name: floatGt,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: (floatLt e m b a)
+}
+
+definition{
+  name: floatGe,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: (floatLe e m b a)
+}
+
+definition{
+  name: floatBelow,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Bool,
+  body: (((floatKey e m a) <? (floatKey e m b)) || (((floatKey e m a) =? (floatKey e m b)) && (floatNegative e m a)))
+}
+
+definition{
+  name: floatMinimum,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (floatQuiet e m a) else (if (floatIsNan e m b) then (floatQuiet e m b) else (if (floatBelow e m a b) then a else b)))
+}
+
+definition{
+  name: floatMaximum,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (floatQuiet e m a) else (if (floatIsNan e m b) then (floatQuiet e m b) else (if (floatBelow e m b a) then a else b)))
+}
+
+definition{
+  name: floatMinNum,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (if (floatIsNan e m b) then (floatQuiet e m a) else b) else (if (floatIsNan e m b) then a else (if (floatBelow e m a b) then a else b)))
+}
+
+definition{
+  name: floatMaxNum,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (if (floatIsNan e m b) then (floatQuiet e m a) else b) else (if (floatIsNan e m b) then a else (if (floatBelow e m b a) then a else b)))
+}
+
+definition{
+  name: floatFma,
+  parameters: [e : Nat, m : Nat, a : Nat, b : Nat, c : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m a) then (floatQuiet e m a) else (if (floatIsNan e m b) then (floatQuiet e m b) else (if (floatIsNan e m c) then (floatQuiet e m c) else (let sp : Bool := (if (floatNegative e m a) then (not (floatNegative e m b)) else (floatNegative e m b)); (let sc : Bool := (floatNegative e m c); (let pzero : Bool := (((floatMag e m a) =? 0) || ((floatMag e m b) =? 0)); (let pinf : Bool := ((floatIsInfinite e m a) || (floatIsInfinite e m b)); (if (pinf && pzero) then (floatNan e m) else (if pinf then (if ((floatIsInfinite e m c) && (if sp then (not sc) else sc)) then (floatNan e m) else (floatSigned e m sp (floatInf e m))) else (if (floatIsInfinite e m c) then c else (if pzero then (if ((floatMag e m c) =? 0) then (floatSigned e m (sp && sc) 0) else c) else (let gp : Nat := (prim multiply (floatSig e m a) (floatSig e m b) : Nat); (let ep : Nat := ((floatExp e m a) + (floatExp e m b)); (let bm : Nat := (floatBm e m); (if ((floatMag e m c) =? 0) then (floatRound e m sp gp ep bm false) else (let gc : Nat := (floatSig e m c); (let ec : Nat := ((floatExp e m c) + bm); (let guard : Nat := ((prim multiply 3 m : Nat) + 5); (if (ec <=? ep) then (floatSumCore e m guard (m + 3) bm sp gp ep sc gc ec) else (floatSumCore e m guard (m + 3) bm sc gc ec sp gp ep))))))))))))))))))))
+}
+
+definition{
+  name: floatSqrt,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (if (floatIsNan e m x) then (floatQuiet e m x) else (if ((floatMag e m x) =? 0) then x else (if (floatNegative e m x) then (floatNan e m) else (if (floatIsInfinite e m x) then x else (let guard : Nat := (m + 3); (let z : Nat := ((floatExp e m x) + (floatBm e m)); (let odd : Nat := (prim remainder z 2 0 : Nat); (let w : Nat := (prim multiply (floatSig e m x) (prim multiply (floatPow2 (prim multiply 2 guard : Nat)) (1 + odd) : Nat) : Nat); (let q : Nat := (floatRoot (floatBits w w) 0 w); (floatRound e m false q (prim quotient (prim subtract z odd : Nat) 2 0 : Nat) guard (not ((prim multiply q q : Nat) =? w))))))))))))
+}
+
+definition{
+  name: floatIntegral,
+  parameters: [e : Nat, m : Nat, mode : Nat, x : Nat],
+  result: Nat,
+  body: (if (floatIsInfinite e m x) then x else (if (floatIsNan e m x) then (floatQuiet e m x) else (let s : Bool := (floatNegative e m x); (let ex : Nat := (floatExp e m x); (let bm : Nat := (floatBm e m); (if (bm <=? ex) then x else (let d : Nat := (prim subtract bm ex : Nat); (let cap : Nat := (m + 2); (let pk : Nat := (floatPow2 (if (d <=? cap) then d else cap)); (let g : Nat := (floatSig e m x); (let q : Nat := (prim quotient g pk 0 : Nat); (let r : Nat := (prim remainder g pk 0 : Nat); (let h : Nat := (prim quotient pk 2 0 : Nat); (let up : Bool := (if (mode =? 0) then false else (if (mode =? 1) then (s && (0 <? r)) else (if (mode =? 2) then ((not s) && (0 <? r)) else (if (mode =? 3) then ((0 <? r) && (h <=? r)) else ((h <? r) || (((0 <? r) && (r =? h)) && ((prim remainder q 2 0 : Nat) =? 1))))))); (floatRound e m s (q + (if up then 1 else 0)) bm 0 false)))))))))))))))
+}
+
+definition{
+  name: floatTrunc,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (floatIntegral e m 0 x)
+}
+
+definition{
+  name: floatFloor,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (floatIntegral e m 1 x)
+}
+
+definition{
+  name: floatCeil,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (floatIntegral e m 2 x)
+}
+
+definition{
+  name: floatRoundHalfAway,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (floatIntegral e m 3 x)
+}
+
+definition{
+  name: floatRoundTiesEven,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (floatIntegral e m 4 x)
+}
+
+definition{
+  name: floatOfNat,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Nat,
+  body: (floatRound e m false x (floatBm e m) 0 false)
+}
+
+definition{
+  name: floatToNat,
+  parameters: [e : Nat, m : Nat, width : Nat, x : Nat],
+  result: Nat,
+  body: (let top : Nat := (prim subtract (floatPow2 width) 1 : Nat); (if ((floatIsNan e m x) || (floatNegative e m x)) then 0 else (if (floatIsInfinite e m x) then top else (let ex : Nat := (floatExp e m x); (let g : Nat := (floatSig e m x); (let bm : Nat := (floatBm e m); (if (bm <=? ex) then (let d : Nat := (prim subtract ex bm : Nat); (if (width <=? d) then top else (let y : Nat := (prim multiply g (floatPow2 d) : Nat); (if (y <=? top) then y else top)))) else (let d : Nat := (prim subtract bm ex : Nat); (if ((m + 2) <=? d) then 0 else (let y : Nat := (prim quotient g (floatPow2 d) 0 : Nat); (if (y <=? top) then y else top)))))))))))
+}
+
+definition{
+  name: floatConvert,
+  parameters: [e : Nat, m : Nat, se : Nat, sm : Nat, x : Nat],
+  result: Nat,
+  body: (let s : Bool := (floatNegative se sm x); (if (floatIsNan se sm x) then (floatSigned e m s (floatNan e m)) else (if (floatIsInfinite se sm x) then (floatSigned e m s (floatInf e m)) else (if ((floatMag se sm x) =? 0) then (floatSigned e m s 0) else (floatRound e m s (floatSig se sm x) ((floatExp se sm x) + (floatBm e m)) (floatBm se sm) false)))))
+}
+
+definition{
+  name: floatPowTen,
+  parameters: [k : Nat],
+  result: Nat,
+  body: (match k | Nat.zero => 1 | Nat.succ r => (prim multiply 10 (floatPowTen r) : Nat)),
+  recursive_argument: k
+}
+
+definition{
+  name: floatOfDecimal,
+  parameters: [e : Nat, m : Nat, s : Bool, digits : Nat, up : Nat, down : Nat],
+  result: Nat,
+  body: (let num : Nat := (prim multiply digits (floatPowTen up) : Nat); (let den : Nat := (floatPowTen down); (let shift : Nat := ((floatBits den den) + (m + 3)); (let wide : Nat := (prim multiply num (floatPow2 shift) : Nat); (floatRound e m s (prim quotient wide den 0 : Nat) (floatBm e m) shift (0 <? (prim remainder wide den 0 : Nat)))))))
+}
 \end{semanticmodule}
 \end{lexlean}

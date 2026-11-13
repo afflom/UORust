@@ -236,7 +236,10 @@ fn tokens(s: &str) -> Vec<String> {
             while i < cs.len() && "<=?:+&>".contains(cs[i]) {
                 i += 1;
             }
-            assert!(i > start, "a character LexLean's float subset has none of: {c:?}");
+            assert!(
+                i > start,
+                "a character LexLean's float subset has none of: {c:?}"
+            );
             out.push(cs[start..i].iter().collect());
         }
     }
@@ -404,10 +407,7 @@ impl Eval {
             T::Num(b) => V::N(b.clone()),
             T::Var(x) if x == "true" => V::B(true),
             T::Var(x) if x == "false" => V::B(false),
-            T::Var(x) => env
-                .get(x)
-                .cloned()
-                .unwrap_or_else(|| panic!("unbound {x}")),
+            T::Var(x) => env.get(x).cloned().unwrap_or_else(|| panic!("unbound {x}")),
             T::Not(a) => V::B(!e(a).b()),
             T::If(c, a, b) => {
                 if e(c).b() {
@@ -657,8 +657,16 @@ fn f32_unary_operations_are_the_hosts() {
             ] {
                 assert_eq!(ev.op(F32, op, &[x]).b(), host, "{op} {a}");
             }
-            assert_eq!(ev.nat(F32, "ToNat", &[32, x]), u128::from(a as u32), "{a} as u32");
-            assert_eq!(ev.nat(F32, "ToNat", &[8, x]), u128::from(a as u8), "{a} as u8");
+            assert_eq!(
+                ev.nat(F32, "ToNat", &[32, x]),
+                u128::from(a as u32),
+                "{a} as u32"
+            );
+            assert_eq!(
+                ev.nat(F32, "ToNat", &[8, x]),
+                u128::from(a as u8),
+                "{a} as u8"
+            );
         }
     });
 }
@@ -675,12 +683,18 @@ fn f32_binary_and_fused_operations_are_the_hosts() {
             for &b in xs.iter().step_by(4) {
                 let (x, y) = (bits(a), bits(b));
                 assert_eq!(ev.nat(F32, "CopySign", &[x, y]), bits(a.copysign(b)));
-                let (lo, hi) = (ev.nat(F32, "MinNum", &[x, y]), ev.nat(F32, "MaxNum", &[x, y]));
+                let (lo, hi) = (
+                    ev.nat(F32, "MinNum", &[x, y]),
+                    ev.nat(F32, "MaxNum", &[x, y]),
+                );
                 assert!(same32(lo, a.min(b)) || zeros(lo, a.min(b)), "min {a} {b}");
                 assert!(same32(hi, a.max(b)) || zeros(hi, a.max(b)), "max {a} {b}");
                 for &c in xs.iter().step_by(13) {
                     let got = ev.nat(F32, "Fma", &[x, y, bits(c)]);
-                    assert!(same32(got, a.mul_add(b, c)), "fma {a:e} {b:e} {c:e}: {got:#x}");
+                    assert!(
+                        same32(got, a.mul_add(b, c)),
+                        "fma {a:e} {b:e} {c:e}: {got:#x}"
+                    );
                 }
             }
         }
@@ -694,7 +708,10 @@ fn conversions_are_the_hosts() {
         let (e32, m32, e64, m64) = (8, 23, 11, 52);
         for a in samples32() {
             let wide = ev.nat(F64, "Convert", &[e32, m32, bits(a)]);
-            assert!(same32(ev.nat(F32, "Convert", &[e64, m64, wide]), a), "{a} through f64");
+            assert!(
+                same32(ev.nat(F32, "Convert", &[e64, m64, wide]), a),
+                "{a} through f64"
+            );
             if !a.is_nan() {
                 assert_eq!(wide, u128::from(f64::from(a).to_bits()), "{a} as f64");
             }
@@ -706,7 +723,11 @@ fn conversions_are_the_hosts() {
             let got = ev.nat(F32, "Convert", &[e64, m64, u128::from(r)]);
             assert!(same32(got, d as f32), "{d:e} as f32: {got:#x}");
             let n = r >> (r % 64);
-            assert_eq!(ev.nat(F32, "OfNat", &[u128::from(n)]), bits(n as f32), "{n} as f32");
+            assert_eq!(
+                ev.nat(F32, "OfNat", &[u128::from(n)]),
+                bits(n as f32),
+                "{n} as f32"
+            );
         }
     });
 }
@@ -748,7 +769,11 @@ fn f64_arithmetic_is_the_hosts() {
                     } else {
                         got == u128::from(host.to_bits())
                     };
-                    assert!(ok, "{op} {a:e} {b:e}: model {got:#x}, host {:#x}", host.to_bits());
+                    assert!(
+                        ok,
+                        "{op} {a:e} {b:e}: model {got:#x}, host {:#x}",
+                        host.to_bits()
+                    );
                 }
             }
             let x = u128::from(a.to_bits());
@@ -772,7 +797,9 @@ fn f16_arithmetic_is_the_hosts_rounded_twice() {
         let narrow = |h: f32| ev.nat(F16, "Convert", &[8, 23, bits(h)]);
         let nan = |b: u128| (b & 0x7fff) > 0x7c00;
         let mut xs: Vec<u128> = (0..1u128 << 16).step_by(1597).collect();
-        xs.extend([0, 0x8000, 0x7c00, 0xfc00, 0x0001, 0x03ff, 0x0400, 0x7bff, 0x3c00]);
+        xs.extend([
+            0, 0x8000, 0x7c00, 0xfc00, 0x0001, 0x03ff, 0x0400, 0x7bff, 0x3c00,
+        ]);
         for &x in &xs {
             let a = to32(x);
             let same = |got: u128, h: f32| {
@@ -786,7 +813,12 @@ fn f16_arithmetic_is_the_hosts_rounded_twice() {
             assert!(same(ev.nat(F16, "Sqrt", &[x]), a.sqrt()), "sqrt {x:#x}");
             for &y in xs.iter().step_by(3) {
                 let b = to32(y);
-                for (op, h) in [("Add", a + b), ("Sub", a - b), ("Mul", a * b), ("Div", a / b)] {
+                for (op, h) in [
+                    ("Add", a + b),
+                    ("Sub", a - b),
+                    ("Mul", a * b),
+                    ("Div", a / b),
+                ] {
                     assert!(same(ev.nat(F16, op, &[x, y]), h), "{op} {x:#x} {y:#x}");
                 }
             }
@@ -799,13 +831,28 @@ fn literals_and_named_constants_round_to_nearest() {
     deep(|| {
         let ev = Eval::new();
         for text in [
-            "0", "-0", "1", "0.1", "9.99999974E-5", "1.0E+10", "3.4028235E+38", "1.0E-45", "1.0E+39",
-            "+Inf", "-Inf",
+            "0",
+            "-0",
+            "1",
+            "0.1",
+            "9.99999974E-5",
+            "1.0E+10",
+            "3.4028235E+38",
+            "1.0E-45",
+            "1.0E+39",
+            "+Inf",
+            "-Inf",
         ] {
             let host: f32 = text.replace("Inf", "inf").parse().unwrap();
             assert_eq!(ev.term(&literal(F32, text).unwrap()), bits(host), "{text}");
         }
-        for text in ["1.0E+22", "1.0E-4", "2.2250738585072014E-308", "5.0E-324", "0.30000000000000004"] {
+        for text in [
+            "1.0E+22",
+            "1.0E-4",
+            "2.2250738585072014E-308",
+            "5.0E-324",
+            "0.30000000000000004",
+        ] {
             let host: f64 = text.parse().unwrap();
             let got = ev.term(&literal(F64, text).unwrap());
             assert_eq!(got, u128::from(host.to_bits()), "{text}");

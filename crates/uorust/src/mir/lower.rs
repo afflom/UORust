@@ -450,9 +450,18 @@ pub(crate) fn lower(cx: &Cx<'_>, body: &IrBody, name: &str) -> Lift<Lowered> {
         && split_path(&body.path).first() == Some(&"intrinsics");
     let modeled = match bodiless {
         true => f
-            .call(&body.path, f.params.clone(), &[], "", &f.result.clone(), &mut st.clone())
+            .call(
+                &body.path,
+                f.params.clone(),
+                &[],
+                "",
+                &f.result.clone(),
+                &mut st.clone(),
+            )
             .ok()
-            .filter(|c| c.updates.is_empty() && c.term.starts_with(&format!("({}::float", lift::PRELUDE))),
+            .filter(|c| {
+                c.updates.is_empty() && c.term.starts_with(&format!("({}::float", lift::PRELUDE))
+            }),
         false => None,
     };
     let value = match modeled {
@@ -1802,7 +1811,9 @@ impl Fun<'_, '_> {
             // it (`f32::<impl f32>::NAN`).
             IrConstant::Path(p) | IrConstant::Other(p)
                 if self.cx.types.floats.iter().any(|(t, f)| {
-                    let lit = p.strip_suffix(t.as_str()).map(|l| l.strip_suffix('_').unwrap_or(l));
+                    let lit = p
+                        .strip_suffix(t.as_str())
+                        .map(|l| l.strip_suffix('_').unwrap_or(l));
                     let named = p.strip_prefix(&format!("{t}::<impl {t}>::"));
                     lit.or(named).and_then(|l| float::literal(*f, l)).is_some()
                 }) =>
@@ -1811,7 +1822,9 @@ impl Fun<'_, '_> {
                 floats
                     .iter()
                     .find_map(|(t, f)| {
-                        let lit = p.strip_suffix(t.as_str()).map(|l| l.strip_suffix('_').unwrap_or(l));
+                        let lit = p
+                            .strip_suffix(t.as_str())
+                            .map(|l| l.strip_suffix('_').unwrap_or(l));
                         let named = p.strip_prefix(&format!("{t}::<impl {t}>::"));
                         let term = lit.or(named).and_then(|l| float::literal(*f, l))?;
                         Some((term, Ty::Float(*f)))
@@ -3142,7 +3155,11 @@ impl Fun<'_, '_> {
             let parts = match erased.strip_prefix('<') {
                 Some(rest) => rest.rsplit_once(">::").and_then(|(q, m)| {
                     let (on, tr) = q.split_once(" as ")?;
-                    Some((on.to_string(), split_path(tr).last()?.to_string(), m.to_string()))
+                    Some((
+                        on.to_string(),
+                        split_path(tr).last()?.to_string(),
+                        m.to_string(),
+                    ))
                 }),
                 None => match segs.as_slice() {
                     [on, m] => Some((on.to_string(), String::new(), m.to_string())),
@@ -3175,6 +3192,7 @@ impl Fun<'_, '_> {
                         term: "()".into(),
                         updates: BTreeMap::from([(0, f.term(op, &terms))]),
                         guard: None,
+                        threads: None,
                     })
                 }
                 float::Kind::Bits

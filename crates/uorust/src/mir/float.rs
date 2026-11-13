@@ -84,7 +84,12 @@ pub(crate) fn format_of(source: &str) -> Option<Format> {
         source.lines().find_map(|l| {
             let rest = l.trim().strip_prefix("pub const ")?.strip_prefix(name)?;
             let (_, value) = rest.strip_prefix(':')?.split_once('=')?;
-            value.trim().trim_end_matches(';').replace('_', "").parse().ok()
+            value
+                .trim()
+                .trim_end_matches(';')
+                .replace('_', "")
+                .parse()
+                .ok()
         })
     };
     let bits = u32::try_from(constant("BITS")?).ok()?;
