@@ -5556,7 +5556,7 @@ impl Fun<'_, '_> {
                 variants
                     .iter()
                     .cloned()
-                    .zip(values.iter().copied())
+                    .zip(values.iter().map(|v| i128::from(*v)))
                     .collect(),
             ))
         };
