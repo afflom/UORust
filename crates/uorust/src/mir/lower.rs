@@ -4231,8 +4231,9 @@ impl Fun<'_, '_> {
                     Ty::Named(POINTER.to_string()),
                 ))
             }
-            // `[c; n]` of a constant: the list of `n` copies of it, as long as
-            // the projection's file can hold it.
+            // `[v; n]`: the list of `n` copies of `v`, a constant or a
+            // local's value (bound once, then copied), as long as the
+            // projection's file can hold it.
             IrRvalue::Other(spec::MirRvalue::Repeat, text) => {
                 let k = spec::MirRvalue::Repeat.path();
                 let inner = text
@@ -4240,20 +4241,25 @@ impl Fun<'_, '_> {
                     .strip_prefix('[')
                     .and_then(|r| r.strip_suffix(']'))
                     .unwrap_or("");
-                let (Some(IrOperand::Constant(c)), Some(n)) = (
-                    super::parse::split_top(inner, ';')
-                        .first()
-                        .and_then(|o| super::parse::operand(o)),
-                    super::parse::split_top(inner, ';').get(1).and_then(|n| {
+                let parts = super::parse::split_top(inner, ';');
+                let (Some(op), Some(n)) = (
+                    parts.first().and_then(|o| super::parse::operand(o)),
+                    parts.get(1).and_then(|n| {
                         let n = n.trim().trim_start_matches("const ");
                         n.split('_').next().and_then(|d| d.parse::<usize>().ok())
                     }),
                 ) else {
-                    return Err(kind(k, "of a value that is not a constant"));
+                    return Err(kind(k, "of a length that is not a literal"));
                 };
-                let (v, _) = self.constant(&c)?;
                 let Ty::List(e) = self.local_ty(dest.local, &dest.projection)? else {
                     return Err(kind(k, "into a place that holds no list"));
+                };
+                let (v, held) = match &op {
+                    IrOperand::Constant(c) => (self.constant(c)?.0, None),
+                    _ => {
+                        let (v, _) = self.operand(&op, st)?;
+                        (self.fresh(Some("repeated"), usize::MAX), Some(v))
+                    }
                 };
                 if n.saturating_mul(v.len() + "(cons  )".len()) > self.cx.limit {
                     return Err(kind(k, "longer than the projection's file can hold"));
@@ -4261,6 +4267,9 @@ impl Fun<'_, '_> {
                 let mut out = format!("(nil {})", e.render());
                 for _ in 0..n {
                     out = format!("(cons {v} {out})");
+                }
+                if let Some(value) = held {
+                    out = format!("(let {v} : {} := {value}; {out})", e.render());
                 }
                 self.grow(&out)?;
                 Ok(Val::V(out, Ty::List(e)))
