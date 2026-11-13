@@ -219,8 +219,9 @@ fn the_cli_compares_the_two_translators_by_kappa_ue_18() {
     let _ = std::fs::remove_dir_all(dir);
 }
 
-/// `core` and `std` translate a library's module shards into a register,
-/// each keying its bodies by its own crate; `merge` takes a sharded run's
+/// `core` translates a library's module shards into a register; `std`
+/// refuses a library that holds no sources of std, since its declarations
+/// are read from them; `merge` takes a sharded run's
 /// module files into a register and refuses one that turns a translated body
 /// to residue; `crate` refuses a spec that is not `<name>@<version>` before
 /// it fetches anything.
@@ -246,16 +247,27 @@ fn the_cli_writes_and_merges_library_registers() {
         "--library",
         "tests/fixtures/core/library",
     ];
-    for (krate, register) in [("core", &core_reg), ("std", &std_reg)] {
-        let mut args = vec![krate];
-        args.extend(fixture);
-        args.extend(["--register", register.as_str()]);
-        assert!(run(&args).starts_with(&format!("{krate}: ")));
-    }
+    let mut args = vec!["core"];
+    args.extend(fixture);
+    args.extend(["--register", core_reg.as_str()]);
+    assert!(run(&args).starts_with("core: "));
     let core_bool = std::fs::read_to_string(tmp.join("core/bool.toml")).expect("core's bool");
     assert!(core_bool.contains("status = \"translated\""), "{core_bool}");
-    let std_bool = std::fs::read_to_string(tmp.join("std/bool.toml")).expect("std's bool");
-    assert_ne!(core_bool, std_bool, "a std body is keyed apart from core's");
+    // The fixture's library holds core's sources only.
+    let mut args = vec!["std"];
+    args.extend(fixture);
+    args.extend(["--register", std_reg.as_str()]);
+    let refused = uorust(&args);
+    assert!(!refused.status.success());
+    assert!(
+        String::from_utf8_lossy(&refused.stderr).contains("library/std/src"),
+        "{}",
+        String::from_utf8_lossy(&refused.stderr)
+    );
+    assert!(
+        !tmp.join("std").exists(),
+        "a refused census writes no register"
+    );
 
     let merge = |shards: &str| {
         uorust(&[
