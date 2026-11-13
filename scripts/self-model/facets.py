@@ -725,10 +725,23 @@ structure{
 }
 
 """
-causes_term = "(nil LiftCause)"
-for i in reversed(range(cut)):
-    cause, bodies = ranked[i]
-    causes_term = f"(cons (record LiftCause {{rank := {i}, cause := {q(cause)}, bodies := {bodies}}}) {causes_term})"
+# A list literal nests one cons per item, and the linker reads a module's
+# terms to a bounded depth, which a queue of a hundred-odd causes passes.
+# So the queue is cut into runs of ceil(sqrt(n)) causes, one definition
+# each, and `liftCauses` appends them: neither a run nor the appends nest
+# deeper than about sqrt(n), however long the queue grows.
+import math
+run = math.isqrt(cut - 1) + 1 if cut else 1
+starts = list(range(0, cut, run)) or [0]
+for k, start in enumerate(starts):
+    term = "(nil LiftCause)"
+    for i in reversed(range(start, min(start + run, cut))):
+        cause, bodies = ranked[i]
+        term = f"(cons (record LiftCause {{rank := {i}, cause := {q(cause)}, bodies := {bodies}}}) {term})"
+    out += defn(f"liftCausesRun{k}", "(List LiftCause)", term) + "\n"
+causes_term = f"(liftCausesRun{len(starts) - 1})"
+for k in reversed(range(len(starts) - 1)):
+    causes_term = f"(prim append (liftCausesRun{k}) {causes_term} : (List LiftCause))"
 out += defn("liftCauses", "(List LiftCause)", causes_term) + "\n"
 out += defn("liftResidueBodies", "Nat", str(residue_bodies)) + "\n"
 out += defn("liftQueueBodies", "Nat", str(covered)) + "\n"
