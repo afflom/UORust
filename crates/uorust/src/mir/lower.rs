@@ -4777,6 +4777,18 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             {
                 Ty::Named(r)
             } else {
+                // In core's scope, a type the std table models, printed by
+                // its name alone.
+                if types.core {
+                    if let Some(m) = stdlib::model_type(n, &args).filter(|m| {
+                        m.mentions().iter().all(|x| match x {
+                            Ty::Named(x) => types.structs.contains_key(x) || types.enums.contains_key(x),
+                            _ => true,
+                        })
+                    }) {
+                        return Ok(m);
+                    }
+                }
                 return std_printed(&segs, name, &args).ok_or_else(|| Residue::Type(t.to_string()));
             }
         }

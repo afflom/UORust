@@ -447,10 +447,17 @@ fn vars(p: &StdPattern, out: &mut Vec<String>) {
 /// The lift's type for a std type the table models, by the path MIR prints
 /// and its type arguments.
 pub(crate) fn model_type(path: &str, args: &[Ty]) -> Option<Ty> {
-    let (_, pat) = table()
-        .types
-        .iter()
-        .find(|(p, _)| canon(p) == canon(path))?;
+    // A type core prints by its name alone (`Arguments<'_>`, in scope
+    // where it is used): the one model of that name.
+    let bare = |p: &str| !path.contains("::") && p.rsplit("::").next() == Some(path);
+    let mut named = table().types.iter().filter(|(p, _)| bare(p));
+    let (_, pat) = match table().types.iter().find(|(p, _)| canon(p) == canon(path)) {
+        Some(m) => m,
+        None => match (named.next(), named.next()) {
+            (Some(m), None) => m,
+            _ => return None,
+        },
+    };
     let mut names = Vec::new();
     vars(pat, &mut names);
     if names.len() != args.len() {

@@ -278,7 +278,9 @@ impl CoreLink {
         let tail = format!("::{erased}");
         let last = split_path(erased).last().copied().unwrap_or(erased);
         if let Some([one]) = self.lasts.get(last).map(Vec::as_slice) {
-            return one.ends_with(&tail).then(|| one.clone());
+            if one.ends_with(&tail) {
+                return Some(one.clone());
+            }
         }
         // A bare name, as MIR prints a free function its caller has in
         // scope: the one free function or intrinsic core declares by it,
@@ -344,6 +346,9 @@ impl CoreLink {
             }
             unify(ret, dest, &mut generics)?;
         }
+        // A type the signature names by its own name (`Argument<'_>`,
+        // printed `fmt::rt::Argument<'_>` at the call) binds no parameter.
+        generics.retain(|k, v| split_path(v).last().copied() != Some(k.as_str()));
         Some(generics)
     }
 

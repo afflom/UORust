@@ -565,6 +565,21 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
                     });
                 }
+                // An inherent impl's methods, by the impl's type: their
+                // own generic parameters, which a call's turbofish binds.
+                syn::Item::Impl(imp) if imp.trait_.is_none() => {
+                    if let syn::Type::Path(tp) = &*imp.self_ty {
+                        if let Some(seg) = tp.path.segments.last() {
+                            for it in &imp.items {
+                                if let syn::ImplItem::Fn(f) = it {
+                                    out.generics
+                                        .entry(at(format!("{}::{}", seg.ident, f.sig.ident)))
+                                        .or_insert_with(|| generic_names(&f.sig.generics));
+                                }
+                            }
+                        }
+                    }
+                }
                 syn::Item::Trait(t) => {
                     out.traits.insert(at(t.ident.to_string()));
                 }
