@@ -77,8 +77,12 @@ impl CoreLink {
                     let (from, to) = range.split_once(": ")?;
                     let (l1, c1) = from.split_once(':')?;
                     let (l2, c2) = to.split_once(':')?;
-                    let (l1, c1, l2, c2): (usize, usize, usize, usize) =
-                        (l1.parse().ok()?, c1.parse().ok()?, l2.parse().ok()?, c2.parse().ok()?);
+                    let (l1, c1, l2, c2): (usize, usize, usize, usize) = (
+                        l1.parse().ok()?,
+                        c1.parse().ok()?,
+                        l2.parse().ok()?,
+                        c2.parse().ok()?,
+                    );
                     let lines = sources.entry(file.to_string()).or_insert_with(|| {
                         std::fs::read_to_string(root.join(file))
                             .map(|t| t.lines().map(str::to_string).collect())
@@ -88,7 +92,11 @@ impl CoreLink {
                     for l in l1..=l2 {
                         let chars: Vec<char> = lines.get(l.checked_sub(1)?)?.chars().collect();
                         let from = if l == l1 { c1.saturating_sub(1) } else { 0 };
-                        let to = if l == l2 { c2.saturating_sub(1).min(chars.len()) } else { chars.len() };
+                        let to = if l == l2 {
+                            c2.saturating_sub(1).min(chars.len())
+                        } else {
+                            chars.len()
+                        };
                         text.extend(chars.get(from..to)?);
                         text.push(' ');
                     }

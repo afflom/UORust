@@ -1831,9 +1831,7 @@ impl Fun<'_, '_> {
                             u8::from_str_radix(&hex, 16)
                                 .map_err(|_| kind(k, &format!("a byte string escape \\x{hex}")))?
                         }
-                        other => {
-                            return Err(kind(k, &format!("a byte string escape \\{other:?}")))
-                        }
+                        other => return Err(kind(k, &format!("a byte string escape \\{other:?}"))),
                     };
                     bytes.push(b);
                 }
@@ -2430,9 +2428,12 @@ impl Fun<'_, '_> {
                         q.projection.is_empty()
                             && (matches!(st.env.get(&q.local), Some(Val::Mut(_)))
                                 || self.mut_params.contains(&q.local))
-                            && self.body.locals.get(q.local).and_then(|t| mut_target(t)).is_some_and(
-                                |t| t.contains("dyn ") || t.contains("fmt::Formatter"),
-                            )
+                            && self
+                                .body
+                                .locals
+                                .get(q.local)
+                                .and_then(|t| mut_target(t))
+                                .is_some_and(|t| t.contains("dyn ") || t.contains("fmt::Formatter"))
                     }
                     _ => false,
                 }) {
@@ -3343,7 +3344,9 @@ impl Fun<'_, '_> {
             (self.cx.core, dt, args.as_slice())
         {
             let piece_ty = match parts.as_slice() {
-                [Ty::Option(lit), Ty::List(p), Ty::List(_)] if **lit == Ty::Str => Some((**p).clone()),
+                [Ty::Option(lit), Ty::List(p), Ty::List(_)] if **lit == Ty::Str => {
+                    Some((**p).clone())
+                }
                 _ => None,
             };
             let is_new = link
@@ -3373,9 +3376,26 @@ impl Fun<'_, '_> {
                 let Ty::Named(opts_name) = &opts_ty else {
                     return Err(kind(k, "placeholder options that are no struct"));
                 };
-                let fields = self.cx.types.structs.get(opts_name).cloned().unwrap_or_default();
-                let defaults = self.call("FormattingOptions::new", Vec::new(), &[], "fmt::FormattingOptions", &opts_ty, st)?;
-                let le = |b: &[u32]| b.iter().rev().fold(0u64, |acc, x| acc * 256 + u64::from(*x));
+                let fields = self
+                    .cx
+                    .types
+                    .structs
+                    .get(opts_name)
+                    .cloned()
+                    .unwrap_or_default();
+                let defaults = self.call(
+                    "FormattingOptions::new",
+                    Vec::new(),
+                    &[],
+                    "fmt::FormattingOptions",
+                    &opts_ty,
+                    st,
+                )?;
+                let le = |b: &[u32]| {
+                    b.iter()
+                        .rev()
+                        .fold(0u64, |acc, x| acc * 256 + u64::from(*x))
+                };
                 let bad = |what: &str| kind(k, &format!("a format_args! template {what}"));
                 let mut pieces: Vec<String> = Vec::new();
                 let mut at = 0usize;
@@ -3394,20 +3414,28 @@ impl Fun<'_, '_> {
                             .map(|b| u8::try_from(*b).unwrap_or(0))
                             .collect();
                         *at += len;
-                        let s = String::from_utf8(raw).map_err(|_| bad("piece that is not UTF-8"))?;
-                        lift::exact_string(&s).ok_or_else(|| bad("piece LexLean source cannot write"))
+                        let s =
+                            String::from_utf8(raw).map_err(|_| bad("piece that is not UTF-8"))?;
+                        lift::exact_string(&s)
+                            .ok_or_else(|| bad("piece LexLean source cannot write"))
                     };
                     let none = format!("(ctor Option.none [{}])", ph.render());
                     if n < 0x80 {
                         let s = literal(&mut at, n as usize)?;
-                        pieces.push(lift::tuple_value(&piece_ty.clone().unwrap_or(Ty::Unit), &[s, none]));
+                        pieces.push(lift::tuple_value(
+                            &piece_ty.clone().unwrap_or(Ty::Unit),
+                            &[s, none],
+                        ));
                         continue;
                     }
                     if n == 0x80 {
                         let len = le(bytes.get(at..at + 2).ok_or_else(|| bad("past its end"))?);
                         at += 2;
                         let s = literal(&mut at, len as usize)?;
-                        pieces.push(lift::tuple_value(&piece_ty.clone().unwrap_or(Ty::Unit), &[s, none]));
+                        pieces.push(lift::tuple_value(
+                            &piece_ty.clone().unwrap_or(Ty::Unit),
+                            &[s, none],
+                        ));
                         continue;
                     }
                     if n < 0xC0 {
@@ -3457,7 +3485,11 @@ impl Fun<'_, '_> {
                 self.mention(ph);
                 let term = lift::tuple_value(
                     dt,
-                    &["(ctor Option.none [String])".to_string(), items, list.clone()],
+                    &[
+                        "(ctor Option.none [String])".to_string(),
+                        items,
+                        list.clone(),
+                    ],
                 );
                 return Ok(Called::value(term));
             }
@@ -3503,7 +3535,10 @@ impl Fun<'_, '_> {
                         &[(of, o.clone()), (bf, b.clone())],
                         self.cx.types,
                     );
-                    let arg_texts = [texts.first().cloned().flatten(), Some("&mut fmt::Formatter<'_>".to_string())];
+                    let arg_texts = [
+                        texts.first().cloned().flatten(),
+                        Some("&mut fmt::Formatter<'_>".to_string()),
+                    ];
                     let applied = self.call(
                         method,
                         vec![(x.clone(), xt.clone()), (fv, formatter.clone())],
@@ -3520,7 +3555,9 @@ impl Fun<'_, '_> {
                                 self.field(&f, &formatter, 1)?,
                             )
                         }
-                        Some(_) => return Err(kind(k, &format!("{method}, which threads its value"))),
+                        Some(_) => {
+                            return Err(kind(k, &format!("{method}, which threads its value")))
+                        }
                         None => (applied.term.clone(), b.clone()),
                     };
                     self.mention(out);
@@ -4388,7 +4425,9 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             return stdlib::model_type(&path, &args)
                 .filter(|m| {
                     m.mentions().iter().all(|n| match n {
-                        Ty::Named(n) => types.structs.contains_key(n) || types.enums.contains_key(n),
+                        Ty::Named(n) => {
+                            types.structs.contains_key(n) || types.enums.contains_key(n)
+                        }
                         _ => true,
                     })
                 })

@@ -166,8 +166,11 @@ pub fn census(scope: &Scope, root: &Path, dumps: &Path) -> Result<Vec<CoreShard>
         read.push((module, texts));
     }
     // Every module's bodies, which each module's calls name.
-    let link =
-        super::link::CoreLink::new(core_decls(root), root, read.iter().flat_map(|(_, texts)| texts));
+    let link = super::link::CoreLink::new(
+        core_decls(root),
+        root,
+        read.iter().flat_map(|(_, texts)| texts),
+    );
     Ok(read
         .iter()
         .map(|(module, texts)| shard(scope, root, module, texts, &widths, &link))
@@ -962,7 +965,12 @@ fn instantiate_structs(
         mentioned.extend(body.locals.iter().map(String::as_str));
     }
     // The types the std table's models build values of.
-    mentioned.extend(super::stdlib::table().instantiate.iter().map(String::as_str));
+    mentioned.extend(
+        super::stdlib::table()
+            .instantiate
+            .iter()
+            .map(String::as_str),
+    );
     for text in mentioned {
         cx.mention(text, types);
     }

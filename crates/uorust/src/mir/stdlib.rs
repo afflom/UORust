@@ -374,7 +374,9 @@ fn bind(p: &StdPattern, t: &Ty, binds: &mut PatternBinds) -> bool {
         | (StdPattern::Option(p), Ty::Option(t))
         | (StdPattern::Set(p), Ty::Set(t, true)) => bind(p, t, binds),
         (StdPattern::Map(pk, pv), Ty::Map(k, v, true)) => bind(pk, k, binds) && bind(pv, v, binds),
-        (StdPattern::Outcome(pt, pe), Ty::Outcome(t, e)) => bind(pt, t, binds) && bind(pe, e, binds),
+        (StdPattern::Outcome(pt, pe), Ty::Outcome(t, e)) => {
+            bind(pt, t, binds) && bind(pe, e, binds)
+        }
         (StdPattern::Fixed(b), Ty::Nat(Some(w))) => b == w,
         (StdPattern::Named(n), Ty::Named(m)) => n == m,
         (StdPattern::Function(ps, pr), Ty::Fn(ts, r)) if ps.len() == ts.len() => {
@@ -403,7 +405,9 @@ fn build(p: &StdPattern, binds: &PatternBinds) -> Option<Ty> {
         StdPattern::Map(k, v) => {
             Ty::Map(Box::new(build(k, binds)?), Box::new(build(v, binds)?), true)
         }
-        StdPattern::Outcome(t, e) => Ty::Outcome(Box::new(build(t, binds)?), Box::new(build(e, binds)?)),
+        StdPattern::Outcome(t, e) => {
+            Ty::Outcome(Box::new(build(t, binds)?), Box::new(build(e, binds)?))
+        }
         StdPattern::Fixed(b) => Ty::Nat(Some(*b)),
         StdPattern::Named(n) => Ty::Named(n.clone()),
         StdPattern::Function(ps, r) => Ty::Fn(
@@ -485,7 +489,10 @@ pub(crate) fn apply(
     // Core prints its own items by their shortest path in scope
     // (`Arguments::from_str`): the one model whose path ends it.
     let tail = format!("::{k}");
-    let mut ends = table().models.iter().filter(|m| key(&m.path).ends_with(&tail));
+    let mut ends = table()
+        .models
+        .iter()
+        .filter(|m| key(&m.path).ends_with(&tail));
     let model = match table().models.iter().find(|m| key(&m.path) == k) {
         Some(m) => m,
         None => match (ends.next(), ends.next()) {
