@@ -210,6 +210,11 @@ struct Loop {
     /// parameters, and the memory's parameter, after the live locals.
     carried: Vec<(IrLocal, String)>,
     memory: Option<String>,
+    /// The conditions every entry to the loop establishes and its body
+    /// keeps, over the live locals' parameters: each a condition and the
+    /// value it has. The helper takes them as given, and each call of it
+    /// carries the theorem that they hold of its arguments.
+    invariants: Vec<(String, bool)>,
 }
 
 struct Fun<'a, 'c> {
@@ -1045,6 +1050,27 @@ impl Fun<'_, '_> {
                 }
             }
         }
+        // The loop's invariants hold of the values it is entered with, and
+        // of those each pass gives the next.
+        for (c, holds) in &lp.invariants {
+            let mut goal = String::new();
+            let mut word = String::new();
+            for ch in c.chars().chain(std::iter::once(' ')) {
+                if ch.is_ascii_alphanumeric() || ch == '_' {
+                    word.push(ch);
+                    continue;
+                }
+                let arg = lp.live.iter().position(|(_, p, _)| *p == word);
+                goal.push_str(arg.map_or(word.as_str(), |i| args[i].as_str()));
+                word.clear();
+                goal.push(ch);
+            }
+            self.obligation(
+                &st,
+                &format!("({} = {holds})", goal.trim_end()),
+                "TerminatorKind::Goto",
+            );
+        }
         // The memory the loop runs in, and where its placed locals are.
         let same = st.placed.len() == lp.carried.len()
             && lp.carried.iter().all(|(l, _)| st.placed.contains_key(l));
@@ -1133,13 +1159,6 @@ impl Fun<'_, '_> {
             }
             None => None,
         };
-        let lp = Loop {
-            name: name.clone(),
-            live: params.clone(),
-            carried: carried.clone(),
-            memory: memory.clone(),
-        };
-        self.loops.insert(h, Some(lp.clone()));
         let saved = (
             std::mem::take(&mut self.scope),
             std::mem::take(&mut self.evidence),
@@ -1155,9 +1174,149 @@ impl Fun<'_, '_> {
                     .map(|m| (m.clone(), super::memory::memory_ty())),
             )
             .collect();
-        let measure = self.derive_measure(h, &st)?;
+        // A loop whose header does not exit on an order of naturals: its
+        // measure a natural every write in the loop makes smaller (`x / c`,
+        // `x - c`), which decreases where the conditions the loop is
+        // entered under, and keeps, hold (`exp != 0` before `loop { ..
+        // exp /= 2 }`): the helper's invariants.
+        let mut invariants: Vec<(String, bool)> = Vec::new();
+        let measure = match self.derive_measure(h, &st) {
+            Ok(m) => m,
+            Err(none) => {
+                let region = self.regions.get(&h).cloned().unwrap_or_default();
+                // Each local the loop writes, and whether every write of it
+                // makes it smaller.
+                let mut written: BTreeMap<IrLocal, bool> = BTreeMap::new();
+                for b in &region {
+                    let block = &self.body.blocks[*b];
+                    for s in &block.statements {
+                        let IrStatement::Assign(p, rv) = s else {
+                            continue;
+                        };
+                        let shrinks = p.projection.is_empty()
+                            && match rv {
+                                IrRvalue::Binary(
+                                    op,
+                                    IrOperand::Copy(q) | IrOperand::Move(q),
+                                    IrOperand::Constant(IrConstant::Int(c, _)),
+                                ) => {
+                                    q.projection.is_empty()
+                                        && q.local == p.local
+                                        && ((*op == spec::MirBinOp::Div && *c >= 2)
+                                            || (*op == spec::MirBinOp::Sub && *c >= 1))
+                                }
+                                _ => false,
+                            };
+                        *written.entry(p.local).or_insert(true) &= shrinks;
+                        if let IrRvalue::Ref(spec::MirBorrowKind::Mut, q) = rv {
+                            written.insert(q.local, false);
+                        }
+                    }
+                    if let IrTerminator::Call { destination, .. } = &block.terminator {
+                        written.insert(destination.local, false);
+                    }
+                }
+                let Some((l, p)) = params
+                    .iter()
+                    .find(|(l, _, t)| matches!(t, Ty::Nat(_)) && written.get(l) == Some(&true))
+                    .map(|(l, p, _)| (*l, p.clone()))
+                else {
+                    return Err(none);
+                };
+                // The conditions on the way in, over the parameters: of the
+                // measure, and of locals the loop does not write.
+                let mut at: BTreeMap<String, Option<String>> = BTreeMap::new();
+                for (k, q, _) in &params {
+                    if let Some(Val::V(v, _)) = entry.env.get(k) {
+                        let fixed = *k == l || !written.contains_key(k);
+                        let slot = at
+                            .entry(v.clone())
+                            .or_insert_with(|| fixed.then(|| q.clone()));
+                        if !fixed || slot.as_deref() != Some(q.as_str()) {
+                            *slot = None;
+                        }
+                    }
+                }
+                const WORDS: [&str; 9] = [
+                    "prim",
+                    "remainder",
+                    "quotient",
+                    "subtract",
+                    "multiply",
+                    "Nat",
+                    "not",
+                    "true",
+                    "false",
+                ];
+                for step in &entry.path {
+                    let MirStep::If(c, holds) = step else {
+                        continue;
+                    };
+                    let mut out = String::new();
+                    let mut word = String::new();
+                    let mut fits = true;
+                    let mut named = false;
+                    for ch in c.chars().chain(std::iter::once(' ')) {
+                        if ch.is_ascii_alphanumeric() || ch == '_' {
+                            word.push(ch);
+                            continue;
+                        }
+                        if !word.is_empty() {
+                            if word.chars().all(|d| d.is_ascii_digit())
+                                || WORDS.contains(&word.as_str())
+                            {
+                                out.push_str(&word);
+                            } else if let Some(Some(q)) = at.get(&word) {
+                                out.push_str(q);
+                                named = true;
+                            } else {
+                                fits = false;
+                            }
+                            word.clear();
+                        }
+                        out.push(ch);
+                    }
+                    if fits && named {
+                        invariants.push((out.trim_end().to_string(), *holds));
+                    }
+                }
+                if invariants.is_empty() || lift::default_of(&self.result, self.cx.types).is_none()
+                {
+                    return Err(none);
+                }
+                (p, vec![l])
+            }
+        };
+        let lp = Loop {
+            name: name.clone(),
+            live: params.clone(),
+            carried: carried.clone(),
+            memory: memory.clone(),
+            invariants: invariants.clone(),
+        };
+        self.loops.insert(h, Some(lp.clone()));
         self.measure = Some(measure.clone());
-        let body = self.block(h, st)?;
+        let mut st = st;
+        for (c, holds) in &invariants {
+            st.path.push(MirStep::If(c.clone(), *holds));
+        }
+        let mut body = self.block(h, st)?;
+        // Where an invariant fails the helper is never called: its value
+        // there stands for no path.
+        if let Some(d) = lift::default_of(&self.result, self.cx.types) {
+            for (c, holds) in invariants.iter().rev() {
+                let (then, otherwise) = if *holds {
+                    (body, Expr::Flat(d.clone()))
+                } else {
+                    (Expr::Flat(d.clone()), body)
+                };
+                body = Expr::If {
+                    condition: Box::new(Expr::Flat(c.clone())),
+                    then: Box::new(then),
+                    otherwise: Box::new(otherwise),
+                };
+            }
+        }
         let evidence = std::mem::take(&mut self.evidence);
         let parameters: Vec<(String, String)> = self
             .scope
@@ -1291,6 +1450,36 @@ impl Fun<'_, '_> {
         let Some((measure, _)) = self.measure.clone() else {
             return Err(kind("TerminatorKind::Goto", "a loop without a measure"));
         };
+        // A measure the loop's writes make smaller: its value on the way
+        // back, below its value on the way in.
+        let shrinking = self
+            .measure
+            .as_ref()
+            .and_then(|(_, ls)| ls.first().copied());
+        if let Some(l) = shrinking {
+            let Some(Val::V(after, _)) = st.env.get(&l) else {
+                return Err(kind(
+                    "TerminatorKind::Goto",
+                    "a recursive call whose measure does not read",
+                ));
+            };
+            let name = format!("decreases_{}_{}", lp.name, self.evidence.len());
+            let statement = implication(&hypotheses(&st.path), &format!("({after} < {measure})"));
+            let mut parameters: Vec<(String, String)> = self
+                .scope
+                .iter()
+                .map(|(n, t)| (n.clone(), t.render()))
+                .collect();
+            parameters.extend(st.binders.iter().map(|(n, t)| (n.clone(), t.render())));
+            self.evidence.push(Decl::Theorem {
+                name,
+                parameters,
+                statement,
+                proof: "linear_arithmetic{}".into(),
+                axioms: vec!["Quot.sound".into(), "propext".into()],
+            });
+            return Ok(());
+        }
         let mut next = State {
             inside: Some(h),
             ..State::default()
