@@ -343,6 +343,7 @@ pub(crate) fn shard(
             active: &active,
             core: Some(link),
             layouts,
+            backward: false,
         };
         let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             lower::lower(&cx, &body, &name)

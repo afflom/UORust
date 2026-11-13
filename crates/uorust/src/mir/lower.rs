@@ -77,6 +77,10 @@ pub(crate) struct Cx<'a> {
     /// The data layout of each target the translation answers for (see
     /// [`super::layout`]); none where the dumps record none.
     pub(crate) layouts: &'a [super::layout::DataLayout],
+    /// Whether the body is lowered as its backward function: given the new
+    /// value of the borrow it returns, the last value of the `&mut`
+    /// parameter that borrow is into.
+    pub(crate) backward: bool,
 }
 
 impl<'a> Cx<'a> {
@@ -98,6 +102,7 @@ impl<'a> Cx<'a> {
             active,
             core: self.core,
             layouts: self.layouts,
+            backward: false,
         }
     }
 }
@@ -153,6 +158,10 @@ struct Called {
     threads: Option<(Ty, Vec<usize>)>,
     /// The callee takes the memory, and gives it back last in its tuple.
     memory: bool,
+    /// A callee that returns a borrow into its one `&mut` argument: its
+    /// backward function applied to the call's arguments, and that
+    /// argument's position.
+    backward: Option<(String, usize)>,
 }
 
 impl Called {
@@ -163,6 +172,7 @@ impl Called {
             guard: None,
             threads: None,
             memory: false,
+            backward: None,
         }
     }
 }
@@ -197,8 +207,10 @@ struct State {
     /// `&mut`, a closure that captures one): the part of the value that
     /// holds each, and the place it borrows, which takes that part's value
     /// each time the local is written, as a write through the borrow
-    /// writes the place.
-    lends: BTreeMap<IrLocal, Vec<(Vec<IrProjection>, IrPlace)>>,
+    /// writes the place. A borrow a call returns lends through the callee's
+    /// backward function, applied to the call's arguments: the place takes
+    /// that function's value at the part's value.
+    lends: BTreeMap<IrLocal, Vec<(Vec<IrProjection>, IrPlace, Option<String>)>>,
 }
 
 /// A loop: its helper's name and parameters (the locals live at its header).
@@ -268,6 +280,9 @@ struct Fun<'a, 'c> {
     /// copy does not keep could be observed.
     mirrored_shared: bool,
     observes_address: bool,
+    /// Lowered as its backward function (see [`Cx::backward`]): the
+    /// parameter that holds the returned borrow's new value, and its type.
+    backward: Option<(String, Ty)>,
 }
 
 /// A local whose value lives in memory since its address was taken: the
@@ -316,6 +331,10 @@ pub(crate) fn threaded(
         let mut stack = vec![t.trim().to_string()];
         let mut seen = BTreeSet::new();
         while let Some(t) = stack.pop() {
+            // An option of a value that holds one holds it.
+            if let Some(("Option", inner)) = wrapper(&t) {
+                stack.push(inner.trim().to_string());
+            }
             if mut_target(&t).is_some()
                 || types
                     .aliases
@@ -683,6 +702,7 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         strides: BTreeSet::new(),
         mirrored_shared: false,
         observes_address: false,
+        backward: None,
     };
     f.used.insert(name.to_string());
     let threads = threaded(
@@ -770,7 +790,29 @@ fn lower_in(cx: &Cx<'_>, body: &IrBody, name: &str, memory: bool) -> Lift<Lowere
         threads_ty.push(super::memory::memory_ty());
     }
     f.result = threaded_result(&f.ret, &threads_ty, cx.types);
+    // The backward function takes the returned borrow's new value last, and
+    // gives the last value of the one `&mut` parameter it threads.
+    if cx.backward {
+        let ([one], false) = (threads_ty.as_slice(), memory) else {
+            return Err(kind(
+                "TerminatorKind::Return",
+                "a backward function of a body that threads other than one borrow",
+            ));
+        };
+        let one = one.clone();
+        let rt = f.ret.clone();
+        let n = f.fresh(Some("new"), 0);
+        f.params.push((n.clone(), rt.clone()));
+        f.backward = Some((n, rt));
+        f.result = one;
+    }
     f.find_loops()?;
+    if f.backward.is_some() && !f.loops.is_empty() {
+        return Err(kind(
+            "TerminatorKind::Goto",
+            "a backward function of a body with a loop",
+        ));
+    }
     f.scope = f.params.clone();
     // A float intrinsic core declares without a body (it is `unreachable`,
     // the compiler supplying it) is the prelude's model of it, as a call
@@ -1667,6 +1709,39 @@ impl Fun<'_, '_> {
                     local: 0,
                     projection: Vec::new(),
                 };
+                // The backward function: the returned borrow takes its new
+                // value, which writes the place it borrows, and the
+                // parameter's last value is the result. A `None` returned
+                // holds no borrow.
+                if let Some((new, nt)) = self.backward.clone() {
+                    let mut st = st.clone();
+                    match st.env.get(&0).cloned() {
+                        Some(Val::Mut(q)) => self.write(&q, Val::V(new, nt), &mut st)?,
+                        Some(Val::V(..)) if st.lends.contains_key(&0) => {
+                            self.write(&whole, Val::V(new, nt), &mut st)?
+                        }
+                        Some(Val::V(v, _)) if v.starts_with("(ctor Option.none ") => {}
+                        _ => {
+                            return Err(kind(
+                                "TerminatorKind::Return",
+                                "a returned borrow whose place is not known",
+                            ))
+                        }
+                    }
+                    let threads = threaded(
+                        &self.body.locals,
+                        self.body.arity,
+                        super::closure_type(self.body).is_some(),
+                        self.cx.types,
+                    );
+                    let place = IrPlace {
+                        local: threads[0],
+                        projection: Vec::new(),
+                    };
+                    let v = self.read(&place, &st)?.0;
+                    self.grow(&v)?;
+                    return Ok(Expr::Flat(v));
+                }
                 let v = match st.env.get(&0) {
                     // A returned borrow is the value of the place it borrows.
                     Some(Val::V(..) | Val::Mut(_)) => self.read(&whole, &st)?.0,
@@ -1795,11 +1870,17 @@ impl Fun<'_, '_> {
             }
             // Through a `&mut` a threaded value or a lending local holds:
             // the part of the value that holds what it borrows.
+            // A variant's field the value is matched as, too.
             (Some(Val::V(..) | Val::Env(..)), _)
                 if (self.mut_params.contains(&p.local) || st.lends.contains_key(&p.local))
-                    && p.projection
-                        .iter()
-                        .all(|s| matches!(s, IrProjection::Field(..) | IrProjection::Deref)) =>
+                    && p.projection.iter().all(|s| {
+                        matches!(
+                            s,
+                            IrProjection::Field(..)
+                                | IrProjection::Deref
+                                | IrProjection::Downcast(_)
+                        )
+                    }) =>
             {
                 Ok(p.clone())
             }
@@ -1869,12 +1950,54 @@ impl Fun<'_, '_> {
         }
         // Each place a borrow the local holds lends takes the value the
         // local now holds there.
-        for (path, place) in st.lends.get(&p.local).cloned().unwrap_or_default() {
+        for (path, place, back) in st.lends.get(&p.local).cloned().unwrap_or_default() {
+            let apply = |v: &str| match &back {
+                Some(b) => format!("({b} {v})"),
+                None => v.to_string(),
+            };
+            // A borrow `Some` holds lends while the value holds `Some`:
+            // otherwise the borrow is gone, and the place keeps its value.
+            if let Some(i) = path
+                .iter()
+                .position(|s| matches!(s, IrProjection::Downcast(_)))
+            {
+                let (Some(IrProjection::Downcast(variant)), Some(IrProjection::Field(0, _)), true) =
+                    (path.get(i), path.get(i + 1), path.len() == i + 2)
+                else {
+                    return Err(kind(
+                        k,
+                        "a borrow held in a variant other than `Some`'s field",
+                    ));
+                };
+                let outer = IrPlace {
+                    local: p.local,
+                    projection: path[..i].to_vec(),
+                };
+                let (o, ot) = self.read(&outer, st)?;
+                if variant != "Some" || !matches!(ot, Ty::Option(_)) {
+                    return Err(kind(
+                        k,
+                        "a borrow held in a variant other than `Some`'s field",
+                    ));
+                }
+                let (cur, pt) = self.read(&place, st)?;
+                let held = self.fresh(Some("held"), p.local);
+                let v = format!(
+                    "(match {o} | Option.none => {cur} | Option.some {held} => {})",
+                    apply(&held)
+                );
+                self.write(&place, Val::V(v, pt), st)?;
+                continue;
+            }
             let at = IrPlace {
                 local: p.local,
                 projection: path,
             };
             let (v, t) = self.read(&at, st)?;
+            let (v, t) = match &back {
+                Some(_) => (apply(&v), self.read(&place, st)?.1),
+                None => (v, t),
+            };
             self.write(&place, Val::V(v, t), st)?;
         }
         Ok(())
@@ -1918,6 +2041,23 @@ impl Fun<'_, '_> {
             let inner = self.replace(&part, elem, rest, new, st)?;
             let update = self.index_aux(elem, true)?;
             return Ok(format!("({update} {whole} {i} {inner})"));
+        }
+        // `Some`'s field: the option with it replaced where it holds
+        // `Some`, else the option as it is.
+        if let (
+            IrProjection::Downcast(v),
+            Some((IrProjection::Field(0, _), after)),
+            Ty::Option(item),
+        ) = (step, rest.split_first(), t)
+        {
+            if v == "Some" {
+                let held = self.fresh(Some("held"), 0);
+                let inner = self.replace(&held, item, after, new, st)?;
+                let i = item.render();
+                return Ok(format!(
+                    "(match {whole} | Option.none => (ctor Option.none [{i}]) | Option.some {held} => (ctor Option.some [{i}] {inner}))"
+                ));
+            }
         }
         // The one variant a place is matched as: its binder replaced.
         if let IrProjection::Downcast(_) = step {
@@ -2076,6 +2216,7 @@ impl Fun<'_, '_> {
             guard,
             threads,
             memory,
+            backward,
         } = called;
         // A threading callee's tuple, bound once: `_0`'s value first, then
         // each `&mut` argument's new value.
@@ -2181,7 +2322,7 @@ impl Fun<'_, '_> {
                 });
                 match (lent.next(), lent.next()) {
                     (Some((_, place)), None) => {
-                        lends.push((vec![IrProjection::Field(f, text)], place.clone()));
+                        lends.push((vec![IrProjection::Field(f, text)], place.clone(), None));
                     }
                     _ => {
                         return Err(kind(
@@ -2192,6 +2333,13 @@ impl Fun<'_, '_> {
                         ),
                         ))
                     }
+                }
+            }
+            // A borrow the call returns into a `&mut` argument lends that
+            // argument's place, through the callee's backward function.
+            if let Some((back, i)) = backward {
+                if let (true, Some(place)) = (lends.is_empty(), borrowed_places.get(&i)) {
+                    lends.push((Vec::new(), place.clone(), Some(back)));
                 }
             }
             if !lends.is_empty() {
@@ -2527,6 +2675,36 @@ impl Fun<'_, '_> {
                                 (vec![IrProjection::Field(j, text)], o)
                             })
                             .collect(),
+                        // `Some` of a borrow, in a backward function: the
+                        // variant's field lends it.
+                        IrRvalue::Aggregate(IrAggregate::Adt(_, Some(variant)), ops)
+                            if self.backward.is_some()
+                                && variant == "Some"
+                                && matches!(self.local_ty(p.local, &[]), Ok(Ty::Option(_))) =>
+                        {
+                            ops.iter()
+                                .map(|(_, o)| {
+                                    let text = match o {
+                                        IrOperand::Copy(q) | IrOperand::Move(q) => self
+                                            .body
+                                            .locals
+                                            .get(q.local)
+                                            .cloned()
+                                            .unwrap_or_default(),
+                                        IrOperand::Constant(_) | IrOperand::Check(_) => {
+                                            String::new()
+                                        }
+                                    };
+                                    (
+                                        vec![
+                                            IrProjection::Downcast(variant.clone()),
+                                            IrProjection::Field(0, text),
+                                        ],
+                                        o,
+                                    )
+                                })
+                                .collect()
+                        }
                         IrRvalue::Aggregate(IrAggregate::Closure(ct), ops) => {
                             let upvars = self
                                 .cx
@@ -2568,15 +2746,17 @@ impl Fun<'_, '_> {
                             projection: Vec::new(),
                         };
                         match st.env.get(&q.local) {
-                            Some(Val::Mut(place)) => lends.push((path, place.clone())),
-                            _ if self.mut_params.contains(&q.local) => lends.push((path, whole)),
+                            Some(Val::Mut(place)) => lends.push((path, place.clone(), None)),
+                            _ if self.mut_params.contains(&q.local) => {
+                                lends.push((path, whole, None))
+                            }
                             _ => {
-                                for (inner, place) in
+                                for (inner, place, back) in
                                     st.lends.get(&q.local).cloned().unwrap_or_default()
                                 {
                                     let mut at = path.clone();
                                     at.extend(inner);
-                                    lends.push((at, place));
+                                    lends.push((at, place, back));
                                 }
                             }
                         }
@@ -4359,6 +4539,7 @@ impl Fun<'_, '_> {
                 guard: None,
                 threads: None,
                 memory: false,
+                backward: None,
             });
         }
         let key = format!("{}::{callee}", self.cx.krate);
@@ -4482,6 +4663,7 @@ impl Fun<'_, '_> {
                         guard: None,
                         threads: None,
                         memory: false,
+                        backward: None,
                     })
                 }
                 float::Kind::Bits
@@ -4514,6 +4696,7 @@ impl Fun<'_, '_> {
                 guard: applied.guard,
                 threads: None,
                 memory: false,
+                backward: None,
             });
         }
         // `Arguments::new(template, args)` of `format_args!`, where the
@@ -5560,9 +5743,48 @@ impl Fun<'_, '_> {
         } else {
             format!("({name} {})", a.join(" "))
         };
+        // A callee that returns a borrow into its one `&mut` argument: its
+        // backward function, lowered from the same body. A body that has
+        // none returns a borrow no write through reaches.
+        let returns_borrow = body.locals.first().is_some_and(|t| {
+            threaded(&[String::new(), t.clone()], 1, false, self.cx.types).len() == 1
+        });
+        let backward = match (returns_borrow, positions.as_slice(), takes_memory) {
+            (true, [i], false) => {
+                let back = format!("{name}Back");
+                if !self.aux.contains_key(&back) {
+                    let mut active = self.cx.active.to_vec();
+                    active.push(back.clone());
+                    let mut cx = self.cx.within(&active);
+                    cx.backward = true;
+                    if let Ok(lowered) = lower(&cx, body, &back) {
+                        for d in lowered.decls {
+                            self.aux.insert(d.name().to_string(), d);
+                        }
+                        for (n, d) in lowered.aux {
+                            self.aux.entry(n).or_insert(d);
+                        }
+                        self.calls.extend(lowered.calls);
+                        self.types.extend(lowered.types);
+                    }
+                }
+                self.aux.contains_key(&back).then(|| {
+                    self.calls.insert(back.clone());
+                    (
+                        std::iter::once(back)
+                            .chain(a.iter().cloned())
+                            .collect::<Vec<_>>()
+                            .join(" "),
+                        *i,
+                    )
+                })
+            }
+            _ => None,
+        };
         Ok(Called {
             threads: (!rest.is_empty()).then_some((full, positions)),
             memory: takes_memory,
+            backward,
             ..Called::value(term)
         })
     }
