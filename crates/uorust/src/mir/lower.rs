@@ -8161,11 +8161,22 @@ impl Fun<'_, '_> {
         checked: bool,
         st: &State,
     ) -> Lift<String> {
-        if !matches!(nt, Ty::Nat(_)) {
-            return Err(kind(MEMORY_KIND, &format!("an offset by {}", nt.render())));
-        }
         let (_, stride, _, _) = self.cells_of(pointee_text)?;
-        let moved = format!("(mirAdvance {p} (prim multiply {n} {stride} : Nat))");
+        let moved = match nt {
+            Ty::Nat(_) => format!("(mirAdvance {p} (prim multiply {n} {stride} : Nat))"),
+            // An `isize` is its two's-complement pattern: the address moves
+            // by that many items, modulo the address space, whose width is
+            // the target's `usize`.
+            Ty::Signed(_) => {
+                let word = super::layout::agreed(&Ty::Nat(None), self.cx.layouts)
+                    .map_err(|r| kind(MEMORY_KIND, &super::layout::reason(&r)))?;
+                let modulus = 1u128 << (8 * word.size).min(127);
+                format!(
+                    "(record {POINTER} {{allocation := (project {p} allocation), address := (prim remainder ((project {p} address) + (prim multiply {n} {stride} : Nat)) {modulus} 0 : Nat), metadata := (project {p} metadata)}})"
+                )
+            }
+            _ => return Err(kind(MEMORY_KIND, &format!("an offset by {}", nt.render()))),
+        };
         if checked {
             let m = self.memory_at(st)?;
             self.obligation(
@@ -8296,11 +8307,13 @@ impl Fun<'_, '_> {
             }
             ("offset" | "arith_offset", [(p, _), (n, nt)]) => {
                 // `offset::<*const T, usize>`: `T` is the pointer's pointee.
+                // `arith_offset::<T>` names the pointee itself.
                 let pointer_text = one(0);
-                let Some((pointee_text, _)) = pointee(&pointer_text) else {
-                    return Err(kind(MEMORY_KIND, &format!("an offset of {pointer_text}")));
+                let pointee_text = match pointee(&pointer_text) {
+                    Some((t, _)) => t.to_string(),
+                    None if name == "arith_offset" => pointer_text.clone(),
+                    None => return Err(kind(MEMORY_KIND, &format!("an offset of {pointer_text}"))),
                 };
-                let pointee_text = pointee_text.to_string();
                 let checked = name == "offset";
                 Ok(Some(self.offset_pointer(
                     p,
