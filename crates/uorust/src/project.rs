@@ -2919,10 +2919,6 @@ fn behavior(
 ) -> (Module, Option<String>) {
     let ws = &ctx.ws;
     let mut decls = Vec::new();
-    // Unit-variant enums and structs with named fields of product code, by
-    // name within each crate; a name a crate declares twice is refused. A
-    // name two crates share lifts qualified by each crate's name.
-    let mut scoped: Vec<(Variants, Fields, Datas)> = Vec::new();
     // Each crate's type aliases, which its types and signatures are read
     // through. An alias spelled like a type the crate declares names one
     // thing in its module and another elsewhere: it is not read.
@@ -2965,133 +2961,250 @@ fn behavior(
     let expanded = |pkg: usize, ty: &crate::ast::RustType| {
         ty.expanded(&type_aliases[pkg], type_aliases[pkg].len())
     };
+    // A type of product code is keyed by its full path in its crate: its
+    // target, its module and its name. A key declared twice (once per
+    // configuration) is refused; one name in two modules or two crates is
+    // two types, each lifting under the shortest name that tells it apart.
+    type Key = (usize, String, String);
+    /// The lifted kinds of one crate's types, by key, each struct and data
+    /// enum with the file that declares it, which its fields are read in.
+    #[derive(Default)]
+    struct Declared {
+        enums: BTreeMap<Key, Vec<String>>,
+        structs: BTreeMap<Key, (usize, Vec<(String, crate::ast::RustType)>)>,
+        datas: BTreeMap<Key, (usize, lift::RawVariants)>,
+        spans: BTreeMap<Key, Span>,
+    }
+    let mut declared: Vec<Declared> = Vec::new();
     for (pkg, package) in ws.packages.iter().enumerate() {
-        let mut enums: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        let mut datas: Datas = BTreeMap::new();
-        let mut raw_structs: BTreeMap<String, Vec<(String, crate::ast::RustType)>> =
-            BTreeMap::new();
-        let mut clashing: BTreeSet<String> = BTreeSet::new();
-        for file in &package.files {
-            if !matches!(
+        let mut d = Declared::default();
+        let mut clashing: BTreeSet<Key> = BTreeSet::new();
+        let product = |file: &crate::facts::SourceFile| {
+            matches!(
                 package.targets[file.target].kind,
                 TargetKind::Lib | TargetKind::Bin
-            ) {
+            )
+        };
+        for (fi, file) in package.files.iter().enumerate() {
+            if !product(file) {
                 continue;
             }
             for (e, payload) in file.enums.iter().zip(&syntax.files[&file.rel].enums) {
-                if e.variants.is_empty() {
+                // An enum whose variants carry data is an inductive with
+                // fields, where its syntax reads.
+                let data = !e.variants.iter().all(|v| v.unit);
+                if e.variants.is_empty() || (data && payload.is_empty()) {
                     continue;
                 }
-                if !e.variants.iter().all(|v| v.unit) {
-                    // An enum whose variants carry data: an inductive with fields.
-                    if payload.is_empty() {
-                        continue;
-                    }
-                    if enums.contains_key(&e.name) || datas.contains_key(&e.name) {
-                        clashing.insert(e.name.clone());
-                        notes.refusals.insert(Refusal::Collision {
-                            span: e.span.clone(),
-                            name: qualified(BEHAVIOR, &e.name),
-                        });
-                        continue;
-                    }
-                    datas.insert(
-                        e.name.clone(),
-                        payload
-                            .iter()
-                            .map(|(v, fs)| {
-                                (
-                                    v.clone(),
-                                    fs.iter()
-                                        .map(|(n, t)| {
-                                            (n.clone(), expanded(pkg, &t.localized(&file.imports)))
-                                        })
-                                        .collect(),
-                                )
-                            })
-                            .collect(),
-                    );
-                    continue;
-                }
-                if enums.contains_key(&e.name) || datas.contains_key(&e.name) {
-                    clashing.insert(e.name.clone());
+                let key = (file.target, file.module.clone(), e.name.clone());
+                if d.spans.insert(key.clone(), e.span.clone()).is_some() {
+                    clashing.insert(key);
                     notes.refusals.insert(Refusal::Collision {
                         span: e.span.clone(),
                         name: qualified(BEHAVIOR, &e.name),
                     });
                     continue;
                 }
-                enums.insert(
-                    e.name.clone(),
-                    e.variants.iter().map(|v| v.name.clone()).collect(),
-                );
+                if data {
+                    let variants = payload
+                        .iter()
+                        .map(|(v, fs)| {
+                            let fs = fs
+                                .iter()
+                                .map(|(n, t)| {
+                                    (n.clone(), expanded(pkg, &t.localized(&file.imports)))
+                                })
+                                .collect();
+                            (v.clone(), fs)
+                        })
+                        .collect();
+                    d.datas.insert(key, (fi, variants));
+                } else {
+                    d.enums
+                        .insert(key, e.variants.iter().map(|v| v.name.clone()).collect());
+                }
             }
         }
-        for file in &package.files {
-            if !matches!(
-                package.targets[file.target].kind,
-                TargetKind::Lib | TargetKind::Bin
-            ) {
+        for (fi, file) in package.files.iter().enumerate() {
+            if !product(file) {
                 continue;
             }
             for (st, fields) in file.structs.iter().zip(&syntax.files[&file.rel].structs) {
-                if raw_structs.contains_key(&st.name)
-                    || enums.contains_key(&st.name)
-                    || datas.contains_key(&st.name)
-                {
-                    clashing.insert(st.name.clone());
+                let key = (file.target, file.module.clone(), st.name.clone());
+                if d.spans.insert(key.clone(), st.span.clone()).is_some() {
+                    clashing.insert(key);
                     notes.refusals.insert(Refusal::Collision {
                         span: st.span.clone(),
                         name: qualified(BEHAVIOR, &st.name),
                     });
                     continue;
                 }
-                raw_structs.insert(
-                    st.name.clone(),
-                    fields
-                        .iter()
-                        .map(|(n, t)| (n.clone(), expanded(pkg, &t.localized(&file.imports))))
-                        .collect(),
-                );
+                let fields = fields
+                    .iter()
+                    .map(|(n, t)| (n.clone(), expanded(pkg, &t.localized(&file.imports))))
+                    .collect();
+                d.structs.insert(key, (fi, fields));
             }
         }
-        for name in &clashing {
-            enums.remove(name);
-            raw_structs.remove(name);
-            datas.remove(name);
+        for key in &clashing {
+            d.enums.remove(key);
+            d.structs.remove(key);
+            d.datas.remove(key);
         }
-        scoped.push((enums, raw_structs, datas));
+        declared.push(d);
     }
-    let mut crates_of: BTreeMap<String, usize> = BTreeMap::new();
-    for (enums, structs, datas) in &scoped {
-        for name in enums.keys().chain(structs.keys()).chain(datas.keys()) {
-            *crates_of.entry(name.clone()).or_default() += 1;
+    let keys = |d: &Declared| -> Vec<Key> {
+        d.enums
+            .keys()
+            .chain(d.structs.keys())
+            .chain(d.datas.keys())
+            .cloned()
+            .collect()
+    };
+    // A name one type of the workspace has lifts as itself; one a crate's
+    // type shares with another crate's, qualified by the crate; one two of
+    // a crate's types share, by the crate, the target where it is not the
+    // library, and the module.
+    let mut everywhere: BTreeMap<String, usize> = BTreeMap::new();
+    for d in &declared {
+        for (_, _, name) in keys(d) {
+            *everywhere.entry(name).or_default() += 1;
         }
     }
-    let scopes: Vec<Types> = scoped
-        .into_iter()
-        .zip(&ws.packages)
-        .map(|((enums, structs, datas), package)| {
-            let lex = |name: &String| {
-                if crates_of[name] > 1 {
+    let mut lexes: Vec<BTreeMap<Key, String>> = Vec::new();
+    // Each crate's names that two of its types share: a file reads one by
+    // its own module's declaration or its import of it.
+    let mut ambiguous: Vec<BTreeSet<String>> = Vec::new();
+    for (d, package) in declared.iter().zip(&ws.packages) {
+        let ks = keys(d);
+        let mut in_crate: BTreeMap<&str, usize> = BTreeMap::new();
+        for (_, _, name) in &ks {
+            *in_crate.entry(name.as_str()).or_default() += 1;
+        }
+        let named = ks
+            .iter()
+            .map(|key| {
+                let (target, module, name) = key;
+                let lex = if everywhere[name] == 1 {
+                    name.clone()
+                } else if in_crate[name.as_str()] == 1 {
                     format!("{}{name}", pascal(&[&package.name]))
                 } else {
-                    name.clone()
-                }
-            };
-            let aliases: BTreeMap<String, String> = enums
-                .keys()
-                .chain(structs.keys())
-                .chain(datas.keys())
-                .filter(|n| crates_of[*n] > 1)
-                .map(|n| (n.clone(), lex(n)))
+                    let mut parts: Vec<&str> = vec![&package.name];
+                    let t = &package.targets[*target];
+                    if !matches!(t.kind, TargetKind::Lib) {
+                        parts.push(&t.name);
+                    }
+                    parts.extend(module.split("::").filter(|s| !s.is_empty()));
+                    format!("{}{name}", pascal(&parts))
+                };
+                (key.clone(), lex)
+            })
+            .collect();
+        lexes.push(named);
+        ambiguous.push(
+            in_crate
+                .into_iter()
+                .filter(|(_, n)| *n > 1)
+                .map(|(name, _)| name.to_string())
+                .collect(),
+        );
+    }
+    // Two keys whose qualified names meet name neither.
+    let mut lex_count: BTreeMap<String, usize> = BTreeMap::new();
+    for lex in lexes.iter().flat_map(BTreeMap::values) {
+        *lex_count.entry(lex.clone()).or_default() += 1;
+    }
+    for (d, named) in declared.iter_mut().zip(&mut lexes) {
+        let met: Vec<Key> = named
+            .iter()
+            .filter(|(_, lex)| lex_count[*lex] > 1)
+            .map(|(key, _)| key.clone())
+            .collect();
+        for key in met {
+            if let Some(span) = d.spans.get(&key) {
+                notes.refusals.insert(Refusal::Collision {
+                    span: span.clone(),
+                    name: qualified(BEHAVIOR, &named[&key]),
+                });
+            }
+            named.remove(&key);
+            d.enums.remove(&key);
+            d.structs.remove(&key);
+            d.datas.remove(&key);
+        }
+    }
+    // Each file's reading of its crate's shared names: the type its module
+    // declares or its `use` names, and otherwise none.
+    let mut overlays: BTreeMap<(usize, usize), BTreeMap<String, String>> = BTreeMap::new();
+    for (pkg, package) in ws.packages.iter().enumerate() {
+        for (fi, file) in package.files.iter().enumerate() {
+            let mut names: BTreeMap<String, String> = ambiguous[pkg]
+                .iter()
+                .map(|n| (n.clone(), n.clone()))
                 .collect();
-            let mut enums: Variants = enums.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
+            let module: Vec<&str> = file.module.split("::").filter(|s| !s.is_empty()).collect();
+            for (local, path) in &file.imports {
+                if !names.contains_key(local) {
+                    continue;
+                }
+                // `crate::`, `self::` and `super::` as Rust reads them, any
+                // other path from the file's module.
+                let mut at = module.clone();
+                let mut segs: Vec<&str> = path.split("::").collect();
+                match segs.first() {
+                    Some(&"crate") => {
+                        at.clear();
+                        segs.remove(0);
+                    }
+                    Some(&"self") => {
+                        segs.remove(0);
+                    }
+                    _ => {}
+                }
+                while segs.first() == Some(&"super") {
+                    at.pop();
+                    segs.remove(0);
+                }
+                let Some((name, prefix)) = segs.split_last() else {
+                    continue;
+                };
+                at.extend(prefix);
+                let key = (file.target, at.join("::"), name.to_string());
+                if let Some(lex) = lexes[pkg].get(&key) {
+                    names.insert(local.clone(), lex.clone());
+                }
+            }
+            for ((target, m, name), lex) in &lexes[pkg] {
+                if *target == file.target && *m == file.module && names.contains_key(name) {
+                    names.insert(name.clone(), lex.clone());
+                }
+            }
+            overlays.insert((pkg, fi), names);
+        }
+    }
+    let scopes: Vec<Types> = declared
+        .into_iter()
+        .enumerate()
+        .map(|(pkg, d)| {
+            let package = &ws.packages[pkg];
+            let named = &lexes[pkg];
+            // A name no other of the crate's types shares reads as its type
+            // in every file.
+            let mut aliases: BTreeMap<String, String> = named
+                .iter()
+                .filter(|((_, _, name), lex)| *lex != name && !ambiguous[pkg].contains(name))
+                .map(|((_, _, name), lex)| (name.clone(), lex.clone()))
+                .collect();
+            let mut enums: Variants = d
+                .enums
+                .into_iter()
+                .map(|(key, vs)| (named[&key].clone(), vs))
+                .collect();
             // `std::cmp::Ordering`, which derived orders result in, unless
-            // the crate declares a type of its name.
-            let mut aliases = aliases;
+            // a crate declares a type of its name.
             let rust = crate::order::RUST_ORDERING;
-            if !crates_of.contains_key(rust) && !crates_of.contains_key(crate::order::ORDERING) {
+            if !everywhere.contains_key(rust) && !everywhere.contains_key(crate::order::ORDERING) {
                 enums.insert(
                     crate::order::ORDERING.to_string(),
                     crate::order::ORDERINGS
@@ -3101,8 +3214,33 @@ fn behavior(
                 );
                 aliases.insert(rust.to_string(), crate::order::ORDERING.to_string());
             }
-            let structs = structs.into_iter().map(|(n, fs)| (lex(&n), fs)).collect();
-            let datas = datas.into_iter().map(|(n, vs)| (lex(&n), vs)).collect();
+            // A field's type is read in the file that declares it.
+            let structs: Fields = d
+                .structs
+                .into_iter()
+                .map(|(key, (fi, fs))| {
+                    let names = &overlays[&(pkg, fi)];
+                    let fs = fs.into_iter().map(|(n, t)| (n, t.renamed(names))).collect();
+                    (named[&key].clone(), fs)
+                })
+                .collect();
+            let datas: Datas = d
+                .datas
+                .into_iter()
+                .map(|(key, (fi, vs))| {
+                    let names = &overlays[&(pkg, fi)];
+                    let vs = vs
+                        .into_iter()
+                        .map(|(v, fs)| {
+                            (
+                                v,
+                                fs.into_iter().map(|(n, t)| (n, t.renamed(names))).collect(),
+                            )
+                        })
+                        .collect();
+                    (named[&key].clone(), vs)
+                })
+                .collect();
             // The traits each lifted type derives, which say where its
             // order and equality are the structural ones.
             let derives: BTreeMap<String, BTreeSet<String>> = package
@@ -3111,10 +3249,14 @@ fn behavior(
                 .flat_map(|file| {
                     let enums = file.enums.iter().map(|e| (&e.name, &e.derives));
                     let structs = file.structs.iter().map(|st| (&st.name, &st.derives));
-                    enums.chain(structs).collect::<Vec<_>>()
+                    enums
+                        .chain(structs)
+                        .filter_map(|(n, ds)| {
+                            let lex = named.get(&(file.target, file.module.clone(), n.clone()))?;
+                            Some((lex.clone(), ds.iter().cloned().collect()))
+                        })
+                        .collect::<Vec<_>>()
                 })
-                .filter(|(n, _)| crates_of.contains_key(*n))
-                .map(|(n, ds)| (lex(n), ds.iter().cloned().collect()))
                 .collect();
             Types {
                 derives,
@@ -3122,6 +3264,35 @@ fn behavior(
             }
         })
         .collect();
+    // Each file's scope: its crate's, with the crate's shared names read as
+    // the file reads them.
+    let file_scopes: BTreeMap<(usize, usize), Types> = overlays
+        .iter()
+        .map(|(&(pkg, fi), names)| {
+            let mut scope = scopes[pkg].clone();
+            scope.aliases.extend(names.clone());
+            ((pkg, fi), scope)
+        })
+        .collect();
+    // Each target's scope for the MIR path, which prints a type of the
+    // crate by its full path: `project::Model`.
+    let mut mir_scopes: BTreeMap<(usize, usize), Types> = BTreeMap::new();
+    for (pkg, package) in ws.packages.iter().enumerate() {
+        for target in 0..package.targets.len() {
+            let mut scope = scopes[pkg].clone();
+            for ((t, module, name), lex) in &lexes[pkg] {
+                if *t == target {
+                    let printed = if module.is_empty() {
+                        name.clone()
+                    } else {
+                        format!("{module}::{name}")
+                    };
+                    scope.aliases.insert(printed, lex.clone());
+                }
+            }
+            mir_scopes.insert((pkg, target), scope);
+        }
+    }
     // Every crate's lifted types, for the declarations they emit.
     let mut types = Types::default();
     for scope in &scopes {
@@ -3204,7 +3375,7 @@ fn behavior(
         .collect();
     for &r in &all {
         let f = ctx.func(r);
-        let types = &scopes[r.pkg];
+        let types = &file_scopes[&(r.pkg, r.file)];
         if !ctx.product(r) {
             continue;
         }
@@ -3330,6 +3501,7 @@ fn behavior(
                     result,
                     block,
                     imports: ctx.file(r).imports.clone(),
+                    aliases: overlays[&(r.pkg, r.file)].clone(),
                     formatter,
                 });
             }
@@ -3338,8 +3510,8 @@ fn behavior(
     }
     // Constants lift as definitions of no parameters.
     for (pkg, package) in ws.packages.iter().enumerate() {
-        let types = &scopes[pkg];
-        for file in &package.files {
+        for (fi, file) in package.files.iter().enumerate() {
+            let types = &file_scopes[&(pkg, fi)];
             if !matches!(
                 package.targets[file.target].kind,
                 TargetKind::Lib | TargetKind::Bin
@@ -3373,6 +3545,7 @@ fn behavior(
                     result,
                     block,
                     imports: file.imports.clone(),
+                    aliases: overlays[&(pkg, fi)].clone(),
                     formatter: None,
                 });
             }
@@ -3500,7 +3673,7 @@ fn behavior(
         taken.extend(types.enums.keys().cloned());
         taken.extend(types.structs.keys().cloned());
         taken.extend(types.datas.keys().cloned());
-        let out = mir_lift(ctx, notes, dumps, options, &scopes, &callees, &taken);
+        let out = mir_lift(ctx, notes, dumps, options, &mir_scopes, &callees, &taken);
         mentioned.extend(out.types);
         translated = out.decls;
         listing = out.listing;
@@ -3544,7 +3717,9 @@ fn behavior(
             .iter()
             .enumerate()
         {
-            if let Some((statement, callee)) = lift::acceptance(kind, args, sigs, &scopes[r.pkg]) {
+            if let Some((statement, callee)) =
+                lift::acceptance(kind, args, sigs, &file_scopes[&(r.pkg, r.file)])
+            {
                 let name = format!("accept{}{}", pascal(&[&ctx.package(r).name, &f.name]), i);
                 if theorems.insert(name.clone()) {
                     decls.push(Decl::Theorem {
@@ -3600,7 +3775,7 @@ fn mir_lift(
     notes: &mut Notes,
     dumps: &crate::mir::Dumps,
     options: &crate::mir::MirOptions,
-    scopes: &[Types],
+    scopes: &BTreeMap<(usize, usize), Types>,
     lifted: &BTreeMap<String, crate::mir::lower::Callee>,
     taken: &BTreeSet<String>,
 ) -> MirOut {
@@ -3621,21 +3796,29 @@ fn mir_lift(
             (t.clone(), captures)
         })
         .collect();
-    let scopes: Vec<Types> = scopes
+    let scopes: BTreeMap<(usize, usize), Types> = scopes
         .iter()
-        .map(|s| Types {
-            closures: signatures.clone(),
-            ..s.clone()
+        .map(|(&at, s)| {
+            let scope = Types {
+                closures: signatures.clone(),
+                ..s.clone()
+            };
+            (at, scope)
         })
         .collect();
-    let scopes = scopes.as_slice();
+    let scope = |r: FnRef| &scopes[&(r.pkg, ctx.file(r).target)];
     let widths = lift::pointer_widths(&ctx.ws.targets);
     // Enums whose variants set their discriminants, by LexLean name.
     let mut explicit: BTreeSet<String> = BTreeSet::new();
     for (pkg, package) in ctx.ws.packages.iter().enumerate() {
         for file in &package.files {
             for e in file.enums.iter().filter(|e| e.explicit) {
-                explicit.insert(scopes[pkg].resolve(&e.name));
+                let printed = if file.module.is_empty() {
+                    e.name.clone()
+                } else {
+                    format!("{}::{}", file.module, e.name)
+                };
+                explicit.insert(scopes[&(pkg, file.target)].resolve(&printed));
             }
         }
     }
@@ -3678,7 +3861,7 @@ fn mir_lift(
             notes.residue.insert(path, (span, Residue::Collision(name)));
             continue;
         }
-        let types = &scopes[r.pkg];
+        let types = scope(r);
         // The lift's signature: its parameters (a `&mut T` as the `T` it
         // borrows), its forward result (`_0`'s type), the positions of its
         // threaded parameters (`lower::threaded`), and the definition's
@@ -3729,7 +3912,7 @@ fn mir_lift(
     for (r, name, body) in todo {
         let path = ctx.path(r);
         let cx = lower::Cx {
-            types: &scopes[r.pkg],
+            types: scope(r),
             widths: &widths,
             callees: &callees,
             krate: ctx.crate_ident(r),

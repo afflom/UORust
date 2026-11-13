@@ -276,6 +276,66 @@ impl RustType {
         let text = written(&kind);
         RustType { text, kind }
     }
+
+    /// The type with each plain one-segment path that `names` maps written
+    /// as the name it maps to, in its arguments too: a localized type of
+    /// this crate read by the name its declaration lifts to, where the file
+    /// that writes it says which of the crate's types of that name it is.
+    pub(crate) fn renamed(&self, names: &BTreeMap<String, String>) -> RustType {
+        let inner = |t: &RustType| Box::new(t.renamed(names));
+        let kind = match &self.kind {
+            TypeKind::Reference { mutable, elem } => TypeKind::Reference {
+                mutable: *mutable,
+                elem: inner(elem),
+            },
+            TypeKind::Slice(t) => TypeKind::Slice(inner(t)),
+            TypeKind::Array(t, n) => TypeKind::Array(inner(t), n.clone()),
+            TypeKind::Fn(ins, out) => {
+                TypeKind::Fn(ins.iter().map(|t| *inner(t)).collect(), inner(out))
+            }
+            TypeKind::Paren(t) => TypeKind::Paren(inner(t)),
+            TypeKind::Tuple(ts) => TypeKind::Tuple(ts.iter().map(|t| t.renamed(names)).collect()),
+            TypeKind::Path { qself: false, path } => {
+                let one = path.segments.len() == 1;
+                let segments = path
+                    .segments
+                    .iter()
+                    .map(|s| PathSegment {
+                        ident: match names.get(&s.ident) {
+                            Some(n) if one => n.clone(),
+                            _ => s.ident.clone(),
+                        },
+                        arguments: match &s.arguments {
+                            PathArguments::AngleBracketed(args) => PathArguments::AngleBracketed(
+                                args.iter()
+                                    .map(|a| match a {
+                                        GenericArgument::Type(t) => {
+                                            GenericArgument::Type(t.renamed(names))
+                                        }
+                                        other => other.clone(),
+                                    })
+                                    .collect(),
+                            ),
+                            other => other.clone(),
+                        },
+                    })
+                    .collect();
+                TypeKind::Path {
+                    qself: false,
+                    path: Path {
+                        segments,
+                        text: path.text.clone(),
+                    },
+                }
+            }
+            other => other.clone(),
+        };
+        if kind == self.kind {
+            return self.clone();
+        }
+        let text = written(&kind);
+        RustType { text, kind }
+    }
 }
 
 /// Whether a path's first segment names a module of this crate: `crate`,

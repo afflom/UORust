@@ -3833,7 +3833,14 @@ pub(crate) fn ty(text: &str, types: &Types) -> Lift<Ty> {
             return stdlib::model_type(&path, &args).ok_or_else(|| Residue::Type(t.to_string()));
         }
         (n, []) => {
-            let r = types.resolve(n);
+            // A type of the crate by the full path MIR prints, then by name.
+            let mut printed: Vec<&str> = segs[..segs.len() - 1].to_vec();
+            printed.push(n);
+            let r = types
+                .aliases
+                .get(&printed.join("::"))
+                .cloned()
+                .unwrap_or_else(|| types.resolve(n));
             if types.enums.contains_key(&r)
                 || types.structs.contains_key(&r)
                 || types.datas.contains_key(&r)

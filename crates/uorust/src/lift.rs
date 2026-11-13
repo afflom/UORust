@@ -9870,6 +9870,9 @@ pub(crate) struct Candidate<'a> {
     pub(crate) block: &'a rs::Block,
     /// The `use` imports of its file: name -> the path it names.
     pub(crate) imports: BTreeMap<String, String>,
+    /// How its file reads the names two of its crate's types share: each
+    /// such name -> the LexLean name of the one the file means.
+    pub(crate) aliases: BTreeMap<String, String>,
     /// The formatter parameter of a `Display` impl's `fmt`, which lifts as
     /// the function from the value to the text it writes.
     pub(crate) formatter: Option<String>,
@@ -9930,7 +9933,7 @@ pub(crate) fn lift_all(
                 )
             })
             .collect();
-        let env = Env {
+        let mut env = Env {
             types: types.clone(),
             fns,
             widths: widths.to_vec(),
@@ -9972,6 +9975,11 @@ pub(crate) fn lift_all(
                 imports: c.imports.clone(),
                 formatter: c.formatter.clone(),
             };
+            // Every candidate's file reads each shared name, so one file's
+            // reading never outlives its candidates.
+            env.types
+                .aliases
+                .extend(c.aliases.iter().map(|(n, t)| (n.clone(), t.clone())));
             let lifted = block(&c.block.stmts, &env, &ctx, Acc::default(), Some(&c.result));
             let outcome = match lifted {
                 Ok(((body, ty), acc)) if ty.same(&c.result) => {
@@ -10839,6 +10847,7 @@ mod tests {
             result,
             block: &block,
             imports: BTreeMap::from([("Sha256".to_string(), "sha2::Sha256".to_string())]),
+            aliases: BTreeMap::new(),
             formatter: None,
         };
         let out = lift_all(&[c], types, &pointer_widths(&[]), &BTreeSet::new());
