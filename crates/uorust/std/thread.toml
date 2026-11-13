@@ -1,0 +1,697 @@
+[[fn]]
+path = "std::BUSY"
+kappa = "df9c2e9d8f15350446934e6df2856533933b8450476d9dd8e3f7a202a50dadfb"
+status = "residue"
+cause = "mir::TerminatorKind::Call: without_provenance_mut"
+
+[[fn]]
+path = "std::DESTROYED"
+kappa = "919ed8ea71850ae6a75cb154d9ed10685902a2738bf34126a815587d57531d08"
+status = "residue"
+cause = "mir::TerminatorKind::Call: without_provenance_mut"
+
+[[fn]]
+path = "std::NONE"
+kappa = "71ae696c06eff5178849b426e8f30a1d6f533c382d52ad6d7d12c430df175e51"
+status = "residue"
+cause = "mir::TerminatorKind::Call: null_mut"
+
+[[fn]]
+path = "std::SPAWN_HOOKS"
+kappa = "a98d33ec919f5b531535bf56e7c588f3e45a64a9ee5c64bdaef929f14fcb8822"
+status = "residue"
+cause = "mir::Ty: thread::spawnhook::SpawnHooks"
+
+[[fn]]
+path = "std::SPAWN_HOOKS::__RUST_STD_INTERNAL_INIT"
+kappa = "172b2d44d9f41426bfffe814ef863ce58f73fc7dcea21539f1178c41c068925e"
+status = "residue"
+cause = "mir::Ty: thread::spawnhook::SpawnHooks"
+
+[[fn]]
+path = "std::_assert_both"
+kappa = "38a1f87163d35bfe9b4cb3a6fe6bc7acf428116c38612d067d20734477f279f0"
+status = "translated"
+digest = "633a822b66ba880aa021eb4add35abfffee621187dcdfa3b9a960a01ef1de7e3"
+
+[[fn]]
+path = "std::_assert_sync_and_send"
+kappa = "498376709fa0daeaf340f82dff908e8bfbe5f99f5ccabf1818619d0234dc8bf0"
+status = "residue"
+cause = "mir::TerminatorKind::Call: _assert_both"
+
+[[fn]]
+path = "std::add_spawn_hook"
+kappa = "68a5d88da9f3304aeb086995aeb737db04e816126ca58865444bb35ba5d1bba4"
+status = "residue"
+cause = "mir::Ty: F"
+
+[[fn]]
+path = "std::builder::<impl at library/std/src/thread/builder.rs:48:10: 48:15>::fmt"
+kappa = "2aa67166f975a73ed67aedd7e10ae7dc44aa1d75c666b80c25e223414ad4131a"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::builder::Builder::name"
+kappa = "d8a84e8099936d874b8021aaed3c09a44c5f633d6a73a4ba9045f145bb8df9fb"
+status = "residue"
+cause = "mir::Ty: thread::builder::Builder"
+
+[[fn]]
+path = "std::builder::Builder::new"
+kappa = "8b73679aa0d72450f048ac2371c0e6fbc54526c9fabeede622a9d2f266e06f29"
+status = "residue"
+cause = "mir::Ty: thread::builder::Builder"
+
+[[fn]]
+path = "std::builder::Builder::no_hooks"
+kappa = "66a7da2f7b3a9b579a898481f9f2919bfd0de9c0c855e2491023a6537149bcb4"
+status = "residue"
+cause = "mir::Ty: thread::builder::Builder"
+
+[[fn]]
+path = "std::builder::Builder::spawn"
+kappa = "c885a6a65f234501fdef1110e03ff9706b39f29061fe229d1fcb9b4bddb78e53"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: thread::join_handle::JoinHandle<u32>"
+
+[[fn]]
+path = "std::builder::Builder::spawn_unchecked"
+kappa = "233254b243232bf89bdb32549e609d2d1481d3b78457bbfe5c6901fddd5fc445"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: thread::join_handle::JoinHandle<u32>"
+
+[[fn]]
+path = "std::builder::Builder::stack_size"
+kappa = "71cb6acdd62a1c6249749d84b1c2988fd8eea868909be5a2c29638f867c73749"
+status = "residue"
+cause = "mir::Ty: thread::builder::Builder"
+
+[[fn]]
+path = "std::current"
+kappa = "138e1bd7bd4018314bcf7ce5e77670bc22ad0fa8a88272ac7ee7223a9c798838"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::current::current_os_id"
+kappa = "029446b5d9930b2d14f6f7385a933b01131e63db5e2de4541755fe356bb29878"
+status = "residue"
+cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id"
+
+[[fn]]
+path = "std::current::id::get"
+kappa = "6be2cb4a96fa7ccd68ffd20ab0b08fb4e1bcd28c0e6ebd046930dc14373ff791"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::current::id::set"
+kappa = "01a7bff4157b569a7258bd1d4f7ccbabad7250f23abc2bac8adebe33ad2592a3"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::current_id"
+kappa = "388027f49c6f88e75af88616ab3061eae5bb514f5912456f3bcc770289679a56"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::current_or_unnamed"
+kappa = "7c462f7f122ad5fc712fcfa9fe28a5aef0b292715f3ea5800384079909508e83"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::drop_current"
+kappa = "36b857cbd95acb95c9280677271785c821412341df08a8c018ba1d6eac253fd6"
+status = "residue"
+cause = "mir::Rvalue::Ref"
+
+[[fn]]
+path = "std::exhausted"
+kappa = "65f8381c37f7abd3aeea6e0e1c67e20602021b3938c2f3baab333d6887061262"
+status = "residue"
+cause = "mir::Ty: core::fmt::Arguments<'_>"
+
+[[fn]]
+path = "std::functions::PanicGuard::drop"
+kappa = "3a0698efcf8cdae3a31acb53cf89b830026969fe52ce2bc41a76f47d336a1823"
+status = "residue"
+cause = "mir::Ty: PanicGuard"
+
+[[fn]]
+path = "std::functions::available_parallelism"
+kappa = "572bea40f31f2dae7eabc20881a9d5e7e3439ece175141f1d466ff1297288b3f"
+status = "residue"
+cause = "mir::Ty: core::num::NonZero<usize>"
+
+[[fn]]
+path = "std::functions::panicking"
+kappa = "5004f0098a698864832bf3d97dc93b4c520c823a5f66ee86e4ae84340f750c5c"
+status = "residue"
+cause = "mir::TerminatorKind::Call: panicking::panicking"
+
+[[fn]]
+path = "std::functions::sleep"
+kappa = "1383a8ac7873e190f3b0962febf197da1267fa6c9b5c8846171092d958168557"
+status = "residue"
+cause = "mir::Ty: Duration"
+
+[[fn]]
+path = "std::functions::sleep_until"
+kappa = "0c65fb2e9d8f278b24e0c94674fd21779ab8205834103699a1218c74e78185b3"
+status = "residue"
+cause = "mir::Ty: time::Instant"
+
+[[fn]]
+path = "std::functions::yield_now"
+kappa = "33ae6092ccffd785c9f10dbf5ce17fb1975c8c708788044ec796acb7b50107d9"
+status = "residue"
+cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now"
+
+[[fn]]
+path = "std::get_or_init"
+kappa = "7747a8bc87f7b408c9b7e67ad7a86d9a574abd7fdba6d9f0f1edeca5482899bb"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::init_current"
+kappa = "c299c67e69a40d0170c8b297d50312972a562cabffd77d2b1a946ca47dcca9ab"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::join_handle::JoinHandle::as_inner"
+kappa = "ab077d82101abe6d6416c840efe7bdce874bca5d1b9cab954ecdd0ca5acdf462"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sys::thread::unix::Thread"
+
+[[fn]]
+path = "std::join_handle::JoinHandle::fmt"
+kappa = "0808bc51c593ea74c8e0bb20113b4d5aa3c82f9dff9027a3bee45aaa085446df"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::join_handle::JoinHandle::into_inner"
+kappa = "ea0bf768a1423fc8b984e2cdd9f51fea7aba9f33daa4b35b25aeaf01349e680a"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: sys::thread::unix::Thread"
+
+[[fn]]
+path = "std::join_handle::JoinHandle::is_finished"
+kappa = "a7793c61ad543544ae4797adb4803808a878b61a4f8fa87c0aa1f43ba68897aa"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: JoinHandle<u32>"
+
+[[fn]]
+path = "std::join_handle::JoinHandle::join"
+kappa = "35e9d8db45adceb698379c06fbd7498a0428229a6289d38d8a09313a819de6cf"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
+
+[[fn]]
+path = "std::join_handle::JoinHandle::thread"
+kappa = "6f3877b812884dce3f0b3b67140978abe6d8005268d506d0223d324ad36bab6d"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::lifecycle::JoinInner::as_inner"
+kappa = "50e8d7eac8eca44fb724c146f428edc4ed109112cf640e780c3bae26e2d6165c"
+status = "residue"
+cause = "mir::Ty: sys::thread::unix::Thread"
+
+[[fn]]
+path = "std::lifecycle::JoinInner::into_inner"
+kappa = "077d3dce7177d77c912fb412285ae4569c189b06c4a2bf7abb2d293489eae35e"
+status = "residue"
+cause = "mir::Ty: sys::thread::unix::Thread"
+
+[[fn]]
+path = "std::lifecycle::JoinInner::is_finished"
+kappa = "ba3e2c5a23a6e2793ddace86e31f41dae28d304ab0622b7cad4b5a5929f946e2"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: JoinInner<'_, u32>"
+
+[[fn]]
+path = "std::lifecycle::JoinInner::join"
+kappa = "c03883300f5263ff5ed0e72471a27566f6dd4cc81295cf804893096cfb352e2d"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
+
+[[fn]]
+path = "std::lifecycle::JoinInner::thread"
+kappa = "bbf28ad2cea8d233171ebe50281c5c1c74fc360bb006ead8c464f48e4b02cc32"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::lifecycle::Packet::drop"
+kappa = "f968a0e465f16a3c48450bab8185da239f901a0b61ff2b966e3b0eabf6671925"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: lifecycle::Packet<'_, u32>"
+
+[[fn]]
+path = "std::lifecycle::ThreadInit::init"
+kappa = "a3d49485dd2e7a0899d532cab33e7c7a31bfa91f421eca313a4017ef50122d67"
+status = "residue"
+cause = "mir::Ty: dyn core::ops::FnOnce() + core::marker::Send"
+
+[[fn]]
+path = "std::local::<impl at library/std/src/thread/local.rs:359:10: 359:15>::clone"
+kappa = "05aac09584dc65b3a918fce79ba22ae72f6a5623a1c16ba1f727bd5838573e55"
+status = "residue"
+cause = "mir::Ty: thread::local::AccessError"
+
+[[fn]]
+path = "std::local::<impl at library/std/src/thread/local.rs:359:23: 359:25>::assert_fields_are_eq"
+kappa = "f1ded44d8a877a26016207bfaed9088ae3a4222685fb6f889eb8fe62eb4d461b"
+status = "residue"
+cause = "mir::Ty: AccessError"
+
+[[fn]]
+path = "std::local::<impl at library/std/src/thread/local.rs:359:27: 359:36>::eq"
+kappa = "0f98d237af032d41403d44285b7437ced0d9401c927c33465d003dc0174817a6"
+status = "residue"
+cause = "mir::Ty: AccessError"
+
+[[fn]]
+path = "std::local::AccessError::fmt"
+kappa = "a655a080b0783b8b89cdf6c19a4bd00ebb2fa8e005795481a9b31c7ecb502c66"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::local::AccessError::fmt#2"
+kappa = "05e30a9bb332d1901b069012fd789a9c57c72f484ec3ee94451a737423de64a0"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::local::LocalKey::fmt"
+kappa = "bd8e1c09c979cc6ab2b36507ddab630c7642ed6f83fb037343eff954c23b61b0"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::local::LocalKey::initialize_with"
+kappa = "14e9874b28520c2c31dec13af2688a0ff731d779c4c81b662bb3853574440a49"
+at = "F=u32, R=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: LocalKey<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::new"
+kappa = "32a085318b30cc3ff669559672deedf45fc60337428cfe571aa4c02d4d0f52be"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: thread::local::LocalKey<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::replace"
+kappa = "daf8c0903092241b7709969d4c26fd48a0e74b0d1900cd3b225d5b66c66ae17a"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Cell<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::replace#2"
+kappa = "4a12d33d72f3e2ff318e64478bebf5d3f467e942568c81abd2a6e16afac04dd2"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: RefCell<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::set"
+kappa = "bb33339aca0f4ce3ca55e28e3f5d2b0de90d41b1606c190adf6ff81aaea6c901"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Cell<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::set#2"
+kappa = "131c6e8173375856f82a9b71406bc48e45a4545258705d5ab4df8eca82a269e7"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: RefCell<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::try_with"
+kappa = "195acd5399f843232a4f01ae68e705335a781b2672e50781c47260e927bc36ad"
+at = "F=u32, R=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: thread::local::AccessError"
+
+[[fn]]
+path = "std::local::LocalKey::update"
+kappa = "a72024a89f64eb40b74e79e7eff99524ece818acfd3724dfffad7921738341bb"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: Cell<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::with"
+kappa = "1cd919ac63385ae57fc49b6212e1d1e4da4744ac14bdccc8890a1d09de911986"
+at = "F=u32, R=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: LocalKey<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::with_borrow"
+kappa = "3def8ae18dbece90603ead5b7f659a1a3b28b6a0cad7fb3a8d6ede50e73c7518"
+at = "R=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RefCell<u32>"
+
+[[fn]]
+path = "std::local::LocalKey::with_borrow_mut"
+kappa = "1ccd375de7bdf055fc9dd35f7b1e96a604194350999144809cff7c2b856d4d36"
+at = "R=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: RefCell<u32>"
+
+[[fn]]
+path = "std::main_thread::get"
+kappa = "368c7ce03ba749432aa94767316bc186504d524a270d8c4818367fffbb4dd6f2"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::main_thread::set"
+kappa = "da7d40251880a1f0fe08f938bf82d7af738621de4b5265dc03b5dc18de93d25a"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::panic_access_error"
+kappa = "789d429b318de9dd4c7209bb584804db311a692950d436b6818190fc1f76cec1"
+status = "residue"
+cause = "mir::Ty: AccessError"
+
+[[fn]]
+path = "std::park"
+kappa = "86e3eca806a5aa240700f53d93e2c9e5078d6c66566c5019b1db6cb142407b33"
+status = "residue"
+cause = "mir::Ty: thread::functions::PanicGuard"
+
+[[fn]]
+path = "std::park_timeout"
+kappa = "b522faf8681c2ef39587394ff2ec752ee21ac0a42982205ac15d45b6e0239644"
+status = "residue"
+cause = "mir::Ty: Duration"
+
+[[fn]]
+path = "std::park_timeout_ms"
+kappa = "0b6bf81b88594f6e6a8f1510d926b72ce9abe22bf87b3bcf2ed41f235903111c"
+status = "residue"
+cause = "mir::Ty: core::time::Duration"
+
+[[fn]]
+path = "std::run_spawn_hooks"
+kappa = "4ebb2e1a53ec826a683bce878eca4adc853a1a1673c4a3f7bd1c9df13b36a8ce"
+status = "residue"
+cause = "mir::Ty: thread::spawnhook::ChildSpawnHooks"
+
+[[fn]]
+path = "std::scoped::Builder::spawn_scoped"
+kappa = "27d7001daa3b71b3ec833c67e80923efd016e3616fba3a98b94022842a87166c"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: thread::scoped::ScopedJoinHandle<'_, u32>"
+
+[[fn]]
+path = "std::scoped::Scope::fmt"
+kappa = "abb258835a2523d1b8078a1f4fbe10855b3dfb831bc154109dd88f68fbbb4a0b"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::scoped::Scope::spawn"
+kappa = "89914e13bd4b06a529355373aaad89851e454192d88fb6b2ea57ec300c00202b"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: thread::scoped::ScopedJoinHandle<'_, u32>"
+
+[[fn]]
+path = "std::scoped::ScopeData::decrement_num_running_threads"
+kappa = "7c8a49802d0063f6fcb89683bcef872fec129e605ea2ce700d72aebda17c7a0e"
+status = "residue"
+cause = "mir::Ty: ScopeData"
+
+[[fn]]
+path = "std::scoped::ScopeData::increment_num_running_threads"
+kappa = "2716756b360e1d4a494c03e924159957fdfa470191e9dd252e474bd7cc8b4ed9"
+status = "residue"
+cause = "mir::Ty: ScopeData"
+
+[[fn]]
+path = "std::scoped::ScopeData::overflow"
+kappa = "f51ddc52dbbff085e9692c3dfdf643fc33cb6d0ebc11f6179e834d2c0312c1da"
+status = "residue"
+cause = "mir::Ty: ScopeData"
+
+[[fn]]
+path = "std::scoped::ScopedJoinHandle::fmt"
+kappa = "c0a0da554173394a68f6dcbd6dd7a323de0ed97fb969630f2ad0b8f65eb4381b"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::scoped::ScopedJoinHandle::is_finished"
+kappa = "12f1a1ae1695cc2f273d19a18975989141a7632aef0aaaee9332bc192e7b964c"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: ScopedJoinHandle<'_, u32>"
+
+[[fn]]
+path = "std::scoped::ScopedJoinHandle::join"
+kappa = "6bb4442c1e33c2ad80a6dcd2cbf5602fced7f0033c5bf95786ff8ded9a01e7fe"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
+
+[[fn]]
+path = "std::scoped::ScopedJoinHandle::thread"
+kappa = "0f426e9d912a0a0946a5c1efe7aae694df43f322cc60b06dae8a6f78769256ed"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::scoped::scope"
+kappa = "3b46aeeefa73534c3ba7651bc949fa7461cf702d03e58b8d9baf42a4790945c2"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: F"
+
+[[fn]]
+path = "std::set_current"
+kappa = "a64ae37ad5876ac0e771bc07b0d3b2d920b8d9a22fb40ac9c989dd0377e4ea1e"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::sleep_ms"
+kappa = "9aaa2d3024cad71688747d8700298d327f33d8206d6805e0aa32a2c58a6cdf7c"
+status = "residue"
+cause = "mir::Ty: core::time::Duration"
+
+[[fn]]
+path = "std::spawn"
+kappa = "6d5112f813eb29c6ba69f1b8831b76fcc8ecb0745f71f4f311c2b298672c180d"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: thread::join_handle::JoinHandle<u32>"
+
+[[fn]]
+path = "std::spawn_unchecked"
+kappa = "5acbc10a64b4c2c1d9ebd4cf2e3e5ca9661e21eacd9b3def103ca939760ded66"
+at = "F=u32, T=u32"
+status = "residue"
+cause = "mir::Ty: thread::lifecycle::JoinInner<'_, u32>"
+
+[[fn]]
+path = "std::spawnhook::<impl at library/std/src/thread/spawnhook.rs:139:10: 139:17>::default"
+kappa = "fdda37132f466fa62490a45bac2164a1f73b2ee1f72109a6dbe99eb6ea56610a"
+status = "residue"
+cause = "mir::Ty: thread::spawnhook::ChildSpawnHooks"
+
+[[fn]]
+path = "std::spawnhook::<impl at library/std/src/thread/spawnhook.rs:15:10: 15:17>::default"
+kappa = "cd7660102601f5b9e5ffc974a3d3e3c7bf3907a93ee9d78b6fa34a3e8d6927de"
+status = "residue"
+cause = "mir::Ty: thread::spawnhook::SpawnHooks"
+
+[[fn]]
+path = "std::spawnhook::<impl at library/std/src/thread/spawnhook.rs:15:19: 15:24>::clone"
+kappa = "74d32a2d20a7e5f3270053a0490d14f76e7e8e0a391b913dfefdd6f0f8f2ba51"
+status = "residue"
+cause = "mir::Ty: thread::spawnhook::SpawnHooks"
+
+[[fn]]
+path = "std::spawnhook::ChildSpawnHooks::run"
+kappa = "2994211f80587a8571d496211c710131a42875f75b3407b9b2958e9eef9d2c14"
+status = "residue"
+cause = "mir::Ty: ChildSpawnHooks"
+
+[[fn]]
+path = "std::spawnhook::SpawnHooks::drop"
+kappa = "7e7285f4645e314cd98ace1462884e0830ceb65a49ae22c4983f181a307b5e76"
+status = "residue"
+cause = "mir::Ty: SpawnHooks"
+
+[[fn]]
+path = "std::thread::id::<impl at library/std/src/thread/id.rs:30:10: 30:12>::assert_fields_are_eq"
+kappa = "d24c15abcb982ab12ab03584be0556fb85a0d03a85c12fe1d99ee27b50774c3d"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::thread::id::<impl at library/std/src/thread/id.rs:30:14: 30:23>::eq"
+kappa = "f4db4ba3fd5af80485075066709ec0de84affea96f8fe0217f5aa65877223bae"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::thread::id::<impl at library/std/src/thread/id.rs:30:25: 30:30>::clone"
+kappa = "cc1be3ad59f2960ddfde67e03a17adfc13ff5f3622da89c49ff0dfc09403a1e5"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::thread::id::<impl at library/std/src/thread/id.rs:30:38: 30:42>::hash"
+kappa = "0828ce57c7c39bd001697a7499090fd6cd305ed7c24a5483f6e99c2a3ccb6d18"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::thread::id::<impl at library/std/src/thread/id.rs:30:44: 30:49>::fmt"
+kappa = "c9248a5130cf698203f51d19f598266e4678e9d2a8b512aae4a678d62762d434"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::thread::id::ThreadId::as_u64"
+kappa = "fab7e4add16534756271723a49426e36a5d14fa3de99643f615b6d655365c85c"
+status = "residue"
+cause = "mir::Ty: core::num::NonZero<u64>"
+
+[[fn]]
+path = "std::thread::id::ThreadId::new"
+kappa = "54b53391e893f70e47f939420ad52c4b6c85e7f8345d2d3670785af10d519a90"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::thread::thread::<impl at library/std/src/thread/thread.rs:61:10: 61:15>::clone"
+kappa = "9f7461be0b30daf6e6744fb2119f851cc3027425e7e0b5d098c88cdf18739da5"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread::thread::Inner::parker"
+kappa = "ef111c19b665efd652324c1669e350c2459076713a1bbdc9995ff4addff20549"
+status = "residue"
+cause = "mir::Ty: sys::sync::thread_parking::futex::Parker"
+
+[[fn]]
+path = "std::thread::thread::Thread::cname"
+kappa = "500f03b64ebd386de0b13c73edbcef44129798d13a8d2a84ec1b69a23bf8c8f4"
+status = "residue"
+cause = "mir::Ty: core::ffi::CStr"
+
+[[fn]]
+path = "std::thread::thread::Thread::fmt"
+kappa = "c019a808362865a44bfcead8c438a674fe8884670c81bfbccaa3b2cd6589c7fa"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::thread::thread::Thread::from_raw"
+kappa = "034e2c083518cbc3bf1a9137df0b397bcf5c3413f6a98f4a4f81c08e10a1d60f"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread::thread::Thread::id"
+kappa = "46e44b96558ba0926b99df370643299d5fed5b2c5c619fe536d29edac41d9fbd"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::thread::thread::Thread::into_raw"
+kappa = "c1c5fd2b9c1fa6e62e879891cb87f5ba299b53bf380192c13f26bd06e5ca078c"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread::thread::Thread::name"
+kappa = "a428545ff2fb7d3c43bbd4af15db9d240985d89ae267abfb2cf3482ec03ec2d2"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread::thread::Thread::park"
+kappa = "1de4d9d551278cf009c26010fc7e8816de5a662944c16280587c9db930bc5cfc"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread::thread::Thread::park_timeout"
+kappa = "8466c8e1f08c2d69275bd4de8758c7a2600720192b5430fc423d59b67cbcb020"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread::thread::Thread::unpark"
+kappa = "c9d875d1fd8fa655a11d3eb6cfdbfc6f932ccdcbbcaf7b139c97b958a3853827"
+status = "residue"
+cause = "mir::Ty: thread::thread::Thread"
+
+[[fn]]
+path = "std::thread_name_string::ThreadNameString::as_cstr"
+kappa = "000f01bea4727b615ebc1a9aa6cd8ddbe5b6ebdad2bfa2268bf18054b9baaa4b"
+status = "residue"
+cause = "mir::Ty: core::ffi::CStr"
+
+[[fn]]
+path = "std::thread_name_string::ThreadNameString::as_str"
+kappa = "6e4ef1a379f9377c515ac4f990c4da94453d05994b9df3bdf2c203d339bfb85d"
+status = "residue"
+cause = "mir::Ty: ThreadNameString"
+
+[[fn]]
+path = "std::thread_name_string::ThreadNameString::from"
+kappa = "24e709cc46eb62e7fe5be382c4f7650945e3538d80a912b733d8c6476b1a3911"
+status = "residue"
+cause = "mir::Ty: thread::thread::thread_name_string::ThreadNameString"
+
+[[fn]]
+path = "std::try_with_current"
+kappa = "fdec161fe49e475ca83f7ad6ee3be5f1551085e2412f11da86ad29627e521f20"
+at = "F=u32, R=u32"
+status = "residue"
+cause = "mir::Rvalue::Ref"
+
+[[fn]]
+path = "std::with_current_name"
+kappa = "e63755d358ee202063f2599fce9b4d8dc5969a7ea2322bc0efa8869861f6407f"
+at = "R=u32"
+status = "residue"
+cause = "mir::Ty: F"
+

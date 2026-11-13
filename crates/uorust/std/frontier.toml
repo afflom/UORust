@@ -1,0 +1,3036 @@
+# The std register (written by `uorust std`; do not edit): every body of
+# std's MIR at rust-src 1.97.1, translated by the MIR path with each
+# type parameter bound to `u32`, by module. A translated body lowers
+# to LexLean; the residue stops at the causes listed last. Rows, by κ, are
+# in each module's own file, and none recorded translated may regress.
+
+toolchain = "1.97.1"
+instantiation = "u32"
+bodies = 3974
+translated = 37
+residue = 3937
+
+[module.alloc]
+bodies = 20
+translated = 0
+residue = 20
+
+[module.ascii]
+bodies = 24
+translated = 0
+residue = 24
+
+[module.backtrace]
+bodies = 20
+translated = 1
+residue = 19
+
+[module.bstr]
+bodies = 0
+translated = 0
+residue = 0
+
+[module.collections]
+bodies = 281
+translated = 2
+residue = 279
+
+[module.env]
+bodies = 52
+translated = 0
+residue = 52
+
+[module.error]
+bodies = 9
+translated = 0
+residue = 9
+
+[module.ffi]
+bodies = 144
+translated = 0
+residue = 144
+
+[module.fs]
+bodies = 140
+translated = 0
+residue = 140
+
+[module.hash]
+bodies = 14
+translated = 0
+residue = 14
+
+[module.io]
+bodies = 658
+translated = 9
+residue = 649
+
+[module.keyword_docs]
+bodies = 0
+translated = 0
+residue = 0
+
+[module.macros]
+bodies = 0
+translated = 0
+residue = 0
+
+[module.net]
+bodies = 106
+translated = 0
+residue = 106
+
+[module.num]
+bodies = 0
+translated = 0
+residue = 0
+
+[module.os]
+bodies = 374
+translated = 3
+residue = 371
+
+[module.panic]
+bodies = 21
+translated = 0
+residue = 21
+
+[module.panicking]
+bodies = 44
+translated = 0
+residue = 44
+
+[module.pat]
+bodies = 0
+translated = 0
+residue = 0
+
+[module.path]
+bodies = 305
+translated = 0
+residue = 305
+
+[module.prelude]
+bodies = 0
+translated = 0
+residue = 0
+
+[module.process]
+bodies = 123
+translated = 1
+residue = 122
+
+[module.random]
+bodies = 5
+translated = 0
+residue = 5
+
+[module.rt]
+bodies = 6
+translated = 1
+residue = 5
+
+[module.sync]
+bodies = 502
+translated = 0
+residue = 502
+
+[module.sys]
+bodies = 971
+translated = 19
+residue = 952
+
+[module.test_helpers]
+bodies = 0
+translated = 0
+residue = 0
+
+[module.thread]
+bodies = 111
+translated = 1
+residue = 110
+
+[module.time]
+bodies = 44
+translated = 0
+residue = 44
+
+[[cause]]
+cause = "mir::Ty: io::error::Error"
+bodies = 798
+
+[[cause]]
+cause = "mir::Ty: core::fmt::Error"
+bodies = 290
+
+[[cause]]
+cause = "mir::Ty: ffi::os_str::OsStr"
+bodies = 63
+
+[[cause]]
+cause = "mir::Ty: Path"
+bodies = 59
+
+[[cause]]
+cause = "mir::Ty: OsStr"
+bodies = 58
+
+[[cause]]
+cause = "mir::Ty: ffi::os_str::OsString"
+bodies = 49
+
+[[cause]]
+cause = "mir::Ty: OsString"
+bodies = 45
+
+[[cause]]
+cause = "mir::Ty: path::Path"
+bodies = 45
+
+[[cause]]
+cause = "mir::Ty: path::PathBuf"
+bodies = 45
+
+[[cause]]
+cause = "mir::Ty: PathBuf"
+bodies = 44
+
+[[cause]]
+cause = "mir::Ty: T"
+bodies = 40
+
+[[cause]]
+cause = "mir::Ty: fs::Metadata"
+bodies = 40
+
+[[cause]]
+cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
+bodies = 36
+
+[[cause]]
+cause = "mir::Ty: os::fd::owned::OwnedFd"
+bodies = 33
+
+[[cause]]
+cause = "mir::Ty: core::net::SocketAddr"
+bodies = 32
+
+[[cause]]
+cause = "mir::Ty: core::time::Duration"
+bodies = 31
+
+[[cause]]
+cause = "mir::Ty: set::HashSet<u32"
+bodies = 30
+
+[[cause]]
+cause = "mir::Ty: sys::io::kernel_copy::linux::CopyParams"
+bodies = 29
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::Command"
+bodies = 27
+
+[[cause]]
+cause = "mir::Ty: map::HashMap<u32"
+bodies = 25
+
+[[cause]]
+cause = "mir::Ty: sys::fd::unix::FileDesc"
+bodies = 25
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::unix::ExitStatus"
+bodies = 23
+
+[[cause]]
+cause = "mir::Ty: fs::File"
+bodies = 22
+
+[[cause]]
+cause = "mir::Ty: process::Command"
+bodies = 22
+
+[[cause]]
+cause = "mir::Ty: time::SystemTime"
+bodies = 18
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::addr::SocketAddr"
+bodies = 17
+
+[[cause]]
+cause = "mir::Ty: sys::time::unix::SystemTime"
+bodies = 17
+
+[[cause]]
+cause = "mir::Ty: OnceLock<u32>"
+bodies = 16
+
+[[cause]]
+cause = "mir::Ty: bytes::Buf"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: process::ExitStatus"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: process::Stdio"
+bodies = 15
+
+[[cause]]
+cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
+bodies = 14
+
+[[cause]]
+cause = "mir::Ty: process::ExitCode"
+bodies = 14
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::unix::Socket"
+bodies = 14
+
+[[cause]]
+cause = "mir::Ty: sys::sync::rwlock::futex::RwLock"
+bodies = 14
+
+[[cause]]
+cause = "mir::Ty: thread::thread::Thread"
+bodies = 14
+
+[[cause]]
+cause = "mir::Rvalue::Repeat"
+bodies = 13
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::File"
+bodies = 13
+
+[[cause]]
+cause = "mir::Ty: thread::id::ThreadId"
+bodies = 13
+
+[[cause]]
+cause = "mir::Ty: time::Instant"
+bodies = 13
+
+[[cause]]
+cause = "mir::Instantiation: a const parameter"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: Components<'_>"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: fs::FileType"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: net::tcp::TcpStream"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::FileType"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::OpenOptions"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: sys::os_str::bytes::Slice"
+bodies = 12
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::HashSet<u32"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: fs::OpenOptions"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: hash::random::RandomState"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: mpmc::list::Channel<u32>"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: sys::os_str::bytes::Buf"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: sys::pal::unix::time::Timespec"
+bodies = 11
+
+[[cause]]
+cause = "mir::Ty: Prefix<'_>"
+bodies = 10
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::FileAttr"
+bodies = 10
+
+[[cause]]
+cause = "mir::Ty: sys::time::unix::Instant"
+bodies = 10
+
+[[cause]]
+cause = "mir::Ty: BufReader<u32>"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: Buffer"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: LazyLock<u32"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: bytes::Slice"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::HashMap<u32"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::Iter<'_"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: process::ExitStatusError"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: sync::once::Once"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: sys::sync::mutex::futex::Mutex"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: sys::thread::unix::Thread"
+bodies = 9
+
+[[cause]]
+cause = "mir::Ty: core::ffi::CStr"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: nonpoison::rwlock::RwLock<u32>"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::RecvTimeoutError"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: sync::poison::PoisonError<u32>"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: sync::poison::mutex::MutexGuard<'_"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: sys::args::common::Args"
+bodies = 8
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::ExitCode"
+bodies = 8
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::MASK"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: CommandEnv"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: alloc_crate::collections::TryReserveError"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: ancillary::SocketAncillary<'_>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: core::alloc::Layout"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: core::num::NonZero<usize>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: core::ops::Range<usize>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: core::ptr::NonNull<[u8]>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: map::OccupiedEntry<'_"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: mpmc::Receiver<u32>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: mpmc::Sender<u32>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: nonpoison::mutex::Mutex<u32>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: os::linux::process::PidFd"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::stream::UnixStream"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: path::Component<'_>"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: set::Iter<'_"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::TryRecvError"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::TcpStream"
+bodies = 7
+
+[[cause]]
+cause = "mir::Ty: A"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: ArgsOs"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: BufWriter<u32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: Permissions"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: SocketCred"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: System"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: W"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: core::io::Take<u32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: env::Args"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: fs::Dir"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: io::IoSlice<'_>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: io::IoSliceMut<'_>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: mpmc::array::Channel<u32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::ucred::UCred"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: process::Output"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: stream::UnixStream"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::TrySendError<u32>"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: sys::sync::condvar::futex::Condvar"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: sys::sync::once::futex::Once"
+bodies = 6
+
+[[cause]]
+cause = "mir::Ty: Arguments<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: Component<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: DwarfReader"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: FilePermissions"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: PrefixComponent<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: Timespec"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: backtrace::Backtrace"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::Keys<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::Values<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: connection::socket::unix::Socket"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: core::io::Chain<u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: core::io::Empty"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: fs::FileTimes"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: io::stdio::Stderr"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: io::stdio::Stdin"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: io::stdio::Stdout"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::Entry<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::IntoIter<u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::IntoKeys<u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::IntoValues<u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::Iter<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::IterMut<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::Keys<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::Values<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: map::ValuesMut<'_"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: net::tcp::TcpListener"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: set::IntoIter<u32"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::error::SendTimeoutError<u32>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::SendError<u32>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::DirEntry"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::FileTimes"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::TcpListener"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::UdpSocket"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::pal::unix::linux::pidfd::PidFd"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::process::env::CommandEnvs<'_>"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::ProgramKind"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: sys::stdio::unix::Stderr"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: waker::Waker"
+bodies = 5
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::mem::size_of"
+bodies = 4
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: BacktraceStyle"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: BufGuard<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: CachePadded<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: ChildStdin"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: Duration"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: F"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: FdMeta"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: LineWriterShim<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: PanicHookInfo<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: PipeReader"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: PipeWriter"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: R"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: RefCell<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: Self"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: StdinLock<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: SyncWaker"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: alloc_crate::borrow::Cow<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: context::Context"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: core::cell::Cell<"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: cstring_array::CStringArray"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: error::Report<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: fs::Permissions"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: fs::TryLockError"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: hash::random::DefaultHasher"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: io::buffered::bufwriter::BufWriter<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: io::error::repr_bitpacked::Repr"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: io::pipe::PipeReader"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: io_slice::iovec::IoSliceMut<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: map::Drain<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: nonpoison::condvar::Condvar"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::ancillary::AncillaryData<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::listener::UnixListener"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: owned::OwnedFd"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: panic::BacktraceStyle"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: path::Iter<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: path::Prefix<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: process::CommandArgs<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: process::CommandEnvs<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: set::Drain<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: set::Union<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::context::Context"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::select::Selected"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::RecvError"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::mutex::MappedMutexGuard<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::rwlock::MappedRwLockReadGuard<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::rwlock::MappedRwLockWriteGuard<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::rwlock::RwLockReadGuard<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::once_lock::OnceLock<u32>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::poison::mutex::MappedMutexGuard<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::poison::mutex::Mutex<alloc_crate::vec::Vec<u8>>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::poison::rwlock::MappedRwLockReadGuard<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sync::poison::rwlock::MappedRwLockWriteGuard<'_"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::FilePermissions"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::ReadDir"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::dir::Dir"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::CommandArgs<'_>"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::Stdio"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::cstring_array::CStringArray"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::unix::ExitStatusError"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::unix::Process"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: thread::builder::Builder"
+bodies = 4
+
+[[cause]]
+cause = "mir::Ty: thread::spawnhook::SpawnHooks"
+bodies = 4
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item core::num::MAX"
+bodies = 3
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc735: &Atomic<usize>}"
+bodies = 3
+
+[[cause]]
+cause = "mir::Rvalue::Ref"
+bodies = 3
+
+[[cause]]
+cause = "mir::Rvalue::Ref: BorrowKind::Mut of a place behind a shared reference"
+bodies = 3
+
+[[cause]]
+cause = "mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::lower_bound"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: AccessError"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: Arc<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: CStringIter<'_>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: Cell<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: ChildStderr"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: ChildStdout"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: DefaultHasher"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: JoinHandle<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: LineWriter<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: Parker"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: PoisonError<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: ReentrantLock<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: ScopeData"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: Selected"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: StderrLock<'_>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: StdoutLock<'_>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: WaitTimeoutResult"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::Entry<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::IterMut<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: core::fmt::Arguments<'_>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: core::io::Repeat"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: counter::Receiver<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: counter::Sender<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: dyn core::error::Error"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: dyn core::error::Error + core::marker::Send + core::marker::Sync"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: dyn for<'a"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: fn"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: fs::DirBuilder"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: io::buffered::bufreader::BufReader<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: io::buffered::bufreader::buffer::Buffer"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: io::buffered::linewriter::LineWriter<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: io::error::Custom"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: io::pipe::PipeWriter"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: libc::timespec"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: map::VacantEntry<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: net::udp::UdpSocket"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: nonpoison::mutex::MutexGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: nonpoison::rwlock::RwLockWriteGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::ancillary::SocketCred"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: path::State"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: poison::Flag"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: poison::mutex::MutexGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: poison::rwlock::RwLockWriteGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: set::SymmetricDifference<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: set::VacantEntry<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::WaitTimeoutResult"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::Sender<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::utils::CachePadded<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::waker::Entry"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::mutex::Mutex<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::mutex::MutexGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::rwlock::RwLock<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::rwlock::RwLockWriteGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::oneshot::RecvTimeoutError<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::poison::PoisonError<"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::poison::mutex::Mutex<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::poison::rwlock::RwLock<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::poison::rwlock::RwLockReadGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::poison::rwlock::RwLockWriteGuard<'_"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sync::reentrant_lock::ReentrantLock<u32>"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sys::env::common::Env"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::DirBuilder"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sys::io::kernel_copy::CopyState"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sys::pal::unix::stack_overflow::Handler"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sys::personality::dwarf::eh::EHAction"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sys::process::env::CommandEnv"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: sys::process::env::CommandResolvedEnvs"
+bodies = 3
+
+[[cause]]
+cause = "mir::Ty: thread::join_handle::JoinHandle<u32>"
+bodies = 3
+
+[[cause]]
+cause = 'mir::Ty: unsafe extern "u32" fn'
+bodies = 3
+
+[[cause]]
+cause = "mir::Operand::Constant: 30_i32 as u32"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as SizeHint>::upper_bound"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as core::ops::FnOnce>::call_once"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as io::Read>::is_read_vectored"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as io::Write>::is_write_vectored"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: char::methods::is_ascii"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::mem::align_of"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: null_mut"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: really_init"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: without_provenance_mut"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: Atomic<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: Backoff"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: BacktraceStatus"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: CStr"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: CachedFileMetadata"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: DlsymWeak<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: LazyKey"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: LocalKey<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: LocalPointer"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: ReentrantLockGuard<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: S"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: SeekFrom"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: Shutdown"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: Sink"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: StripPrefixError"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: Tid"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: UnixListener"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: VarError"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: Vars"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: alloc::System"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::Drain<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::IntoIter<u32"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::IntoKeys<u32"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::IntoValues<u32"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::OccupiedEntry<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::ValuesMut<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::Difference<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::Drain<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::Entry<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::HashSet<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::Intersection<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::OccupiedEntry<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::SymmetricDifference<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::Union<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: connection::socket::TcpStream"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: core::num::NonZero<i32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: core::num::NonZero<u16>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: core::str::Utf8Error"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: datagram::UnixDatagram"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: dyn core::panic::PanicPayload"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: eager::Storage<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: env::SplitPaths<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: env::VarError"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: fs::DirEntry"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: io::Bytes<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: io::stdio::StdinLock<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: io::stdio::StdinRaw"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: io_slice::iovec::IoSlice<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: map::ExtractIf<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: mpsc::RecvError"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: mpsc::RecvTimeoutError"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: mpsc::TryRecvError"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: nonpoison::mutex::MappedMutexGuard<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: nonpoison::rwlock::MappedRwLockWriteGuard<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: os::linux::raw::arch::stat"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::listener::Incoming<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: owned::BorrowedFd<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: path::Ancestors<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: path::Components<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: poison::condvar::Condvar"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: poison::mutex::MappedMutexGuard<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: poison::rwlock::MappedRwLockWriteGuard<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: process::ChildStderr"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: process::ChildStdin"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: process::ChildStdout"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: random::DefaultRandomSource"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: select::Operation"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::Difference<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::Entry<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::ExtractIf<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::Intersection<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: set::OccupiedEntry<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::lazy_lock::LazyLock<u32"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::Iter<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::counter::Counter<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::counter::Sender<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::select::Operation"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::zero::Packet<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::Iter<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::Sender<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::SyncSender<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::nonpoison::condvar::Condvar"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::once::OnceExclusiveState"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::once::OnceState"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::oneshot::TryRecvError<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::poison::Flag"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::poison::Guard"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::poison::PoisonError<&mut u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::poison::condvar::Condvar"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sync::reentrant_lock::ReentrantLockGuard<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sys::io::io_slice::iovec::IoSlice<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sys::io::kernel_copy::linux::CopyResult"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::LookupHost"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::cstring_array::CStringIter<'_>"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sys::stdio::unix::Stdin"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sys::stdio::unix::Stdout"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: sys::sync::once::futex::OnceState"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: thread::local::AccessError"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: thread::scoped::ScopedJoinHandle<'_"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: thread::spawnhook::ChildSpawnHooks"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: udp::UdpSocket"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: unwind::_Unwind_Reason_Code"
+bodies = 2
+
+[[cause]]
+cause = "mir::Ty: zero::Channel<u32>"
+bodies = 2
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: context::with::{closure#0}: type outside the lift: {closure@library/std/src/sync/mpmc/context.rs:47:21: 47:40}"
+bodies = 1
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: eager::destroy::{closure#0}: type outside the lift: {closure@library/std/src/sys/thread_local/native/eager.rs:66:26: 66:28}"
+bodies = 1
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: lazy::destroy::{closure#0}: type outside the lift: {closure@library/std/src/sys/thread_local/native/lazy.rs:114:26: 114:28}"
+bodies = 1
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: sanitize_standard_fds::{closure#0}: type outside the lift: {closure@library/std/src/sys/pal/unix/mod.rs:58:32: 58:34}"
+bodies = 1
+
+[[cause]]
+cause = "mir::AggregateKind::Closure: thread_cleanup::{closure#0}: type outside the lift: {closure@library/std/src/rt.rs:130:25: 130:27}"
+bodies = 1
+
+[[cause]]
+cause = "mir::CastKind::PointerCoercion: from"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: 31_i32 as u32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: alloc::__default_lib_allocator::__rdl_dealloc::promoted[0]"
+bodies = 1
+
+[[cause]]
+cause = 'mir::Operand::Constant: b"NOEX"'
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: core::num::MAX as usize"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: libc::UIO_MAXIOV as usize"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: os::unix::net::addr::SUN_PATH_OFFSET::{constant#0}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: panicking::panic_count::finished_panic_hook::promoted[0]"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: panicking::panic_count::get_count::promoted[0]"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: panicking::panic_count::is_zero_slow_path::promoted[0]"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: path::SEPARATORS: mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: path::SEPARATORS_STR: mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS_STR"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: sync::mpmc::waker::current_thread_id::promoted[0]"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: sys::path::unix::SEPARATORS::promoted[0]: mir::Operand::Constant: 47_u8 as char"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item core::num::BITS"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item io::error::repr_bitpacked::TAG_MASK"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item io::error::repr_bitpacked::TAG_OS"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item io::error::repr_bitpacked::TAG_SIMPLE"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item libc::AT_MINSIGSTKSZ"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item libc::EAGAIN"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item libc::EINTR"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item libc::F_GETFL"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item libc::SIG_IGN"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item libc::_SC_PAGESIZE"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sync::mpmc::list::BLOCK_CAP"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sync::mpmc::list::LAP"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::io::DEFAULT_BUF_SIZE"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::path::unix::SEPARATORS_STR"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::paths::unix::PATH_SEPARATOR"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::READERS_WAITING"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::READ_LOCKED"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::sync::rwlock::futex::WRITERS_WAITING"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::sync::thread_parking::futex::EMPTY"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: the constant item sys::time::unix::Instant::CLOCK_ID"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc110: &Atomic<u8>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc1478: *mut *const *const i8}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc231: &OnceLock<ReentrantLock<RefCell<LineWriter<StdoutRaw>>>>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc401: &Atomic<usize>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc404: &Atomic<*mut libc::c_void>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc421: &Atomic<bool>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc426: &Atomic<isize>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc429: &Atomic<*mut *const u8>}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc61: &sync::once::Once}"
+bodies = 1
+
+[[cause]]
+cause = "mir::Operand::Constant: {alloc669: &LazyKey}"
+bodies = 1
+
+[[cause]]
+cause = "mir::ProjectionElem::Deref: a read through a raw pointer"
+bodies = 1
+
+[[cause]]
+cause = "mir::Rvalue::Use"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as CopyRead>::min_limit"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as CopyRead>::taken"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as io::BufRead>::consume"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: <u32 as os::fd::raw::AsRawFd>::as_raw_fd"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: _assert"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: _assert_both"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: _is_sync_send"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: alloc_crate::slice::to_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: alloc_crate::slice::to_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: alloc_crate::str::to_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: alloc_crate::str::to_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: alloc_crate::vec::Vec::capacity"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: begin_panic"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: char::methods::eq_ignore_ascii_case"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: char::methods::make_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: char::methods::make_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: char::methods::to_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: char::methods::to_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: check_library_ub"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::eq_ignore_ascii_case"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::is_ascii"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::is_power_of_two"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::make_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::make_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::to_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::to_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::num::wrapping_sub"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::ptr::mut_ptr::is_null"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::slice::ascii::eq_ignore_ascii_case"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::slice::ascii::is_ascii"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::slice::ascii::make_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::slice::ascii::make_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::slice::split_at_checked"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::str::eq_ignore_ascii_case"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::str::is_ascii"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::str::make_ascii_lowercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::str::make_ascii_uppercase"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: count_is_zero"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: destructors::list::run"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: fdatasync"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: fsync"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: get_stack_start"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: glibc_version"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: glibc_version::gnu_get_libc_version"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: libc::getpid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: libc::getppid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: pal::unix::stack_overflow::imp::cleanup"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: panicking::panicking"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: pthread_key_delete"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: pthread_setspecific"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: rt::cleanup"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sanitize_standard_fds"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sched_yield"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: set_always_abort"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::args::unix::imp::init"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::path::unix::is_sep_byte"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::process::unix::common::getpid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::process::unix::common::getppid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::random::linux::getrandom"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: sys::thread::unix::yield_now"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: unique_thread_exit"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: <u32 as net::socket_addr::ToSocketAddrs>::Iter"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: AncillaryDataIter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: BarrierWaitResult"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: BorrowedCursor<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Cgroup"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Child"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ChildSpawnHooks"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ChildStdio"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: CommandResolvedEnvs"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: CompletionGuard<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: CopyResult"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: DefaultRandomSource"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: DirStream"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: DtorUnwindGuard"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ExternWeak<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: FdHandle"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: FileAttr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: FormatStringPayload<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Handler"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: IntoInnerError<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: JoinInner<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: LookupHost"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: M"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: NormalizeError"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: OnceBox<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: PanicGuard"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: PoisonOnPanic<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: PosixSpawnFileActions<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: PosixSpawnattr<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Process"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Rc<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Repr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: Reset"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ScmRights<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ScopedJoinHandle<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: SocketAddrCRepr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: SpawnHooks"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: SpliceMode"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: StaticStrPayload"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: StderrRaw"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: StdinRaw"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: StdoutRaw"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ThreadInit"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ThreadNameString"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: UniqueRc<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: UnlockOnDrop"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: VarsOs"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: VecDeque<u8"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: WStrUnits<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: WriterPanicked"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: alloc_crate::boxed::Box<dyn core::ops::FnMut"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: alloc_crate::ffi::CString"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: alloc_crate::vec::Vec<u8"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: backtrace::BacktraceFrame"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: backtrace::BacktraceStatus"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: backtrace::RawFrame"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::ExtractIf<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::HashMap<&str"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::HashMap<u8"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::IntoIter<&str"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::IntoIter<u8"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::map::OccupiedError<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::ExtractIf<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::HashSet<&str>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: collections::hash::set::IntoIter<u32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::fmt::DebugStruct<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::io::Cursor<&mut [u8]>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::io::Cursor<[u8; N]>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::io::Cursor<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::net::Ipv4Addr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::net::Ipv6Addr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::net::SocketAddrV4"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::net::SocketAddrV6"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::num::NonZero<u64>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::ops::RangeFrom<usize>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::panic::Location<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::panic::PanicInfo<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::pin::Pin<&u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: core::pin::Pin<alloc_crate::boxed::Box<u32>>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: dyn core::any::Any"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: dyn core::ops::FnOnce"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: env::ArgsOs"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: env::JoinPathsError"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: env::Vars"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: env::VarsOs"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: ffi::os_str::Display<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: fs::ReadDir"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: hashbrown::hash_set::IntoIter<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: hashbrown::hash_set::Iter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: impl AsFd"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: impl Distribution<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: impl FnOnce"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::Guard<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::Lines<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::SeekFrom"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::Split<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::buffered::IntoInnerError<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::buffered::bufwriter::BufWriter<u32>::flush_buf::BufGuard<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::buffered::bufwriter::WriterPanicked"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::buffered::linewritershim::LineWriterShim<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::error::ErrorData<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::stdio::StderrLock<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::stdio::StderrRaw"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::stdio::StdoutLock<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: io::stdio::StdoutRaw"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: lazy::Storage<u32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: libc::in6_addr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: libc::in_addr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: libc::sockaddr_in"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: libc::sockaddr_in6"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: libc::sockaddr_un"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: libc::stack_t"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: libc::stat64"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: lifecycle::Packet<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: listener::Incoming<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpmc::IntoIter<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpmc::Iter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpmc::TryIter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpmc::error::SendTimeoutError<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpmc::list::Block<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpsc::IntoIter<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpsc::Iter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpsc::Receiver<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpsc::SendError<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpsc::Sender<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpsc::TryIter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: mpsc::TrySendError<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: net::Shutdown"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: net::tcp::Incoming<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: net::tcp::IntoIncoming"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: nonpoison::rwlock::MappedRwLockReadGuard<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: nonpoison::rwlock::RwLockReadGuard<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::addr::AddressKind<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::ancillary::AncillaryDataIter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::ancillary::Messages<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: os::unix::net::ancillary::SocketAncillary<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: panic::PanicHookInfo<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: panicking::Hook"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: panicking::panic_count::MustAbort"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: path::Display<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: path::PrefixComponent<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: path::StripPrefixError"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: pidfd::PidFd"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: poison::mutex::Mutex<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: poison::rwlock::MappedRwLockReadGuard<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: poison::rwlock::RwLock<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: poison::rwlock::RwLockReadGuard<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: process::StdioPipes"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: set::IntoIter<&str>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::barrier::Barrier"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::barrier::BarrierWaitResult"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::lazy_lock::LazyLock<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::IntoIter<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::Receiver<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::TryIter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::array::ArrayToken"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::array::Channel<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::counter::Receiver<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::list::Block<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::list::Channel<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::list::ListToken"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::select::Token"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::utils::Backoff"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::waker::SyncWaker"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::waker::Waker"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::zero::Channel<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpmc::zero::ZeroToken"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::IntoIter<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::mpsc::TryIter<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::oneshot::Sender<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::poison::TryLockError<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sync::reentrant_lock::Tid"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::fs::common::Dir"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::Mode"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::fs::unix::StatxExtraFields"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::helpers::wstr::WStrUnits<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::io::io_slice::iovec::IoSliceMut<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::io::kernel_copy::linux::FdMeta"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::net::connection::socket::SocketAddrCRepr"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::pal::unix::stack_overflow::thread_info::UnlockOnDrop"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::pal::unix::weak::dlsym::DlsymWeak<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::pal::unix::weak::weak_linkage::ExternWeak<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::personality::dwarf::DwarfReader"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::personality::dwarf::eh::EHContext<'_>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::process::unix::common::ChildStdio"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::sync::once_box::OnceBox<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::sync::thread_parking::futex::Parker"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::thread::unsupported::Thread"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::thread_local::key::racy::LazyKey"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::thread_local::native::LocalPointer"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::thread_local::native::eager::State"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::thread_local::native::eager::Storage<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::thread_local::native::lazy::State<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: sys::thread_local::native::lazy::Storage<u32"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: thread::functions::PanicGuard"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: thread::lifecycle::JoinInner<'_"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: thread::lifecycle::ThreadInit"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: thread::local::LocalKey<u32>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: thread::local::LocalKey<u8>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: thread::thread::thread_name_string::ThreadNameString"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: time::SystemTimeError"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: unsupported::Thread"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: {closure@library/std/src/backtrace.rs:437:9: 437:16}"
+bodies = 1

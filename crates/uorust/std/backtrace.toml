@@ -1,0 +1,120 @@
+[[fn]]
+path = "std::_assert"
+kappa = "82959bc8674091e4c219146e4d048be2db75baaf8e8f60681e982839045c7344"
+status = "translated"
+digest = "a7cb631c7a6c760ae703c71e840f31052985d016700b814184fbcb66eb429b33"
+
+[[fn]]
+path = "std::_assert_send_sync"
+kappa = "6da2eca8fd9e0ce1240233c22ebf6e0c38a4f5fa54ed3f4fb53339be4db65e45"
+status = "residue"
+cause = "mir::TerminatorKind::Call: _assert"
+
+[[fn]]
+path = "std::backtrace::<impl at library/std/src/backtrace.rs:116:10: 116:15>::fmt"
+kappa = "f65cf737e9e1707b7222d71e90df63f303c924790d53fa84adc665e91d9606fc"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::backtrace::<impl at library/std/src/backtrace.rs:116:17: 116:26>::eq"
+kappa = "9a783b27af14b2a6f4ef29a8ee7995b99dc988fca49914edcc798d8b931620a1"
+status = "residue"
+cause = "mir::Ty: BacktraceStatus"
+
+[[fn]]
+path = "std::backtrace::<impl at library/std/src/backtrace.rs:116:28: 116:30>::assert_fields_are_eq"
+kappa = "6a3e7a4b2947cbed26f5c7b4efeb472396fea1ac86d4541e01b01eff9d588db4"
+status = "residue"
+cause = "mir::Ty: BacktraceStatus"
+
+[[fn]]
+path = "std::backtrace::<impl at library/std/src/backtrace.rs:155:10: 155:15>::fmt"
+kappa = "c071e7725b5eb14f5f7a4fd75ff8d5914c426770cea48a480176f99480ee6b80"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::backtrace::Backtrace::capture"
+kappa = "9b41bb6d2c047e698ce4ab2843d3436b411036055fea095ff5bc070d10579f31"
+status = "residue"
+cause = "mir::Ty: backtrace::Backtrace"
+
+[[fn]]
+path = "std::backtrace::Backtrace::create"
+kappa = "1bd5c1d9fc5835c629e368cb8f0b0f393f82108c3c219ebd2dd4b88edb9de86c"
+status = "residue"
+cause = "mir::Ty: backtrace::Backtrace"
+
+[[fn]]
+path = "std::backtrace::Backtrace::disabled"
+kappa = "52a2799ef4db5af25706b4bf4aa27e1d22d76327fb6b2ebb6ca7968ba2e82654"
+status = "residue"
+cause = "mir::Ty: backtrace::Backtrace"
+
+[[fn]]
+path = "std::backtrace::Backtrace::enabled"
+kappa = "bc1dccec4d994246e9861efa812b3c612202318b7098cc3ef091784446d6a2e5"
+status = "residue"
+cause = "mir::Operand::Constant: {alloc110: &Atomic<u8>}"
+
+[[fn]]
+path = "std::backtrace::Backtrace::fmt"
+kappa = "d5479ec18305664068d895d3417acf318abd76b0fc0604adebb671b06510074b"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::backtrace::Backtrace::fmt#2"
+kappa = "de2a8770d3f2301c3211cefc0fef8939e00ec006f726cdd53ffc5a102d9e5b4e"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::backtrace::Backtrace::force_capture"
+kappa = "03b84cb75ec11679fda37eefba421f29bcdc89b3c0a90fd658a6bcb45d1b255c"
+status = "residue"
+cause = "mir::Ty: backtrace::Backtrace"
+
+[[fn]]
+path = "std::backtrace::Backtrace::frames"
+kappa = "e3f5b918ff62122b37ccbcae11525493777c2ef68ddafb4207d2696ab6146f3c"
+status = "residue"
+cause = "mir::Ty: backtrace::BacktraceFrame"
+
+[[fn]]
+path = "std::backtrace::Backtrace::status"
+kappa = "72158bf5f129b230e39434deecbff21fa6e953b25580f17f8eb49a6b30c9464d"
+status = "residue"
+cause = "mir::Ty: backtrace::BacktraceStatus"
+
+[[fn]]
+path = "std::backtrace::BacktraceFrame::fmt"
+kappa = "4ea1c7d3b59a1dccc383285bd1768bf4e30c7e7e8a559b499e6d3aa53d798e34"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::backtrace::BacktraceSymbol::fmt"
+kappa = "135a4fed7cb23a3f792e948175228c43a2b1b0a08ec44f1e5022a7cd59428bcd"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::backtrace::BytesOrWide::fmt"
+kappa = "99dc8824683ce8f977b5f36c0b331c8f6ab29ec54773526158bc40a9a54a3e6b"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::backtrace::RawFrame::ip"
+kappa = "df577f6fc0170039a9ee8f382aadab519e9e7b0c5d6bd39c4f13a1aecdfc99c8"
+status = "residue"
+cause = "mir::Ty: backtrace::RawFrame"
+
+[[fn]]
+path = "std::helper::lazy_resolve"
+kappa = "2b173e0ada17a61a90605adf6a8918019e871a6d0bf323c8ee963fd59f7a29aa"
+status = "residue"
+cause = "mir::Ty: {closure@library/std/src/backtrace.rs:437:9: 437:16}"
+

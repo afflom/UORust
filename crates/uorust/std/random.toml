@@ -1,0 +1,31 @@
+[[fn]]
+path = "std::random"
+kappa = "a1adec0c981fde9a1fb02c929565a7ee4bbb8694d628bf1d2b05dbdd2efd4c76"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: impl Distribution<u32>"
+
+[[fn]]
+path = "std::random::<impl at library/std/src/random.rs:57:10: 57:17>::default"
+kappa = "499996d5f5149378100ea9cbb1a70da36541ff8d546ccc8115527884bf3829d9"
+status = "residue"
+cause = "mir::Ty: random::DefaultRandomSource"
+
+[[fn]]
+path = "std::random::<impl at library/std/src/random.rs:57:19: 57:24>::fmt"
+kappa = "2fd7a1af44068910b2bd9244509a0f71bf66a3de0f19788ec2d2bc1dc2ae5a33"
+status = "residue"
+cause = "mir::Ty: core::fmt::Error"
+
+[[fn]]
+path = "std::random::<impl at library/std/src/random.rs:57:26: 57:31>::clone"
+kappa = "6eba4179469089d82de488435433c85de9fed388f876df8273e191b979e88d6e"
+status = "residue"
+cause = "mir::Ty: random::DefaultRandomSource"
+
+[[fn]]
+path = "std::random::DefaultRandomSource::fill_bytes"
+kappa = "9cf54d49661a300d736c4094a905f30d3b56188519ba1e8f982169891d6f80f9"
+status = "residue"
+cause = "mir::Ty: DefaultRandomSource"
+

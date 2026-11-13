@@ -1,0 +1,37 @@
+[[fn]]
+path = "std::__rust_abort"
+kappa = "22833780f0f6bee96b358caacd5175250edb673602ba7d5bafdd8006fbacfa5a"
+status = "translated"
+digest = "52bc96a86e8aaaf6217f47f5e9a177d81307f7c36bed098d3601db82a8b345df"
+
+[[fn]]
+path = "std::handle_rt_panic"
+kappa = "faab9dd5444fd2d19881116f06cc52adab874d2569cd13d324fc5c9f585b4e2a"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
+
+[[fn]]
+path = "std::lang_start"
+kappa = "7ef5988835739feab00926c016571eb8e230a020819a8d9f85754ec8d6632cbc"
+status = "residue"
+cause = "mir::Ty: fn() -> T"
+
+[[fn]]
+path = "std::rt::cleanup"
+kappa = "9e8db5a93e2643ba9535751bf36ea5b502178e056614d2417c4f1def7016640a"
+status = "residue"
+cause = "mir::Operand::Constant: {alloc61: &sync::once::Once}"
+
+[[fn]]
+path = "std::rt::init"
+kappa = "5a6720a44dfca6b0ef47759d821853332dad29fd1c9fd1625fbf304b0e1478b0"
+status = "residue"
+cause = "mir::Ty: thread::id::ThreadId"
+
+[[fn]]
+path = "std::thread_cleanup"
+kappa = "a9cb12fe81ab98083039610f0c4d0eb5e1cc20295f9d41202a02fd56e6a29000"
+status = "residue"
+cause = "mir::AggregateKind::Closure: thread_cleanup::{closure#0}: type outside the lift: {closure@library/std/src/rt.rs:130:25: 130:27}"
+
