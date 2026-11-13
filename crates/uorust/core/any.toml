@@ -1,26 +1,20 @@
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:141:1: 141:36>::type_id"
-kappa = "5cad1cfa06d412ee172ed491acfa717e487f76df876a9a2db13f8f17bc677d6c"
-status = "residue"
-cause = "mir::Ty: any::TypeId"
-
-[[fn]]
 path = "core::any::<impl at library/core/src/any.rs:152:1: 152:28>::fmt"
 kappa = "83ab3589e67c672ee3620701bacfa290526cdd8f06d5486abbda30d73927e468"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn Any"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:162:1: 162:35>::fmt"
 kappa = "b90eb59d99fa2672924bc6ef26ade4c70f9508a4555012388bfedee4304d947a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn Any + marker::Send"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:169:1: 169:42>::fmt"
 kappa = "485fbaec5d50f28121824ecc2418329cb582c097e6d62354d7857f5aef407786"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: dyn Any + marker::Send + marker::Sync"
 
 [[fn]]
 path = "core::any::<impl at library/core/src/any.rs:175:1: 175:13>::downcast_mut"
@@ -149,60 +143,67 @@ status = "residue"
 cause = "mir::Ty: TypeId"
 
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:742:1: 742:32>::eq"
-kappa = "c469da4420eb0f8e89de13889f518a1f4241f590cb5fb128b86a6f19e74d830b"
+path = "core::any::T::type_id"
+kappa = "5cad1cfa06d412ee172ed491acfa717e487f76df876a9a2db13f8f17bc677d6c"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: TypeId"
+cause = "mir::Ty: any::TypeId"
 
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:742:1: 742:32>::eq::compiletime"
-kappa = "fee719fb5cd31ac78c672a3b0ed1281ad821950b6cb3bd2158bd5bba90eecb99"
-status = "residue"
-cause = "mir::Ty: TypeId"
-
-[[fn]]
-path = "core::any::<impl at library/core/src/any.rs:742:1: 742:32>::eq::runtime"
-kappa = "4ff9106256532ae43d2b470ecc740b4c606f090848ade0b4282dc4e03dfb9ce6"
-status = "residue"
-cause = "mir::Ty: TypeId"
-
-[[fn]]
-path = "core::any::<impl at library/core/src/any.rs:772:1: 772:12>::as_u128"
+path = "core::any::TypeId::as_u128"
 kappa = "c4101b66d51df96e618db517b306a11c0dcdc1211805dcd958a33dd044e4dd85"
 status = "residue"
 cause = "mir::Ty: TypeId"
 
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:772:1: 772:12>::of"
-kappa = "493a852d4653eb331d764b5e229aadb73ec4de3257d720279c51d0a0eb2a258a"
+path = "core::any::TypeId::eq"
+kappa = "c469da4420eb0f8e89de13889f518a1f4241f590cb5fb128b86a6f19e74d830b"
 status = "residue"
-cause = "mir::Ty: any::TypeId"
+cause = "mir::Ty: TypeId"
 
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:772:1: 772:12>::trait_info_of"
-kappa = "565e31c90fb28b047871502ea9b7c3321bc04b4962f8868efb3ed469a2dd380c"
-at = "T=u32"
+path = "core::any::TypeId::eq::compiletime"
+kappa = "fee719fb5cd31ac78c672a3b0ed1281ad821950b6cb3bd2158bd5bba90eecb99"
 status = "residue"
-cause = "mir::Ty: mem::type_info::TraitImpl<u32>"
+cause = "mir::Ty: TypeId"
 
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:772:1: 772:12>::trait_info_of_trait_type_id"
-kappa = "cc330d6d05039b6d7ea593f818f5dc8d651ab9d541c26715a801d51250759ffc"
+path = "core::any::TypeId::eq::runtime"
+kappa = "4ff9106256532ae43d2b470ecc740b4c606f090848ade0b4282dc4e03dfb9ce6"
 status = "residue"
-cause = "mir::Ty: mem::type_info::TraitImpl<*const ()>"
+cause = "mir::Ty: TypeId"
 
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:869:1: 869:27>::hash"
+path = "core::any::TypeId::fmt"
+kappa = "dd02c8f5acdb6bf8ee1bd82fd2b535bac91af020a28f003488503160deffb235"
+status = "residue"
+cause = "mir::Ty: TypeId"
+
+[[fn]]
+path = "core::any::TypeId::hash"
 kappa = "0aa71816e11afa624c87638d1035e3dbba4eed2f63cc72e8e1876fb6fc72bcea"
 at = "H=u32"
 status = "residue"
 cause = "mir::Ty: TypeId"
 
 [[fn]]
-path = "core::any::<impl at library/core/src/any.rs:894:1: 894:27>::fmt"
-kappa = "dd02c8f5acdb6bf8ee1bd82fd2b535bac91af020a28f003488503160deffb235"
+path = "core::any::TypeId::of"
+kappa = "493a852d4653eb331d764b5e229aadb73ec4de3257d720279c51d0a0eb2a258a"
 status = "residue"
-cause = "mir::Ty: fmt::Error"
+cause = "mir::Ty: any::TypeId"
+
+[[fn]]
+path = "core::any::TypeId::trait_info_of"
+kappa = "565e31c90fb28b047871502ea9b7c3321bc04b4962f8868efb3ed469a2dd380c"
+at = "T=u32"
+status = "residue"
+cause = "mir::Ty: mem::type_info::TraitImpl<u32>"
+
+[[fn]]
+path = "core::any::TypeId::trait_info_of_trait_type_id"
+kappa = "cc330d6d05039b6d7ea593f818f5dc8d651ab9d541c26715a801d51250759ffc"
+status = "residue"
+cause = "mir::Ty: mem::type_info::TraitImpl<*const ()>"
 
 [[fn]]
 path = "core::any::type_name"
@@ -227,6 +228,7 @@ cause = "mir::Operand::Constant: any::try_as_dyn_mut::<u32, u32>::{constant#0}"
 [[fn]]
 path = "core::type_name_of_val"
 kappa = "42e721f24ecdf20324143b004797f98a76ca22675f9d1c6e3be8477c21146c90"
+at = "T=u32"
 status = "residue"
-cause = "mir::Ty: T"
+cause = "mir::TerminatorKind::Call: any::type_name: core's MIR stops at mir::Operand::Constant: any::type_name::<u32>::{constant#0}"
 
