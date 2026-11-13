@@ -3,7 +3,7 @@
 # TRANSLATOR_REV names the holo the app/ model builds: its first line is the
 # commit it was built from, its second the archive fingerprint `prismpm
 # verify` records (blake3:...). When the model or the SDK changes on main, or
-# on demand, this builds and verifies the holo through the locked SDK exactly
+# after each generate run, daily, or on demand, this builds and verifies the holo through the locked SDK exactly
 # as the gate does (`just app`: the acceptance vectors replayed in the
 # compiled guest, then every theorem checked by the Lean kernel and
 # leanchecker), reads the fingerprint, and commits the new pin itself when it
@@ -19,14 +19,25 @@ on:
       - 'app/**'
       - 'prismpm.lock'
       - '.github/workflows/translator-pin.yml'
+  # generate commits app/ with the workflow token, whose pushes start no
+  # workflow: each of its runs is followed by a pin of main as it then is.
+  workflow_run:
+    workflows: [generate]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: '29 6 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Never cancelled, and the pin is rebased onto main as it moved: with lanes
+# pushing all day, a cancelled run or a push refused because main moved meant
+# the pin never landed.
 concurrency:
   group: translator-pin
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   pin:
@@ -37,11 +48,12 @@ jobs:
       contents: write
       actions: write
     steps:
-      - name: Check out the exact event revision
+      - name: Check out main as it is now
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: main
       - name: Build and verify the holo through the locked SDK
         shell: bash
         run: scripts/ci/sdk.sh 'just app'
@@ -66,4 +78,5 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          REBASE: '1'
         run: scripts/ci/push.sh "Pin the translator holo app/ builds" "TRANSLATOR_REV"
