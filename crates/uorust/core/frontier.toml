@@ -7,8 +7,8 @@
 toolchain = "1.97.1"
 instantiation = "u32"
 bodies = 15725
-translated = 9141
-residue = 6584
+translated = 9142
+residue = 6583
 
 [module.alloc]
 bodies = 61
@@ -22,8 +22,8 @@ residue = 36
 
 [module.arch]
 bodies = 1
-translated = 0
-residue = 1
+translated = 1
+residue = 0
 
 [module.array]
 bodies = 154
@@ -773,10 +773,6 @@ cause = "mir::Ty: char::EscapeUnicode"
 bodies = 14
 
 [[cause]]
-cause = "mir::Ty: impl RandomSource + ?u32"
-bodies = 14
-
-[[cause]]
 cause = "mir::Operand::Constant: the constant item time::NANOS_PER_SEC"
 bodies = 13
 
@@ -818,6 +814,10 @@ bodies = 13
 
 [[cause]]
 cause = "mir::Ty: Flatten<u32>"
+bodies = 13
+
+[[cause]]
+cause = "mir::Ty: RangeFull"
 bodies = 13
 
 [[cause]]
@@ -889,7 +889,7 @@ cause = "mir::Ty: Self"
 bodies = 12
 
 [[cause]]
-cause = "mir::Ty: TypeId"
+cause = "mir::Ty: T"
 bodies = 12
 
 [[cause]]
@@ -929,7 +929,7 @@ cause = "mir::Ty: RChunksExactMut<'_"
 bodies = 11
 
 [[cause]]
-cause = "mir::Ty: T"
+cause = "mir::Ty: TypeId"
 bodies = 11
 
 [[cause]]
@@ -1317,18 +1317,6 @@ cause = "mir::Ty: cell::RefMut<'_"
 bodies = 6
 
 [[cause]]
-cause = "mir::Ty: dyn Any"
-bodies = 6
-
-[[cause]]
-cause = "mir::Ty: dyn Any + marker::Send"
-bodies = 6
-
-[[cause]]
-cause = "mir::Ty: dyn Any + marker::Send + marker::Sync"
-bodies = 6
-
-[[cause]]
 cause = "mir::Ty: impl FnOnce"
 bodies = 6
 
@@ -1489,6 +1477,18 @@ cause = "mir::Ty: c_str::Bytes<'_>"
 bodies = 5
 
 [[cause]]
+cause = "mir::Ty: dyn Any"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: dyn Any + marker::Send"
+bodies = 5
+
+[[cause]]
+cause = "mir::Ty: dyn Any + marker::Send + marker::Sync"
+bodies = 5
+
+[[cause]]
 cause = "mir::Ty: escape::EscapeIterInner<#usize_N"
 bodies = 5
 
@@ -1586,10 +1586,6 @@ bodies = 4
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: <usize as fmt::LowerHex>::fmt"
-bodies = 4
-
-[[cause]]
-cause = "mir::TerminatorKind::Call: any::type_name: core's MIR stops at mir::Operand::Constant: any::type_name::{constant#0}"
 bodies = 4
 
 [[cause]]
@@ -1705,6 +1701,10 @@ cause = "mir::Ty: cell::RefCell<u32>"
 bodies = 4
 
 [[cause]]
+cause = "mir::Ty: fmt::Error"
+bodies = 4
+
+[[cause]]
 cause = "mir::Ty: impl [const] FnOnce"
 bodies = 4
 
@@ -1774,6 +1774,10 @@ bodies = 3
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: any::type_name"
+bodies = 3
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: any::type_name: core's MIR stops at mir::Operand::Constant: any::type_name::{constant#0}"
 bodies = 3
 
 [[cause]]
@@ -4829,10 +4833,6 @@ cause = "mir::TerminatorKind::Call: intrinsics::atomic_xsub"
 bodies = 1
 
 [[cause]]
-cause = "mir::TerminatorKind::Call: intrinsics::breakpoint"
-bodies = 1
-
-[[cause]]
 cause = "mir::TerminatorKind::Call: intrinsics::compare_bytes"
 bodies = 1
 
@@ -6746,6 +6746,10 @@ bodies = 1
 
 [[cause]]
 cause = "mir::Ty: impl OneSidedRange<usize>"
+bodies = 1
+
+[[cause]]
+cause = "mir::Ty: impl RandomSource + ?u32"
 bodies = 1
 
 [[cause]]
