@@ -5286,6 +5286,53 @@ impl Fun<'_, '_> {
             let first = *niches.first()?;
             niches.iter().all(|x| *x == first).then_some(first)
         };
+        // A unit enum whose source sets its discriminants, and an integer:
+        // each variant is its discriminant (`Alignment`'s
+        // `AlignmentEnum`, `ascii::Char`). The declaration is the one whose
+        // variants the lift's enum holds, of the declarations `cfg` picks
+        // between; an integer no variant has is no value of the enum, and
+        // takes the last.
+        let discriminants = |t: &Ty| -> Option<(String, Vec<(String, i128)>)> {
+            let Ty::Named(n) = t else { return None };
+            let variants = types.enums.get(n)?;
+            let decl = self.cx.core?.decls.structs.iter().find(|s| {
+                let mut parts = vec!["core"];
+                parts.extend(s.path.split("::"));
+                s.explicit
+                    && s.variants.as_ref() == Some(variants)
+                    && crate::lex::pascal(&parts) == *n
+            })?;
+            let values = decl.values.as_ref()?;
+            Some((
+                n.clone(),
+                variants
+                    .iter()
+                    .cloned()
+                    .zip(values.iter().copied())
+                    .collect(),
+            ))
+        };
+        if let (Some((n, table)), Some(int)) = (discriminants(&fs), Int::of(&ts, self.cx.widths)) {
+            let held = unwrap(v, &fc);
+            let mut arms = Vec::new();
+            for (variant, value) in &table {
+                arms.push(format!(
+                    "| {n}.{variant} => {}",
+                    super::int::literal(*value, int)?
+                ));
+            }
+            return Some(wrap(&format!("(match {held} {})", arms.join(" ")), &tc));
+        }
+        if let (Some(int), Some((n, table))) = (Int::of(&fs, self.cx.widths), discriminants(&ts)) {
+            let held = unwrap(v, &fc);
+            let ((last, _), rest) = table.split_last()?;
+            let mut out = format!("{n}.{last}");
+            for (variant, value) in rest.iter().rev() {
+                let lit = super::int::literal(*value, int)?;
+                out = format!("(if ({held} =? {lit}) then {n}.{variant} else {out})");
+            }
+            return Some(wrap(&out, &tc));
+        }
         match (from, to) {
             // `&str` read as `&[u8]`: a `str` is laid out as its UTF-8
             // encoding, which the prelude's `textBytes` gives byte by byte.

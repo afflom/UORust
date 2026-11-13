@@ -444,7 +444,7 @@ pub(crate) struct CoreStruct {
     fields: Vec<(Option<String>, String)>,
     /// For an enum whose variants hold no data, its variants; such an enum
     /// has no fields.
-    variants: Option<Vec<String>>,
+    pub(crate) variants: Option<Vec<String>>,
     /// For an enum whose variants hold data, each variant and its fields.
     data: Option<Vec<(String, Vec<(Option<String>, String)>)>>,
     /// Whether such an enum's variants set their own discriminants.
