@@ -388,7 +388,8 @@ structure{
     {name: destination, type: Place},
     {name: target, type: (Option Nat)},
     {name: pinned, type: Bool},
-    {name: generics, type: (List Generic)}
+    {name: generics, type: (List Generic)},
+    {name: exposed, type: (List Value)}
   ]
 }
 
@@ -949,8 +950,8 @@ definition{
   parameters: [kind : CastKind, a : Value, target : Ty],
   result: Evaluated,
   body: (match kind
-    | CastKind.pointerExposeProvenance => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::PointerExposeProvenance"))
-    | CastKind.pointerWithExposedProvenance => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::PointerWithExposedProvenance"))
+    | CastKind.pointerExposeProvenance => (ctor Evaluated.stop (ctor Outcome.ub "an exposed-provenance cast outside an assignment"))
+    | CastKind.pointerWithExposedProvenance => (ctor Evaluated.stop (ctor Outcome.ub "an exposed-provenance cast outside an assignment"))
     | CastKind.pointerCoercion => (ctor Evaluated.found a)
     | CastKind.intToInt => (evalConvert a target)
     | CastKind.floatToInt => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::FloatToInt"))
@@ -1121,7 +1122,7 @@ definition{
   name: withLocal,
   parameters: [frame : Frame, base : Nat, value : Value],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (setValue (project frame locals) base value), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics)})
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (setValue (project frame locals) base value), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics), exposed := (project frame exposed)})
 }
 
 definition{
@@ -1586,21 +1587,21 @@ definition{
   name: enterFrame,
   parameters: [callee : Body, args : (List Value), destination : Place, target : (Option Nat), pinned : Bool, generics : (List Generic)],
   result: Frame,
-  body: (record Frame {body := callee, block := (project callee entry), statement := 0, locals := (cons (ctor Value.uninit) (appendValues args (uninits (prim subtract (countTys (project callee locals)) ((countValues args) + 1) : Nat)))), destination := destination, target := target, pinned := pinned, generics := generics})
+  body: (record Frame {body := callee, block := (project callee entry), statement := 0, locals := (cons (ctor Value.uninit) (appendValues args (uninits (prim subtract (countTys (project callee locals)) ((countValues args) + 1) : Nat)))), destination := destination, target := target, pinned := pinned, generics := generics, exposed := (nil Value)})
 }
 
 definition{
   name: moveTo,
   parameters: [frame : Frame, block : Nat],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := block, statement := 0, locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics)})
+  body: (record Frame {body := (project frame body), block := block, statement := 0, locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics), exposed := (project frame exposed)})
 }
 
 definition{
   name: advanceFrame,
   parameters: [frame : Frame],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := (project frame block), statement := ((project frame statement) + 1), locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics)})
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := ((project frame statement) + 1), locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics), exposed := (project frame exposed)})
 }
 
 definition{
@@ -1611,18 +1612,185 @@ definition{
 }
 
 definition{
+  name: sameSteps,
+  parameters: [a : (List Nat), b : (List Nat)],
+  result: Bool,
+  body: (match a
+    | List.nil => (match b | List.nil => true | List.cons y ys => false)
+    | List.cons x xs => (match b | List.nil => false | List.cons y ys => ((x =? y) && (sameSteps xs ys)))),
+  recursive_argument: a
+}
+
+definition{
+  name: samePointer,
+  parameters: [value : Value, frame : Nat, base : Nat, steps : (List Nat)],
+  result: Bool,
+  body: (match value
+    | Value.int p q r => false
+    | Value.boolean p => false
+    | Value.character p => false
+    | Value.unit => false
+    | Value.tuple p => false
+    | Value.adt p q r => false
+    | Value.pointer f b s => ((f =? frame) && ((b =? base) && (sameSteps s steps)))
+    | Value.reference p => false
+    | Value.function p => false
+    | Value.text p => false
+    | Value.uninit => false)
+}
+
+definition{
+  name: exposedIndex,
+  parameters: [exposed : (List Value), frame : Nat, base : Nat, steps : (List Nat)],
+  result: (Option Nat),
+  body: (match exposed
+    | List.nil => (ctor Option.none [Nat])
+    | List.cons head rest => (if (samePointer head frame base steps) then (ctor Option.some [Nat] 0) else (match (exposedIndex rest frame base steps)
+      | Option.none => (ctor Option.none [Nat])
+      | Option.some i => (ctor Option.some [Nat] (i + 1))))),
+  recursive_argument: exposed
+}
+
+definition{
+  name: rootExposed,
+  parameters: [frames : (List Frame)],
+  result: (List Value),
+  body: (match frames
+    | List.nil => (nil Value)
+    | List.cons head rest => (match rest
+      | List.nil => (project head exposed)
+      | List.cons below others => (rootExposed rest))),
+  recursive_argument: frames
+}
+
+definition{
+  name: withExposed,
+  parameters: [frame : Frame, exposed : (List Value)],
+  result: Frame,
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics), exposed := exposed})
+}
+
+definition{
+  name: exposeAtRoot,
+  parameters: [frames : (List Frame), pointer : Value],
+  result: (List Frame),
+  body: (match frames
+    | List.nil => (nil Frame)
+    | List.cons head rest => (match rest
+      | List.nil => (cons (withExposed head (appendValues (project head exposed) (cons pointer (nil Value)))) (nil Frame))
+      | List.cons below others => (cons head (exposeAtRoot rest pointer)))),
+  recursive_argument: frames
+}
+
+definition{
+  name: assignValue,
+  parameters: [frames : (List Frame), target : Place, result : Value],
+  result: Outcome,
+  body: (match (placeOf frames target)
+    | Located.stop outcome => outcome
+    | Located.found loc => (match (writeAt frames loc result)
+      | Option.none => (ctor Outcome.ub "a write to a place that holds no value")
+      | Option.some written => (match written
+        | List.nil => (ctor Outcome.ub "a write with no frame")
+        | List.cons top rest => (ctor Outcome.running (cons (advanceFrame top) rest)))))
+}
+
+definition{
+  name: assignEvaluated,
+  parameters: [frames : (List Frame), target : Place, evaluated : Evaluated],
+  result: Outcome,
+  body: (match evaluated
+    | Evaluated.stop outcome => outcome
+    | Evaluated.found result => (assignValue frames target result))
+}
+
+definition{
+  name: evalExpose,
+  parameters: [program : Program, frames : (List Frame), target : Place, inner : Operand, ty : Ty],
+  result: Outcome,
+  body: (match (evalOperand program frames inner)
+    | Evaluated.stop outcome => outcome
+    | Evaluated.found a => (match ty
+      | Ty.int bits signed => (match a
+        | Value.int p q address => (assignValue frames target (ctor Value.int bits signed address))
+        | Value.boolean p => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.character p => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.unit => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.tuple p => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.adt p q r => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.pointer f b s => (match (exposedIndex (rootExposed frames) f b s)
+          | Option.some i => (assignValue frames target (ctor Value.int bits signed (i + 1)))
+          | Option.none => (assignValue (exposeAtRoot frames a) target (ctor Value.int bits signed ((countValues (rootExposed frames)) + 1))))
+        | Value.reference p => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.function p => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.text p => (ctor Outcome.undefined "an exposure of a value the evaluator does not read as a pointer")
+        | Value.uninit => (ctor Outcome.ub "a read of an uninitialized value"))
+      | Ty.boolean => (ctor Outcome.ub "an exposure to a type that is not an integer")
+      | Ty.character => (ctor Outcome.ub "an exposure to a type that is not an integer")
+      | Ty.unit => (ctor Outcome.ub "an exposure to a type that is not an integer")
+      | Ty.float e m => (ctor Outcome.ub "an exposure to a type that is not an integer")
+      | Ty.other printed => (ctor Outcome.ub "an exposure to a type that is not an integer")))
+}
+
+definition{
+  name: evalWithExposed,
+  parameters: [program : Program, frames : (List Frame), target : Place, inner : Operand],
+  result: Outcome,
+  body: (match (evalOperand program frames inner)
+    | Evaluated.stop outcome => outcome
+    | Evaluated.found a => (match a
+      | Value.int p q address => (match (if (address =? 0) then (ctor Option.none [Value]) else (nthValue (rootExposed frames) (prim subtract address 1 : Nat)))
+        | Option.none => (ctor Outcome.undefined "an address no exposed pointer has")
+        | Option.some pointer => (assignValue frames target pointer))
+      | Value.boolean p => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.character p => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.unit => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.tuple p => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.adt p q r => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.pointer p q r => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.reference p => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.function p => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.text p => (ctor Outcome.ub "a pointer from an exposed address that is not an integer")
+      | Value.uninit => (ctor Outcome.ub "a read of an uninitialized value")))
+}
+
+definition{
+  name: evalCastAssign,
+  parameters: [program : Program, frames : (List Frame), target : Place, value : Rvalue, kind : CastKind, inner : Operand, ty : Ty],
+  result: Outcome,
+  body: (match kind
+    | CastKind.pointerExposeProvenance => (evalExpose program frames target inner ty)
+    | CastKind.pointerWithExposedProvenance => (evalWithExposed program frames target inner)
+    | CastKind.pointerCoercion => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.intToInt => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.floatToInt => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.floatToFloat => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.intToFloat => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.ptrToPtr => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.fnPtrToPtr => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.transmute => (assignEvaluated frames target (evalRvalue program frames value))
+    | CastKind.subtype => (assignEvaluated frames target (evalRvalue program frames value)))
+}
+
+definition{
   name: evalAssign,
   parameters: [program : Program, frames : (List Frame), target : Place, value : Rvalue],
   result: Outcome,
-  body: (match (evalRvalue program frames value)
-    | Evaluated.stop outcome => outcome
-    | Evaluated.found result => (match (placeOf frames target)
-      | Located.stop outcome => outcome
-      | Located.found loc => (match (writeAt frames loc result)
-        | Option.none => (ctor Outcome.ub "a write to a place that holds no value")
-        | Option.some written => (match written
-          | List.nil => (ctor Outcome.ub "a write with no frame")
-          | List.cons top rest => (ctor Outcome.running (cons (advanceFrame top) rest))))))
+  body: (match value
+    | Rvalue.cast kind inner ty => (evalCastAssign program frames target value kind inner ty)
+    | Rvalue.value a => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.borrow a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.copyForDeref a => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.binary a b c => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.unary a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.discriminant a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.aggregate a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.rawPtr a => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.repeat a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.floatBinary a b c d f => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.floatNeg a b c => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.numeric a b c => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.other a b => (assignEvaluated frames target (evalRvalue program frames value)))
 }
 
 definition{
