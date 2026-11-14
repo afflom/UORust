@@ -3240,7 +3240,7 @@ pub(crate) fn embed_project(
          [limits]\nmax_file_bytes = {budget}\nmax_total_source_bytes = 67108864\n\
          max_primitive_atoms = 2000000\nmax_token_lattice_edges = 4000000\nmax_parse_states = 4000000\n\
          max_ir_nodes = 2000000\nmax_scope_depth = 1024\nmax_import_depth = 128\nmax_diagnostics = 256\n\
-         max_child_output_bytes = 16777216\nchild_timeout_ms = 300000\n",
+         max_child_output_bytes = 16777216\nchild_timeout_ms = {CHILD_TIMEOUT_MS}\n",
         entrypoints
             .iter()
             .map(|e| format!("\"{e}\""))
@@ -3806,10 +3806,27 @@ fn fuel(program: &Program, s: &Sample) -> usize {
     steps * (bits + 1)
 }
 
-/// The most theorems one module of the differential check holds: Lean
-/// decides each by evaluation, and a module is one child process that
-/// `lexlean verify` stops at the project's `child_timeout_ms`.
-const DIFFERENTIAL_THEOREMS: usize = 500;
+/// How long `lexlean verify` lets one child process, one module, run
+/// (the project's `child_timeout_ms`).
+const CHILD_TIMEOUT_MS: usize = 300_000;
+
+/// A measurement of how much the differential check's evaluation costs:
+/// `MEASURED_FUEL` units of [`fuel`], over a module's theorems, verified
+/// in one child within `MEASURED_MS` (core::num's `DifferentialPart3` of
+/// 495 theorems, the largest of its parts to verify within the timeout,
+/// on the locked SDK's Lean v4.32.1; its parts of 1,124,627 fuel and more
+/// did not).
+const MEASURED_FUEL: usize = 664_506;
+const MEASURED_MS: usize = 300_000;
+
+/// The fuel one module of the differential check holds at most: Lean
+/// decides each theorem by evaluation, at a cost the theorem's fuel
+/// bounds, and a module is one child process that `lexlean verify` stops
+/// at [`CHILD_TIMEOUT_MS`]; so a module's budget is what that timeout
+/// verifies at the measured cost per unit of fuel.
+fn differential_budget() -> usize {
+    CHILD_TIMEOUT_MS.saturating_mul(MEASURED_FUEL) / MEASURED_MS
+}
 
 /// The modules `DifferentialPart{k}`, each with the bodies its theorems
 /// run, by path, and their index, from the harness's output.
@@ -3891,16 +3908,19 @@ fn differential(
         if theorems.is_empty() {
             continue;
         }
+        // A sample's theorems stay in one module, which a sample whose
+        // fuel is past the budget has to itself.
+        let cost = theorems.len().saturating_mul(fuel(program, s));
         if parts
             .last()
-            .is_some_and(|(_, _, n)| *n > 0 && n + theorems.len() > DIFFERENTIAL_THEOREMS)
+            .is_some_and(|(_, _, n)| *n > 0 && n.saturating_add(cost) > differential_budget())
         {
             parts.push(Default::default());
         }
-        let Some((decls, defined, count)) = parts.last_mut() else {
+        let Some((decls, defined, spent)) = parts.last_mut() else {
             continue;
         };
-        *count += theorems.len();
+        *spent = spent.saturating_add(cost);
         let mut bodies = Vec::new();
         for k in &s.closure {
             let Some((kappa, e)) = program.every.get(k) else {
