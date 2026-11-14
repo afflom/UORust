@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/*", "xtask"]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 # Raise this when something here needs a newer compiler; nothing does yet.
 rust-version = "1.89"
@@ -16,13 +16,13 @@ keywords = []
 categories = []
 
 [workspace.dependencies]
-repo-model = { version = "0.1.1", path = "crates/model" }
+repo-model = { version = "0.2.0", path = "crates/model" }
 # A `path` dependency with no `version` is a wildcard requirement, and
 # `cargo deny` refuses those (`wildcards = "deny"`). Every internal dependency
 # carries both.
-repo-conformance = { version = "0.1.1", path = "crates/conformance" }
-uorust = { version = "0.1.1", path = "crates/uorust" }
-uorust-certified = { version = "0.1.1", path = "crates/certified" }
+repo-conformance = { version = "0.2.0", path = "crates/conformance" }
+uorust = { version = "0.2.0", path = "crates/uorust" }
+uorust-certified = { version = "0.2.0", path = "crates/certified" }
 
 [workspace.lints.rust]
 missing_docs = "deny"

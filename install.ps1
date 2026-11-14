@@ -5,7 +5,7 @@
 # Downloads uorust-<target>.zip, checks its SHA-256 against the release's
 # SHA256SUMS, and installs uorust.exe. Settings, all optional:
 #
-#   $env:UORUST_VERSION      the release to install, e.g. 0.1.1 (default: the latest)
+#   $env:UORUST_VERSION      the release to install, e.g. 0.2.0 (default: the latest)
 #   $env:UORUST_INSTALL_DIR  where uorust.exe goes (default: %LOCALAPPDATA%\Programs\uorust\bin),
 #                            added to the user PATH when it is not on it
 #   $env:UORUST_REPOSITORY   the GitHub repository (default: afflom/UORust)
