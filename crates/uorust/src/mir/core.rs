@@ -41,6 +41,10 @@ pub struct CoreRow {
     /// The constructs its embedding uses that the evaluator does not
     /// define.
     pub blocked: Vec<String>,
+    /// The translation's LexLean, its declarations rendered, whose digest
+    /// `digest` is: what the bridge (`crate::bridge`) states the
+    /// evaluator refines. Never written to the register.
+    pub shallow: Option<crate::bridge::Shallow>,
 }
 
 /// Whose bodies a census translates: core, std, or a crate of crates.io.
@@ -514,7 +518,7 @@ pub(crate) fn shard(
             }),
             None => lowered(&body),
         };
-        let (digest, cause) = match outcome {
+        let (digest, cause, shallow) = match outcome {
             Ok(lowered) => {
                 let text: String = lowered
                     .aux
@@ -522,9 +526,10 @@ pub(crate) fn shard(
                     .chain(&lowered.decls)
                     .map(crate::lex::render_decl)
                     .collect();
-                (Some(crate::project::sha(text.as_bytes())), None)
+                let shallow = crate::bridge::Shallow::of(&name, &lowered, &types);
+                (Some(crate::project::sha(text.as_bytes())), None, shallow)
             }
-            Err(cause) => (None, Some(cause)),
+            Err(cause) => (None, Some(cause), None),
         };
         rows.push(CoreRow {
             path,
@@ -536,6 +541,7 @@ pub(crate) fn shard(
             // the row by its κ: the evaluator's census is the authority.
             embedded: None,
             blocked: Vec::new(),
+            shallow,
         });
     }
     rows.sort_by(|a, b| a.path.cmp(&b.path));
@@ -2221,6 +2227,8 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
     // reaches) record it, so each κ counts once, blocked by the union of
     // the constructs its rows name.
     let mut census: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    // The bridge's, by κ: proved, or pending at the shape that stopped it.
+    let mut bridge: BTreeMap<String, Option<String>> = BTreeMap::new();
     for file in files {
         let text = crate::embed::read_text(&file)?;
         let doc: toml::Table = text
@@ -2245,6 +2253,17 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
                 {
                     blocked.insert(b.to_string());
                 }
+            }
+            match field("bridged") {
+                "proved" => {
+                    bridge.insert(field("kappa").to_string(), None);
+                }
+                "pending" => {
+                    bridge
+                        .entry(field("kappa").to_string())
+                        .or_insert_with(|| Some(field("pending").to_string()));
+                }
+                _ => {}
             }
             if field("status") == "translated" {
                 translated += 1;
@@ -2296,6 +2315,29 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
                 summary,
                 "[[construct]]\nconstruct = {}\nbodies = {count}\n",
                 toml_quote(construct)
+            );
+        }
+    }
+    // The bridge's count and its queue: the shapes that stop a translated
+    // body's theorem, by the bodies each stops.
+    if !bridge.is_empty() {
+        let bridged = bridge.values().filter(|p| p.is_none()).count();
+        let _ = writeln!(
+            summary,
+            "[bridge]\nbridged = {bridged}\npending = {}\n",
+            bridge.len() - bridged
+        );
+        let mut shapes: BTreeMap<&str, usize> = BTreeMap::new();
+        for p in bridge.values().flatten() {
+            *shapes.entry(p.as_str()).or_default() += 1;
+        }
+        let mut queue: Vec<(&str, usize)> = shapes.into_iter().collect();
+        queue.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(b.0)));
+        for (shape, count) in queue {
+            let _ = writeln!(
+                summary,
+                "[[pending]]\nshape = {}\nbodies = {count}\n",
+                toml_quote(shape)
             );
         }
     }

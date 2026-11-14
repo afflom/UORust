@@ -600,12 +600,12 @@ fn read_undefined() -> BTreeSet<String> {
 }
 
 /// A LexLean name of the datatype, qualified by the semantics module.
-fn mir_name(name: &str) -> String {
+pub(crate) fn mir_name(name: &str) -> String {
     format!("{MIR}::{name}")
 }
 
 /// `(ctor Mir::T.c a b)`.
-fn mir_ctor(name: &str, args: &[String]) -> String {
+pub(crate) fn mir_ctor(name: &str, args: &[String]) -> String {
     if args.is_empty() {
         format!("(ctor {})", mir_name(name))
     } else {
@@ -852,7 +852,7 @@ fn halves(items: &[String], ty: &str, run: usize) -> String {
 
 /// The width and signedness of an integer type as MIR prints it: `u8`,
 /// `i128`, `usize` (the target's pointer width).
-fn int_ty(printed: &str, width: u32) -> Option<(u32, bool)> {
+pub(crate) fn int_ty(printed: &str, width: u32) -> Option<(u32, bool)> {
     match printed {
         "usize" => return Some((width, false)),
         "isize" => return Some((width, true)),
@@ -894,7 +894,7 @@ fn signed(n: i128) -> String {
 /// A LexLean string literal of `text`, every character kept: a quote and a
 /// backslash escaped, and a control character and `%` (which LexLean's TeX
 /// surface reserves) written as their `\\u` escape.
-fn mir_string(text: &str) -> String {
+pub(crate) fn mir_string(text: &str) -> String {
     let mut out = String::with_capacity(text.len() + 2);
     out.push('"');
     for c in text.chars() {
@@ -3144,6 +3144,7 @@ pub fn embed(
         harness,
         observed,
         register,
+        bridge,
     } = *outputs;
     let root = library.parent().unwrap_or(library);
     let (modules, census, program) = embed_census(krate, root, dumps, only)?;
@@ -3172,6 +3173,9 @@ pub fn embed(
         files.insert("differential.toml".into(), checks.into_bytes());
     }
     replace_dir(out, Some(&files))?;
+    if let Some((shallow, dir)) = bridge {
+        crate::bridge::project(krate, &modules, &program, shallow, dir)?;
+    }
     // A module none of whose bodies is sampled has no harness.
     if let Some(dir) = harness {
         let crate_files = (!program.samples.is_empty()).then(|| harness_crate(&program));
@@ -3191,6 +3195,9 @@ pub struct Outputs<'a> {
     pub observed: Option<&'a Path>,
     /// The register's module files to stamp.
     pub register: Option<&'a Path>,
+    /// The shallow translations `uorust core --lexlean` wrote, and the
+    /// directory the bridge's project is written to (`crate::bridge`).
+    pub bridge: Option<(&'a Path, &'a Path)>,
 }
 
 /// A register's module file with each row's embedding stamped on it by
@@ -3261,7 +3268,10 @@ pub(crate) fn dir_paths(dir: &Path) -> Result<Vec<std::path::PathBuf>, UorustErr
 }
 
 /// Remove `dir` and, given `files`, write them there in its place.
-fn replace_dir(dir: &Path, files: Option<&BTreeMap<String, Vec<u8>>>) -> Result<(), UorustError> {
+pub(crate) fn replace_dir(
+    dir: &Path,
+    files: Option<&BTreeMap<String, Vec<u8>>>,
+) -> Result<(), UorustError> {
     let io = crate::error::io;
     if dir.exists() {
         std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
@@ -3536,12 +3546,16 @@ fn stable_and_safe(entries: &[std::path::PathBuf], name: &str) -> bool {
 
 /// Every body the program embeds, by key, with its κ, and the samples.
 pub(crate) struct Program {
-    every: BTreeMap<String, (String, Embedded)>,
+    pub(crate) every: BTreeMap<String, (String, Embedded)>,
     samples: Vec<Sample>,
     /// The target's pointer width, `usize`'s.
-    width: u32,
+    pub(crate) width: u32,
     /// Whether the target is big-endian.
-    big_endian: bool,
+    pub(crate) big_endian: bool,
+    /// Each selected row's key in the program and its locals' types as
+    /// MIR prints them, the return place's first, by κ: what the bridge
+    /// (`crate::bridge`) reads a body's signature from.
+    pub(crate) signatures: BTreeMap<String, (String, Vec<String>)>,
     /// The types of the instances the calls reach whose layouts are not
     /// read: the layouts the dump step asks rustc for.
     unread: BTreeSet<String>,
@@ -4213,6 +4227,7 @@ fn embed_census(
     let mut modules = Vec::new();
     let mut every: BTreeMap<String, (String, Embedded)> = BTreeMap::new();
     let mut samples = Vec::new();
+    let mut signatures = BTreeMap::new();
     let src = library_root(root).join(krate).join("src");
     let statics = statics(&link);
     let static_allocs: BTreeMap<String, String> = read
@@ -4301,6 +4316,13 @@ fn embed_census(
                 let e = cx.body(&b, &key);
                 if selected && has_row(&b.path) && !is_static {
                     census.add(&e);
+                    signatures.insert(
+                        kappa.clone(),
+                        (
+                            key.clone(),
+                            b.locals.iter().take(b.arity + 1).cloned().collect(),
+                        ),
+                    );
                     if let Some(sample) = sample(root, &src, &b, &key, &kappa, width, &floats) {
                         samples.push(sample);
                     }
@@ -4394,6 +4416,7 @@ fn embed_census(
         width,
         big_endian: big_endian.unwrap_or_default(),
         unread,
+        signatures,
     };
     Ok((modules, census, program))
 }
@@ -4653,6 +4676,7 @@ mod tests {
             width: usize::BITS,
             big_endian: false,
             unread: BTreeSet::new(),
+            signatures: BTreeMap::new(),
         };
         let file = Path::new("observed.txt");
         assert!(matches!(

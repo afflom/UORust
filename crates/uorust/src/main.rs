@@ -63,6 +63,10 @@ enum Command {
     /// when a body it records as translated is residue in one, and rewrite
     /// its summary.
     Merge(MergeArgs),
+    /// Verify the bridge's project, setting each theorem Lean refutes
+    /// aside as pending until the rest verify, and stamp each translated
+    /// row of the register's module files `bridged` or `pending`.
+    Bridge(BridgeArgs),
     /// Print the route table.
     Routes,
     /// The certified translator: export the lifted translator through
@@ -178,6 +182,11 @@ struct CoreArgs {
     /// whole census's.
     #[arg(long)]
     only: Vec<String>,
+    /// Write each module's shallow translations here, `{module}.toml`,
+    /// each translated row's κ with its rendered LexLean: what `uorust
+    /// embed --shallow` bridges to the evaluator.
+    #[arg(long)]
+    lexlean: Option<PathBuf>,
 }
 
 #[derive(clap::Args)]
@@ -226,6 +235,23 @@ struct EmbedArgs {
     observed: Option<PathBuf>,
     /// A register's module files to stamp each row's embedding on, by κ:
     /// the census the merge sums is the evaluator's own.
+    #[arg(long)]
+    register: Option<PathBuf>,
+    /// The shallow translations `uorust core --lexlean` wrote: with
+    /// `--bridge`, the bridge's theorems that each refines the evaluator.
+    #[arg(long, requires = "bridge")]
+    shallow: Option<PathBuf>,
+    /// The directory the bridge's LexLean project is written to.
+    #[arg(long, requires = "shallow")]
+    bridge: Option<PathBuf>,
+}
+
+#[derive(clap::Args)]
+struct BridgeArgs {
+    /// The bridge's project, as `uorust embed --bridge` wrote it.
+    #[arg(long)]
+    project: PathBuf,
+    /// A register's module files to stamp each translated row's bridge on.
     #[arg(long)]
     register: Option<PathBuf>,
 }
@@ -397,6 +423,7 @@ fn run(cli: Cli) -> Result<(), UorustError> {
                     harness: args.harness.as_deref(),
                     observed: args.observed.as_deref(),
                     register: args.register.as_deref(),
+                    bridge: args.shallow.as_deref().zip(args.bridge.as_deref()),
                 },
             )?;
             println!(
@@ -435,6 +462,16 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             );
             Ok(())
         }
+        Command::Bridge(args) => {
+            let b = uorust::bridge::verify(&args.project, args.register.as_deref())?;
+            println!(
+                "bridge: {} of {} translated bodies bridged, {} pending",
+                b.bridged,
+                b.bridged + b.pending,
+                b.pending
+            );
+            Ok(())
+        }
         Command::Certify(step) => certify(step),
         Command::Routes => {
             for route in uorust::ROUTES {
@@ -463,6 +500,9 @@ fn library(krate: &str, args: &CoreArgs) -> Result<(), UorustError> {
         )));
     }
     uorust::mir::core::write_register(&scope, &args.register, &shards)?;
+    if let Some(dir) = &args.lexlean {
+        uorust::bridge::write_shallow(dir, &shards)?;
+    }
     let (all, done) = shards.iter().fold((0, 0), |(a, d), s| {
         (a + s.rows.len(), d + s.translated_count())
     });

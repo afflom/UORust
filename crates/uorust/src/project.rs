@@ -4507,7 +4507,7 @@ fn family_decls(
 
 /// The declaration of a named type or tuple, after those of the types its
 /// fields name.
-fn type_decls(
+pub(crate) fn type_decls(
     ty: &Ty,
     types: &Types,
     compared: &BTreeSet<String>,

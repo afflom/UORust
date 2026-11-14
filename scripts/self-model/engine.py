@@ -272,7 +272,7 @@ jobs:
           channel=$(sed -n 's/^channel = "\\(.*\\)"/\\1/p' rust-toolchain.toml)
           # The sources the declarations are read from: dump-lib.sh fetches
           # the pinned rust-src (hash-checked) before it lists the modules.
-          scripts/ci/sdk.sh "scripts/mir/dump-lib.sh $CRATE --modules >/dev/null && target/bin/uorust $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --register crates/uorust/$CRATE"
+          scripts/ci/sdk.sh "scripts/mir/dump-lib.sh $CRATE --modules >/dev/null && target/bin/uorust $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --register crates/uorust/$CRATE --lexlean target/shallow"
           mkdir -p target/shard
           cp "crates/uorust/$CRATE/$MODULE.toml" target/shard/
       # The deep embedding (UE-19): every body of the module as a value of
@@ -290,13 +290,24 @@ jobs:
           MODULE: ${{{{ matrix.module }}}}
         run: |
           channel=$(sed -n 's/^channel = "\\(.*\\)"/\\1/p' rust-toolchain.toml)
-          embed="target/bin/uorust embed --crate $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --out target/embed --register target/shard"
+          embed="target/bin/uorust embed --crate $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --out target/embed --register target/shard --shallow target/shallow --bridge target/bridge"
           scripts/ci/sdk.sh "$embed --harness target/harness"
           if [ -d target/harness ]; then
             scripts/ci/sdk.sh "scripts/mir/harness.sh target/harness target/observed.txt && $embed --observed target/observed.txt"
           fi
           scripts/ci/sdk.sh "cd target/embed && lexlean lock && lexlean verify"
           sed -n '/^bodies/,/^$/p' target/embed/census.toml >>"$GITHUB_STEP_SUMMARY"
+      # The bridge (UE-19): for each translated body whose signature it
+      # encodes, the theorem that the evaluator, run on the embedded body,
+      # returns the shallow translation's result for every input. Lean
+      # verifies the project; each theorem it refutes is set aside as
+      # pending, with the shape that stopped it, and the rest verify again.
+      # Each translated row of the module's register file is stamped
+      # `bridged` or `pending`, which the merge counts.
+      - name: Bridge the module's translations to the evaluator through the locked SDK
+        shell: bash
+        run: |
+          scripts/ci/sdk.sh "target/bin/uorust bridge --project target/bridge --register target/shard" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Keep the module's register file
         uses: {USES['actions/upload-artifact']}
         with:

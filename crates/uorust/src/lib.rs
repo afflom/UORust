@@ -14,6 +14,7 @@
 mod admit;
 mod assets;
 mod ast;
+pub mod bridge;
 pub mod certified;
 pub mod certify;
 mod convert;
