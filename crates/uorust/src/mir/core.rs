@@ -258,6 +258,8 @@ pub(crate) fn shard(
             item_type: &|key: &str| crate::embed::item_type(link, key),
             layouts: &Default::default(),
             source_constant: &|_| None,
+            every_cell: &BTreeMap::new(),
+            static_allocs: &BTreeMap::new(),
             slots: Default::default(),
             sites: Default::default(),
             key: Default::default(),

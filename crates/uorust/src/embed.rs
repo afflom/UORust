@@ -121,6 +121,11 @@ pub(crate) struct Cx<'a> {
     /// The body of a constant item no dump holds, from its declaration in
     /// the crate's source, by its path as MIR prints it.
     pub(crate) source_constant: &'a dyn Fn(&str) -> Option<IrBody>,
+    /// Each allocation a dump names as a static's (`alloc7 (static: m::X)`),
+    /// by name: the static's path, where one static the dumps hold ends so.
+    pub(crate) static_allocs: &'a BTreeMap<String, String>,
+    /// Every dump's allocations, by name ([`allocation_cells`]).
+    pub(crate) every_cell: &'a BTreeMap<String, Vec<Cell>>,
     /// The key of the body being embedded, which its calls' tokens hold.
     pub(crate) key: std::cell::RefCell<String>,
 }
@@ -1442,6 +1447,16 @@ impl Cx<'_> {
         if let Some(path) = static_path(text).filter(|p| self.statics.contains(*p)) {
             return Some(path.to_string());
         }
+        // A reference to a static whose bytes no dump prints, `{alloc7:
+        // &T}` of `alloc7 (static: m::X)`: the static.
+        if let Some(path) = text
+            .strip_prefix('{')
+            .and_then(|t| t.split_once(": &"))
+            .filter(|(a, _)| !self.cells.contains_key(*a) && !self.every_cell.contains_key(*a))
+            .and_then(|(a, _)| self.static_allocs.get(a))
+        {
+            return Some(path.clone());
+        }
         let (owner, last) = item_suffix(text)?;
         // A promoted or anonymous constant is a part of the body that
         // reads it, which MIR prints by its own path (an inherent impl's by
@@ -1472,12 +1487,18 @@ impl Cx<'_> {
         // (`const SINGLETONS0U::promoted[0]`), so its body is had by the
         // longest tail of the path that names one.
         let segments = crate::mir::parse::split_path(&named);
-        (1..segments.len().saturating_sub(1)).find_map(|i| {
-            match (self.resolve)(&segments[i..].join("::"), &[], "") {
-                Callee::Body(p) if named.ends_with(&format!("::{p}")) => Some(p),
-                _ => None,
-            }
-        })
+        (1..segments.len().saturating_sub(1))
+            .find_map(
+                |i| match (self.resolve)(&segments[i..].join("::"), &[], "") {
+                    Callee::Body(p) if named.ends_with(&format!("::{p}")) => Some(p),
+                    _ => None,
+                },
+            )
+            .or_else(|| {
+                (!is_part(last))
+                    .then(|| (self.source_constant)(text).map(|_| text.clone()))
+                    .flatten()
+            })
     }
 
     fn place(&self, p: &IrPlace, e: &mut Embedded) -> String {
@@ -1636,7 +1657,12 @@ impl Cx<'_> {
     /// or a reference to a sized value another allocation holds.
     fn read_cells(&self, alloc: &str, offset: usize, ty: &str, depth: usize) -> Option<String> {
         let depth = depth.checked_sub(1)?;
-        let cells = self.cells.get(alloc)?;
+        // An allocation another dump prints (a constant's part reads its
+        // owner's): rustc numbers a crate's allocations once.
+        let cells = self
+            .cells
+            .get(alloc)
+            .or_else(|| self.every_cell.get(alloc))?;
         let ty = ty.trim();
         if let Some((bits, signed)) = int_ty(ty, self.width) {
             let size = usize::try_from(bits / 8).ok()?;
@@ -3592,6 +3618,27 @@ fn embed_census(
     let mut samples = Vec::new();
     let src = library_root(root).join(krate).join("src");
     let statics = statics(&link);
+    let static_allocs: BTreeMap<String, String> = read
+        .iter()
+        .flat_map(|(_, texts)| texts.iter())
+        .flat_map(|(_, t)| t.lines())
+        .filter_map(|l| {
+            let (alloc, rest) = l.split_once(" (static: ")?;
+            let named = rest.split([',', ')']).next()?.trim();
+            let mut found = statics
+                .iter()
+                .filter(|p| *p == named || p.ends_with(&format!("::{named}")));
+            match (found.next(), found.next()) {
+                (Some(p), None) => Some((alloc.trim().to_string(), p.clone())),
+                _ => None,
+            }
+        })
+        .collect();
+    let every_cell: BTreeMap<String, Vec<Cell>> = read
+        .iter()
+        .flat_map(|(_, texts)| texts.iter())
+        .flat_map(|(_, t)| allocation_cells(t, width))
+        .collect();
     let floats = crate::mir::float::formats(&library_root(root));
     let parts = parts(
         krate,
@@ -3623,6 +3670,8 @@ fn embed_census(
                 item_type: &typed,
                 layouts: &layouts,
                 source_constant: &source_constant,
+                every_cell: &every_cell,
+                static_allocs: &static_allocs,
                 slots: Default::default(),
                 sites: Default::default(),
                 key: Default::default(),
@@ -3682,6 +3731,8 @@ fn embed_census(
             item_type: &typed,
             layouts: &layouts,
             source_constant: &source_constant,
+            every_cell: &every_cell,
+            static_allocs: &static_allocs,
             slots: Default::default(),
             sites: Default::default(),
             key: Default::default(),
@@ -3911,6 +3962,8 @@ mod tests {
             item_type: &|_: &str| None,
             layouts: &Default::default(),
             source_constant: &|_| None,
+            every_cell: &BTreeMap::new(),
+            static_allocs: &BTreeMap::new(),
             slots: Default::default(),
             sites: Default::default(),
             key: Default::default(),
