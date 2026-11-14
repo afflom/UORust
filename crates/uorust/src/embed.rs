@@ -648,15 +648,81 @@ impl Cx<'_> {
             }
             _ => {}
         }
-        // A pattern type, `(u32) is 1..`, is laid out as its base type; the
-        // range it is valid in is not checked, so a transmute into it is
-        // defined where the range would make it undefined.
-        if let Some(base) = ty
-            .strip_prefix('(')
-            .and_then(|t| t.split_once(") is "))
-            .map(|(b, _)| b)
+        // A pattern type, `(u32) is 1..`, is laid out as its base type and
+        // valid only in its range, as rustc's layout's `valid_range` makes
+        // it: a value outside it is undefined. The range is the pattern's,
+        // read from the type, on the base's bits (its two's complement for
+        // a signed base), and wraps past the last value where its start is
+        // above its end, as a `valid_range` does: `(i8) is ..=-1 | 1..` is
+        // `1..=255`. An open end is the base type's first or last value.
+        if let Some((base, pattern)) = ty.strip_prefix('(').and_then(|t| t.split_once(") is ")) {
+            let (bits, signed) = int_ty(base, self.width)?;
+            // Each value as its bits and as a key in its type's order: the
+            // bits with the sign bit flipped, for a signed base.
+            let mask = u128::MAX >> (u128::BITS - bits);
+            let sign = if signed { 1u128 << (bits - 1) } else { 0 };
+            let (first, last) = (sign, sign ^ mask);
+            let value = |t: &str, open: u128| -> Option<u128> {
+                let t = t.trim().replace('_', "");
+                // `i32::MIN`, `i32::MAX`: the base's first and last values.
+                if t.is_empty() || t == format!("{base}::MIN") || t == format!("{base}::MAX") {
+                    return Some(if t.ends_with("MAX") { last } else { open });
+                }
+                let bits_of = match t.strip_prefix('-') {
+                    Some(m) => {
+                        let m = m.parse::<u128>().ok()?;
+                        (signed && m <= sign).then(|| m.wrapping_neg() & mask)?
+                    }
+                    None => {
+                        let n = t.parse::<u128>().ok()?;
+                        (n <= mask >> u32::from(signed)).then_some(n)?
+                    }
+                };
+                Some(bits_of ^ sign)
+            };
+            // One alternative: the keys of its first and last values.
+            let interval = |alt: &str| -> Option<(u128, u128)> {
+                match alt.split_once("..=") {
+                    Some((a, b)) => Some((value(a, first)?, value(b, last)?)),
+                    None => Some((value(alt.trim().strip_suffix("..")?, first)?, last)),
+                }
+            };
+            // rustc prints an or-pattern in parentheses.
+            let pattern = pattern
+                .trim()
+                .strip_prefix('(')
+                .and_then(|p| p.strip_suffix(')'))
+                .unwrap_or(pattern);
+            let alts: Vec<(u128, u128)> =
+                pattern.split('|').map(interval).collect::<Option<_>>()?;
+            let (start, end) = match alts.as_slice() {
+                [(a, b)] if a <= b => (*a, *b),
+                // `..=a | b..`: from b up past the last value round to a.
+                [(lo, a), (b, hi)] if *lo == first && *hi == last && a < b => (*b, *a),
+                _ => return None,
+            };
+            let (low, high) = (start ^ sign, end ^ sign);
+            let inner = self.layout(base, depth)?;
+            return Some(Laid {
+                term: mir_ctor(
+                    "Layout.ranged",
+                    &[inner.term, low.to_string(), high.to_string()],
+                ),
+                size: inner.size,
+                assumed: None,
+            });
+        }
+        // A pointer that is not null, `pattern_type!(*const T is !null)` as
+        // `NonNull` declares its field: a pointer whose bytes are one
+        // pointer's, which the encoding's pointers alone are, is never null,
+        // so it is laid out as the pointer.
+        if let Some(inner) = ty
+            .strip_prefix("crate::")
+            .unwrap_or(ty)
+            .strip_prefix("pattern_type ! (")
+            .and_then(|t| t.strip_suffix(" is ! null)"))
         {
-            return self.layout(base, depth);
+            return pointee(inner).and_then(|_| self.layout(inner, depth));
         }
         let thin = bytes(self.width);
         if pointee(ty).is_some() || ty.starts_with("fn(") {
@@ -1661,7 +1727,18 @@ pub(crate) fn embed_project(
     for (module, bodies) in modules {
         let pascal = crate::lex::pascal(&[module]);
         let mut parts: Vec<Vec<String>> = vec![Vec::new()];
-        let mut size = 0;
+        // A part's file is its definitions and the module's frame around
+        // them, whose name's number is at most the bodies' count.
+        let frame = |k: usize, decls: &str| {
+            format!(
+                "\\begin{{lexlean}}{{{crate_pascal}.{pascal}Part{k}}}\n\\useglossary{{lexlean.std.bool@1.2.0}}\n\
+                 \\useglossary{{lexlean.std.nat@1.2.0}}\n\\useglossary{{uorust.mir@1.0.0}}\n\
+                 \\importmodule{{{MIR}}}\n\\title{{Embedded MIR bodies}}\n\\begin{{semanticmodule}}\n{decls}\n\
+                 \\end{{semanticmodule}}\n\\end{{lexlean}}\n"
+            )
+        };
+        let overhead = frame(bodies.len(), "").len();
+        let mut size = overhead;
         for (kappa, e) in bodies {
             let decl = format!(
                 "definition{{\n  name: {},\n  parameters: [],\n  result: {},\n  body: {}\n}}",
@@ -1671,7 +1748,7 @@ pub(crate) fn embed_project(
             );
             if size + decl.len() > budget && !parts.last().is_some_and(Vec::is_empty) {
                 parts.push(Vec::new());
-                size = 0;
+                size = overhead;
             }
             size += decl.len() + 2;
             if let Some(last) = parts.last_mut() {
@@ -1679,15 +1756,8 @@ pub(crate) fn embed_project(
             }
         }
         for (k, decls) in parts.iter().enumerate().filter(|(_, d)| !d.is_empty()) {
-            let name = format!("{crate_pascal}.{pascal}Part{k}");
             let path = format!("src/{crate_pascal}/{pascal}Part{k}.lex.tex");
-            let text = format!(
-                "\\begin{{lexlean}}{{{name}}}\n\\useglossary{{lexlean.std.bool@1.2.0}}\n\
-                 \\useglossary{{lexlean.std.nat@1.2.0}}\n\\useglossary{{uorust.mir@1.0.0}}\n\
-                 \\importmodule{{{MIR}}}\n\\title{{Embedded MIR bodies}}\n\\begin{{semanticmodule}}\n{}\n\
-                 \\end{{semanticmodule}}\n\\end{{lexlean}}\n",
-                decls.join("\n\n")
-            );
+            let text = frame(k, &decls.join("\n\n"));
             entrypoints.push(path.clone());
             files.insert(path, text.into_bytes());
         }
@@ -2586,6 +2656,28 @@ mod tests {
         );
         assert_eq!(pointee("&'a mut T"), Some("T"));
         assert_eq!(pointee("* const T"), Some("T"));
+        let structs = Structs::new();
+        let enums = Enums::new();
+        let resolve = |_: &str, _: &[Option<String>], _: &str| Callee::Bound(String::new());
+        let cx = Cx {
+            width: 64,
+            enums: &enums,
+            resolve: &resolve,
+            allocs: BTreeMap::new(),
+            big_endian: Some(false),
+            structs: &structs,
+            cells: BTreeMap::new(),
+            items: Default::default(),
+            base: Default::default(),
+        };
+        let ranged = |t: &str| cx.layout(t, 4).map(|l| l.term);
+        assert!(ranged("(u32) is 1..")
+            .is_some_and(|t| t.contains("Layout.ranged") && t.contains(" 1 4294967295)")));
+        assert!(ranged("(u32) is 0..=999999999").is_some_and(|t| t.contains(" 0 999999999)")));
+        assert!(ranged("(i8) is (i8::MIN..=-1 | 1..)").is_some_and(|t| t.contains(" 1 255)")));
+        assert!(ranged("(i8) is (i8::MIN..=-2 | 0..)").is_some_and(|t| t.contains(" 0 254)")));
+        assert!(ranged("(i8) is -5..=5").is_some_and(|t| t.contains(" 251 5)")));
+        assert_eq!(ranged("(u8) is 5..=1"), None);
     }
 
     #[test]

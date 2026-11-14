@@ -245,7 +245,8 @@ inductive{
     {name: pointer, fields: [Nat]},
     {name: record, fields: [Nat, Bool, (List Nat), (List Layout)]},
     {name: array, fields: [Layout, Nat, Nat]},
-    {name: enumeration, fields: [Nat, Bool, (List String), (List Signed)]}
+    {name: enumeration, fields: [Nat, Bool, (List String), (List Signed)]},
+    {name: ranged, fields: [Layout, Nat, Nat]}
   ]
 }
 
@@ -267,7 +268,7 @@ inductive{
   name: Task,
   type_parameters: [],
   parameters: [],
-  constructors: [{name: piece, fields: [Nat, Layout]}, {name: tuple, fields: [Nat]}, {name: adt, fields: [Nat]}]
+  constructors: [{name: piece, fields: [Nat, Layout]}, {name: tuple, fields: [Nat]}, {name: adt, fields: [Nat]}, {name: check, fields: [Nat, Nat]}]
 }
 
 inductive{
@@ -1786,7 +1787,16 @@ definition{
     | Layout.pointer size => size
     | Layout.record size adt offsets layouts => size
     | Layout.array element count stride => (prim multiply count stride : Nat)
-    | Layout.enumeration size signed names discriminants => size)
+    | Layout.enumeration size signed names discriminants => size
+    | Layout.ranged base low high => (match base
+      | Layout.int size signed => size
+      | Layout.boolean => 1
+      | Layout.character => 4
+      | Layout.pointer size => size
+      | Layout.record size adt offsets layouts => size
+      | Layout.array element count stride => (prim multiply count stride : Nat)
+      | Layout.enumeration size signed names discriminants => size
+      | Layout.ranged inner low2 high2 => 0))
 }
 
 definition{
@@ -2111,7 +2121,8 @@ definition{
           | Value.reference p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
           | Value.function p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
           | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
-          | Value.uninit => (encodeWork rest big work bytes)))))),
+          | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.ranged base low high => (encodeWork rest big (cons (record Piece {offset := (project piece offset), layout := base, value := (project piece value)}) work) bytes))))),
   recursive_argument: fuel
 }
 
@@ -2193,6 +2204,9 @@ definition{
       | List.cons task tasks => (match task
         | Task.tuple count => (decodeWork rest big bytes tasks (cons (ctor Value.tuple (takeOnto count stack (nil Value))) (dropValues count stack)))
         | Task.adt count => (decodeWork rest big bytes tasks (cons (ctor Value.adt "" (record Signed {negative := false, magnitude := 0}) (takeOnto count stack (nil Value))) (dropValues count stack)))
+        | Task.check low high => (match stack
+          | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a transmute that decodes no value"))
+          | List.cons v vs => (if (if (low <=? high) then ((low <=? (reprOfValue v)) && ((reprOfValue v) <=? high)) else ((low <=? (reprOfValue v)) || ((reprOfValue v) <=? high))) then (decodeWork rest big bytes tasks stack) else (ctor Evaluated.stop (ctor Outcome.ub "a transmute to a value outside its type's valid range"))))
         | Task.piece offset layout => (let region : (List Byte) := (takeBytes (layoutSize layout) (dropBytes offset bytes)); (match layout
           | Layout.int size signed => (if (hasFragment region) then (ctor Evaluated.stop (ctor Outcome.undefined "a transmute of a pointer's bytes to a scalar")) else (match (littleNumber (orderBytes big region))
             | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute of uninitialized bytes to a scalar"))
@@ -2213,7 +2227,8 @@ definition{
           | Layout.array element count stride => (decodeWork rest big bytes (elementTasks count offset stride element (cons (ctor Task.tuple count) tasks)) stack)
           | Layout.enumeration size signed names discriminants => (if (hasFragment region) then (ctor Evaluated.stop (ctor Outcome.undefined "a transmute of a pointer's bytes to a scalar")) else (match (littleNumber (orderBytes big region))
             | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute of uninitialized bytes to a scalar"))
-            | Option.some n => (match (variantOf names discriminants (signedOf (prim multiply 8 size : Nat) signed n)) | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a discriminant it does not have")) | Option.some v => (decodeWork rest big bytes tasks (cons v stack)))))))))),
+            | Option.some n => (match (variantOf names discriminants (signedOf (prim multiply 8 size : Nat) signed n)) | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a discriminant it does not have")) | Option.some v => (decodeWork rest big bytes tasks (cons v stack)))))
+          | Layout.ranged base low high => (decodeWork rest big bytes (cons (ctor Task.piece offset base) (cons (ctor Task.check low high) tasks)) stack)))))),
   recursive_argument: fuel
 }
 
