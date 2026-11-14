@@ -224,11 +224,8 @@ pub(crate) fn shard(
     let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
         crate::embed::resolve_callee(link, krate, callee, args, dest)
     };
-    let embedder = crate::embed::Cx {
-        width: widths.first().map_or(usize::BITS, |(w, _)| *w),
-        enums: &enums,
-        resolve: &resolve,
-    };
+    let width = widths.first().map_or(usize::BITS, |(w, _)| *w);
+    let big_endian = layouts.first().map(|l| l.big_endian);
     // Each body's instance at its `Fn`-bounded parameters' functions, where
     // it has any: lowered first, the canonical instance where it does not
     // lower.
@@ -236,6 +233,13 @@ pub(crate) fn shard(
     let mut consts: BTreeMap<String, IrBody> = BTreeMap::new();
     let mut closures: BTreeMap<String, IrBody> = BTreeMap::new();
     for text in texts {
+        let embedder = crate::embed::Cx {
+            width,
+            enums: &enums,
+            resolve: &resolve,
+            allocs: crate::embed::allocations(text),
+            big_endian,
+        };
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among
         // the bare names of its types.

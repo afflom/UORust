@@ -574,6 +574,30 @@ pub(crate) fn string_list(items: &[String]) -> String {
     out
 }
 
+/// A list term of items of type `ty`. A long list is the `append` of runs
+/// of about its length's square root, so neither a run nor the appends nest
+/// deeper than that however long it grows: the linker reads a term to a
+/// bounded depth.
+pub(crate) fn term_list(items: &[String], ty: &str) -> String {
+    let chain = |part: &[String]| {
+        let mut out = format!("(nil {ty})");
+        for item in part.iter().rev() {
+            out = format!("(cons {item} {out})");
+        }
+        out
+    };
+    let run = items.len().isqrt() + 1;
+    if items.len() <= run {
+        return chain(items);
+    }
+    let runs: Vec<String> = items.chunks(run).map(chain).collect();
+    let mut out = runs.last().cloned().unwrap_or_default();
+    for r in runs.iter().rev().skip(1) {
+        out = format!("(prim append {r} {out} : (List {ty}))");
+    }
+    out
+}
+
 /// `lowerCamel` from any Rust or Cargo name: `thermo-core::should_heat` ->
 /// `thermoCoreShouldHeat`.
 pub(crate) fn camel(parts: &[&str]) -> String {

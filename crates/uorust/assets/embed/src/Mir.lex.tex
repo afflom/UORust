@@ -122,6 +122,25 @@ inductive{
 }
 
 inductive{
+  name: Value,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: int, fields: [Nat, Bool, Nat]},
+    {name: boolean, fields: [Bool]},
+    {name: character, fields: [Nat]},
+    {name: unit, fields: []},
+    {name: tuple, fields: [(List Value)]},
+    {name: adt, fields: [String, Signed, (List Value)]},
+    {name: pointer, fields: [Nat, Nat, (List Nat)]},
+    {name: reference, fields: [Value]},
+    {name: function, fields: [String]},
+    {name: text, fields: [String]},
+    {name: uninit, fields: []}
+  ]
+}
+
+inductive{
   name: Const,
   type_parameters: [],
   parameters: [],
@@ -133,6 +152,7 @@ inductive{
     {name: unit, fields: []},
     {name: function, fields: [String]},
     {name: variant, fields: [String, Signed]},
+    {name: reference, fields: [Value]},
     {name: other, fields: [String]}
   ]
 }
@@ -197,6 +217,7 @@ inductive{
     {name: aggregate, fields: [Agg, (List Operand)]},
     {name: cast, fields: [CastKind, Operand, Ty]},
     {name: rawPtr, fields: [Place]},
+    {name: repeat, fields: [Operand, Nat]},
     {name: other, fields: [String, String]}
   ]
 }
@@ -283,25 +304,8 @@ structure{
     {name: dictionary, type: (List Binding)},
     {name: ubChecks, type: Bool},
     {name: contractChecks, type: Bool},
-    {name: overflowChecks, type: Bool}
-  ]
-}
-
-inductive{
-  name: Value,
-  type_parameters: [],
-  parameters: [],
-  constructors: [
-    {name: int, fields: [Nat, Bool, Nat]},
-    {name: boolean, fields: [Bool]},
-    {name: character, fields: [Nat]},
-    {name: unit, fields: []},
-    {name: tuple, fields: [(List Value)]},
-    {name: adt, fields: [String, Signed, (List Value)]},
-    {name: pointer, fields: [Nat, Nat, (List Nat)]},
-    {name: function, fields: [String]},
-    {name: text, fields: [String]},
-    {name: uninit, fields: []}
+    {name: overflowChecks, type: Bool},
+    {name: pointerWidth, type: Nat}
   ]
 }
 
@@ -330,6 +334,7 @@ inductive{
     {name: ub, fields: [String]},
     {name: undefined, fields: [String]},
     {name: unlinked, fields: [String]},
+    {name: aborted, fields: []},
     {name: exhausted, fields: []}
   ]
 }
@@ -338,7 +343,7 @@ structure{
   name: Location,
   type_parameters: [],
   parameters: [],
-  fields: [{name: frame, type: Nat}, {name: base, type: Nat}, {name: steps, type: (List Nat)}]
+  fields: [{name: frame, type: Nat}, {name: base, type: Nat}, {name: steps, type: (List Nat)}, {name: root, type: (Option Value)}]
 }
 
 inductive{
@@ -502,6 +507,7 @@ definition{
     | Value.unit => (ctor Option.none [Signed])
     | Value.tuple fields => (ctor Option.none [Signed])
     | Value.adt variant discriminant fields => (ctor Option.none [Signed])
+    | Value.reference steps => (ctor Option.none [Signed])
     | Value.pointer frame base steps => (ctor Option.none [Signed])
     | Value.function path => (ctor Option.none [Signed])
     | Value.text content => (ctor Option.none [Signed])
@@ -661,6 +667,7 @@ definition{
       | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.tuple q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.adt q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.reference s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.pointer q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.function q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.text q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
@@ -672,6 +679,7 @@ definition{
       | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.tuple q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.adt q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.reference s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.pointer q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.function q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.text q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
@@ -683,6 +691,7 @@ definition{
       | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.tuple q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.adt q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.reference s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.pointer q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.function q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
       | Value.text q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
@@ -690,6 +699,7 @@ definition{
     | Value.unit => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
     | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
     | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
+    | Value.reference r => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a pointer"))
     | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a pointer"))
     | Value.function p => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
     | Value.text p => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
@@ -708,6 +718,7 @@ definition{
       | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.reference r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.function p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.text p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
@@ -719,11 +730,12 @@ definition{
       | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.reference r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.function p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.text p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
       | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value")))
-    | UnOp.ptrMetadata => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata")))
+    | UnOp.ptrMetadata => (ctor Evaluated.stop (ctor Outcome.ub "a pointer metadata read outside a place")))
 }
 
 definition{
@@ -829,6 +841,7 @@ definition{
     | Value.boolean p => (ctor Option.none [(List Value)])
     | Value.character p => (ctor Option.none [(List Value)])
     | Value.unit => (ctor Option.none [(List Value)])
+    | Value.reference r => (ctor Option.none [(List Value)])
     | Value.pointer p q r => (ctor Option.none [(List Value)])
     | Value.function p => (ctor Option.none [(List Value)])
     | Value.text p => (ctor Option.none [(List Value)])
@@ -846,6 +859,7 @@ definition{
     | Value.boolean p => (ctor Value.tuple fields)
     | Value.character p => (ctor Value.tuple fields)
     | Value.unit => (ctor Value.tuple fields)
+    | Value.reference r => (ctor Value.tuple fields)
     | Value.pointer p q r => (ctor Value.tuple fields)
     | Value.function p => (ctor Value.tuple fields)
     | Value.text p => (ctor Value.tuple fields)
@@ -883,6 +897,7 @@ definition{
         | Value.unit => (ctor Option.none [Value])
         | Value.tuple p => (ctor Option.none [Value])
         | Value.adt p q r => (ctor Option.none [Value])
+        | Value.reference r => (ctor Option.none [Value])
         | Value.pointer p q r => (ctor Option.none [Value])
         | Value.function p => (ctor Option.none [Value])
         | Value.text p => (ctor Option.none [Value]))
@@ -933,31 +948,42 @@ definition{
   name: readAt,
   parameters: [frames : (List Frame), loc : Location],
   result: (Option Value),
-  body: (match (frameAt frames (project loc frame))
-    | Option.none => (ctor Option.none [Value])
-    | Option.some frame => (match (nthValue (project frame locals) (project loc base))
+  body: (match (project loc root)
+    | Option.some pinned => (readSteps (project loc steps) pinned)
+    | Option.none => (match (frameAt frames (project loc frame))
       | Option.none => (ctor Option.none [Value])
-      | Option.some whole => (readSteps (project loc steps) whole)))
+      | Option.some frame => (match (nthValue (project frame locals) (project loc base))
+        | Option.none => (ctor Option.none [Value])
+        | Option.some whole => (readSteps (project loc steps) whole))))
 }
 
 definition{
   name: writeAt,
   parameters: [frames : (List Frame), loc : Location, value : Value],
   result: (Option (List Frame)),
-  body: (match (frameAt frames (project loc frame))
+  body: (match (project loc root)
+    | Option.some pinned => (ctor Option.none [(List Frame)])
+    | Option.none => (match (frameAt frames (project loc frame))
     | Option.none => (ctor Option.none [(List Frame)])
     | Option.some frame => (match (nthValue (project frame locals) (project loc base))
       | Option.none => (ctor Option.none [(List Frame)])
       | Option.some whole => (match (writeSteps (project loc steps) whole value)
         | Option.none => (ctor Option.none [(List Frame)])
-        | Option.some updated => (ctor Option.some [(List Frame)] (setFrame frames (project loc frame) (project loc base) updated)))))
+        | Option.some updated => (ctor Option.some [(List Frame)] (setFrame frames (project loc frame) (project loc base) updated))))))
 }
 
 definition{
   name: locationOf,
   parameters: [frame : Nat, base : Nat, steps : (List Nat)],
   result: Location,
-  body: (record Location {frame := frame, base := base, steps := steps})
+  body: (record Location {frame := frame, base := base, steps := steps, root := (ctor Option.none [Value])})
+}
+
+definition{
+  name: extendAt,
+  parameters: [loc : Location, index : Nat],
+  result: Location,
+  body: (record Location {frame := (project loc frame), base := (project loc base), steps := (snoc (project loc steps) index), root := (project loc root)})
 }
 
 definition{
@@ -970,6 +996,7 @@ definition{
       | Proj.deref => (match (readAt frames loc)
         | Option.some value => (match value
           | Value.pointer frame base steps => (locateSteps rest frames here (locationOf frame base steps))
+          | Value.reference target => (locateSteps rest frames here (record Location {frame := 0, base := 0, steps := (nil Nat), root := (ctor Option.some [Value] target)}))
           | Value.int p q r => (ctor Located.stop (ctor Outcome.undefined "ProjectionElem::Deref of a value that is not a reference"))
           | Value.boolean p => (ctor Located.stop (ctor Outcome.ub "a dereference of a value that is not a pointer"))
           | Value.character p => (ctor Located.stop (ctor Outcome.ub "a dereference of a value that is not a pointer"))
@@ -980,17 +1007,17 @@ definition{
           | Value.text p => (ctor Located.stop (ctor Outcome.undefined "ProjectionElem::Deref of a value that is not a reference"))
           | Value.uninit => (ctor Located.stop (ctor Outcome.ub "a dereference of an uninitialized pointer")))
         | Option.none => (ctor Located.stop (ctor Outcome.ub "a dereference of a place that holds no value")))
-      | Proj.field index => (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) index)))
+      | Proj.field index => (locateSteps rest frames here (extendAt loc index))
       | Proj.index base => (match (readAt frames (locationOf here base (nil Nat)))
         | Option.some value => (match (scalarOf value)
-          | Option.some offset => (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) (project offset magnitude))))
+          | Option.some offset => (locateSteps rest frames here (extendAt loc (project offset magnitude)))
           | Option.none => (ctor Located.stop (ctor Outcome.ub "an index that is not an integer")))
         | Option.none => (ctor Located.stop (ctor Outcome.ub "an index that holds no value")))
       | Proj.constantIndex offset fromEnd => (if fromEnd then (match (readAt frames loc)
         | Option.some value => (match (fieldsOf value)
-          | Option.some fields => (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) (prim subtract (countValues fields) offset : Nat))))
+          | Option.some fields => (locateSteps rest frames here (extendAt loc (prim subtract (countValues fields) offset : Nat)))
           | Option.none => (ctor Located.stop (ctor Outcome.ub "a constant index into a value that is not an array")))
-        | Option.none => (ctor Located.stop (ctor Outcome.ub "a constant index into a place that holds no value"))) else (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) offset))))
+        | Option.none => (ctor Located.stop (ctor Outcome.ub "a constant index into a place that holds no value"))) else (locateSteps rest frames here (extendAt loc offset)))
       | Proj.downcast variant => (locateSteps rest frames here loc)
       | Proj.other kind text => (ctor Located.stop (ctor Outcome.undefined kind)))),
   recursive_argument: projection
@@ -1033,6 +1060,7 @@ definition{
     | Const.unit => (ctor Evaluated.found (ctor Value.unit))
     | Const.function path => (ctor Evaluated.found (ctor Value.function path))
     | Const.variant name discriminant => (ctor Evaluated.found (ctor Value.adt name discriminant (nil Value)))
+    | Const.reference target => (ctor Evaluated.found (ctor Value.reference target))
     | Const.other text => (ctor Evaluated.stop (ctor Outcome.undefined "Operand::Constant of a constant the embedding does not read")))
 }
 
@@ -1077,6 +1105,65 @@ definition{
 }
 
 definition{
+  name: pointerTo,
+  parameters: [loc : Location],
+  result: Evaluated,
+  body: (match (project loc root)
+    | Option.some pinned => (match (readSteps (project loc steps) pinned)
+      | Option.some target => (ctor Evaluated.found (ctor Value.reference target))
+      | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a borrow of a place that holds no value")))
+    | Option.none => (ctor Evaluated.found (ctor Value.pointer (project loc frame) (project loc base) (project loc steps))))
+}
+
+definition{
+  name: repeatValue,
+  parameters: [count : Nat, value : Value],
+  result: (List Value),
+  body: (match count
+    | Nat.zero => (nil Value)
+    | Nat.succ rest => (cons value (repeatValue rest value))),
+  recursive_argument: count
+}
+
+definition{
+  name: pointeeOf,
+  parameters: [frames : (List Frame), pointer : Value],
+  result: (Option Value),
+  body: (match pointer
+    | Value.reference target => (ctor Option.some [Value] target)
+    | Value.pointer frame base steps => (readAt frames (locationOf frame base steps))
+    | Value.int p q r => (ctor Option.none [Value])
+    | Value.boolean p => (ctor Option.none [Value])
+    | Value.character p => (ctor Option.none [Value])
+    | Value.unit => (ctor Option.none [Value])
+    | Value.tuple p => (ctor Option.none [Value])
+    | Value.adt p q r => (ctor Option.none [Value])
+    | Value.function p => (ctor Option.none [Value])
+    | Value.text p => (ctor Option.none [Value])
+    | Value.uninit => (ctor Option.none [Value]))
+}
+
+definition{
+  name: metadataOf,
+  parameters: [program : Program, frames : (List Frame), pointer : Value],
+  result: Evaluated,
+  body: (match (pointeeOf frames pointer)
+    | Option.none => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+    | Option.some target => (match target
+      | Value.tuple fields => (ctor Evaluated.found (ctor Value.int (project program pointerWidth) false (countValues fields)))
+      | Value.int p q r => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.boolean p => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.character p => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.unit => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.reference p => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.function p => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.text p => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata of a value that is not a pointer to an array"))
+      | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a metadata read of an uninitialized pointer"))))
+}
+
+definition{
   name: evalRvalue,
   parameters: [program : Program, frames : (List Frame), value : Rvalue],
   result: Evaluated,
@@ -1084,7 +1171,7 @@ definition{
     | Rvalue.value op => (evalOperand program frames op)
     | Rvalue.borrow kind source => (match (placeOf frames source)
       | Located.stop outcome => (ctor Evaluated.stop outcome)
-      | Located.found loc => (ctor Evaluated.found (ctor Value.pointer (project loc frame) (project loc base) (project loc steps))))
+      | Located.found loc => (pointerTo loc))
     | Rvalue.copyForDeref source => (readPlace frames source)
     | Rvalue.binary op left right => (match (evalOperand program frames left)
       | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
@@ -1093,7 +1180,10 @@ definition{
         | Evaluated.found b => (evalBinary op a b)))
     | Rvalue.unary op inner => (match (evalOperand program frames inner)
       | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
-      | Evaluated.found a => (evalUnary op a))
+      | Evaluated.found a => (match op
+        | UnOp.ptrMetadata => (metadataOf program frames a)
+        | UnOp.not => (evalUnary op a)
+        | UnOp.neg => (evalUnary op a)))
     | Rvalue.discriminant source target => (match (readPlace frames source)
       | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
       | Evaluated.found whole => (match whole
@@ -1108,6 +1198,7 @@ definition{
         | Value.character p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
         | Value.unit => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
         | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.reference r => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
         | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
         | Value.function p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
         | Value.text p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
@@ -1120,7 +1211,10 @@ definition{
       | Evaluated.found a => (evalCast kind a target))
     | Rvalue.rawPtr source => (match (placeOf frames source)
       | Located.stop outcome => (ctor Evaluated.stop outcome)
-      | Located.found loc => (ctor Evaluated.found (ctor Value.pointer (project loc frame) (project loc base) (project loc steps))))
+      | Located.found loc => (pointerTo loc))
+    | Rvalue.repeat inner count => (match (evalOperand program frames inner)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found a => (ctor Evaluated.found (ctor Value.tuple (repeatValue count a))))
     | Rvalue.other kind text => (ctor Evaluated.stop (ctor Outcome.undefined kind)))
 }
 
@@ -1236,6 +1330,7 @@ definition{
     | Value.unit => 0
     | Value.tuple p => 0
     | Value.adt p q r => 0
+    | Value.reference r => 0
     | Value.pointer p q r => 0
     | Value.function p => 0
     | Value.text p => 0
@@ -1350,6 +1445,7 @@ definition{
     | Value.unit => (ctor Option.none [Evaluated])
     | Value.tuple p => (ctor Option.none [Evaluated])
     | Value.adt p q r => (ctor Option.none [Evaluated])
+    | Value.reference r => (ctor Option.none [Evaluated])
     | Value.pointer p q r => (ctor Option.none [Evaluated])
     | Value.function p => (ctor Option.none [Evaluated])
     | Value.text p => (ctor Option.none [Evaluated])
@@ -1368,6 +1464,7 @@ definition{
       | Value.unit => (ctor Option.none [Evaluated])
       | Value.tuple p => (ctor Option.none [Evaluated])
       | Value.adt p q r => (ctor Option.none [Evaluated])
+      | Value.reference r => (ctor Option.none [Evaluated])
       | Value.pointer p q r => (ctor Option.none [Evaluated])
       | Value.function p => (ctor Option.none [Evaluated])
       | Value.text p => (ctor Option.none [Evaluated])
@@ -1377,6 +1474,7 @@ definition{
     | Value.unit => (ctor Option.none [Evaluated])
     | Value.tuple p => (ctor Option.none [Evaluated])
     | Value.adt p q r => (ctor Option.none [Evaluated])
+    | Value.reference r => (ctor Option.none [Evaluated])
     | Value.pointer p q r => (ctor Option.none [Evaluated])
     | Value.function p => (ctor Option.none [Evaluated])
     | Value.text p => (ctor Option.none [Evaluated])
@@ -1401,23 +1499,91 @@ definition{
   body: (match values
     | List.nil => (ctor Option.none [Evaluated])
     | List.cons a rest => (match rest
-      | List.nil => (unaryIntrinsic name a)
+      | List.nil => (if (prim equal name "black_box" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found a)) else (if (prim equal name "forget" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.unit))) else (unaryIntrinsic name a)))
       | List.cons b more => (match more
         | List.nil => (binaryIntrinsic name a b)
         | List.cons c others => (ctor Option.none [Evaluated]))))
 }
 
 definition{
+  name: callValues,
+  parameters: [program : Program, frames : (List Frame), path : String, values : (List Value), destination : Place, target : (Option Nat)],
+  result: Outcome,
+  body: (match (findBody (project program bodies) path)
+    | Option.none => (ctor Outcome.unlinked path)
+    | Option.some callee => (ctor Outcome.running (cons (enterFrame callee values destination target) frames)))
+}
+
+definition{
+  name: selectRuntime,
+  parameters: [program : Program, frames : (List Frame), values : (List Value), destination : Place, target : (Option Nat)],
+  result: Outcome,
+  body: (match values
+    | List.nil => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+    | List.cons packed rest => (match rest
+      | List.nil => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+      | List.cons compile more => (match more
+        | List.nil => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+        | List.cons runtime others => (match runtime
+          | Value.int p q r => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.boolean p => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.character p => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.unit => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.tuple p => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.adt p q r => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.pointer p q r => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.reference p => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.function path => (match (fieldsOf packed) | Option.none => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function") | Option.some args => (callValues program frames path args destination target))
+          | Value.text p => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")
+          | Value.uninit => (ctor Outcome.ub "a const_eval_select without its arguments and its runtime function")))))
+}
+
+definition{
+  name: discriminantValue,
+  parameters: [frames : (List Frame), values : (List Value)],
+  result: Evaluated,
+  body: (match values
+    | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+    | List.cons pointer rest => (match rest
+      | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+      | List.cons typed more => (match (pointeeOf frames pointer)
+        | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+        | Option.some target => (match typed
+          | Value.int bits signed zero => (match target
+            | Value.int p q r => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.boolean p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.character p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.adt variant discriminant fields => (ctor Evaluated.found (intValue bits signed discriminant))
+            | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.reference p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.function p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.text p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+            | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type")))
+          | Value.boolean p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.character p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.reference p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.function p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.text p => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))
+          | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant_value without a pointer to an enum and its result type"))))))
+}
+
+definition{
   name: evalIntrinsic,
   parameters: [program : Program, frames : (List Frame), name : String, args : (List Operand), destination : Place, target : (Option Nat)],
   result: Outcome,
-  body: (if (prim equal name "unreachable" : Bool) then (ctor Outcome.ub "an unreachable intrinsic reached") else (match (evalOperands program frames args)
+  body: (if (prim equal name "unreachable" : Bool) then (ctor Outcome.ub "an unreachable intrinsic reached") else (if (prim equal name "abort" : Bool) then (ctor Outcome.aborted) else (match (evalOperands program frames args)
     | EvaluatedList.stop outcome => outcome
-    | EvaluatedList.found values => (match (intrinsicValue name values)
+    | EvaluatedList.found values => (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
       | Option.none => (ctor Outcome.unlinked name)
       | Option.some result => (match result
         | Evaluated.stop outcome => outcome
-        | Evaluated.found value => (finishCall frames destination target value)))))
+        | Evaluated.found value => (finishCall frames destination target value)))))))
 }
 
 definition{
@@ -1443,6 +1609,7 @@ definition{
         | Value.unit => (ctor Outcome.ub "a call of a value that is not a function")
         | Value.tuple p => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
         | Value.adt p q r => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
+        | Value.reference r => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
         | Value.pointer p q r => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
         | Value.text p => (ctor Outcome.ub "a call of a value that is not a function")
         | Value.uninit => (ctor Outcome.ub "a call of an uninitialized value")))
@@ -1497,6 +1664,7 @@ definition{
         | Value.unit => (ctor Outcome.ub "an assert on a value that is not a bool")
         | Value.tuple p => (ctor Outcome.ub "an assert on a value that is not a bool")
         | Value.adt p q r => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.reference r => (ctor Outcome.ub "an assert on a value that is not a bool")
         | Value.pointer p q r => (ctor Outcome.ub "an assert on a value that is not a bool")
         | Value.function p => (ctor Outcome.ub "an assert on a value that is not a bool")
         | Value.text p => (ctor Outcome.ub "an assert on a value that is not a bool")
@@ -1541,6 +1709,7 @@ definition{
       | Outcome.ub reason => (ctor Outcome.ub reason)
       | Outcome.undefined kind => (ctor Outcome.undefined kind)
       | Outcome.unlinked path => (ctor Outcome.unlinked path)
+      | Outcome.aborted => (ctor Outcome.aborted)
       | Outcome.exhausted => (ctor Outcome.exhausted))),
   recursive_argument: fuel
 }

@@ -2605,17 +2605,23 @@ fn security(ctx: &Model, options: &Options) -> Module {
         ));
     }
     for (id, _, r) in &controls {
-        let mut evidence = format!("(nil {tm}Evidence)");
-        for (kind, reference) in r.evidence.iter().rev() {
-            let item = record(
-                &format!("{tm}Evidence"),
-                &[
-                    ("kind", format!("(ctor {tm}EvidenceKind.{kind})")),
-                    ("reference", string(&truncate(reference, 256))),
-                ],
-            );
-            evidence = format!("(cons {item} {evidence})");
-        }
+        // A long list is balanced appends of short literals, so the
+        // linker's JSON reader meets a shallow term however many sites a
+        // control lists.
+        let items: Vec<String> = r
+            .evidence
+            .iter()
+            .map(|(kind, reference)| {
+                record(
+                    &format!("{tm}Evidence"),
+                    &[
+                        ("kind", format!("(ctor {tm}EvidenceKind.{kind})")),
+                        ("reference", string(&truncate(reference, 256))),
+                    ],
+                )
+            })
+            .collect();
+        let evidence = crate::lex::term_list(&items, &format!("{tm}Evidence"));
         decls.push(Decl::value(
             format!("modeled{}", pascal(&[local(id)])),
             format!("{tm}ModeledControl"),

@@ -73,6 +73,12 @@ pub(crate) struct Cx<'a> {
     /// Its arguments: the callee as printed, its arguments' types and its
     /// destination's, where MIR prints them.
     pub(crate) resolve: &'a Resolve<'a>,
+    /// The bytes of each allocation the dump prints (`allocN`), where every
+    /// byte is initialized and none is a pointer ([`allocations`]).
+    pub(crate) allocs: BTreeMap<String, Vec<u8>>,
+    /// Whether the target stores an integer's most significant byte first,
+    /// where the dumps record its data layout.
+    pub(crate) big_endian: Option<bool>,
 }
 
 /// How a call's callee is embedded.
@@ -176,26 +182,87 @@ pub(crate) fn kind_ctor(path: &str) -> String {
     format!("{ty}.{lower}")
 }
 
-/// A list term of items of type `ty`. A long list is the `append` of runs
-/// of about its length's square root, so neither a run nor the appends nest
-/// deeper than that however long it grows: the linker reads a term to a
-/// bounded depth.
-fn term_list(items: &[String], ty: &str) -> String {
-    let chain = |part: &[String]| {
-        let mut out = format!("(nil {ty})");
-        for item in part.iter().rev() {
-            out = format!("(cons {item} {out})");
+/// The operand and the count of a repeat as MIR prints it, `[const 0_u8;
+/// 32]`, where the count is a literal.
+fn repeat_parts(text: &str) -> Option<(&str, u64)> {
+    let inner = text.trim().strip_prefix('[')?.strip_suffix(']')?;
+    let (operand, count) = inner.rsplit_once(';')?;
+    let count = count.trim();
+    let count = count.split_once('_').map_or(count, |(n, _)| n);
+    Some((operand.trim(), count.parse().ok()?))
+}
+
+/// The element type and length of an array type as MIR prints it,
+/// `[u32; 10]`.
+fn array_ty(ty: &str) -> Option<(&str, usize)> {
+    let inner = ty.trim().strip_prefix('[')?.strip_suffix(']')?;
+    let (elem, count) = inner.rsplit_once(';')?;
+    Some((elem.trim(), count.trim().parse().ok()?))
+}
+
+/// The bytes of a byte string literal as MIR prints it, `b"a\x00\n"`.
+fn byte_string(text: &str) -> Option<Vec<u8>> {
+    let inner = text.strip_prefix("b\"")?.strip_suffix('"')?;
+    let mut out = Vec::new();
+    let mut chars = inner.chars();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            let mut buf = [0u8; 4];
+            out.extend_from_slice(c.encode_utf8(&mut buf).as_bytes());
+            continue;
         }
-        out
-    };
-    let run = items.len().isqrt() + 1;
-    if items.len() <= run {
-        return chain(items);
+        match chars.next()? {
+            'n' => out.push(b'\n'),
+            'r' => out.push(b'\r'),
+            't' => out.push(b'\t'),
+            '0' => out.push(0),
+            '\\' => out.push(b'\\'),
+            '\'' => out.push(b'\''),
+            '"' => out.push(b'"'),
+            'x' => {
+                let hex: String = chars.by_ref().take(2).collect();
+                out.push(u8::from_str_radix(&hex, 16).ok()?);
+            }
+            _ => return None,
+        }
     }
-    let runs: Vec<String> = items.chunks(run).map(chain).collect();
-    let mut out = runs.last().cloned().unwrap_or_default();
-    for r in runs.iter().rev().skip(1) {
-        out = format!("(prim append {r} {out} : (List {ty}))");
+    Some(out)
+}
+
+/// The bytes of each allocation a dump prints after its bodies, `alloc12
+/// (size: 3, align: 1) { 61 62 63 │ abc }`, where every byte is
+/// initialized and none is part of a pointer.
+pub(crate) fn allocations(text: &str) -> BTreeMap<String, Vec<u8>> {
+    let mut out = BTreeMap::new();
+    let mut lines = text.lines();
+    while let Some(line) = lines.next() {
+        let Some((name, _)) = line.split_once(" (") else {
+            continue;
+        };
+        if !name.starts_with("alloc") || !line.trim_end().ends_with('{') {
+            continue;
+        }
+        let mut bytes = Some(Vec::new());
+        for row in lines.by_ref() {
+            if row.trim() == "}" {
+                break;
+            }
+            // `0x10 │ 01 02 … │ ascii` or `01 02 … │ ascii`.
+            let parts: Vec<&str> = row.split('│').collect();
+            let hex = match parts.as_slice() {
+                [_, hex, _] | [hex, _] => *hex,
+                _ => "",
+            };
+            for token in hex.split_whitespace() {
+                match (u8::from_str_radix(token, 16), bytes.as_mut()) {
+                    (Ok(b), Some(v)) if token.len() == 2 => v.push(b),
+                    _ => bytes = None,
+                }
+            }
+        }
+        if let Some(bytes) = bytes {
+            out.insert(name.to_string(), bytes);
+        }
     }
     out
 }
@@ -356,7 +423,7 @@ impl Cx<'_> {
             "(record {} {{base := {}, projection := {}}})",
             mir_name("Place"),
             p.local,
-            term_list(&steps, &mir_name("Proj"))
+            crate::lex::term_list(&steps, &mir_name("Proj"))
         )
     }
 
@@ -401,8 +468,73 @@ impl Cx<'_> {
                     },
                 }
             }
-            IrConstant::Other(_) => self.unread(c, e),
+            IrConstant::Other(text) => match self.reference_constant(text) {
+                Some(value) => mir_ctor("Const.reference", &[value]),
+                None => self.unread(c, e),
+            },
         }
+    }
+
+    /// The value a reference constant points to: a byte string's bytes,
+    /// or an allocation of an integer array (or array of them) read at
+    /// the target's byte order.
+    fn reference_constant(&self, text: &str) -> Option<String> {
+        if let Some(bytes) = byte_string(text) {
+            return Some(self.array_value(&bytes, 8, false, 1));
+        }
+        let (alloc, ty) = text
+            .strip_prefix('{')?
+            .strip_suffix('}')?
+            .split_once(": &")?;
+        let bytes = self.allocs.get(alloc)?;
+        let (elem, count) = array_ty(ty)?;
+        let (rows, inner) = match array_ty(elem) {
+            Some((inner, n)) => (Some(count), (inner, n)),
+            None => (None, (elem, count)),
+        };
+        let (bits, signed) = int_ty(inner.0, self.width)?;
+        let size = usize::try_from(bits / 8).ok()?;
+        if bytes.len() != size * inner.1 * rows.unwrap_or(1)
+            || (size > 1 && self.big_endian.is_none())
+        {
+            return None;
+        }
+        match rows {
+            None => Some(self.array_value(bytes, bits, signed, size)),
+            Some(rows) => {
+                let row = size * inner.1;
+                let items: Vec<String> = (0..rows)
+                    .map(|r| self.array_value(&bytes[r * row..(r + 1) * row], bits, signed, size))
+                    .collect();
+                Some(mir_ctor(
+                    "Value.tuple",
+                    &[crate::lex::term_list(&items, &mir_name("Value"))],
+                ))
+            }
+        }
+    }
+
+    /// `Value.tuple` of the integers `bytes` holds, each `size` bytes.
+    fn array_value(&self, bytes: &[u8], bits: u32, signed: bool, size: usize) -> String {
+        let items: Vec<String> = bytes
+            .chunks(size)
+            .map(|chunk| {
+                let fold = |n: u128, b: &u8| (n << 8) | u128::from(*b);
+                let n = if self.big_endian == Some(true) {
+                    chunk.iter().fold(0, fold)
+                } else {
+                    chunk.iter().rev().fold(0, fold)
+                };
+                mir_ctor(
+                    "Value.int",
+                    &[bits.to_string(), signed.to_string(), n.to_string()],
+                )
+            })
+            .collect();
+        mir_ctor(
+            "Value.tuple",
+            &[crate::lex::term_list(&items, &mir_name("Value"))],
+        )
     }
 
     /// A constant the evaluator does not read: the construct it answers
@@ -445,7 +577,7 @@ impl Cx<'_> {
         e: &mut Embedded,
     ) -> String {
         let terms: Vec<String> = ops.into_iter().map(|o| self.operand(o, e)).collect();
-        term_list(&terms, &mir_name("Operand"))
+        crate::lex::term_list(&terms, &mir_name("Operand"))
     }
 
     /// An rvalue assigned to a place of type `dest`.
@@ -575,8 +707,23 @@ impl Cx<'_> {
                         "Rvalue.aggregate",
                         &[
                             mir_ctor("Agg.adt", &[mir_string(&v), signed(d)]),
-                            term_list(&[], &mir_name("Operand")),
+                            crate::lex::term_list(&[], &mir_name("Operand")),
                         ],
+                    ),
+                )
+            }
+            // `[x; n]`: the operand and the count.
+            IrRvalue::Other(spec::MirRvalue::Repeat, text)
+                if repeat_parts(text)
+                    .is_some_and(|(o, _)| crate::mir::parse::operand(o).is_some()) =>
+            {
+                let (o, n) = repeat_parts(text).unwrap_or_default();
+                let operand = crate::mir::parse::operand(o).map(|o| self.operand(&o, e));
+                (
+                    spec::MirRvalue::Repeat,
+                    mir_ctor(
+                        "Rvalue.repeat",
+                        &[operand.unwrap_or_default(), n.to_string()],
                     ),
                 )
             }
@@ -652,7 +799,7 @@ impl Cx<'_> {
                         "Terminator.switch",
                         &[
                             self.operand(o, e),
-                            term_list(&arms, &mir_name("Arm")),
+                            crate::lex::term_list(&arms, &mir_name("Arm")),
                             otherwise.to_string(),
                         ],
                     ),
@@ -667,6 +814,7 @@ impl Cx<'_> {
                 args,
                 target,
             } => {
+                let mut typed: Option<String> = None;
                 let callee = match crate::mir::parse::operand(callee) {
                     Some(o @ (IrOperand::Copy(_) | IrOperand::Move(_))) => {
                         mir_ctor("Callee.operand", &[self.operand(&o, e)])
@@ -686,6 +834,7 @@ impl Cx<'_> {
                                 e.intrinsics.insert(p.clone());
                                 e.blocked.insert(format!("intrinsic {p}"));
                             }
+                            typed = Some(p.clone());
                             mir_ctor("Callee.intrinsic", &[mir_string(&p)])
                         }
                         Callee::Bound(n) => {
@@ -694,12 +843,22 @@ impl Cx<'_> {
                         }
                     },
                 };
+                // An intrinsic whose result's type its arguments do not
+                // give (`discriminant_value`) is passed it last, as an
+                // integer of that type.
+                let mut args = args.clone();
+                let dest_ty = place_type(body, destination).unwrap_or_default();
+                if typed.as_deref() == Some("discriminant_value")
+                    && int_ty(&dest_ty, self.width).is_some()
+                {
+                    args.push(IrOperand::Constant(IrConstant::Int(0, dest_ty)));
+                }
                 let target = match target {
                     Some(b) => format!("(ctor Option.some [Nat] {b})"),
                     None => "(ctor Option.none [Nat])".to_string(),
                 };
                 let destination = self.place(destination, e);
-                let args = self.operands(args, e);
+                let args = self.operands(&args, e);
                 (
                     T::Call,
                     mir_ctor("Terminator.call", &[destination, callee, args, target]),
@@ -747,6 +906,30 @@ impl Cx<'_> {
         // The blocks control reaches from the entry without unwinding: the
         // evaluator ends a run at a panic, so a cleanup block is never
         // evaluated, and what it uses blocks nothing.
+        // MIR prints a call's only edge bare, so a diverging call's unwind
+        // edge reads as its return: a block every path from which resumes
+        // unwinding (or terminates it) is a cleanup block, and is not followed.
+        let resumes = |t: &IrTerminator| matches!(t, IrTerminator::Other(k, _) if matches!(k, spec::MirTerminatorKind::UnwindResume | spec::MirTerminatorKind::UnwindTerminate));
+        let mut cleanup: BTreeSet<usize> = BTreeSet::new();
+        loop {
+            let before = cleanup.len();
+            for (i, block) in b.blocks.iter().enumerate() {
+                let next = block.terminator.successors();
+                if resumes(&block.terminator)
+                    || (!next.is_empty()
+                        && matches!(
+                            block.terminator,
+                            IrTerminator::Goto(_) | IrTerminator::Drop(_)
+                        )
+                        && next.iter().all(|n| cleanup.contains(n)))
+                {
+                    cleanup.insert(i);
+                }
+            }
+            if cleanup.len() == before {
+                break;
+            }
+        }
         let mut reached = BTreeSet::from([0]);
         let mut work = vec![0];
         while let Some(at) = work.pop() {
@@ -756,7 +939,7 @@ impl Cx<'_> {
                 .map(|k| k.terminator.successors())
                 .unwrap_or_default()
             {
-                if reached.insert(next) {
+                if !cleanup.contains(&next) && reached.insert(next) {
                     work.push(next);
                 }
             }
@@ -780,7 +963,7 @@ impl Cx<'_> {
                 format!(
                     "(record {} {{statements := {}, terminator := {}}})",
                     mir_name("Block"),
-                    term_list(&statements, &mir_name("Statement")),
+                    crate::lex::term_list(&statements, &mir_name("Statement")),
                     self.terminator(&block.terminator, b, e)
                 )
             })
@@ -790,8 +973,8 @@ impl Cx<'_> {
             mir_name("Body"),
             mir_string(path),
             b.arity,
-            term_list(&locals, &mir_name("Ty")),
-            term_list(&blocks, &mir_name("Block"))
+            crate::lex::term_list(&locals, &mir_name("Ty")),
+            crate::lex::term_list(&blocks, &mir_name("Block"))
         );
         e
     }
@@ -1253,6 +1436,8 @@ fn stable_and_safe(num: &Path, name: &str) -> bool {
 pub(crate) struct Program {
     every: BTreeMap<String, (String, Embedded)>,
     samples: Vec<Sample>,
+    /// The target's pointer width, `usize`'s.
+    width: u32,
 }
 
 /// The keys of the bodies `key` reaches, itself first, where the evaluator
@@ -1428,7 +1613,7 @@ fn differential(
                 "theorem{{\n  name: {theorem},\n  parameters: [],\n  statement: ((Mir::evaluate {} (p{name}) {} {}) = {}),\n  proof: reflexivity{{}}\n}}",
                 fuel(program, s),
                 mir_string(&s.key),
-                term_list(&args, &mir_name("Value")),
+                crate::lex::term_list(&args, &mir_name("Value")),
                 mir_ctor("Outcome.returned", &[expected])
             ));
         }
@@ -1463,11 +1648,12 @@ fn differential(
         // Contracts are checked only under `-Zcontract-checks`, which no
         // build of core here passes.
         decls.push(format!(
-            "definition{{\n  name: p{name},\n  parameters: [],\n  result: {},\n  body: (record {} {{bodies := {}, dictionary := (nil {}), ubChecks := {debug}, contractChecks := false, overflowChecks := {overflow}}})\n}}",
+            "definition{{\n  name: p{name},\n  parameters: [],\n  result: {},\n  body: (record {} {{bodies := {}, dictionary := (nil {}), ubChecks := {debug}, contractChecks := false, overflowChecks := {overflow}, pointerWidth := {}}})\n}}",
             mir_name("Program"),
             mir_name("Program"),
-            term_list(&bodies, &mir_name("Body")),
-            mir_name("Binding")
+            crate::lex::term_list(&bodies, &mir_name("Body")),
+            mir_name("Binding"),
+            program.width
         ));
         decls.extend(theorems);
     }
@@ -1591,9 +1777,9 @@ pub(crate) fn resolve_callee(
     }
 }
 
-/// The pointer width the dumps under `dumps` were built for, from the
-/// `target.toml` beside them.
-fn dump_pointer_width(dumps: &Path) -> Result<u32, UorustError> {
+/// The pointer width the dumps under `dumps` were built for, and whether
+/// the target is big-endian, from the `target.toml` beside them.
+fn dump_target(dumps: &Path) -> Result<(u32, Option<bool>), UorustError> {
     let file = dumps.join("target.toml");
     let bad = |reason: String| UorustError::Malformed {
         path: file.clone(),
@@ -1601,10 +1787,15 @@ fn dump_pointer_width(dumps: &Path) -> Result<u32, UorustError> {
     };
     let text = read_text(&file).map_err(|e| bad(e.to_string()))?;
     let doc: toml::Table = text.parse().map_err(|e| bad(format!("{e}")))?;
-    doc.get("pointer_width")
+    let width = doc
+        .get("pointer_width")
         .and_then(toml::Value::as_integer)
         .and_then(|w| u32::try_from(w).ok())
-        .ok_or_else(|| bad("no pointer_width".into()))
+        .ok_or_else(|| bad("no pointer_width".into()))?;
+    let big_endian = crate::mir::layout::from_target_toml(&doc)
+        .ok()
+        .and_then(|layouts| layouts.first().map(|l| l.big_endian));
+    Ok((width, big_endian))
 }
 
 /// Every module's bodies, embedded, by module and κ, with the census of
@@ -1617,7 +1808,7 @@ fn embed_census(
     dumps: &Path,
     only: &[String],
 ) -> Result<(Vec<(String, Vec<(String, Embedded)>)>, EmbedCensus, Program), UorustError> {
-    let width = dump_pointer_width(dumps)?;
+    let (width, big_endian) = dump_target(dumps)?;
     let dirs: Vec<std::path::PathBuf> = dir_paths(dumps)?
         .into_iter()
         .filter(|p| p.is_dir())
@@ -1651,11 +1842,6 @@ fn embed_census(
     let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
         resolve_callee(&link, krate, callee, args, dest)
     };
-    let cx = Cx {
-        width,
-        enums: &enums,
-        resolve: &resolve,
-    };
     let mut census = EmbedCensus::default();
     let mut modules = Vec::new();
     let mut every: BTreeMap<String, (String, Embedded)> = BTreeMap::new();
@@ -1665,6 +1851,13 @@ fn embed_census(
         let selected = only.is_empty() || only.contains(module);
         let mut bodies = Vec::new();
         for (_, text) in texts {
+            let cx = Cx {
+                width,
+                enums: &enums,
+                resolve: &resolve,
+                allocs: allocations(text),
+                big_endian,
+            };
             for b in crate::mir::parse::bodies(text) {
                 let kappa = body_kappa(krate, &b.path, text);
                 let key = program_key(&link, &b.path, &kappa);
@@ -1701,7 +1894,11 @@ fn embed_census(
         }
         None => false,
     });
-    let program = Program { every, samples };
+    let program = Program {
+        every,
+        samples,
+        width,
+    };
     Ok((modules, census, program))
 }
 
@@ -1773,7 +1970,7 @@ mod tests {
     #[test]
     fn a_long_list_nests_no_deeper_than_its_root_ue_19() {
         let items: Vec<String> = (0..10_000).map(|i| i.to_string()).collect();
-        let term = term_list(&items, "Nat");
+        let term = crate::lex::term_list(&items, "Nat");
         let (mut depth, mut deepest) = (0usize, 0usize);
         for c in term.chars() {
             match c {
@@ -1790,10 +1987,26 @@ mod tests {
     }
 
     #[test]
+    fn byte_strings_allocations_and_repeats_are_read_ue_19() {
+        assert_eq!(
+            byte_string(r#"b"a\x00\n\"""#),
+            Some(vec![b'a', 0, b'\n', b'"'])
+        );
+        assert_eq!(byte_string("\"a\""), None);
+        let text = "fn f() -> () {\n}\n\nalloc7 (static: T, size: 4, align: 2) {\n    0x0 \u{2502} 01 00 02 00 \u{2502} ....\n}\n\nalloc8 (size: 2, align: 1) {\n    __ 01 \u{2502} .\n}\n";
+        let allocs = allocations(text);
+        assert_eq!(allocs.get("alloc7"), Some(&vec![1, 0, 2, 0]));
+        assert!(!allocs.contains_key("alloc8"));
+        assert_eq!(repeat_parts("[const 0_u8; 32]"), Some(("const 0_u8", 32)));
+        assert_eq!(repeat_parts("[move _3; 4_usize]"), Some(("move _3", 4)));
+    }
+
+    #[test]
     fn a_harness_output_without_its_checks_is_refused_ue_19() {
         let program = Program {
             every: BTreeMap::new(),
             samples: Vec::new(),
+            width: usize::BITS,
         };
         let file = Path::new("observed.txt");
         assert!(matches!(
