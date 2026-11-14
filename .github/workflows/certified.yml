@@ -43,6 +43,12 @@ jobs:
     permissions:
       contents: write
       actions: write
+    env:
+      # The minutes `certify production` may build for: the job's 120 less
+      # the SDK pull, the self MIR and projection before it and the sync,
+      # adapter tests and push after it. The roots unbuilt by then are refused
+      # for this export, so it always ends with a manifest inside the timeout.
+      EXPORT_MINUTES: 90
     steps:
       - name: Check out the exact event revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -51,7 +57,7 @@ jobs:
           persist-credentials: false
       - name: Build the certified translator through the locked SDK
         shell: bash
-        run: scripts/ci/sdk.sh 'just certified'
+        run: scripts/ci/sdk.sh "just certified $((EXPORT_MINUTES * 60))"
       - name: Publish the bootstrap's share
         if: always()
         shell: bash

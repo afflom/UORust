@@ -99,6 +99,10 @@ enum Certify {
         /// unchanged κ and compiler are refused again without a build.
         #[arg(long)]
         prior: PathBuf,
+        /// Seconds the export may build for: the builds still running then
+        /// are stopped, and the roots not built are refused for this export.
+        #[arg(long)]
+        within: Option<u64>,
     },
     /// Take a published bundle into the certified crate and write its
     /// manifest with the bootstrap's share.
@@ -488,6 +492,7 @@ fn certify(step: Certify) -> Result<(), UorustError> {
             out,
             kept,
             prior,
+            within,
         } => {
             let targets = std::fs::read_to_string(&targets).map_err(|e| UorustError::Io {
                 path: targets.clone(),
@@ -500,6 +505,7 @@ fn certify(step: Certify) -> Result<(), UorustError> {
                 &targets,
                 &kept,
                 &certify::Manifest::read(&prior)?,
+                within.map(std::time::Duration::from_secs),
             )?;
             println!("certified bundle kept in {}", kept.display());
         }

@@ -228,6 +228,9 @@ pub fn production(
 /// over budget as a whole, not refused for any one root.
 const TOTAL_BUDGET: &str = "max_total_source_bytes";
 
+/// The cause of a root no build reached before the export's deadline.
+const UNBUILT: &str = "not built before the export's deadline";
+
 /// The cores one build occupies: `lexlean production build` and the `lean`
 /// it runs beside itself, each a core at full load.
 const CORES_PER_BUILD: usize = 2;
@@ -243,6 +246,7 @@ struct Export {
     bundles: usize,
     passes: usize,
     error: Option<UorustError>,
+    late: bool,
 }
 
 /// What one build of a batch asks of the export next.
@@ -253,6 +257,8 @@ enum Outcome {
     Refused(Vec<(String, String)>),
     /// The batch is over the project's total budget, with the diagnostic.
     Over(String),
+    /// The export's deadline passed before the build ended.
+    Late,
 }
 
 /// Export the translator: write the production project and build its roots
@@ -270,8 +276,10 @@ enum Outcome {
 /// is refused for the size of the others. The roots `prior` (the manifest of
 /// the last export) refused, at the same κ and by the same compiler, are
 /// refused again before any build, so a steady export builds each batch
-/// once. Each pass is printed to stderr. The project and the build may live
-/// on a scratch volume.
+/// once. Each pass is printed to stderr. When `within` passes, the builds
+/// still running are stopped and the roots not yet built are refused as
+/// [`UNBUILT`], so the export ends with what it published. The project and
+/// the build may live on a scratch volume.
 pub fn production_build(
     projection: &Path,
     out: &Path,
@@ -279,7 +287,9 @@ pub fn production_build(
     targets: &str,
     kept: &Path,
     prior: &Manifest,
+    within: Option<std::time::Duration>,
 ) -> Result<(), UorustError> {
+    let deadline = within.map(|w| std::time::Instant::now() + w);
     let prefix = format!("{}.{BEHAVIOR}.", module_prefix(projection)?);
     let all = roots(register);
     let mut compiler: BTreeMap<String, String> = BTreeMap::new();
@@ -325,15 +335,22 @@ pub fn production_build(
         ..Export::default()
     });
     let wake = std::sync::Condvar::new();
+    let source = Source {
+        projection,
+        register,
+        targets,
+        prefix: &prefix,
+        deadline,
+    };
     std::thread::scope(|scope| {
         for worker in 0..workers {
-            let (state, wake, prefix) = (&state, &wake, &prefix);
+            let (state, wake, source) = (&state, &wake, &source);
             let dir = out.join(worker.to_string());
             scope.spawn(move || loop {
                 let (batch, compiler, pass) = {
                     let mut s = state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
                     loop {
-                        if s.error.is_some() || (s.batches.is_empty() && s.busy == 0) {
+                        if s.error.is_some() || s.late || (s.batches.is_empty() && s.busy == 0) {
                             wake.notify_all();
                             return;
                         }
@@ -346,9 +363,7 @@ pub fn production_build(
                     }
                 };
                 let started = std::time::Instant::now();
-                let outcome = build_batch(
-                    projection, &dir, register, targets, &compiler, &batch, prefix,
-                );
+                let outcome = build_batch(source, &dir, &compiler, &batch);
                 let mut s = state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
                 s.busy -= 1;
                 let seconds = started.elapsed().as_secs();
@@ -389,17 +404,33 @@ pub fn production_build(
                             s.batches.push(first.to_vec());
                         }
                     }
+                    Ok((named, Some(Outcome::Late))) => {
+                        eprintln!(
+                            "certify production: pass {pass} (worker {worker}): {} roots unbuilt at the deadline, after {seconds}s",
+                            named.len()
+                        );
+                        s.late = true;
+                        s.batches.push(named);
+                    }
                     Err(e) => s.error = Some(e),
                 }
                 wake.notify_all();
             });
         }
     });
-    let s = state
+    let mut s = state
         .into_inner()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
     if let Some(e) = s.error {
         return Err(e);
+    }
+    // The roots no build reached by the deadline: uncertified at this
+    // export, and built again by the next, since no compiler refused them.
+    let unbuilt: Vec<String> = s.batches.drain(..).flatten().collect();
+    for root in unbuilt {
+        s.compiler
+            .entry(root)
+            .or_insert_with(|| UNBUILT.to_string());
     }
     // The refusals of every root refused by the end.
     let last = out.join("refusals");
@@ -415,28 +446,49 @@ pub fn production_build(
     Ok(())
 }
 
+/// What every build of an export reads: the projection, the register, the
+/// target descriptors, the roots' qualified prefix and the deadline.
+struct Source<'a> {
+    projection: &'a Path,
+    register: &'a Register,
+    targets: &'a str,
+    prefix: &'a str,
+    deadline: Option<std::time::Instant>,
+}
+
 /// Build one batch in the production project at `dir`: the roots the request
 /// named (none when the compiler had refused them all) and what the build
 /// asks next, its bundle replayed with `verify-artifact` when it published.
 fn build_batch(
-    projection: &Path,
+    source: &Source<'_>,
     dir: &Path,
-    register: &Register,
-    targets: &str,
     compiler: &BTreeMap<String, String>,
     batch: &[String],
-    prefix: &str,
 ) -> Result<(Vec<String>, Option<Outcome>), UorustError> {
     if dir.exists() {
         std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
     }
     let only: BTreeSet<String> = batch.iter().cloned().collect();
-    let named = production(projection, dir, register, targets, compiler, Some(&only))?;
+    let named = production(
+        source.projection,
+        dir,
+        source.register,
+        source.targets,
+        compiler,
+        Some(&only),
+    )?;
     if named.is_empty() {
         return Ok((named, None));
     }
     lexlean(dir, &["lock"])?;
-    let result = lexlean(dir, &["production", "build", "--request", "request.json"])?;
+    let Some(result) = lexlean_until(
+        dir,
+        &["production", "build", "--request", "request.json"],
+        source.deadline,
+    )?
+    else {
+        return Ok((named, Some(Outcome::Late)));
+    };
     if result.get("success").and_then(serde_json::Value::as_bool) == Some(true) {
         let bundle = result
             .get("artifacts")
@@ -461,7 +513,7 @@ fn build_batch(
     let refused: Vec<(String, String)> = messages
         .iter()
         .filter(|m| !m.contains(TOTAL_BUDGET))
-        .filter_map(|m| first_root(m, prefix).map(|r| (r, m.clone())))
+        .filter_map(|m| first_root(m, source.prefix).map(|r| (r, m.clone())))
         .filter(|(r, _)| !compiler.contains_key(r))
         .collect();
     if !refused.is_empty() {
@@ -545,21 +597,56 @@ pub(crate) fn first_root(message: &str, prefix: &str) -> Option<String> {
 /// Run `lexlean <args> --diagnostic-format json` in `dir`: its command
 /// result, whatever its exit.
 fn lexlean(dir: &Path, args: &[&str]) -> Result<serde_json::Value, UorustError> {
-    let run = std::process::Command::new("lexlean")
+    lexlean_until(dir, args, None)?
+        .ok_or_else(|| UorustError::Tool(format!("lexlean {}: no result", args.join(" "))))
+}
+
+/// [`lexlean`], stopped with every process it started when `deadline`
+/// passes first: `None` then. The stop is coreutils' `timeout`, which runs
+/// the command in its own process group and kills that whole group, the
+/// `lean` lexlean runs among it, at the first whole second past `deadline`;
+/// the `lake` and `lean` that left the group are killed by their build root.
+fn lexlean_until(
+    dir: &Path,
+    args: &[&str],
+    deadline: Option<std::time::Instant>,
+) -> Result<Option<serde_json::Value>, UorustError> {
+    let tool = |e: String| UorustError::Tool(format!("lexlean {}: {e}", args.join(" ")));
+    let mut command = match deadline {
+        Some(d) => {
+            let left = d.saturating_duration_since(std::time::Instant::now());
+            if left.is_zero() {
+                return Ok(None);
+            }
+            let mut c = std::process::Command::new("timeout");
+            c.args([
+                "--signal=KILL",
+                &format!("{}s", left.as_secs() + 1),
+                "lexlean",
+            ]);
+            c
+        }
+        None => std::process::Command::new("lexlean"),
+    };
+    let run = command
         .args(args)
         .args(["--diagnostic-format", "json"])
         .current_dir(dir)
         .output()
-        .map_err(|e| UorustError::Tool(format!("lexlean {}: {e}", args.join(" "))))?;
+        .map_err(|e| tool(e.to_string()))?;
+    if deadline.is_some_and(|d| std::time::Instant::now() >= d) && !run.status.success() {
+        // lake and lean leave the group: each names the build root.
+        let _ = std::process::Command::new("pkill")
+            .args(["-KILL", "-f"])
+            .arg(dir.join(".lexlean").join(""))
+            .status();
+        return Ok(None);
+    }
     let text = String::from_utf8_lossy(&run.stdout);
     let last = text.lines().last().unwrap_or_default();
-    serde_json::from_str(last).map_err(|e| {
-        UorustError::Tool(format!(
-            "lexlean {}: {e}: {}",
-            args.join(" "),
-            String::from_utf8_lossy(&run.stderr)
-        ))
-    })
+    serde_json::from_str(last)
+        .map(Some)
+        .map_err(|e| tool(format!("{e}: {}", String::from_utf8_lossy(&run.stderr))))
 }
 
 fn module_prefix(projection: &Path) -> Result<String, UorustError> {
