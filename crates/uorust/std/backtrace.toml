@@ -1,120 +1,148 @@
 [[fn]]
 path = "std::_assert"
 kappa = "82959bc8674091e4c219146e4d048be2db75baaf8e8f60681e982839045c7344"
+embedded = "2d4408b68255323aa8469eb9206de0d6fee0b8dc10e998011bf10d300378a3a8"
 status = "translated"
 digest = "a7cb631c7a6c760ae703c71e840f31052985d016700b814184fbcb66eb429b33"
 
 [[fn]]
 path = "std::_assert_send_sync"
 kappa = "6da2eca8fd9e0ce1240233c22ebf6e0c38a4f5fa54ed3f4fb53339be4db65e45"
+embedded = "d750faa9741562afcdc520cdaf4e71dc716b01b3c2458ffdc7083c261200270e"
 status = "translated"
 digest = "af180c040dd16a071564aa270c1e6f360fe818f32b3500b609304bb0e11632c7"
 
 [[fn]]
 path = "std::backtrace::<impl at library/std/src/backtrace.rs:116:10: 116:15>::fmt"
 kappa = "f65cf737e9e1707b7222d71e90df63f303c924790d53fa84adc665e91d9606fc"
+embedded = "3ae69f521bec2ae3935711c911f02bf30e858fe5819153c05e9ccc5235f0aa64"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::backtrace::<impl at library/std/src/backtrace.rs:116:17: 116:26>::eq"
 kappa = "9a783b27af14b2a6f4ef29a8ee7995b99dc988fca49914edcc798d8b931620a1"
+embedded = "97067440b10254900e971c34d7f59410e7441e9fcded847fea256b7703945653"
 status = "residue"
 cause = "mir::Ty: BacktraceStatus"
 
 [[fn]]
 path = "std::backtrace::<impl at library/std/src/backtrace.rs:116:28: 116:30>::assert_fields_are_eq"
 kappa = "6a3e7a4b2947cbed26f5c7b4efeb472396fea1ac86d4541e01b01eff9d588db4"
+embedded = "22f13a5c9fd21e16666da441af19e04d1f3755ada6a3920fc092212aad67d33f"
 status = "residue"
 cause = "mir::Ty: BacktraceStatus"
 
 [[fn]]
 path = "std::backtrace::<impl at library/std/src/backtrace.rs:155:10: 155:15>::fmt"
 kappa = "c071e7725b5eb14f5f7a4fd75ff8d5914c426770cea48a480176f99480ee6b80"
+embedded = "1058166b46187952849c067ba15faf8db2fd5e24ea93df58f0fd0110d67aa292"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::backtrace::Backtrace::capture"
 kappa = "9b41bb6d2c047e698ce4ab2843d3436b411036055fea095ff5bc070d10579f31"
+embedded = "12d7f40d44ecc0d001115877847c5eacea3d3b9a28d825c978657df50bc8afa5"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: backtrace::Backtrace"
 
 [[fn]]
 path = "std::backtrace::Backtrace::create"
 kappa = "1bd5c1d9fc5835c629e368cb8f0b0f393f82108c3c219ebd2dd4b88edb9de86c"
+embedded = "dac073150af9944fdf6beedba918af54f538253aca43769a555df840bc7ddb36"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: backtrace::Backtrace"
 
 [[fn]]
 path = "std::backtrace::Backtrace::disabled"
 kappa = "52a2799ef4db5af25706b4bf4aa27e1d22d76327fb6b2ebb6ca7968ba2e82654"
+embedded = "c30131c5cedfc0ed8b139b2781d9e2ddb38af4358323bb5eac3fa18d670b0de5"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: backtrace::Backtrace"
 
 [[fn]]
 path = "std::backtrace::Backtrace::enabled"
 kappa = "bc1dccec4d994246e9861efa812b3c612202318b7098cc3ef091784446d6a2e5"
+embedded = "7a08abb1b4e36d69183df4276b1e5584c12ab14115105a36360b95af1b7a4337"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: {alloc110: &Atomic<u8>}"
 
 [[fn]]
 path = "std::backtrace::Backtrace::fmt"
 kappa = "d5479ec18305664068d895d3417acf318abd76b0fc0604adebb671b06510074b"
+embedded = "d0c41bf93e42ed291daa20c7ccd565a9210687bab16c30484f2a7dbdb17df4fa"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::backtrace::Backtrace::fmt#2"
 kappa = "de2a8770d3f2301c3211cefc0fef8939e00ec006f726cdd53ffc5a102d9e5b4e"
+embedded = "bbce88acf06f842bc6d285ea3c3b55e8ce55e26a747021a1ee357b77a4557737"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::backtrace::Backtrace::force_capture"
 kappa = "03b84cb75ec11679fda37eefba421f29bcdc89b3c0a90fd658a6bcb45d1b255c"
+embedded = "d88b3561d0e87c0fa54c5fa3582d10a67048cac954fb286530ddbd183242ddd7"
 status = "residue"
 cause = "mir::Ty: backtrace::Backtrace"
 
 [[fn]]
 path = "std::backtrace::Backtrace::frames"
 kappa = "e3f5b918ff62122b37ccbcae11525493777c2ef68ddafb4207d2696ab6146f3c"
+embedded = "bfcc33e655e97051b131795f5cd3600d327b57bb672de2914deeea4100432797"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: backtrace::BacktraceFrame"
 
 [[fn]]
 path = "std::backtrace::Backtrace::status"
 kappa = "72158bf5f129b230e39434deecbff21fa6e953b25580f17f8eb49a6b30c9464d"
+embedded = "eb5c42a381f4523807bdfe1ed8579af50e3195828731bc4cc48ab1635d907730"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: backtrace::BacktraceStatus"
 
 [[fn]]
 path = "std::backtrace::BacktraceFrame::fmt"
 kappa = "4ea1c7d3b59a1dccc383285bd1768bf4e30c7e7e8a559b499e6d3aa53d798e34"
+embedded = "89716793ff899ed821aa16bccd259994fa6ec96345c80166d2952a242f170928"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::backtrace::BacktraceSymbol::fmt"
 kappa = "135a4fed7cb23a3f792e948175228c43a2b1b0a08ec44f1e5022a7cd59428bcd"
+embedded = "262816171c2ef6acfd305375bfc30bf1829c6b58590a8bd6947cc238fbefd865"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::backtrace::BytesOrWide::fmt"
 kappa = "99dc8824683ce8f977b5f36c0b331c8f6ab29ec54773526158bc40a9a54a3e6b"
+embedded = "503d99ea8a75c780ac323c6fbece09f84c160162d46cd54c54675732d6973b96"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::backtrace::RawFrame::ip"
 kappa = "df577f6fc0170039a9ee8f382aadab519e9e7b0c5d6bd39c4f13a1aecdfc99c8"
+embedded = "ba306363a70e6fcbe69ea2fd2011e9b3367f2343ce9cbbc6e26f4aa09349ed6a"
 status = "residue"
 cause = "mir::Ty: backtrace::RawFrame"
 
 [[fn]]
 path = "std::helper::lazy_resolve"
 kappa = "2b173e0ada17a61a90605adf6a8918019e871a6d0bf323c8ee963fd59f7a29aa"
+embedded = "12d70b8f4bcc16b538aaa2f5a8896485eb334c812d5d3292849769d2a16d8452"
 status = "residue"
 cause = "mir::Ty: backtrace::Capture"
 

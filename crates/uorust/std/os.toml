@@ -1,18 +1,21 @@
 [[fn]]
 path = "std::STDERR"
 kappa = "caf029e4951c778262a751870ef2f00d384539e4b4d0967c5ecfcae16ec72244"
+embedded = "10e8db9a684bb1b18f668bfb5efcba7dbf45bd18edda86707f51d590d04789a7"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::STDIN"
 kappa = "a48e1f8a493f4c176aeb0f23a8603237f5ad1fed2f5a6556d6eaf30b05fa59b5"
+embedded = "65c6681e14c99d5b3f188a7196a4ef8f1052b473baaddfdba130727baadbee35"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::SUN_PATH_OFFSET"
 kappa = "550111f1319c9fc42127ca7540c76acc8b9fe803cee7f8e41ca29493998c3359"
+embedded = "17f156523287b50523c9fd1953cc20847710a95d6a1b0bb1a3046efd329c42fb"
 status = "residue"
 cause = "mir::Operand::Constant: os::unix::net::addr::SUN_PATH_OFFSET::{constant#0}: mir::TerminatorKind::Call: intrinsics::offset_of, an intrinsic the table does not model"
 
@@ -20,42 +23,51 @@ cause = "mir::Operand::Constant: os::unix::net::addr::SUN_PATH_OFFSET::{constant
 path = "std::add_to_ancillary_data"
 kappa = "e7eec09ac219df4f0134881d3e1f611d593f652c761339e9855c2674a5a5cfa5"
 at = "T=u32"
+embedded = "75a27da92a2cf3c91eaa51ce18d9c9b93d77a704e0d99dbeffde5f9d8f14fa2b"
 status = "residue"
 cause = "mir::TerminatorKind::Call: core::mem::size_of"
 
 [[fn]]
 path = "std::ancillary::<impl at library/std/src/os/unix/net/ancillary.rs:209:10: 209:15>::clone"
 kappa = "955fb5a6addc8d3a2483d7b7b0e4e2cd282e6e9e6d103e30b407cdd5a2cd743d"
+embedded = "485eee79db113e8f709a2cd908d6874ba09758ab11174169d849d82fc3188194"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::SocketCred"
 
 [[fn]]
 path = "std::ancillary::<impl at library/std/src/os/unix/net/ancillary.rs:452:10: 452:15>::fmt"
 kappa = "21c60a87c71316c24c9eb6c0c3f5005f3dea0728ce1e85260922029048e29aef"
+embedded = "d73ac3a2479685b530589b7254ceae09048057c883ba600f707b91914671782e"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::ancillary::<impl at library/std/src/os/unix/net/ancillary.rs:606:10: 606:15>::fmt"
 kappa = "0fa7d01f7bb17fc783ddd391327e98ddbde97bc1b4d8728289dbfe1c2df252b4"
+embedded = "035b33d1cde742deae019cf0e65b91dc04c7cfbd6dfa3150a229891f50ad2d1b"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::ancillary::AncillaryData::as_credentials"
 kappa = "ad34f74830884cd34eeb26a0c81d5e7c836b628461869e6e9ebfbb4e1a11c063"
+embedded = "78f57bc98e3f1d0417e809db98748c34629389d70749e4afd9082b376cbf39a6"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::AncillaryData<'_>"
 
 [[fn]]
 path = "std::ancillary::AncillaryData::as_rights"
 kappa = "05531a092b75dea5a0b9678bd1716c9d7bc904d23010e95c4a3cf0a57d16ac5b"
+embedded = "f13e0a1b3d9504674e2e87ec6bc53816b24af50e5c37cbaa1916fb0e290c9e6c"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::AncillaryData<'_>"
 
 [[fn]]
 path = "std::ancillary::AncillaryData::try_from_cmsghdr"
 kappa = "111469eca7d215fe062171d02f318c2efa3453ccb0d903db2c2a01094309da1c"
+embedded = "53bb225930f376597b992ae8842dd6e82691496f7a32e08be5ecc6f86f1bafe1"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::AncillaryData<'_>"
 
@@ -63,6 +75,7 @@ cause = "mir::Ty: os::unix::net::ancillary::AncillaryData<'_>"
 path = "std::ancillary::AncillaryDataIter::new"
 kappa = "97c069f6fde9feaa66b2a8b746d72b7de6c23a615bbdb5c4752983dab98490d1"
 at = "T=u32"
+embedded = "abb78b80abf2bcfa6850761c95b10db3f0255f3feaf15a122d3159faf37d4992"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::AncillaryDataIter<'_, u32>"
 
@@ -70,156 +83,182 @@ cause = "mir::Ty: os::unix::net::ancillary::AncillaryDataIter<'_, u32>"
 path = "std::ancillary::AncillaryDataIter::next"
 kappa = "7064b300ff73a5e777b0c31e8e06a671c47751da608d5fb851d074ffb663fee0"
 at = "T=u32"
+embedded = "3440953f3c4f75594bd7823b19ca929b9cd16d19644523ab19726866552c26d0"
 status = "residue"
 cause = "mir::Ty: AncillaryDataIter<'_, u32>"
 
 [[fn]]
 path = "std::ancillary::Messages::next"
 kappa = "edc1cb73afba23a843417152bc004c1b36929d02e55565250c050640e340a0ca"
+embedded = "57a2cbcdac4d45360f9d47b23242da558cb649bb9266a002868e630c39b55582"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::AncillaryData<'_>"
 
 [[fn]]
 path = "std::ancillary::ScmCredentials::next"
 kappa = "d045df32a6469708ae5bc354e3d7113a116547b8e67ab8d6e76f6e1e92b66ab2"
+embedded = "dee8b6d7bb89b0613d851ff1a9d9cff64434c6f3b4c2cb9463c3bc6c5fd12c3a"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::SocketCred"
 
 [[fn]]
 path = "std::ancillary::ScmRights::next"
 kappa = "b3494df169700b0c93cca8f35b85e546c4cd751de6027211eaf20bf7acb5c121"
+embedded = "57b3ee9ea930a4afbaf3c70420c7685cb66bad84e60921c815e0222e4762ef1d"
 status = "residue"
 cause = "mir::Ty: ScmRights<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::add_creds"
 kappa = "e2e1b62827a32949944e498985fb9e5d5efd5a079104592e785c4cb1d200e3b8"
+embedded = "5fe41f1e37122c5bab602a898108813e3da81de784881178286b2e57f14d059b"
 status = "residue"
 cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::add_fds"
 kappa = "a99fc09e4dfd2dd0a7f8fd98741c92986d4343d02ef53ee1cfaf107328bc39ee"
+embedded = "365d2414495851d5371df4e9a2138a02bbed608e477a46c629c097b5054d87f0"
 status = "residue"
 cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::capacity"
 kappa = "b590c4045d61b0528d98294d642770f981cecae598fb3cc4a4ae5835389e2c7b"
+embedded = "47053bfe77a7d3ebe27fbb58665fbbaf27c1359a018f29d447feb2bd43a683a3"
 status = "residue"
 cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::clear"
 kappa = "53863018e61399d54c81537144c830271fdbf6215987eaa5b73130523303b372"
+embedded = "9bbb4d68a61bff00ca3b9adc0cc75274da4f69a0a253713be4a35ecba99fab41"
 status = "residue"
 cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::is_empty"
 kappa = "dd8c7d2a2b352b4799cd34b6bfd0b0f3513742a17a9532b1b51c95416a52d638"
+embedded = "12bec698af00c99f57a9502d6b1cc505b0338cf3a9cc176e2d0957278537b92e"
 status = "residue"
 cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::len"
 kappa = "f1604ad4f89404c61b1ba3e6573d845ee6284b38cf939dd5d81fb1ce4ee86c09"
+embedded = "794271238f370aa94d97213df965bc9ae665ee2f16f27feb3ab28456ba551c74"
 status = "residue"
 cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::messages"
 kappa = "c69be7bec70f41db83a3d63220295dc81796fb5644e8c14eec15fe6bb0240cd8"
+embedded = "b453e4142800502e5c94744fbeb0b609d3b11a5c41dbd3099a0119e0b6a9788f"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::Messages<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::new"
 kappa = "c210a79d96885eb99d91f84ce86b72cdc7f1cc08bd2010fa9a1b447c32f0be0b"
+embedded = "b75e89eed81ce734c8da7d2f4a8c6341e190487cfaf2f7f233f9498be6161807"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketAncillary::truncated"
 kappa = "70c6b821a30e0d69f18c2e989baeba646ebfd45fe7b408c963dca94de0b155f1"
+embedded = "d8a73b45090a3e7626e3dfca697d3c1dbdd4fc2e6e591fe98a3c2d44373125aa"
 status = "residue"
 cause = "mir::Ty: ancillary::SocketAncillary<'_>"
 
 [[fn]]
 path = "std::ancillary::SocketCred::get_gid"
 kappa = "0f0703f9efa871eedd9e3eb66adff84a2506551f0a1c27d0d9f251f1e92e9267"
+embedded = "ca128c6d560291ab356f875b7ccc588d4e67fa122325123ab1d98dd36ffa053f"
 status = "residue"
 cause = "mir::Ty: SocketCred"
 
 [[fn]]
 path = "std::ancillary::SocketCred::get_pid"
 kappa = "f19beb8a86a8b444ba73f42f1b75444c1f041ccb9f0e0cff21ee8ab9b2085993"
+embedded = "fb544ef3bfeaf7a05cc1ecd4345fb2a746f89a95e09e46ad3310ea00c6bcccf9"
 status = "residue"
 cause = "mir::Ty: SocketCred"
 
 [[fn]]
 path = "std::ancillary::SocketCred::get_uid"
 kappa = "002dfbdfced0f2e3e94647c07161e66bf503f17d651c9c6a30b0cab14af02281"
+embedded = "7be5ee1b8ca3e52e3ac576098e2c7b1f0fd65dc08bfce47c3d24e3b743929287"
 status = "residue"
 cause = "mir::Ty: SocketCred"
 
 [[fn]]
 path = "std::ancillary::SocketCred::new"
 kappa = "cad03295f15e056117852850553d329a209985c73cdcedf1c7249e1490753500"
+embedded = "0f8c4b4a90e00e5e8aaa74c776482626726d55e3f4f55e29f977d897f323ec60"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ancillary::SocketCred"
 
 [[fn]]
 path = "std::ancillary::SocketCred::set_gid"
 kappa = "fe423c06b9461ec77778ac0305ce343b038500cc7580ace446463cfe0dbc3494"
+embedded = "854e23ff2d5d62c393e81dd78ce633eeabdaed2c3b38e45999359506c0a3148d"
 status = "residue"
 cause = "mir::Ty: SocketCred"
 
 [[fn]]
 path = "std::ancillary::SocketCred::set_pid"
 kappa = "9388b59b5ca583923e7b3ba8185bb5f2d12048aa7556071d87c3f7bb8c6fd977"
+embedded = "a43d7da422670b8d541bd3a0fd74b57586353bd65e80fad2e4f89b43570e9f15"
 status = "residue"
 cause = "mir::Ty: SocketCred"
 
 [[fn]]
 path = "std::ancillary::SocketCred::set_uid"
 kappa = "85a23aeb1dbcfeab433a1da79b891265e25fde53514eec976c494b95d35b4cff"
+embedded = "c61e95a0baa0a32be5bd796bfda64d40db69553547ca59563c8aa8a79b2e75b7"
 status = "residue"
 cause = "mir::Ty: SocketCred"
 
 [[fn]]
 path = "std::ancillary::recv_vectored_with_ancillary_from"
 kappa = "f3e61e79c09de4ec4a1588f71a55a00585e64e8418c8e93d8d517ff041d6c2ca"
+embedded = "e9066b1e37fa7d3c4e4893050c2a1311ad3019353195cae5ca887b0ee11b4d7c"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::ancillary::send_vectored_with_ancillary_to"
 kappa = "6eea78cd610627be1d01fbc44bacf632919ad2b668b7a4eb3d125deb1481f582"
+embedded = "d9d39214c7da581426376c5fb2550b500a9b7ff5dcaad42baca7ce5372eade1c"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::OwnedFd::from"
 kappa = "f63cfcaee4122d661549c4052b3281ea84d5240310d96ea59608ea618f3b3388"
+embedded = "911b8c16cc2fdb021d9b1f3fbc61675683a838632c3cdf247e42f466f2f8ed53"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::as_fd"
 kappa = "ed041068e21be3608c8c3421a7bdf46b2bc20aa64373e0bec594cb455a51ec68"
+embedded = "0aec0109f7f4f7a6a3f4bab0d7237011269d451c76d6ce5f9cade45db582a04a"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::as_inner"
 kappa = "073ff001e1a5921f3270e83be50c4742b04a41059a2ec46765cea051e6b8a20d"
+embedded = "beb72f8f3e2ae2d85b6f5983cda30193354f724d26b5c1c6a51265576f045eaf"
 status = "residue"
 cause = "mir::Ty: sys::net::connection::socket::unix::Socket"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::as_raw_fd"
 kappa = "c92245e8e7fda4824bbc5ddbfd9d8c32d3f457547a77823a1c269c0ce9716d41"
+embedded = "7cc7357a0998a782061d13f2075b984d5591fc456f9d3f0a1375781286e9f364"
 status = "residue"
 cause = "mir::Ty: datagram::UnixDatagram"
 
@@ -227,12 +266,14 @@ cause = "mir::Ty: datagram::UnixDatagram"
 path = "std::datagram::UnixDatagram::bind"
 kappa = "0084ab1d6908d83a08a2fcb27f155f764b84f7378863bde00b509b417479dd5c"
 at = "P=u32"
+embedded = "49abad96b9aaddc14950d93d451c1f253f0d5104b3a0bc3250ed696f2001ba17"
 status = "residue"
 cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::bind_addr"
 kappa = "477b798de99a4f3fca4f618ac5cca75d467c55233972d5b7b68fa38aee7ca4a2"
+embedded = "0c80f5b47b1ff15d891837c2592e431e1c966f539f2fe430fde22488faedb7ba"
 status = "residue"
 cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 
@@ -240,108 +281,126 @@ cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 path = "std::datagram::UnixDatagram::connect"
 kappa = "5609eb800b582e62b052872526653fd4f3e2f673937c0519d461a236b336d4f0"
 at = "P=u32"
+embedded = "4f20117a4843757a5a0f7a4ca998c6d364006f8a558598dda677255303062b30"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::connect_addr"
 kappa = "78837c4626d264ba163dd952cb9382e95a6c5c4de1b0159ac04f0406d9a20b3a"
+embedded = "8591945ca8498e37844e2ecb60d657e9daf3dd6dc592965bfe7b0800a2454bb9"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::fmt"
 kappa = "05568515b21e0b6be4dad0071a4996505df06911a0c8d06c58dd024a7ba0da11"
+embedded = "a7c49c01dd6eafb77ef99f0611f72fa95a499552c46391771da1f719047d6373"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::from"
 kappa = "9033ad37bd0cd36a2e437a7c8d11cb14f0384e154499fe59ec05079717a13a26"
+embedded = "c594e0add51be2aa0fdb6a68ffc9f6ff43f54612a7df7c87b6eae1fed98e9ef6"
 status = "residue"
 cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::from_raw_fd"
 kappa = "18f506139c6cad6dce78b78a69f293f10b10998baada93b9cbd95cacd38f1977"
+embedded = "5ce526c9b67310032ec9c1bf2fb66f7f4a6bb63243100af6917998204d5332be"
 status = "residue"
 cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::into_raw_fd"
 kappa = "cc91a9e1bff0dafaa295aed5e24b62699d636114b89804e0cf1c9360a44451fd"
+embedded = "800086f24ddac2c1b8e616e0bb7e4744e9618ea1b2f96240cc0625b014b19e8f"
 status = "residue"
 cause = "mir::Ty: datagram::UnixDatagram"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::local_addr"
 kappa = "aaceebea5a2506cc61ba406d96309e4aad2db9badcc18d593bf41e3d8c809fe9"
+embedded = "34d8bb17a5fbeb3ed187a7c7f648a391e7ee407561a81f90d44558ba06026cb6"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::pair"
 kappa = "3214c7f2ed6032057c73ced64f117f0bd5fdf8a4216d7be027b488269bbc24f9"
+embedded = "a4264fa165829fc03063152d6590cd10b6299f1e73f502ce33e96ac1caaa95a7"
 status = "residue"
 cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::peek"
 kappa = "23d49beeac41c16336b5067554995569c1b8d1b4003aa7cf5ead688acdb46a60"
+embedded = "4196514a39cac696d6b74ca7b6fa4d3388e329b6eb0394cfdca542022c7d700e"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::peek_from"
 kappa = "7c8a0ea45c9105a29ccbf3dd84b5d36747ff70e3336a5b86e3207ee9223b0329"
+embedded = "426dbfe019e2390ffc50aa839c9c528e60e722d75754a1dc930fe44b27e93c4d"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::peer_addr"
 kappa = "5898289bcbda338987deb9eb7dd7b7380b9daf8b4386090f0024d7366b4e3341"
+embedded = "08d1e5a459df63269dd214cca85855a9f2fc8ab66098a66fd293fdc665802304"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::read_timeout"
 kappa = "d2864405307b70a0362a737d2ef0bdaef993ecafd93e928e368da57ce470838e"
+embedded = "67a6497a79596fbb9633f59ed7ee33cc85ea0806943228dd457882d05c91a92e"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::recv"
 kappa = "00e11ece10291fe6a760b05be542da3ede383b925ad2ad30921aeb5001bffb81"
+embedded = "672f31224f0d761d3c3a26ecf76683ef48570e36902b577c2ade05e0112266e4"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::recv_from"
 kappa = "ce121d53eb81a6a7ac2277c1da40a6114df7c71ff7e1ceeda29805e448cbfce0"
+embedded = "c7769ba5bf72f5c9d842312df31b531961b8b55cb19e8a7fdcd3d810f5e0acbf"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::recv_from_flags"
 kappa = "795558e1a1c171e089ada7ae25d164c39d25790fd733c3f388d6688f362bccdb"
+embedded = "83352a2442f8d0498374dcd88ec796fa5e618366cf208339add3cf90fb83a35f"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::recv_vectored_with_ancillary"
 kappa = "88205088cbaced57b66736db5366d418a13a8eeb5569cff549da3f50af44367f"
+embedded = "0d63a6b0ce3c695f20806c55aad28e3e5587bdb0436ce196acca1a0039171d09"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::recv_vectored_with_ancillary_from"
 kappa = "9781d3f61a7a3ae8c028329f9c957bcbb63057b3f9bcc7ca83db5d722c7551ac"
+embedded = "744936c3b7af3343d8773f92c918cbf840cda52cd5a738f6ef27383c34bba10e"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::send"
 kappa = "87a74a78f9c1229a9f5d8a4461d4d8ee8851cbfed6bfd76d6522dfbfbe377ff1"
+embedded = "f8998ebbe1ff0a8284f8d909b09f645c47025dfc1d33bd17204464da878af7f0"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -349,18 +408,21 @@ cause = "mir::Ty: io::error::Error"
 path = "std::datagram::UnixDatagram::send_to"
 kappa = "4570a641376476b149ac0d9738d301ac85d20f2e9bb99e307feff19bcfd7f915"
 at = "P=u32"
+embedded = "348e6050bbb7e29f88a8818d02eadf97ff0f2cec6ad246958643ad3cec4ea54e"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::send_to_addr"
 kappa = "87acbab72d3d88d496dd8411cdec18b630e1f061cdc52584cb8bbd93eaa50109"
+embedded = "c54266c1f875e193766fe5f46422745c1fc18a818b94d5d181e2b0fbb24f3052"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::send_vectored_with_ancillary"
 kappa = "bfd5cfa8f501eccc655a238fd75d24f787d8ad40205c44973ffaef1d0f2336d4"
+embedded = "b852f700a772702be4c56787f7ca1c87035cc80d7676a5cc10f9ff3a14b8cf41"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -368,162 +430,189 @@ cause = "mir::Ty: io::error::Error"
 path = "std::datagram::UnixDatagram::send_vectored_with_ancillary_to"
 kappa = "527bdff1feb941f8cf4d5bdd21a9da7b905f5d79035cbb4c9567153510f6ec1d"
 at = "P=u32"
+embedded = "f2160f88c0721afbacea5991e2753b6d559b0bdd5063846c054d28f48e98c87d"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::set_mark"
 kappa = "df0308091b25bdb510a30e143f424ed2d6a3dc282302878bc74f1784cd956c51"
+embedded = "7d8513100d2b2455a1deaaaaaff0e84b8a0d1bab7b4a015b76daa66840bfd1c4"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::set_nonblocking"
 kappa = "6eda7a9de3c2396b2a2a51084b2e37ff4baa999705849e0a82bcfe9430abe660"
+embedded = "60af1cb78bdc699e9630182495384069a1b606cc4ee25fd9a2a177138d58a728"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::set_read_timeout"
 kappa = "366dbc433db987cf9c5091b148f69d96996d67b62e23ad58c740e074b18c3424"
+embedded = "3144a5e71fd278cb0f3a3dab5f5a58000658eb5d56c6e47d5298015942be75a2"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::set_write_timeout"
 kappa = "ece5944a4757abea89b4955279a945c4f96751b4d7086f8ea8547dd1d6d9222c"
+embedded = "8d2552fe7a7c5279ca4e121428dd8cb79421a7ac78a7006f80e1c1159dbc0eb7"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::shutdown"
 kappa = "51d423ad2baa31a0791686a86d81d2623642a838b0c470a2e054bfee2f919bc7"
+embedded = "f9c7a53cc7e28076d797cd9db67b9dad8b620015ef4d8e6e6a03fcba39d0b50d"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::take_error"
 kappa = "15ef8913cc905d919d30ce177f807b0116ca7118587f881af16627f444f08430"
+embedded = "8358da1ee9427f15930dff5dd542edf3b85a6d429177f5d3e4ab406d576f276e"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::try_clone"
 kappa = "232681bfe3afc1c383a82e87802ea1f08ce53dc4990fde29343c1b70ba3c52bb"
+embedded = "f113fe48c50aa8061e72286953ad77ab9246590f522aa8882a0d7f70ab304cec"
 status = "residue"
 cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::unbound"
 kappa = "798ba1310356ccd6bad54f1dba92e9cb9411f00c0295cc7b25bd914985da8ad6"
+embedded = "8c42595c6721263032b6b45cd83bc666229d9fb977f4f4d61257c3a9b60b30b2"
 status = "residue"
 cause = "mir::Ty: os::unix::net::datagram::UnixDatagram"
 
 [[fn]]
 path = "std::datagram::UnixDatagram::write_timeout"
 kappa = "8b114d8535fed8278bc8838b714978ca2036c93a220679e0389e5a58e4368c8c"
+embedded = "34a45a91a78a9b412af9c402c92f5509e685b4010dce44786d8d156fa60bf8c5"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
 path = "std::impl_linux::peer_cred"
 kappa = "8b352b773ad7858f402d91dddcc7f07cd343909dd5650d94b9513ce4be0ac4b0"
+embedded = "d945b2d72a11b3350022ee0f820c5e1cdb8e4d6fda56a1b8f4a1c5e0f7519900"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ucred::UCred"
 
 [[fn]]
 path = "std::linux_ext::socket::UnixDatagram::passcred"
 kappa = "576ae42655cef65cdac47424570fc641331751146671bfc56349813c47e26292"
+embedded = "9cad8faf8d043453b1292ff6d65114897dd47a3b493f12abb242f45ee23f145e"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::linux_ext::socket::UnixDatagram::set_passcred"
 kappa = "c4e2ecf3a74ab210ca5339a805f07f385ca3f6e29d3088c3ff1dd309e1b9ce96"
+embedded = "c60bbd1e3f41e61ee2e212b08c221f027ac1305da5b6b0213195c9e31ae05160"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::linux_ext::socket::UnixStream::passcred"
 kappa = "be61533f1be2f8926b7438869197d1663ee7b24a6f65706fa37ea38209dd1860"
+embedded = "b2f2d8d79600e62e6968e0eba9f542c36983d171c3d447e7016ec2f4ae83e96c"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::linux_ext::socket::UnixStream::set_passcred"
 kappa = "f99c35ea3bd6847447674454c8cf6a0a2adfbed3dbad229634c176f440fff56e"
+embedded = "28e1c5bc871e0c8172e70e16ef1b80a76e7da0918d25fac3ee3d4839a2db9f90"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::linux_ext::tcp::TcpStream::deferaccept"
 kappa = "d5882a8e6a5f0d66ee870901de6a9f563f5fb6e7e529abb3b6b992c8d97b46d5"
+embedded = "87484eb5892671759fc78e75b477eca0c3603102c7812b05105212ea7692a511"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
 path = "std::linux_ext::tcp::TcpStream::quickack"
 kappa = "a50efa6780018d39d404078b6265ebf9206a9d675a9121c60c79ab87dfe816e0"
+embedded = "093d016cc2e2a3b7280f1974c3ca99ffdd02d0d24c756a8ce698cbb92f385c89"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::linux_ext::tcp::TcpStream::set_deferaccept"
 kappa = "2f74c9310bec4ba72a7c4b7d5f29308d8246eb65242f400d29b1164ab76107bf"
+embedded = "3ba1565dd03c216059bd59d91b2e4ba477f683c82264a779a9a9a02038f946df"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::linux_ext::tcp::TcpStream::set_quickack"
 kappa = "532b10b174c9d235519ecdfa6f7eb7b3a3120e73436c3f0f0109af9823b15034"
+embedded = "ad06496510cdf82657cc78aafe78cdc66c6827c7f82fde6a1ccd55e77e311140"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::listener::<impl at library/std/src/os/unix/net/listener.rs:360:1: 360:43>::into_iter"
 kappa = "c69935d1bc58838a281d2da3ce07ae2f8f49736c64ec28920a8d60c2808861e0"
+embedded = "81e9a84876590ef460636fb6d3cc88b703894d97fe7aff5751c24c1f34bc44ce"
 status = "residue"
 cause = "mir::Ty: os::unix::net::listener::Incoming<'_>"
 
 [[fn]]
 path = "std::listener::<impl at library/std/src/os/unix/net/listener.rs:399:10: 399:15>::fmt"
 kappa = "db07de89a2ac8bbdb20955c2f2710f5a7db8e8a59bd68d6fa4edb8f4bb88ff8f"
+embedded = "4ebe8019b182294246c8360720a59bd3555f6717afe07456f044241828b78ab4"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::listener::Incoming::next"
 kappa = "35b0aea8d60093386aadd2476304310c7261a6a8f85fe6408a4ac7f11ad50bb0"
+embedded = "99d4bdf091336bbc96bae699f3c2e695457c74730a36501ae16e3aaf54cab76a"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::listener::Incoming::size_hint"
 kappa = "7e67c92c68025d68c0e909eff6fd85497c787b49590a818bc1585ac8a6ef5605"
+embedded = "c024ab634b41ef17a630333c4fa1bde35f3c08edde08b992f25aa5ec26c62426"
 status = "residue"
 cause = "mir::Ty: listener::Incoming<'_>"
 
 [[fn]]
 path = "std::listener::OwnedFd::from"
 kappa = "2c763d2470d7d89052d815783b6e1df4a113c10c30e46ac2c4b1bf71dcdf0238"
+embedded = "e3a43022b53954d385e00086f8b6d271dd241de3efb840ec41bd43a68875815e"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::listener::UnixListener::accept"
 kappa = "16517b613c7adaceb3842eb49f907a38a0b0fa1bdb7ad76efbdc0ab1fa41e48c"
+embedded = "982a9426d019fbb2e1f351be609752d6cf5b781f9b9bd5323cdf1161975a0a02"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::listener::UnixListener::as_fd"
 kappa = "b4232a0ac45c5c3ac4d953ec6f7b81fa1ba93c7a49c6efdee7dc73cfee0efdf6"
+embedded = "3fc7a06d1864cb4af807855aaf16675c4240fafd00c4dbaf08dd582cbcae5763"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::listener::UnixListener::as_raw_fd"
 kappa = "3f530561370aaabda4df73154c0308bc3b0ef96e98c2ee1eebb22acb287f0c35"
+embedded = "88d274ebf17a10f9360d3c193d1c1dafc66ca8e03cead9535049d85e9c79a353"
 status = "residue"
 cause = "mir::Ty: UnixListener"
 
@@ -531,126 +620,147 @@ cause = "mir::Ty: UnixListener"
 path = "std::listener::UnixListener::bind"
 kappa = "16bd8589559a4212a1ef4bc8ee78c4de61835e9d9e21f908337d0b6d09f6807f"
 at = "P=u32"
+embedded = "3a701594f4884b1b60e85db5f93a86b4754879d0675ead3561886baf70dcb92a"
 status = "residue"
 cause = "mir::Ty: os::unix::net::listener::UnixListener"
 
 [[fn]]
 path = "std::listener::UnixListener::bind_addr"
 kappa = "add9a16c17f2281b9b9e3b09a2ac0d1cc8d3b279f87322e9ed317ab10bf67719"
+embedded = "6389a52c2870a3f0b9b43a0eb5f37863ec4b8c63367b5449c2ab58da6ad8eedb"
 status = "residue"
 cause = "mir::Ty: os::unix::net::listener::UnixListener"
 
 [[fn]]
 path = "std::listener::UnixListener::fmt"
 kappa = "bafe1d535f5515d7a45de7933cc251b3e3fa3399ed8d5d53bd4a1b114538c621"
+embedded = "0af35b417f3ee12ae7f7ff1d83903a5b4197694a7ce4e5a748e4d28b1f2cbd4d"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::listener::UnixListener::from"
 kappa = "3469f984df3d8bd70012eca033efe2ae021b9285182d9d6fea2cb61375fb329b"
+embedded = "82acaa4ca1a035dc2efd700bf4124f9b969e78cf99ca63ac0b317c2079eb025f"
 status = "residue"
 cause = "mir::Ty: os::unix::net::listener::UnixListener"
 
 [[fn]]
 path = "std::listener::UnixListener::from_raw_fd"
 kappa = "f0ed3f14d70c5af9f7032e3868eee8ffb7195e68d22be239a924e29eb8d6ced4"
+embedded = "d84ec8d53557657588655566c0c15d5d286938102720425d8f7c506207f9ce9f"
 status = "residue"
 cause = "mir::Ty: os::unix::net::listener::UnixListener"
 
 [[fn]]
 path = "std::listener::UnixListener::incoming"
 kappa = "529c915cb5c8c2c2e6b73245824c518f74fad247c5f6e10ee3250be57177aa31"
+embedded = "aaa5f76ed090149fdaa016ac43545130cbc5973943d92251f2c53c5ff227af56"
 status = "residue"
 cause = "mir::Ty: os::unix::net::listener::Incoming<'_>"
 
 [[fn]]
 path = "std::listener::UnixListener::into_raw_fd"
 kappa = "637fa852b93d1c8eb5a223a7757d80c4e4e0248eb453e867464b016d60fae2d1"
+embedded = "3283be4500d9a6677c5aa45a36f4e5d0ec93406942b11a8c3713756c7c13a645"
 status = "residue"
 cause = "mir::Ty: UnixListener"
 
 [[fn]]
 path = "std::listener::UnixListener::local_addr"
 kappa = "95a867f5da4d7e4723e208460866ed377b596eb0b1a9a3a12e502722caa5c7cc"
+embedded = "d51e72694cc2ebe4b00a67fcd204abc707fccd0de17664b6604a6464bb0d8ffd"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::listener::UnixListener::set_nonblocking"
 kappa = "a6bd3ef280f4e6cb72bba4023c7825ad7dcf6cad408f612ca2ba5a8b772ae74a"
+embedded = "fd78b9aeeb7ff01e0acb9c87e9a6ac6576f3910fa4e241980bc6a3d29b4e4282"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::listener::UnixListener::take_error"
 kappa = "e84d804a248a872765ab1fb2f618afa981c6bb8555a877208af42e8889b4a9ce"
+embedded = "c578f4f5d095406fa4dd9f030a47be75cece607ce2e1b8eb4d9cc85b0f59fcd2"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::listener::UnixListener::try_clone"
 kappa = "7801892209845249ab6c42cd5cf3cb2e4114cc10740c86d82a2c5af6ebb41ab9"
+embedded = "d127fa7ecd67de41ca5195d7ea26f0cbfe0407d1d36dbaea3e61e90e298cf898"
 status = "residue"
 cause = "mir::Ty: os::unix::net::listener::UnixListener"
 
 [[fn]]
 path = "std::null_fd"
 kappa = "15850551285c38284fe9c21d315dcd7f0c149f82e856a6a5fe31679ca2aa6d3b"
+embedded = "5eeed5b9393fc2243f5cd868f3473d21cb5bad4e0bc0858dcd0fa80a8620a162"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:22:9: 22:35>::from_raw_fd"
 kappa = "a02b35c2dda1fa3f6f44507e8fa89a7891ae5ca7e64839972fdc97531bed1467"
+embedded = "2d9299176053f3d96c8fd61b105b2d6c38a2ef8ae9d1fdaac8d9dcd16ea588f9"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpStream"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:22:9: 22:35>::from_raw_fd#2"
 kappa = "c4367dd9675b325bb301784c3df2fb0f4fec0d26a9e92361a3bba8275ab34326"
+embedded = "a18cc7967906c502aa876cfb85991190dd4af37817774f606ecf5bcac517d86f"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpListener"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:22:9: 22:35>::from_raw_fd#3"
 kappa = "d49beed6b61134473b3e622942b86d6cd02456689123f2e03757155f2117625e"
+embedded = "985d0296f0dba463a9d403cc6054459ead410a13fc3db6936c512122528f5e5d"
 status = "residue"
 cause = "mir::Ty: net::udp::UdpSocket"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:38:9: 38:35>::into_raw_fd"
 kappa = "0803d09d9a8e0ab5a037083126badf3c70eae5c2983d061ecbdc3bdbc75b2e58"
+embedded = "4697a1ab8d06cac8bdac534d09ffe21a91a18697962b3706412310fc8b0fdab5"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpStream"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:38:9: 38:35>::into_raw_fd#2"
 kappa = "3f686f3c9cb101c08a20443d6ec6ca9478a7b0a7734ea46a195c29debdc85994"
+embedded = "eac5f2db4321559104212c116818abbe40e695272c17dde9fe5f9d8b70e54b8d"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpListener"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:38:9: 38:35>::into_raw_fd#3"
 kappa = "7fe4666f9ffba2134bba70c0673ac045f7451a967ea75a75300e55a6e23024f0"
+embedded = "d53e12e2db6306ef844085ab28a8e1e35033000548582c44fff1c566d0722621"
 status = "residue"
 cause = "mir::Ty: udp::UdpSocket"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:9:9: 9:33>::as_raw_fd"
 kappa = "f8d0283a12742f7b750d892e43d9361f5159111e1198b10d2f7c5431217643cd"
+embedded = "f01f26a424511ec14bba61dc1aed92e214d4f56f6a4010ff62020ec471fa253c"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpStream"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:9:9: 9:33>::as_raw_fd#2"
 kappa = "0ffe51b3f8b2fc22cbe940f94e54ca2a577c3c93de9807ba1700174fbcea2b84"
+embedded = "02591cd09ecc3a8fa53d3e10bb1601e27d60b60acb3b88289d64e53336c880f3"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpListener"
 
 [[fn]]
 path = "std::os::fd::net::<impl at library/std/src/os/fd/net.rs:9:9: 9:33>::as_raw_fd#3"
 kappa = "e983ade6538f2807b31bd9d1541cfe9adf38883769d0de0d5f53219d757f882d"
+embedded = "1840bed8de27f40b3d8e54a6d169e3758b846b136549424f862b54a7d5044bd4"
 status = "residue"
 cause = "mir::Ty: udp::UdpSocket"
 
@@ -658,6 +768,7 @@ cause = "mir::Ty: udp::UdpSocket"
 path = "std::os::fd::raw::Arc::as_raw_fd"
 kappa = "ca0260d943e1080aaf5375653ade0d06fb9afd8cd8c1ecc0162bece589a0f930"
 at = "T=u32"
+embedded = "1c6a4e77937c5d43f1f2c5a881b799a905e0354a23b0f00e8e24974029309505"
 status = "residue"
 cause = "mir::Ty: Arc<u32>"
 
@@ -665,78 +776,91 @@ cause = "mir::Ty: Arc<u32>"
 path = "std::os::fd::raw::Box::as_raw_fd"
 kappa = "3f0371889da56b8966a0577f1410aed6403f5fdac9b6b89534fb8b06d208de5a"
 at = "T=u32"
+embedded = "ec34f1e1349afdbb2b952fd65b21db675c0ed516695217cf3e661ecb4988f254"
 status = "residue"
 cause = "mir::Instantiation: u32 for a parameter bounded by AsRawFd, which u32 does not implement in core"
 
 [[fn]]
 path = "std::os::fd::raw::File::as_raw_fd"
 kappa = "78f3b6f36fe404c3d22923e1705080ab2abbf0ab2487d3945da623ba4fb50fb2"
+embedded = "333221459de645d551bf1c210e7f6b7a3875c7dae11dfd03e1a50cfd440a1102"
 status = "residue"
 cause = "mir::Ty: fs::File"
 
 [[fn]]
 path = "std::os::fd::raw::File::from_raw_fd"
 kappa = "cc64b1d1a18e445edbbc13db6a92df83d80def7910817daf1d21bb762fbb3ff2"
+embedded = "80f7444216e532f82a4040869c70a0786286ef3070cab9e6c6a69924eba2205c"
 status = "residue"
 cause = "mir::Ty: fs::File"
 
 [[fn]]
 path = "std::os::fd::raw::File::into_raw_fd"
 kappa = "72601e105ee16d8fe5a230e7170d6d78e567328de8cd49ca41722d557c89a840"
+embedded = "82b28fd648d0eb5de97a0f664f3b493f4ba4dd64a9a42df52b9e6f3833ac3bd9"
 status = "residue"
 cause = "mir::Ty: fs::File"
 
 [[fn]]
 path = "std::os::fd::raw::PipeReader::as_raw_fd"
 kappa = "25ecc5881b1469c972de2f1739d57cf7fec682e9b5a05ae3f72ae3540e8b555c"
+embedded = "5b83b790d02f86b533a844866defa6c58d2035e9f925a46a7d2b49faf5e31d97"
 status = "residue"
 cause = "mir::Ty: PipeReader"
 
 [[fn]]
 path = "std::os::fd::raw::PipeReader::from_raw_fd"
 kappa = "2f79c1225f8baa53d3f4d433a67db6bf4a13726ea445d7cf6462b11d23557301"
+embedded = "a7017cd5d016207eafaec813cc3ad3d839c71ae7bf2f1ce49b8cff822a56e5fc"
 status = "residue"
 cause = "mir::Ty: io::pipe::PipeReader"
 
 [[fn]]
 path = "std::os::fd::raw::PipeReader::into_raw_fd"
 kappa = "6f69f1353246c6279c65c69a1f35b50bbff800faf19aa8caf0646ece72577cce"
+embedded = "0c05d4436d50fa85911ee3d6ddb169f208fae3b986db82da0d9358c782575b67"
 status = "residue"
 cause = "mir::Ty: PipeReader"
 
 [[fn]]
 path = "std::os::fd::raw::PipeWriter::as_raw_fd"
 kappa = "ae6e2320a16d34e2af6d4c9d36da0fa05bbe380393ab3d02131184002a86c384"
+embedded = "8331bb4f68473e0f8730fd38cf9e79ceb1453ba46819f66ff8060bfb820aecd2"
 status = "residue"
 cause = "mir::Ty: PipeWriter"
 
 [[fn]]
 path = "std::os::fd::raw::PipeWriter::from_raw_fd"
 kappa = "7fc90dc2f5dc51628ad4348ae0979d0b00d198cac2c4c157262251c1cefdc0b7"
+embedded = "c9434ea65a38ca13c873a7fc7c7877697f049e2ebad2ed5941fb7f1d13d7c089"
 status = "residue"
 cause = "mir::Ty: io::pipe::PipeWriter"
 
 [[fn]]
 path = "std::os::fd::raw::PipeWriter::into_raw_fd"
 kappa = "4a0899b5272337b9ad1d9df5469dc5d022ceb643befc85ecb964a739453a0a78"
+embedded = "bbda23172fe7a66673c6e464d4bff184e4b1c7dd5f745a482b64316b0b8d0092"
 status = "residue"
 cause = "mir::Ty: PipeWriter"
 
 [[fn]]
 path = "std::os::fd::raw::RawFd::as_raw_fd"
 kappa = "4c6e15ca599ffbfec277fe495090c7fece6c917ceb229c063b725c9a8c5f983d"
+embedded = "83c387f187d1dcc6810e47b6047e179f5430d191dab023ea3d09f9037085362c"
 status = "translated"
 digest = "ed72a4b3c1a0d065367f9264f96635a8156a6c0d99fc09be04c04fc1bfa81c29"
 
 [[fn]]
 path = "std::os::fd::raw::RawFd::from_raw_fd"
 kappa = "8d36fa28c2cb5db6787014db79c1ad20bf4bc01217499f46142d0828dfe0b68b"
+embedded = "a0bc74d23da1c6d19a54affbbde2570c0174ba8c776805a5a29637b37f3b1093"
 status = "translated"
 digest = "caaaa4993cf6da0cc45c995af1fc24752eeeaac01f39a3eed038b701216a01f3"
 
 [[fn]]
 path = "std::os::fd::raw::RawFd::into_raw_fd"
 kappa = "26bf9b7c1d7e7e14348b1c40fe086b117557700d936f436ae56568074d457325"
+embedded = "a5427c23923f8661b1e5f0cd82fae075566eb2092e7d34935e998bbf48f6ffb5"
 status = "translated"
 digest = "e082d864cb71fd58afff5a45f619caaadce54cae53ad103227ad8fa76d691d1f"
 
@@ -744,42 +868,49 @@ digest = "e082d864cb71fd58afff5a45f619caaadce54cae53ad103227ad8fa76d691d1f"
 path = "std::os::fd::raw::Rc::as_raw_fd"
 kappa = "46b104cd23927bf28a961801a3a3715a3d3db55c4113b391e565a9e1a9e0a2f6"
 at = "T=u32"
+embedded = "1c2bbd177e5243a0c2b8780f8df56b7503b72a02effda36886990fb162496690"
 status = "residue"
 cause = "mir::Ty: Rc<u32>"
 
 [[fn]]
 path = "std::os::fd::raw::Stderr::as_raw_fd"
 kappa = "a88a16264634a2397d15a31f16122f985039d02ea0989b8381b04a87d4d48529"
+embedded = "b5d96e04d1ecae9f416e42d1e1b8bf7071a2e488cee9d427ce35d07cb85e9822"
 status = "residue"
 cause = "mir::Ty: io::stdio::Stderr"
 
 [[fn]]
 path = "std::os::fd::raw::StderrLock::as_raw_fd"
 kappa = "b3910fe79ba76e264f769f0e08eebb00838a8f838e839aebdf4bd63a95cb4b1c"
+embedded = "f641e61287cea9ab0e655071b6bd0fa12d976db82839e6c71ee0c8efc7e7000c"
 status = "residue"
 cause = "mir::Ty: StderrLock<'_>"
 
 [[fn]]
 path = "std::os::fd::raw::Stdin::as_raw_fd"
 kappa = "265d423e64070e211fa5d27477ceb91b9f87671f021eaee6227799971c4401d3"
+embedded = "e21180b89992ed92b13014227c598a6529f5c8ba5b394c4f2694742c3884f311"
 status = "residue"
 cause = "mir::Ty: io::stdio::Stdin"
 
 [[fn]]
 path = "std::os::fd::raw::StdinLock::as_raw_fd"
 kappa = "30e829ef4be87f83f462a1be5212553d3d0f8e16b15608563b676ad266ff088c"
+embedded = "89c7ef1238497948c85b2ab014361aa75f0faaa424f03250a5e4fc5a94c65ef0"
 status = "residue"
 cause = "mir::Ty: StdinLock<'_>"
 
 [[fn]]
 path = "std::os::fd::raw::Stdout::as_raw_fd"
 kappa = "157dcb7e14b355bf8ebbb0524f3feb87f7bcbd692fe075a4e1ddab335bc8d2b7"
+embedded = "5f64f8e390fa20e20fa301556c3ad341f81f71f77b21234a9ae81a48e6dfff6e"
 status = "residue"
 cause = "mir::Ty: io::stdio::Stdout"
 
 [[fn]]
 path = "std::os::fd::raw::StdoutLock::as_raw_fd"
 kappa = "6c4d5cbe217552368aa9935e2b4d485a19bf6d73d9f07500331e8dea25e49394"
+embedded = "8cdb24ded16b1d76aa942feb147addba3905db3933034c31a43b17c43b9bbf29"
 status = "residue"
 cause = "mir::Ty: StdoutLock<'_>"
 
@@ -787,276 +918,322 @@ cause = "mir::Ty: StdoutLock<'_>"
 path = "std::os::fd::raw::UniqueRc::as_raw_fd"
 kappa = "4d99120dbf08cb962b68959d5392659e95f8389b2c55e90b4be6ede3921ff13e"
 at = "T=u32"
+embedded = "c44a2eeeff3634142f5336cd2bc757ccd3ea775256d404d04f3313071806f218"
 status = "residue"
 cause = "mir::Ty: UniqueRc<u32>"
 
 [[fn]]
 path = "std::os::fd::stdio::STDOUT"
 kappa = "4e725de0473b6cee4a4c3c0558e86367040cea82ef4bac73f0335b8c450f37e4"
+embedded = "135e6c4e9538112dd44b1936bab0de646fb1ca7cd40dcfe3732d0a2423531a07"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::as_raw_stat"
 kappa = "253e2d0e229e77ae58885cee4d1cbc161a0a7400e91b711e4cbb7d8f6d143c13"
+embedded = "01e57d72e7e1a4a09cab1edd32ffaa5b3052a2acffd163a81fa93303e5f8e378"
 status = "residue"
 cause = "mir::Ty: os::linux::raw::arch::stat"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_atime"
 kappa = "ba37cba7c5c2fe2d89a4998da5c4ac21ef6f258b7d75dbd25205697240472d59"
+embedded = "8f38f26b7a8bdadf66b554c36856f9df02e2b713b04d3c1eacc13970ab723e9a"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_atime_nsec"
 kappa = "06df55a9c69df3e44f8b200d5f8abef4f139eb0bb552fb905f6e6bdd65acb721"
+embedded = "851ab9406c805b7881c9fdfd4b1a182fa5173aaecf2bb3c7e79f7037b6f5271d"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_blksize"
 kappa = "10cfe9cde30f7e11fa6b052117d21ef4ca79e3f893c57c7f00ed42e73b430316"
+embedded = "70fba6fe41cef32d12fe3dcc752e71dc903f1dd5fa97adde0ce622f98065289b"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_blocks"
 kappa = "bd86d7be1272dea13a4f67c2f0b440574289181262d630f0ddd472a1a04bef5a"
+embedded = "374525dd4915b98b5a17cd393df8f9b8be51599122858caee0b86f808d15222a"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_ctime"
 kappa = "36713dab02382553ef279f0a69c4ce213974e454409710bf03e168f63903254e"
+embedded = "811c8c80197a6f61eeb0fa7db063e150d2215b5cfe8a0907d762db9b724c35d4"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_ctime_nsec"
 kappa = "9d51f06eac81060c9c9969bee5b600a0f397d364b7a7d04bddb2799e4562b5c3"
+embedded = "6e5371ffa6175d66dd9b35d614b626827aa48e987f713508a147bb751a71a03d"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_dev"
 kappa = "4042602c671a47d4fd57391e444e94770812ec815c8fdc2f1f8a9e533e332640"
+embedded = "e8c043d7c7e5444de6ebaa4473873688f7dfcee056d79da74f7054e55c28a612"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_gid"
 kappa = "7a69c289f3b3e5a77673a3271820cc08ef657e1ac0590a083a0afcc5656a02b5"
+embedded = "afb72e7f2304b4ab6ffb346fc0c7e6fe7274592c7f19162deb808571a39a7161"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_ino"
 kappa = "62a2ac87966db37fc5abd059129bc80dd4fdcaffc775afd0e1f76b95993d98a0"
+embedded = "8ab397150fb6c9cbcf41a55aa0d20aea2e09b382e2b92784b6978b671900aaef"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_mode"
 kappa = "174511a9f4b0b4ba724c2ac3e9335805d18fc11234ef07c8e0bf4cb079833f26"
+embedded = "de446c5ee1732b97fa8d19e5595e46bcb51810dce6494fd34c72cf18207899ab"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_mtime"
 kappa = "e4856e67e4da06024da997e4a65485810caff5643e3d92007416c707e0333ec2"
+embedded = "b6d3419cc83f353fc751e23feb3babf90417fbacc0c680d2fe8f72deaad09cfe"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_mtime_nsec"
 kappa = "ed581ff5c88482ae796939f13b59102b0736e706b00330fd263708e646ef123c"
+embedded = "9a317b8f287c72c3a9a383611c2194ae6f2c93f5e608670392615120fe736f97"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_nlink"
 kappa = "c640c9010afec0265cf5f4d9062084abcca20b62ba72b56830f17ff81b5531a2"
+embedded = "b764cab0374465447c8dede8bea564d167e42a7a5fcf35f8fbee4c0e16ff872a"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_rdev"
 kappa = "e16b28c8e185a0b8c964cef8fbe46790eea103027582603eb5b45d8c6077f9b3"
+embedded = "6e6ca91c80a526a9caeb3dbcca7cf59b480ed2e55d175a80d0aa807e40e6a007"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_size"
 kappa = "1d9abef42af9cec902f3d01f237ea0d10e6c545cd595845d9988fc7fece7aa69"
+embedded = "ab54900c51f4697bb7ee76da5addd7a2c306fb8c37dee6ed7103d4c6e580e491"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::fs::Metadata::st_uid"
 kappa = "e4409f475e292e94a02c01c16792ea4e728d1462aa788da9145a718f28ed05dc"
+embedded = "53e595bcb40074d8d8602becb80a423bf129a16b5a9bafaacbef257e1c2ae4fd"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::linux::process::<impl at library/std/src/os/linux/process.rs:49:10: 49:15>::fmt"
 kappa = "a32fbefb944f5db7d81765bc3cd9a65cb59353cd562384d38e560f77fc9bbc36"
+embedded = "86286c109ed8d88acafba105851c79de9e88e09c4f19b96027e366995cb82740"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::os::linux::process::Command::create_pidfd"
 kappa = "fbd82309db56dec1953ff53e62b187c1b5e33088ca15a5d0b4a9c379a25cb2ec"
+embedded = "596a2d01d649f51729ec8d51d2691287a2887451d67e0aafab6512cf962517f5"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
 [[fn]]
 path = "std::os::linux::process::OwnedFd::from"
 kappa = "06ad141cb34d24e3f714abf1e3635ad4e7dd78825f5bf7880a93432bd74a571b"
+embedded = "288a3a72cdb9c62fa7bf0d11dece72b2a67dbfc2d5a60917e8c2243a44d37080"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::as_fd"
 kappa = "0b065878475a1a8813881cf0ad3084de7b91dcb459da55e66b2bea4b36584aae"
+embedded = "402351a6651b911fd59ef120fcc3c4d662c76223fcd90f6d4667ead5382465d6"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::as_inner"
 kappa = "8c0796b60afadac281ee862102056aba0de310fad2e358a4686a467984b0d57d"
+embedded = "acfffbdfe2db2bcc3bcb9386e68ac2a21f1009115eaf4b306854fc4862041c78"
 status = "residue"
 cause = "mir::Ty: sys::pal::unix::linux::pidfd::PidFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::as_raw_fd"
 kappa = "65028d294411619106aed638771054167a4ff10625fce7c28e4e331cf753a560"
+embedded = "5e58b2467b44dc546ab4bf302c87c8c7629c51357eac8c1182e94bafd19693ca"
 status = "residue"
 cause = "mir::Ty: os::linux::process::PidFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::from"
 kappa = "d9cf90da4e3bf5f8971c30824705e138b31a1b97dbfd61a80a5f51dd2699488a"
+embedded = "ba6760eeaad07e9824c039077cd78f9c694010eb47850c30a4e71a59c752689b"
 status = "residue"
 cause = "mir::Ty: os::linux::process::PidFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::from_inner"
 kappa = "e91589de1899ec092fe43c65e5c46f9a01ceb497fbf15f08afdc39475faaaf71"
+embedded = "f192c9525faf6bc538f17004dc3b933fbd5a668f3dbfd45753978038ea45231f"
 status = "residue"
 cause = "mir::Ty: os::linux::process::PidFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::from_raw_fd"
 kappa = "3aadc4365396b903727636b994bc87580ffe05c50c5bc4ba6ed2d6c84fe2d4c8"
+embedded = "3b0a06e4403138f8683292ab3ec85c50285395c6b11fb02c81ec41f801059774"
 status = "residue"
 cause = "mir::Ty: os::linux::process::PidFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::into_inner"
 kappa = "079dfc29115ae84ffc4d750867c28f090c30d659a3190a836f183df78305388f"
+embedded = "843c030b3a25baa77ef5106054abef068a99e0eb67bc76a29e241d8113aefea1"
 status = "residue"
 cause = "mir::Ty: sys::pal::unix::linux::pidfd::PidFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::into_raw_fd"
 kappa = "804df6a712d2c850953084adaabfbf3b7debedf909259478b1e8560dc48f2141"
+embedded = "4114a4852aae3a209d0f5047b6d73d0f1e78d5cfd9892a5ffbb931723c4dda38"
 status = "residue"
 cause = "mir::Ty: os::linux::process::PidFd"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::kill"
 kappa = "e835dcf6f4eb9c5ab9ffdb200da69c691441b827a4755c7db3543bc18474e6af"
+embedded = "6f3b110e377280c90fc724d4fd3c3aa390c56fed4c43dd8dd9787e0a7bf5a50c"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::try_wait"
 kappa = "1c4b89475210d10af065fafb5183d5b7795d3caf789ebfdccf6a07490f413dd9"
+embedded = "d9bb6d594cffb8ee896d27a1a79ff0101875fd0b60b4bb0ac9be004b76b2ca83"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::linux::process::PidFd::wait"
 kappa = "7bb772436cd5d3b8cfc31be9d220f021c1ebdd2091aa7bf90f91e3c9a961eb15"
+embedded = "a96ab7fe1f4469bd83c2c0e8dba07d5e5193eed7921a7d0360ca8b6fd43758dd"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::linux::raw::arch::<impl at library/std/src/os/linux/raw.rs:333:14: 333:19>::clone"
 kappa = "ab95aee16eab3def3e0b4d5cbd1bf61f2bf5b8901020a91df69b326a0df89a8a"
+embedded = "aed95da725a297f6a54da081be8eba98dbac4b517522386697a04ed2b343006c"
 status = "residue"
 cause = "mir::Ty: os::linux::raw::arch::stat"
 
 [[fn]]
 path = "std::os::unix::ffi::os_str::OsStr::as_bytes"
 kappa = "693e46f710d2503f21842eaa76e9ef5b5df1e3d82744fd76e3ec3de39183db5f"
+embedded = "c00c1c783763c313a0007f939bf7cb5603a47887a96ea1b5bea5e2d7307e1acb"
 status = "residue"
 cause = "mir::Ty: OsStr"
 
 [[fn]]
 path = "std::os::unix::ffi::os_str::OsStr::from_bytes"
 kappa = "b87b5f3ceddf161d9b678a10e63bed0b476df9cad40c60f0b974bcb29c55e336"
+embedded = "0e35a60cc3f2a5c603897824f10c18a33731978fb74fcad048bf0546d58eccf0"
 status = "residue"
 cause = "mir::Ty: ffi::os_str::OsStr"
 
 [[fn]]
 path = "std::os::unix::ffi::os_str::OsString::from_vec"
 kappa = "96fe89d3df1bfedcb2392c2334cfa7b0c876b1431bc020d5d15301424d7ade69"
+embedded = "7218a37aefd5e564f877276118c508db934e3d42a6636994fd52f3e67836f693"
 status = "residue"
 cause = "mir::Ty: ffi::os_str::OsString"
 
 [[fn]]
 path = "std::os::unix::ffi::os_str::OsString::into_vec"
 kappa = "d5d5ef2f347967255902a3c14489f2cbcdd9e9398f35b920a60914ca20710798"
+embedded = "b3cf9508e04d66fdf9506ad194c77c7dc3be92aa6ba2c3bb9466579d90dcdd5f"
 status = "residue"
 cause = "mir::Ty: OsString"
 
 [[fn]]
 path = "std::os::unix::fs::DirBuilder::mode"
 kappa = "d83ea2c593235f580817672db748c6ccd64e83b972505f8a07c0ac22485c9ebf"
+embedded = "c3b02ab264235616d6bc8a558f471e1f5293d76ae4a65e609b0bb5c5188a97b6"
 status = "residue"
 cause = "mir::Ty: fs::DirBuilder"
 
 [[fn]]
 path = "std::os::unix::fs::DirEntry::file_name_ref"
 kappa = "d1c8d16cb692fbf988616a66b80746d58bbc39144a7d9916b7f984adcacb7eee"
+embedded = "dc9dce5cfce584383e530c218e07feb43efcfde1719b7756ac1492ae0791eceb"
 status = "residue"
 cause = "mir::Ty: ffi::os_str::OsStr"
 
 [[fn]]
 path = "std::os::unix::fs::DirEntry::ino"
 kappa = "52b92be455557b4877d97fa3cecd6323c16610cb7dfbacace8ecb7b426eedc71"
+embedded = "33367e816d2bc4e2c3a988e4241455f4819cbefc3fb0329f86421036fcf54ba6"
 status = "residue"
 cause = "mir::Ty: fs::DirEntry"
 
 [[fn]]
 path = "std::os::unix::fs::File::read_at"
 kappa = "4095398385ff206bcb4ee318f26569ab5da4e876386feece7c73af1d6bf97868"
+embedded = "c1328f0d99db093187da86a56a6277e10ccdac1295b4e994936ed5bb6149ba48"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::fs::File::read_buf_at"
 kappa = "fb954565cfef3820f281a4cd4cbda97df351caab98174bf53d25272fcfc7a8f0"
+embedded = "ca32d86f69983f2e62462a6b44eeef902fa0790138cb758d8318ce32d51dbb1f"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::fs::File::read_vectored_at"
 kappa = "b99654244f5086f369dba9bf4df687d7b0e1532c7737fe03b20d55c1de9a38ab"
+embedded = "933721029cfaf2bae7a41a44d008d636cc6731a7a8039a9180ab06bf92c922bf"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::fs::File::write_at"
 kappa = "c1202a1c107acbe12718fe3b3b1e9b59c5c799e1d1f9ae5b8ba85809e42c6a7d"
+embedded = "8e5655e66ce670ce6fbd152d392ede6bbb2e56bdf300c7e12a93c68c9f850419"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::fs::File::write_vectored_at"
 kappa = "7bc30df9abbf117159503c9ddcdf13fc008c201bd06b1272116954b8c2cae676"
+embedded = "e133346a1e5e7c4636808fbe4c4e85ed87c846e794032b0aafc151a9f4daaaed"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1064,6 +1241,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::FileExt::read_buf_at"
 kappa = "beddb1c9821d40feb3fc87092525792d125e1e4e914a20b4b3436ec07e01ee2a"
 at = "Self=u32"
+embedded = "5814314179abd84c83e4e445d9de623aedae308d2038d0cc00fc6aadb0da7d17"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1071,6 +1249,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::FileExt::read_buf_exact_at"
 kappa = "2926a84932229608dc067c794506ca3777a4017ac9afd04f2c820eb9ff60bc37"
 at = "Self=u32"
+embedded = "a1f202d612768b4a1dc1e78e0b1e248912edd1bb47d0489b6906ec475010c364"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1078,6 +1257,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::FileExt::read_exact_at"
 kappa = "38e90ce81541532ae1d0162585b0833641c5d6d07207e182679e30f31b9f7c4c"
 at = "Self=u32"
+embedded = "ee6a68ba013bcf5e8befc5cb733b276be966227346c654355f4b65924c99712c"
 status = "residue"
 cause = "mir::StatementKind::Assign: a `&mut` parameter rebound to another borrow"
 
@@ -1085,6 +1265,7 @@ cause = "mir::StatementKind::Assign: a `&mut` parameter rebound to another borro
 path = "std::os::unix::fs::FileExt::read_vectored_at"
 kappa = "a0c1d167085372869062eab6cfe1b0b1a2e1946840c285dba094dc5fcf1f062b"
 at = "Self=u32"
+embedded = "1ba4f87ba56f6a9a4cd8833cb524f15dc79493a67a0801b5371e2918e40a6f6a"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1092,6 +1273,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::FileExt::write_all_at"
 kappa = "3704722298730191db47fd3f2382610b5bbca6db8e53a9aa3d415fd932a1a4cf"
 at = "Self=u32"
+embedded = "26473021d79054cd4d59c0b11f4950e9e2fb4ebbe7b0e6ad60ee14ea3ebc866b"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1099,156 +1281,182 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::FileExt::write_vectored_at"
 kappa = "5c73d1c15225eb563366ec48fc7a3c7f96aac0e8cb519a63bb3b148a63561d39"
 at = "Self=u32"
+embedded = "64e86eaa8bd9cdc9b19b147fe7a3262086d50287dc4fad7c73eb5afd4428d0dd"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::fs::FileType::is_block_device"
 kappa = "58252149ce6f04d245872c078a59296de70dcec3b4ac71875dddf9c19f7ac24a"
+embedded = "4e0edb6ad9062330f8ea57b744254c4e6f15c81a2af175c59a07c6ba17870ddd"
 status = "residue"
 cause = "mir::Ty: fs::FileType"
 
 [[fn]]
 path = "std::os::unix::fs::FileType::is_char_device"
 kappa = "e47a2c40d8695fd444f265fced8b82d3791794f3180dc5e08ece6b1933ef0b31"
+embedded = "5828365f211fdad0606014855ade8e885d18872411b97a54c08b6bda770b6ef1"
 status = "residue"
 cause = "mir::Ty: fs::FileType"
 
 [[fn]]
 path = "std::os::unix::fs::FileType::is_fifo"
 kappa = "6f0ed28ffaaa22b09fb47fba313e7fffbdaa787f246da84cfaa1f767274d15b6"
+embedded = "f5105f11c9cec543e456dc3277f5c75bf7d988d2b3bfc40f7371df039dbc63e1"
 status = "residue"
 cause = "mir::Ty: fs::FileType"
 
 [[fn]]
 path = "std::os::unix::fs::FileType::is_socket"
 kappa = "df5925b454ff1edc384ba4ef2c7a96de2cad69b4bc11ebe2065542f5228e4783"
+embedded = "438e629a84c1609c7b6a61d011eba441d461b10daf72920701fce722c8a3dde2"
 status = "residue"
 cause = "mir::Ty: fs::FileType"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::atime"
 kappa = "972008b5dbc809b175f2d86bddf1b5ae89359df6ba5d4f5544298789c7c6c13c"
+embedded = "fa6e8fd8fb77e132406a4de28430677d59db0f033a621f9772681bff74f203f6"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::atime_nsec"
 kappa = "5a9030c8e351a720e6062f2a8e3a89b618060cbeed91e21e92e14f83f036cd42"
+embedded = "0dfd5210d0481d99a2d8855de79273a079d9e31f738f1e69307165c83fa9beaf"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::blksize"
 kappa = "9a54c31c214e81917e8e4114f66585e73d331c24722eddd83bbd8c0dfdeac4c2"
+embedded = "f5a061a09e26d8f133794b05711ec6154a741d69ceb938ea451a5706ae75b0b9"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::blocks"
 kappa = "3a9dd57a3090fd0fa6ab3fa2e7890f460adc3aeaf32902254f2027293328a5a2"
+embedded = "e796190dfb619e485b378f11fbc4bbe7fbc3174a95291c642312db0ef0f97306"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::ctime"
 kappa = "446ab452ca583809921021c30ffb02da132d8bbc6dc48ccce73f8399aeb69603"
+embedded = "9ca01b0d7e23805438588fd6e940c8a1a43a80f61ccd350eebd25071d53b317f"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::ctime_nsec"
 kappa = "b081a7be730ac4eb8f1218da9f2c5496fc0e56bed4df4517ceb0d10c598b6011"
+embedded = "0297c5f5b9ed8d174d684511bf7f2a7d9aadd6cf38888cb963acaa388c32c9da"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::dev"
 kappa = "e20cfe46410e8850fa8524a1511146472775f762d29f1edcd59654ef6b017792"
+embedded = "2376b249e35b2f635de75a08809cbe5bde85f6e428d7df6ca5f6537be5a7caf9"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::gid"
 kappa = "543493d0230acfd6d73aff791cb28bb524918d0fdae58c073df0ad0096a3060b"
+embedded = "7567f3e2119c1dfd0687f3e88771598d19a3e339714a34b30ad393da97206a26"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::ino"
 kappa = "830000df4312a93afe9411ae3c41f2f7f7551c20cb6821fc531b6f739fd18c4c"
+embedded = "7eddff3758ba0ff3bf1735c6a3350e860e506ebfedee79c3aa27b879b4959753"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::mode"
 kappa = "98ba4b430c19c5f53f19cb86cd96191e46fc22c84ec321265fb1cdd1389ed146"
+embedded = "a28d5372967bc5a3d8f86ddfeb74c4605aa7069454928bdda7a1787694f4b626"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::mtime"
 kappa = "056b380ab18f7e82eb2536f59fcadda871fa18b91656f01e441e0a523a14daad"
+embedded = "a8561712556027e26cd51c7fd22750342546a9576d7456ae2e063fe326cbdd85"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::mtime_nsec"
 kappa = "99c92657d300075b5c4c987cd7e90449eb349a9dd4c84481aa9b705d71706273"
+embedded = "a8e9698e8732e45a0ea376ac4c132941032bf0dd92d5512ecff4378778521a05"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::nlink"
 kappa = "9f04e05397953a5c6fe47460fe7e96c54d0788743d444b66fa9646c60995f1b2"
+embedded = "0b85fb236c3fcaf2071eb7407f03fa2071ecc140400abd9a6edc7dab476b8a16"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::rdev"
 kappa = "e65984a4a0def8713178e87d09184afeccdffa864cbe0d4ca40574c16a612475"
+embedded = "ebc8b4940a65b7de8616cd2b4d85de3cc3e1059413bef41e7ba6498be20e3d2a"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::size"
 kappa = "c639bb5361708ceab4b4390954d7e2573d32865cc2ba154f8413632fbbeffac3"
+embedded = "0f0f66614953d632c2c80b90d2dff438838a270f561ec27240d55d6e1cdcdf8c"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::Metadata::uid"
 kappa = "b813296be0d1374b09d17d1c7d75380d4a212cb3686e9af43f0e07270fc4cbdc"
+embedded = "5ab539a572ea7ae0f968a31227fefa0c06d0b471ee02ae3dd1f426d826d30809"
 status = "residue"
 cause = "mir::Ty: fs::Metadata"
 
 [[fn]]
 path = "std::os::unix::fs::OpenOptions::custom_flags"
 kappa = "e06ff6f4bd26eef5e83dfe0ffd6234a6a00725a6ee77b087bb9380444b5131e0"
+embedded = "c5c584e7434ac4e3493e0b2330beb4bd729353b18bd56ba4fb5a8f6a6c7219c3"
 status = "residue"
 cause = "mir::Ty: fs::OpenOptions"
 
 [[fn]]
 path = "std::os::unix::fs::OpenOptions::mode"
 kappa = "56396c1eca355883a3c8cba3c59a0695bb26b3070f9732e1829b27ef7d7ecb5d"
+embedded = "6ffbbe443547eae75d74424b50ec0ba6600d688710e1af0159ab9ad3f3e5bde4"
 status = "residue"
 cause = "mir::Ty: fs::OpenOptions"
 
 [[fn]]
 path = "std::os::unix::fs::Permissions::from_mode"
 kappa = "48e0d1fb7ffebcf526045d17c838626e8e7685c3cdf35d82e43a9ca76a8668b2"
+embedded = "8461bd465802e4e93447c5a9e874086782f3bb8594d7ba67f8267f97359d0995"
 status = "residue"
 cause = "mir::Ty: fs::Permissions"
 
 [[fn]]
 path = "std::os::unix::fs::Permissions::mode"
 kappa = "bd32755305d7635069205e260d84b0e297fa689d6db4e2f209b1e4f2d36768e7"
+embedded = "13c04ccadaf47e5f528a5f976c5ae0650083139919f263c9847820cd685962e7"
 status = "residue"
 cause = "mir::Ty: Permissions"
 
 [[fn]]
 path = "std::os::unix::fs::Permissions::set_mode"
 kappa = "a327b137fb276f2aac9f9d8a69490e26a520e9e8ab37f25653f88e112c0a4a28"
+embedded = "a57122b4517ac9156fac137b4db64cbbfb45b7eb13701156c7296087b8c207a8"
 status = "residue"
 cause = "mir::Ty: Permissions"
 
@@ -1256,6 +1464,7 @@ cause = "mir::Ty: Permissions"
 path = "std::os::unix::fs::chown"
 kappa = "342dfc6fb582342c4b82480a24b896996423c264cbc50ee3937f71d1b4859ad1"
 at = "P=u32"
+embedded = "046ae4fa85cdc976d946d3b3bd8e317386f7e12ad099fb6b72189535490a0dfe"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1263,6 +1472,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::chroot"
 kappa = "b0b2567a57b39c6349971142762f40bff26faf7d8a41dad6ba959c04ad123bfb"
 at = "P=u32"
+embedded = "576e45d492460a643d977ef7ac92fed6fea269d19fe5e2d04a566e974a580c39"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1270,6 +1480,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::fchown"
 kappa = "49e22d076290ddaf7b23554f8701932acc759241f5e569a2ced5f7cab9f106e3"
 at = "F=u32"
+embedded = "22b759517ddd332416108d4d528894b7ef180711bf44fb028113fc003e55130e"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1277,6 +1488,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::lchown"
 kappa = "523275041ec9f6541224d603defa328ab0d164475f8ca630eae1ad1069963881"
 at = "P=u32"
+embedded = "fd4310f32939488d9bf08d2aba2034023575112c9b850e622064f9147551365a"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1284,6 +1496,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::mkfifo"
 kappa = "26e4c37e33928c2b4f14a31af4daef9c1bf8b0e369dd74e2e0d58207e8e0de63"
 at = "P=u32"
+embedded = "8c0311254356068dbb315b1e1e92b608ca22ed10b3c254ec006cd4295ba31cf0"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1291,6 +1504,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::fs::symlink"
 kappa = "8a8cd51aa79e2b4ac451641c80eb3e95a8fe38c4bca10b5325d70fbf449fb148"
 at = "P=u32, Q=u32"
+embedded = "bcbf9a6cacb20174993c37e4bdb9975eed2f55047df03729a57af14537beb7dc"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1298,6 +1512,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::replace_fd"
 kappa = "dfc8591d15ddcf6ad79e33dd0b7dc13a6ac13490ceac57ddb9e054d878d95867"
 at = "T=u32"
+embedded = "10d1d1ac2c87a003596353e1c9f64532bdbcbc8118de386f50832a1fb0210495"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1305,6 +1520,7 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::replace_fd#2"
 kappa = "e721aab1cf85f7b217ed2e6d4983c214448afee2e1eceabe32ca90a56367d6ab"
 at = "T=u32"
+embedded = "4324f200a34cbdc748a76b3977b438660cab61c8cfe3e3d4575c81f7561d02dd"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1312,6 +1528,7 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::replace_fd#3"
 kappa = "b40f564fdc07ee5ecce2bb76857ef6fa4154ecee2be25575976c05adda3eec5d"
 at = "T=u32"
+embedded = "ab583e24535f7ee638cf982e0c8c2acc7eba050322826b9c844d816b94fafc56"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1319,6 +1536,7 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::set_fd"
 kappa = "4a5d1268c375b1971dac81209d93487aca28d8ab093ad06d3afa92d4004c3d92"
 at = "T=u32"
+embedded = "a367dcdc6843559c8bfc07f0914901dbce21160a50bc01419d6f170f0a7020ef"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1326,6 +1544,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::set_fd#2"
 kappa = "1e5443f53d405e7d71a899783eeee79cca0c4f5c3d705f5f234bbf0d031c798d"
 at = "T=u32"
+embedded = "6f74651208f7ffe2ed369f8382ea7b69f12601b0e9580dd5a3a31288dbcc2405"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1333,24 +1552,28 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::set_fd#3"
 kappa = "bdfef1ae0ec5c1dee31c59a2e3e9b847b54a8026f171335bcabfa337a349e5e5"
 at = "T=u32"
+embedded = "b28b0dd87d050850e9a467a405ae4802adac565fa649265b73b6e6908891159c"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::take_fd"
 kappa = "22dd3a669a1a57c307342b7cf631601315756a91a0b6ae3da1ce31e3409fd560"
+embedded = "db6658f719dab0a50b9b7b4da3e72d490937923f49fd19526feb4851771bdf19"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::take_fd#2"
 kappa = "3a40d41a0ade8abf41d839da1872b87454d64dd276e6988a8eaff1d4e9b72dcb"
+embedded = "56ab8aa05c27cfce5c68ea9132640b93efe3e5259b86a6908cdecf42cf65940a"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:163:5: 163:32>::take_fd#3"
 kappa = "26eeae2319a9b59d129fadad2413606510aa3060dc0b6f429a7eadff791b3739"
+embedded = "1ca7e5a70fd3e7e5e0eb588e32d323e0d14fa1e63ddad9f3a31ef33068a903a4"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1358,6 +1581,7 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::replace_fd"
 kappa = "bb7bf5888b96de1540db7644ee8d2967e04561c805e9efdbd366fd30de092eeb"
 at = "T=u32"
+embedded = "d2edda29c9daf357e8ab164ca7f32cfb34db52ad098e0bd2c513e0d6485d503f"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1365,6 +1589,7 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::replace_fd#2"
 kappa = "a1ba63ab4cf28562d7dda9cf689efe71db7247befb327c2cf3226368390fbe54"
 at = "T=u32"
+embedded = "f79c750c2be9808ba60effcf8c8888b0adf6276ff96390fe180e0decf6a7e721"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1372,6 +1597,7 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::replace_fd#3"
 kappa = "b4b0cce9e75b2cf53a1f78258de17e799143cba24b4a1e8e3de24a6b973a2164"
 at = "T=u32"
+embedded = "c4d0d50a52aec669e3766ce560ab27d6dc70261af637dee8b4fb59064d8758e1"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1379,6 +1605,7 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::set_fd"
 kappa = "7b8f7df845ff659c2531e50a5e37dd0961a132d5ba8dfeb6f604795ca6d6c6b1"
 at = "T=u32"
+embedded = "ce331b200c902a02b0dc3a167e2de365a51f2fcfd83de25f2b35832e1b844006"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1386,6 +1613,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::set_fd#2"
 kappa = "d9266651eeb043307ef4f3e92f692b11d6f9cd15c6a23798fd292480c63161a6"
 at = "T=u32"
+embedded = "a199cf732fae72717ed5702aa3927dbbfc642e5c5e2bb020261e3d3d2f4bccef"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -1393,54 +1621,64 @@ cause = "mir::Ty: io::error::Error"
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::set_fd#3"
 kappa = "e359aad6a82d88aa70493cf9a746845f61abd49805fc479cc603dd666dd085dc"
 at = "T=u32"
+embedded = "d8ea171583e9edfb0e5176c143ba3d38abef9d4194dfe69ec90f3570a1b39ac8"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::take_fd"
 kappa = "8a1809d10be0a679bee9062ffda66eda3962b0472ff5a5579b410b7fc550a8d7"
+embedded = "6d9ac4796ed7bf88fea831de5784fdce4cbaab848f01a211c970f5dd36e643dc"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::take_fd#2"
 kappa = "f2a18b5be9fc728feb8c0357f61ce9ce20ac7ab09ab7f7ff2f4d89c6a2f52ec3"
+embedded = "e3af032393b8228d57654361c656cbb41ec2656ee10e7545b13b1f9b6e135cfa"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::io::<impl at library/std/src/os/unix/io/mod.rs:178:5: 178:37>::take_fd#3"
 kappa = "783bba35527729b8483f4b452365d30b82e78aa57178f28884560f33e0201171"
+embedded = "d17d389e2e3175dd2f1a236ae9931dd947aedadc54f0c3f19502234917fc2741"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::net::addr::<impl at library/std/src/os/unix/net/addr.rs:84:10: 84:15>::clone"
 kappa = "423b392b663e94796b1e72ae820594aa8efde3672c81ae2bfa82457982bd59ef"
+embedded = "19ef1cc14716b2dc09a5d591628148831470230f0944e85759ecef0972a84fd1"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::os::unix::net::addr::SocketAddr::address"
 kappa = "cb8ad4326026018efc74573888cb8e8ed4f505588a27cc3b0b9625446bc320da"
+embedded = "dc15cb1de3053cc728a3a39e3c94704cec1306d3080f4ac18b3a2f1549321923"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::AddressKind<'_>"
 
 [[fn]]
 path = "std::os::unix::net::addr::SocketAddr::as_abstract_name"
 kappa = "0b703b6161cce603e5e49a9f27a281453a916efb3b1d8b6105abdbae31bbaea2"
+embedded = "168cf4cfb1a0d04260731c1790c31c82342c51b250883b49d2fc52a32a983d07"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::os::unix::net::addr::SocketAddr::as_pathname"
 kappa = "2e1673213f974a8689e56293f7cfee3ed886b4bb8606676b7bf4953bf94911a2"
+embedded = "fa48e0b4bfd71b572e3af682c6801eb840ac089c63040a9eece06376ef8bd3d6"
 status = "residue"
 cause = "mir::Ty: path::Path"
 
 [[fn]]
 path = "std::os::unix::net::addr::SocketAddr::fmt"
 kappa = "98f7e53356d17f3afa3ad478660957434fc4045eefd603320d44cc749d98251f"
+embedded = "6f51572ca44910004264fefddd35ccce2c35a676a7c01b18cf1bc0e46112b845"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
@@ -1448,12 +1686,16 @@ cause = "mir::Ty: core::fmt::Error"
 path = "std::os::unix::net::addr::SocketAddr::from_abstract_name"
 kappa = "5d73a27765455b188ea4630b4c242e7e24822eae8a2c750d69eecf7c40eb6a79"
 at = "N=u32"
+embedded = "0aad365f7b7f334c7c63910a87170831d73975e6611df7f685abe04910cf492e"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::os::unix::net::addr::SocketAddr::from_parts"
 kappa = "9218921aed19fb38fa1a9e750b1c443b6e12d8cbc3d510d0bf1091b672d024c8"
+embedded = "848697007665fdf000e72478191fd52cb487e1017ad686f9a12eb19da7abb052"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
@@ -1461,12 +1703,14 @@ cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 path = "std::os::unix::net::addr::SocketAddr::from_pathname"
 kappa = "2d97c4d7b5e5359b9143e7c334f518ace475794348d120da4719079743c17c8b"
 at = "P=u32"
+embedded = "d1b9d1a16a07390ae3af1713ffa5a473fd930b7d5fb37ed37fa850fb605f48e1"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::os::unix::net::addr::SocketAddr::is_unnamed"
 kappa = "f0d3b1ac26d2c87a015771dddc1059f3cbc609c71d7b7f70bc6b093634556709"
+embedded = "a41da5a13abd64d91d0f2ea3548cc1f51a20405b73e0dfa173106732dc872830"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
@@ -1474,132 +1718,155 @@ cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 path = "std::os::unix::net::addr::SocketAddr::new"
 kappa = "372b859454e9c6292564a9bbc6d8e80b5239c38417fa274a0938586393749455"
 at = "F=u32"
+embedded = "74c6a901b5410c0300af5ed50594596c4df949692eff8d0611cef388c321492a"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::os::unix::net::addr::sockaddr_un"
 kappa = "f5d2d4812c41fce257de0deef441428820c0d489a5ac6f9cf5d080e4748ada7f"
+embedded = "2e15cb9708376a98e8ef4652f935f388a0be9221fb318e6591c1a625d2d29abe"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: libc::sockaddr_un"
 
 [[fn]]
 path = "std::os::unix::net::ucred::<impl at library/std/src/os/unix/net/ucred.rs:11:10: 11:15>::clone"
 kappa = "70d36952ca4b1b7e3889cb63c7df163c9b3defbb3b39b37e43a25ddfdc82b9ee"
+embedded = "6c0c968366e9f256db6c829504cea66a98fb990a33464f9f1246cf032f461af7"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ucred::UCred"
 
 [[fn]]
 path = "std::os::unix::net::ucred::<impl at library/std/src/os/unix/net/ucred.rs:11:23: 11:28>::fmt"
 kappa = "6682c35f43abfa6adec5c6c8e4985d29526fdbd30a5aaa80e8584834c5e45cec"
+embedded = "ad830afd58746ff7df780fea7b41066d0aaa0ff2520df65ad6e3060118d645f8"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::os::unix::net::ucred::<impl at library/std/src/os/unix/net/ucred.rs:11:30: 11:32>::assert_fields_are_eq"
 kappa = "cd861a6277dfcba7ad271687d4a4d31356facb17855afab650b24cc0972e10e6"
+embedded = "4856309b051e0111ae259940d342270de5df2ca0a8016175535c871733bf680b"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ucred::UCred"
 
 [[fn]]
 path = "std::os::unix::net::ucred::<impl at library/std/src/os/unix/net/ucred.rs:11:34: 11:38>::hash"
 kappa = "ece65210a65d788491b2338c293756faeb2bb3e1fddb34745d961e79cc7e2aab"
+embedded = "6612fb22ecbcae3babc32e81b39f3481c57e0b78a134df1f334290a745df907c"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ucred::UCred"
 
 [[fn]]
 path = "std::os::unix::net::ucred::<impl at library/std/src/os/unix/net/ucred.rs:11:40: 11:49>::eq"
 kappa = "b59f1994832c1689b2982c99f213b84b322b4c779f9e84db8a390b5ec85b1457"
+embedded = "150cfd004020bfbf17721515e0c2d3a9ce1b04ad3bf05f0278e25ce6486aa12b"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ucred::UCred"
 
 [[fn]]
 path = "std::os::unix::process::Child::kill_process_group"
 kappa = "f88649d3b179cb85e77b35cec74c30c7aed3f87bece773dcccc9a777e8333079"
+embedded = "55facaa2b193f272c07ae0298e8be83d225a4765c007b660f2bfcde5e0c3dde2"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::process::Child::send_process_group_signal"
 kappa = "40f758d8d8eb773d2a182a5f03aeb6ebe164982c7c386e9d2e8d5127753c58bd"
+embedded = "5b8162a74143b7b65ba2d1e1b7d9dd478fbe8cbf88777e337aa54ed44c71a7ae"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::process::Child::send_signal"
 kappa = "cc747c95728144c8bf66224cf760cff96cd5ea1ec1c82d48637d7bec8ae1c050"
+embedded = "324521c3e4aad2c0edb8ae06c35f501620d9d1b4e1d243a5b1a6bcdd93dc9635"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::process::ChildStderr::as_fd"
 kappa = "af8bc5c3f35e2b3545301c6cc924dde04efbd452052b451b23a6287821b1ca74"
+embedded = "20f7f0de34558bc99cadb81d4679e434dc243d68378d6560764e06e6e386c7f6"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::os::unix::process::ChildStderr::as_raw_fd"
 kappa = "4899878b6b7c6d65ea36b43b9d5ed260f8444e17b6cdabacc1192d17101fb008"
+embedded = "3588cbc3a91a17e585f182dfe8c59568d2ae6d29ac6e00e8bf19e96e33aad346"
 status = "residue"
 cause = "mir::Ty: ChildStderr"
 
 [[fn]]
 path = "std::os::unix::process::ChildStderr::from"
 kappa = "644db0dd35990a52a4476a98d6b2d8c36e53abe47121cd218b52e3db2d07073d"
+embedded = "829a51cf1e81fcc31e06d792b57e154c67cc46bfac99ad6f5c94a1c09120c993"
 status = "residue"
 cause = "mir::Ty: process::ChildStderr"
 
 [[fn]]
 path = "std::os::unix::process::ChildStderr::into_raw_fd"
 kappa = "b0127c6cb3fe39597b3628bb7eff4891d3f02991b1e83d3b668cb0abf9356274"
+embedded = "f056cccf1dd2f0b5e56feba3a45542e9df8ac8e180f470ae2f3000bd60558b19"
 status = "residue"
 cause = "mir::Ty: ChildStderr"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdin::as_fd"
 kappa = "c9e9275f8d30f06fd3f595330004c3c7d158c75cb1e0b50e36264af8c7edd9cc"
+embedded = "edb74cb56c2f76bb790e69595077aba13c4a23b8f976a429dd2da1914a28ac96"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdin::as_raw_fd"
 kappa = "fbbbf4323d9d9e0a14d22bd032e71efa85917ebd4f02a9d302a2a6ae1a955e9b"
+embedded = "4a27db2cff7cb8746642077fcb33e51b936c1e913e93ce7d9014b19efc047a3a"
 status = "residue"
 cause = "mir::Ty: ChildStdin"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdin::from"
 kappa = "b03688674d2bfc8fe93d69dd1d7c8d8e128ffb01c03b410698c958f65115c641"
+embedded = "2ce918e3edda73d5105c7aff850ddd4f86ffc47ca79a5b8b180e25495cd92c62"
 status = "residue"
 cause = "mir::Ty: process::ChildStdin"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdin::into_raw_fd"
 kappa = "6348729ff9936c8fd01af160215a0bd2a942f83a1c44c589cd944877cbd75291"
+embedded = "fdf4e5ed95f42d45f9f6189611bc55a8d91fdcfb08a696e039b16b7594a6e40b"
 status = "residue"
 cause = "mir::Ty: ChildStdin"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdout::as_fd"
 kappa = "f98e0c5137bef7e9aeab2685e7cddf0178b6cef40261d896abdbec629a3119b4"
+embedded = "929b6f72999af082220978283694c675cab02af60df9e043b94d076909540146"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdout::as_raw_fd"
 kappa = "3050552ab246cfe6561ab39573d1c2d8902673462f5f3c75a761c4470ee12bbf"
+embedded = "859c8f8fc0003d2d50a4e5960752b6ce69c1d52364a6ebab2748ad4465efe42d"
 status = "residue"
 cause = "mir::Ty: ChildStdout"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdout::from"
 kappa = "3f05541f9f69a12f74c10c35c5955d81f60b7507b994bd91356daa58a2ac0fff"
+embedded = "2aab805623d4c5386bf89f7c3a2bf797535040d0259857950cc4d2b32dd91a80"
 status = "residue"
 cause = "mir::Ty: process::ChildStdout"
 
 [[fn]]
 path = "std::os::unix::process::ChildStdout::into_raw_fd"
 kappa = "18c5cafaf779f52f84cc6ff371f48fc1ed68bd1f6e8a339108e9cca0ec5dcabe"
+embedded = "9c5595608e2c09b2201c72158d0bcdf810eaafff76b72df48a74eb68ecc10f8c"
 status = "residue"
 cause = "mir::Ty: ChildStdout"
 
@@ -1607,6 +1874,7 @@ cause = "mir::Ty: ChildStdout"
 path = "std::os::unix::process::Command::arg0"
 kappa = "00174632149afa37db5f32608253d9514a3e8f31f03aeb73bfc6401868a78aa7"
 at = "S=u32"
+embedded = "bc79f6df7269c743f9e5d2a403ded8ec01e6effbf6a72d36df0e6272a067c322"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
@@ -1614,24 +1882,29 @@ cause = "mir::Ty: process::Command"
 path = "std::os::unix::process::Command::chroot"
 kappa = "e2aa60397d5473e19de77ba43dac30ca92ad5ef5813e27d70a620c5387cfd338"
 at = "P=u32"
+embedded = "d92ff0afceadce922af2df2bfcb39c7774c92f32f14d9aa4b7e1336fbce4b2a1"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
 [[fn]]
 path = "std::os::unix::process::Command::exec"
 kappa = "a5a7aa214fe5aacb5c96ce3000c2371406c63253868a0a7099c238a49277128b"
+embedded = "fa42295519eb2e0c756bf01eaae38a63d7b1003e538394e54d5abe96d989194d"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::os::unix::process::Command::gid"
 kappa = "6cfd08163b2feff03de7a23a9447ffc79140d9e1785702474fdd9fc85e03bc73"
+embedded = "2777d52b868c6398d57c121ec41161200a60104f3eb1509fbd48cce68338f4ac"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
 [[fn]]
 path = "std::os::unix::process::Command::groups"
 kappa = "a8533f9b5fab0f6f309e44bd47a4d88c123f17c2bf78617672126d29d8488681"
+embedded = "6e3db224cd7186c5d3a7f9bd60e33e442e4202aab7a9d2e7d354e09d2c2172d2"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
@@ -1639,24 +1912,28 @@ cause = "mir::Ty: process::Command"
 path = "std::os::unix::process::Command::pre_exec"
 kappa = "486eb8dc3be596aa9fe209d0a4b558de702e538d93c811e17f63a14b87583185"
 at = "F=u32"
+embedded = "31711ca81ab74750a2e83fbfb30e463114de46e7ec900c80a922053abcdd43b6"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
 [[fn]]
 path = "std::os::unix::process::Command::process_group"
 kappa = "00896773bc4eab2c4ca07da7a4733a89f07cc7e00db13fccac5df3e69b465af4"
+embedded = "32d25e5fb56a44c39a23dd6e63792b0478e8cb372afd08282034fa20f4ad020c"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
 [[fn]]
 path = "std::os::unix::process::Command::setsid"
 kappa = "0e979e4d145850b43c504fe9030ae83d095dfb1ff176289a0753824932b0686d"
+embedded = "15a44ac623b55412651569300604ec9c37e94508f8e6d1d012b8a391e4c6c144"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
 [[fn]]
 path = "std::os::unix::process::Command::uid"
 kappa = "1e51858280f77166d693aced8dc812830373edae6e5c699bc5ed2678aab9e8db"
+embedded = "690a75682bacd6377251bc7d98f050006aafefa42fdb167e93b2563c3907fbfc"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
@@ -1664,108 +1941,128 @@ cause = "mir::Ty: process::Command"
 path = "std::os::unix::process::CommandExt::before_exec"
 kappa = "2daa521b215e1ba0faf6d64a58102231d2cdfa8bca760d79bc942ef9011a9bee"
 at = "F=u32, Self=u32"
+embedded = "0b8f7f70e12bee0b2f9866f2ca724d9f8c3cfd2f595c517d30b098800bce8405"
 status = "residue"
 cause = "mir::Ty: process::Command"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatus::continued"
 kappa = "b481dc11e6f9333c66ceff2e9d2726bd58d92a99b3c6b26e5e28097201a03463"
+embedded = "4fd4e8457f9d25832ad01c3f8358dc346ddb117653461bc44df772b75ed77234"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatus::core_dumped"
 kappa = "74aab9d360b45b4105c19d1da136c2d9f9941a1234ca8d6ca5feeb8533798950"
+embedded = "6cccc2823bc0b69acd9b4245c49f07328758246397de311a7f66d36f7bf0e48c"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatus::from_raw"
 kappa = "ae7ee0cefa2835dbf11a74d22e7ba871e6a99a0a68c61913081048ab91cd5454"
+embedded = "d70b8354d509d180efba12673282c87a863fe6cb1baaedfcc0d3184abda12632"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatus::into_raw"
 kappa = "6d8a89177f93358d519c97391e7b2e8390cc564e245127c66c12ace470932cea"
+embedded = "c89aafdb68aa954d6a3829692d3347cc383a04f5730de948441d95e7ed2e648c"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatus::signal"
 kappa = "8f86d110e7210ce2e7859cccb4a8b3780e89e61fd3cece68d83214b2f78f7b2a"
+embedded = "b53b8143744629715321eefc5fe1e495264c5df67e79a85ace2a08eee6d1faf7"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatus::stopped_signal"
 kappa = "e4c63650dabb76cb9a8d978cbc1b1e618da78bc3ce1a0def24681c0487d91fc4"
+embedded = "9507e1df14df21cfc35c4424540fc2fb55f4b2b746ed094f0a2dd93d429690ce"
 status = "residue"
 cause = "mir::Ty: process::ExitStatus"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatusError::continued"
 kappa = "ae7a35794ee2660bce645429fb1b60a818d86d9a2e53918c1370be1d0aa37be4"
+embedded = "a922e3d9678ea70d65c9fa721974f968f3b9eaec306631d4ae450b6a87a0f453"
 status = "residue"
 cause = "mir::Ty: process::ExitStatusError"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatusError::core_dumped"
 kappa = "a2f951b3fdebf94b4c370b9f385b807d61e0876d6891cbf2b2e92b4ef1c39d7c"
+embedded = "b7759423033d3e05b7b662966a45dfb446b0941abe61a27378644632ab60d86a"
 status = "residue"
 cause = "mir::Ty: process::ExitStatusError"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatusError::from_raw"
 kappa = "8e18538ac63e517b2c9fed3eb46831d4f251e2ae1813c5a21b20bf7b7e91d509"
+embedded = "c1cd56c3b99b0f4101ef403697bc72cf299923df29f8f6420fdb77a779e12546"
 status = "residue"
 cause = "mir::Ty: process::ExitStatusError"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatusError::into_raw"
 kappa = "f0473fd71da300e3b23956c356872862c7545abc4e938a495ac8de163cbf51a6"
+embedded = "d64fd5b39cd4fa651e7de1e77b18e9943c3ccb38e7dc6558d027a7fc35dad3cb"
 status = "residue"
 cause = "mir::Ty: process::ExitStatusError"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatusError::signal"
 kappa = "0d0fc02cb29405b9ce02230237e8f589c42cbe47073083a0c0c7ba285d2883ba"
+embedded = "ec821e21d335f27b5e44e3e71ac364a55f4858352c8d4af4c3ebef2394fabea8"
 status = "residue"
 cause = "mir::Ty: process::ExitStatusError"
 
 [[fn]]
 path = "std::os::unix::process::ExitStatusError::stopped_signal"
 kappa = "65e1b801e985f70ac97746952a0dcfd2ade68484b874394113df7b83774a10e7"
+embedded = "d35b4044b6c61669f7889c1265bd06a13507fe0b989db704027072909b28778b"
 status = "residue"
 cause = "mir::Ty: process::ExitStatusError"
 
 [[fn]]
 path = "std::os::unix::process::OwnedFd::from"
 kappa = "07ca4d341badfca414929ad33bb10f44d1b1e727a1e50823cd44fd39fb31307b"
+embedded = "b442e2506cd4d260fadcb74a3223c1810c765ceae8d2bf00907ce5031701c8b7"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::process::OwnedFd::from#2"
 kappa = "2b20abc9b84169ec9de6cc5307b03b762d3d6fb3e3b6e11e9e8da59c8138da7d"
+embedded = "8319d006dd336154d6e26c7ec094081867dbb32fbbd65387ceaea98e59b0e500"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::process::OwnedFd::from#3"
 kappa = "b567972a3867bafb5a6499b772e702bec12ba832b0586607645d5c7a46736f94"
+embedded = "01d3a818a8be864fe07632cb0fd9906e27e49171275b3dc699764ba8a1917e00"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::os::unix::process::Stdio::from"
 kappa = "da36a57368e51d2fa0f750b18b22e3285a92e20bcbe3e3ea59ddd002530fdc13"
+embedded = "bb413ec869068788da89fc6ddbf5ef4100759b24ec721127b5216780d05783e5"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: process::Stdio"
 
 [[fn]]
 path = "std::os::unix::process::Stdio::from_raw_fd"
 kappa = "a08b6ff74e7e7d1d258a82057307153bdcad823dc014caf9d47d52ed14957911"
+embedded = "12d6c3d2db3277b5981560a3f92c9388a33851c5c8a6478949928f21809622b0"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: process::Stdio"
 
@@ -1773,6 +2070,7 @@ cause = "mir::Ty: process::Stdio"
 path = "std::os::unix::thread::JoinHandle::as_pthread_t"
 kappa = "e981e6b97bbcccc1d0e8febf0a0095cf320a309ee1b032be9f4da3e52eef0ee2"
 at = "T=u32"
+embedded = "890b85f94b19e3d5f621e4cdffb66ec886e9b5bf43252cd38922d2dbee27b9fb"
 status = "residue"
 cause = "mir::Ty: JoinHandle<u32>"
 
@@ -1780,18 +2078,21 @@ cause = "mir::Ty: JoinHandle<u32>"
 path = "std::os::unix::thread::JoinHandle::into_pthread_t"
 kappa = "c526c05703bc478f2fb90925219fe70aa9d7045666f3489ae7d4a2f334ef920e"
 at = "T=u32"
+embedded = "747474865bd662292b9d7c62214c48d4e42582ccee665b63adff6a7071b4b9af"
 status = "residue"
 cause = "mir::Ty: JoinHandle<u32>"
 
 [[fn]]
 path = "std::owned::<impl at library/std/src/os/fd/owned.rs:244:9: 244:35>::is_terminal"
 kappa = "73fd77692b3f70cd8382c0774d57f5e9c240f69e612554187077d8d332054d93"
+embedded = "2d7c021741a627b985bb5101f7091753aa41280ed2f091fd97ec9bd1d17a182a"
 status = "residue"
 cause = "mir::Ty: owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::<impl at library/std/src/os/fd/owned.rs:244:9: 244:35>::is_terminal#2"
 kappa = "6349961edded5c159462257b9f656a6d505e34a400a07d68eee7ed855c6918d5"
+embedded = "63c05da8f3f527ffc90b9772ea28d6eaf470c874fd0b21090b957ba999df5f2f"
 status = "residue"
 cause = "mir::Ty: owned::OwnedFd"
 
@@ -1799,6 +2100,7 @@ cause = "mir::Ty: owned::OwnedFd"
 path = "std::owned::<impl at library/std/src/os/fd/owned.rs:282:1: 282:35>::as_fd"
 kappa = "cc631dc54848b5fd9a843bf54170240340a6575386d1744f8fa1eaf0c8612131"
 at = "T=u32"
+embedded = "b1183e37c00f2a376d63bdc0e34bef01be263d4a6a6c627956925b43d83d9df1"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
@@ -1806,12 +2108,14 @@ cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 path = "std::owned::<impl at library/std/src/os/fd/owned.rs:290:1: 290:39>::as_fd"
 kappa = "c8605985afc686f054a44b6cb1c44187358ddc48ef21af8f3552ec7e757d3000"
 at = "T=u32"
+embedded = "d3811fd6bfdeef325cbce3a909aa16121d18d641f1179d75c097213dd0840f3d"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::<impl at library/std/src/os/fd/owned.rs:47:16: 47:21>::clone"
 kappa = "f3882831100edac3e692ac25ec60828e1de45f85425189fbb7451b904ec96421"
+embedded = "3c45b65bbb7aa2218214f25fa5c0b7c6cff6d6015b10e60bf59c3e8ef3d791ac"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
@@ -1819,36 +2123,42 @@ cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 path = "std::owned::Arc::as_fd"
 kappa = "519cc1a438f50005b038a7252371320ab9670ab6331342364d701b3e59b52a0a"
 at = "T=u32"
+embedded = "5f541d97dd471163a8e1ae4b43a722a4f273f75886c513a5fd306b6abf1afb97"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::BorrowedFd::as_fd"
 kappa = "60fc25bb5322f937140cc5f148355203acf8c31b6d9664ec3fd0143ddb67025b"
+embedded = "5dc81f88ad0c79387648d1f81497254ffa4ddd6b20f584c79fec4b242966c386"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::BorrowedFd::as_raw_fd"
 kappa = "49cbba6339f0e177320bf96fe9a1efd21b9d9d1b759ff7c03ef57dfec17f75b5"
+embedded = "3f9c7507648fad6d5b8d5e404eecf28fd6a6b3e1eb5da190c0298e611888698b"
 status = "residue"
 cause = "mir::Ty: owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::BorrowedFd::borrow_raw"
 kappa = "425d3f41f1e20eac199349ce60c1b2277df7a2cf1b709357b16199f3f2672070"
+embedded = "2dcd8dc4188629d964de44a25c679fc55177e17cc40229d1960bbc712c4aa000"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::BorrowedFd::fmt"
 kappa = "449479b4b69a0384081494b2a60641e81d1c62844f33e0a0dc7bc85c3ecbe6ce"
+embedded = "44c8e0ab5e9741b5760d29485959af42795e14b53b081ae78c0fb0899acd3363"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::owned::BorrowedFd::try_clone_to_owned"
 kappa = "334f132a1296391ff3b39bc67092b622e48da0a018706c6859bcc5876a08a9c0"
+embedded = "5d59519db9eefaece298383ba44e2206ab3594cfe4b19e70c97e02e118689feb"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
@@ -1856,120 +2166,140 @@ cause = "mir::Ty: os::fd::owned::OwnedFd"
 path = "std::owned::Box::as_fd"
 kappa = "322c52f69b999fcf2b6fa827a8c18eda16723dc236392e92b7245ddff414f526"
 at = "T=u32"
+embedded = "4d0cd030a2a9c2baed8c980baf7dc3c8baec21724a2d2b97eaa874fe4e572a1e"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::File::as_fd"
 kappa = "af1180165af8df6167c1359ef1887b37a7f6ad30381d41a8c773062196b2a082"
+embedded = "01f1bc4ca63b6ede7dfe284cfedf9cdbb74e1d475b4b82bb3d6cc0ca2cfbe449"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::File::from"
 kappa = "2933ace342cf5c40245b8a3ad276832020575c5acb77511521b4d0167795d1e1"
+embedded = "e04ad2ad39ea27c9e01b12cd488f88447e400f771b644394833919400a280450"
 status = "residue"
 cause = "mir::Ty: fs::File"
 
 [[fn]]
 path = "std::owned::OwnedFd::as_fd"
 kappa = "414e0db0df855a6898cffeb6d309976f646707c0b6016a78c3729cb4ea1c14a4"
+embedded = "3e27d730a45622fe87222ee3bd24ff33eff20b518537a9cf03a9ecde503607f6"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::OwnedFd::as_raw_fd"
 kappa = "6d65c88f522b61f3a2b5a7c71ba953cfb24b2fae0e05e6d402f78fe7967194c8"
+embedded = "8a55d6ee8734b0d4d9418b3cb89b1d93e6860eebe4d88da2aec432cb7ce196f0"
 status = "residue"
 cause = "mir::Ty: owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::drop"
 kappa = "4f08936bf29d14e757ff0826bae62c1be16a9af75265e5a41974a640b2ec27ff"
+embedded = "7383ad1afff382563b24a2c81c09a1453c5423aa642f932f6569c0b4649852fb"
 status = "residue"
 cause = "mir::Ty: owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::fmt"
 kappa = "e3dead76fa8e90a3fd51cd06904f4bcfd265ef129e7e16b21b50034c9cd9a5a6"
+embedded = "eb60184e415abe4afae7a0fe229c9e04a8c13b1b6ff26114c535958423e0c466"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::owned::OwnedFd::from"
 kappa = "73dfc07b7942b8ea96d243c85a54361ff1f30d5bce3eff19d834ab2974fd20c9"
+embedded = "2d6a005e24b5f0961724e3bc93ac8058b5c8e3c4c9d798807a11f89043ff5ab6"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::from#2"
 kappa = "1783cfb726fcb7b73de9effca1242c590cd27a66bc8f9d78eb3eaf1a774e04ee"
+embedded = "686f404d9e9beb48643450f0fbee4e99987dfe837c422df6f9020057b360d064"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::from#3"
 kappa = "1141c8d8332c05f86e0d398b55531d5e102ca9094680d5c2cbf6cf43cc95d802"
+embedded = "0035460e918cd150ff25c87ac8798869e24ace69ee575146fe4493953e691179"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::from#4"
 kappa = "8a599207883a0a9069c343b69cf625d8f95608371542417b5bd3438c94440c61"
+embedded = "5fc7c66dfd5e5aa463e151e3483d274312d6d760e8f8da136701ddc4408f0932"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::from#5"
 kappa = "1855404db159c122d2af69f7754139382caa950e94480a9a78c0681bc2c9503d"
+embedded = "6ac9670495a657c1be5b3f29d30d5f44dd47b215f2e0b2e47e3dfbdc054379a9"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::from#6"
 kappa = "fa2546389552fe17b7d5ca99de251d7848b42839a1e4ac3932ed7c819c44d6aa"
+embedded = "59b0326033e58ea5272e9c886849fe3a32b0e94a475f751892b1b32d7fa63bb0"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::from_raw_fd"
 kappa = "132fe25266f7e701d148a4c3100cbac6d07830a9f38aad512006c3e6939fc539"
+embedded = "875902dd71706db4c2362226129caa6c57dea6f9711c283fed203e2e80f31529"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::into_raw_fd"
 kappa = "d2263c99aaceb9ab6b5c9fb2e45b6c9f416ceb8e3bac768c3d7920b195580102"
+embedded = "dab0147e0be782a8a54ba898e3bd9194e1bbcf5c7c20094c1fcb090b0dc17a66"
 status = "residue"
 cause = "mir::Ty: owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::OwnedFd::try_clone"
 kappa = "b7b908904b3d1697829aeb96fcb513ef373ae3744a952cd7da065e1dc69ca313"
+embedded = "064c0a86dbac57b816fbb9e2541283b53d8790f0fa4337dec0d89a4042d9ce07"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::owned::PipeReader::as_fd"
 kappa = "2f419c3beb93829c0a6f93c2bfec0135c124ad9c0fc3568e850763e596b6edbb"
+embedded = "29740ac3d10e309cf1ef57b7a51e1b1acd1ee8ab01b01d9cc0fa58c3dc9d4323"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::PipeReader::from"
 kappa = "d721e44a87e1f13c53a912af4035a1f9b0ad8198f50cee5a4fffa48c5fb3211f"
+embedded = "a0f6cdae1989ed11f50e1f105fdae9593b448245eb152bbd9f19d4f1b1069083"
 status = "residue"
 cause = "mir::Ty: io::pipe::PipeReader"
 
 [[fn]]
 path = "std::owned::PipeWriter::as_fd"
 kappa = "1203135f7badc3490b6db828e018e468614fdff90150974e2468a9b462f6451b"
+embedded = "38805f7278acc948eafc898c1d5dbf4ae191c50efe21cd18f967d41d7c8a45f0"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::PipeWriter::from"
 kappa = "e395746c821167f8fe593318f247285afda526413ff155ddd3d91396e6b9657c"
+embedded = "46bbf50f721f5ae6599242eeadb59bba0d7ec508d4ad791229bdd7fa80e3b193"
 status = "residue"
 cause = "mir::Ty: io::pipe::PipeWriter"
 
@@ -1977,78 +2307,91 @@ cause = "mir::Ty: io::pipe::PipeWriter"
 path = "std::owned::Rc::as_fd"
 kappa = "4f49efe79be1c6cb7e23edfafd70586d4130089b2dcae02df985441b7a7d9338"
 at = "T=u32"
+embedded = "bf00574977ecce72671dfb8d3274a5d7f0b8396e4d7bc99b4ce7751aa687e01a"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::Stderr::as_fd"
 kappa = "b77aae48ad8de87a4be2cd6a64bfc427475779a6c6de558f2405562b680dcdc8"
+embedded = "f6e5e18674402758ffbd7cec572575ebb96a87624962502de3ea82a72235b472"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::StderrLock::as_fd"
 kappa = "c20710860e414ee4ccb9dc85780680eaab4a48cce8a72d6cd7a50ce625207a98"
+embedded = "0bb6c65b98941b6a0fc41cd8158dadce17d9f4b6d60ebc225b292f2e1afdcf4c"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::Stdin::as_fd"
 kappa = "5d5f29cba6e686cb938886fd5163569b11ca275fcb45c8698ed9f79c0ba772d6"
+embedded = "5b549c0c1b8963e91b88834ac590ecfbb40096b28cb1b0f2cd402229940af2f6"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::StdinLock::as_fd"
 kappa = "b4828b1f466bc1813721db2913ddb2e6c1d33b513fe79b7973fdf724fb329a13"
+embedded = "e4b18387d9011d4050979478e851b6d9f70209f9add39d84303fd49559ff0043"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::Stdout::as_fd"
 kappa = "e2bddbb57e74d9e14875c0fbbc22ed7e34ea38cd35085cd6c73888a8f598e991"
+embedded = "de77da7b3109daa23d2aed4c33789b8be9567449a16b52101a2c8464e125918c"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::StdoutLock::as_fd"
 kappa = "42a701f353b77b95a0db36f2c18e8d2f2ee0ee9060c2d40cf5f812577dcbcf1c"
+embedded = "4cf0e34211fa96165071adb5664586bdf98df954eedeaf6ac751b88de570940d"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::TcpListener::as_fd"
 kappa = "33d79325a9e66cf6a5458f17b3845ec88b34527a42ff60f6773e93255a2afe74"
+embedded = "b86e545559bc15241be2a2a997df56c1342d4282363ec33538320e932131a4cc"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::TcpListener::from"
 kappa = "9c4284ac40022aa037efc711df04957c9fb1bdf119796728e59d74f13bda793e"
+embedded = "c7aca85d7a2fc0530d4c1fc5e276858b198b8c29d49a5d1e66e1161bb931c557"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpListener"
 
 [[fn]]
 path = "std::owned::TcpStream::as_fd"
 kappa = "1b879a13df039c7c213862bdfe640b29e604e9375a8a2bfe7bad81b26b26f38a"
+embedded = "dafa91e538567353c0132abe06bff615b882a4f509ca854e9e05df09a3a6c59b"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::TcpStream::from"
 kappa = "d3db52df4a757c5175af38750a4f37c369e28a7712d8db1993391f62dfda86c7"
+embedded = "d67b3d16e332d0631e0910777f90b30f638018f6ada5afd9ee3edb764a18d6d7"
 status = "residue"
 cause = "mir::Ty: net::tcp::TcpStream"
 
 [[fn]]
 path = "std::owned::UdpSocket::as_fd"
 kappa = "cce5107322a5c4dadd4850bf658f7cce9143110b24458ad26061ae14a4fcf293"
+embedded = "e0d083ad7155b7440f98ba0aeae5775ebdbe544abe05ca914420c03e47d5cf07"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::owned::UdpSocket::from"
 kappa = "4cc50d9f46fc041cd537e402d4599a779c14b568a384918b3ba74f83d6d5c697"
+embedded = "e638e798e8c423f1726b89c36681ebe734192836ca0a54cfda4d17f1552e8c4b"
 status = "residue"
 cause = "mir::Ty: net::udp::UdpSocket"
 
@@ -2056,90 +2399,105 @@ cause = "mir::Ty: net::udp::UdpSocket"
 path = "std::owned::UniqueRc::as_fd"
 kappa = "5b879bdecaeb81841a0634227865f8eaef82daf71d21b081545714081b9055d5"
 at = "T=u32"
+embedded = "17aec4aa4b27fe1b839cf68e12c18287e5c308aeaa4db681baa982fb4509eb7e"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::parent_id"
 kappa = "1c2dcc8c053c6a7ac29dcd3afeca08ff17f079d48ccb3929fd47ae29cb15d4e8"
+embedded = "ad8ac097ae68f769d7e91c2d4bcb90367120bde025bbf30749c5a6b650ef39a6"
 status = "residue"
 cause = "mir::TerminatorKind::Call: sys::process::unix::common::getppid: std's MIR stops at mir::TerminatorKind::Call: libc::getppid"
 
 [[fn]]
 path = "std::replace_stdio_fd"
 kappa = "73ac47692911f438951a3095d07be2b0c85f92172ebb801f9e567b84be24c0ee"
+embedded = "71f85e47391770ae295d66537f35910f3eed74d47c16d8a13516bd3c3c557e7b"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:635:1: 635:37>::is_read_vectored"
 kappa = "0c02d4bae2fe8f47c6a4971d558b17eee3a892c1d049fa6ea4221a968f290382"
+embedded = "8cd4e6203947c7de478abcf1159b61148bc61d4adcd43af722c9dff282bd7918"
 status = "residue"
 cause = "mir::Ty: stream::UnixStream"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:635:1: 635:37>::read"
 kappa = "40175a17dde44f9d28c28d4c2a48255b183c7709394c6245121a8bfa46acd09e"
+embedded = "ff669919882d54ef6e53abd539d493c76e97e63b5c031e92c86f71a776423e4a"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:635:1: 635:37>::read_buf"
 kappa = "7c51dffef9a021f34c5dfbb37feee9b175c146a3b360081515486c1b1a78f5e8"
+embedded = "dede03a4363ed21de8d81dedc823a5c396856616bc5702e7b3f6f81816853ff0"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:635:1: 635:37>::read_vectored"
 kappa = "23ad3e828436e6e61d20b5d68672173bc67ae7a2432fae2f05fadf07215f7b71"
+embedded = "43a4578ebffa73af9dd1b01251136219d76c7444f5382809663f8470cdc90e53"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:675:1: 675:38>::flush"
 kappa = "bcd93ad2084b85e5cd071ed1632746fcb8d8ed76669b31ecdbfa18cc714fa1e0"
+embedded = "5a8c5564d8027ef69945933ed081f8bf02704716be6875c8fbae88b03319cfac"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:675:1: 675:38>::is_write_vectored"
 kappa = "6283bd724171fb10ad8fac2a16437a52b25be916dc063e28d5d86f8e11d37c79"
+embedded = "e58556fe0877e50844fa8c2ba741a07f0272cedc3dfc17febe17eb0cb647246d"
 status = "residue"
 cause = "mir::Ty: stream::UnixStream"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:675:1: 675:38>::write"
 kappa = "9defd0f2ebb207a7e36efbfdb1b578dd16406c94064a3b19c0fe94a4281d9127"
+embedded = "5b5358e69e9b66b30b713158fcba4376fa401c48ac5c5ff2184ccc0736bbf3d2"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::<impl at library/std/src/os/unix/net/stream.rs:675:1: 675:38>::write_vectored"
 kappa = "cd7df5e7a1231c3a3cdaa77b3f6453523631484f04596c517c1f8990d0be0658"
+embedded = "8986961f033ef06df95cbb6ee2140239bdeed00ea69b4f14ed773d23161d5c32"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::OwnedFd::from"
 kappa = "71fded134dd717292e8a13d3237f123ff37af916862af3c11d22c92553462260"
+embedded = "a783701e1015f4b4b16151662dd47455a446e2e8975c9f99158502dd2aa78b08"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::OwnedFd"
 
 [[fn]]
 path = "std::stream::UnixStream::as_fd"
 kappa = "fd93c65e0c7ea7871fc5312dd435b804a12f7df202f220a0c22089a1723b23fa"
+embedded = "7411f4b0f2e5535479229ff5c75de769cc462d369493e13aadd2adeda39ad143"
 status = "residue"
 cause = "mir::Ty: os::fd::owned::BorrowedFd<'_>"
 
 [[fn]]
 path = "std::stream::UnixStream::as_inner"
 kappa = "18c9374ebc77abd74271741b62aab9765eb9ab79a751a9a16ad80de05478c8ad"
+embedded = "20e10ad0eb0d864eaabf921f55360779c8e87270fe4308fbfdc84b24783d85bc"
 status = "residue"
 cause = "mir::Ty: sys::net::connection::socket::unix::Socket"
 
 [[fn]]
 path = "std::stream::UnixStream::as_raw_fd"
 kappa = "0ffee7fa687a1ae6cf3e484d2a20f30bd4b497f9887556064633b6bd8f818568"
+embedded = "f2a55f240329989d48a9c9a3be7f2b24ebbec002b650dc3146c768d28ab0eb70"
 status = "residue"
 cause = "mir::Ty: stream::UnixStream"
 
@@ -2147,180 +2505,210 @@ cause = "mir::Ty: stream::UnixStream"
 path = "std::stream::UnixStream::connect"
 kappa = "a3d314fdcc431f7ac8579cfec185fc743ea9c2b58c45b0cf90fbbd5a89b4f5f7"
 at = "P=u32"
+embedded = "696311ac64c97d88146dbf368e48f97e41516b918791370f8f2f132c828bde74"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::connect_addr"
 kappa = "4c03314fe37b0998ba508fafe10f5c53bb443aa8d3dac0f5f90e3d648f8c133b"
+embedded = "ba646ec6223a179f4cc9dc688edd7a8a129cf8b3c4ab8b01f50ef054568df497"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::flush"
 kappa = "1a0f8380a9ecabe3fd20713dd3440653bcf1955b9de397a58d6a3f2c6ddab7a8"
+embedded = "2bc65a9c88c009243883bc1504d9f0746d31264acbee8da6d052b3b28ef57600"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::fmt"
 kappa = "797f06c365b4efc65275ea2d9175f44711d236dcf4f1259c126bb4dd990b20d0"
+embedded = "8f9f8bd27a14324e1242711697ee7a7d4abe7edbae27bc83a1e798cc7efaa8f3"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::from"
 kappa = "a74f169d5baed66d0f61793d285a81989f390160dca4267009052571dc25d430"
+embedded = "53e5d4ec4d2d35130ed0ac6c1dd86b869d0c955235ec21f960bf2f4aa73a51f5"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::from_raw_fd"
 kappa = "dd79af577d6af9b5a7afb2c5898cdc341f935ccde9bf1c35e5522a4a96036bb5"
+embedded = "7ee274d9fb0c88b74f168f4104f6406c8f62ce39ae16baae9ff5b731163c21e0"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::into_raw_fd"
 kappa = "934025a0d7e591af0527e80eab336b9d7419da4367249b21f23209a572aac5d9"
+embedded = "bd7d041eee406717f17271a2a8d69f80696a1ec964f4f834db1e700b4475c99f"
 status = "residue"
 cause = "mir::Ty: stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::is_read_vectored"
 kappa = "486de159b959e4594add4f2d28df948c76f2f008a9dc6e1a99cac5b28dcd3a0f"
+embedded = "71d3204a714a48d00d618c52eeb21f66df765794f3c1d3a5b0a0ae64e1aaeda3"
 status = "residue"
 cause = "mir::Ty: stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::is_write_vectored"
 kappa = "80431a2d39a06c5f8a27fa0a043332e94b55ffc0034b2b31176c654536a90ea6"
+embedded = "32f45a307e9933d3a8450d36cfceca92a588b180217c6da8d6bbb69971a05f7f"
 status = "residue"
 cause = "mir::Ty: stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::local_addr"
 kappa = "9d1909a3c4802728861aeded0a1e5e22a5dac82c1f47b5d49a51a21d57d615da"
+embedded = "1c47a7a2e9d1880b07a14092667729415a23692ed2be54d4898cd49b215c253b"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::stream::UnixStream::pair"
 kappa = "b367ed01c7b7276d880398a4e2d6f96f4eac1109e4b9dda265497da57f05c2ec"
+embedded = "3817181c046c38a54dc906b5d3773a28576d57fab4cbf5c6dc5eb01373ff0378"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::peek"
 kappa = "2b53e1ba92c790af83c7cea83e0c08bfe9cac3781f2a19d1bbc1fe017d27108b"
+embedded = "37a600e2c2de79680f64f1fa8f84bc83b50e6f850cf4e1c197c5a92a80da7303"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::peer_addr"
 kappa = "84ca2143eff5a267ec4ee351af55372a12b1282c7f31d767ef11cf618d608e74"
+embedded = "7b31a7061a942b50d078baf815b5fe7d0857b92f9e3e5547496780d4ac482de1"
 status = "residue"
 cause = "mir::Ty: os::unix::net::addr::SocketAddr"
 
 [[fn]]
 path = "std::stream::UnixStream::peer_cred"
 kappa = "b52a5c549579b28d35754d9c528b4ab5cbf6dbe3836647cead20ba10d9de074d"
+embedded = "9ea524d2e37d4f481a6a113ce3047b1e894310d29545dd67f8dee4acf9f8306a"
 status = "residue"
 cause = "mir::Ty: os::unix::net::ucred::UCred"
 
 [[fn]]
 path = "std::stream::UnixStream::read"
 kappa = "58cb1a67aa4f14245a3979ab9a6647c57c65afa7b9c23c7a1894146b47cc7d32"
+embedded = "c7e67349c7505741a9227a680cd801fcb10be4ff9d166fa118f185eb72db5ffa"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::read_buf"
 kappa = "8cf14c6b4583f8941c5a1e280b6ca84e5fce8e00236cb9585e5abca53c5d3b00"
+embedded = "4f49b927531f08dc860c72c5478b552472cfb4d36a5b6b0d3420139d72fe7409"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::read_timeout"
 kappa = "d03f91c1f7c152b5695d44f8c31315a1cb94dd22f9319c52c752a3f06b586c4c"
+embedded = "dafd11018294810f0be8b427c116906c3368046be62b46fcbd6279efdaef0efb"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
 path = "std::stream::UnixStream::read_vectored"
 kappa = "eab9e3386146e48e910e7af3d93ea33156791d8450ccfd8e500dc3b916a20f35"
+embedded = "4d5250863daf6ee6a111749c0a78c7afdab088c46c0c80d52fa581b56195bcf7"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::recv_vectored_with_ancillary"
 kappa = "759495bc093db36567523f973ac9757a95c695998629c20dc1668e67e2b40407"
+embedded = "89d089f229f0d5b051b31965106df357d494cd3eebde7582cffb53c759ca6c6b"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::send_vectored_with_ancillary"
 kappa = "8d99f98c16ea8ee6439d025471377dfaf630cb98854f031cdf8938edfb105a6a"
+embedded = "a13b3818968191c6a1cb7902580be280e8c618d34337a779f59b406e56345df9"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::set_mark"
 kappa = "7d7c22798f0b830106ea53657e5d19a5a755b806a417ce58a4223d98cba80bd6"
+embedded = "4e1a83afa1dc128adedb8fc354e20c87e180eee624d939979320864120bf442b"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::set_nonblocking"
 kappa = "8f2c3dc59ef2234adfef56e16be151e78c19ca17f7d0fc953f133317e919bc02"
+embedded = "a8de8f9c5049ac4ee5c1305e526b1bd70b6f44ec4e183ca1d5b14816b319481c"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::set_read_timeout"
 kappa = "b37c714ca4e41ca946cfc2e9771d9bf3fe203b7686d5f0b14debd42def50524e"
+embedded = "18e366ea3557cf99acc794d0fec13be91d2011f560882a26e9b50153f042d533"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::set_write_timeout"
 kappa = "f7610ed96616d21e557d32dd9f40deacf16b4398f7943d4fff97c23909e15848"
+embedded = "660db55a87a6d2a8bb5bbe174eb59786a03b4cde61f0b73470832cd33fd588e9"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::shutdown"
 kappa = "114d3a4ecc6864749f6bc54b3f6f25702b3c13b740a1203e95507d968ce78307"
+embedded = "71d2ed7f4261893e3877d116fa1e7a92f9c07f6c17b2d3aaeaf4973f5e3e26cb"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::take_error"
 kappa = "040164470ae28ae39d326f373554952b82c46155b4151a469e73a14a5b2e67e0"
+embedded = "f8477cf95dd36fa4f5a0233be26e89ae88b741acb6b0d3e2c874a4892186abc7"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::try_clone"
 kappa = "2d2394feacaf9cb087b0f59d799fb4ff6bab12504c622528272174c223f82649"
+embedded = "223cb040db4719f854ef0b202c2906c788db35cc0cf4e5dfb0c22e373a11e82a"
 status = "residue"
 cause = "mir::Ty: os::unix::net::stream::UnixStream"
 
 [[fn]]
 path = "std::stream::UnixStream::write"
 kappa = "9256740b7c3966bcbcf13d6805d0d9e53f9f66acd261887374ce39ea688f78c5"
+embedded = "d4b23effdfc8503e3864dfcf8e39a35f07734d2abbbd6b2a56cc1313d4c7c295"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
 [[fn]]
 path = "std::stream::UnixStream::write_timeout"
 kappa = "5515993da978430223d0e7afdd1c2938cde94823752c801fd1b98c07c58ced66"
+embedded = "17f5fd0411a33484378eb5d2590080c6b884dcb540175cbbecf7b321fe900796"
 status = "residue"
 cause = "mir::Ty: core::time::Duration"
 
 [[fn]]
 path = "std::stream::UnixStream::write_vectored"
 kappa = "4b29778390c0abc773993ad31a071d2343de28c7b2b57ae97c1a86d80c124bb2"
+embedded = "12f1ffb6305314baea1508072208c71623aefe1be4500319c40693bf51ea346d"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 

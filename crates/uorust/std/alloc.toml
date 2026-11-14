@@ -1,120 +1,147 @@
 [[fn]]
 path = "std::__rdl_alloc"
 kappa = "51c484f1fd48b9531f55cf495861ead6ec8249cb26202b4c064384a383035de0"
+embedded = "9f744e1b1dd5f691fa0d1d56187419b426d7bec902b4abacee621b42512e6d4b"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: core::alloc::Layout"
 
 [[fn]]
 path = "std::__rdl_alloc_zeroed"
 kappa = "491fd9810703c986466a550468673f305e13f351b82da0fbfb8a0cf70ac81a1a"
+embedded = "118f01e69c38a85260acb3f30a77e8d327c30ea7ca46b42fcbe0785d5c3373fb"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: core::alloc::Layout"
 
 [[fn]]
 path = "std::__rdl_dealloc"
 kappa = "d879325b7772e64c2cbba2e754666c90e64e4b2f0efe18101b5f671878dbea5a"
+embedded = "43e5ac0b27a782bb787137d7e18d8ccdac7cb1f8d038ac6d3b0d715efab40033"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: alloc::__default_lib_allocator::__rdl_dealloc::promoted[0]: type outside the lift: alloc::System"
 
 [[fn]]
 path = "std::__rdl_realloc"
 kappa = "a323bf21e5ab938ba12cd9788c3e7727fe2cce65c61d7b76f1822ae22fc5f883"
+embedded = "9e5317dcdbbb7e283c0b35679efc42ace787ba880e31e1f30b312fe944f2f880"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: core::alloc::Layout"
 
 [[fn]]
 path = "std::__rust_alloc_error_handler"
 kappa = "467939a47854918543351a1cad0ccd940ff3ad444ee24ef8747c26024e654961"
+embedded = "758031c957570c1e94a9d2298543e104722c6247c0c766ab901c052f76fd9f8f"
 status = "residue"
 cause = "mir::Ty: core::alloc::Layout"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:138:10: 138:15>::fmt"
 kappa = "5b5c2896383523c2e7ce7aaa8718394f9a745af0137c5325c3c44ad29a66be28"
+embedded = "2ec4b1d053eb664cc271753c5b76c6d6076394f41c543a65c40a784e0e43f0a6"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:138:17: 138:24>::default"
 kappa = "3a3ae0f5a43637c9d9d95f038af2cd63a6468de03f410e78ca2ec26d8cfdb9e2"
+embedded = "0b2848d3b7d8bb128797db7d8dac4aa2c29982d35adba0342ae867b4e5789c08"
 status = "residue"
 cause = "mir::Ty: alloc::System"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:138:32: 138:37>::clone"
 kappa = "fdb86fd1bf93a5cc0336b8502d6ada82fa1059398ae9cd9ab84c5f54e3d90bf5"
+embedded = "8d39ed28225695ebb5816591f3d5053753872c6ad648ae159e5824402a226ad3"
 status = "residue"
 cause = "mir::Ty: alloc::System"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::allocate"
 kappa = "d3f905f226164687a13ece9af636bc993c4cd24195efd4223e80b5facd04f8ae"
+embedded = "8b4dfc0020bf1d8d7992960a7d40d28ee374025432bcc72c020a725381532db9"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::allocate_zeroed"
 kappa = "0e896907e9289d530799734dede30b134465fa4c72ba875df23e33e835f81f04"
+embedded = "623bb7acb9a0021c655f17c1f33e178746bfddb191ca3c1dd2449dc62201c235"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::deallocate"
 kappa = "64ddc0c9a094ea8e9b0e67b69e0cabb439d530e381a94e61ad078f12aff074df"
+embedded = "369b4b8397690bb27248bbfef53d9dc736dcd3bfa6f2fe6c76d9c62622fd9db7"
 status = "residue"
 cause = "mir::Ty: System"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::grow"
 kappa = "778c6e0be399e2e12422725cf7c45814429769946bcd2031116e11fd54f68f6f"
+embedded = "140bd504d5314b7daf3ddc073202c1052d9df252c37c117b4bf538fd9398c6aa"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::grow_zeroed"
 kappa = "99587e57cd0b7f10a3bc18b6aea5606159a1aa730c0ac683b4b82f81b81d141f"
+embedded = "6e7923d6d7f86443d82e3b2674a9da9f9513a13debe69971146ddb82e2f16cb3"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::<impl at library/std/src/alloc.rs:211:1: 211:33>::shrink"
 kappa = "f66efda9f185e47d5259ed3169fda5de04cd7492630fbff2379dcddd6c26a111"
+embedded = "8d87b9d375bd5a16333d97cb10587ffc4115438d6356dde45d0d64aaca48816e"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::System::alloc_impl"
 kappa = "12e45b7439685d8e0d520694e87add05686e68a0b62f7dadd8b594d802c09525"
+embedded = "703fba07e72439a6b3eea585528ad339a873de7994de2c8788d63f51034ebf58"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::alloc::System::grow_impl"
 kappa = "4f8badea82c1e08781fff9db4e3c700ca97e646174279e68ff5c4ed2ca17642e"
+embedded = "fca8d5c8b6ece96b3b2114b4efa010a1f7721606a00338a5c68883b98614f608"
 status = "residue"
 cause = "mir::Ty: core::alloc::AllocError"
 
 [[fn]]
 path = "std::default_alloc_error_hook"
 kappa = "fe4051d206502062a334e76369afa4f30a4236f5596053dd3b7b4fd98b9d83b6"
+embedded = "065543c0e1d9b0e31438bfde40bfe8bd32f62324a61a37dc19ecaf662233e2cc"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give", "Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: core::alloc::Layout"
 
 [[fn]]
 path = "std::rust_oom"
 kappa = "fdac403efad9498919577fd2845696bb736200a8341c533037e42fb544d382f0"
+embedded = "9d0ed18b6bb1b960b88a7fcc81e4bf3212f96e90b1f4f938580fed10b45c243a"
 status = "residue"
 cause = "mir::Ty: core::alloc::Layout"
 
 [[fn]]
 path = "std::set_alloc_error_hook"
 kappa = "56071478d3b8d2ad57a691ca1504f07c008ee4897cf8134f3ee40df0dca9e6f0"
+embedded = "0cecbf6320daf44bf987e8332a8b1bfddcdfabae143bca9fbde71db8bc6c1f17"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: fn(core::alloc::Layout)"
 
 [[fn]]
 path = "std::take_alloc_error_hook"
 kappa = "c13cb97bafd5f792ddf1db11bbc852d587974ff8ef33415f4bf0c88d9981e7d5"
+embedded = "2c4a6d779e6ffb2edd2631a0ef425bf0080e8086023951982b3ede45c4eb966d"
+blocked = ["Operand::Constant of a constant the embedding does not read", "Rvalue::Cast"]
 status = "residue"
 cause = "mir::Ty: fn(core::alloc::Layout)"
 

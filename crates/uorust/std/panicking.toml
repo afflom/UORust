@@ -1,36 +1,42 @@
 [[fn]]
 path = "std::ALWAYS_ABORT_FLAG"
 kappa = "31b2224f54640ab78ddda61ddc894cb5bd1a1ba24c9b7ba75146b07cce2a9c4a"
+embedded = "128cb9e495b00ef89caf71ac417af86463d4bf6fb14b8f8c401809e7adadeb15"
 status = "residue"
 cause = "mir::Operand::Constant: the constant item core::num::<impl usize>::BITS"
 
 [[fn]]
 path = "std::LOCAL_PANIC_COUNT"
 kappa = "ac6b09d45e2fdd2330608b3c0f4a3ecb6e6679ed663e2f079d512edfce732b79"
+embedded = "7d843849a89b161057a25ba937615b673585ef63b546ef2e3d56020c01fdc538"
 status = "residue"
 cause = "mir::Ty: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::LOCAL_PANIC_COUNT::__RUST_STD_INTERNAL_INIT"
 kappa = "5004d858bcbe99bd79c205c8df39a903114643377197aeac4fbb8aae4ce079da"
+embedded = "3b32b1966a2acc0053b0464184e402b7fbe30936a82de1ce2d9194914ca3fe43"
 status = "residue"
 cause = "mir::Ty: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::__rust_drop_panic"
 kappa = "ffc432b588494e2583f4c75d8e877d08828329877769edf3b971581da095e778"
+embedded = "89ecaae1e4b6d4d32f3439aa3f3200e4abc170c0b908ec3e871943d412094b44"
 status = "residue"
 cause = "mir::Ty: sys::stdio::unix::Stderr"
 
 [[fn]]
 path = "std::__rust_foreign_exception"
 kappa = "8c47bfe102cea95c3b2df5fadb6b72831bfcc3af9e3837f9d607657f26644243"
+embedded = "4acb510ec5c7c47e63594a48421d6aa7384bc2052335de9c58b27fb2af34a9f7"
 status = "residue"
 cause = "mir::Ty: sys::stdio::unix::Stderr"
 
 [[fn]]
 path = "std::begin_panic"
 kappa = "b49020d9be98ffa9ca918e94eb2a1bc11c5629aca69852076361bebcd1a8d87f"
+embedded = "5237a67c7acb6be992d2f21f107cf231a456a43b4658912e0b8fa0e875ebda42"
 status = "residue"
 cause = "mir::Ty: M"
 
@@ -38,6 +44,7 @@ cause = "mir::Ty: M"
 path = "std::begin_panic::<impl at library/std/src/panicking.rs:729:5: 729:63>::get"
 kappa = "40d017efad3c5e33cc4e541428afa199aadb9bbf2312dc61d5b686ccf4da66da"
 at = "A=u32"
+embedded = "5107e0d6ed8d11277e15998dd2bbd01b4b84d0d59edc8f4382c7004d39eefc1b"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
@@ -45,6 +52,7 @@ cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 path = "std::begin_panic::<impl at library/std/src/panicking.rs:729:5: 729:63>::take_box"
 kappa = "008d45f8e76f9e305728d87ffa1ad2922cf709c930fd29242aa25065a1acbd6c"
 at = "A=u32"
+embedded = "8751dbcc182fa92b3cbdbdb451f26c384d174d162d18077d813fccb6e5eda5f6"
 status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 
@@ -52,24 +60,30 @@ cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 path = "std::begin_panic::Payload::fmt"
 kappa = "88fc103f45b4fec08b48c480c88bb820288f8b2011b251823d8d5658371f1c43"
 at = "A=u32"
+embedded = "5de69fba69bea34fc880d6148bc635792d39aea74d3d8e4f51746afd7826be7a"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::count_is_zero"
 kappa = "b43f851d7fcb67c2ef81336ec941dd9b2e73dd16a38a752317e0b9b60b666e47"
+embedded = "39725c636fc8264d981deaf427fc698ee332453289b244e1a832a879c332dbef"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 
 [[fn]]
 path = "std::decrease"
 kappa = "76579050e70927dd63d5b0388880bfe845b930cc9b8149afef39be494993fdb3"
+embedded = "736a2aedc9f4bc66afa0320116d8328cb142dd5ae726c6eae44e5f3c42f9f372"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 
 [[fn]]
 path = "std::default_hook"
 kappa = "02ef652aab052ebf21525ef3b013c68fa852c8d225417f9c4b46dcaaab09b94e"
+embedded = "677e9a88a6a2ab62920b2f9f5e863e7a3e8fbdbfd5aa727e95ba240d2e41bbbc"
 status = "residue"
 cause = "mir::Ty: PanicHookInfo<'_>"
 
@@ -77,6 +91,7 @@ cause = "mir::Ty: PanicHookInfo<'_>"
 path = "std::do_call"
 kappa = "c078d0ea4b08178e20065eb95ddd6d8507718d244576038b52111d15aba01670"
 at = "F=u32, R=u32"
+embedded = "4cb0bc9309344c85987251a27dd04bb28067f4553c2e5d22243d3354cf13f6c7"
 status = "residue"
 cause = "mir::Ty: panicking::catch_unwind::Data<u32, u32>"
 
@@ -84,108 +99,132 @@ cause = "mir::Ty: panicking::catch_unwind::Data<u32, u32>"
 path = "std::do_catch"
 kappa = "88a8684b2464d57118b94032067ddaebaac80ebe31c5f45bcc38b93f7152c3fd"
 at = "F=u32, R=u32"
+embedded = "4f1f1008f57d4a8fd221051e406708ae53ae1f0ebe749f2dbedc80f5bddde124"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::finished_panic_hook"
 kappa = "1182601f5c362ea2b858f387f740071ee9006df8382d0fdc80702a72cb13323b"
+embedded = "045a8dbef875bb636dfbaf4988b26d29cdf37ed2a2426f4eba3d9145cb465ab2"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: panicking::panic_count::finished_panic_hook::promoted[0]: type outside the lift: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::get_count"
 kappa = "07833e0648e652ba3a32ba419d711963f29de43e16a7da7a1971dbb35ab3e24e"
+embedded = "740e2b35d9b8f941e9a332b1df9bebf5e871de6f13a06e0ce9a136799757d7a8"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: panicking::panic_count::get_count::promoted[0]: type outside the lift: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::increase"
 kappa = "36087faab6929fb814886764ec2320cb10809cb117d0308fff262b387a980194"
+embedded = "10b2689eb73bc448d55db565e0b5e45001ed0f3d65828b9253c6cdcd08c927d9"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give", "Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: panicking::panic_count::MustAbort"
 
 [[fn]]
 path = "std::is_zero_slow_path"
 kappa = "d1afd7dfccfb2a9f25da42f93220e1e2a9d998ff7bb180689c8f299e32ba1295"
+embedded = "453334ece9599469e09bd968115d40f8ca7813452f28c7e23080e09b08bbba55"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: panicking::panic_count::is_zero_slow_path::promoted[0]: type outside the lift: core::cell::Cell<(usize, bool)>"
 
 [[fn]]
 path = "std::panic_count::<impl at library/std/src/panicking.rs:374:14: 374:19>::fmt"
 kappa = "723e330dcca42e8bdf54015e384e2f8fa4de33b1ade3b9f5dc1c23f7f0183ebb"
+embedded = "76b8e79fe5ee00dbdb13e7077648d065ae1ad497101d5565fb175cda83381db8"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::panic_handler"
 kappa = "80f1ff51e8b7293632f033da8276c53e577b3f8a98a140278afda5491f85c690"
+embedded = "3946d4876ecdbe7d14b0c7dc4cbe4d9df894b8cd7d19a0c7d5127f6b98f3ee26"
 status = "residue"
 cause = "mir::Ty: core::panic::PanicInfo<'_>"
 
 [[fn]]
 path = "std::panic_handler::<impl at library/std/src/panicking.rs:641:5: 641:57>::get"
 kappa = "bcf38acdf85130338e436cf0c1065ca4b6bf9fe33cdbf5e123ab39f800cffd4e"
+embedded = "6732c771327755aa209f0bf3a21e056085e1a86a35b81b601b0f030553e4cec1"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panic_handler::<impl at library/std/src/panicking.rs:641:5: 641:57>::take_box"
 kappa = "6db777423cef11b4b95234dea8d6cd6d368902140bf4d6f90e8ced5cd6f747be"
+embedded = "85f938ad685a0bdcf795a4c876293f7a1a88212b538e617e26b8253142db449e"
 status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panic_handler::<impl at library/std/src/panicking.rs:667:5: 667:50>::as_str"
 kappa = "70a89724a081bd2025c264e1720b8c70c642b94c3dc2a305a606349b913c33dc"
+embedded = "c7222fd81e6e92837ab0b4d7a0d8367d5b3577d245524067e5f113b16d41695e"
 status = "residue"
 cause = "mir::Ty: StaticStrPayload"
 
 [[fn]]
 path = "std::panic_handler::<impl at library/std/src/panicking.rs:667:5: 667:50>::get"
 kappa = "a67379aca78db798592808afaf90190a9d4c96c69e26c59fe2e43f407f86776d"
+embedded = "e33864757531c278253cf073ae417f9ff02b5e06d891272fa234fe53cbbfdd6a"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panic_handler::<impl at library/std/src/panicking.rs:667:5: 667:50>::take_box"
 kappa = "2c62bb143fc8e0cb27b0bef49f403fbbdb52bee5b4b1f5edb091c05b3d4e661a"
+embedded = "7108bdf0dbfdd3ebe533300a33177fc01c05f4c8a6c2a9057cf193b1cb794a9c"
 status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panic_handler::FormatStringPayload::fill"
 kappa = "bff980cdaaf2deb7f6d9b3af9393ca4d34d3d4ff6369932d2d1ce665ca4501db"
+embedded = "20ce7c6c7343137d62c788bacf680a5bae2ad5b902acd75a943e2ad6300d472f"
 status = "residue"
 cause = "mir::Ty: FormatStringPayload<'_>"
 
 [[fn]]
 path = "std::panic_handler::FormatStringPayload::fmt"
 kappa = "d770e242f43234341377e056bd0876c73229b0a35b2410b116946626b5594dd3"
+embedded = "b2179731668fac45d6190a6e247ab459de3acd596cd6d55e82978fb4d070ddbc"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::panic_handler::StaticStrPayload::fmt"
 kappa = "372ca36f43b0e650523576e4b18040cb8023bd07610e250131ae92df73ba8c34"
+embedded = "de4495f1c97b4029d7dfd23822a5a26bab30d2f7e5b0917aa1bb26749330e677"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::panic_with_hook"
 kappa = "862b46b0fd4a640a36d2fc33f12c857eba1e3cf6c5fab5160f0ebe28a94fe26a"
+embedded = "d6ffa03b5b5f7f9c2ff5fd68963d15795a49eef30268f6652e9c52befd244b3f"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: dyn core::panic::PanicPayload"
 
 [[fn]]
 path = "std::panicking::<impl at library/std/src/panicking.rs:86:10: 86:17>::default"
 kappa = "822520923de6830b58b1f420d81b3d9eafc8c3eb82ba50c45b75c5b7add85add"
+embedded = "24a69835bb1c69de52f7d0fe203ee29cc06c35bf5d90362bbbdfa995cdfb3e01"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: panicking::Hook"
 
 [[fn]]
 path = "std::panicking::Hook::into_box"
 kappa = "1340ee3b62ee1ac1c05c125bbb9d9ddef9fdf9ad392f5265da66f935ce10a90c"
+embedded = "01ee46f347534428284777dfcb011d17f8226b851a1cd5f3b8d780bcd06aa231"
 status = "residue"
 cause = "mir::Ty: dyn for<'a, 'b> core::ops::Fn(&'a panic::PanicHookInfo<'b>) + core::marker::Send + core::marker::Sync"
 
@@ -193,78 +232,96 @@ cause = "mir::Ty: dyn for<'a, 'b> core::ops::Fn(&'a panic::PanicHookInfo<'b>) + 
 path = "std::panicking::catch_unwind"
 kappa = "91faa241502a90b30a5eccaae7e40f261a4e212656c983afa804a1b96595a9af"
 at = "F=u32, R=u32"
+embedded = "aad23bd0772aa1956942e0856f171be4953d4443d69f3b51369da95d9d1308d6"
+blocked = ["Rvalue::Cast"]
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panicking::catch_unwind::cleanup"
 kappa = "45e2e4bcda1896129fba46bd1bdda4a97b03d7160687ae8d25743eedb1ddbdad"
+embedded = "4c19b85b5292317ab402e4f6e1ab396cb4f6b19a8111c3d0997bd65724bc6e1f"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panicking::panicking"
 kappa = "31707b0ffdd6ac36d52a2590e04f8db5be27b3bd08d7caf0f9f614a165c95122"
+embedded = "fab91cd72ddc50d5860469500c06ad23e6ba2e5656ed5244e053f8b4cb513e39"
 status = "residue"
 cause = "mir::TerminatorKind::Call: panicking::panic_count::count_is_zero: std's MIR stops at mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 
 [[fn]]
 path = "std::panicking::resume_unwind"
 kappa = "5774b6bde96aec4b0e50009a31904fc2315e04fee6faa84d6357ef14f2fc06a4"
+embedded = "8a5523e2db4cae6478776c1eef9012fd5f21095b4a730da9d0c725a277ee4735"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panicking::resume_unwind::<impl at library/std/src/panicking.rs:861:5: 861:43>::get"
 kappa = "b1a6783614fd014d36e0fb7e0c3befd5260c294ce7405e9defb9e26e97588129"
+embedded = "59d5a60201a938492d8092ad54cac417aee1d3b9511241be4b115ab01fa888ef"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panicking::resume_unwind::<impl at library/std/src/panicking.rs:861:5: 861:43>::take_box"
 kappa = "9297daa6323770979462903bf640fb8df1e2e716f2b5671932b95b3f6d3b2dcc"
+embedded = "4f30aa3adaaa6f722fe4a2a98ef830f8d6e044d4b7bea8a39ff182f4d1df43d3"
 status = "residue"
 cause = "mir::Ty: *mut dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panicking::resume_unwind::RewrapBox::fmt"
 kappa = "f48c0a9a2fe7a801392c6b81ba5ae910466c61a264fbec1b490aa1e02079a99d"
+embedded = "3c944f68daa9988ebd34387d93dc006f63a1c353924ca5203d39793fd73c4132"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::payload_as_str"
 kappa = "15e69dbc3dcc75b1af73fc77f4701ef50f038fd750137ae366301cd6785802ac"
+embedded = "aad9ef49ddb150556def62db25710a1bfddae31a1afa90ffd50efe6379a40376"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any"
 
 [[fn]]
 path = "std::rust_panic"
 kappa = "78f38229abf4dcffe3ac58dd9d3a7bcc9b7196e64b085a205a6bd248c5569208"
+embedded = "ed43ec8799a22fc7bf56b222fed2ae42e88d61e426c321b0ee177a51982cbfac"
 status = "residue"
 cause = "mir::Ty: dyn core::panic::PanicPayload"
 
 [[fn]]
 path = "std::set_always_abort"
 kappa = "b42dcd7e9442dadd2a66f5f5c6d55190e8d3bde027e6b20664a2f9d9113544ea"
+embedded = "8fcaf7f81ae6db2593cc30f136d78d5666a62ab7a28bb2e004513ca1d5815ff2"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 
 [[fn]]
 path = "std::set_hook"
 kappa = "0dacc872e1cc929ff6434cf383b96b9c2a99d32de11d2290deafb9e4608245c0"
+embedded = "d5f281c78aa26a24e71deffbbe56d864706da7d19b284d069fce8f2bb23d17fc"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give", "Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: dyn for<'a, 'b> core::ops::Fn(&'a PanicHookInfo<'b>) + core::marker::Send + core::marker::Sync"
 
 [[fn]]
 path = "std::take_hook"
 kappa = "f01a5ef76dfb8e1ed2e55e42ec94f7608dad966f17b6f3819a1bcc3d0932de33"
+embedded = "c87d46cb828962d577fc50d27188f7da3c20186536f10ceba07fb58a6c929ba8"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give", "Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: dyn for<'a, 'b> core::ops::Fn(&'a panic::PanicHookInfo<'b>) + core::marker::Send + core::marker::Sync"
 
 [[fn]]
 path = "std::update_hook"
 kappa = "119c21292342f28edaa17af5ace84db135bfed0e5e77f884d336762b89295360"
+embedded = "6375f3e79fa5173fec744475f48c3d75262745f318d94fb94b29d7dbe12b93e5"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give", "Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: F"
 

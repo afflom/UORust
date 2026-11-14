@@ -1,102 +1,122 @@
 [[fn]]
 path = "std::always_abort"
 kappa = "5c49e31129ee3e40cd02634694af5228ac9365723967ebddc4a986225f48a29c"
+embedded = "defa0a029b2b748f1b192fb4e3ac015ae9f1898e1942ff65973a236feab1969f"
 status = "residue"
 cause = "mir::TerminatorKind::Call: panicking::panic_count::set_always_abort: std's MIR stops at mir::Operand::Constant: {alloc735: &Atomic<usize>}"
 
 [[fn]]
 path = "std::get_backtrace_style"
 kappa = "2b2bd0c07a645c6984047f751eab4beb92fc264735f17fe6b794cf8f2a7a4667"
+embedded = "d219cde4b0d0dd9d382ab3513776f2409f5cde7e35052ace462dfb5c82821906"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give", "Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: panic::BacktraceStyle"
 
 [[fn]]
 path = "std::panic::<impl at library/std/src/panic.rs:41:10: 41:15>::fmt"
 kappa = "dac38d457e5e673eb889eeebfd41739b10099673a5ebfb4086a6527b541c6509"
+embedded = "77fece81375d2f160cc606dd70e960f14a1c1bd88174234078e1935df311c9f8"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::panic::<impl at library/std/src/panic.rs:432:10: 432:15>::fmt"
 kappa = "56500ae95efcc7708e35a9e3842ec3a0326dd36880a8c55a6f5d5edfcca7d50c"
+embedded = "13802da71cafc297fef575fe3e64b979f23f17384a96480f0770a54818eff335"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::panic::<impl at library/std/src/panic.rs:432:23: 432:28>::clone"
 kappa = "3e40cf48c7323e3c75a06fbbf295401e42dbb2242c3a46ea23c5b44e90c494e1"
+embedded = "0c8f4908d3cf89b3436da06f186ab962b869eb6524e0a65b228423e23179857d"
 status = "residue"
 cause = "mir::Ty: panic::BacktraceStyle"
 
 [[fn]]
 path = "std::panic::<impl at library/std/src/panic.rs:432:30: 432:39>::eq"
 kappa = "0e56b763892cbe56bef6c97ded3b9dd3471e928a00c6890508d440b739727942"
+embedded = "86d3242e857eb05e01b729c8d47bee124955a5a80c499f45f43fe44c211d8ead"
 status = "residue"
 cause = "mir::Ty: BacktraceStyle"
 
 [[fn]]
 path = "std::panic::<impl at library/std/src/panic.rs:432:41: 432:43>::assert_fields_are_eq"
 kappa = "fd9f130039d8e45b80fa23d0c8ae7ff043882e616218e239bd6a12fde7b902f3"
+embedded = "0e4f668eb2ceac9367222f4c711808aa3eb0b80189696601d32a62dcc250b78a"
 status = "residue"
 cause = "mir::Ty: BacktraceStyle"
 
 [[fn]]
 path = "std::panic::BacktraceStyle::as_u8"
 kappa = "2f3406c4d7dd45b9d691420d839c0f80a1983ba36d6320a8fb2df6c69d3bb664"
+embedded = "a5d668bcc9bc791e8537ebf8099eba53d33edcde2e4f3cb638d61936224ec0fb"
 status = "residue"
 cause = "mir::Ty: BacktraceStyle"
 
 [[fn]]
 path = "std::panic::BacktraceStyle::from_u8"
 kappa = "96fdfd876e04b490b19e75e30d2555de850a58f5e21f24540be6ffb67156e345"
+embedded = "2933215788f7e5fceeba94d13fcd0efa1d9ff8c1a5b20a2d2556fc243798712c"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: panic::BacktraceStyle"
 
 [[fn]]
 path = "std::panic::BacktraceStyle::full"
 kappa = "13e2d27fde6bbae1b0172cc846cdb2a841765ecb0c7c465eef06ee2a643e983d"
+embedded = "9d84f8c9e727cfb01b6ef29c53324e4a8431817a3d60028e4c3ec0eeaac0077f"
+blocked = ["AggregateKind::Adt of an enum whose discriminants the crate's source does not give"]
 status = "residue"
 cause = "mir::Ty: panic::BacktraceStyle"
 
 [[fn]]
 path = "std::panic::PanicHookInfo::can_unwind"
 kappa = "bcbb7225a67f048ff07dae41ac99570c13a4b973095753b6daf6f3981d702693"
+embedded = "29f6642c9a2494386c4b6cf00584ee10a08dd9c55cf7e0f3d67548fa484e4451"
 status = "residue"
 cause = "mir::Ty: PanicHookInfo<'_>"
 
 [[fn]]
 path = "std::panic::PanicHookInfo::fmt"
 kappa = "7e254187ea8452308f83a06afa7811aa4ad68c38225a7805e205e4ecf1ad6bcf"
+embedded = "ef24674b47c265823ad1468dce707b98207bd26dd5c06271b643abeeb8984916"
 status = "residue"
 cause = "mir::Ty: core::fmt::Error"
 
 [[fn]]
 path = "std::panic::PanicHookInfo::force_no_backtrace"
 kappa = "c0ff797376b28c96e0f3c6af063ca68c5fdf907af585f6fa304a7d50aff3115a"
+embedded = "346a2362ac83bf7229a402da5e736ab61ce5cd578ceb54cd673b2eaba41e1c90"
 status = "residue"
 cause = "mir::Ty: PanicHookInfo<'_>"
 
 [[fn]]
 path = "std::panic::PanicHookInfo::location"
 kappa = "6d4f3a53adee507aff279e9d027fbbb6a917338345e3b17df6c2e832a730bdf4"
+embedded = "d99345582cc892ce2aea98c0435e35e865fe2f33492e375a0b815877965392de"
 status = "residue"
 cause = "mir::Ty: core::panic::Location<'_>"
 
 [[fn]]
 path = "std::panic::PanicHookInfo::new"
 kappa = "3ca9d19baf8e8d9971770ce399b25adce666a11d57fd200d80efc7005a45f670"
+embedded = "a8907d189fe54ae15c940d78d049191ef0f2c479ddc5e3b51fe224580667af2a"
 status = "residue"
 cause = "mir::Ty: panic::PanicHookInfo<'_>"
 
 [[fn]]
 path = "std::panic::PanicHookInfo::payload"
 kappa = "8d9ed5717a11da68b317c7632214fb4c2cbb8d2938da77bd34da6d71d9203ff6"
+embedded = "3bd9c2703d9e871b86a36f775e671332fb4bba0bd53e05a55e48bd2502e2f810"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panic::PanicHookInfo::payload_as_str"
 kappa = "c32d4461197d3ac161141b7bc411baf55eaeb2869d900eba5a6e58c12af20384"
+embedded = "781b84826402b22964164992d2b5bf4dddb13889935ff8eee9a9920595671ad9"
 status = "residue"
 cause = "mir::Ty: PanicHookInfo<'_>"
 
@@ -104,12 +124,14 @@ cause = "mir::Ty: PanicHookInfo<'_>"
 path = "std::panic::catch_unwind"
 kappa = "84af7a58131c49343264b7fd74155218280f98a9070b43260ed49fc2407d3c0b"
 at = "F=u32, R=u32"
+embedded = "9be2d878821956dab1666010632e2bb11e5ab041fc299fbff430ff2f86d7588e"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::panic::resume_unwind"
 kappa = "12ad3c7e474f565c64f6c775df9b763060b46efcd1bcc2bdd5b453f4282bb3d4"
+embedded = "59becba4e0bd26455d2c74cab7694e7aed731dd00a7c4c432ba15bc686272bee"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
@@ -117,12 +139,15 @@ cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 path = "std::panic_any"
 kappa = "fcf4bee0bf5a3230e7eddbd9cafa9c72bd1bd1e27b00683d73256edeab5587a2"
 at = "M=u32"
+embedded = "7690f97dbb0be90c00373b73aaee70cd27f3b0e11c984801a5f23d662e259d6d"
 status = "translated"
 digest = "0c9847324bf96cd0ead5f16e14e159e2dd24e9618d64420b2cd0bd3358a5e5ff"
 
 [[fn]]
 path = "std::set_backtrace_style"
 kappa = "9f5e74b505bac382ff912f0fd8c41bf5643eb109a82dd468d41856732172e2cb"
+embedded = "42f62b01ae711ca4d04c4d94f970dbf55bb0e7f6e0e207b0ac8d25cc29ae2370"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: BacktraceStyle"
 

@@ -155,6 +155,38 @@ bodies = 49
 translated = 0
 residue = 49
 
+[embedding]
+embedded = 4067
+evaluable = 3762
+
+[[construct]]
+construct = "Operand::Constant of a constant the embedding does not read"
+bodies = 175
+
+[[construct]]
+construct = "AggregateKind::Adt of an enum whose discriminants the crate's source does not give"
+bodies = 128
+
+[[construct]]
+construct = "Rvalue::Ref"
+bodies = 10
+
+[[construct]]
+construct = "Rvalue::Cast"
+bodies = 5
+
+[[construct]]
+construct = "CastKind::PointerExposeProvenance"
+bodies = 3
+
+[[construct]]
+construct = "CastKind::Transmute"
+bodies = 3
+
+[[construct]]
+construct = "Rvalue::Repeat"
+bodies = 2
+
 [[cause]]
 cause = "mir::Ty: io::error::Error"
 bodies = 809

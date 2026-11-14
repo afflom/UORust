@@ -1,6 +1,7 @@
 [[fn]]
 path = "std::__rust_abort"
 kappa = "22833780f0f6bee96b358caacd5175250edb673602ba7d5bafdd8006fbacfa5a"
+embedded = "2dea0e792697d91844be09328fbfa99aadae34583f20a50d9a1ef8552190cb45"
 status = "translated"
 digest = "52bc96a86e8aaaf6217f47f5e9a177d81307f7c36bed098d3601db82a8b345df"
 
@@ -8,36 +9,43 @@ digest = "52bc96a86e8aaaf6217f47f5e9a177d81307f7c36bed098d3601db82a8b345df"
 path = "std::handle_rt_panic"
 kappa = "faab9dd5444fd2d19881116f06cc52adab874d2569cd13d324fc5c9f585b4e2a"
 at = "T=u32"
+embedded = "efec5df49a4ccb669983868df3f66d366fdc55e3926d6d88086369daeddbb38f"
 status = "residue"
 cause = "mir::Ty: dyn core::any::Any + core::marker::Send"
 
 [[fn]]
 path = "std::lang_start"
 kappa = "7ef5988835739feab00926c016571eb8e230a020819a8d9f85754ec8d6632cbc"
+embedded = "e7f38bfbe51ee79265d085b74ac212ff8f8451c7e32aebde323f1d033fdb5096"
 status = "residue"
 cause = "mir::Ty: fn() -> T"
 
 [[fn]]
 path = "std::lang_start_internal"
 kappa = "5584a460851f5c24bc9586f3f293f1159818cdcfee143799ea10bd06a53f602f"
+embedded = "17313e51e3c8478b7a07eb2a3255a137a92466038c04f5cecd97bf3ccf1bbca5"
 status = "residue"
 cause = "mir::Ty: dyn core::ops::Fn() -> i32 + core::marker::Sync + RefUnwindSafe"
 
 [[fn]]
 path = "std::rt::cleanup"
 kappa = "9e8db5a93e2643ba9535751bf36ea5b502178e056614d2417c4f1def7016640a"
+embedded = "609f0ebae97d16c0aaf5886dc8c09187e40255eb353c8635cd4755016db987c5"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Operand::Constant: {alloc61: &sync::once::Once}"
 
 [[fn]]
 path = "std::rt::init"
 kappa = "5a6720a44dfca6b0ef47759d821853332dad29fd1c9fd1625fbf304b0e1478b0"
+embedded = "ac57f0e84b21f0e83ab55ea62f4a948fe00295e99947f55ebd4e584387e0971e"
 status = "residue"
 cause = "mir::Ty: thread::id::ThreadId"
 
 [[fn]]
 path = "std::thread_cleanup"
 kappa = "a9cb12fe81ab98083039610f0c4d0eb5e1cc20295f9d41202a02fd56e6a29000"
+embedded = "c7454313ad598185e2925475acf1daa5c532f3628696e8cb36fc2d0f0833c5d5"
 status = "residue"
 cause = "mir::AggregateKind::Closure: thread_cleanup::{closure#0}: mir::TerminatorKind::Call: thread::current::drop_current: std's MIR stops at mir::Rvalue::Ref"
 
