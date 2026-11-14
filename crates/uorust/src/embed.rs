@@ -443,6 +443,36 @@ fn repeat_parts(text: &str) -> Option<(&str, u64)> {
     Some((operand.trim(), count.parse().ok()?))
 }
 
+/// A subslice projection as MIR prints it, `[1:]`, `[:-1]`, `[1:-2]` (from
+/// the end) or `[1..3]` (of an array): its first element, its end (counted
+/// from the end where so), and whether it is.
+fn subslice(text: &str) -> Option<(u64, u64, bool)> {
+    let t = text.trim();
+    let t = t
+        .strip_prefix('[')
+        .and_then(|r| r.strip_suffix(']'))
+        .unwrap_or(t);
+    let num = |n: &str| -> Option<u64> {
+        let n = n.trim();
+        if n.is_empty() {
+            Some(0)
+        } else {
+            n.parse().ok()
+        }
+    };
+    if let Some((a, b)) = t.split_once("..") {
+        return Some((num(a)?, b.trim().parse().ok()?, false));
+    }
+    let (a, b) = t.split_once(':')?;
+    let b = b.trim();
+    let to = match b.strip_prefix('-') {
+        Some(n) => n.parse().ok()?,
+        None if b.is_empty() => 0,
+        None => return None,
+    };
+    Some((num(a)?, to, true))
+}
+
 /// The element type and length of an array type as MIR prints it,
 /// `[u32; 10]`.
 fn array_ty(ty: &str) -> Option<(&str, usize)> {
@@ -1200,6 +1230,15 @@ impl Cx<'_> {
         }
     }
 
+    /// The layout of the element a `write_bytes` call writes, its first
+    /// argument's pointee, where it is read and no pointer's size in it is
+    /// assumed.
+    fn written_element(&self, body: &IrBody, args: &[IrOperand]) -> Option<String> {
+        let ptr = arg_type(body, args.first()?)?;
+        let laid = self.layout(pointee(&ptr)?, layout_depth(self.structs))?;
+        laid.assumed.is_none().then_some(laid.term)
+    }
+
     /// `Callee.transmute` of a transmute from `from` to `to`, where both
     /// layouts are read and agree in size; a pointer whose size is assumed
     /// is allowed only where both sides hold one of the same pointee, so
@@ -1279,6 +1318,16 @@ impl Cx<'_> {
                     ),
                     IrProjection::Downcast(v) => {
                         (P::Downcast, mir_ctor("Proj.downcast", &[mir_string(v)]))
+                    }
+                    IrProjection::Other(P::Subslice, text) if subslice(text).is_some() => {
+                        let (from, to, from_end) = subslice(text).unwrap_or_default();
+                        (
+                            P::Subslice,
+                            mir_ctor(
+                                "Proj.subslice",
+                                &[from.to_string(), to.to_string(), from_end.to_string()],
+                            ),
+                        )
                     }
                     IrProjection::Other(k, text) => {
                         e.blocked.insert(k.path().to_string());
@@ -1930,6 +1979,15 @@ impl Cx<'_> {
                                     mir_ctor("Callee.intrinsic", &[mir_string(&intrinsic_name(&p))])
                                 }
                             }
+                        }
+                        // `write_bytes::<T>`: its element's layout, from the
+                        // type argument the call prints.
+                        Callee::Intrinsic(p)
+                            if intrinsic_name(&p) == "write_bytes"
+                                && self.written_element(body, args).is_some() =>
+                        {
+                            let element = self.written_element(body, args).unwrap_or_default();
+                            mir_ctor("Callee.writeBytes", &[element])
                         }
                         Callee::Intrinsic(p) => {
                             let p = intrinsic_name(&p);
@@ -3129,6 +3187,24 @@ fn embed_census(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn reads_a_subslice() {
+        assert_eq!(super::subslice("1:"), Some((1, 0, true)));
+        assert_eq!(super::subslice(":-1"), Some((0, 1, true)));
+        assert_eq!(super::subslice("2:-3"), Some((2, 3, true)));
+        assert_eq!(super::subslice("1..3"), Some((1, 3, false)));
+        assert_eq!(super::subslice("x"), None);
+    }
+
+    #[test]
+    fn names_an_item_by_a_trimmed_path() {
+        assert!(super::same_item(
+            "atomic::Ordering",
+            "sync::atomic::Ordering"
+        ));
+        assert!(!super::same_item("cmp::Ordering", "sync::atomic::Ordering"));
+    }
+
     use super::*;
 
     /// The constructors of the inductive `name` in the semantics.

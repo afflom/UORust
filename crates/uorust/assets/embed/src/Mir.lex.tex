@@ -169,6 +169,7 @@ inductive{
     {name: index, fields: [Nat]},
     {name: constantIndex, fields: [Nat, Bool]},
     {name: downcast, fields: [String]},
+    {name: subslice, fields: [Nat, Nat, Bool]},
     {name: other, fields: [String, String]}
   ]
 }
@@ -294,6 +295,7 @@ inductive{
     {name: intrinsic, fields: [String]},
     {name: constant, fields: [String]},
     {name: transmute, fields: [Layout, Layout]},
+    {name: writeBytes, fields: [Layout]},
     {name: convert, fields: [Ty, Ty]}
   ]
 }
@@ -1163,6 +1165,37 @@ definition{
 }
 
 definition{
+  name: takeValues,
+  parameters: [count : Nat, values : (List Value)],
+  result: (List Value),
+  body: (match count
+    | Nat.zero => (nil Value)
+    | Nat.succ rest => (match values
+      | List.nil => (nil Value)
+      | List.cons v vs => (cons v (takeValues rest vs)))),
+  recursive_argument: count
+}
+
+definition{
+  name: skipValues,
+  parameters: [count : Nat, values : (List Value)],
+  result: (List Value),
+  body: (match count
+    | Nat.zero => values
+    | Nat.succ rest => (match values
+      | List.nil => (nil Value)
+      | List.cons v vs => (skipValues rest vs))),
+  recursive_argument: count
+}
+
+definition{
+  name: pinnedAt,
+  parameters: [target : Value],
+  result: Location,
+  body: (record Location {frame := 0, base := 0, steps := (nil Nat), root := (ctor Option.some [Value] target)})
+}
+
+definition{
   name: locateSteps,
   parameters: [projection : (List Proj), frames : (List Frame), here : Nat, loc : Location],
   result: Located,
@@ -1195,6 +1228,11 @@ definition{
           | Option.none => (ctor Located.stop (ctor Outcome.ub "a constant index into a value that is not an array")))
         | Option.none => (ctor Located.stop (ctor Outcome.ub "a constant index into a place that holds no value"))) else (locateSteps rest frames here (extendAt loc offset)))
       | Proj.downcast variant => (locateSteps rest frames here loc)
+      | Proj.subslice start finish fromEnd => (match (readAt frames loc)
+        | Option.some value => (match (fieldsOf value)
+          | Option.some fields => (locateSteps rest frames here (pinnedAt (ctor Value.tuple (takeValues (prim subtract (if fromEnd then (prim subtract (countValues fields) finish : Nat) else finish) start : Nat) (skipValues start fields)))))
+          | Option.none => (ctor Located.stop (ctor Outcome.ub "a subslice of a value that is not an array")))
+        | Option.none => (ctor Located.stop (ctor Outcome.ub "a subslice of a place that holds no value")))
       | Proj.other kind text => (ctor Located.stop (ctor Outcome.undefined kind)))),
   recursive_argument: projection
 }
@@ -1894,16 +1932,44 @@ definition{
 }
 
 definition{
+  name: sliceElement,
+  parameters: [frames : (List Frame), values : (List Value), destination : Place, target : (Option Nat)],
+  result: Outcome,
+  body: (match values
+    | List.nil => (ctor Outcome.ub "an element of a value that is not a pointer to a slice")
+    | List.cons pointer rest => (match rest
+      | List.nil => (ctor Outcome.ub "an element of a slice at no index")
+      | List.cons index more => (match (scalarOf index)
+        | Option.none => (ctor Outcome.ub "an index that is not an integer")
+        | Option.some offset => (match (match pointer
+            | Value.reference whole => (ctor Option.some [Location] (pinnedAt whole))
+            | Value.int p q r => (placeOfPointer pointer)
+            | Value.boolean p => (placeOfPointer pointer)
+            | Value.character p => (placeOfPointer pointer)
+            | Value.unit => (placeOfPointer pointer)
+            | Value.tuple p => (placeOfPointer pointer)
+            | Value.adt p q r => (placeOfPointer pointer)
+            | Value.pointer p q r => (placeOfPointer pointer)
+            | Value.function p => (placeOfPointer pointer)
+            | Value.text p => (placeOfPointer pointer)
+            | Value.uninit => (placeOfPointer pointer))
+          | Option.none => (ctor Outcome.ub "an element of a value that is not a pointer to a slice")
+          | Option.some loc => (match (pointerTo (extendAt loc (project offset magnitude)))
+            | Evaluated.stop outcome => outcome
+            | Evaluated.found value => (finishCall frames destination target value))))))
+}
+
+definition{
   name: evalIntrinsic,
   parameters: [program : Program, frames : (List Frame), name : String, args : (List Operand), destination : Place, target : (Option Nat)],
   result: Outcome,
   body: (if (prim equal name "unreachable" : Bool) then (ctor Outcome.ub "an unreachable intrinsic reached") else (if (prim equal name "abort" : Bool) then (ctor Outcome.aborted) else (match (evalOperands program frames args)
     | EvaluatedList.stop outcome => outcome
-    | EvaluatedList.found values => (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (if ((prim equal name "atomic_load" : Bool) || ((prim equal name "atomic_store" : Bool) || ((prim equal name "atomic_xchg" : Bool) || ((prim equal name "atomic_xadd" : Bool) || ((prim equal name "atomic_xsub" : Bool) || ((prim equal name "atomic_and" : Bool) || ((prim equal name "atomic_or" : Bool) || ((prim equal name "atomic_xor" : Bool) || ((prim equal name "atomic_nand" : Bool) || ((prim equal name "atomic_max" : Bool) || ((prim equal name "atomic_min" : Bool) || ((prim equal name "atomic_umax" : Bool) || ((prim equal name "atomic_umin" : Bool) || ((prim equal name "atomic_cxchg" : Bool) || ((prim equal name "atomic_cxchgweak" : Bool) || ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool))))))))))))))))) then (evalAtomic frames name values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
+    | EvaluatedList.found values => (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (if (prim equal name "slice_get_unchecked" : Bool) then (sliceElement frames values destination target) else (if ((prim equal name "atomic_load" : Bool) || ((prim equal name "atomic_store" : Bool) || ((prim equal name "atomic_xchg" : Bool) || ((prim equal name "atomic_xadd" : Bool) || ((prim equal name "atomic_xsub" : Bool) || ((prim equal name "atomic_and" : Bool) || ((prim equal name "atomic_or" : Bool) || ((prim equal name "atomic_xor" : Bool) || ((prim equal name "atomic_nand" : Bool) || ((prim equal name "atomic_max" : Bool) || ((prim equal name "atomic_min" : Bool) || ((prim equal name "atomic_umax" : Bool) || ((prim equal name "atomic_umin" : Bool) || ((prim equal name "atomic_cxchg" : Bool) || ((prim equal name "atomic_cxchgweak" : Bool) || ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool))))))))))))))))) then (evalAtomic frames name values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
       | Option.none => (ctor Outcome.unlinked name)
       | Option.some result => (match result
         | Evaluated.stop outcome => outcome
-        | Evaluated.found value => (finishCall frames destination target value))))))))
+        | Evaluated.found value => (finishCall frames destination target value)))))))))
 }
 
 definition{
@@ -2380,6 +2446,53 @@ definition{
 }
 
 definition{
+  name: bumpLast,
+  parameters: [steps : (List Nat)],
+  result: (List Nat),
+  body: (match steps
+    | List.nil => (nil Nat)
+    | List.cons step rest => (match rest
+      | List.nil => (cons (step + 1) (nil Nat))
+      | List.cons next more => (cons step (bumpLast rest)))),
+  recursive_argument: steps
+}
+
+definition{
+  name: writeRun,
+  parameters: [frames : (List Frame), loc : Location, value : Value, count : Nat],
+  result: (Option (List Frame)),
+  body: (match count
+    | Nat.zero => (ctor Option.some [(List Frame)] frames)
+    | Nat.succ rest => (match (writeAt frames loc value)
+      | Option.none => (ctor Option.none [(List Frame)])
+      | Option.some written => (writeRun written (record Location {frame := (project loc frame), base := (project loc base), steps := (bumpLast (project loc steps)), root := (project loc root)}) value rest))),
+  recursive_argument: count
+}
+
+definition{
+  name: writeBytes,
+  parameters: [fuel : Nat, big : Bool, frames : (List Frame), element : Layout, values : (List Value), destination : Place, target : (Option Nat)],
+  result: Outcome,
+  body: (match values
+    | List.nil => (ctor Outcome.ub "a write_bytes to no pointer")
+    | List.cons pointer rest => (match rest
+      | List.nil => (ctor Outcome.ub "a write_bytes of no byte")
+      | List.cons byte more => (match more
+        | List.nil => (ctor Outcome.ub "a write_bytes of no count")
+        | List.cons count others => (match (placeOfPointer pointer)
+          | Option.none => (ctor Outcome.ub "a write_bytes to a value that is not a pointer to a place")
+          | Option.some loc => (match (scalarOf byte)
+            | Option.none => (ctor Outcome.ub "a write_bytes of a byte that is not an integer")
+            | Option.some b => (match (scalarOf count)
+              | Option.none => (ctor Outcome.ub "a write_bytes of a count that is not an integer")
+              | Option.some n => (match (transmuteValue fuel big (ctor Layout.array (ctor Layout.int 1 false) (layoutSize element) 1) element (ctor Value.tuple (repeatValue (layoutSize element) (ctor Value.int 8 false (project b magnitude)))))
+                | Evaluated.stop outcome => outcome
+                | Evaluated.found filled => (match (writeRun frames loc filled (project n magnitude))
+                  | Option.none => (ctor Outcome.ub "a write_bytes to a place that holds no value")
+                  | Option.some written => (finishCall written destination target (ctor Value.unit))))))))))
+}
+
+definition{
   name: visitTasks,
   parameters: [values : (List Value), rest : (List Pin)],
   result: (List Pin),
@@ -2464,6 +2577,9 @@ definition{
         | List.cons value others => (match (evalUnchecked source target2 value)
           | Evaluated.stop outcome => outcome
           | Evaluated.found result => (finishCall frames destination target result))))
+    | Callee.writeBytes element => (match (evalOperands program frames args)
+      | EvaluatedList.stop outcome => outcome
+      | EvaluatedList.found values => (writeBytes fuel (project program bigEndian) frames element values destination target))
     | Callee.transmute source target2 => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
       | EvaluatedList.found values => (match values
