@@ -2,7 +2,7 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 280 of 1066 functions of product code are lifted; 643
+# Honesty report: 280 of 1071 functions of product code are lifted; 648
 # are residue, 45 foreign and 98 effect rows.
 # Residue by cause:
 #   arithmetic: 1
@@ -151,7 +151,7 @@
 #     1 uorust::order::derived_in, whose translation is not admitted
 #   mir::TerminatorKind::Goto: 42
 #     42 a loop nested in a loop, whose helpers would call each other
-#   mir::Ty: 266
+#   mir::Ty: 267
 #     7 A0
 #     3 T
 #     49 core::fmt::rt::Argument<'_>
@@ -177,7 +177,7 @@
 #     2 mir::ir::IrRvalue
 #     1 mir::ir::IrStatement
 #     2 mir::ir::IrTerminator
-#     8 mir::link::CoreLink
+#     9 mir::link::CoreLink
 #     2 mir::lower::Cx<'_>
 #     1 mir::lower::Fun<'_, '_>
 #     1 mir::lower::Inhabited
@@ -199,7 +199,7 @@
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2309:21: 2309:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2538:21: 2538:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -243,7 +243,7 @@
 #     1 std::str::Utf8Error
 #     2 syn::parse::ParseBuffer<'_>
 #     4 toml::Value
-#   type: 103
+#   type: 107
 # MIR kinds at toolchain 1.97.1: 81 of 118 lowered; every other kind is a
 # residue row that names it.
 #   StatementKind::Assign: lowered: the local holds the rvalue's value; a write through a projection is residue
@@ -632,13 +632,13 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "6c2a26cfa9222a14e9d958178434923abefe994285b760dadfb1044d2aa63c82"
+kappa = "8ec3941289905c8654760c7900d358dc11a28e473dc7c548eed7bc6cf7d696f2"
 function = "uorust::embed::Cx<'_>::body"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "040042dd92e0bdedeeff7a3910e0e5408f4b67d3502448ee4e673456a1a41093"
+kappa = "74b7c8614d7a7d09c211cd96ae3e41355061756b7f47d916c5ef36ab3d14f352"
 function = "uorust::embed::Cx<'_>::constant"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -646,6 +646,18 @@ detail = "type outside the lift: Cx<'_>"
 [[residue]]
 kappa = "89d668b0b124e7f1d221d18c28b6add66663f55f8e0e230387c9f2a9d00b0d8e"
 function = "uorust::embed::Cx<'_>::discriminant"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "59908e952e31d24d1953f23f84090bb76b366527e927213599d48bd9f89f8249"
+function = "uorust::embed::Cx<'_>::float"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "b69d16e5e5644d728da30cc724cc50c94a53d86e940713ea7aa8b5abdde3f2f3"
+function = "uorust::embed::Cx<'_>::float_literal"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
@@ -662,14 +674,26 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "c5b55f2174e4feccc09391fcb44099a765c3bde054a3f6732cc0c5a42629776b"
+kappa = "1655d7dc21cff068d37ae458804dfa53adbebe45dbc4b73bc997bf14f6f11a2f"
 function = "uorust::embed::Cx<'_>::layout"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "e89436ade2004c3be4bab8faacd7b789f9eb2013ffc1b0b8d29a000a3b34ead3"
+function = "uorust::embed::Cx<'_>::numeric"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
 kappa = "0cace179aff734cc294d0bff0bd6e2ef8749ea4efb2a0b3cb996b057a5cf4fab"
 function = "uorust::embed::Cx<'_>::operand"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "bcb7b576001e79932d51851af924780f723f07cfc5949a478c44626b6f52c72a"
+function = "uorust::embed::Cx<'_>::operand_ty"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
@@ -698,7 +722,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "32cd76221e3d38d15cde35a4c2f14fbb0222c4ce21e0e68881609c45badd2394"
+kappa = "aa56dfe06cf49a972e2a7054bd97d13df8b1f671a2faad26446ee0e2549c2bf6"
 function = "uorust::embed::Cx<'_>::rvalue"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -722,7 +746,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "bf5d05018fedb285d24f9f8050c7d58a7b91ad95f0f9a2182cb7d19b1e2a7244"
+kappa = "18f5ddc3728c32135766145ea1f4b1f38249c680c716a02396a5073fb4b46657"
 function = "uorust::embed::Cx<'_>::terminator"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -734,7 +758,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "2c07f15fbb909c3b0a068e9d6065e856df577343e54ef1d52fd64b506e6fe496"
+kappa = "1149181040028efb27cb7b0f06ce0d04a75c2745b303f22e96b013dc2ce73d88"
 function = "uorust::embed::Cx<'_>::ty"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -854,13 +878,13 @@ reason = "mir"
 detail = "mir::Operand::Constant: {alloc238: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
 
 [[residue]]
-kappa = "ab635687b03e088e9c50724c43af9bf24d0f502d8ef2fa2cb37c58550af61264"
+kappa = "5b6cd000318b75864eebafe66a2c72a19ebbc1ea189d5ce14f76be08485f1470"
 function = "uorust::embed::differential"
 reason = "mir"
 detail = "mir::Ty: std::path::Path"
 
 [[residue]]
-kappa = "fac438e807e8f86562ff18dc742b00719a4c0c1754f83df42811de218deca323"
+kappa = "7231325beedd625eae0bc39b23a305898d723dca0023e5042e7cbe1c125cd6e2"
 function = "uorust::embed::embed_project"
 reason = "mir"
 detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
@@ -875,7 +899,7 @@ detail = "mir::Ty: mir::core::CoreDecls"
 kappa = "5a23046ee6e579ed0c14a1fa3b845cd9c7e997d07804233c3fe101bf4cc65835"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2309:21: 2309:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2538:21: 2538:24}>"
 
 [[residue]]
 kappa = "9b06d1e71770a7c515754932ed1fa95b9b3c4fe0c9bf896ecf35b38885e93c62"
@@ -900,6 +924,12 @@ kappa = "c12ec3742ca01e74e77a086a85b3fedee6b576170a46deb652d618c48dd9d4ca"
 function = "uorust::embed::intrinsic_name"
 reason = "mir"
 detail = "mir::TerminatorKind::Call: uorust::mir::parse::split_path, whose translation is not admitted"
+
+[[residue]]
+kappa = "773ee58e55a003e6b95bee3554201254b8577d4145ef9e98ad8dd4911fe255ab"
+function = "uorust::embed::item_type"
+reason = "mir"
+detail = "mir::Ty: mir::link::CoreLink"
 
 [[residue]]
 kappa = "95c39233581b3e8bd0784840b05b50546b6fc266a1367a57f976a2603b5e071c"
@@ -4591,7 +4621,7 @@ function = "uorust::embed::embed"
 effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "c40bb9b74fa44c389ff43c978246b8c86e62e3f4df1260455ba9b1a94c3edbb2"
+kappa = "5755a8a513a093b20c4542214766450db3ff43d4c27dacdb418f8c76e6dc4dc8"
 function = "uorust::embed::embed_census"
 effect = "Fs effect: Path::is_dir"
 
@@ -4691,7 +4721,7 @@ function = "uorust::mir::core::impl_const_types"
 effect = "calls uorust::mir::impl_header, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "3a8bea3face0497bde5ad3f8f4ca48b581f57391ae7826125982c26364aa8a9c"
+kappa = "e356d580fafc579bd66a5932549436518ce5c404b4701a9c2ebb613da6db3b3e"
 function = "uorust::mir::core::shard"
 effect = "calls uorust::mir::float::formats, which performs a Fs effect: std::fs::read_dir"
 
