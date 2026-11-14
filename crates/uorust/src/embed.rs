@@ -124,6 +124,10 @@ pub(crate) struct Cx<'a> {
     /// Each allocation a dump names as a static's (`alloc7 (static: m::X)`),
     /// by name: the static's path, where one static the dumps hold ends so.
     pub(crate) static_allocs: &'a BTreeMap<String, String>,
+    /// The extern statics the dumps name an allocation of (`alloc9 (extern
+    /// static: m::environ)`), by path: the platform's, which the program
+    /// leaves to its dictionary.
+    pub(crate) externs: &'a BTreeSet<String>,
     /// Every dump's allocations, by name ([`allocation_cells`]).
     pub(crate) every_cell: &'a BTreeMap<String, Vec<Cell>>,
     /// The text each constant item the body reads is printed by.
@@ -1494,7 +1498,7 @@ impl Cx<'_> {
     /// The locals a constant item the body reads takes: its value's, and a
     /// static's the reference to it.
     fn slots(&self, key: &str) -> usize {
-        if self.statics.contains(key) {
+        if self.statics.contains(key) || self.externs.contains(key) {
             2
         } else {
             1
@@ -1678,6 +1682,15 @@ impl Cx<'_> {
             .strip_prefix('{')
             .and_then(|t| t.split_once(": &"))
             .and_then(|(a, _)| self.static_allocs.get(a))
+        {
+            return Some(path.clone());
+        }
+        // A pointer to an extern static, `{alloc9: *const T}`: the static.
+        if let Some(path) = text
+            .strip_prefix('{')
+            .and_then(|t| t.split_once(": *"))
+            .and_then(|(a, _)| self.static_allocs.get(a))
+            .filter(|p| self.externs.contains(*p))
         {
             return Some(path.clone());
         }
@@ -1992,7 +2005,11 @@ impl Cx<'_> {
     /// evaluates on entry into a local of its own: that local, or, for a
     /// static, the local past it, which borrows it.
     fn item_operand(&self, key: &str, text: Option<&str>, e: &mut Embedded) -> String {
-        e.callees.insert(key.to_string());
+        if self.externs.contains(key) {
+            e.bound.insert(key.to_string());
+        } else {
+            e.callees.insert(key.to_string());
+        }
         if let Some(t) = text {
             self.item_texts
                 .borrow_mut()
@@ -2707,26 +2724,33 @@ impl Cx<'_> {
                     "Terminator.call",
                     &[
                         place(value),
-                        self.constant_site(key),
+                        // An extern static's value is the platform's,
+                        // which the dictionary binds by its path.
+                        if self.externs.contains(key) {
+                            mir_ctor("Callee.bound", &[mir_string(key)])
+                        } else {
+                            self.constant_site(key)
+                        },
                         term_list(&[], &mir_name("Operand")),
                         format!("(ctor Option.some [Nat] {after})"),
                     ],
                 )
             ));
             if slots > 1 {
-                let borrow = mir_ctor(
-                    "Statement.assign",
-                    &[
-                        place(value + 1),
-                        mir_ctor(
-                            "Rvalue.borrow",
-                            &[
-                                mir_ctor(&kind_ctor(spec::MirBorrowKind::Shared.path()), &[]),
-                                place(value),
-                            ],
-                        ),
-                    ],
-                );
+                // A static is read through a reference to it, an extern
+                // static through a pointer.
+                let address = if self.externs.contains(key) {
+                    mir_ctor("Rvalue.rawPtr", &[place(value)])
+                } else {
+                    mir_ctor(
+                        "Rvalue.borrow",
+                        &[
+                            mir_ctor(&kind_ctor(spec::MirBorrowKind::Shared.path()), &[]),
+                            place(value),
+                        ],
+                    )
+                };
+                let borrow = mir_ctor("Statement.assign", &[place(value + 1), address]);
                 blocks.push(format!(
                     "(record {} {{statements := {}, terminator := {}}})",
                     mir_name("Block"),
@@ -4101,9 +4125,22 @@ fn embed_census(
             t.lines().map(move |l| (owner, l))
         })
         .filter_map(|(owner, l)| {
+            if let Some((alloc, rest)) = l.split_once(" (extern static: ") {
+                let named = rest.split([',', ')']).next()?.trim();
+                return Some((alloc.trim().to_string(), named.to_string()));
+            }
             let (alloc, rest) = l.split_once(" (static: ")?;
             let named = rest.split([',', ')']).next()?.trim();
             nearest(&statics, named, owner).map(|p| (alloc.trim().to_string(), p))
+        })
+        .collect();
+    let externs: BTreeSet<String> = read
+        .iter()
+        .flat_map(|(_, texts)| texts.iter())
+        .flat_map(|(_, t)| t.lines())
+        .filter_map(|l| {
+            let rest = l.split_once(" (extern static: ")?.1;
+            Some(rest.split([',', ')']).next()?.trim().to_string())
         })
         .collect();
     let every_cell: BTreeMap<String, Vec<Cell>> = read
@@ -4144,6 +4181,7 @@ fn embed_census(
                 source_constant: &source_constant,
                 every_cell: &every_cell,
                 static_allocs: &static_allocs,
+                externs: &externs,
                 slots: Default::default(),
                 sites: Default::default(),
                 item_texts: Default::default(),
@@ -4206,6 +4244,7 @@ fn embed_census(
             source_constant: &source_constant,
             every_cell: &every_cell,
             static_allocs: &static_allocs,
+            externs: &externs,
             slots: Default::default(),
             sites: Default::default(),
             item_texts: Default::default(),
@@ -4460,6 +4499,7 @@ mod tests {
             source_constant: &|_| None,
             every_cell: &BTreeMap::new(),
             static_allocs: &BTreeMap::new(),
+            externs: &BTreeSet::new(),
             slots: Default::default(),
             sites: Default::default(),
             item_texts: Default::default(),
