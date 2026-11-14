@@ -114,14 +114,16 @@ pub fn roots(register: &Register) -> Vec<Root> {
 /// root's definition marked as a production root, and `request.json`, the
 /// `lexlean/production-request/1` document naming one package per root at
 /// the `rust-std` descriptor of `targets` (the output of `lexlean production
-/// targets`). Returns the number of roots.
+/// targets`), restricted to the definitions of `batch` when it is given.
+/// Returns the roots the request names, by definition.
 pub fn production(
     projection: &Path,
     out: &Path,
     register: &Register,
     targets: &str,
     compiler: &BTreeMap<String, String>,
-) -> Result<usize, UorustError> {
+    batch: Option<&BTreeSet<String>>,
+) -> Result<Vec<String>, UorustError> {
     let bad = |path: &Path, reason: String| UorustError::Malformed {
         path: path.to_path_buf(),
         reason,
@@ -153,7 +155,17 @@ pub fn production(
         .copied()
         .filter(|n| !compiler.contains_key(*n))
         .collect();
-    let (marked, found, mut refused) = mark(&modules, &exported);
+    let (mut marked, found, mut refused) = mark(&modules, &exported);
+    // The compiler generates a package for every root the source marks, so
+    // a batch marks only its own roots, and their closures executable.
+    if let Some(batch) = batch {
+        let own: BTreeSet<&str> = exported
+            .iter()
+            .copied()
+            .filter(|n| batch.contains(*n))
+            .collect();
+        marked = mark(&modules, &own).0;
+    }
     refused.extend(compiler.iter().map(|(k, v)| (k.clone(), v.clone())));
     if let Some(missing) = names
         .iter()
@@ -181,9 +193,15 @@ pub fn production(
         .collect();
     let path = out.join(REFUSALS);
     std::fs::write(&path, refusals).map_err(|e| io(&path, e))?;
-    let mut entries: Vec<(String, serde_json::Value)> = roots
+    let named: Vec<String> = roots
         .iter()
         .filter(|r| !refused.contains_key(&r.definition))
+        .filter(|r| batch.is_none_or(|b| b.contains(&r.definition)))
+        .map(|r| r.definition.clone())
+        .collect();
+    let mut entries: Vec<(String, serde_json::Value)> = roots
+        .iter()
+        .filter(|r| named.contains(&r.definition))
         .map(|r| {
             let root = format!("{prefix}.Behavior.{}", r.definition);
             let entry = serde_json::json!({
@@ -202,68 +220,274 @@ pub fn production(
     let path = out.join("request.json");
     let body = serde_json::to_string_pretty(&request).unwrap_or_default() + "\n";
     std::fs::write(&path, body).map_err(|e| io(&path, e))?;
-    Ok(roots.len() - refused.len())
+    Ok(named)
 }
 
-/// Export the translator: write the production project and build it with
-/// `lexlean production build`, refusing each root the compiler finds
-/// ineligible with its diagnostic and building again until the build
-/// publishes, then replay the bundle with `verify-artifact` and keep under
-/// `kept` what [`sync`] reads of it: its result, its package sources and the
-/// refusals. The project and the build may live on a scratch volume.
+/// The limit of a `lexlean` project on the bytes one build generates over all
+/// its roots (`[limits] max_total_source_bytes`): a build that names it is
+/// over budget as a whole, not refused for any one root.
+const TOTAL_BUDGET: &str = "max_total_source_bytes";
+
+/// The cores one build occupies: `lexlean production build` and the `lean`
+/// it runs beside itself, each a core at full load.
+const CORES_PER_BUILD: usize = 2;
+
+/// The work [`production_build`]'s workers share: the batches still to
+/// build, the workers building one, the roots refused by the compiler, the
+/// bundles kept, the passes run, and the first error.
+#[derive(Default)]
+struct Export {
+    batches: Vec<Vec<String>>,
+    busy: usize,
+    compiler: BTreeMap<String, String>,
+    bundles: usize,
+    passes: usize,
+    error: Option<UorustError>,
+}
+
+/// What one build of a batch asks of the export next.
+enum Outcome {
+    /// It published the bundle at this path.
+    Bundle(PathBuf),
+    /// The compiler refused these roots, with their diagnostics.
+    Refused(Vec<(String, String)>),
+    /// The batch is over the project's total budget, with the diagnostic.
+    Over(String),
+}
+
+/// Export the translator: write the production project and build its roots
+/// with `lexlean production build`, in batches on parallel workers, then
+/// replay each bundle with `verify-artifact` and keep under `kept` what
+/// [`sync`] reads of them: each bundle's result and package sources under
+/// `kept/<n>`, and the refusals.
+///
+/// The roots are cut into one batch per worker, a worker per
+/// [`CORES_PER_BUILD`] available cores, each built in its own project under
+/// `out/<worker>` that marks only that batch's roots: a build's fixed cost,
+/// verifying the marked project, is paid once per batch. A root the compiler finds ineligible is refused with
+/// its diagnostic and only its batch is built again without it. A batch over
+/// the project's total budget ([`TOTAL_BUDGET`]) is split in two, so no root
+/// is refused for the size of the others. The roots `prior` (the manifest of
+/// the last export) refused, at the same κ and by the same compiler, are
+/// refused again before any build, so a steady export builds each batch
+/// once. Each pass is printed to stderr. The project and the build may live
+/// on a scratch volume.
 pub fn production_build(
     projection: &Path,
     out: &Path,
     register: &Register,
     targets: &str,
     kept: &Path,
+    prior: &Manifest,
 ) -> Result<(), UorustError> {
     let prefix = format!("{}.{BEHAVIOR}.", module_prefix(projection)?);
+    let all = roots(register);
     let mut compiler: BTreeMap<String, String> = BTreeMap::new();
-    loop {
-        if out.exists() {
-            std::fs::remove_dir_all(out).map_err(|e| io(out, e))?;
-        }
-        production(projection, out, register, targets, &compiler)?;
-        lexlean(out, &["lock"])?;
-        let result = lexlean(out, &["production", "build", "--request", "request.json"])?;
-        if result.get("success").and_then(serde_json::Value::as_bool) == Some(true) {
-            let bundle = result
-                .get("artifacts")
-                .and_then(|a| a.as_array())
-                .and_then(|a| a.first())
-                .and_then(|a| a.as_str())
-                .map(|a| out.join(a))
-                .ok_or_else(|| UorustError::Tool("lexlean production build: no bundle".into()))?;
-            let replay = lexlean(
-                out,
-                &["production", "verify-artifact", &bundle.to_string_lossy()],
-            )?;
-            if replay.get("success").and_then(serde_json::Value::as_bool) != Some(true) {
-                return Err(UorustError::Tool(format!(
-                    "lexlean production verify-artifact: {}",
-                    diagnostics(&replay).join("; ")
-                )));
-            }
-            keep(&bundle, kept)?;
-            let refusals = out.join(REFUSALS);
-            std::fs::copy(&refusals, kept.join(REFUSALS)).map_err(|e| io(&refusals, e))?;
-            return Ok(());
-        }
-        let messages = diagnostics(&result);
-        let named: Vec<(String, String)> = messages
+    if prior.compiler == compiler_version()? {
+        let by_kappa: BTreeMap<&str, &str> = all
             .iter()
-            .filter_map(|m| first_root(m, &prefix).map(|r| (r, m.clone())))
-            .filter(|(r, _)| !compiler.contains_key(r))
+            .map(|r| (r.kappa.as_str(), r.definition.as_str()))
             .collect();
-        if named.is_empty() {
+        compiler.extend(prior.refused.iter().filter_map(|(kappa, cause)| {
+            by_kappa
+                .get(kappa.as_str())
+                .filter(|_| cause.contains(&format!("`{prefix}")))
+                .map(|d| ((*d).to_string(), cause.clone()))
+        }));
+    }
+    for dir in [out, kept] {
+        if dir.exists() {
+            std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
+        }
+        std::fs::create_dir_all(dir).map_err(|e| io(dir, e))?;
+    }
+    // Every root the request may name: the higher-order ones are refused by
+    // `production` itself.
+    let probe = out.join("probe");
+    let eligible = production(projection, &probe, register, targets, &compiler, None)?;
+    std::fs::remove_dir_all(&probe).map_err(|e| io(&probe, e))?;
+    let cores = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+    let workers = (cores / CORES_PER_BUILD).max(1);
+    let count = workers.min(eligible.len()).max(1);
+    let mut batches: Vec<Vec<String>> = vec![Vec::new(); count];
+    for (i, root) in eligible.into_iter().enumerate() {
+        batches[i % count].push(root);
+    }
+    batches.reverse();
+    eprintln!(
+        "certify production: {} batches on {workers} workers, {} roots refused before any build",
+        batches.len(),
+        compiler.len()
+    );
+    let state = std::sync::Mutex::new(Export {
+        batches,
+        compiler,
+        ..Export::default()
+    });
+    let wake = std::sync::Condvar::new();
+    std::thread::scope(|scope| {
+        for worker in 0..workers {
+            let (state, wake, prefix) = (&state, &wake, &prefix);
+            let dir = out.join(worker.to_string());
+            scope.spawn(move || loop {
+                let (batch, compiler, pass) = {
+                    let mut s = state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+                    loop {
+                        if s.error.is_some() || (s.batches.is_empty() && s.busy == 0) {
+                            wake.notify_all();
+                            return;
+                        }
+                        if let Some(batch) = s.batches.pop() {
+                            s.busy += 1;
+                            s.passes += 1;
+                            break (batch, s.compiler.clone(), s.passes);
+                        }
+                        s = wake.wait(s).unwrap_or_else(std::sync::PoisonError::into_inner);
+                    }
+                };
+                let started = std::time::Instant::now();
+                let outcome = build_batch(
+                    projection, &dir, register, targets, &compiler, &batch, prefix,
+                );
+                let mut s = state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+                s.busy -= 1;
+                let seconds = started.elapsed().as_secs();
+                match outcome {
+                    Ok((_, None)) => {}
+                    Ok((named, Some(Outcome::Bundle(bundle)))) => {
+                        s.bundles += 1;
+                        let to = kept.join(s.bundles.to_string());
+                        eprintln!(
+                            "certify production: pass {pass} (worker {worker}): {} roots published in {seconds}s",
+                            named.len()
+                        );
+                        if let Err(e) = keep(&bundle, &to) {
+                            s.error = Some(e);
+                        }
+                    }
+                    Ok((named, Some(Outcome::Refused(refused)))) => {
+                        for (root, cause) in &refused {
+                            eprintln!(
+                                "certify production: pass {pass} (worker {worker}): {root} refused after {seconds}s: {}",
+                                cause.lines().next().unwrap_or_default()
+                            );
+                        }
+                        s.compiler.extend(refused);
+                        s.batches.push(named);
+                    }
+                    Ok((named, Some(Outcome::Over(cause)))) => {
+                        eprintln!(
+                            "certify production: pass {pass} (worker {worker}): {} roots over budget after {seconds}s: {}",
+                            named.len(),
+                            cause.lines().next().unwrap_or_default()
+                        );
+                        if let [root] = named.as_slice() {
+                            s.compiler.insert(root.clone(), cause);
+                        } else {
+                            let (first, second) = named.split_at(named.len() / 2);
+                            s.batches.push(second.to_vec());
+                            s.batches.push(first.to_vec());
+                        }
+                    }
+                    Err(e) => s.error = Some(e),
+                }
+                wake.notify_all();
+            });
+        }
+    });
+    let s = state
+        .into_inner()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some(e) = s.error {
+        return Err(e);
+    }
+    // The refusals of every root refused by the end.
+    let last = out.join("refusals");
+    production(projection, &last, register, targets, &s.compiler, None)?;
+    let refusals = last.join(REFUSALS);
+    std::fs::copy(&refusals, kept.join(REFUSALS)).map_err(|e| io(&refusals, e))?;
+    eprintln!(
+        "certify production: {} bundles in {} passes, {} roots refused by the compiler",
+        s.bundles,
+        s.passes,
+        s.compiler.len()
+    );
+    Ok(())
+}
+
+/// Build one batch in the production project at `dir`: the roots the request
+/// named (none when the compiler had refused them all) and what the build
+/// asks next, its bundle replayed with `verify-artifact` when it published.
+fn build_batch(
+    projection: &Path,
+    dir: &Path,
+    register: &Register,
+    targets: &str,
+    compiler: &BTreeMap<String, String>,
+    batch: &[String],
+    prefix: &str,
+) -> Result<(Vec<String>, Option<Outcome>), UorustError> {
+    if dir.exists() {
+        std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
+    }
+    let only: BTreeSet<String> = batch.iter().cloned().collect();
+    let named = production(projection, dir, register, targets, compiler, Some(&only))?;
+    if named.is_empty() {
+        return Ok((named, None));
+    }
+    lexlean(dir, &["lock"])?;
+    let result = lexlean(dir, &["production", "build", "--request", "request.json"])?;
+    if result.get("success").and_then(serde_json::Value::as_bool) == Some(true) {
+        let bundle = result
+            .get("artifacts")
+            .and_then(|a| a.as_array())
+            .and_then(|a| a.first())
+            .and_then(|a| a.as_str())
+            .map(|a| dir.join(a))
+            .ok_or_else(|| UorustError::Tool("lexlean production build: no bundle".into()))?;
+        let replay = lexlean(
+            dir,
+            &["production", "verify-artifact", &bundle.to_string_lossy()],
+        )?;
+        if replay.get("success").and_then(serde_json::Value::as_bool) != Some(true) {
             return Err(UorustError::Tool(format!(
-                "lexlean production build: {}",
-                messages.join("; ")
+                "lexlean production verify-artifact: {}",
+                diagnostics(&replay).join("; ")
             )));
         }
-        compiler.extend(named);
+        return Ok((named, Some(Outcome::Bundle(bundle))));
     }
+    let messages = diagnostics(&result);
+    let refused: Vec<(String, String)> = messages
+        .iter()
+        .filter(|m| !m.contains(TOTAL_BUDGET))
+        .filter_map(|m| first_root(m, prefix).map(|r| (r, m.clone())))
+        .filter(|(r, _)| !compiler.contains_key(r))
+        .collect();
+    if !refused.is_empty() {
+        return Ok((named, Some(Outcome::Refused(refused))));
+    }
+    match messages.iter().find(|m| m.contains(TOTAL_BUDGET)) {
+        Some(m) => Ok((named, Some(Outcome::Over(m.clone())))),
+        None => Err(UorustError::Tool(format!(
+            "lexlean production build: {}",
+            messages.join("; ")
+        ))),
+    }
+}
+
+/// The LexLean compiler's version, as a bundle's result records it.
+fn compiler_version() -> Result<String, UorustError> {
+    let run = std::process::Command::new("lexlean")
+        .arg("--version")
+        .output()
+        .map_err(|e| UorustError::Tool(format!("lexlean --version: {e}")))?;
+    Ok(String::from_utf8_lossy(&run.stdout)
+        .lines()
+        .next()
+        .and_then(|l| l.split_whitespace().nth(1))
+        .unwrap_or_default()
+        .to_string())
 }
 
 /// Keep what [`sync`] reads of a bundle under `to`: its `result.json` and
@@ -739,12 +963,28 @@ impl Manifest {
     }
 }
 
-/// Take the bundle at `bundle` into `dir`: each certified root's
-/// `src/lib.rs` as `dir/roots/<package>.rs` (checked against the SHA-256 the
+/// The bundles [`production_build`] kept under `kept`, in the order it
+/// built them: each directory `kept/<n>` that holds a `result.json`.
+fn bundles(kept: &Path) -> Result<Vec<PathBuf>, UorustError> {
+    let mut out: Vec<(usize, PathBuf)> = std::fs::read_dir(kept)
+        .map_err(|e| io(kept, e))?
+        .filter_map(Result::ok)
+        .filter_map(|e| {
+            let n = e.file_name().to_str()?.parse::<usize>().ok()?;
+            Some((n, e.path()))
+        })
+        .filter(|(_, p)| p.join("result.json").is_file())
+        .collect();
+    out.sort();
+    Ok(out.into_iter().map(|(_, p)| p).collect())
+}
+
+/// Take the bundles kept under `kept` into `dir`: each certified root's
+/// `src/lib.rs` as `dir/roots/<package>.rs` (checked against the SHA-256 its
 /// bundle's result records), the crate that compiles them, and the manifest,
 /// with the share over `register` and the call graph of `dumps`.
 pub(crate) fn sync(
-    bundle: &Path,
+    kept: &Path,
     production: &Path,
     dir: &Path,
     adapters: &Path,
@@ -755,10 +995,14 @@ pub(crate) fn sync(
         path: path.to_path_buf(),
         reason,
     };
-    let path = bundle.join("result.json");
-    let text = std::fs::read_to_string(&path).map_err(|e| io(&path, e))?;
-    let result: serde_json::Value =
-        serde_json::from_str(&text).map_err(|e| bad(&path, e.to_string()))?;
+    let mut results = Vec::new();
+    for bundle in bundles(kept)? {
+        let path = bundle.join("result.json");
+        let text = std::fs::read_to_string(&path).map_err(|e| io(&path, e))?;
+        let result: serde_json::Value =
+            serde_json::from_str(&text).map_err(|e| bad(&path, e.to_string()))?;
+        results.push((bundle, path, result));
+    }
     let field = |v: &serde_json::Value, keys: &[&str]| {
         let mut at = v;
         for k in keys {
@@ -776,52 +1020,55 @@ pub(crate) fn sync(
     }
     std::fs::create_dir_all(&roots_dir).map_err(|e| io(&roots_dir, e))?;
     let mut certified = Vec::new();
-    for root in result
-        .get("roots")
-        .and_then(|r| r.as_array())
-        .into_iter()
-        .flatten()
-    {
-        for output in root
-            .get("outputs")
-            .and_then(|o| o.as_array())
+    for (bundle, path, result) in &results {
+        let (bundle, path) = (bundle.as_path(), path.as_path());
+        for root in result
+            .get("roots")
+            .and_then(|r| r.as_array())
             .into_iter()
             .flatten()
         {
-            let package = output.get("package").unwrap_or(&serde_json::Value::Null);
-            let directory = field(package, &["directory"]);
-            let name = directory.rsplit('/').next().unwrap_or_default().to_string();
-            let Some(own) = by_package.get(&name) else {
-                return Err(bad(&path, format!("{name} is no root of the register")));
-            };
-            let lib = format!("{directory}/src/lib.rs");
-            let recorded = package
-                .get("files")
-                .and_then(|f| f.as_array())
+            for output in root
+                .get("outputs")
+                .and_then(|o| o.as_array())
                 .into_iter()
                 .flatten()
-                .find(|f| field(f, &["path"]) == lib)
-                .map(|f| field(f, &["sha256"]))
-                .ok_or_else(|| bad(&path, format!("{lib} is not in the result")))?;
-            let source_path = bundle.join(&lib);
-            let bytes = std::fs::read(&source_path).map_err(|e| io(&source_path, e))?;
-            let digest = crate::project::sha(&bytes);
-            if digest != recorded {
-                return Err(bad(
-                    &source_path,
-                    format!("SHA-256 {digest}, the result records {recorded}"),
-                ));
+            {
+                let package = output.get("package").unwrap_or(&serde_json::Value::Null);
+                let directory = field(package, &["directory"]);
+                let name = directory.rsplit('/').next().unwrap_or_default().to_string();
+                let Some(own) = by_package.get(&name) else {
+                    return Err(bad(path, format!("{name} is no root of the register")));
+                };
+                let lib = format!("{directory}/src/lib.rs");
+                let recorded = package
+                    .get("files")
+                    .and_then(|f| f.as_array())
+                    .into_iter()
+                    .flatten()
+                    .find(|f| field(f, &["path"]) == lib)
+                    .map(|f| field(f, &["sha256"]))
+                    .ok_or_else(|| bad(path, format!("{lib} is not in the result")))?;
+                let source_path = bundle.join(&lib);
+                let bytes = std::fs::read(&source_path).map_err(|e| io(&source_path, e))?;
+                let digest = crate::project::sha(&bytes);
+                if digest != recorded {
+                    return Err(bad(
+                        &source_path,
+                        format!("SHA-256 {digest}, the result records {recorded}"),
+                    ));
+                }
+                let target = roots_dir.join(format!("{name}.rs"));
+                std::fs::write(&target, &bytes).map_err(|e| io(&target, e))?;
+                certified.push(Certified {
+                    function: own.function.clone(),
+                    kappa: own.kappa.clone(),
+                    definition: own.definition.clone(),
+                    package: name,
+                    source: digest,
+                    certification: field(output, &["certification", "status"]),
+                });
             }
-            let target = roots_dir.join(format!("{name}.rs"));
-            std::fs::write(&target, &bytes).map_err(|e| io(&target, e))?;
-            certified.push(Certified {
-                function: own.function.clone(),
-                kappa: own.kappa.clone(),
-                definition: own.definition.clone(),
-                package: name,
-                source: digest,
-                certification: field(output, &["certification", "status"]),
-            });
         }
     }
     certified.sort_by(|a, b| a.package.cmp(&b.package));
@@ -864,8 +1111,15 @@ pub(crate) fn sync(
         .collect();
     let manifest = Manifest {
         refused,
-        result: field(&result, &["result_id"]),
-        compiler: field(&result, &["compiler", "version"]),
+        result: results
+            .iter()
+            .map(|(_, _, r)| field(r, &["result_id"]))
+            .collect::<Vec<_>>()
+            .join(" "),
+        compiler: results
+            .first()
+            .map(|(_, _, r)| field(r, &["compiler", "version"]))
+            .unwrap_or_default(),
         roots: certified,
         share: share(register, &kappas, dumps),
     };
@@ -874,7 +1128,7 @@ pub(crate) fn sync(
     Ok(manifest)
 }
 
-/// [`sync`] of the bundle [`build`] kept at `kept`, with the dumps read from
+/// [`sync`] of the bundles [`production_build`] kept at `kept`, with the dumps read from
 /// `mir` of the workspace at `workspace`.
 pub fn sync_paths(
     kept: &Path,
@@ -1793,5 +2047,23 @@ mod tests {
             .collect(),
         };
         assert_eq!(Manifest::parse(Path::new("m"), &m.to_text()), Ok(m));
+    }
+
+    #[test]
+    fn the_kept_bundles_are_read_in_build_order() {
+        let kept = std::env::temp_dir().join(format!("uorust-kept-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&kept);
+        for n in ["1", "2", "10", "notes"] {
+            std::fs::create_dir_all(kept.join(n)).expect("a bundle directory");
+            std::fs::write(kept.join(n).join("result.json"), "{}").expect("a result");
+        }
+        std::fs::create_dir_all(kept.join("3")).expect("an empty directory");
+        let found = bundles(&kept).expect("the bundles");
+        let _ = std::fs::remove_dir_all(&kept);
+        let names: Vec<_> = found
+            .iter()
+            .filter_map(|p| p.file_name()?.to_str().map(str::to_string))
+            .collect();
+        assert_eq!(names, ["1", "2", "10"]);
     }
 }

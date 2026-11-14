@@ -188,7 +188,7 @@ certified:
     cargo run -q --locked -p uorust -- mir . --out target/mir
     cargo run -q --locked -p uorust -- project . --out target/uorust-self --name uorust --last-modified 2026-11-11T00:00:00Z --register frontier.toml {{mir}}
     lexlean production targets --diagnostic-format json >crates/certified/targets.json
-    cargo run -q --locked -p uorust -- certify production --projection target/uorust-self --register frontier.toml --targets crates/certified/targets.json --out target/uorust-certify --kept target/uorust-certified
+    cargo run -q --locked -p uorust -- certify production --projection target/uorust-self --register frontier.toml --targets crates/certified/targets.json --out target/uorust-certify --kept target/uorust-certified --prior crates/certified/manifest.toml
     cargo run -q --locked -p uorust -- certify sync --kept target/uorust-certified --register frontier.toml --mir target/mir --workspace . --dir crates/certified --adapters crates/uorust/src/certified.rs
     rustfmt --edition 2021 crates/uorust/src/certified.rs
     # The adapters compile, and the switch selects, before export pushes them.

@@ -91,10 +91,14 @@ enum Certify {
         /// The directory the production project is written to.
         #[arg(long)]
         out: PathBuf,
-        /// Where the bundle's result, package sources and refusals are kept
-        /// for `certify sync`.
+        /// Where the bundles' results, package sources and refusals are
+        /// kept for `certify sync`.
         #[arg(long)]
         kept: PathBuf,
+        /// The manifest of the last export: the roots it refused at an
+        /// unchanged κ and compiler are refused again without a build.
+        #[arg(long)]
+        prior: PathBuf,
     },
     /// Take a published bundle into the certified crate and write its
     /// manifest with the bootstrap's share.
@@ -483,6 +487,7 @@ fn certify(step: Certify) -> Result<(), UorustError> {
             targets,
             out,
             kept,
+            prior,
         } => {
             let targets = std::fs::read_to_string(&targets).map_err(|e| UorustError::Io {
                 path: targets.clone(),
@@ -494,6 +499,7 @@ fn certify(step: Certify) -> Result<(), UorustError> {
                 &read_register(&register)?,
                 &targets,
                 &kept,
+                &certify::Manifest::read(&prior)?,
             )?;
             println!("certified bundle kept in {}", kept.display());
         }
