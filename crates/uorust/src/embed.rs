@@ -172,6 +172,43 @@ pub(crate) fn static_body(text: &str) -> Option<IrBody> {
     Some(body)
 }
 
+/// The static MIR prints as `printed`, a path from the module of the body
+/// `owner` (`ID`, `destructors::list::DTORS`): of the statics whose path
+/// ends so, the one whose path shares the most leading segments with the
+/// reader's, where one does.
+fn nearest(statics: &BTreeSet<String>, printed: &str, owner: &str) -> Option<String> {
+    let shared = |k: &str| {
+        k.split("::")
+            .zip(owner.split("::"))
+            .take_while(|(a, b)| a == b)
+            .count()
+    };
+    let suffix = format!("::{printed}");
+    let found: Vec<&String> = statics
+        .iter()
+        .filter(|k| *k == printed || k.ends_with(&suffix))
+        .collect();
+    let best = found.iter().map(|k| shared(k)).max()?;
+    match found
+        .iter()
+        .filter(|k| shared(k) == best)
+        .collect::<Vec<_>>()
+        .as_slice()
+    {
+        [one] => Some((**one).clone()),
+        _ => None,
+    }
+}
+
+/// The path a dump's first line names its body by (`// MIR for `a::b``).
+fn dumped_path(text: &str) -> Option<&str> {
+    text.lines()
+        .next()?
+        .strip_prefix("// MIR for `")?
+        .split_once('`')
+        .map(|(p, _)| p)
+}
+
 /// The paths of the statics whose initializers `link`'s dumps hold.
 pub(crate) fn statics(link: &crate::mir::link::CoreLink) -> BTreeSet<String> {
     link.bodies
@@ -459,6 +496,70 @@ fn intrinsic_name(path: &str) -> String {
         .copied()
         .unwrap_or(path)
         .to_string()
+}
+
+/// The float intrinsics whose result the platform gives: each intrinsic
+/// core declares without a body (`library/core/src/intrinsics/mod.rs`)
+/// whose documentation names a stabilized version (`f32::cos`) that its
+/// float module, std's or core's, documents under "Unspecified precision"
+/// ("non-deterministic ... varies by platform"). Such a call is the
+/// platform's math library's, which the evaluator takes as input.
+pub(crate) fn platform_intrinsics(library: &Path) -> BTreeSet<String> {
+    let read = |p: std::path::PathBuf| std::fs::read_to_string(p).unwrap_or_default();
+    let intrinsics = read(library.join("core/src/intrinsics/mod.rs"));
+    let mut out = BTreeSet::new();
+    for (name, doc) in documented_fns(&intrinsics) {
+        let stable = doc
+            .split("The stabilized version of this intrinsic is")
+            .nth(1)
+            .and_then(|r| r.split('`').nth(1))
+            .and_then(|r| r.split_once("::"));
+        let Some((ty, method)) = stable else {
+            continue;
+        };
+        let unspecified = ["std", "core"].iter().any(|krate| {
+            documented_fns(&read(library.join(format!("{krate}/src/num/{ty}.rs"))))
+                .iter()
+                .any(|(m, d)| m == method && d.contains("# Unspecified precision"))
+        });
+        if unspecified {
+            out.insert(name);
+        }
+    }
+    out
+}
+
+/// Each function a source declares, with the doc comment above it (its
+/// attributes between), where it has one.
+fn documented_fns(source: &str) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    let mut doc = String::new();
+    for line in source.lines() {
+        let l = line.trim();
+        if let Some(d) = l.strip_prefix("///") {
+            doc.push_str(d);
+            doc.push('\n');
+            continue;
+        }
+        if l.starts_with("#[") {
+            continue;
+        }
+        let head = [
+            "pub const unsafe fn ",
+            "pub unsafe fn ",
+            "pub const fn ",
+            "pub fn ",
+        ]
+        .iter()
+        .find_map(|k| l.strip_prefix(k));
+        if let Some(name) = head.and_then(|h| h.split(['(', '<']).next()) {
+            if !doc.is_empty() {
+                out.push((name.to_string(), std::mem::take(&mut doc)));
+            }
+        }
+        doc.clear();
+    }
+    out
 }
 
 pub(crate) fn undefined_constructs() -> &'static BTreeSet<String> {
@@ -1864,6 +1965,45 @@ impl Cx<'_> {
         mir_ctor("Const.other", &[mir_string(&text)])
     }
 
+    /// The operand that reads the constant item `key`, which the body
+    /// evaluates on entry into a local of its own: that local, or, for a
+    /// static, the local past it, which borrows it.
+    fn item_operand(&self, key: &str, text: Option<&str>, e: &mut Embedded) -> String {
+        e.callees.insert(key.to_string());
+        if let Some(t) = text {
+            self.item_texts
+                .borrow_mut()
+                .entry(key.to_string())
+                .or_insert_with(|| t.to_string());
+        }
+        let mut items = self.items.borrow_mut();
+        let at = items.iter().position(|k| k == key).unwrap_or_else(|| {
+            items.push(key.to_string());
+            items.len() - 1
+        });
+        let slot: usize =
+            items[..at].iter().map(|k| self.slots(k)).sum::<usize>() + self.slots(key) - 1;
+        mir_ctor(
+            "Operand.copy",
+            &[format!(
+                "(record {} {{base := {}, projection := {}}})",
+                mir_name("Place"),
+                self.base.get() + slot,
+                term_list(&[], &mir_name("Proj"))
+            )],
+        )
+    }
+
+    /// The static a thread-local reference names (`&/*tls*/ ID`, MIR's
+    /// `Rvalue::ThreadLocalRef`), which MIR prints by its path from the
+    /// reading body's module: the static whose path ends so, nearest the
+    /// reader's. The evaluator runs one thread, so the thread's instance
+    /// of a thread-local is the static its initializer gives.
+    fn thread_local(&self, text: &str) -> Option<String> {
+        let printed = text.strip_prefix("&/*tls*/ ")?.trim();
+        nearest(self.statics, printed, &self.owner.borrow())
+    }
+
     fn operand(&self, o: &IrOperand, e: &mut Embedded) -> String {
         use spec::MirOperand as O;
         let (kind, term) = match o {
@@ -1871,34 +2011,11 @@ impl Cx<'_> {
             IrOperand::Move(p) => (O::Move, mir_ctor("Operand.move", &[self.place(p, e)])),
             IrOperand::Constant(c) if self.item(c).is_some() => {
                 let key = self.item(c).unwrap_or_default();
-                e.callees.insert(key.clone());
-                if let IrConstant::Other(t) | IrConstant::Path(t) = c {
-                    self.item_texts
-                        .borrow_mut()
-                        .entry(key.clone())
-                        .or_insert_with(|| t.clone());
-                }
-                let mut items = self.items.borrow_mut();
-                let at = items.iter().position(|k| *k == key).unwrap_or_else(|| {
-                    items.push(key.clone());
-                    items.len() - 1
-                });
-                // A static's operand is a reference to it: the local past
-                // the one its value is evaluated into, which borrows it.
-                let slot: usize =
-                    items[..at].iter().map(|k| self.slots(k)).sum::<usize>() + self.slots(&key) - 1;
-                (
-                    O::Constant,
-                    mir_ctor(
-                        "Operand.copy",
-                        &[format!(
-                            "(record {} {{base := {}, projection := {}}})",
-                            mir_name("Place"),
-                            self.base.get() + slot,
-                            term_list(&[], &mir_name("Proj"))
-                        )],
-                    ),
-                )
+                let text = match c {
+                    IrConstant::Other(t) | IrConstant::Path(t) => Some(t.as_str()),
+                    _ => None,
+                };
+                (O::Constant, self.item_operand(&key, text, e))
             }
             IrOperand::Constant(c) => (
                 O::Constant,
@@ -2138,6 +2255,17 @@ impl Cx<'_> {
                 )
             }
             // `[x; n]`: the operand and the count.
+            // A thread-local's reference: the static's, as an operand
+            // naming the static reads it.
+            IrRvalue::Other(R::Ref, text) if self.thread_local(text).is_some() => {
+                let key = self.thread_local(text).unwrap_or_default();
+                e.uses
+                    .insert(spec::MirRvalue::ThreadLocalRef.path().to_string());
+                (
+                    R::ThreadLocalRef,
+                    mir_ctor("Rvalue.value", &[self.item_operand(&key, None, e)]),
+                )
+            }
             IrRvalue::Other(spec::MirRvalue::Repeat, text)
                 if repeat_parts(text).is_some_and(|(o, n)| {
                     crate::mir::parse::operand(o).is_some() && self.generic_count(n).is_some()
@@ -3847,8 +3975,20 @@ fn embed_census(
     let enums = enums(&link.decls);
     let structs = structs(&link.decls);
     let layouts = crate::layouts::Index::new(crate::layouts::load(dumps)?);
-    let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
-        resolve_callee(&link, krate, callee, args, dest)
+    // A float intrinsic whose result the platform gives is a call the
+    // program leaves to its dictionary, as a foreign function is: the
+    // evaluator is given the platform's, and stops unlinked without it.
+    let platform = platform_intrinsics(&library_root(root));
+    let resolve = |callee: &str, args: &[Option<String>], dest: &str| match resolve_callee(
+        &link, krate, callee, args, dest,
+    ) {
+        Callee::Intrinsic(p)
+            if platform.contains(&intrinsic_name(&p))
+                && !defined_intrinsics().contains(&intrinsic_name(&p)) =>
+        {
+            Callee::Bound(intrinsic_name(&p))
+        }
+        c => c,
     };
     let mut census = EmbedCensus::default();
     // A constant item no dump holds, as its declaration in the crate's
@@ -3875,17 +4015,14 @@ fn embed_census(
     let static_allocs: BTreeMap<String, String> = read
         .iter()
         .flat_map(|(_, texts)| texts.iter())
-        .flat_map(|(_, t)| t.lines())
-        .filter_map(|l| {
+        .flat_map(|(_, t)| {
+            let owner = dumped_path(t).unwrap_or_default();
+            t.lines().map(move |l| (owner, l))
+        })
+        .filter_map(|(owner, l)| {
             let (alloc, rest) = l.split_once(" (static: ")?;
             let named = rest.split([',', ')']).next()?.trim();
-            let mut found = statics
-                .iter()
-                .filter(|p| *p == named || p.ends_with(&format!("::{named}")));
-            match (found.next(), found.next()) {
-                (Some(p), None) => Some((alloc.trim().to_string(), p.clone())),
-                _ => None,
-            }
+            nearest(&statics, named, owner).map(|p| (alloc.trim().to_string(), p))
         })
         .collect();
     let every_cell: BTreeMap<String, Vec<Cell>> = read
@@ -4320,5 +4457,34 @@ mod tests {
         assert_eq!(int_ty("usize", 64), Some((64, false)));
         assert_eq!(int_ty("i16", 64), Some((16, true)));
         assert_eq!(int_ty("u", 64), None);
+    }
+}
+
+#[cfg(test)]
+mod platform_tests {
+    /// An intrinsic is the platform's where its stabilized version is
+    /// documented under "Unspecified precision", and not otherwise.
+    #[test]
+    fn platform_intrinsics_read_their_stabilized_docs() {
+        let dir = std::env::temp_dir().join(format!("uorust-platform-{}", std::process::id()));
+        let w = |p: &str, t: &str| {
+            let p = dir.join(p);
+            std::fs::create_dir_all(p.parent().unwrap()).unwrap();
+            std::fs::write(p, t).unwrap();
+        };
+        w(
+            "core/src/intrinsics/mod.rs",
+            "/// Sine.\n///\n/// The stabilized version of this intrinsic is\n/// [`f32::sin`](x)\n#[rustc_intrinsic]\npub fn sinf32(x: f32) -> f32;\n/// Root.\n///\n/// The stabilized version of this intrinsic is\n/// [`f32::sqrt`](x)\n#[rustc_intrinsic]\npub fn sqrtf32(x: f32) -> f32;\n",
+        );
+        w(
+            "std/src/num/f32.rs",
+            "    /// # Unspecified precision\n    #[inline]\n    pub fn sin(self) -> f32 {}\n    /// Exact.\n    pub fn sqrt(self) -> f32 {}\n",
+        );
+        let got = super::platform_intrinsics(&dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(
+            got.into_iter().collect::<Vec<_>>(),
+            vec!["sinf32".to_string()]
+        );
     }
 }
