@@ -55,9 +55,33 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      # The manifest of the last export, kept as an artifact: its push to main
+      # is dropped whenever main moved during the export, so the refusals it
+      # learnt reach the next export this way (`--prior`), and that one
+      # builds no root the compiler already refused at the same κ.
+      - name: Fetch the last export's manifest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p target/certified-prior
+          id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=certified-manifest&per_page=20" \
+            --jq '[.artifacts[] | select(.expired | not)] | sort_by(.created_at) | last | .id // empty' || true)
+          if [[ -n $id ]]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" >target/certified-prior.zip
+            unzip -q -o target/certified-prior.zip -d target/certified-prior
+          fi
+          ls target/certified-prior
       - name: Build the certified translator through the locked SDK
         shell: bash
         run: scripts/ci/sdk.sh "just certified $((EXPORT_MINUTES * 60))"
+      - name: Keep the manifest for the next export
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: certified-manifest
+          path: crates/certified/manifest.toml
+          retention-days: 30
       - name: Publish the bootstrap's share
         if: always()
         shell: bash
