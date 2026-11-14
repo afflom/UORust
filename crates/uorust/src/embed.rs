@@ -172,6 +172,23 @@ pub(crate) fn static_body(text: &str) -> Option<IrBody> {
     Some(body)
 }
 
+/// A cast of a function item MIR prints by its bare path, `a::f::<T> as
+/// fn(*mut u8) (PointerCoercion(ReifyFnPointer(Safe), Implicit))`: the
+/// item's path and the cast's type.
+fn fn_item_cast(text: &str) -> Option<(String, String)> {
+    let open = text.strip_suffix(')')?.rfind(" (")?;
+    let at = text[..open].rfind(" as ")?;
+    let kind_text = &text[open + 2..text.len() - 1];
+    if !kind_text.starts_with("PointerCoercion(ReifyFnPointer") {
+        return None;
+    }
+    let path = text[..at].trim();
+    let is_path = !path.is_empty()
+        && !path.starts_with(['_', '&', '*', '('])
+        && crate::mir::parse::operand(path).is_none();
+    is_path.then(|| (path.to_string(), text[at + 4..open].to_string()))
+}
+
 /// The static MIR prints as `printed`, a path from the module of the body
 /// `owner` (`ID`, `destructors::list::DTORS`): of the statics whose path
 /// ends so, the one whose path shares the most leading segments with the
@@ -1018,11 +1035,17 @@ impl Cx<'_> {
             (candidates.len() == 1 || same_item(&erased, path))
                 && variants.iter().any(|(v, _)| v == variant)
         });
+        // Where several enums could be the one MIR prints (cfg'd twins, a
+        // path printed from the reader's module), the variant's
+        // discriminant, where every one of them gives it alike.
         let (_, variants) = found.next()?;
-        if found.next().is_some() {
-            return None;
-        }
-        variants.iter().find(|(v, _)| v == variant).map(|(_, d)| *d)
+        let d = variants
+            .iter()
+            .find(|(v, _)| v == variant)
+            .map(|(_, d)| *d)?;
+        found
+            .all(|(_, vs)| vs.iter().find(|(v, _)| v == variant).map(|(_, d)| *d) == Some(d))
+            .then_some(d)
     }
 
     /// The variant and discriminant of a unit variant, or a unit struct
@@ -2255,6 +2278,18 @@ impl Cx<'_> {
                 )
             }
             // `[x; n]`: the operand and the count.
+            // A function item reified to a pointer, which MIR prints by its
+            // path bare (`f::<T> as fn(*mut u8) (PointerCoercion(..))`):
+            // the cast of the item's constant.
+            IrRvalue::Other(R::Cast, text) if fn_item_cast(text).is_some() => {
+                let (path, ty) = fn_item_cast(text).unwrap_or_default();
+                let cast = IrRvalue::Cast(
+                    spec::MirCastKind::PointerCoercion,
+                    IrOperand::Constant(IrConstant::Path(path)),
+                    ty,
+                );
+                return self.rvalue(&cast, dest, e);
+            }
             // A thread-local's reference: the static's, as an operand
             // naming the static reads it.
             IrRvalue::Other(R::Ref, text) if self.thread_local(text).is_some() => {
@@ -2741,6 +2776,38 @@ pub(crate) fn enums(decls: &crate::mir::core::CoreDecls) -> Enums {
         out.entry(last)
             .or_default()
             .push((s.path.clone(), names.into_iter().zip(values).collect()));
+    }
+    out
+}
+
+/// The crates a library crate's root mounts as modules of its own, by
+/// `#[path = "../../<crate>/src/lib.rs"] mod <module>;`: each module's
+/// name and the crate's directory under `library`.
+fn mounted_crates(root: &Path, krate: &str) -> Vec<(String, String)> {
+    let lib = library_root(root).join(krate).join("src").join("lib.rs");
+    let text = std::fs::read_to_string(lib).unwrap_or_default();
+    let mut out = Vec::new();
+    let mut mounted: Option<String> = None;
+    for line in text.lines().map(str::trim) {
+        if let Some(rest) = line.strip_prefix("#[path = \"../../") {
+            mounted = rest
+                .strip_suffix("/src/lib.rs\"]")
+                .filter(|c| !c.contains('/'))
+                .map(str::to_string);
+            continue;
+        }
+        if line.starts_with("#[") {
+            continue;
+        }
+        if let Some(c) = mounted.take() {
+            let module = line
+                .trim_start_matches("pub ")
+                .strip_prefix("mod ")
+                .and_then(|m| m.strip_suffix(';'));
+            if let Some(m) = module {
+                out.push((m.to_string(), c));
+            }
+        }
     }
     out
 }
@@ -3972,7 +4039,21 @@ fn embed_census(
         read.iter()
             .flat_map(|(_, texts)| texts.iter().map(|(n, t)| (n.as_str(), t))),
     );
-    let enums = enums(&link.decls);
+    let mut enums = enums(&link.decls);
+    // The enums of a crate the crate's source mounts as a module of its own
+    // (std's `#[path = "../../backtrace/src/lib.rs"] mod backtrace_rs;`),
+    // by their paths under that module.
+    for (module, mounted) in mounted_crates(root, krate) {
+        let decls = crate::mir::core::library_decls(root, &[mounted.as_str()]);
+        for (last, found) in self::enums(&decls) {
+            let entry = enums.entry(last).or_default();
+            entry.extend(
+                found
+                    .into_iter()
+                    .map(|(path, variants)| (format!("{module}::{path}"), variants)),
+            );
+        }
+    }
     let structs = structs(&link.decls);
     let layouts = crate::layouts::Index::new(crate::layouts::load(dumps)?);
     // A float intrinsic whose result the platform gives is a call the
