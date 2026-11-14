@@ -376,13 +376,14 @@ fn nat(n: &Node) -> Option<usize> {
 }
 
 /// A `Layout { .. }` as a [`TypeLayout`], where rustc lays the type out
-/// with fields at offsets (`FieldsShape::Arbitrary`) or none
-/// (`Primitive`).
+/// with fields at offsets (`FieldsShape::Arbitrary`), none
+/// (`Primitive`), or elements at a stride (`Array`), whose offsets the
+/// embedding derives from its element's layout, as it does any array's.
 fn type_layout(n: &Node) -> Option<TypeLayout> {
     let fields = n.field("fields")?;
     let offsets = match fields.name() {
         "Arbitrary" => offsets_of(fields.field("offsets")?)?,
-        "Primitive" => Vec::new(),
+        "Primitive" | "Array" => Vec::new(),
         _ => return None,
     };
     let repr = n.field("backend_repr")?;
@@ -851,6 +852,33 @@ fn field_text(
     static_lifetimes(&crate::mir::stdlib::substitute(&t, bound))
 }
 
+/// The modules of the crate's items a type's source text names by their
+/// `crate::` paths: each path but its last segment.
+fn named_modules(text: &str) -> Vec<Vec<String>> {
+    let mut out: Vec<Vec<String>> = Vec::new();
+    for (at, _) in text.match_indices("crate::") {
+        let before = text[..at].chars().last();
+        if before.is_some_and(|c| c.is_alphanumeric() || c == '_' || c == ':') {
+            continue;
+        }
+        let path: String = text[at..]
+            .chars()
+            .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == ':')
+            .collect();
+        let segs: Vec<String> = path
+            .split("::")
+            .skip(1)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect();
+        let module = segs[..segs.len().saturating_sub(1)].to_vec();
+        if !out.contains(&module) {
+            out.push(module);
+        }
+    }
+    out
+}
+
 /// The module a type's path, as rustc prints it, is declared in, as a
 /// path of the crate's modules; another crate's type is seen from the
 /// crate's root.
@@ -932,14 +960,31 @@ pub fn run(krate: &str, dumps: &Path, copy: &Path, check: &str) -> Result<usize,
     while !next.is_empty() {
         // A text that is no type's (a parse error stops the whole check)
         // is asked nothing.
-        let mut live: Vec<(Ask, PathBuf, String)> = std::mem::take(&mut next)
-            .into_iter()
-            .filter(|(a, _, t)| syn::parse_str::<syn::Type>(t).is_ok() && asked.insert(a.clone()))
-            .map(|(a, home, t)| {
-                let refs: Vec<&str> = home.iter().map(String::as_str).collect();
-                (a, module_file(&src, &refs), t)
-            })
-            .collect();
+        // Each alias with the other modules it may be written in, where
+        // its own is refused one: those of the items its text names, the
+        // deepest first, since an item private to its module is seen only
+        // there and below.
+        let mut live: Vec<(Ask, PathBuf, String)> = Vec::new();
+        let mut elsewhere: Vec<Vec<PathBuf>> = Vec::new();
+        for (a, home, t) in std::mem::take(&mut next) {
+            if !(syn::parse_str::<syn::Type>(&t).is_ok() && asked.insert(a.clone())) {
+                continue;
+            }
+            let refs: Vec<&str> = home.iter().map(String::as_str).collect();
+            let file = module_file(&src, &refs);
+            let mut modules = named_modules(&t);
+            modules.sort_by_key(|m| std::cmp::Reverse(m.len()));
+            let mut others: Vec<PathBuf> = Vec::new();
+            for module in modules {
+                let refs: Vec<&str> = module.iter().map(String::as_str).collect();
+                let f = module_file(&src, &refs);
+                if f != file && !others.contains(&f) {
+                    others.push(f);
+                }
+            }
+            live.push((a, file, t));
+            elsewhere.push(others);
+        }
         let answers = loop {
             let mut by_file: BTreeMap<PathBuf, Vec<usize>> = BTreeMap::new();
             for (i, (_, f, _)) in live.iter().enumerate() {
@@ -991,12 +1036,24 @@ pub fn run(krate: &str, dumps: &Path, copy: &Path, check: &str) -> Result<usize,
                 bad.len(),
                 live.len()
             );
-            live = live
-                .into_iter()
-                .enumerate()
-                .filter(|(i, _)| !bad.contains(i))
-                .map(|(_, x)| x)
-                .collect();
+            // A refused alias is written in the next module it may be, or,
+            // where none is left, dropped.
+            let mut kept_live = Vec::new();
+            let mut kept_elsewhere = Vec::new();
+            for (i, ((a, file, t), mut others)) in live.into_iter().zip(elsewhere).enumerate() {
+                let file = if bad.contains(&i) {
+                    if others.is_empty() {
+                        continue;
+                    }
+                    others.remove(0)
+                } else {
+                    file
+                };
+                kept_live.push((a, file, t));
+                kept_elsewhere.push(others);
+            }
+            live = kept_live;
+            elsewhere = kept_elsewhere;
         };
         for (f, text) in &pristine {
             std::fs::write(f, text).map_err(|e| io(f, e))?;
@@ -1056,6 +1113,11 @@ pub fn run(krate: &str, dumps: &Path, copy: &Path, check: &str) -> Result<usize,
                 .collect();
             let mut bound: BTreeMap<String, String> =
                 decl.params.iter().cloned().zip(srcargs).collect();
+            // An argument rustc leaves out of the printed type is its
+            // parameter's default.
+            for (p, d) in &decl.defaults {
+                bound.entry(p.clone()).or_insert_with(|| d.clone());
+            }
             bound.insert("Self".to_string(), source(&p, krate));
             let variants: Vec<Vec<String>> = match &decl.data {
                 Some(vs) => vs
@@ -1143,6 +1205,19 @@ mod tests {
 error[E0603]: module `rt` is private
    --> /x/core/src/lib.rs:407:54
 ";
+
+    #[test]
+    fn an_alias_may_be_written_in_the_modules_its_text_names() {
+        assert_eq!(
+            named_modules(
+                "crate::pattern_type ! (* const crate::fmt::rt::Argument<'static> is ! null)"
+            ),
+            vec![
+                Vec::<String>::new(),
+                vec!["fmt".to_string(), "rt".to_string()]
+            ]
+        );
+    }
 
     #[test]
     fn reads_a_layout_and_a_refusal() {

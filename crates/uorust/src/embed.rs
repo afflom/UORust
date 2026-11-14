@@ -509,6 +509,15 @@ fn scraped(needle: &str) -> BTreeSet<String> {
         .collect()
 }
 
+/// The layout query an intrinsic is: `align_of_val` of a sized value is
+/// its type's `align_of`; any other intrinsic is its own name.
+fn layout_query(path: &str) -> String {
+    match intrinsic_name(path).as_str() {
+        "align_of_val" => "align_of".to_string(),
+        name => name.to_string(),
+    }
+}
+
 /// An intrinsic by its name: rustc names an intrinsic by its item's name,
 /// whatever crate's path a call prints it by.
 fn intrinsic_name(path: &str) -> String {
@@ -687,6 +696,29 @@ fn subslice(text: &str) -> Option<(u64, u64, bool)> {
 
 /// The element type and length of an array type as MIR prints it,
 /// `[u32; 10]`.
+/// Whether a type MIR prints is an array, of a count it prints or a
+/// parameter's (`[u8; N]`), and so sized: its brackets hold a `;` at no
+/// depth of its element's brackets.
+fn is_array(ty: &str) -> bool {
+    let Some(inner) = ty
+        .trim()
+        .strip_prefix('[')
+        .and_then(|t| t.strip_suffix(']'))
+    else {
+        return false;
+    };
+    let mut depth = 0usize;
+    for c in inner.chars() {
+        match c {
+            '[' | '(' | '<' => depth += 1,
+            ']' | ')' | '>' => depth = depth.saturating_sub(1),
+            ';' if depth == 0 => return true,
+            _ => {}
+        }
+    }
+    false
+}
+
 fn array_ty(ty: &str) -> Option<(&str, usize)> {
     let inner = ty.trim().strip_prefix('[')?.strip_suffix(']')?;
     let (elem, count) = inner.rsplit_once(';')?;
@@ -1090,14 +1122,13 @@ impl Cx<'_> {
         if depth == 0 {
             return None;
         }
-        if ty == "str" || ty.starts_with("dyn ") || (ty.starts_with('[') && array_ty(ty).is_none())
-        {
+        if ty == "str" || ty.starts_with("dyn ") || (ty.starts_with('[') && !is_array(ty)) {
             return Some(false);
         }
         if int_ty(ty, self.width).is_some()
             || self.float(ty).is_some()
             || matches!(ty, "bool" | "char" | "()")
-            || array_ty(ty).is_some()
+            || is_array(ty)
             || pointee(ty).is_some()
             || ty.starts_with("fn(")
             || ty.starts_with('(')
@@ -1408,36 +1439,15 @@ impl Cx<'_> {
     fn rustc_layout(&self, ty: &str, depth: usize) -> Option<Laid> {
         let (printed, l) = self.layouts.get(ty)?;
         if let Some(tag) = &l.tag {
-            return self.rustc_enumeration(printed, l, tag);
+            return self
+                .rustc_enumeration(printed, l, tag)
+                .or_else(|| self.rustc_tagged(printed, l, tag, depth));
         }
         let (adt, fields, l) = self.rustc_fields(ty)?;
         let mut terms = Vec::new();
         for (_, t) in &fields {
-            let base = t
-                .trim()
-                .strip_prefix('(')
-                .and_then(|r| r.split_once(") is "))
-                .map(|(b, _)| b);
-            let own = self.layouts.get(t).and_then(|(_, f)| f.scalar.as_ref());
-            let range = own.or(l.scalar.as_ref().filter(|_| fields.len() == 1));
-            let laid = match (base, range) {
-                (Some(b), Some(s)) => {
-                    let inner = self.layout(b, depth)?;
-                    Laid {
-                        term: mir_ctor(
-                            "Layout.ranged",
-                            &[inner.term, s.start.to_string(), s.end.to_string()],
-                        ),
-                        size: inner.size,
-                        assumed: None,
-                    }
-                }
-                _ => self.layout(t, depth)?,
-            };
-            if laid.assumed.is_some() {
-                return None;
-            }
-            terms.push(laid.term);
+            let outer = l.scalar.as_ref().filter(|_| fields.len() == 1);
+            terms.push(self.rustc_field(t, outer, depth)?.term);
         }
         let offsets: Vec<String> = fields.iter().map(|(o, _)| o.to_string()).collect();
         Some(Laid {
@@ -1448,6 +1458,137 @@ impl Cx<'_> {
                     adt.to_string(),
                     term_list(&offsets, "Nat"),
                     term_list(&terms, &mir_name("Layout")),
+                ],
+            ),
+            size: l.size,
+            assumed: None,
+        })
+    }
+
+    /// A field of an aggregate rustc lays out, of the type rustc prints:
+    /// a pattern type as its base valid in the range rustc gives it (or,
+    /// where it is its aggregate's one field, the aggregate's, `outer`).
+    fn rustc_field(
+        &self,
+        t: &str,
+        outer: Option<&crate::layouts::Scalar>,
+        depth: usize,
+    ) -> Option<Laid> {
+        let base = t
+            .trim()
+            .strip_prefix('(')
+            .and_then(|r| r.split_once(") is "))
+            .map(|(b, _)| b);
+        let own = self.layouts.get(t).and_then(|(_, f)| f.scalar.as_ref());
+        let laid = match (base, own.or(outer)) {
+            (Some(b), Some(s)) => {
+                let inner = self.layout(b, depth)?;
+                Laid {
+                    term: mir_ctor(
+                        "Layout.ranged",
+                        &[inner.term, s.start.to_string(), s.end.to_string()],
+                    ),
+                    size: inner.size,
+                    assumed: None,
+                }
+            }
+            _ => self.layout(t, depth)?,
+        };
+        laid.assumed.is_none().then_some(laid)
+    }
+
+    /// The variants an enum rustc lays out with a tag declares, by name
+    /// and discriminant, in order: of a declaration for each target, the
+    /// one whose variants are those rustc laid out.
+    fn rustc_variants(&self, ty: &str, count: usize) -> Option<&Vec<(String, i128)>> {
+        let (name, _) = generic_parts(ty);
+        let last = crate::mir::parse::split_path(name)
+            .last()
+            .copied()
+            .unwrap_or(name);
+        let found: Vec<_> = self
+            .enums
+            .get(last)?
+            .iter()
+            .filter(|(p, vs)| same_item(name, p) && vs.len() == count)
+            .collect();
+        match found.as_slice() {
+            [(_, variants)] => Some(variants),
+            _ => None,
+        }
+    }
+
+    /// An enum whose variants hold data, as rustc lays it out: its tag's
+    /// offset, width and encoding (the discriminant itself, or a niche in
+    /// the untagged variant's fields), and each variant as a record of its
+    /// fields at rustc's offsets, as `Layout.tagged`.
+    fn rustc_tagged(
+        &self,
+        ty: &str,
+        l: &crate::layouts::TypeLayout,
+        tag: &crate::layouts::Tag,
+        depth: usize,
+    ) -> Option<Laid> {
+        use crate::layouts::{Encoding, Prim};
+        let (bytes, is_signed) = match tag.scalar.prim {
+            Prim::Int { bytes, signed } => (bytes, signed),
+            // A pointer's niche: its null, which no pointer's bytes are.
+            Prim::Pointer if matches!(tag.encoding, Encoding::Niche { .. }) => {
+                (u64::from(self.width / 8), false)
+            }
+            _ => return None,
+        };
+        if bytes > 1 && self.big_endian.is_none() {
+            return None;
+        }
+        let at = *l.offsets.get(tag.field)?;
+        let variants = self.rustc_variants(ty, tag.variants.len())?;
+        (l.fields.len() == tag.variants.len()).then_some(())?;
+        let mut records = Vec::new();
+        for (v, fields) in tag.variants.iter().zip(&l.fields) {
+            (v.offsets.len() == fields.len()).then_some(())?;
+            let mut terms = Vec::new();
+            for f in fields {
+                terms.push(self.rustc_field(f.as_deref()?, None, depth)?.term);
+            }
+            let offsets: Vec<String> = v.offsets.iter().map(u64::to_string).collect();
+            records.push(mir_ctor(
+                "Layout.record",
+                &[
+                    v.size.to_string(),
+                    true.to_string(),
+                    term_list(&offsets, "Nat"),
+                    term_list(&terms, &mir_name("Layout")),
+                ],
+            ));
+        }
+        let (niche, untagged, first, last, start) = match tag.encoding {
+            Encoding::Direct => (false, 0, 0, 0, 0),
+            Encoding::Niche {
+                untagged,
+                first,
+                last,
+                start,
+            } => (true, untagged, first, last, start),
+        };
+        let names: Vec<String> = variants.iter().map(|(v, _)| mir_string(v)).collect();
+        let discs: Vec<String> = variants.iter().map(|(_, d)| signed(*d)).collect();
+        Some(Laid {
+            term: mir_ctor(
+                "Layout.tagged",
+                &[
+                    l.size.to_string(),
+                    at.to_string(),
+                    bytes.to_string(),
+                    is_signed.to_string(),
+                    niche.to_string(),
+                    untagged.to_string(),
+                    first.to_string(),
+                    last.to_string(),
+                    start.to_string(),
+                    term_list(&names, "String"),
+                    term_list(&discs, &mir_name("Signed")),
+                    term_list(&records, &mir_name("Layout")),
                 ],
             ),
             size: l.size,
@@ -2603,9 +2744,11 @@ impl Cx<'_> {
                         // `write_bytes::<T>`: its element's layout, from the
                         // type argument the call prints.
                         // `size_of::<T>`: its type argument's size, read
-                        // from the type argument the call prints.
+                        // from the type argument the call prints; and
+                        // `size_of_val::<T>` of a `T` laid out, which is
+                        // sized, whose value's size is its type's.
                         Callee::Intrinsic(p)
-                            if intrinsic_name(&p) == "size_of"
+                            if matches!(intrinsic_name(&p).as_str(), "size_of" | "size_of_val")
                                 && type_argument(callee)
                                     .and_then(|t| self.generic_layout(&t))
                                     .is_some() =>
@@ -2618,8 +2761,10 @@ impl Cx<'_> {
                         }
                         // `align_of::<T>`, `assert_inhabited::<T>`: a query
                         // of its type argument's layout.
+                        // `align_of_val::<T>` of a `T` laid out, as
+                        // `align_of::<T>`, as `size_of_val` is `size_of`.
                         Callee::Intrinsic(p)
-                            if defined_layout_queries().contains(&intrinsic_name(&p))
+                            if defined_layout_queries().contains(&layout_query(&p))
                                 && type_argument(callee)
                                     .and_then(|t| self.generic_layout(&t))
                                     .is_some() =>
@@ -2628,7 +2773,7 @@ impl Cx<'_> {
                             mir_ctor(
                                 "Callee.layoutQuery",
                                 &[
-                                    mir_string(&intrinsic_name(&p)),
+                                    mir_string(&layout_query(&p)),
                                     self.generic_layout(&t).unwrap_or_default(),
                                 ],
                             )
@@ -2753,12 +2898,7 @@ impl Cx<'_> {
         let mut reached = BTreeSet::from([0]);
         let mut work = vec![0];
         while let Some(at) = work.pop() {
-            for next in b
-                .blocks
-                .get(at)
-                .map(|k| k.terminator.successors())
-                .unwrap_or_default()
-            {
+            for next in b.blocks.get(at).map(live_successors).unwrap_or_default() {
                 if !cleanup.contains(&next) && reached.insert(next) {
                     work.push(next);
                 }
@@ -3823,6 +3963,41 @@ pub(crate) fn has_row(path: &str) -> bool {
     !(path.contains("{closure") || path.contains("promoted[") || path.contains("{constant"))
 }
 
+/// The blocks control may go to next from `block`: a `switchInt` of a
+/// local the block last sets to a constant (a `cfg!` or `const` condition,
+/// `_5 = const false; switchInt(move _5)`) goes only to that constant's
+/// arm, and every other terminator to its successors.
+fn live_successors(block: &crate::mir::ir::IrBlock) -> Vec<usize> {
+    let IrTerminator::Switch(IrOperand::Copy(p) | IrOperand::Move(p), arms, otherwise) =
+        &block.terminator
+    else {
+        return block.terminator.successors();
+    };
+    let set = block.statements.iter().rev().find_map(|s| match s {
+        IrStatement::Assign(q, r) if q.local == p.local => Some((q, r)),
+        _ => None,
+    });
+    let value = match set {
+        Some((q, IrRvalue::Use(IrOperand::Constant(c))))
+            if q.projection.is_empty() && p.projection.is_empty() =>
+        {
+            match c {
+                IrConstant::Bool(b) => Some(i128::from(*b)),
+                IrConstant::Int(n, _) if *n >= 0 => Some(*n),
+                _ => None,
+            }
+        }
+        _ => None,
+    };
+    match value {
+        Some(v) => vec![arms
+            .iter()
+            .find(|(a, _)| *a == v)
+            .map_or(*otherwise, |(_, t)| *t)],
+        None => block.terminator.successors(),
+    }
+}
+
 /// The type MIR prints of a place that is a local, unprojected.
 fn place_type(body: &IrBody, p: &IrPlace) -> Option<String> {
     p.projection
@@ -4425,6 +4600,14 @@ fn embed_census(
 mod tests {
     /// The embedding stamps each row by its κ, after its span, in place of
     /// what the row recorded, and leaves a row it has no body of unstamped.
+    #[test]
+    fn an_array_of_a_parameter_count_is_sized() {
+        assert!(super::is_array("[u8; N]"));
+        assert!(super::is_array("[[u8; 2]; 3]"));
+        assert!(!super::is_array("[[u8; 2]]"));
+        assert!(!super::is_array("[u8]"));
+    }
+
     #[test]
     fn stamps_each_row_by_its_kappa() {
         let blocked = super::Embedded {

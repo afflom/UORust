@@ -218,7 +218,8 @@ inductive{
     {name: record, fields: [Nat, Bool, (List Nat), (List Layout)]},
     {name: array, fields: [Layout, Nat, Nat]},
     {name: enumeration, fields: [Nat, Bool, (List String), (List Signed)]},
-    {name: ranged, fields: [Layout, Nat, Nat]}
+    {name: ranged, fields: [Layout, Nat, Nat]},
+    {name: tagged, fields: [Nat, Nat, Nat, Bool, Bool, Nat, Nat, Nat, Nat, (List String), (List Signed), (List Layout)]}
   ]
 }
 
@@ -282,7 +283,7 @@ inductive{
   name: Task,
   type_parameters: [],
   parameters: [],
-  constructors: [{name: piece, fields: [Nat, Layout]}, {name: tuple, fields: [Nat]}, {name: adt, fields: [Nat]}, {name: check, fields: [Nat, Nat]}]
+  constructors: [{name: piece, fields: [Nat, Layout]}, {name: tuple, fields: [Nat]}, {name: adt, fields: [Nat]}, {name: check, fields: [Nat, Nat]}, {name: variant, fields: [String, Signed]}]
 }
 
 inductive{
@@ -2264,16 +2265,66 @@ definition{
 }
 
 definition{
+  name: leadingSteps,
+  parameters: [steps : (List Nat)],
+  result: (List Nat),
+  body: (match steps
+    | List.nil => (nil Nat)
+    | List.cons head rest => (match rest
+      | List.nil => (nil Nat)
+      | List.cons next more => (cons head (leadingSteps rest)))),
+  recursive_argument: steps
+}
+
+definition{
+  name: finalStep,
+  parameters: [steps : (List Nat)],
+  result: Nat,
+  body: (match steps
+    | List.nil => 0
+    | List.cons head rest => (match rest
+      | List.nil => head
+      | List.cons next more => (finalStep rest))),
+  recursive_argument: steps
+}
+
+definition{
+  name: runsOverlap,
+  parameters: [a : Location, b : Location, count : Nat],
+  result: Bool,
+  body: (((project a frame) =? (project b frame)) && (((project a base) =? (project b base)) && ((sameSteps (leadingSteps (project a steps)) (leadingSteps (project b steps))) && (if ((finalStep (project a steps)) <=? (finalStep (project b steps))) then (not (((finalStep (project a steps)) + count) <=? (finalStep (project b steps)))) else (not (((finalStep (project b steps)) + count) <=? (finalStep (project a steps))))))))
+}
+
+definition{
+  name: copyApart,
+  parameters: [frames : (List Frame), values : (List Value), destination : Place, target : (Option Nat)],
+  result: Outcome,
+  body: (match values
+    | List.nil => (ctor Outcome.ub "a copy from no pointer")
+    | List.cons source rest => (match rest
+      | List.nil => (ctor Outcome.ub "a copy to no pointer")
+      | List.cons sink more => (match more
+        | List.nil => (ctor Outcome.ub "a copy of no count")
+        | List.cons count others => (match (scalarOf count)
+          | Option.none => (ctor Outcome.ub "a copy of a count that is not an integer")
+          | Option.some n => (match (placeOfPointer source)
+            | Option.none => (copyElements frames values destination target)
+            | Option.some from => (match (placeOfPointer sink)
+              | Option.none => (copyElements frames values destination target)
+              | Option.some to => (if ((not ((project n magnitude) =? 0)) && (runsOverlap from to (project n magnitude))) then (ctor Outcome.ub "a copy_nonoverlapping of places that overlap") else (copyElements frames values destination target))))))))
+}
+
+definition{
   name: evalIntrinsic,
   parameters: [program : Program, frames : (List Frame), name : String, args : (List Operand), destination : Place, target : (Option Nat)],
   result: Outcome,
   body: (if (prim equal name "unreachable" : Bool) then (ctor Outcome.ub "an unreachable intrinsic reached") else (if (prim equal name "abort" : Bool) then (ctor Outcome.aborted) else (match (evalOperands program frames args)
     | EvaluatedList.stop outcome => outcome
-    | EvaluatedList.found values => (if (prim equal name "copy" : Bool) then (copyElements frames values destination target) else (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (if (prim equal name "slice_get_unchecked" : Bool) then (sliceElement frames values destination target) else (if ((prim equal name "read_via_copy" : Bool) || ((prim equal name "volatile_load" : Bool) || ((prim equal name "volatile_store" : Bool) || ((prim equal name "atomic_load" : Bool) || ((prim equal name "atomic_store" : Bool) || ((prim equal name "atomic_xchg" : Bool) || ((prim equal name "atomic_xadd" : Bool) || ((prim equal name "atomic_xsub" : Bool) || ((prim equal name "atomic_and" : Bool) || ((prim equal name "atomic_or" : Bool) || ((prim equal name "atomic_xor" : Bool) || ((prim equal name "atomic_nand" : Bool) || ((prim equal name "atomic_max" : Bool) || ((prim equal name "atomic_min" : Bool) || ((prim equal name "atomic_umax" : Bool) || ((prim equal name "atomic_umin" : Bool) || ((prim equal name "atomic_cxchg" : Bool) || ((prim equal name "atomic_cxchgweak" : Bool) || ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool)))))))))))))))))))) then (evalAtomic frames name values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
+    | EvaluatedList.found values => (if (prim equal name "copy" : Bool) then (copyElements frames values destination target) else (if (prim equal name "copy_nonoverlapping" : Bool) then (copyApart frames values destination target) else (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (if (prim equal name "slice_get_unchecked" : Bool) then (sliceElement frames values destination target) else (if ((prim equal name "read_via_copy" : Bool) || ((prim equal name "volatile_load" : Bool) || ((prim equal name "volatile_store" : Bool) || ((prim equal name "atomic_load" : Bool) || ((prim equal name "atomic_store" : Bool) || ((prim equal name "atomic_xchg" : Bool) || ((prim equal name "atomic_xadd" : Bool) || ((prim equal name "atomic_xsub" : Bool) || ((prim equal name "atomic_and" : Bool) || ((prim equal name "atomic_or" : Bool) || ((prim equal name "atomic_xor" : Bool) || ((prim equal name "atomic_nand" : Bool) || ((prim equal name "atomic_max" : Bool) || ((prim equal name "atomic_min" : Bool) || ((prim equal name "atomic_umax" : Bool) || ((prim equal name "atomic_umin" : Bool) || ((prim equal name "atomic_cxchg" : Bool) || ((prim equal name "atomic_cxchgweak" : Bool) || ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool)))))))))))))))))))) then (evalAtomic frames name values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
       | Option.none => (ctor Outcome.unlinked name)
       | Option.some result => (match result
         | Evaluated.stop outcome => outcome
-        | Evaluated.found value => (finishCall frames destination target value))))))))))
+        | Evaluated.found value => (finishCall frames destination target value)))))))))))
 }
 
 definition{
@@ -2296,6 +2347,7 @@ definition{
     | Layout.record size adt offsets layouts => size
     | Layout.array element count stride => (prim multiply count stride : Nat)
     | Layout.enumeration size signed names discriminants => size
+    | Layout.tagged size tagAt tagBytes tagSigned niche untagged lowest highest start names discriminants variants => size
     | Layout.ranged base low high => (match base
       | Layout.int size signed => size
       | Layout.boolean => 1
@@ -2304,6 +2356,7 @@ definition{
       | Layout.record size adt offsets layouts => size
       | Layout.array element count stride => (prim multiply count stride : Nat)
       | Layout.enumeration size signed names discriminants => size
+      | Layout.tagged size tagAt tagBytes tagSigned niche untagged lowest highest start names discriminants variants => size
       | Layout.ranged inner low2 high2 => 0))
 }
 
@@ -2478,6 +2531,127 @@ definition{
 }
 
 definition{
+  name: nameIndex,
+  parameters: [names : (List String), name : String],
+  result: (Option Nat),
+  body: (match names
+    | List.nil => (ctor Option.none [Nat])
+    | List.cons head rest => (if (prim equal head name : Bool) then (ctor Option.some [Nat] 0) else (match (nameIndex rest name)
+      | Option.none => (ctor Option.none [Nat])
+      | Option.some i => (ctor Option.some [Nat] (i + 1))))),
+  recursive_argument: names
+}
+
+definition{
+  name: discriminantIndex,
+  parameters: [discriminants : (List Signed), tag : Signed],
+  result: (Option Nat),
+  body: (match discriminants
+    | List.nil => (ctor Option.none [Nat])
+    | List.cons head rest => (if (signedEqual head tag) then (ctor Option.some [Nat] 0) else (match (discriminantIndex rest tag)
+      | Option.none => (ctor Option.none [Nat])
+      | Option.some i => (ctor Option.some [Nat] (i + 1))))),
+  recursive_argument: discriminants
+}
+
+definition{
+  name: nthString,
+  parameters: [names : (List String), index : Nat],
+  result: (Option String),
+  body: (match names
+    | List.nil => (ctor Option.none [String])
+    | List.cons head rest => (if (index =? 0) then (ctor Option.some [String] head) else (nthString rest (prim subtract index 1 : Nat)))),
+  recursive_argument: names
+}
+
+definition{
+  name: nthSigned,
+  parameters: [values : (List Signed), index : Nat],
+  result: (Option Signed),
+  body: (match values
+    | List.nil => (ctor Option.none [Signed])
+    | List.cons head rest => (if (index =? 0) then (ctor Option.some [Signed] head) else (nthSigned rest (prim subtract index 1 : Nat)))),
+  recursive_argument: values
+}
+
+definition{
+  name: nthLayout,
+  parameters: [layouts : (List Layout), index : Nat],
+  result: (Option Layout),
+  body: (match layouts
+    | List.nil => (ctor Option.none [Layout])
+    | List.cons head rest => (if (index =? 0) then (ctor Option.some [Layout] head) else (nthLayout rest (prim subtract index 1 : Nat)))),
+  recursive_argument: layouts
+}
+
+definition{
+  name: variantTag,
+  parameters: [tagBytes : Nat, niche : Bool, untagged : Nat, lowest : Nat, start : Nat, index : Nat, discriminant : Signed],
+  result: (Option Nat),
+  body: (if niche then (if (index =? untagged) then (ctor Option.none [Nat]) else (ctor Option.some [Nat] (wrapBits (prim multiply 8 tagBytes : Nat) (start + (prim subtract index lowest : Nat))))) else (ctor Option.some [Nat] (reprOf (prim multiply 8 tagBytes : Nat) discriminant)))
+}
+
+definition{
+  name: tagVariant,
+  parameters: [tagBytes : Nat, tagSigned : Bool, niche : Bool, untagged : Nat, lowest : Nat, highest : Nat, start : Nat, discriminants : (List Signed), tag : Nat],
+  result: (Option Nat),
+  body: (if niche then (let relative : Nat := (wrapBits (prim multiply 8 tagBytes : Nat) (prim subtract (tag + (pow2 (prim multiply 8 tagBytes : Nat))) start : Nat)); (if (relative <=? (prim subtract highest lowest : Nat)) then (ctor Option.some [Nat] (lowest + relative)) else (ctor Option.some [Nat] untagged))) else (discriminantIndex discriminants (signedOf (prim multiply 8 tagBytes : Nat) tagSigned tag)))
+}
+
+definition{
+  name: taggedFields,
+  parameters: [offset : Nat, names : (List String), variants : (List Layout), value : Value],
+  result: (Option (List Piece)),
+  body: (match value
+    | Value.int p q r => (ctor Option.none [(List Piece)])
+    | Value.boolean p => (ctor Option.none [(List Piece)])
+    | Value.character p => (ctor Option.none [(List Piece)])
+    | Value.unit => (ctor Option.none [(List Piece)])
+    | Value.tuple p => (ctor Option.none [(List Piece)])
+    | Value.adt variant discriminant fields => (match (nameIndex names variant)
+      | Option.none => (ctor Option.none [(List Piece)])
+      | Option.some index => (match (nthLayout variants index)
+        | Option.none => (ctor Option.none [(List Piece)])
+        | Option.some layout => (match layout
+          | Layout.record vsize adt offsets layouts => (fieldPieces offset offsets layouts fields)
+          | Layout.int a b => (ctor Option.none [(List Piece)])
+          | Layout.boolean => (ctor Option.none [(List Piece)])
+          | Layout.character => (ctor Option.none [(List Piece)])
+          | Layout.pointer a => (ctor Option.none [(List Piece)])
+          | Layout.array a b c => (ctor Option.none [(List Piece)])
+          | Layout.enumeration a b c d => (ctor Option.none [(List Piece)])
+          | Layout.ranged a b c => (ctor Option.none [(List Piece)])
+          | Layout.tagged a b c d e f g h i j k l => (ctor Option.none [(List Piece)]))))
+    | Value.pointer p q r => (ctor Option.none [(List Piece)])
+    | Value.reference p => (ctor Option.none [(List Piece)])
+    | Value.function p => (ctor Option.none [(List Piece)])
+    | Value.text p => (ctor Option.none [(List Piece)])
+    | Value.uninit => (ctor Option.none [(List Piece)]))
+}
+
+definition{
+  name: taggedBytes,
+  parameters: [offset : Nat, tagAt : Nat, tagBytes : Nat, niche : Bool, untagged : Nat, lowest : Nat, start : Nat, names : (List String), value : Value, big : Bool, bytes : (List Byte)],
+  result: (List Byte),
+  body: (match value
+    | Value.int p q r => bytes
+    | Value.boolean p => bytes
+    | Value.character p => bytes
+    | Value.unit => bytes
+    | Value.tuple p => bytes
+    | Value.adt variant discriminant fields => (match (nameIndex names variant)
+      | Option.none => bytes
+      | Option.some index => (match (variantTag tagBytes niche untagged lowest start index discriminant)
+        | Option.none => bytes
+        | Option.some tag => (spliceBytes bytes (offset + tagAt) (orderBytes big (littleBytes tagBytes tag)))))
+    | Value.pointer p q r => bytes
+    | Value.reference p => bytes
+    | Value.function p => bytes
+    | Value.text p => bytes
+    | Value.uninit => bytes)
+}
+
+definition{
   name: encodeWork,
   parameters: [fuel : Nat, big : Bool, pending : (List Piece), bytes : (List Byte)],
   result: Encoded,
@@ -2630,6 +2804,20 @@ definition{
           | Value.function p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
           | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
           | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.tagged size tagAt tagBytes tagSigned niche untagged lowest highest start names discriminants variants => (match (project piece value)
+          | Value.uninit => (encodeWork rest big work bytes)
+          | Value.int p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.boolean p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.character p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.unit => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.tuple p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.adt variant discriminant fields => (match (taggedFields (project piece offset) names variants (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some pieces => (encodeWork rest big (appendPieces pieces work) (taggedBytes (project piece offset) tagAt tagBytes niche untagged lowest start names (project piece value) big bytes)))
+          | Value.pointer p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.reference p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.function p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold")))
         | Layout.ranged base low high => (encodeWork rest big (cons (record Piece {offset := (project piece offset), layout := base, value := (project piece value)}) work) bytes))))),
   recursive_argument: fuel
 }
@@ -2712,6 +2900,11 @@ definition{
       | List.cons task tasks => (match task
         | Task.tuple count => (decodeWork rest big bytes tasks (cons (ctor Value.tuple (takeOnto count stack (nil Value))) (dropValues count stack)))
         | Task.adt count => (decodeWork rest big bytes tasks (cons (ctor Value.adt "" (record Signed {negative := false, magnitude := 0}) (takeOnto count stack (nil Value))) (dropValues count stack)))
+        | Task.variant name discriminant => (match stack
+          | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a transmute that decodes no value"))
+          | List.cons v vs => (match (fieldsOf v)
+            | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute that decodes no variant's fields"))
+            | Option.some fields => (decodeWork rest big bytes tasks (cons (ctor Value.adt name discriminant fields) vs))))
         | Task.check low high => (match stack
           | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a transmute that decodes no value"))
           | List.cons v vs => (if (if (low <=? high) then ((low <=? (reprOfValue v)) && ((reprOfValue v) <=? high)) else ((low <=? (reprOfValue v)) || ((reprOfValue v) <=? high))) then (decodeWork rest big bytes tasks stack) else (ctor Evaluated.stop (ctor Outcome.ub "a transmute to a value outside its type's valid range"))))
@@ -2736,6 +2929,17 @@ definition{
           | Layout.enumeration size signed names discriminants => (if (hasFragment region) then (ctor Evaluated.stop (ctor Outcome.undefined "a transmute of a pointer's bytes to a scalar")) else (match (littleNumber (orderBytes big region))
             | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute of uninitialized bytes to a scalar"))
             | Option.some n => (match (variantOf names discriminants (signedOf (prim multiply 8 size : Nat) signed n)) | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a discriminant it does not have")) | Option.some v => (decodeWork rest big bytes tasks (cons v stack)))))
+          | Layout.tagged size tagAt tagBytes tagSigned niche untagged lowest highest start names discriminants variants => (let tagRegion : (List Byte) := (takeBytes tagBytes (dropBytes (offset + tagAt) bytes)); (match (if (hasFragment tagRegion) then (if niche then (ctor Option.some [Nat] untagged) else (ctor Option.none [Nat])) else (match (littleNumber (orderBytes big tagRegion))
+            | Option.none => (ctor Option.none [Nat])
+            | Option.some tag => (tagVariant tagBytes tagSigned niche untagged lowest highest start discriminants tag)))
+            | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a tag none of its variants has"))
+            | Option.some index => (match (nthString names index)
+              | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a tag none of its variants has"))
+              | Option.some name => (match (nthSigned discriminants index)
+                | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a tag none of its variants has"))
+                | Option.some discriminant => (match (nthLayout variants index)
+                  | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a tag none of its variants has"))
+                  | Option.some chosen => (decodeWork rest big bytes (cons (ctor Task.piece offset chosen) (cons (ctor Task.variant name discriminant) tasks)) stack))))))
           | Layout.ranged base low high => (decodeWork rest big bytes (cons (ctor Task.piece offset base) (cons (ctor Task.check low high) tasks)) stack)))))),
   recursive_argument: fuel
 }

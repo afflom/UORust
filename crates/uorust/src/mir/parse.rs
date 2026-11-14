@@ -572,6 +572,25 @@ fn head(text: &str) -> &str {
     text
 }
 
+/// Where a cast's ` as ` is in `text`, the operand before it and the
+/// type after: the first at no depth of brackets, since a place's
+/// downcast (`(_3 as Break)`) and a type's qualified path (`<R as Try>`)
+/// print ` as ` inside theirs.
+fn top_level_as(text: &str) -> Option<usize> {
+    let mut depth = 0usize;
+    let bytes = text.as_bytes();
+    for (i, b) in bytes.iter().enumerate() {
+        match b {
+            b'(' | b'[' | b'<' | b'{' => depth += 1,
+            b')' | b']' | b'}' => depth = depth.saturating_sub(1),
+            b'>' if i > 0 && bytes[i - 1] != b'-' => depth = depth.saturating_sub(1),
+            b' ' if depth == 0 && text[i..].starts_with(" as ") => return Some(i),
+            _ => {}
+        }
+    }
+    None
+}
+
 fn rvalue(text: &str) -> IrRvalue {
     use spec::MirRvalue as R;
     let t = text.trim();
@@ -608,7 +627,7 @@ fn rvalue(text: &str) -> IrRvalue {
     // u32 (IntToInt)`, which would otherwise read as one constant.
     if t.ends_with(')') {
         if let Some(open) = t.rfind(" (") {
-            if let Some(at) = t[..open].rfind(" as ") {
+            if let Some(at) = top_level_as(&t[..open]) {
                 let kind_text = &t[open + 2..t.len() - 1];
                 let word = head(kind_text);
                 let kind = spec::MirCastKind::ALL
@@ -1076,6 +1095,12 @@ fn sum(_1: &[u64], _2: (u8, bool)) -> u64 {
     fn rvalues_read_as_their_kinds() {
         assert!(
             matches!(rvalue("move _1 as u64 (IntToInt)"), IrRvalue::Cast(spec::MirCastKind::IntToInt, _, t) if t == "u64")
+        );
+        assert!(
+            matches!(rvalue("move _5 as &mut [<R as Try>::Output] (PointerCoercion(Unsize, Implicit))"), IrRvalue::Cast(spec::MirCastKind::PointerCoercion, _, t) if t == "&mut [<R as Try>::Output]")
+        );
+        assert!(
+            matches!(rvalue("move ((_3 as Break).0: u8) as u32 (IntToInt)"), IrRvalue::Cast(spec::MirCastKind::IntToInt, _, t) if t == "u32")
         );
         assert!(
             matches!(rvalue("std::option::Option::<u8>::Some(move _3)"), IrRvalue::Aggregate(IrAggregate::Adt(t, Some(v)), _) if t == "std::option::Option::<u8>" && v == "Some")

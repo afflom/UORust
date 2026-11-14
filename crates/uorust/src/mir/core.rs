@@ -616,6 +616,9 @@ fn without_def_ids(text: &str) -> String {
 pub(crate) struct CoreStruct {
     pub(crate) path: String,
     pub(crate) params: Vec<String>,
+    /// The type each type parameter that has one defaults to, as written:
+    /// rustc prints a type with its defaulted arguments left out.
+    pub(crate) defaults: BTreeMap<String, String>,
     pub(crate) fields: Vec<(Option<String>, String)>,
     /// For an enum whose variants hold no data, its variants; such an enum
     /// has no fields.
@@ -950,6 +953,24 @@ fn generic_names(g: &syn::Generics) -> Vec<String> {
         .collect()
 }
 
+/// The defaults a declaration's type parameters are given, by parameter,
+/// each as `text` prints a type.
+fn generic_defaults(
+    g: &syn::Generics,
+    text: &dyn Fn(&syn::Type) -> String,
+) -> BTreeMap<String, String> {
+    g.params
+        .iter()
+        .filter_map(|p| match p {
+            syn::GenericParam::Type(t) => t
+                .default
+                .as_ref()
+                .map(|(_, d)| (t.ident.to_string(), text(d))),
+            _ => None,
+        })
+        .collect()
+}
+
 /// Every struct and enum of unit variants of core's source under `root` (the
 /// directory holding `library/core/src`), and every module's `use` names: a
 /// file's module is its path there.
@@ -1106,6 +1127,7 @@ pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
                     out.structs.push(CoreStruct {
                         path: at(st.ident.to_string()),
                         params,
+                        defaults: generic_defaults(&st.generics, &text),
                         fields,
                         variants: None,
                         data: None,
@@ -1122,6 +1144,7 @@ pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
                     out.structs.push(CoreStruct {
                         path: at(e.ident.to_string()),
                         params: Vec::new(),
+                        defaults: BTreeMap::new(),
                         fields: Vec::new(),
                         variants: Some(e.variants.iter().map(|v| v.ident.to_string()).collect()),
                         data: None,
@@ -1222,6 +1245,7 @@ pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
                     out.structs.push(CoreStruct {
                         path: at(e.ident.to_string()),
                         params: generic_names(&e.generics),
+                        defaults: generic_defaults(&e.generics, &text),
                         fields: Vec::new(),
                         variants: None,
                         data: Some(data),
