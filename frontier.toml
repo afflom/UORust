@@ -2,8 +2,8 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 278 of 1059 functions of product code are lifted; 637
-# are residue, 46 foreign and 98 effect rows.
+# Honesty report: 278 of 1058 functions of product code are lifted; 637
+# are residue, 45 foreign and 98 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 1
@@ -4374,11 +4374,6 @@ function = "uorust::mir::core::generic_names"
 detail = "takes or returns syn::Generics, a type of the syn crate with no LexLean model"
 
 [[foreign]]
-kappa = "531acd13d16d874b6620f424f2cd842f9f86302b461a3d8560fcdc00bd60bd56"
-function = "uorust::mir::core::reprs"
-detail = "takes or returns syn::Attribute, a type of the syn crate with no LexLean model"
-
-[[foreign]]
 kappa = "62ec96cee61f9b35b8179e43b3e484750097002e5053c75ac69fcc6bf3311e58"
 function = "uorust::mir::core::self_type_text"
 detail = "takes or returns syn::Type, a type of the syn crate with no LexLean model"
@@ -4644,7 +4639,7 @@ function = "uorust::mir::core::core_census"
 effect = "calls uorust::mir::core::census, which performs a Fs effect: Path::is_dir"
 
 [[effect]]
-kappa = "77325f746f84454ee0f005b3033cb70d2584f27ecbdc6c6dec21aa9a7a5c7e9b"
+kappa = "2cb8019aa3f2aa6cd3a2c6727b5bc80887d280e680072232dd05f90622f0b4f5"
 function = "uorust::mir::core::core_decls"
 effect = "Fs effect: Path::is_dir"
 
