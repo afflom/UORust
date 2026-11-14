@@ -12,10 +12,24 @@ definition{
 }
 
 definition{
+  name: release0x2x0,
+  parameters: [],
+  result: Engine::ReleaseState,
+  body: (record Engine::ReleaseState {major := 0, minor := 2, patch := 0, translated := 9141, certified := 167})
+}
+
+theorem{
+  name: release0x2x0IsDecided,
+  parameters: [],
+  statement: ((Engine::sameRelease (Engine::nextRelease (release0x1x1) (record Engine::ReleaseObservation {green := 1, translated := 9141, certified := 167, coreBodies := 15725})) (release0x2x0)) = true),
+  proof: decide{}
+}
+
+definition{
   name: releases,
   parameters: [],
   result: (List Engine::ReleaseState),
-  body: (cons (release0x1x1) (nil Engine::ReleaseState))
+  body: (cons (release0x1x1) (cons (release0x2x0) (nil Engine::ReleaseState)))
 }
 \end{semanticmodule}
 \end{lexlean}
