@@ -871,9 +871,16 @@ impl Cx<'_> {
             IrOperand::Constant(c) if self.item(c).is_some() => {
                 (self.item_type)(&self.item(c).unwrap_or_default())
             }
-            IrOperand::Constant(IrConstant::Other(text) | IrConstant::Path(text)) => {
-                self.float_literal(text).map(|(name, _)| name)
-            }
+            IrOperand::Constant(IrConstant::Other(text) | IrConstant::Path(text)) => self
+                .float_literal(text)
+                .map(|(name, _)| name)
+                // A trait's constant item, `<Self as Trait>::C`: the type
+                // the trait declares it of.
+                .or_else(|| {
+                    text.starts_with('<')
+                        .then(|| (self.item_type)(text))
+                        .flatten()
+                }),
             _ => None,
         }
     }
@@ -1540,12 +1547,12 @@ impl Cx<'_> {
         if let Some(path) = static_path(text).filter(|p| self.statics.contains(*p)) {
             return Some(path.to_string());
         }
-        // A reference to a static whose bytes no dump prints, `{alloc7:
-        // &T}` of `alloc7 (static: m::X)`: the static.
+        // A reference to a static, `{alloc7: &T}` of `alloc7 (static:
+        // m::X)`: the static itself, whether or not a dump prints its
+        // bytes, since a write through the reference is the static's.
         if let Some(path) = text
             .strip_prefix('{')
             .and_then(|t| t.split_once(": &"))
-            .filter(|(a, _)| !self.cells.contains_key(*a) && !self.every_cell.contains_key(*a))
             .and_then(|(a, _)| self.static_allocs.get(a))
         {
             return Some(path.clone());
@@ -3826,7 +3833,13 @@ fn embed_census(
         read.push((module, texts));
     }
     let link = crate::mir::link::CoreLink::new(
-        crate::mir::core::core_decls(root),
+        // A crate's own declarations with those of the crates it builds on:
+        // its bodies make values of their enums.
+        if krate == "core" {
+            crate::mir::core::core_decls(root)
+        } else {
+            crate::mir::core::library_decls(root, &["core", "alloc", krate])
+        },
         root,
         read.iter()
             .flat_map(|(_, texts)| texts.iter().map(|(n, t)| (n.as_str(), t))),
@@ -3849,8 +3862,11 @@ fn embed_census(
         Some((b, instance.text))
     };
     let source_constant = |printed: &str| declared(printed).map(|(b, _)| b);
-    let typed =
-        |key: &str| item_type(&link, key).or_else(|| source_constant(key)?.locals.first().cloned());
+    let typed = |key: &str| {
+        item_type(&link, key)
+            .or_else(|| source_constant(key)?.locals.first().cloned())
+            .or_else(|| link.trait_constant_type(key))
+    };
     let mut modules = Vec::new();
     let mut every: BTreeMap<String, (String, Embedded)> = BTreeMap::new();
     let mut samples = Vec::new();

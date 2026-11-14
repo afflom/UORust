@@ -1046,6 +1046,34 @@ impl CoreLink {
         })
     }
 
+    /// The type the trait declares for its constant item `<X as Trait>::C`
+    /// (`const SIG_TOTAL_BITS: u32;`), read from the trait's module file in
+    /// core's source, where every declaration of that name the file holds
+    /// agrees on it: whatever `X` is, the constant is of that type.
+    pub(crate) fn trait_constant_type(&self, printed: &str) -> Option<String> {
+        let (qualified, name) = printed.strip_prefix('<')?.rsplit_once(">::")?;
+        let (_, trait_path) = qualified.split_once(" as ")?;
+        let (trait_path, _) = crate::embed::generic_parts(trait_path.trim());
+        let segs = split_path(trait_path);
+        let (_, module) = segs.split_last()?;
+        let src = self.root.join("library/core/src");
+        let file = (1..=module.len()).rev().find_map(|k| {
+            let dir = src.join(module[..k].join("/"));
+            [dir.with_extension("rs"), dir.join("mod.rs")]
+                .into_iter()
+                .find(|f| f.is_file())
+        })?;
+        let source = std::fs::read_to_string(file).ok()?;
+        let prefix = format!("const {name}: ");
+        let mut types = source.lines().filter_map(|l| {
+            let rest = l.trim().strip_prefix(&prefix)?;
+            let end = rest.find([';', '='])?;
+            Some(rest[..end].trim().to_string())
+        });
+        let first = types.next()?;
+        types.all(|t| t == first).then_some(first)
+    }
+
     /// The body of the constant item `<X as Trait>::C` that the trait
     /// provides, with `Self` as `X`.
     pub(crate) fn constant(&self, printed: &str) -> Option<Instance> {

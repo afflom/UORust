@@ -914,6 +914,15 @@ fn generic_names(g: &syn::Generics) -> Vec<String> {
 /// directory holding `library/core/src`), and every module's `use` names: a
 /// file's module is its path there.
 pub(crate) fn core_decls(root: &Path) -> CoreDecls {
+    library_decls(root, &["core"])
+}
+
+/// What the sources of the library crates `krates` declare, each item by
+/// its path in its own crate (`option::Option`, `path::State`): a crate's
+/// bodies print its own items by those paths and another crate's by the
+/// same path under that crate's name (`core::option::Option`), which a
+/// path's suffix finds ([`crate::embed::same_item`]).
+pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
     fn walk(dir: &Path, files: &mut Vec<PathBuf>) {
         let Ok(entries) = crate::embed::dir_paths(dir) else {
             return;
@@ -1302,16 +1311,20 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
             }
         }
     }
-    let src = root.join("library/core/src");
     let mut files = Vec::new();
-    walk(&src, &mut files);
-    files.sort();
+    for krate in krates {
+        let src = root.join("library").join(krate).join("src");
+        let mut found = Vec::new();
+        walk(&src, &mut found);
+        found.sort();
+        files.extend(found.into_iter().map(|f| (src.clone(), f)));
+    }
     let mut out = CoreDecls::default();
     // Every file first, for the macros each declares; each file's items
     // are then read with its invocations of them expanded.
     let mut read: Vec<(Vec<String>, Vec<syn::Item>)> = Vec::new();
     let mut macros = crate::expand::Macros::default();
-    for file in files {
+    for (src, file) in files {
         let Ok(text) = crate::embed::read_text(&file) else {
             continue;
         };

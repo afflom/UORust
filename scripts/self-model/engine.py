@@ -357,6 +357,7 @@ jobs:
         env:
           GH_TOKEN: ${{{{ github.token }}}}
           REBASE: '1'
+          INPUTS: '{" ".join(data["pushPaths"] + [w["file"]])}'
         run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE crates/uorust/ledger" generate.yml
 """
 

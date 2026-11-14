@@ -233,4 +233,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REBASE: '1'
+          INPUTS: 'crates/uorust/src/** crates/uorust/Cargo.toml Cargo.lock rust-toolchain.toml prismpm.lock scripts/mir/dump-lib.sh scripts/mir/ledger.py .github/workflows/core.yml'
         run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE crates/uorust/ledger" generate.yml
