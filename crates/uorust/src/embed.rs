@@ -973,13 +973,35 @@ impl Cx<'_> {
         // above its end, as a `valid_range` does: `(i8) is ..=-1 | 1..` is
         // `1..=255`. An open end is the base type's first or last value.
         if let Some((base, pattern)) = ty.strip_prefix('(').and_then(|t| t.split_once(") is ")) {
-            let (bits, signed) = int_ty(base, self.width)?;
+            // A `char` base is its scalar value's bits, `u32`'s.
+            let (bits, signed) = match base.trim() {
+                "char" => (u32::BITS, false),
+                b => int_ty(b, self.width)?,
+            };
             // Each value as its bits and as a key in its type's order: the
             // bits with the sign bit flipped, for a signed base.
             let mask = u128::MAX >> (u128::BITS - bits);
             let sign = if signed { 1u128 << (bits - 1) } else { 0 };
             let (first, last) = (sign, sign ^ mask);
             let value = |t: &str, open: u128| -> Option<u128> {
+                // A `char` literal, `'\u{1}'` or `'a'`: its scalar value.
+                if let Some(c) = t
+                    .trim()
+                    .strip_prefix('\'')
+                    .and_then(|c| c.strip_suffix('\''))
+                {
+                    let code = match c.strip_prefix("\\u{").and_then(|h| h.strip_suffix('}')) {
+                        Some(hex) => u32::from_str_radix(hex, 16).ok()?,
+                        None => {
+                            let mut cs = c.chars();
+                            match (cs.next(), cs.next()) {
+                                (Some(one), None) => u32::from(one),
+                                _ => return None,
+                            }
+                        }
+                    };
+                    return Some(u128::from(code) ^ sign);
+                }
                 let t = t.trim().replace('_', "");
                 // `i32::MIN`, `i32::MAX`: the base's first and last values.
                 if t.is_empty() || t == format!("{base}::MIN") || t == format!("{base}::MAX") {
@@ -1249,11 +1271,13 @@ impl Cx<'_> {
             .get(last)?
             .iter()
             .filter(|(p, _)| same_item(name, p))
+            // A declaration for each target (`#[cfg(target_pointer_width)]`):
+            // the one whose variants are those rustc laid out.
+            .filter(|(_, vs)| vs.len() == tag.variants.len())
             .collect();
         let [(_, variants)] = found.as_slice() else {
             return None;
         };
-        (variants.len() == tag.variants.len()).then_some(())?;
         if bytes > 1 && self.big_endian.is_none() {
             return None;
         }
