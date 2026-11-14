@@ -49,6 +49,10 @@ enum Command {
     /// Translate every body of std's MIR, as `scripts/mir/dump-lib.sh std`
     /// dumps it one module at a time, and write the std register.
     Std(CoreArgs),
+    /// Embed every body of core's MIR as a value of the MIR datatype of the
+    /// LexLean semantics, and write the project, with the census of the
+    /// constructs the evaluator does not define, for `lexlean verify`.
+    Embed(EmbedArgs),
     /// Fetch a crate of crates.io, dump the MIR of its library, translate
     /// every body and write its register, `crates/uorust/crates/<name>`.
     Crate(CrateArgs),
@@ -163,6 +167,31 @@ struct CoreArgs {
     /// whole census's.
     #[arg(long)]
     only: Vec<String>,
+}
+
+#[derive(clap::Args)]
+struct EmbedArgs {
+    /// The module shards: one directory of core's dumps per module.
+    #[arg(long)]
+    mir: PathBuf,
+    /// The rust-src `library` directory the dumps were built from.
+    #[arg(long)]
+    library: PathBuf,
+    /// The directory the LexLean project is written to.
+    #[arg(long)]
+    out: PathBuf,
+    /// Embed only this module (repeatable), linked against every module
+    /// the dumps hold: a CI shard's.
+    #[arg(long)]
+    only: Vec<String>,
+    /// Write the differential check's harness crate here: a call of each
+    /// sampled body's function, as rustc builds core, per case.
+    #[arg(long)]
+    harness: Option<PathBuf>,
+    /// The harness's output: add the theorems that the evaluator returns
+    /// what rustc's build returned, case by case.
+    #[arg(long)]
+    observed: Option<PathBuf>,
 }
 
 #[derive(clap::Args)]
@@ -316,6 +345,23 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             Ok(())
         }
         Command::Core(args) => library("core", &args),
+        Command::Embed(args) => {
+            let census = uorust::embed::embed(
+                &args.library,
+                &args.mir,
+                &args.out,
+                &args.only,
+                args.harness.as_deref(),
+                args.observed.as_deref(),
+            )?;
+            println!(
+                "embed: {} bodies embedded, {} of them evaluable; project in {}",
+                census.bodies,
+                census.evaluable,
+                args.out.display()
+            );
+            Ok(())
+        }
         Command::Std(args) => library("std", &args),
         Command::Crate(args) => {
             let (name, version) = uorust::registry::parse_spec(&args.spec)?;

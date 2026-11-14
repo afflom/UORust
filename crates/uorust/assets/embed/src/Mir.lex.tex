@@ -1,0 +1,1397 @@
+\begin{lexlean}{Mir}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{uorust.mir@1.0.0}
+\title{MIR semantics}
+\begin{semanticmodule}
+inductive{
+  name: BinOp,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: add, fields: []},
+    {name: addUnchecked, fields: []},
+    {name: addWithOverflow, fields: []},
+    {name: sub, fields: []},
+    {name: subUnchecked, fields: []},
+    {name: subWithOverflow, fields: []},
+    {name: mul, fields: []},
+    {name: mulUnchecked, fields: []},
+    {name: mulWithOverflow, fields: []},
+    {name: div, fields: []},
+    {name: rem, fields: []},
+    {name: bitXor, fields: []},
+    {name: bitAnd, fields: []},
+    {name: bitOr, fields: []},
+    {name: shl, fields: []},
+    {name: shlUnchecked, fields: []},
+    {name: shr, fields: []},
+    {name: shrUnchecked, fields: []},
+    {name: eq, fields: []},
+    {name: lt, fields: []},
+    {name: le, fields: []},
+    {name: ne, fields: []},
+    {name: ge, fields: []},
+    {name: gt, fields: []},
+    {name: cmp, fields: []},
+    {name: offset, fields: []}
+  ]
+}
+
+inductive{
+  name: UnOp,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: not, fields: []}, {name: neg, fields: []}, {name: ptrMetadata, fields: []}]
+}
+
+inductive{
+  name: CastKind,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: pointerExposeProvenance, fields: []},
+    {name: pointerWithExposedProvenance, fields: []},
+    {name: pointerCoercion, fields: []},
+    {name: intToInt, fields: []},
+    {name: floatToInt, fields: []},
+    {name: floatToFloat, fields: []},
+    {name: intToFloat, fields: []},
+    {name: ptrToPtr, fields: []},
+    {name: fnPtrToPtr, fields: []},
+    {name: transmute, fields: []},
+    {name: subtype, fields: []}
+  ]
+}
+
+inductive{
+  name: BorrowKind,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: shared, fields: []}, {name: fake, fields: []}, {name: mutable, fields: []}]
+}
+
+inductive{
+  name: RuntimeChecks,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: ubChecks, fields: []},
+    {name: contractChecks, fields: []},
+    {name: overflowChecks, fields: []}
+  ]
+}
+
+inductive{
+  name: AssertKind,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: boundsCheck, fields: []},
+    {name: overflow, fields: []},
+    {name: overflowNeg, fields: []},
+    {name: divisionByZero, fields: []},
+    {name: remainderByZero, fields: []},
+    {name: resumedAfterReturn, fields: []},
+    {name: resumedAfterPanic, fields: []},
+    {name: resumedAfterDrop, fields: []},
+    {name: misalignedPointerDereference, fields: []},
+    {name: nullPointerDereference, fields: []},
+    {name: invalidEnumConstruction, fields: []}
+  ]
+}
+
+structure{
+  name: Signed,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: negative, type: Bool}, {name: magnitude, type: Nat}]
+}
+
+inductive{
+  name: Ty,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: int, fields: [Nat, Bool]},
+    {name: boolean, fields: []},
+    {name: character, fields: []},
+    {name: unit, fields: []},
+    {name: other, fields: [String]}
+  ]
+}
+
+inductive{
+  name: Const,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: int, fields: [Nat, Bool, Nat]},
+    {name: boolean, fields: [Bool]},
+    {name: character, fields: [Nat]},
+    {name: text, fields: [String]},
+    {name: unit, fields: []},
+    {name: function, fields: [String]},
+    {name: variant, fields: [String, Signed]},
+    {name: other, fields: [String]}
+  ]
+}
+
+inductive{
+  name: Proj,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: deref, fields: []},
+    {name: field, fields: [Nat]},
+    {name: index, fields: [Nat]},
+    {name: constantIndex, fields: [Nat, Bool]},
+    {name: downcast, fields: [String]},
+    {name: other, fields: [String, String]}
+  ]
+}
+
+structure{
+  name: Place,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: base, type: Nat}, {name: projection, type: (List Proj)}]
+}
+
+inductive{
+  name: Operand,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: copy, fields: [Place]},
+    {name: move, fields: [Place]},
+    {name: constant, fields: [Const]},
+    {name: check, fields: [RuntimeChecks]}
+  ]
+}
+
+inductive{
+  name: Agg,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: tuple, fields: []},
+    {name: array, fields: []},
+    {name: adt, fields: [String, Signed]},
+    {name: closure, fields: [String]},
+    {name: other, fields: [String]}
+  ]
+}
+
+inductive{
+  name: Rvalue,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: value, fields: [Operand]},
+    {name: borrow, fields: [BorrowKind, Place]},
+    {name: copyForDeref, fields: [Place]},
+    {name: binary, fields: [BinOp, Operand, Operand]},
+    {name: unary, fields: [UnOp, Operand]},
+    {name: discriminant, fields: [Place, Ty]},
+    {name: aggregate, fields: [Agg, (List Operand)]},
+    {name: cast, fields: [CastKind, Operand, Ty]},
+    {name: rawPtr, fields: [Place]},
+    {name: other, fields: [String, String]}
+  ]
+}
+
+inductive{
+  name: Statement,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: assign, fields: [Place, Rvalue]},
+    {name: marker, fields: [String]},
+    {name: assume, fields: [Operand]},
+    {name: other, fields: [String, String]}
+  ]
+}
+
+inductive{
+  name: Callee,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: body, fields: [String]},
+    {name: operand, fields: [Operand]},
+    {name: bound, fields: [String]},
+    {name: intrinsic, fields: [String]}
+  ]
+}
+
+structure{
+  name: Arm,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: value, type: Nat}, {name: target, type: Nat}]
+}
+
+inductive{
+  name: Terminator,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: jump, fields: [Nat]},
+    {name: switch, fields: [Operand, (List Arm), Nat]},
+    {name: exit, fields: []},
+    {name: unreachable, fields: []},
+    {name: drop, fields: [Nat]},
+    {name: call, fields: [Place, Callee, (List Operand), (Option Nat)]},
+    {name: assert, fields: [Operand, Bool, AssertKind, Nat]},
+    {name: other, fields: [String, String]}
+  ]
+}
+
+structure{
+  name: Block,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: statements, type: (List Statement)}, {name: terminator, type: Terminator}]
+}
+
+structure{
+  name: Body,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: path, type: String},
+    {name: arity, type: Nat},
+    {name: locals, type: (List Ty)},
+    {name: blocks, type: (List Block)}
+  ]
+}
+
+structure{
+  name: Binding,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: name, type: String}, {name: path, type: String}]
+}
+
+structure{
+  name: Program,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: bodies, type: (List Body)},
+    {name: dictionary, type: (List Binding)},
+    {name: ubChecks, type: Bool},
+    {name: contractChecks, type: Bool},
+    {name: overflowChecks, type: Bool}
+  ]
+}
+
+inductive{
+  name: Value,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: int, fields: [Nat, Bool, Nat]},
+    {name: boolean, fields: [Bool]},
+    {name: character, fields: [Nat]},
+    {name: unit, fields: []},
+    {name: tuple, fields: [(List Value)]},
+    {name: adt, fields: [String, Signed, (List Value)]},
+    {name: pointer, fields: [Nat, Nat, (List Nat)]},
+    {name: function, fields: [String]},
+    {name: text, fields: [String]},
+    {name: uninit, fields: []}
+  ]
+}
+
+structure{
+  name: Frame,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: body, type: Body},
+    {name: block, type: Nat},
+    {name: statement, type: Nat},
+    {name: locals, type: (List Value)},
+    {name: destination, type: Place},
+    {name: target, type: (Option Nat)}
+  ]
+}
+
+inductive{
+  name: Outcome,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: running, fields: [(List Frame)]},
+    {name: returned, fields: [Value]},
+    {name: panicked, fields: [AssertKind]},
+    {name: ub, fields: [String]},
+    {name: undefined, fields: [String]},
+    {name: unlinked, fields: [String]},
+    {name: exhausted, fields: []}
+  ]
+}
+
+structure{
+  name: Location,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: frame, type: Nat}, {name: base, type: Nat}, {name: steps, type: (List Nat)}]
+}
+
+inductive{
+  name: Located,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: found, fields: [Location]}, {name: stop, fields: [Outcome]}]
+}
+
+inductive{
+  name: Evaluated,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: found, fields: [Value]}, {name: stop, fields: [Outcome]}]
+}
+
+inductive{
+  name: EvaluatedList,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: found, fields: [(List Value)]}, {name: stop, fields: [Outcome]}]
+}
+
+definition{
+  name: sameBool,
+  parameters: [a : Bool, b : Bool],
+  result: Bool,
+  body: ((a && b) || ((not a) && (not b)))
+}
+
+definition{
+  name: pow2,
+  parameters: [bits : Nat],
+  result: Nat,
+  body: (match bits | Nat.zero => 1 | Nat.succ rest => (prim multiply 2 (pow2 rest) : Nat)),
+  recursive_argument: bits
+}
+
+definition{
+  name: wrapBits,
+  parameters: [bits : Nat, value : Nat],
+  result: Nat,
+  body: (prim remainder value (pow2 bits) 0 : Nat)
+}
+
+definition{
+  name: signedOf,
+  parameters: [bits : Nat, signed : Bool, repr : Nat],
+  result: Signed,
+  body: (if (signed && ((pow2 (prim subtract bits 1 : Nat)) <=? repr)) then (record Signed {negative := true, magnitude := (prim subtract (pow2 bits) repr : Nat)}) else (record Signed {negative := false, magnitude := repr}))
+}
+
+definition{
+  name: reprOf,
+  parameters: [bits : Nat, value : Signed],
+  result: Nat,
+  body: (if ((project value negative) && (not ((wrapBits bits (project value magnitude)) =? 0))) then (prim subtract (pow2 bits) (wrapBits bits (project value magnitude)) : Nat) else (wrapBits bits (project value magnitude)))
+}
+
+definition{
+  name: fitsIn,
+  parameters: [bits : Nat, signed : Bool, value : Signed],
+  result: Bool,
+  body: (if signed then (if (project value negative) then ((project value magnitude) <=? (pow2 (prim subtract bits 1 : Nat))) else (((project value magnitude) + 1) <=? (pow2 (prim subtract bits 1 : Nat)))) else (((not (project value negative)) || ((project value magnitude) =? 0)) && (((project value magnitude) + 1) <=? (pow2 bits))))
+}
+
+definition{
+  name: signedLess,
+  parameters: [a : Signed, b : Signed],
+  result: Bool,
+  body: (if (project a negative) then (if (project b negative) then (((project b magnitude) + 1) <=? (project a magnitude)) else (not (((project a magnitude) =? 0) && ((project b magnitude) =? 0)))) else (if (project b negative) then false else (((project a magnitude) + 1) <=? (project b magnitude))))
+}
+
+definition{
+  name: signedEqual,
+  parameters: [a : Signed, b : Signed],
+  result: Bool,
+  body: (((project a magnitude) =? (project b magnitude)) && ((sameBool (project a negative) (project b negative)) || ((project a magnitude) =? 0)))
+}
+
+definition{
+  name: signedAdd,
+  parameters: [a : Signed, b : Signed],
+  result: Signed,
+  body: (if (sameBool (project a negative) (project b negative)) then (record Signed {negative := (project a negative), magnitude := ((project a magnitude) + (project b magnitude))}) else (if ((project b magnitude) <=? (project a magnitude)) then (record Signed {negative := (project a negative), magnitude := (prim subtract (project a magnitude) (project b magnitude) : Nat)}) else (record Signed {negative := (project b negative), magnitude := (prim subtract (project b magnitude) (project a magnitude) : Nat)})))
+}
+
+definition{
+  name: signedNegate,
+  parameters: [a : Signed],
+  result: Signed,
+  body: (record Signed {negative := (not (project a negative)), magnitude := (project a magnitude)})
+}
+
+definition{
+  name: signedMultiply,
+  parameters: [a : Signed, b : Signed],
+  result: Signed,
+  body: (record Signed {negative := (not (sameBool (project a negative) (project b negative))), magnitude := (prim multiply (project a magnitude) (project b magnitude) : Nat)})
+}
+
+definition{
+  name: signedQuotient,
+  parameters: [a : Signed, b : Signed],
+  result: Signed,
+  body: (record Signed {negative := (not (sameBool (project a negative) (project b negative))), magnitude := (prim quotient (project a magnitude) (project b magnitude) 0 : Nat)})
+}
+
+definition{
+  name: signedRemainder,
+  parameters: [a : Signed, b : Signed],
+  result: Signed,
+  body: (record Signed {negative := (project a negative), magnitude := (prim remainder (project a magnitude) (project b magnitude) 0 : Nat)})
+}
+
+definition{
+  name: bitsAnd,
+  parameters: [width : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (match width
+    | Nat.zero => 0
+    | Nat.succ rest => ((if (((prim remainder a 2 0 : Nat) =? 1) && ((prim remainder b 2 0 : Nat) =? 1)) then 1 else 0) + (prim multiply 2 (bitsAnd rest (prim quotient a 2 0 : Nat) (prim quotient b 2 0 : Nat)) : Nat))),
+  recursive_argument: width
+}
+
+definition{
+  name: bitsOr,
+  parameters: [width : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (match width
+    | Nat.zero => 0
+    | Nat.succ rest => ((if (((prim remainder a 2 0 : Nat) =? 1) || ((prim remainder b 2 0 : Nat) =? 1)) then 1 else 0) + (prim multiply 2 (bitsOr rest (prim quotient a 2 0 : Nat) (prim quotient b 2 0 : Nat)) : Nat))),
+  recursive_argument: width
+}
+
+definition{
+  name: bitsXor,
+  parameters: [width : Nat, a : Nat, b : Nat],
+  result: Nat,
+  body: (match width
+    | Nat.zero => 0
+    | Nat.succ rest => ((if ((prim remainder a 2 0 : Nat) =? (prim remainder b 2 0 : Nat)) then 0 else 1) + (prim multiply 2 (bitsXor rest (prim quotient a 2 0 : Nat) (prim quotient b 2 0 : Nat)) : Nat))),
+  recursive_argument: width
+}
+
+definition{
+  name: shiftRight,
+  parameters: [bits : Nat, signed : Bool, repr : Nat, amount : Nat],
+  result: Nat,
+  body: (let value : Signed := (signedOf bits signed repr); (if (project value negative) then (reprOf bits (record Signed {negative := true, magnitude := (prim quotient ((project value magnitude) + (prim subtract (pow2 amount) 1 : Nat)) (pow2 amount) 0 : Nat)})) else (prim quotient repr (pow2 amount) 0 : Nat)))
+}
+
+definition{
+  name: scalarOf,
+  parameters: [value : Value],
+  result: (Option Signed),
+  body: (match value
+    | Value.int bits signed repr => (ctor Option.some [Signed] (signedOf bits signed repr))
+    | Value.boolean b => (ctor Option.some [Signed] (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | Value.character code => (ctor Option.some [Signed] (record Signed {negative := false, magnitude := code}))
+    | Value.unit => (ctor Option.none [Signed])
+    | Value.tuple fields => (ctor Option.none [Signed])
+    | Value.adt variant discriminant fields => (ctor Option.none [Signed])
+    | Value.pointer frame base steps => (ctor Option.none [Signed])
+    | Value.function path => (ctor Option.none [Signed])
+    | Value.text content => (ctor Option.none [Signed])
+    | Value.uninit => (ctor Option.none [Signed]))
+}
+
+definition{
+  name: boolValue,
+  parameters: [b : Bool],
+  result: Evaluated,
+  body: (ctor Evaluated.found (ctor Value.boolean b))
+}
+
+definition{
+  name: orderingOf,
+  parameters: [a : Signed, b : Signed],
+  result: Value,
+  body: (if (signedLess a b) then (ctor Value.adt "Less" (record Signed {negative := true, magnitude := 1}) (nil Value)) else (if (signedEqual a b) then (ctor Value.adt "Equal" (record Signed {negative := false, magnitude := 0}) (nil Value)) else (ctor Value.adt "Greater" (record Signed {negative := false, magnitude := 1}) (nil Value))))
+}
+
+definition{
+  name: evalCompare,
+  parameters: [op : BinOp, a : Signed, b : Signed],
+  result: Evaluated,
+  body: (match op
+    | BinOp.add => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.addUnchecked => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.addWithOverflow => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.sub => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.subUnchecked => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.subWithOverflow => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.mul => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.mulUnchecked => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.mulWithOverflow => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.div => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.rem => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.bitXor => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.bitAnd => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.bitOr => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.shl => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.shlUnchecked => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.shr => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.shrUnchecked => (ctor Evaluated.stop (ctor Outcome.ub "an arithmetic operator on values that are not integers"))
+    | BinOp.eq => (boolValue (signedEqual a b))
+    | BinOp.lt => (boolValue (signedLess a b))
+    | BinOp.le => (boolValue (not (signedLess b a)))
+    | BinOp.ne => (boolValue (not (signedEqual a b)))
+    | BinOp.ge => (boolValue (not (signedLess a b)))
+    | BinOp.gt => (boolValue (signedLess b a))
+    | BinOp.cmp => (ctor Evaluated.found (orderingOf a b))
+    | BinOp.offset => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp::Offset")))
+}
+
+definition{
+  name: intValue,
+  parameters: [bits : Nat, signed : Bool, value : Signed],
+  result: Value,
+  body: (ctor Value.int bits signed (reprOf bits value))
+}
+
+definition{
+  name: exactValue,
+  parameters: [bits : Nat, signed : Bool, value : Signed],
+  result: Evaluated,
+  body: (if (fitsIn bits signed value) then (ctor Evaluated.found (intValue bits signed value)) else (ctor Evaluated.stop (ctor Outcome.ub "an unchecked operation overflowed")))
+}
+
+definition{
+  name: flaggedValue,
+  parameters: [bits : Nat, signed : Bool, value : Signed],
+  result: Evaluated,
+  body: (ctor Evaluated.found (ctor Value.tuple (cons (intValue bits signed value) (cons (ctor Value.boolean (not (fitsIn bits signed value))) (nil Value)))))
+}
+
+definition{
+  name: evalDivide,
+  parameters: [bits : Nat, signed : Bool, a : Signed, b : Signed, remainder : Bool],
+  result: Evaluated,
+  body: (if ((project b magnitude) =? 0) then (ctor Evaluated.stop (ctor Outcome.ub "a division by zero")) else (let q : Signed := (signedQuotient a b); (if (fitsIn bits signed q) then (ctor Evaluated.found (intValue bits signed (if remainder then (signedRemainder a b) else q))) else (ctor Evaluated.stop (ctor Outcome.ub "a division that overflows")))))
+}
+
+definition{
+  name: evalArithmetic,
+  parameters: [op : BinOp, bits : Nat, signed : Bool, a : Nat, b : Nat, amount : Signed],
+  result: Evaluated,
+  body: (let x : Signed := (signedOf bits signed a); (let y : Signed := (signedOf bits signed b); (match op
+    | BinOp.add => (ctor Evaluated.found (intValue bits signed (signedAdd x y)))
+    | BinOp.addUnchecked => (exactValue bits signed (signedAdd x y))
+    | BinOp.addWithOverflow => (flaggedValue bits signed (signedAdd x y))
+    | BinOp.sub => (ctor Evaluated.found (intValue bits signed (signedAdd x (signedNegate y))))
+    | BinOp.subUnchecked => (exactValue bits signed (signedAdd x (signedNegate y)))
+    | BinOp.subWithOverflow => (flaggedValue bits signed (signedAdd x (signedNegate y)))
+    | BinOp.mul => (ctor Evaluated.found (intValue bits signed (signedMultiply x y)))
+    | BinOp.mulUnchecked => (exactValue bits signed (signedMultiply x y))
+    | BinOp.mulWithOverflow => (flaggedValue bits signed (signedMultiply x y))
+    | BinOp.div => (evalDivide bits signed x y false)
+    | BinOp.rem => (evalDivide bits signed x y true)
+    | BinOp.bitXor => (ctor Evaluated.found (ctor Value.int bits signed (bitsXor bits a b)))
+    | BinOp.bitAnd => (ctor Evaluated.found (ctor Value.int bits signed (bitsAnd bits a b)))
+    | BinOp.bitOr => (ctor Evaluated.found (ctor Value.int bits signed (bitsOr bits a b)))
+    | BinOp.shl => (ctor Evaluated.found (ctor Value.int bits signed (wrapBits bits (prim multiply a (pow2 (prim remainder (reprOf bits amount) bits 0 : Nat)) : Nat))))
+    | BinOp.shlUnchecked => (if ((not (project amount negative)) && (((project amount magnitude) + 1) <=? bits)) then (ctor Evaluated.found (ctor Value.int bits signed (wrapBits bits (prim multiply a (pow2 (project amount magnitude)) : Nat)))) else (ctor Evaluated.stop (ctor Outcome.ub "an unchecked shift by the width or more")))
+    | BinOp.shr => (ctor Evaluated.found (ctor Value.int bits signed (shiftRight bits signed a (prim remainder (reprOf bits amount) bits 0 : Nat))))
+    | BinOp.shrUnchecked => (if ((not (project amount negative)) && (((project amount magnitude) + 1) <=? bits)) then (ctor Evaluated.found (ctor Value.int bits signed (shiftRight bits signed a (project amount magnitude)))) else (ctor Evaluated.stop (ctor Outcome.ub "an unchecked shift by the width or more")))
+    | BinOp.eq => (evalCompare op x y)
+    | BinOp.lt => (evalCompare op x y)
+    | BinOp.le => (evalCompare op x y)
+    | BinOp.ne => (evalCompare op x y)
+    | BinOp.ge => (evalCompare op x y)
+    | BinOp.gt => (evalCompare op x y)
+    | BinOp.cmp => (evalCompare op x y)
+    | BinOp.offset => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp::Offset")))))
+}
+
+definition{
+  name: evalLogic,
+  parameters: [op : BinOp, a : Bool, b : Bool],
+  result: Evaluated,
+  body: (match op
+    | BinOp.bitXor => (boolValue (not (sameBool a b)))
+    | BinOp.bitAnd => (boolValue (a && b))
+    | BinOp.bitOr => (boolValue (a || b))
+    | BinOp.add => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.addUnchecked => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.addWithOverflow => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.sub => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.subUnchecked => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.subWithOverflow => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.mul => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.mulUnchecked => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.mulWithOverflow => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.div => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.rem => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.shl => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.shlUnchecked => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.shr => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.shrUnchecked => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.eq => (boolValue (sameBool a b))
+    | BinOp.lt => (boolValue ((not a) && b))
+    | BinOp.le => (boolValue ((not a) || b))
+    | BinOp.ne => (boolValue (not (sameBool a b)))
+    | BinOp.ge => (boolValue (a || (not b)))
+    | BinOp.gt => (boolValue (a && (not b)))
+    | BinOp.cmp => (evalCompare op (record Signed {negative := false, magnitude := (if a then 1 else 0)}) (record Signed {negative := false, magnitude := (if b then 1 else 0)}))
+    | BinOp.offset => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp::Offset")))
+}
+
+definition{
+  name: evalBinary,
+  parameters: [op : BinOp, a : Value, b : Value],
+  result: Evaluated,
+  body: (match a
+    | Value.int bits signed x => (match b
+      | Value.int bitsB signedB y => (evalArithmetic op bits signed x (wrapBits bits y) (signedOf bitsB signedB y))
+      | Value.boolean q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.character q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.tuple q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.adt q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.pointer q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.function q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.text q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value")))
+    | Value.boolean p => (match b
+      | Value.boolean q => (evalLogic op p q)
+      | Value.int q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.character q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.tuple q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.adt q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.pointer q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.function q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.text q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value")))
+    | Value.character p => (match b
+      | Value.character q => (evalCompare op (record Signed {negative := false, magnitude := p}) (record Signed {negative := false, magnitude := q}))
+      | Value.int q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.boolean q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.tuple q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.adt q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.pointer q r s => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.function q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.text q => (ctor Evaluated.stop (ctor Outcome.ub "a binary operator on values of two types"))
+      | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value")))
+    | Value.unit => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
+    | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
+    | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
+    | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a pointer"))
+    | Value.function p => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
+    | Value.text p => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on a value that is not a scalar"))
+    | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value")))
+}
+
+definition{
+  name: evalUnary,
+  parameters: [op : UnOp, a : Value],
+  result: Evaluated,
+  body: (match op
+    | UnOp.not => (match a
+      | Value.int bits signed x => (ctor Evaluated.found (ctor Value.int bits signed (prim subtract (prim subtract (pow2 bits) 1 : Nat) x : Nat)))
+      | Value.boolean p => (boolValue (not p))
+      | Value.character p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.function p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.text p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value")))
+    | UnOp.neg => (match a
+      | Value.int bits signed x => (ctor Evaluated.found (intValue bits signed (signedNegate (signedOf bits signed x))))
+      | Value.boolean p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.character p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.unit => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.function p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.text p => (ctor Evaluated.stop (ctor Outcome.ub "a unary operator on a value it does not apply to"))
+      | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value")))
+    | UnOp.ptrMetadata => (ctor Evaluated.stop (ctor Outcome.undefined "UnOp::PtrMetadata")))
+}
+
+definition{
+  name: evalConvert,
+  parameters: [a : Value, target : Ty],
+  result: Evaluated,
+  body: (match target
+    | Ty.int bits signed => (match (scalarOf a)
+      | Option.some value => (ctor Evaluated.found (intValue bits signed value))
+      | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "an integer cast of a value that is not a scalar")))
+    | Ty.character => (match (scalarOf a)
+      | Option.some value => (ctor Evaluated.found (ctor Value.character (project value magnitude)))
+      | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "an integer cast of a value that is not a scalar")))
+    | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.ub "an integer cast to bool"))
+    | Ty.unit => (ctor Evaluated.stop (ctor Outcome.ub "an integer cast to ()"))
+    | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::IntToInt to a type that is not an integer")))
+}
+
+definition{
+  name: evalCast,
+  parameters: [kind : CastKind, a : Value, target : Ty],
+  result: Evaluated,
+  body: (match kind
+    | CastKind.pointerExposeProvenance => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::PointerExposeProvenance"))
+    | CastKind.pointerWithExposedProvenance => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::PointerWithExposedProvenance"))
+    | CastKind.pointerCoercion => (ctor Evaluated.found a)
+    | CastKind.intToInt => (evalConvert a target)
+    | CastKind.floatToInt => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::FloatToInt"))
+    | CastKind.floatToFloat => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::FloatToFloat"))
+    | CastKind.intToFloat => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::IntToFloat"))
+    | CastKind.ptrToPtr => (ctor Evaluated.found a)
+    | CastKind.fnPtrToPtr => (ctor Evaluated.found a)
+    | CastKind.transmute => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::Transmute"))
+    | CastKind.subtype => (ctor Evaluated.found a))
+}
+
+definition{
+  name: nthValue,
+  parameters: [values : (List Value), index : Nat],
+  result: (Option Value),
+  body: (match values
+    | List.nil => (ctor Option.none [Value])
+    | List.cons head rest => (if (index =? 0) then (ctor Option.some [Value] head) else (nthValue rest (prim subtract index 1 : Nat)))),
+  recursive_argument: values
+}
+
+definition{
+  name: setValue,
+  parameters: [values : (List Value), index : Nat, value : Value],
+  result: (List Value),
+  body: (match values
+    | List.nil => (nil Value)
+    | List.cons head rest => (if (index =? 0) then (cons value rest) else (cons head (setValue rest (prim subtract index 1 : Nat) value)))),
+  recursive_argument: values
+}
+
+definition{
+  name: countValues,
+  parameters: [values : (List Value)],
+  result: Nat,
+  body: (match values | List.nil => 0 | List.cons head rest => ((countValues rest) + 1)),
+  recursive_argument: values
+}
+
+definition{
+  name: uninits,
+  parameters: [count : Nat],
+  result: (List Value),
+  body: (match count
+    | Nat.zero => (nil Value)
+    | Nat.succ rest => (cons (ctor Value.uninit) (uninits rest))),
+  recursive_argument: count
+}
+
+definition{
+  name: appendValues,
+  parameters: [front : (List Value), back : (List Value)],
+  result: (List Value),
+  body: (match front
+    | List.nil => back
+    | List.cons head rest => (cons head (appendValues rest back))),
+  recursive_argument: front
+}
+
+definition{
+  name: snoc,
+  parameters: [steps : (List Nat), step : Nat],
+  result: (List Nat),
+  body: (match steps
+    | List.nil => (cons step (nil Nat))
+    | List.cons head rest => (cons head (snoc rest step))),
+  recursive_argument: steps
+}
+
+definition{
+  name: fieldsOf,
+  parameters: [value : Value],
+  result: (Option (List Value)),
+  body: (match value
+    | Value.tuple fields => (ctor Option.some [(List Value)] fields)
+    | Value.adt variant discriminant fields => (ctor Option.some [(List Value)] fields)
+    | Value.int p q r => (ctor Option.none [(List Value)])
+    | Value.boolean p => (ctor Option.none [(List Value)])
+    | Value.character p => (ctor Option.none [(List Value)])
+    | Value.unit => (ctor Option.none [(List Value)])
+    | Value.pointer p q r => (ctor Option.none [(List Value)])
+    | Value.function p => (ctor Option.none [(List Value)])
+    | Value.text p => (ctor Option.none [(List Value)])
+    | Value.uninit => (ctor Option.none [(List Value)]))
+}
+
+definition{
+  name: withFields,
+  parameters: [value : Value, fields : (List Value)],
+  result: Value,
+  body: (match value
+    | Value.adt variant discriminant old => (ctor Value.adt variant discriminant fields)
+    | Value.tuple old => (ctor Value.tuple fields)
+    | Value.int p q r => (ctor Value.tuple fields)
+    | Value.boolean p => (ctor Value.tuple fields)
+    | Value.character p => (ctor Value.tuple fields)
+    | Value.unit => (ctor Value.tuple fields)
+    | Value.pointer p q r => (ctor Value.tuple fields)
+    | Value.function p => (ctor Value.tuple fields)
+    | Value.text p => (ctor Value.tuple fields)
+    | Value.uninit => (ctor Value.tuple fields))
+}
+
+definition{
+  name: readSteps,
+  parameters: [steps : (List Nat), value : Value],
+  result: (Option Value),
+  body: (match steps
+    | List.nil => (ctor Option.some [Value] value)
+    | List.cons step rest => (match (fieldsOf value)
+      | Option.none => (ctor Option.none [Value])
+      | Option.some fields => (match (nthValue fields step)
+        | Option.none => (ctor Option.none [Value])
+        | Option.some inner => (readSteps rest inner)))),
+  recursive_argument: steps
+}
+
+definition{
+  name: writeSteps,
+  parameters: [steps : (List Nat), value : Value, replacement : Value],
+  result: (Option Value),
+  body: (match steps
+    | List.nil => (ctor Option.some [Value] replacement)
+    | List.cons step rest => (match (fieldsOf value)
+      | Option.none => (match value
+        | Value.uninit => (match (writeSteps rest (ctor Value.uninit) replacement)
+          | Option.none => (ctor Option.none [Value])
+          | Option.some inner => (ctor Option.some [Value] (ctor Value.tuple (setValue (uninits (step + 1)) step inner))))
+        | Value.int p q r => (ctor Option.none [Value])
+        | Value.boolean p => (ctor Option.none [Value])
+        | Value.character p => (ctor Option.none [Value])
+        | Value.unit => (ctor Option.none [Value])
+        | Value.tuple p => (ctor Option.none [Value])
+        | Value.adt p q r => (ctor Option.none [Value])
+        | Value.pointer p q r => (ctor Option.none [Value])
+        | Value.function p => (ctor Option.none [Value])
+        | Value.text p => (ctor Option.none [Value]))
+      | Option.some fields => (let padded : (List Value) := (if ((step + 1) <=? (countValues fields)) then fields else (appendValues fields (uninits (prim subtract (step + 1) (countValues fields) : Nat)))); (match (nthValue padded step)
+        | Option.none => (ctor Option.none [Value])
+        | Option.some inner => (match (writeSteps rest inner replacement)
+          | Option.none => (ctor Option.none [Value])
+          | Option.some updated => (ctor Option.some [Value] (withFields value (setValue padded step updated)))))))),
+  recursive_argument: steps
+}
+
+definition{
+  name: countFrames,
+  parameters: [frames : (List Frame)],
+  result: Nat,
+  body: (match frames | List.nil => 0 | List.cons head rest => ((countFrames rest) + 1)),
+  recursive_argument: frames
+}
+
+definition{
+  name: frameAt,
+  parameters: [frames : (List Frame), depth : Nat],
+  result: (Option Frame),
+  body: (match frames
+    | List.nil => (ctor Option.none [Frame])
+    | List.cons head rest => (if ((countFrames rest) =? depth) then (ctor Option.some [Frame] head) else (frameAt rest depth))),
+  recursive_argument: frames
+}
+
+definition{
+  name: withLocal,
+  parameters: [frame : Frame, base : Nat, value : Value],
+  result: Frame,
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (setValue (project frame locals) base value), destination := (project frame destination), target := (project frame target)})
+}
+
+definition{
+  name: setFrame,
+  parameters: [frames : (List Frame), depth : Nat, base : Nat, value : Value],
+  result: (List Frame),
+  body: (match frames
+    | List.nil => (nil Frame)
+    | List.cons head rest => (if ((countFrames rest) =? depth) then (cons (withLocal head base value) rest) else (cons head (setFrame rest depth base value)))),
+  recursive_argument: frames
+}
+
+definition{
+  name: readAt,
+  parameters: [frames : (List Frame), loc : Location],
+  result: (Option Value),
+  body: (match (frameAt frames (project loc frame))
+    | Option.none => (ctor Option.none [Value])
+    | Option.some frame => (match (nthValue (project frame locals) (project loc base))
+      | Option.none => (ctor Option.none [Value])
+      | Option.some whole => (readSteps (project loc steps) whole)))
+}
+
+definition{
+  name: writeAt,
+  parameters: [frames : (List Frame), loc : Location, value : Value],
+  result: (Option (List Frame)),
+  body: (match (frameAt frames (project loc frame))
+    | Option.none => (ctor Option.none [(List Frame)])
+    | Option.some frame => (match (nthValue (project frame locals) (project loc base))
+      | Option.none => (ctor Option.none [(List Frame)])
+      | Option.some whole => (match (writeSteps (project loc steps) whole value)
+        | Option.none => (ctor Option.none [(List Frame)])
+        | Option.some updated => (ctor Option.some [(List Frame)] (setFrame frames (project loc frame) (project loc base) updated)))))
+}
+
+definition{
+  name: locationOf,
+  parameters: [frame : Nat, base : Nat, steps : (List Nat)],
+  result: Location,
+  body: (record Location {frame := frame, base := base, steps := steps})
+}
+
+definition{
+  name: locateSteps,
+  parameters: [projection : (List Proj), frames : (List Frame), here : Nat, loc : Location],
+  result: Located,
+  body: (match projection
+    | List.nil => (ctor Located.found loc)
+    | List.cons step rest => (match step
+      | Proj.deref => (match (readAt frames loc)
+        | Option.some value => (match value
+          | Value.pointer frame base steps => (locateSteps rest frames here (locationOf frame base steps))
+          | Value.int p q r => (ctor Located.stop (ctor Outcome.undefined "ProjectionElem::Deref of a value that is not a reference"))
+          | Value.boolean p => (ctor Located.stop (ctor Outcome.ub "a dereference of a value that is not a pointer"))
+          | Value.character p => (ctor Located.stop (ctor Outcome.ub "a dereference of a value that is not a pointer"))
+          | Value.unit => (ctor Located.stop (ctor Outcome.ub "a dereference of a value that is not a pointer"))
+          | Value.tuple p => (ctor Located.stop (ctor Outcome.undefined "ProjectionElem::Deref of a value that is not a reference"))
+          | Value.adt p q r => (ctor Located.stop (ctor Outcome.undefined "ProjectionElem::Deref of a value that is not a reference"))
+          | Value.function p => (ctor Located.stop (ctor Outcome.ub "a dereference of a value that is not a pointer"))
+          | Value.text p => (ctor Located.stop (ctor Outcome.undefined "ProjectionElem::Deref of a value that is not a reference"))
+          | Value.uninit => (ctor Located.stop (ctor Outcome.ub "a dereference of an uninitialized pointer")))
+        | Option.none => (ctor Located.stop (ctor Outcome.ub "a dereference of a place that holds no value")))
+      | Proj.field index => (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) index)))
+      | Proj.index base => (match (readAt frames (locationOf here base (nil Nat)))
+        | Option.some value => (match (scalarOf value)
+          | Option.some offset => (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) (project offset magnitude))))
+          | Option.none => (ctor Located.stop (ctor Outcome.ub "an index that is not an integer")))
+        | Option.none => (ctor Located.stop (ctor Outcome.ub "an index that holds no value")))
+      | Proj.constantIndex offset fromEnd => (if fromEnd then (match (readAt frames loc)
+        | Option.some value => (match (fieldsOf value)
+          | Option.some fields => (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) (prim subtract (countValues fields) offset : Nat))))
+          | Option.none => (ctor Located.stop (ctor Outcome.ub "a constant index into a value that is not an array")))
+        | Option.none => (ctor Located.stop (ctor Outcome.ub "a constant index into a place that holds no value"))) else (locateSteps rest frames here (locationOf (project loc frame) (project loc base) (snoc (project loc steps) offset))))
+      | Proj.downcast variant => (locateSteps rest frames here loc)
+      | Proj.other kind text => (ctor Located.stop (ctor Outcome.undefined kind)))),
+  recursive_argument: projection
+}
+
+definition{
+  name: depthOf,
+  parameters: [frames : (List Frame)],
+  result: Nat,
+  body: (prim subtract (countFrames frames) 1 : Nat)
+}
+
+definition{
+  name: placeOf,
+  parameters: [frames : (List Frame), target : Place],
+  result: Located,
+  body: (locateSteps (project target projection) frames (depthOf frames) (locationOf (depthOf frames) (project target base) (nil Nat)))
+}
+
+definition{
+  name: readPlace,
+  parameters: [frames : (List Frame), target : Place],
+  result: Evaluated,
+  body: (match (placeOf frames target)
+    | Located.stop outcome => (ctor Evaluated.stop outcome)
+    | Located.found loc => (match (readAt frames loc)
+      | Option.some value => (ctor Evaluated.found value)
+      | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a read of a place that holds no value"))))
+}
+
+definition{
+  name: evalConstant,
+  parameters: [value : Const],
+  result: Evaluated,
+  body: (match value
+    | Const.int bits signed repr => (ctor Evaluated.found (ctor Value.int bits signed repr))
+    | Const.boolean b => (boolValue b)
+    | Const.character code => (ctor Evaluated.found (ctor Value.character code))
+    | Const.text content => (ctor Evaluated.found (ctor Value.text content))
+    | Const.unit => (ctor Evaluated.found (ctor Value.unit))
+    | Const.function path => (ctor Evaluated.found (ctor Value.function path))
+    | Const.variant name discriminant => (ctor Evaluated.found (ctor Value.adt name discriminant (nil Value)))
+    | Const.other text => (ctor Evaluated.stop (ctor Outcome.undefined "Operand::Constant of a constant the embedding does not read")))
+}
+
+definition{
+  name: evalOperand,
+  parameters: [program : Program, frames : (List Frame), op : Operand],
+  result: Evaluated,
+  body: (match op
+    | Operand.copy source => (readPlace frames source)
+    | Operand.move source => (readPlace frames source)
+    | Operand.constant value => (evalConstant value)
+    | Operand.check kind => (match kind
+      | RuntimeChecks.ubChecks => (boolValue (project program ubChecks))
+      | RuntimeChecks.contractChecks => (boolValue (project program contractChecks))
+      | RuntimeChecks.overflowChecks => (boolValue (project program overflowChecks))))
+}
+
+definition{
+  name: evalOperands,
+  parameters: [program : Program, frames : (List Frame), ops : (List Operand)],
+  result: EvaluatedList,
+  body: (match ops
+    | List.nil => (ctor EvaluatedList.found (nil Value))
+    | List.cons head rest => (match (evalOperand program frames head)
+      | Evaluated.stop outcome => (ctor EvaluatedList.stop outcome)
+      | Evaluated.found value => (match (evalOperands program frames rest)
+        | EvaluatedList.stop outcome => (ctor EvaluatedList.stop outcome)
+        | EvaluatedList.found values => (ctor EvaluatedList.found (cons value values))))),
+  recursive_argument: ops
+}
+
+definition{
+  name: evalAggregate,
+  parameters: [kind : Agg, values : (List Value)],
+  result: Evaluated,
+  body: (match kind
+    | Agg.tuple => (ctor Evaluated.found (ctor Value.tuple values))
+    | Agg.array => (ctor Evaluated.found (ctor Value.tuple values))
+    | Agg.adt variant discriminant => (ctor Evaluated.found (ctor Value.adt variant discriminant values))
+    | Agg.closure printed => (ctor Evaluated.found (ctor Value.tuple values))
+    | Agg.other construct => (ctor Evaluated.stop (ctor Outcome.undefined construct)))
+}
+
+definition{
+  name: evalRvalue,
+  parameters: [program : Program, frames : (List Frame), value : Rvalue],
+  result: Evaluated,
+  body: (match value
+    | Rvalue.value op => (evalOperand program frames op)
+    | Rvalue.borrow kind source => (match (placeOf frames source)
+      | Located.stop outcome => (ctor Evaluated.stop outcome)
+      | Located.found loc => (ctor Evaluated.found (ctor Value.pointer (project loc frame) (project loc base) (project loc steps))))
+    | Rvalue.copyForDeref source => (readPlace frames source)
+    | Rvalue.binary op left right => (match (evalOperand program frames left)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found a => (match (evalOperand program frames right)
+        | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+        | Evaluated.found b => (evalBinary op a b)))
+    | Rvalue.unary op inner => (match (evalOperand program frames inner)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found a => (evalUnary op a))
+    | Rvalue.discriminant source target => (match (readPlace frames source)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found whole => (match whole
+        | Value.adt variant discriminant fields => (match target
+          | Ty.int bits signed => (ctor Evaluated.found (intValue bits signed discriminant))
+          | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant read at a type that is not an integer"))
+          | Ty.character => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant read at a type that is not an integer"))
+          | Ty.unit => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant read at a type that is not an integer"))
+          | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant at a type the embedding does not read")))
+        | Value.int p q r => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.boolean p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.character p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.unit => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.pointer p q r => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.function p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.text p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
+        | Value.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a read of an uninitialized value"))))
+    | Rvalue.aggregate kind ops => (match (evalOperands program frames ops)
+      | EvaluatedList.stop outcome => (ctor Evaluated.stop outcome)
+      | EvaluatedList.found values => (evalAggregate kind values))
+    | Rvalue.cast kind inner target => (match (evalOperand program frames inner)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found a => (evalCast kind a target))
+    | Rvalue.rawPtr source => (match (placeOf frames source)
+      | Located.stop outcome => (ctor Evaluated.stop outcome)
+      | Located.found loc => (ctor Evaluated.found (ctor Value.pointer (project loc frame) (project loc base) (project loc steps))))
+    | Rvalue.other kind text => (ctor Evaluated.stop (ctor Outcome.undefined kind)))
+}
+
+definition{
+  name: nthStatement,
+  parameters: [statements : (List Statement), index : Nat],
+  result: (Option Statement),
+  body: (match statements
+    | List.nil => (ctor Option.none [Statement])
+    | List.cons head rest => (if (index =? 0) then (ctor Option.some [Statement] head) else (nthStatement rest (prim subtract index 1 : Nat)))),
+  recursive_argument: statements
+}
+
+definition{
+  name: nthBlock,
+  parameters: [blocks : (List Block), index : Nat],
+  result: (Option Block),
+  body: (match blocks
+    | List.nil => (ctor Option.none [Block])
+    | List.cons head rest => (if (index =? 0) then (ctor Option.some [Block] head) else (nthBlock rest (prim subtract index 1 : Nat)))),
+  recursive_argument: blocks
+}
+
+definition{
+  name: findBody,
+  parameters: [bodies : (List Body), path : String],
+  result: (Option Body),
+  body: (match bodies
+    | List.nil => (ctor Option.none [Body])
+    | List.cons head rest => (if (prim equal (project head path) path : Bool) then (ctor Option.some [Body] head) else (findBody rest path))),
+  recursive_argument: bodies
+}
+
+definition{
+  name: findBinding,
+  parameters: [bindings : (List Binding), name : String],
+  result: (Option String),
+  body: (match bindings
+    | List.nil => (ctor Option.none [String])
+    | List.cons head rest => (if (prim equal (project head name) name : Bool) then (ctor Option.some [String] (project head path)) else (findBinding rest name))),
+  recursive_argument: bindings
+}
+
+definition{
+  name: countTys,
+  parameters: [tys : (List Ty)],
+  result: Nat,
+  body: (match tys | List.nil => 0 | List.cons head rest => ((countTys rest) + 1)),
+  recursive_argument: tys
+}
+
+definition{
+  name: enterFrame,
+  parameters: [callee : Body, args : (List Value), destination : Place, target : (Option Nat)],
+  result: Frame,
+  body: (record Frame {body := callee, block := 0, statement := 0, locals := (cons (ctor Value.uninit) (appendValues args (uninits (prim subtract (countTys (project callee locals)) ((countValues args) + 1) : Nat)))), destination := destination, target := target})
+}
+
+definition{
+  name: moveTo,
+  parameters: [frame : Frame, block : Nat],
+  result: Frame,
+  body: (record Frame {body := (project frame body), block := block, statement := 0, locals := (project frame locals), destination := (project frame destination), target := (project frame target)})
+}
+
+definition{
+  name: advanceFrame,
+  parameters: [frame : Frame],
+  result: Frame,
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := ((project frame statement) + 1), locals := (project frame locals), destination := (project frame destination), target := (project frame target)})
+}
+
+definition{
+  name: replaceTop,
+  parameters: [frames : (List Frame), frame : Frame],
+  result: (List Frame),
+  body: (match frames | List.nil => (nil Frame) | List.cons head rest => (cons frame rest))
+}
+
+definition{
+  name: evalAssign,
+  parameters: [program : Program, frames : (List Frame), target : Place, value : Rvalue],
+  result: Outcome,
+  body: (match (evalRvalue program frames value)
+    | Evaluated.stop outcome => outcome
+    | Evaluated.found result => (match (placeOf frames target)
+      | Located.stop outcome => outcome
+      | Located.found loc => (match (writeAt frames loc result)
+        | Option.none => (ctor Outcome.ub "a write to a place that holds no value")
+        | Option.some written => (match written
+          | List.nil => (ctor Outcome.ub "a write with no frame")
+          | List.cons top rest => (ctor Outcome.running (cons (advanceFrame top) rest))))))
+}
+
+definition{
+  name: switchTarget,
+  parameters: [arms : (List Arm), value : Signed, repr : Nat, otherwise : Nat],
+  result: Nat,
+  body: (match arms
+    | List.nil => otherwise
+    | List.cons arm rest => (if (((project arm value) =? repr) || ((not (project value negative)) && ((project arm value) =? (project value magnitude)))) then (project arm target) else (switchTarget rest value repr otherwise))),
+  recursive_argument: arms
+}
+
+definition{
+  name: reprOfValue,
+  parameters: [value : Value],
+  result: Nat,
+  body: (match value
+    | Value.int bits signed repr => repr
+    | Value.boolean b => (if b then 1 else 0)
+    | Value.character code => code
+    | Value.unit => 0
+    | Value.tuple p => 0
+    | Value.adt p q r => 0
+    | Value.pointer p q r => 0
+    | Value.function p => 0
+    | Value.text p => 0
+    | Value.uninit => 0)
+}
+
+definition{
+  name: callBody,
+  parameters: [
+    program : Program,
+    frames : (List Frame),
+    path : String,
+    args : (List Operand),
+    destination : Place,
+    target : (Option Nat)
+  ],
+  result: Outcome,
+  body: (match (findBody (project program bodies) path)
+    | Option.none => (ctor Outcome.unlinked path)
+    | Option.some callee => (match (evalOperands program frames args)
+      | EvaluatedList.stop outcome => outcome
+      | EvaluatedList.found values => (ctor Outcome.running (cons (enterFrame callee values destination target) frames))))
+}
+
+definition{
+  name: evalCall,
+  parameters: [
+    program : Program,
+    frames : (List Frame),
+    callee : Callee,
+    args : (List Operand),
+    destination : Place,
+    target : (Option Nat)
+  ],
+  result: Outcome,
+  body: (match callee
+    | Callee.body path => (callBody program frames path args destination target)
+    | Callee.operand op => (match (evalOperand program frames op)
+      | Evaluated.stop outcome => outcome
+      | Evaluated.found value => (match value
+        | Value.function path => (callBody program frames path args destination target)
+        | Value.int p q r => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
+        | Value.boolean p => (ctor Outcome.ub "a call of a value that is not a function")
+        | Value.character p => (ctor Outcome.ub "a call of a value that is not a function")
+        | Value.unit => (ctor Outcome.ub "a call of a value that is not a function")
+        | Value.tuple p => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
+        | Value.adt p q r => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
+        | Value.pointer p q r => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
+        | Value.text p => (ctor Outcome.ub "a call of a value that is not a function")
+        | Value.uninit => (ctor Outcome.ub "a call of an uninitialized value")))
+    | Callee.bound name => (match (findBinding (project program dictionary) name)
+      | Option.some path => (callBody program frames path args destination target)
+      | Option.none => (ctor Outcome.unlinked name))
+    | Callee.intrinsic name => (ctor Outcome.unlinked name))
+}
+
+definition{
+  name: evalReturn,
+  parameters: [frames : (List Frame)],
+  result: Outcome,
+  body: (match frames
+    | List.nil => (ctor Outcome.ub "a return with no frame")
+    | List.cons top rest => (match (nthValue (project top locals) 0)
+      | Option.none => (ctor Outcome.ub "a return with no return place")
+      | Option.some result => (match rest
+        | List.nil => (ctor Outcome.returned result)
+        | List.cons caller below => (match (project top target)
+          | Option.none => (ctor Outcome.ub "a return from a call that does not return")
+          | Option.some block => (match (placeOf rest (project top destination))
+            | Located.stop outcome => outcome
+            | Located.found loc => (match (writeAt rest loc result)
+              | Option.none => (ctor Outcome.ub "a return into a place that holds no value")
+              | Option.some written => (match written
+                | List.nil => (ctor Outcome.ub "a return with no frame")
+                | List.cons back others => (ctor Outcome.running (cons (moveTo back block) others)))))))))
+}
+
+definition{
+  name: evalTerminator,
+  parameters: [program : Program, frames : (List Frame), frame : Frame, terminator : Terminator],
+  result: Outcome,
+  body: (match terminator
+    | Terminator.jump block => (ctor Outcome.running (replaceTop frames (moveTo frame block)))
+    | Terminator.switch op arms otherwise => (match (evalOperand program frames op)
+      | Evaluated.stop outcome => outcome
+      | Evaluated.found value => (match (scalarOf value)
+        | Option.none => (ctor Outcome.ub "a switch on a value that is not a scalar")
+        | Option.some number => (ctor Outcome.running (replaceTop frames (moveTo frame (switchTarget arms number (reprOfValue value) otherwise))))))
+    | Terminator.exit => (evalReturn frames)
+    | Terminator.unreachable => (ctor Outcome.ub "an unreachable terminator reached")
+    | Terminator.drop block => (ctor Outcome.running (replaceTop frames (moveTo frame block)))
+    | Terminator.call destination callee args target => (evalCall program frames callee args destination target)
+    | Terminator.assert condition expected kind block => (match (evalOperand program frames condition)
+      | Evaluated.stop outcome => outcome
+      | Evaluated.found value => (match value
+        | Value.boolean b => (if (sameBool b expected) then (ctor Outcome.running (replaceTop frames (moveTo frame block))) else (ctor Outcome.panicked kind))
+        | Value.int p q r => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.character p => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.unit => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.tuple p => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.adt p q r => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.pointer p q r => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.function p => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.text p => (ctor Outcome.ub "an assert on a value that is not a bool")
+        | Value.uninit => (ctor Outcome.ub "a read of an uninitialized value")))
+    | Terminator.other kind text => (ctor Outcome.undefined kind))
+}
+
+definition{
+  name: evalStatement,
+  parameters: [program : Program, frames : (List Frame), frame : Frame, statement : Statement],
+  result: Outcome,
+  body: (match statement
+    | Statement.assign target value => (evalAssign program frames target value)
+    | Statement.marker kind => (ctor Outcome.running (replaceTop frames (advanceFrame frame)))
+    | Statement.assume condition => (ctor Outcome.running (replaceTop frames (advanceFrame frame)))
+    | Statement.other kind text => (ctor Outcome.undefined kind))
+}
+
+definition{
+  name: stepFrames,
+  parameters: [program : Program, frames : (List Frame)],
+  result: Outcome,
+  body: (match frames
+    | List.nil => (ctor Outcome.ub "a step with no frame")
+    | List.cons frame rest => (match (nthBlock (project (project frame body) blocks) (project frame block))
+      | Option.none => (ctor Outcome.ub "a jump to a block the body does not have")
+      | Option.some block => (match (nthStatement (project block statements) (project frame statement))
+        | Option.some statement => (evalStatement program frames frame statement)
+        | Option.none => (evalTerminator program frames frame (project block terminator)))))
+}
+
+definition{
+  name: runFrames,
+  parameters: [fuel : Nat, program : Program, frames : (List Frame)],
+  result: Outcome,
+  body: (match fuel
+    | Nat.zero => (ctor Outcome.exhausted)
+    | Nat.succ rest => (match (stepFrames program frames)
+      | Outcome.running next => (runFrames rest program next)
+      | Outcome.returned value => (ctor Outcome.returned value)
+      | Outcome.panicked kind => (ctor Outcome.panicked kind)
+      | Outcome.ub reason => (ctor Outcome.ub reason)
+      | Outcome.undefined kind => (ctor Outcome.undefined kind)
+      | Outcome.unlinked path => (ctor Outcome.unlinked path)
+      | Outcome.exhausted => (ctor Outcome.exhausted))),
+  recursive_argument: fuel
+}
+
+definition{
+  name: evaluate,
+  parameters: [fuel : Nat, program : Program, path : String, args : (List Value)],
+  result: Outcome,
+  body: (match (findBody (project program bodies) path)
+    | Option.none => (ctor Outcome.unlinked path)
+    | Option.some callee => (runFrames fuel program (cons (enterFrame callee args (record Place {base := 0, projection := (nil Proj)}) (ctor Option.none [Nat])) (nil Frame))))
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,6 +1,6 @@
 //! The `uorust` binary end to end: `project`, `check`, `routes`, `mir`,
-//! `prove`, `core`, `std`, `merge`, `crate` and `certify` `production`,
-//! `sync` and `agree`.
+//! `prove`, `core`, `std`, `embed`, `merge`, `crate` and `certify`
+//! `production`, `sync` and `agree`.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -363,4 +363,26 @@ fn the_cli_refuses_a_bundle_it_cannot_export_or_take_in() {
     assert!(String::from_utf8_lossy(&refused.stderr).contains("result.json"));
     assert!(!tmp.join("certified").exists() && !tmp.join("certified.rs").exists());
     let _ = std::fs::remove_dir_all(tmp);
+}
+
+/// `embed` refuses dumps that do not name the target they were built for.
+#[test]
+fn the_cli_refuses_an_embedding_without_a_target_ue_19() {
+    let out = std::env::temp_dir().join(format!("uorust-cli-embed-{}", std::process::id()));
+    let out_arg = out.to_string_lossy().to_string();
+    let run = uorust(&[
+        "embed",
+        "--mir",
+        "tests/fixtures/core/mir",
+        "--library",
+        "tests/fixtures/core/library",
+        "--out",
+        out_arg.as_str(),
+    ]);
+    assert!(!run.status.success());
+    assert!(
+        String::from_utf8_lossy(&run.stderr).contains("pointer_width")
+            || String::from_utf8_lossy(&run.stderr).contains("target.toml")
+    );
+    let _ = std::fs::remove_dir_all(&out);
 }

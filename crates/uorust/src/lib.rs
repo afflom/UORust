@@ -17,6 +17,7 @@ mod ast;
 pub mod certified;
 pub mod certify;
 mod convert;
+pub mod embed;
 mod error;
 mod expand;
 mod facts;

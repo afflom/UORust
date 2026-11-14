@@ -20,10 +20,10 @@ pub mod core;
 pub mod coverage;
 pub(crate) mod float;
 pub(crate) mod layout;
-mod link;
+pub(crate) mod link;
 pub(crate) mod lower;
 pub(crate) mod memory;
-mod parse;
+pub(crate) mod parse;
 // Generated: its layout is the generator's, which the spec test compares.
 #[rustfmt::skip]
 pub(crate) mod spec;
@@ -420,7 +420,7 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
 /// `m::<impl at src/x.rs:3:1: 3:9>::f` with the impl named by the type it
 /// implements, `m::X::f`; `None` for a closure, a promoted constant or an
 /// impl whose source does not read.
-pub(super) fn resolve_impls(root: &Path, path: &str) -> Option<String> {
+pub(crate) fn resolve_impls(root: &Path, path: &str) -> Option<String> {
     if path.contains("{closure") || path.contains("promoted[") || path.contains("{constant") {
         return None;
     }

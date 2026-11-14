@@ -35,6 +35,12 @@ pub struct CoreRow {
     pub digest: Option<String>,
     /// The residue's cause, `mir::Kind: detail`.
     pub cause: Option<String>,
+    /// The digest of the body's embedding in LexLean (`uorust embed`),
+    /// which every body has.
+    pub embedded: Option<String>,
+    /// The constructs its embedding uses that the evaluator does not
+    /// define.
+    pub blocked: Vec<String>,
 }
 
 /// Whose bodies a census translates: core, std, or a crate of crates.io.
@@ -222,6 +228,17 @@ pub(crate) fn shard(
     let krate = scope.krate.as_str();
     // Each body at its instantiation, with the bindings and its own text.
     let mut bodies: Vec<(IrBody, String, String)> = Vec::new();
+    // Each body's embedding: its digest and the constructs that block it.
+    let mut embeddings: Vec<(String, Vec<String>)> = Vec::new();
+    let enums = crate::embed::enums(&link.decls);
+    let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
+        crate::embed::resolve_callee(link, krate, callee, args, dest)
+    };
+    let embedder = crate::embed::Cx {
+        width: widths.first().map_or(usize::BITS, |(w, _)| *w),
+        enums: &enums,
+        resolve: &resolve,
+    };
     // Each body's instance at its `Fn`-bounded parameters' functions, where
     // it has any: lowered first, the canonical instance where it does not
     // lower.
@@ -378,6 +395,18 @@ pub(crate) fn shard(
             let kappa = crate::project::sha(
                 format!("{krate}::{}\n{}", original.path, numbered_allocations(text)).as_bytes(),
             );
+            let embedded = embedder.body(
+                &original,
+                &crate::embed::program_key(
+                    link,
+                    &original.path,
+                    &crate::embed::body_kappa(krate, &original.path, text),
+                ),
+            );
+            embeddings.push((
+                crate::project::sha(embedded.term.as_bytes()),
+                embedded.blocked.into_iter().collect(),
+            ));
             let mut body = body;
             body.path = path.clone();
             variants.push(fn_body.map(|mut b| {
@@ -473,7 +502,9 @@ pub(crate) fn shard(
     let none = std::collections::BTreeSet::new();
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     let mut rows = Vec::new();
-    for ((body, at, kappa), variant) in bodies.into_iter().zip(variants) {
+    for (((body, at, kappa), variant), (embedded, blocked)) in
+        bodies.into_iter().zip(variants).zip(embeddings)
+    {
         let mut path = format!("{krate}::{}", body.path);
         let n = seen.entry(path.clone()).or_default();
         *n += 1;
@@ -538,6 +569,8 @@ pub(crate) fn shard(
             at,
             digest,
             cause,
+            embedded: Some(embedded),
+            blocked,
         });
     }
     rows.sort_by(|a, b| a.path.cmp(&b.path));
@@ -551,7 +584,7 @@ pub(crate) fn shard(
 /// its statics named without their build's indices:
 /// rustc numbers them in the order the whole build makes them, which varies
 /// from one build of core to the next.
-fn numbered_allocations(text: &str) -> String {
+pub(crate) fn numbered_allocations(text: &str) -> String {
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     let mut out = String::new();
     let mut rest = text;
@@ -618,7 +651,7 @@ pub(crate) struct CoreStruct {
     pub(crate) variants: Option<Vec<String>>,
     /// For an enum whose variants hold data, each variant and its fields.
     #[allow(clippy::type_complexity)]
-    data: Option<Vec<(String, Vec<(Option<String>, String)>)>>,
+    pub(crate) data: Option<Vec<(String, Vec<(Option<String>, String)>)>>,
     /// Whether such an enum's variants set their own discriminants.
     pub(crate) explicit: bool,
     /// Such an enum's discriminants, in its variants' order, where each is
@@ -2080,6 +2113,13 @@ pub fn write_register(scope: &Scope, dir: &Path, shards: &[CoreShard]) -> Result
             if !r.at.is_empty() {
                 let _ = writeln!(rows, "at = {}", toml_quote(&r.at));
             }
+            if let Some(e) = &r.embedded {
+                let _ = writeln!(rows, "embedded = \"{e}\"");
+            }
+            if !r.blocked.is_empty() {
+                let quoted: Vec<String> = r.blocked.iter().map(|b| toml_quote(b)).collect();
+                let _ = writeln!(rows, "blocked = [{}]", quoted.join(", "));
+            }
             match (&r.digest, &r.cause) {
                 (Some(d), _) => {
                     let _ = writeln!(rows, "status = \"translated\"\ndigest = \"{d}\"");
@@ -2123,6 +2163,11 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
     let mut modules = String::new();
     let mut causes: BTreeMap<String, usize> = BTreeMap::new();
     let (mut all, mut done) = (0, 0);
+    // The embedding's census: the bodies embedded, those no construct
+    // blocks, and the bodies each construct the evaluator does not define
+    // blocks.
+    let (mut embedded, mut evaluable) = (0, 0);
+    let mut blocking: BTreeMap<String, usize> = BTreeMap::new();
     for file in files {
         let text = std::fs::read_to_string(&file).map_err(|e| io(&file, e))?;
         let doc: toml::Table = text
@@ -2136,6 +2181,20 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
         let mut translated = 0;
         for row in &rows {
             let field = |k: &str| row.get(k).and_then(toml::Value::as_str).unwrap_or("");
+            if !field("embedded").is_empty() {
+                embedded += 1;
+                let blocked = row
+                    .get("blocked")
+                    .and_then(toml::Value::as_array)
+                    .cloned()
+                    .unwrap_or_default();
+                if blocked.is_empty() {
+                    evaluable += 1;
+                }
+                for b in blocked.iter().filter_map(toml::Value::as_str) {
+                    *blocking.entry(b.to_string()).or_default() += 1;
+                }
+            }
             if field("status") == "translated" {
                 translated += 1;
             } else {
@@ -2165,6 +2224,23 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
          bodies = {all}\ntranslated = {done}\nresidue = {}\n\n{modules}",
         all - done
     );
+    // The embedding's count and its queue: every construct the evaluator
+    // does not define, by the bodies it blocks.
+    if embedded > 0 {
+        let _ = writeln!(
+            summary,
+            "[embedding]\nembedded = {embedded}\nevaluable = {evaluable}\n"
+        );
+        let mut queue: Vec<(String, usize)> = blocking.into_iter().collect();
+        queue.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        for (construct, count) in queue {
+            let _ = writeln!(
+                summary,
+                "[[construct]]\nconstruct = {}\nbodies = {count}\n",
+                toml_quote(&construct)
+            );
+        }
+    }
     let mut ranked: Vec<(String, usize)> = causes.into_iter().collect();
     ranked.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
     for (cause, count) in ranked {

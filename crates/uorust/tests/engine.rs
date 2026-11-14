@@ -1632,3 +1632,67 @@ fn core_bodies_are_translated_into_a_monotone_register() {
     assert_eq!(retract("core::bool::bool::then", "").len(), 1);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// Every body of the core fixture is embedded as a value of the MIR
+/// datatype beside the semantics, with its census; dumps that do not say
+/// the target they were built for are refused, since an integer's width
+/// depends on it.
+#[test]
+fn every_core_body_is_embedded_ue_19() {
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/core");
+    let work = std::env::temp_dir().join(format!("uorust-embed-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&work);
+    let out = work.join("out");
+    let refused = uorust::embed::embed(
+        &fixture.join("library"),
+        &fixture.join("mir"),
+        &out,
+        &[],
+        None,
+        None,
+    );
+    assert!(
+        matches!(refused, Err(UorustError::Malformed { .. })),
+        "{refused:?}"
+    );
+    // The fixture's dumps with the target the bodies were built for.
+    let dumps = work.join("mir");
+    std::fs::create_dir_all(dumps.join("bool")).expect("the dumps");
+    for entry in std::fs::read_dir(fixture.join("mir/bool")).expect("the fixture") {
+        let entry = entry.expect("a dump");
+        std::fs::copy(entry.path(), dumps.join("bool").join(entry.file_name())).expect("copied");
+    }
+    std::fs::write(
+        dumps.join("target.toml"),
+        "triple = \"x86_64-unknown-linux-gnu\"\npointer_width = 64\n",
+    )
+    .expect("the target");
+    let harness = work.join("harness");
+    let census = uorust::embed::embed(
+        &fixture.join("library"),
+        &dumps,
+        &out,
+        &[],
+        Some(&harness),
+        None,
+    )
+    .expect("the embedding");
+    assert_eq!(census.bodies, 4);
+    assert!(census.evaluable <= census.bodies);
+    let rendered = census.render();
+    assert!(rendered.contains("bodies = 4"), "{rendered}");
+    let part = std::fs::read_to_string(out.join("src/Core/BoolPart0.lex.tex")).expect("the bodies");
+    assert_eq!(part.matches("result: Mir::Body").count(), 4);
+    assert!(part.contains("\\importmodule{Mir}"));
+    assert!(out.join("src/Mir.lex.tex").exists());
+    let config = std::fs::read_to_string(out.join("lexlean.toml")).expect("the project");
+    assert!(config.contains("\"src/Core/BoolPart0.lex.tex\", \"src/Mir.lex.tex\""));
+    assert_eq!(
+        std::fs::read_to_string(out.join("census.toml")).expect("the census"),
+        rendered
+    );
+    // No body of `bool` is a scalar method of an integer, so there is
+    // nothing for a harness to call.
+    assert!(!harness.exists());
+    let _ = std::fs::remove_dir_all(&work);
+}

@@ -143,6 +143,27 @@ jobs:
           scripts/ci/sdk.sh "scripts/mir/dump-lib.sh $CRATE --modules >/dev/null && target/bin/uorust $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --register crates/uorust/$CRATE"
           mkdir -p target/shard
           cp "crates/uorust/$CRATE/$MODULE.toml" target/shard/
+      # The deep embedding (UE-19): every body of the module as a value of
+      # the MIR datatype, which `lexlean verify` elaborates with the
+      # evaluator, and the differential check: the module's sampled
+      # functions run by rustc's build of core (scripts/mir/harness.sh) and
+      # by the evaluator on their embedded bodies, a theorem per case that
+      # the two agree. A disagreement fails verify, naming the theorem,
+      # which differential.toml maps to its body.
+      - name: Embed the module and check the embedding through the locked SDK
+        if: ${{ env.CRATE == 'core' }}
+        shell: bash
+        env:
+          MODULE: ${{ matrix.module }}
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          embed="target/bin/uorust embed --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --out target/embed"
+          scripts/ci/sdk.sh "$embed --harness target/harness"
+          if [ -d target/harness ]; then
+            scripts/ci/sdk.sh "scripts/mir/harness.sh target/harness target/observed.txt && $embed --observed target/observed.txt"
+          fi
+          scripts/ci/sdk.sh "cd target/embed && lexlean lock && lexlean verify"
+          sed -n '/^bodies/,/^$/p' target/embed/census.toml >>"$GITHUB_STEP_SUMMARY"
       - name: Keep the module's register file
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

@@ -114,3 +114,9 @@ Feature: engine
     Given this workspace's lift register and the certified translator's manifest, and the parent commit's
     When the suite exercises UE-18
     Then each lifted translator function is a production root, a root the compiler finds ineligible is refused with its diagnostic, every certified source matches the SHA-256 its bundle records, the share counts the translator functions reachable from the translate entry and those certified, and a commit with more uncertified translator functions than its parent is refused naming each new one and its cause
+
+  @UE-19 @build
+  Scenario: Every body of core is embedded and its evaluator checked against rustc
+    Given core's MIR dumps, rust-src at the pinned toolchain and the MIR semantics module
+    When the suite exercises UE-19
+    Then every body is a value of the MIR datatype whose kinds are rustc's, a long list nests no deeper than its root, the constructs the evaluator does not define are read from its source, each register row records its embedding and what blocks it, and each sampled case is a theorem that the evaluator returns what rustc's build returned
