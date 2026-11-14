@@ -23,12 +23,12 @@ on:
     branches: [main]
     paths:
       - 'crates/uorust/src/**'
+      - 'crates/uorust/assets/**'
       - 'crates/uorust/Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - 'prismpm.lock'
-      - 'scripts/mir/dump-lib.sh'
-      - 'scripts/mir/ledger.py'
+      - 'scripts/mir/**'
       - '.github/workflows/std.yml'
   schedule:
     - cron: '47 5 * * *'
@@ -233,5 +233,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REBASE: '1'
-          INPUTS: 'crates/uorust/src/** crates/uorust/Cargo.toml Cargo.lock rust-toolchain.toml prismpm.lock scripts/mir/dump-lib.sh scripts/mir/ledger.py .github/workflows/std.yml'
+          INPUTS: 'crates/uorust/src/** crates/uorust/assets/** crates/uorust/Cargo.toml Cargo.lock rust-toolchain.toml prismpm.lock scripts/mir/** .github/workflows/std.yml'
         run: scripts/ci/push.sh "Regenerate the $CRATE register" "crates/uorust/$CRATE crates/uorust/ledger" generate.yml

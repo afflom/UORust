@@ -127,7 +127,7 @@ definition{
   name: pushPaths,
   parameters: [],
   result: (List String),
-  body: (cons "crates/uorust/src/**" (cons "crates/uorust/Cargo.toml" (cons "Cargo.lock" (cons "rust-toolchain.toml" (cons "prismpm.lock" (cons "scripts/mir/dump-lib.sh" (cons "scripts/mir/ledger.py" (nil String)))))))),
+  body: (cons "crates/uorust/src/**" (cons "crates/uorust/assets/**" (cons "crates/uorust/Cargo.toml" (cons "Cargo.lock" (cons "rust-toolchain.toml" (cons "prismpm.lock" (cons "scripts/mir/**" (nil String)))))))),
   axioms: []
 }
 
