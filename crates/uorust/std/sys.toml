@@ -1641,8 +1641,7 @@ cause = "mir::Ty: sys::io::kernel_copy::linux::CopyResult"
 path = "std::copy_regular_files::copy_file_range"
 kappa = "44e2ea05fa31220071ad58bd4b34ee97f3a3c90ebabf694deb5397e97f20681e"
 at = "C=u32"
-embedded = "c29c879aa5998d8adcaa35f0a085ac7928d8de25abcd6189048f5d0fa2c5b0a5"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "3b206f1e8fb99e0554a32fe1a1a70f72999eb038f61f82d25344ae3a1d7b63b8"
 status = "residue"
 cause = 'mir::Operand::Constant: {alloc1629: *const core::option::Option<unsafe extern "u32" fn(i32, *mut i64, i32, *mut i64, usize, u32) -> isize>}'
 
@@ -1778,8 +1777,7 @@ cause = "mir::TerminatorKind::Call: sys::io::error::unix::errno_location"
 path = "std::destructors::list::register"
 kappa = "f002c11ad4158cf3544874645729a3ae0e5768efa2f36fcd855bb5f6a10f7df6"
 at = "C=u32"
-embedded = "d48b63af8e37953dc299eea6ff354d2d51e4fd7bacdcd1260fd5bb08b2c3c934"
-blocked = ["Rvalue::Ref"]
+embedded = "3291adbf591068ee34b8d87c3ebe93229910901b8a59fd05fc59873b4f6ea9ae"
 status = "residue"
 cause = 'mir::Ty: unsafe extern "u32" fn(*mut u8)'
 
@@ -1787,8 +1785,7 @@ cause = 'mir::Ty: unsafe extern "u32" fn(*mut u8)'
 path = "std::destructors::list::run"
 kappa = "c1a3cd0fa6ba254fb41eb10a13129f62ab07e27766c5fdf1de6b0624ad00788d"
 at = "C=u32"
-embedded = "3f8394eadf2afe59fb9ef6e6d2a2aec109e22b1d3ca28d1a4aec521f08f8d622"
-blocked = ["Rvalue::Ref"]
+embedded = "73fbe72dd7e570863c32015e4291c4cd31d3d8fb0cc3f2677713dc14b4ba0a73"
 status = "residue"
 cause = "mir::Rvalue::Ref"
 
@@ -1963,8 +1960,7 @@ cause = "mir::Ty: eager::Storage<u32>"
 path = "std::eager::Storage::initialize"
 kappa = "50cfe68ddabc7d3d5579782ced4877d5ed71fdbf10659d793239dc65ca305fa6"
 at = "C=u32, T=u32"
-embedded = "f36c9ce69bb3f2465d7aecd0f8051f99408b276bfc5d974830337f6a54696472"
-blocked = ["Rvalue::Cast"]
+embedded = "aba7a24458d56b593d37cafb75cad5f916ccf696d37c2e6b6ab957573331caab"
 status = "residue"
 cause = "mir::Ty: eager::Storage<u32>"
 
@@ -2107,8 +2103,7 @@ cause = "mir::Ty: path::PathBuf"
 path = "std::get_posix_spawn_addchdir"
 kappa = "a1adb49efa25ffb4034fdf2a88834f245c400d091cae743dec086fa88a817e52"
 at = "C=u32"
-embedded = "5462c4da17e6182629c76067a2b0866f43b29319874610f9bfa3d6d37f39a764"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "b4256abd470c0cd6b4f8df7910d77b4c438ffff1fbc4e529e84a4865edfe9ce7"
 status = "residue"
 cause = 'mir::Ty: unsafe extern "u32" fn(*mut libc::posix_spawn_file_actions_t, *const i8) -> i32'
 
@@ -2729,8 +2724,7 @@ cause = "mir::Ty: T"
 path = "std::lazy::<impl at library/std/src/sys/thread_local/native/lazy.rs:14:1: 14:34>::register_dtor"
 kappa = "987f375c8f0db5f5c8815fa58d7ad48cdd702ae24fa1aa5ab19177ab98758195"
 at = "C=u32, T=u32"
-embedded = "f5e37e6f535921f0957f217b1c24414581b7797610b01de6074e383687fa627f"
-blocked = ["Rvalue::Cast"]
+embedded = "32e366796b50e2a36fc7cbb27fb9dbdf7721b5d5fe051626f68d67bb5b402a2f"
 status = "residue"
 cause = "mir::Ty: lazy::Storage<u32, ()>"
 
@@ -2791,8 +2785,7 @@ cause = "mir::Ty: os::linux::process::PidFd"
 path = "std::linux_like::register"
 kappa = "6be7e2fc4754630bbf8eefecad097238e1413825c5d7edb70a0aa25b6f0eb4c6"
 at = "C=u32"
-embedded = "4062c0124173385c6d2847a8f3fb176fd026f45098e1793d2a253bee6aff5f12"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "fdeba8246310bbabdb8d42522d66096bf6654e1fd27ac7baa84ba0ec4a5436e1"
 status = "residue"
 cause = 'mir::Ty: unsafe extern "u32" fn(*mut u8)'
 
@@ -3083,8 +3076,7 @@ cause = "mir::Operand::Constant: {alloc404: &Atomic<*mut libc::c_void>}"
 path = "std::pal::unix::stack_overflow::imp::init"
 kappa = "dc871bac44d0e633b2e63b78cf5dfa2368e50da5c788a46ac507c40362ff1940"
 at = "C=u32"
-embedded = "025d436af1417b3ecf82b173669fc5372973b34b5671f3bfb78d4f86e738db0b"
-blocked = ["CastKind::PointerExposeProvenance", "Rvalue::Cast"]
+embedded = "3a0154f61adea7a5b003a4883e591b2249b2df219acde806f2b6de568533960c"
 status = "residue"
 cause = "mir::Operand::Constant: {alloc401: &Atomic<usize>}"
 
@@ -3352,8 +3344,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::pidfd::PidFd::pid"
 kappa = "ada7598405761b212ca371f54db3634c2a43aade894ab63876d0bab4c9225535"
 at = "C=u32"
-embedded = "92d4cfe8b3909bee60517bbe11efafcf7286bd61ea8716129c130fb208e67bb4"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "dbf7475deaba19681421761eb47ee29e95e92117ff18b4a2af8ba108993a880a"
 status = "residue"
 cause = "mir::Ty: io::error::Error"
 
@@ -3938,8 +3929,7 @@ cause = "mir::Ty: sync::poison::rwlock::RwLockReadGuard<'_, ()>"
 [[fn]]
 path = "std::sys::env::unix::environ"
 kappa = "b2c391b499546e08f65a744fc3ea28e2f6f3495c32911913687a4e63107d9976"
-embedded = "6630f20407f92a66d62030378594b5700b55f90d75d74d8f6f5cbe6e537aeea6"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "37ac000db809c9e81c3c75ff39a5e4aedad59c7c731de7ff12ad5c80a98c65af"
 status = "residue"
 cause = "mir::Operand::Constant: {alloc1478: *mut *const *const i8}"
 
@@ -5993,8 +5983,7 @@ cause = "mir::Ty: io::error::Error"
 path = "std::sys::process::unix::unix::Command::posix_spawn"
 kappa = "967624a7ac9792b94cb681daca5a59052072c9a6f7431b3c2d6d78b7627f4bf5"
 at = "C=u32"
-embedded = "3f6e722bb848e500a401884a55b4336546c5cb62cd9bf2a8c64ea63c41bb1485"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "39efc4db95c8bea1b28314e31d05d457ba80a4ef0b4f29b67bee314d2fd5af9e"
 status = "residue"
 cause = "mir::Ty: sys::process::unix::unix::Process"
 
@@ -6226,8 +6215,7 @@ cause = "mir::StatementKind::Assign: a `&mut` parameter rebound to another borro
 path = "std::sys::random::linux::getrandom::getrandom"
 kappa = "5bd1be553a3617b4cfefa64814e3a54e3db6f105cc6e35b28934365f7ae70e46"
 at = "C=u32"
-embedded = "73a898d4de7ab36e977dacb5e7150f18fb441c40415486db8f0449360b67a771"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "404587a467bc7ce025a15cf3982d1492aed83be760f75cd47bda1405fd3b56b3"
 status = "residue"
 cause = 'mir::Operand::Constant: {alloc1873: *const core::option::Option<unsafe extern "u32" fn(*mut libc::c_void, usize, u32) -> isize>}'
 
@@ -6686,8 +6674,7 @@ cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id::gettid: 
 path = "std::sys::thread::unix::current_os_id::gettid"
 kappa = "998d643bf0286c3956f8f518dd75a38e98fed3676c78430fafe8e6a950d1c5fa"
 at = "C=u32"
-embedded = "b9698a2b4e9234904eabce916ec01f5504c67c42d35a6b584620c5a417f55851"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "64b5f57e2bfbceb35d7336e62bddc62b466ca74fbbc11c33d0429551cff00c8a"
 status = "residue"
 cause = 'mir::Operand::Constant: {alloc1900: *const core::option::Option<unsafe extern "u32" fn() -> i32>}'
 
@@ -7009,8 +6996,7 @@ cause = "mir::Ty: sys::fs::unix::FileAttr"
 path = "std::try_statx::statx"
 kappa = "adfa6178e56094b58b17989e24437fd428eb56411356583009cbdbf019854f87"
 at = "C=u32"
-embedded = "6d61bd6056fab4fe682d610452500a2e0ad37922a2b4ae4bbfb4a933cbc9df04"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "c1c8699bf022968cdd56939bebab0123b73194059b546ad768ac3e04b14555d7"
 status = "residue"
 cause = 'mir::Operand::Constant: {alloc1493: *const core::option::Option<unsafe extern "u32" fn(i32, *const i8, i32, u32, *mut statx) -> i32>}'
 

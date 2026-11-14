@@ -108,8 +108,7 @@ cause = "mir::Ty: thread::builder::Builder"
 [[fn]]
 path = "std::current"
 kappa = "138e1bd7bd4018314bcf7ce5e77670bc22ad0fa8a88272ac7ee7223a9c798838"
-embedded = "27705200ed43c4ad55eb4bf00c917d4d97fcc9f35e0d96402bb72666b8afdbc6"
-blocked = ["Rvalue::Ref"]
+embedded = "0f2e70218c3f313c1274782ecde4db1f49fd500b94610a14e2d40ad1fccaed5f"
 status = "residue"
 cause = "mir::Ty: thread::thread::Thread"
 
@@ -123,16 +122,14 @@ cause = """mir::TerminatorKind::Call: sys::thread::unix::current_os_id: std's MI
 [[fn]]
 path = "std::current::id::get"
 kappa = "6be2cb4a96fa7ccd68ffd20ab0b08fb4e1bcd28c0e6ebd046930dc14373ff791"
-embedded = "5b988b467de3b526c2c3f97a446d6a1fffb0986f6070988981bfd1336f9fd6db"
-blocked = ["Rvalue::Ref"]
+embedded = "b2fa6721aedc9688e4546099e852396ddef6cba73b74b759d68ab1eadbf7ab93"
 status = "residue"
 cause = "mir::Ty: thread::id::ThreadId"
 
 [[fn]]
 path = "std::current::id::set"
 kappa = "01a7bff4157b569a7258bd1d4f7ccbabad7250f23abc2bac8adebe33ad2592a3"
-embedded = "cec5cdf651bf21ecc829b9489781badc1a122d946b38af6218bd76b0d0ea539d"
-blocked = ["Rvalue::Ref"]
+embedded = "f608c03e559a3a1e5ee9233bd5c5af8b9b719e686157679cfe9ead811efecee3"
 status = "residue"
 cause = "mir::Ty: thread::id::ThreadId"
 
@@ -146,16 +143,14 @@ cause = "mir::Ty: thread::id::ThreadId"
 [[fn]]
 path = "std::current_or_unnamed"
 kappa = "7c462f7f122ad5fc712fcfa9fe28a5aef0b292715f3ea5800384079909508e83"
-embedded = "62c01d64bd67224fb290d2519069b50959662758f29995769bb263708aea8aef"
-blocked = ["Rvalue::Ref"]
+embedded = "a4679ca2c398b4d34dfd485019a6dd57a4cb838d20082d674e408192e5977045"
 status = "residue"
 cause = "mir::Ty: thread::thread::Thread"
 
 [[fn]]
 path = "std::drop_current"
 kappa = "36b857cbd95acb95c9280677271785c821412341df08a8c018ba1d6eac253fd6"
-embedded = "cf7b0845f72f57bb9af1d7d2a2f35860801a1c1f65a4f6d199dfe8d4ff175bae"
-blocked = ["Rvalue::Ref"]
+embedded = "59b540d940339f840738b6f397181c02fee0afef45fb1cf0982f125eab25c80f"
 status = "residue"
 cause = "mir::Rvalue::Ref"
 
@@ -218,8 +213,8 @@ cause = "mir::Ty: thread::id::ThreadId"
 [[fn]]
 path = "std::init_current"
 kappa = "c299c67e69a40d0170c8b297d50312972a562cabffd77d2b1a946ca47dcca9ab"
-embedded = "d948d579465e9c1d133bb25051e5cd01ce9b09d04c4807499ae313ef6d528dde"
-blocked = ["Operand::Constant of a constant the embedding does not read", "Rvalue::Ref"]
+embedded = "53cbc589861752021a984e63526f325bd4bb58adc14165d52d4cd771219ffd3a"
+blocked = ["Operand::Constant of a constant the embedding does not read"]
 status = "residue"
 cause = "mir::Ty: thread::thread::Thread"
 
@@ -612,8 +607,7 @@ cause = "mir::Ty: F"
 [[fn]]
 path = "std::set_current"
 kappa = "a64ae37ad5876ac0e771bc07b0d3b2d920b8d9a22fb40ac9c989dd0377e4ea1e"
-embedded = "d7649ca9bedc4fc272f444db33070e4192a4f59afb858018c7fa4f4f60c9d244"
-blocked = ["Rvalue::Ref"]
+embedded = "184b295d223c0cd9c74da0c966adeed694d7852e22665b075b8653612f16c8ab"
 status = "residue"
 cause = "mir::Ty: thread::thread::Thread"
 
@@ -727,8 +721,7 @@ cause = "mir::Ty: thread::id::ThreadId"
 [[fn]]
 path = "std::thread::id::ThreadId::new"
 kappa = "54b53391e893f70e47f939420ad52c4b6c85e7f8345d2d3670785af10d519a90"
-embedded = "a2b13c6b089bc3a613d97369ff5d1c08d14784ec6b86b7d1bbbab4ba2a6667f5"
-blocked = ["Operand::Constant of a constant the embedding does not read"]
+embedded = "d3c6cea3a770f90feaac7d7afd44d353add3d0ffce1c66ff882612a75e1afba7"
 status = "residue"
 cause = "mir::Ty: thread::id::ThreadId"
 
@@ -842,8 +835,7 @@ cause = "mir::Ty: thread::thread::thread_name_string::ThreadNameString"
 path = "std::try_with_current"
 kappa = "fdec161fe49e475ca83f7ad6ee3be5f1551085e2412f11da86ad29627e521f20"
 at = "F=u32, R=u32"
-embedded = "def484551df5bbc2ff4d1c9eaddf74c7a2bdd8637570841983d043675535692c"
-blocked = ["Rvalue::Ref"]
+embedded = "54f4c509b5ccfae4e6fa8f919df539390b80f49e7936827be7a5fc5487a68062"
 status = "residue"
 cause = "mir::Rvalue::Ref"
 

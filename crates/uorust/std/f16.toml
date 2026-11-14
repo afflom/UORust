@@ -50,8 +50,7 @@ cause = "mir::TerminatorKind::Call: f16::<impl at library/std/src/num/f16.rs:20:
 [[fn]]
 path = "std::f16::f16::cos"
 kappa = "4aa93f78cb72b5f3a0c7243fb0cf81ba659641c64c1d3a806245f9708bba3823"
-embedded = "69ef276f808206851517dcfca6db2d8a7d11b4e1d6f70d8050cc1305b4e43da2"
-blocked = ["intrinsic cosf16"]
+embedded = "f037f9ff035793eab6aa73858b03bc16cba3401a987379bcd03d2d9e291a6c00"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::cosf16, an intrinsic the table does not model"
 
@@ -79,16 +78,14 @@ cause = "mir::TerminatorKind::Call: cmath::erfcf"
 [[fn]]
 path = "std::f16::f16::exp"
 kappa = "cc2fdef64565cde1e04bb3b403f579b58d84cea13964099302cd9fe6a99bf393"
-embedded = "8d6d8c8bb59e2c579f4f9427f063170f2fff26a564ceb29928e8ab6072894019"
-blocked = ["intrinsic expf16"]
+embedded = "6134543f255fbbb53bf997634845df2744a66d9729f3858109dede416b258b4e"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::expf16, an intrinsic the table does not model"
 
 [[fn]]
 path = "std::f16::f16::exp2"
 kappa = "ea8a267091b115d34c8fcf98e21d95bbaf91879d526f68ba95415b3fef01a42a"
-embedded = "6ab10cf09ccdb00059e4bb7d4f4fcfdcbed3744bdd76b8f9a53a234cd30fe63a"
-blocked = ["intrinsic exp2f16"]
+embedded = "4531da255bd011fa946a601e24a853cabc2f3fdfdf660db6967fd9f82020eb7c"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::exp2f16, an intrinsic the table does not model"
 
@@ -116,8 +113,7 @@ cause = "mir::TerminatorKind::Call: cmath::hypotf"
 [[fn]]
 path = "std::f16::f16::ln"
 kappa = "80a9bd827580995aa10ff302a0916e8d0c68cb740b29bed6c310a90a099840f6"
-embedded = "05fec75baabe3f0d320f835303c1355a90f30fecaa6adf56caf6d22c41c25f0f"
-blocked = ["intrinsic logf16"]
+embedded = "45db7907c69f716842221722793439986b3eb5d7178f45fe50ed96605b93b7c5"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::logf16, an intrinsic the table does not model"
 
@@ -145,32 +141,28 @@ cause = "mir::TerminatorKind::Call: f16::<impl at library/std/src/num/f16.rs:20:
 [[fn]]
 path = "std::f16::f16::log10"
 kappa = "27c776325bfe16abb37502cb37a953a6060b431b8545a6da19540c9b51742fac"
-embedded = "6e4717dec3d31f9e1dd875b0078e19e2d43041b28d3125a421b319f1b2122c23"
-blocked = ["intrinsic log10f16"]
+embedded = "b7143e56e53fa070a3af1d5003298898f9a50fc1bb11d8cb2357d0088eeb40ba"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::log10f16, an intrinsic the table does not model"
 
 [[fn]]
 path = "std::f16::f16::log2"
 kappa = "84f6c66a51c4bfc3efdb8fb5a5066f6fc362c23d2825306f7155ebf4be22c99d"
-embedded = "22ca765163a01151dcc44ef992b6269a185045cc5820d76ba42216256158abf0"
-blocked = ["intrinsic log2f16"]
+embedded = "87c0ecc8ac165633239fc1ef053548e7f0ec8fe5996808bbb814d6cbf3d896d2"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::log2f16, an intrinsic the table does not model"
 
 [[fn]]
 path = "std::f16::f16::powf"
 kappa = "974421a023aad794f412524abaf138f95c88c961d4c0e4a8bf0e531829eaca4a"
-embedded = "ef13d5b93a230bf8ea9a909ed7709599ee8a6e12cb03acf1832c8566748d3d4a"
-blocked = ["intrinsic powf16"]
+embedded = "9dd38cce6cd9a95f600b2f372f457569335b4ca79ee4e3baf3337c9aa3a456ea"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::powf16, an intrinsic the table does not model"
 
 [[fn]]
 path = "std::f16::f16::sin"
 kappa = "f9767f3fa3f260e81a76c32db34746674238ee34e6b65e234765f3837cef8da6"
-embedded = "9cbd04e8c1b61e7ffff11daf334b757970b3590105ef4f5a92403d2751a12207"
-blocked = ["intrinsic sinf16"]
+embedded = "834524a7dfed43128f119b271e816f565826c2b8f4592245749125e8cd6eaa12"
 status = "residue"
 cause = "mir::TerminatorKind::Call: intrinsics::sinf16, an intrinsic the table does not model"
 
