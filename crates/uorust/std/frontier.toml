@@ -6,9 +6,9 @@
 
 toolchain = "1.97.1"
 instantiation = "u32"
-bodies = 4067
+bodies = 4206
 translated = 82
-residue = 3985
+residue = 4124
 
 [module.alloc]
 bodies = 20
@@ -44,6 +44,26 @@ residue = 53
 bodies = 10
 translated = 0
 residue = 10
+
+[module.f128]
+bodies = 29
+translated = 0
+residue = 29
+
+[module.f16]
+bodies = 28
+translated = 0
+residue = 28
+
+[module.f32]
+bodies = 41
+translated = 0
+residue = 41
+
+[module.f64]
+bodies = 41
+translated = 0
+residue = 41
 
 [module.ffi]
 bodies = 144
@@ -156,20 +176,21 @@ translated = 0
 residue = 49
 
 [embedding]
-embedded = 4067
-evaluable = 3762
+embedded = 4199
+evaluable = 4114
+blocked = 85
 
 [[construct]]
 construct = "Operand::Constant of a constant the embedding does not read"
-bodies = 175
-
-[[construct]]
-construct = "AggregateKind::Adt of an enum whose discriminants the crate's source does not give"
-bodies = 128
+bodies = 29
 
 [[construct]]
 construct = "Rvalue::Ref"
 bodies = 10
+
+[[construct]]
+construct = "AggregateKind::Adt of an enum whose discriminants the crate's source does not give"
+bodies = 5
 
 [[construct]]
 construct = "Rvalue::Cast"
@@ -184,8 +205,132 @@ construct = "CastKind::Transmute"
 bodies = 3
 
 [[construct]]
-construct = "Rvalue::Repeat"
-bodies = 2
+construct = "intrinsic cosf128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic cosf16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic cosf32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic cosf64"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic exp2f128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic exp2f16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic exp2f32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic exp2f64"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic expf128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic expf16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic expf32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic expf64"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log10f128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log10f16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log10f32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log10f64"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log2f128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log2f16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log2f32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic log2f64"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic logf128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic logf16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic logf32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic logf64"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic powf128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic powf16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic powf32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic powf64"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic sinf128"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic sinf16"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic sinf32"
+bodies = 1
+
+[[construct]]
+construct = "intrinsic sinf64"
+bodies = 1
 
 [[cause]]
 cause = "mir::Ty: io::error::Error"
@@ -1356,6 +1501,74 @@ cause = "mir::TerminatorKind::Call: char::methods::is_ascii"
 bodies = 2
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: cmath::acosf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::acoshf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::asinf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::asinhf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::atan2f"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::atanf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::coshf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::erfcf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::erff"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::expm1f"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::hypotf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::lgammaf_r"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::log1pf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::sinhf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tanf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tanhf"
+bodies = 2
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tgammaf"
+bodies = 2
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: core::mem::align_of"
 bodies = 2
 
@@ -2044,6 +2257,250 @@ cause = "mir::TerminatorKind::Call: check_library_ub"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: cmath::acos"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::acosf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::acosh"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::acoshf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::asin"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::asinf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::asinh"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::asinhf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::atan"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::atan2"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::atan2f128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::atanf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::cbrtf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::cosh"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::coshf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::erf"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::erfc"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::erfcf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::erff128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::expm1"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::expm1f128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::hypot"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::hypotf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::lgamma_r"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::lgammaf128_r"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::log1p"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::log1pf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::sinh"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::sinhf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tan"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tanf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tanh"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tanhf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tgamma"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: cmath::tgammaf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::abs_sub"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::cbrt"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::ceil"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::div_euclid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::floor"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::fract"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::mul_add"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::powi"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::rem_euclid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::round"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::round_ties_even"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::sqrt"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f32::math::trunc"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::abs_sub"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::cbrt"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::ceil"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::div_euclid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::floor"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::fract"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::mul_add"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::powi"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::rem_euclid"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::round"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::round_ties_even"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::sqrt"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: core::f64::math::trunc"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: core::num::eq_ignore_ascii_case"
 bodies = 1
 
@@ -2120,6 +2577,54 @@ cause = "mir::TerminatorKind::Call: core::str::make_ascii_uppercase"
 bodies = 1
 
 [[cause]]
+cause = "mir::TerminatorKind::Call: f128::ln: std's MIR stops at mir::TerminatorKind::Call: intrinsics::logf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f128::ln_1p: std's MIR stops at mir::TerminatorKind::Call: cmath::log1pf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f128::sin: std's MIR stops at mir::TerminatorKind::Call: intrinsics::sinf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f16::ln: std's MIR stops at mir::TerminatorKind::Call: intrinsics::logf16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f16::ln_1p: std's MIR stops at mir::TerminatorKind::Call: cmath::log1pf"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f16::sin: std's MIR stops at mir::TerminatorKind::Call: intrinsics::sinf16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f32::ln: std's MIR stops at mir::TerminatorKind::Call: intrinsics::logf32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f32::ln_1p: std's MIR stops at mir::TerminatorKind::Call: cmath::log1pf"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f32::sin: std's MIR stops at mir::TerminatorKind::Call: intrinsics::sinf32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f64::ln: std's MIR stops at mir::TerminatorKind::Call: intrinsics::logf64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f64::ln_1p: std's MIR stops at mir::TerminatorKind::Call: cmath::log1p"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: f64::sin: std's MIR stops at mir::TerminatorKind::Call: intrinsics::sinf64"
+bodies = 1
+
+[[cause]]
 cause = "mir::TerminatorKind::Call: fdatasync"
 bodies = 1
 
@@ -2129,6 +2634,134 @@ bodies = 1
 
 [[cause]]
 cause = "mir::TerminatorKind::Call: glibc_version::gnu_get_libc_version"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::cosf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::cosf16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::cosf32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::cosf64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::exp2f128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::exp2f16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::exp2f32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::exp2f64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::expf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::expf16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::expf32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::expf64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log10f128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log10f16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log10f32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log10f64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log2f128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log2f16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log2f32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::log2f64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::logf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::logf16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::logf32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::logf64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::powf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::powf16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::powf32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::powf64"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::sinf128"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::sinf16"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::sinf32"
+bodies = 1
+
+[[cause]]
+cause = "mir::TerminatorKind::Call: intrinsics::sinf64"
 bodies = 1
 
 [[cause]]

@@ -1,0 +1,204 @@
+[[fn]]
+path = "std::f16::f16::acos"
+kappa = "9ee2742ac5fd13bc1f1ee293e927d3d96100757308d4268379ae04a1ea67a73a"
+embedded = "52b6c979c7a80c3204f3ef434abb33ad9dab58300b492826421b2de0eece4c2b"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::acosf"
+
+[[fn]]
+path = "std::f16::f16::acosh"
+kappa = "f0f6019d3446fb96b2a2499a6cae007c771114f09e1dd7ac84e3dc370759ec01"
+embedded = "d30b648cd8d215751fe058199370aecb51a0f7fca2875dd98f019bc0fa132b17"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::acoshf"
+
+[[fn]]
+path = "std::f16::f16::asin"
+kappa = "d9f2868139e2a90b0734970e6a9b559461f594818bb3910da0e92038a4c8c2cd"
+embedded = "06107154fc3afe7c7295fbafcc755f5f5761221bb6baf31ba075d34a3d5f64c0"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::asinf"
+
+[[fn]]
+path = "std::f16::f16::asinh"
+kappa = "8161cccae66cffebee0c8f81e6dd2c7bd6c12df13c825c8b44701dd4484baea6"
+embedded = "06733488d3aac61965b4a81879e39fbca05fc7119d751f34b9bb9d97cacd40cf"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::asinhf"
+
+[[fn]]
+path = "std::f16::f16::atan"
+kappa = "fdaaefc478d4a05feb76533e971da1c1e8e18183c399dfa81a8476eb4d653477"
+embedded = "ec0cf0d859884ea76328ba2ea366330e5f23863f347ca19ce09edbb701901d9a"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::atanf"
+
+[[fn]]
+path = "std::f16::f16::atan2"
+kappa = "3c3915ae75759ae9306999616c59260427fcadc5dec12ccea7871c7f1213c5b1"
+embedded = "cd3a25e59347c9792045f8dbf8a234da8d4e3a7d434a716a9b4f160b39264177"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::atan2f"
+
+[[fn]]
+path = "std::f16::f16::atanh"
+kappa = "7d5356ae13ac17e00e95c8960a65c6f4ac118f3092c91575a38000458d4f850c"
+embedded = "070ac07fc905e1b79280aa7d2de9987c99a9e2535c43d56917191f4f8d964cf1"
+status = "residue"
+cause = "mir::TerminatorKind::Call: f16::<impl at library/std/src/num/f16.rs:20:1: 20:9>::ln_1p: std's MIR stops at mir::TerminatorKind::Call: cmath::log1pf"
+
+[[fn]]
+path = "std::f16::f16::cos"
+kappa = "4aa93f78cb72b5f3a0c7243fb0cf81ba659641c64c1d3a806245f9708bba3823"
+embedded = "69ef276f808206851517dcfca6db2d8a7d11b4e1d6f70d8050cc1305b4e43da2"
+blocked = ["intrinsic cosf16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::cosf16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::cosh"
+kappa = "d56e0bc399d0a257ee0b3b1ed275ce38b8e9d5d439b20150d7afe70653a16f3f"
+embedded = "8d7f0c49b4fffd86e3cc2193960b8732255ceaffbd6c4de076df69937bcc9fa7"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::coshf"
+
+[[fn]]
+path = "std::f16::f16::erf"
+kappa = "54c3b0ecfa1cc635006a64a09a81a4420c8def92abe1c4ca3f127147b2d9a614"
+embedded = "f76bbc67ac84597db57b8d95d53ea78c5621e7f2250c6e79d9113f7768e9843e"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::erff"
+
+[[fn]]
+path = "std::f16::f16::erfc"
+kappa = "13aad761cfd75955b90f3f813292396572827bda2abf7eea424a0f9335bc248b"
+embedded = "8f604a91259716024ba07da3d83925aca64cc66e344dcc2637f945751e3d87a4"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::erfcf"
+
+[[fn]]
+path = "std::f16::f16::exp"
+kappa = "cc2fdef64565cde1e04bb3b403f579b58d84cea13964099302cd9fe6a99bf393"
+embedded = "8d6d8c8bb59e2c579f4f9427f063170f2fff26a564ceb29928e8ab6072894019"
+blocked = ["intrinsic expf16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::expf16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::exp2"
+kappa = "ea8a267091b115d34c8fcf98e21d95bbaf91879d526f68ba95415b3fef01a42a"
+embedded = "6ab10cf09ccdb00059e4bb7d4f4fcfdcbed3744bdd76b8f9a53a234cd30fe63a"
+blocked = ["intrinsic exp2f16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::exp2f16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::exp_m1"
+kappa = "c4b780b11eeb4fa5ae4157fc07a4b715a94e3c3270bd801d30bc88cf1b8f05c3"
+embedded = "30c632a0cf9892d23f4c3286ccea498ae0a76165922cb94259a932d491c54323"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::expm1f"
+
+[[fn]]
+path = "std::f16::f16::gamma"
+kappa = "8b31556af1b3995cab5a26679e4ee4caa700839f3fa33635af0261c46bf9519f"
+embedded = "bf0411ac84279b7f274b64036ca8d1114e705464d12063d44bbcabe9e819e4b7"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::tgammaf"
+
+[[fn]]
+path = "std::f16::f16::hypot"
+kappa = "75d213c25b0549ba8fc95f53e2d4687d55cb76de035489eeca575d8f756145d9"
+embedded = "55f221e6f72992876f8970b926b5592ca32569d0c1a9c281df338787adaa981e"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::hypotf"
+
+[[fn]]
+path = "std::f16::f16::ln"
+kappa = "80a9bd827580995aa10ff302a0916e8d0c68cb740b29bed6c310a90a099840f6"
+embedded = "05fec75baabe3f0d320f835303c1355a90f30fecaa6adf56caf6d22c41c25f0f"
+blocked = ["intrinsic logf16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::logf16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::ln_1p"
+kappa = "4bcde925359f4404418e585525987512c382308124e95fb9a7292c27ca26baa3"
+embedded = "094ffd3c3f8cecea77d361f44db06e3f303c16f07993082e70b20742e18509d2"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::log1pf"
+
+[[fn]]
+path = "std::f16::f16::ln_gamma"
+kappa = "4159d22c7b72526d66e2d4c14cd2b9372cbb3e2572250e3291139b71f70ded2e"
+embedded = "93bd9a2eebf3550687b04b59ed837fda7ccfff52e8606b5fbe084d0fdcfe1a67"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::lgammaf_r"
+
+[[fn]]
+path = "std::f16::f16::log"
+kappa = "c5cbbae74900c2a58ea2c583bd2b1044534a5b75b942dca62d48d11191a46f69"
+embedded = "3d4a1b5cfebe42c8f0eb44c7150c0f611e468b50b7374d420dfed3778781cde7"
+status = "residue"
+cause = "mir::TerminatorKind::Call: f16::<impl at library/std/src/num/f16.rs:20:1: 20:9>::ln: std's MIR stops at mir::TerminatorKind::Call: intrinsics::logf16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::log10"
+kappa = "27c776325bfe16abb37502cb37a953a6060b431b8545a6da19540c9b51742fac"
+embedded = "6e4717dec3d31f9e1dd875b0078e19e2d43041b28d3125a421b319f1b2122c23"
+blocked = ["intrinsic log10f16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::log10f16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::log2"
+kappa = "84f6c66a51c4bfc3efdb8fb5a5066f6fc362c23d2825306f7155ebf4be22c99d"
+embedded = "22ca765163a01151dcc44ef992b6269a185045cc5820d76ba42216256158abf0"
+blocked = ["intrinsic log2f16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::log2f16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::powf"
+kappa = "974421a023aad794f412524abaf138f95c88c961d4c0e4a8bf0e531829eaca4a"
+embedded = "ef13d5b93a230bf8ea9a909ed7709599ee8a6e12cb03acf1832c8566748d3d4a"
+blocked = ["intrinsic powf16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::powf16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::sin"
+kappa = "f9767f3fa3f260e81a76c32db34746674238ee34e6b65e234765f3837cef8da6"
+embedded = "9cbd04e8c1b61e7ffff11daf334b757970b3590105ef4f5a92403d2751a12207"
+blocked = ["intrinsic sinf16"]
+status = "residue"
+cause = "mir::TerminatorKind::Call: intrinsics::sinf16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::sin_cos"
+kappa = "05587dae06bb1a05be489519f193e641d31d9e222448cb8b0c1e103ad267e6ce"
+embedded = "11730351abd2467db3c771c2bb0bd7dc07ae5ac45a66e4c94b16ae1c0f8275ce"
+status = "residue"
+cause = "mir::TerminatorKind::Call: f16::<impl at library/std/src/num/f16.rs:20:1: 20:9>::sin: std's MIR stops at mir::TerminatorKind::Call: intrinsics::sinf16, an intrinsic the table does not model"
+
+[[fn]]
+path = "std::f16::f16::sinh"
+kappa = "6210daf9a52dd8d7ed298d78f0d9b2f5d6077a4b56c09e5e0e7675f56dff44bb"
+embedded = "700e12e6e6c13bd0a4cce871c418a02041f57bbc49bdc6a7d84fb42f4de5effc"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::sinhf"
+
+[[fn]]
+path = "std::f16::f16::tan"
+kappa = "00a4199ebab499ae1c272267b8fef85b1e4c9853ff11147a9e60cad7a1bbeb88"
+embedded = "4bac94633db4e2e6f73ef28c3d74511f299bcb5eb52356535ae954df659ca0a3"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::tanf"
+
+[[fn]]
+path = "std::f16::f16::tanh"
+kappa = "d71ad5cdaf0a70ffaed8a472c0b89333d92c808812f6a416bb57b234257dd380"
+embedded = "ce192e66540a8fa2e84e0670f21ba8a3e9b3d62131e6239e6f315f600cd05714"
+status = "residue"
+cause = "mir::TerminatorKind::Call: cmath::tanhf"
+
