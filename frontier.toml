@@ -12,8 +12,8 @@
 #     1 ast::<impl at crates/uorust/src/ast.rs:1235:1: 1235:14>::scan::{closure#0}: type outside the lift: std::vec::IntoIter<&ast::RustExpr>
 #     1 ast::<impl at crates/uorust/src/ast.rs:352:1: 352:10>::localized::{closure#0}: type outside the lift: std::slice::Iter<'_, ast::GenericArgument>
 #     1 ast::arm_paths::{closure#0}: type outside the lift: std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/ast.rs:1183:53: 1183:56}>
+#     1 embed::term_list::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
 #     1 lex::render_decl::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
-#     1 lex::term_list::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
 #     1 lift::<impl at crates/uorust/src/lift.rs:460:1: 460:11>::nested::{closure#0}: type outside the lift: std::slice::Iter<'_, lift::Ty>
 #     1 lift::<impl at crates/uorust/src/lift.rs:460:1: 460:11>::sizable::{closure#0}: type outside the lift: std::slice::Iter<'_, lift::Ty>
 #     1 lift::ascii_byte::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
@@ -197,7 +197,7 @@
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:1520:21: 1520:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:1541:21: 1541:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -624,13 +624,13 @@ reason = "mir"
 detail = "mir::Ty: dyn quote::ToTokens"
 
 [[residue]]
-kappa = "dadf310c9ea23e04ab91344802e119c4609d47b0f6dae917a92cff97804cf37a"
+kappa = "b63311458e4b63560a148bbf41e58b379ebbe2b1e8909b979c8026ec1f339a55"
 function = "uorust::embed::Cx<'_>::array_value"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "3bf860b84e99277aecbeaba761d67b7b30601e8d8f89cd4d6ea7d53f051c6006"
+kappa = "699b51dac96bfb418f86ddb377ee7412486e3b27320dab7b89501576f4af2b01"
 function = "uorust::embed::Cx<'_>::body"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -654,25 +654,25 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "5b55a7ec6fbe01e233eab39f1e18dcddfe6507f01c042f6d18d95385c998a429"
+kappa = "7fc1e581a6e3562ee49be395d168c6ee483872a3f5ad5921ccded664f3fd1c5c"
 function = "uorust::embed::Cx<'_>::operands"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "6fa83e8caf13c6c767ee98c153fc7c20269f820b1b2a2c5d666f977b72747911"
+kappa = "336ad5787d79175d81478cdf6e93e2c5e27f054eb68f1b0a712af9020466fb74"
 function = "uorust::embed::Cx<'_>::place"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "ab5f7a22711a7f48bf428416db57a1ac81cb8e593b5df23a11d4436412a8c242"
+kappa = "b478aa792eb1de189311e61121fbee496fca1be997e9e71ce11dca25fd3edc7b"
 function = "uorust::embed::Cx<'_>::reference_constant"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "56f623bc4b64ea5349c6fecdd793d13ca4e49751ed1e6055eb0e28c8fae15891"
+kappa = "32cd76221e3d38d15cde35a4c2f14fbb0222c4ce21e0e68881609c45badd2394"
 function = "uorust::embed::Cx<'_>::rvalue"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -684,7 +684,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "bd7ff329447e207a691be8e15f8f934075a8f402ea87650d986ce6819eb7d701"
+kappa = "c72339d0ee3ad8844c121f8c00bf43ca98a1a04eccd0f7fe5e2a973d30df98ed"
 function = "uorust::embed::Cx<'_>::terminator"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -804,7 +804,7 @@ reason = "mir"
 detail = "mir::Operand::Constant: {alloc238: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
 
 [[residue]]
-kappa = "2b38fdbc58e5cf0251193cb62bf58ff26ff0943a9f269e6794b0aa9695994cac"
+kappa = "a0f2178a5004fe06d2c4681304baea1bc6e3c4f8ff07e2030e54cc632c623154"
 function = "uorust::embed::differential"
 reason = "mir"
 detail = "mir::Ty: std::path::Path"
@@ -825,7 +825,7 @@ detail = "mir::Ty: mir::core::CoreDecls"
 kappa = "5a23046ee6e579ed0c14a1fa3b845cd9c7e997d07804233c3fe101bf4cc65835"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:1520:21: 1520:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:1541:21: 1541:24}>"
 
 [[residue]]
 kappa = "96a84eed50410fc111131599e2ea4ae2d50ee2f4cf778aecfe235ccdfe7c8471"
@@ -904,6 +904,12 @@ kappa = "ecc4e859f07eaae032fa4e2fc7218f83e798631140a801353305834972ed0ac6"
 function = "uorust::embed::signed"
 reason = "mir"
 detail = "mir::TerminatorKind::Call: core::num::<impl i128>::unsigned_abs"
+
+[[residue]]
+kappa = "3dec121295b6c3aa3a06b7a867c3c9a95aa4e0cd2d6d1ffe536282827107b687"
+function = "uorust::embed::term_list"
+reason = "mir"
+detail = "mir::AggregateKind::Closure: embed::term_list::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "c55e780bbdd5fed1280f58966b9f63fbf933e85e5043ceab3a04894f3eb9aa92"
@@ -1102,12 +1108,6 @@ kappa = "483cfc4d20a22e872eb25e7bafb641087868104c1043e4dd5b166ef0ea417126"
 function = "uorust::lex::string_list"
 reason = "mir"
 detail = "mir::Ty: std::iter::Rev<std::slice::Iter<'_, std::string::String>>"
-
-[[residue]]
-kappa = "160877d5540df035b3f7fed68a6f23432eecaeec93cacc8d845e114f144a3fe9"
-function = "uorust::lex::term_list"
-reason = "mir"
-detail = "mir::AggregateKind::Closure: lex::term_list::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "5d9749d0787eb672a9cd44f78bc64ce91fc929f4ee5f9686577c299bc75a79b0"
@@ -3924,7 +3924,7 @@ reason = "mir"
 detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
-kappa = "322f776f787cfc6dfcc3e5fd682682c03b0cd075b2457643c1866aa583dbb76c"
+kappa = "14c3d8764e6aa897d6d893ab4846d2bc6ef7d113a2b1a8b3846fdbb7532cce68"
 function = "uorust::project::security"
 reason = "mir"
 detail = "mir::Ty: project::Options"
