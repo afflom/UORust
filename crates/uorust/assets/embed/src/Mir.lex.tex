@@ -1482,14 +1482,56 @@ definition{
 }
 
 definition{
+  name: lastStep,
+  parameters: [steps : (List Nat)],
+  result: (Option Nat),
+  body: (match steps
+    | List.nil => (ctor Option.none [Nat])
+    | List.cons head rest => (match rest
+      | List.nil => (ctor Option.some [Nat] head)
+      | List.cons next more => (lastStep rest))),
+  recursive_argument: steps
+}
+
+definition{
+  name: replaceLast,
+  parameters: [steps : (List Nat), last : Nat],
+  result: (List Nat),
+  body: (match steps
+    | List.nil => (nil Nat)
+    | List.cons head rest => (match rest
+      | List.nil => (cons last (nil Nat))
+      | List.cons next more => (cons head (replaceLast rest last)))),
+  recursive_argument: steps
+}
+
+definition{
+  name: offsetPointer,
+  parameters: [pointer : Value, count : Value],
+  result: Evaluated,
+  body: (match pointer
+    | Value.int p q r => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.boolean p => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.character p => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.unit => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.tuple p => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.adt p q r => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.pointer frame base steps => (match (scalarOf count) | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a pointer offset by a value that is not an integer")) | Option.some by => (match (lastStep steps) | Option.none => (if ((project by magnitude) =? 0) then (ctor Evaluated.found pointer) else (ctor Evaluated.stop (ctor Outcome.ub "a pointer offset outside its allocation"))) | Option.some step => (if ((project by negative) && ((step + 1) <=? (project by magnitude))) then (ctor Evaluated.stop (ctor Outcome.ub "a pointer offset outside its allocation")) else (ctor Evaluated.found (ctor Value.pointer frame base (replaceLast steps (if (project by negative) then (prim subtract step (project by magnitude) : Nat) else (step + (project by magnitude)))))))))
+    | Value.reference p => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.function p => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.text p => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place"))
+    | Value.uninit => (ctor Evaluated.stop (ctor Outcome.undefined "an offset of a pointer the memory model does not place")))
+}
+
+definition{
   name: binaryIntrinsic,
   parameters: [name : String, a : Value, b : Value],
   result: (Option Evaluated),
   body: (match (intrinsicBinOp name)
     | Option.some op => (ctor Option.some [Evaluated] (evalBinary op a b))
-    | Option.none => (if (prim equal name "exact_div" : Bool) then (match (evalBinary (ctor BinOp.rem) a b)
+    | Option.none => (if ((prim equal name "offset" : Bool) || (prim equal name "arith_offset" : Bool)) then (ctor Option.some [Evaluated] (offsetPointer a b)) else (if (prim equal name "exact_div" : Bool) then (match (evalBinary (ctor BinOp.rem) a b)
       | Evaluated.stop outcome => (ctor Option.some [Evaluated] (ctor Evaluated.stop outcome))
-      | Evaluated.found left => (if ((reprOfValue left) =? 0) then (ctor Option.some [Evaluated] (evalBinary (ctor BinOp.div) a b)) else (ctor Option.some [Evaluated] (ctor Evaluated.stop (ctor Outcome.ub "an exact division with a remainder"))))) else (saturatingIntrinsic name a b)))
+      | Evaluated.found left => (if ((reprOfValue left) =? 0) then (ctor Option.some [Evaluated] (evalBinary (ctor BinOp.div) a b)) else (ctor Option.some [Evaluated] (ctor Evaluated.stop (ctor Outcome.ub "an exact division with a remainder"))))) else (saturatingIntrinsic name a b))))
 }
 
 definition{
@@ -1574,16 +1616,100 @@ definition{
 }
 
 definition{
+  name: placeOfPointer,
+  parameters: [pointer : Value],
+  result: (Option Location),
+  body: (match pointer
+    | Value.int p q r => (ctor Option.none [Location])
+    | Value.boolean p => (ctor Option.none [Location])
+    | Value.character p => (ctor Option.none [Location])
+    | Value.unit => (ctor Option.none [Location])
+    | Value.tuple p => (ctor Option.none [Location])
+    | Value.adt p q r => (ctor Option.none [Location])
+    | Value.pointer frame base steps => (ctor Option.some [Location] (locationOf frame base steps))
+    | Value.reference p => (ctor Option.none [Location])
+    | Value.function p => (ctor Option.none [Location])
+    | Value.text p => (ctor Option.none [Location])
+    | Value.uninit => (ctor Option.none [Location]))
+}
+
+definition{
+  name: sameValue,
+  parameters: [a : Value, b : Value],
+  result: Bool,
+  body: (match a
+    | Value.int p q r => false
+    | Value.boolean x => (match b
+      | Value.int p q r => false
+      | Value.boolean y => (sameBool x y)
+      | Value.character p => false
+      | Value.unit => false
+      | Value.tuple p => false
+      | Value.adt p q r => false
+      | Value.pointer p q r => false
+      | Value.reference p => false
+      | Value.function p => false
+      | Value.text p => false
+      | Value.uninit => false)
+    | Value.character p => false
+    | Value.unit => false
+    | Value.tuple p => false
+    | Value.adt p q r => false
+    | Value.pointer p q r => false
+    | Value.reference p => false
+    | Value.function p => false
+    | Value.text p => false
+    | Value.uninit => false)
+}
+
+definition{
+  name: storeAndFinish,
+  parameters: [frames : (List Frame), loc : Location, stored : Value, destination : Place, target : (Option Nat), result : Value],
+  result: Outcome,
+  body: (match (writeAt frames loc stored)
+    | Option.none => (ctor Outcome.ub "an atomic write to a place that holds no value")
+    | Option.some written => (finishCall written destination target result))
+}
+
+definition{
+  name: atomicCombine,
+  parameters: [name : String, old : Value, v : Value],
+  result: Evaluated,
+  body: (if (prim equal name "atomic_xadd" : Bool) then (evalBinary (ctor BinOp.add) old v) else (if (prim equal name "atomic_xsub" : Bool) then (evalBinary (ctor BinOp.sub) old v) else (if (prim equal name "atomic_and" : Bool) then (evalBinary (ctor BinOp.bitAnd) old v) else (if (prim equal name "atomic_or" : Bool) then (evalBinary (ctor BinOp.bitOr) old v) else (if (prim equal name "atomic_xor" : Bool) then (evalBinary (ctor BinOp.bitXor) old v) else (if (prim equal name "atomic_nand" : Bool) then (match (evalBinary (ctor BinOp.bitAnd) old v) | Evaluated.stop outcome => (ctor Evaluated.stop outcome) | Evaluated.found both => (evalUnary (ctor UnOp.not) both)) else (if (prim equal name "atomic_max" : Bool) then (match (evalBinary (ctor BinOp.ge) old v) | Evaluated.stop outcome => (ctor Evaluated.stop outcome) | Evaluated.found ordered => (if (sameValue ordered (ctor Value.boolean true)) then (ctor Evaluated.found old) else (ctor Evaluated.found v))) else (if (prim equal name "atomic_umax" : Bool) then (match (evalBinary (ctor BinOp.ge) old v) | Evaluated.stop outcome => (ctor Evaluated.stop outcome) | Evaluated.found ordered => (if (sameValue ordered (ctor Value.boolean true)) then (ctor Evaluated.found old) else (ctor Evaluated.found v))) else (if (prim equal name "atomic_min" : Bool) then (match (evalBinary (ctor BinOp.le) old v) | Evaluated.stop outcome => (ctor Evaluated.stop outcome) | Evaluated.found ordered => (if (sameValue ordered (ctor Value.boolean true)) then (ctor Evaluated.found old) else (ctor Evaluated.found v))) else (if (prim equal name "atomic_umin" : Bool) then (match (evalBinary (ctor BinOp.le) old v) | Evaluated.stop outcome => (ctor Evaluated.stop outcome) | Evaluated.found ordered => (if (sameValue ordered (ctor Value.boolean true)) then (ctor Evaluated.found old) else (ctor Evaluated.found v))) else (if (prim equal name "atomic_xchg" : Bool) then (ctor Evaluated.found v) else (ctor Evaluated.stop (ctor Outcome.undefined "an atomic operation the evaluator does not define")))))))))))))
+}
+
+definition{
+  name: evalAtomic,
+  parameters: [frames : (List Frame), name : String, values : (List Value), destination : Place, target : (Option Nat)],
+  result: Outcome,
+  body: (if ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool)) then (finishCall frames destination target (ctor Value.unit)) else (match values
+    | List.nil => (ctor Outcome.ub "an atomic operation on a value that is not a pointer to a place")
+    | List.cons pointer rest => (match (placeOfPointer pointer)
+      | Option.none => (ctor Outcome.ub "an atomic operation on a value that is not a pointer to a place")
+      | Option.some loc => (match (readAt frames loc)
+        | Option.none => (ctor Outcome.ub "an atomic read of a place that holds no value")
+        | Option.some old => (match rest
+          | List.nil => (if (prim equal name "atomic_load" : Bool) then (finishCall frames destination target old) else (ctor Outcome.ub "an atomic operation on a value that is not a pointer to a place"))
+          | List.cons v more => (match more
+            | List.nil => (if (prim equal name "atomic_store" : Bool) then (storeAndFinish frames loc v destination target (ctor Value.unit)) else (match (atomicCombine name old v)
+              | Evaluated.stop outcome => outcome
+              | Evaluated.found updated => (storeAndFinish frames loc updated destination target old)))
+            | List.cons replacement others => (if ((prim equal name "atomic_cxchg" : Bool) || (prim equal name "atomic_cxchgweak" : Bool)) then (match (evalBinary (ctor BinOp.eq) old v)
+              | Evaluated.stop outcome => outcome
+              | Evaluated.found equal => (if (sameValue equal (ctor Value.boolean true)) then (storeAndFinish frames loc replacement destination target (ctor Value.tuple (cons old (cons equal (nil Value))))) else (finishCall frames destination target (ctor Value.tuple (cons old (cons equal (nil Value))))))) else (ctor Outcome.ub "an atomic operation on a value that is not a pointer to a place"))))))))
+}
+
+definition{
   name: evalIntrinsic,
   parameters: [program : Program, frames : (List Frame), name : String, args : (List Operand), destination : Place, target : (Option Nat)],
   result: Outcome,
   body: (if (prim equal name "unreachable" : Bool) then (ctor Outcome.ub "an unreachable intrinsic reached") else (if (prim equal name "abort" : Bool) then (ctor Outcome.aborted) else (match (evalOperands program frames args)
     | EvaluatedList.stop outcome => outcome
-    | EvaluatedList.found values => (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
+    | EvaluatedList.found values => (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (if ((prim equal name "atomic_load" : Bool) || ((prim equal name "atomic_store" : Bool) || ((prim equal name "atomic_xchg" : Bool) || ((prim equal name "atomic_xadd" : Bool) || ((prim equal name "atomic_xsub" : Bool) || ((prim equal name "atomic_and" : Bool) || ((prim equal name "atomic_or" : Bool) || ((prim equal name "atomic_xor" : Bool) || ((prim equal name "atomic_nand" : Bool) || ((prim equal name "atomic_max" : Bool) || ((prim equal name "atomic_min" : Bool) || ((prim equal name "atomic_umax" : Bool) || ((prim equal name "atomic_umin" : Bool) || ((prim equal name "atomic_cxchg" : Bool) || ((prim equal name "atomic_cxchgweak" : Bool) || ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool))))))))))))))))) then (evalAtomic frames name values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
       | Option.none => (ctor Outcome.unlinked name)
       | Option.some result => (match result
         | Evaluated.stop outcome => outcome
-        | Evaluated.found value => (finishCall frames destination target value)))))))
+        | Evaluated.found value => (finishCall frames destination target value))))))))
 }
 
 definition{
