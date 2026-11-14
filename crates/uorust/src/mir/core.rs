@@ -628,6 +628,9 @@ pub(crate) struct CoreStruct {
     /// The representations its `#[repr(..)]` attributes name (`transparent`,
     /// `u8`, `C`), as written.
     pub(crate) repr: Vec<String>,
+    /// Its type parameters bounded `?Sized`, in its generics or its where
+    /// clause: every other type parameter is `Sized`.
+    pub(crate) unsized_params: Vec<String>,
 }
 
 /// A discriminant `CoreStruct::values` holds, read at an integer type of
@@ -653,6 +656,10 @@ impl CoreStruct {
 #[derive(Clone, Debug, Default)]
 pub(crate) struct CoreDecls {
     pub(crate) structs: Vec<CoreStruct>,
+    /// The structs and enums a function's body declares, by their paths
+    /// through the function's (`try_statx::STATX_STATE`): kept apart from
+    /// `structs`, which names are looked up in by their last segment.
+    pub(crate) locals: Vec<CoreStruct>,
     uses: BTreeMap<(String, String), String>,
     /// Each free function's generic parameters, types and constants in the
     /// order its signature declares them, by its path from core's root.
@@ -899,6 +906,33 @@ fn signature_generic_names(sig: &syn::Signature) -> Vec<String> {
 }
 
 /// A signature's generic parameters, types and constants, in order.
+/// The type parameters a declaration's generics bound `?Sized`, in its
+/// parameter list or its where clause.
+fn maybe_sized(g: &syn::Generics) -> Vec<String> {
+    let relaxed = |bounds: &syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]>| {
+        bounds
+            .iter()
+            .any(|b| matches!(b, syn::TypeParamBound::Trait(t) if t.maybe.is_some()))
+    };
+    let mut out: Vec<String> = g
+        .type_params()
+        .filter(|t| relaxed(&t.bounds))
+        .map(|t| t.ident.to_string())
+        .collect();
+    for p in g.where_clause.iter().flat_map(|w| w.predicates.iter()) {
+        if let syn::WherePredicate::Type(t) = p {
+            if let syn::Type::Path(tp) = &t.bounded_ty {
+                if let (Some(id), true) = (tp.path.get_ident(), relaxed(&t.bounds)) {
+                    if !out.contains(&id.to_string()) {
+                        out.push(id.to_string());
+                    }
+                }
+            }
+        }
+    }
+    out
+}
+
 fn generic_names(g: &syn::Generics) -> Vec<String> {
     g.params
         .iter()
@@ -1072,6 +1106,7 @@ pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
                         explicit: false,
                         values: None,
                         repr: reprs(&st.attrs),
+                        unsized_params: maybe_sized(&st.generics),
                     });
                 }
                 syn::Item::Enum(e)
@@ -1135,6 +1170,7 @@ pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
                                 .collect::<Option<Vec<i64>>>()
                         },
                         repr: reprs(&e.attrs),
+                        unsized_params: Vec::new(),
                     });
                 }
                 syn::Item::Trait(t) => {
@@ -1186,6 +1222,7 @@ pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
                         explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
                         values: None,
                         repr: reprs(&e.attrs),
+                        unsized_params: maybe_sized(&e.generics),
                     });
                 }
                 // An impl: its methods' generic parameters, and the
@@ -1248,6 +1285,24 @@ pub(crate) fn library_decls(root: &Path, krates: &[&str]) -> CoreDecls {
                     }
                 }
                 syn::Item::Fn(f) => {
+                    // The types its body declares, under its path.
+                    let inner: Vec<syn::Item> = f
+                        .block
+                        .stmts
+                        .iter()
+                        .filter_map(|st| match st {
+                            syn::Stmt::Item(i) => Some(i.clone()),
+                            _ => None,
+                        })
+                        .collect();
+                    if !inner.is_empty() {
+                        let mut local = CoreDecls::default();
+                        let mut path = module.to_vec();
+                        path.push(f.sig.ident.to_string());
+                        items(&path, &inner, &mut local);
+                        out.locals.extend(local.structs);
+                        out.locals.extend(local.locals);
+                    }
                     out.consts
                         .entry(at(f.sig.ident.to_string()))
                         .or_default()

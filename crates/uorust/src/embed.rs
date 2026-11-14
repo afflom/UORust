@@ -1052,6 +1052,16 @@ impl Cx<'_> {
             .then_some(d)
     }
 
+    /// The value of a variant's discriminant expression, the anonymous
+    /// constant `E::V::{constant#0}`: the discriminant the enum's source
+    /// gives `V`.
+    fn explicit_discriminant(&self, text: &str) -> Option<i128> {
+        match crate::mir::parse::split_path(text).as_slice() {
+            [.., ty, v, last] if last.starts_with("{constant#") => self.discriminant(ty, v),
+            _ => None,
+        }
+    }
+
     /// The variant and discriminant of a unit variant, or a unit struct
     /// (no variant, discriminant zero), that `text` names as a path.
     fn unit_adt(&self, text: &str) -> Option<(String, i128)> {
@@ -1099,7 +1109,7 @@ impl Cx<'_> {
             .last()
             .copied()
             .unwrap_or(name);
-        let [decl] = self.structs.get(name)?.as_slice() else {
+        let Some([decl]) = self.structs.get(name).map(Vec::as_slice) else {
             return None;
         };
         if decl.variants.is_some() || decl.data.is_some() {
@@ -1110,6 +1120,12 @@ impl Cx<'_> {
             return Some(true);
         };
         let bound: BTreeMap<String, String> = decl.params.iter().cloned().zip(args).collect();
+        // A type parameter MIR prints no argument for (`Box<T>`'s defaulted
+        // allocator) is `Sized` unless the declaration bounds it `?Sized`.
+        let field = last.trim();
+        if decl.params.iter().any(|p| p == field) && !bound.contains_key(field) {
+            return Some(!decl.unsized_params.iter().any(|p| p == field));
+        }
         self.sized(&crate::mir::stdlib::substitute(last, &bound), depth - 1)
     }
 
@@ -1517,24 +1533,26 @@ impl Cx<'_> {
     /// layouts are read and agree in size, or a side's is its instance's:
     /// the evaluator compares the instance's sizes when it is called.
     fn transmute(&self, from: &str, to: &str) -> Option<String> {
+        let (a, b) = self.transmute_layouts(from, to)?;
+        Some(mir_ctor("Callee.transmute", &[a, b]))
+    }
+
+    /// The `Generic`s of a transmute's source and target layouts: the
+    /// layouts themselves where both are read and alike in size, else the
+    /// generic layouts the caller supplies.
+    fn transmute_layouts(&self, from: &str, to: &str) -> Option<(String, String)> {
         let depth = layout_depth(self.structs);
         if let (Some(a), Some(b)) = (self.layout(from, depth), self.layout(to, depth)) {
             if a.assumed.is_none() && b.assumed.is_none() {
                 return (a.size == b.size).then(|| {
-                    mir_ctor(
-                        "Callee.transmute",
-                        &[
-                            mir_ctor("Generic.layout", &[a.term]),
-                            mir_ctor("Generic.layout", &[b.term]),
-                        ],
+                    (
+                        mir_ctor("Generic.layout", &[a.term]),
+                        mir_ctor("Generic.layout", &[b.term]),
                     )
                 });
             }
         }
-        Some(mir_ctor(
-            "Callee.transmute",
-            &[self.generic_layout(from)?, self.generic_layout(to)?],
-        ))
+        Some((self.generic_layout(from)?, self.generic_layout(to)?))
     }
 
     /// The token of the call that evaluates the constant item `key` on
@@ -2173,7 +2191,24 @@ impl Cx<'_> {
             IrRvalue::Binary(op, a, b) => {
                 e.uses.insert(op.path().to_string());
                 gap(op.path(), e);
-                let (a, b) = (self.operand(a, e), self.operand(b, e));
+                // A variant's discriminant expression, an anonymous constant
+                // no dump holds, is the discriminant the enum's source
+                // gives it, at the type of the operand beside it.
+                let at = |o: &IrOperand, other: &IrOperand| -> IrOperand {
+                    match (o, self.operand_ty(other)) {
+                        (IrOperand::Constant(IrConstant::Other(t)), Some(ty))
+                            if int_ty(ty.trim(), self.width).is_some() =>
+                        {
+                            self.explicit_discriminant(t).map_or_else(
+                                || o.clone(),
+                                |d| IrOperand::Constant(IrConstant::Int(d, ty.trim().to_string())),
+                            )
+                        }
+                        _ => o.clone(),
+                    }
+                };
+                let (a, b) = (at(a, b), at(b, a));
+                let (a, b) = (self.operand(&a, e), self.operand(&b, e));
                 (
                     R::BinaryOp,
                     mir_ctor(
@@ -2257,6 +2292,25 @@ impl Cx<'_> {
                 (
                     R::Cast,
                     mir_ctor("Rvalue.numeric", &[source, target, self.operand(o, e)]),
+                )
+            }
+            // A transmute: the operand's bytes at its type's layout read
+            // at the target's, as the `transmute` intrinsic is.
+            IrRvalue::Cast(spec::MirCastKind::Transmute, o, ty)
+                if self
+                    .operand_ty(o)
+                    .and_then(|f| self.transmute_layouts(&f, ty))
+                    .is_some() =>
+            {
+                e.uses
+                    .insert(spec::MirCastKind::Transmute.path().to_string());
+                let (from, to) = self
+                    .operand_ty(o)
+                    .and_then(|f| self.transmute_layouts(&f, ty))
+                    .unwrap_or_default();
+                (
+                    R::Cast,
+                    mir_ctor("Rvalue.transmute", &[from, to, self.operand(o, e)]),
                 )
             }
             IrRvalue::Cast(k, o, ty) => {
@@ -2779,7 +2833,7 @@ impl Cx<'_> {
 /// variant's index.
 pub(crate) fn enums(decls: &crate::mir::core::CoreDecls) -> Enums {
     let mut out: Enums = BTreeMap::new();
-    for s in &decls.structs {
+    for s in decls.structs.iter().chain(&decls.locals) {
         let names: Vec<String> = match (&s.variants, &s.data) {
             (Some(v), _) => v.clone(),
             (None, Some(d)) => d.iter().map(|(v, _)| v.clone()).collect(),

@@ -247,6 +247,7 @@ inductive{
     {name: floatBinary, fields: [Nat, Nat, BinOp, Operand, Operand]},
     {name: floatNeg, fields: [Nat, Nat, Operand]},
     {name: numeric, fields: [Ty, Ty, Operand]},
+    {name: transmute, fields: [Generic, Generic, Operand]},
     {name: other, fields: [String, String]}
   ]
 }
@@ -1532,6 +1533,7 @@ definition{
       | Option.some count => (match (evalOperand program frames inner)
         | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
         | Evaluated.found a => (ctor Evaluated.found (ctor Value.tuple (repeatValue count a)))))
+    | Rvalue.transmute source target inner => (ctor Evaluated.stop (ctor Outcome.ub "a transmute outside an assignment"))
     | Rvalue.other kind text => (ctor Evaluated.stop (ctor Outcome.undefined kind)))
 }
 
@@ -1770,27 +1772,6 @@ definition{
     | CastKind.fnPtrToPtr => (assignEvaluated frames target (evalRvalue program frames value))
     | CastKind.transmute => (assignEvaluated frames target (evalRvalue program frames value))
     | CastKind.subtype => (assignEvaluated frames target (evalRvalue program frames value)))
-}
-
-definition{
-  name: evalAssign,
-  parameters: [program : Program, frames : (List Frame), target : Place, value : Rvalue],
-  result: Outcome,
-  body: (match value
-    | Rvalue.cast kind inner ty => (evalCastAssign program frames target value kind inner ty)
-    | Rvalue.value a => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.borrow a b => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.copyForDeref a => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.binary a b c => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.unary a b => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.discriminant a b => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.aggregate a b => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.rawPtr a => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.repeat a b => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.floatBinary a b c d f => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.floatNeg a b c => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.numeric a b c => (assignEvaluated frames target (evalRvalue program frames value))
-    | Rvalue.other a b => (assignEvaluated frames target (evalRvalue program frames value)))
 }
 
 definition{
@@ -2995,11 +2976,39 @@ definition{
 }
 
 definition{
+  name: evalAssign,
+  parameters: [fuel : Nat, program : Program, frames : (List Frame), target : Place, value : Rvalue],
+  result: Outcome,
+  body: (match value
+    | Rvalue.cast kind inner ty => (evalCastAssign program frames target value kind inner ty)
+    | Rvalue.value a => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.borrow a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.copyForDeref a => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.binary a b c => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.unary a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.discriminant a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.aggregate a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.rawPtr a => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.repeat a b => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.floatBinary a b c d f => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.floatNeg a b c => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.numeric a b c => (assignEvaluated frames target (evalRvalue program frames value))
+    | Rvalue.transmute from to inner => (match (genericLayout frames from)
+      | Option.none => (ctor Outcome.undefined "a generic argument whose layout the layout table does not hold")
+      | Option.some source => (match (genericLayout frames to)
+        | Option.none => (ctor Outcome.undefined "a generic argument whose layout the layout table does not hold")
+        | Option.some layout => (match (evalOperand program frames inner)
+          | Evaluated.stop outcome => outcome
+          | Evaluated.found a => (assignEvaluated frames target (transmuteValue fuel (project program bigEndian) source layout a)))))
+    | Rvalue.other a b => (assignEvaluated frames target (evalRvalue program frames value)))
+}
+
+definition{
   name: evalStatement,
-  parameters: [program : Program, frames : (List Frame), frame : Frame, statement : Statement],
+  parameters: [fuel : Nat, program : Program, frames : (List Frame), frame : Frame, statement : Statement],
   result: Outcome,
   body: (match statement
-    | Statement.assign target value => (evalAssign program frames target value)
+    | Statement.assign target value => (evalAssign fuel program frames target value)
     | Statement.marker kind => (ctor Outcome.running (replaceTop frames (advanceFrame frame)))
     | Statement.assume condition => (ctor Outcome.running (replaceTop frames (advanceFrame frame)))
     | Statement.other kind text => (ctor Outcome.undefined kind))
@@ -3014,7 +3023,7 @@ definition{
     | List.cons frame rest => (match (nthBlock (project (project frame body) blocks) (project frame block))
       | Option.none => (ctor Outcome.ub "a jump to a block the body does not have")
       | Option.some block => (match (nthStatement (project block statements) (project frame statement))
-        | Option.some statement => (evalStatement program frames frame statement)
+        | Option.some statement => (evalStatement fuel program frames frame statement)
         | Option.none => (evalTerminator fuel program frames frame (project block terminator)))))
 }
 

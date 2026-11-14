@@ -90,6 +90,33 @@ impl Macros {
         let mut out = Vec::new();
         for item in items {
             match item {
+                // `cfg_select! { pred => { items } .. _ => { items } }`,
+                // core's built-in: every arm's items, as the declarations
+                // every `#[cfg]` variant of an item are all read.
+                syn::Item::Macro(m)
+                    if m.ident.is_none()
+                        && depth < RECURSION_LIMIT
+                        && m.mac.path.is_ident("cfg_select") =>
+                {
+                    let arms: Vec<TokenStream> = m
+                        .mac
+                        .tokens
+                        .clone()
+                        .into_iter()
+                        .filter_map(|t| match t {
+                            TokenTree::Group(g) if g.delimiter() == Delimiter::Brace => {
+                                Some(g.stream())
+                            }
+                            _ => None,
+                        })
+                        .collect();
+                    match arms.into_iter().map(read).collect::<Option<Vec<_>>>() {
+                        Some(all) => {
+                            out.extend(self.expand_at(all.concat(), read, depth + 1));
+                        }
+                        None => out.push(syn::Item::Macro(m)),
+                    }
+                }
                 syn::Item::Macro(m) if m.ident.is_none() && depth < RECURSION_LIMIT => {
                     let name = m.mac.path.segments.last().map(|s| s.ident.to_string());
                     let expanded = name
