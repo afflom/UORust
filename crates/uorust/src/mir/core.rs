@@ -664,25 +664,6 @@ pub(crate) struct CoreStruct {
     pub(crate) repr: Vec<String>,
 }
 
-/// The representations the `#[repr(..)]` attributes of an item name.
-fn reprs(attrs: &[syn::Attribute]) -> Vec<String> {
-    let mut out = Vec::new();
-    for a in attrs {
-        if let syn::Meta::List(l) = &a.meta {
-            if l.path.is_ident("repr") {
-                // `repr(C, align(8))`: each name at the list's top level;
-                // `align`'s argument is not a representation.
-                for tree in l.tokens.clone() {
-                    if let proc_macro2::TokenTree::Ident(i) = tree {
-                        out.push(i.to_string());
-                    }
-                }
-            }
-        }
-    }
-    out
-}
-
 /// A discriminant `CoreStruct::values` holds, read at an integer type of
 /// the given signedness.
 pub(crate) fn discriminant(held: i64, signed: bool) -> i128 {
@@ -980,6 +961,24 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
         }
     }
     fn items(module: &[String], list: &[syn::Item], out: &mut CoreDecls) {
+        // The representations the `#[repr(..)]` attributes of an item name:
+        // each name at the list's top level (`repr(C, align(8))`), `align`'s
+        // argument not being one.
+        let reprs = |attrs: &[syn::Attribute]| {
+            let mut out = Vec::new();
+            for a in attrs {
+                if let syn::Meta::List(l) = &a.meta {
+                    if l.path.is_ident("repr") {
+                        for tree in l.tokens.clone() {
+                            if let proc_macro2::TokenTree::Ident(i) = tree {
+                                out.push(i.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+            out
+        };
         let at = |name: String| {
             let mut path = module.to_vec();
             path.push(name);
