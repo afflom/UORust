@@ -567,28 +567,30 @@ pub(crate) fn allocation_cells(text: &str, width: u32) -> BTreeMap<String, Vec<C
     out
 }
 
-/// A list term of items of type `ty`. A long list is the `append` of runs
-/// of about its length's square root, so neither a run nor the appends nest
-/// deeper than that however long it grows: the linker reads a term to a
-/// bounded depth.
+/// A list term of items of type `ty`. A long list is the `append` of its
+/// halves, down to runs no longer than its length's bit length, so neither
+/// a run nor the appends nest deeper than about that however long it
+/// grows: the linker reads a term to a bounded depth.
 pub(crate) fn term_list(items: &[String], ty: &str) -> String {
-    let chain = |part: &[String]| {
+    let run = (usize::BITS - items.len().leading_zeros()) as usize;
+    halves(items, ty, run.max(1))
+}
+
+/// [`term_list`] of `items`, its runs at most `run` long.
+fn halves(items: &[String], ty: &str, run: usize) -> String {
+    if items.len() <= run {
         let mut out = format!("(nil {ty})");
-        for item in part.iter().rev() {
+        for item in items.iter().rev() {
             out = format!("(cons {item} {out})");
         }
-        out
-    };
-    let run = items.len().isqrt() + 1;
-    if items.len() <= run {
-        return chain(items);
+        return out;
     }
-    let runs: Vec<String> = items.chunks(run).map(chain).collect();
-    let mut out = runs.last().cloned().unwrap_or_default();
-    for r in runs.iter().rev().skip(1) {
-        out = format!("(prim append {r} {out} : (List {ty}))");
-    }
-    out
+    let (left, right) = items.split_at(items.len() / 2);
+    format!(
+        "(prim append {} {} : (List {ty}))",
+        halves(left, ty, run),
+        halves(right, ty, run)
+    )
 }
 
 /// The width and signedness of an integer type as MIR prints it: `u8`,
@@ -3019,7 +3021,7 @@ mod tests {
     }
 
     #[test]
-    fn a_long_list_nests_no_deeper_than_its_root_ue_19() {
+    fn a_long_list_nests_no_deeper_than_its_bit_length_ue_19() {
         let items: Vec<String> = (0..10_000).map(|i| i.to_string()).collect();
         let term = term_list(&items, "Nat");
         let (mut depth, mut deepest) = (0usize, 0usize);
@@ -3033,7 +3035,8 @@ mod tests {
                 _ => {}
             }
         }
-        assert!(deepest <= 2 * (items.len().isqrt() + 1), "{deepest}");
+        let bits = (usize::BITS - items.len().leading_zeros()) as usize;
+        assert!(deepest <= 2 * (bits + 1), "{deepest}");
         assert_eq!(term.matches("(cons ").count(), items.len());
     }
 
