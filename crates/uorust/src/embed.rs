@@ -313,11 +313,13 @@ pub(crate) fn same_item(a: &str, b: &str) -> bool {
 /// A path's last segment, its generic arguments erased.
 fn last_segment(path: &str) -> String {
     let erased = crate::mir::lower::erase(path);
-    crate::mir::parse::split_path(&erased)
-        .last()
-        .copied()
-        .unwrap_or(&erased)
-        .to_string()
+    let mut segments = crate::mir::parse::split_path(&erased);
+    // A last segment in brackets is a function's generic arguments
+    // (`sample::<impl RandomSource + ?Sized>`), not a segment of its path.
+    while segments.len() > 1 && segments.last().is_some_and(|s| s.starts_with('<')) {
+        segments.pop();
+    }
+    segments.last().copied().unwrap_or(&erased).to_string()
 }
 
 /// The structs and enums core's source declares, by their name's last
@@ -4836,6 +4838,10 @@ mod tests {
         assert!(is_part("a::f::promoted[1]") && is_part("a::f::{constant#0}"));
         assert!(!is_part("a::f::{closure#0}"));
         assert_eq!(last_segment("<Self as I>::all::<F>"), "all");
+        assert_eq!(
+            last_segment("<R as D<bool>>::sample::<impl RandomSource + ?Sized>"),
+            "sample"
+        );
     }
 
     #[test]
