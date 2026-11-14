@@ -889,13 +889,16 @@ pub fn run(krate: &str, dumps: &Path, copy: &Path, check: &str) -> Result<usize,
     // declaration of that name.
     let resolve = |head: &str| -> Option<&crate::mir::core::CoreStruct> {
         let last = crate::mir::parse::split_path(head).last().copied()?;
-        let found: Vec<_> = structs
-            .get(last)?
+        let named = structs.get(last)?;
+        let found: Vec<_> = named
             .iter()
             .filter(|d| crate::embed::same_item(head, &d.path))
             .collect();
-        match found.as_slice() {
-            [one] => Some(*one),
+        match (found.as_slice(), named.as_slice()) {
+            ([one], _) => Some(*one),
+            // A path a re-export prints (`core::ffi::CStr` of
+            // `ffi::c_str::CStr`): the one declaration of the name.
+            ([], [one]) => Some(one),
             _ => None,
         }
     };

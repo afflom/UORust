@@ -1867,6 +1867,9 @@ impl Cx<'_> {
         if let Some(bytes) = byte_string(text) {
             return Some(self.array_value(&bytes, 8, false, 1));
         }
+        if let Some(value) = self.slice_constant(text) {
+            return Some(value);
+        }
         if let Some(value) = text
             .strip_prefix('{')
             .and_then(|t| t.strip_suffix('}'))
@@ -1904,6 +1907,47 @@ impl Cx<'_> {
                     &[term_list(&items, &mir_name("Value"))],
                 ))
             }
+        }
+    }
+
+    /// The value a slice constant points to, `Slice { alloc_id: alloc7,
+    /// meta: 5 }: &T`: `meta` integers its allocation's bytes hold, where
+    /// `T` is a slice of them, or a struct whose one field rustc's layout
+    /// prints as one (`CStr`'s `[c_char]`, `[i8]` at the target).
+    fn slice_constant(&self, text: &str) -> Option<String> {
+        let rest = text.strip_prefix("Slice { alloc_id: ")?;
+        let (alloc, rest) = rest.split_once(", meta: ")?;
+        let (meta, ty) = rest.split_once(" }: &")?;
+        let count: usize = meta.trim().parse().ok()?;
+        let bytes = self.allocs.get(alloc.trim())?;
+        let elements = |t: &str| -> Option<String> {
+            let elem = t.trim().strip_prefix('[')?.strip_suffix(']')?;
+            if array_ty(t.trim()).is_some() {
+                return None;
+            }
+            let (bits, signed) = int_ty(elem.trim(), self.width)?;
+            let size = usize::try_from(bits / 8).ok()?;
+            (bytes.len() == size * count && (size == 1 || self.big_endian.is_some()))
+                .then(|| self.array_value(bytes, bits, signed, size))
+        };
+        let ty = ty.trim();
+        if let Some(v) = elements(ty) {
+            return Some(v);
+        }
+        let (adt, fields, _) = self.rustc_fields(ty)?;
+        match fields.as_slice() {
+            [(0, field)] if adt => {
+                let inner = elements(field)?;
+                Some(mir_ctor(
+                    "Value.adt",
+                    &[
+                        mir_string(""),
+                        signed(0),
+                        term_list(&[inner], &mir_name("Value")),
+                    ],
+                ))
+            }
+            _ => None,
         }
     }
 
