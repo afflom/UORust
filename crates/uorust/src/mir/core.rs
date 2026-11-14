@@ -175,18 +175,16 @@ pub fn census(
             .unwrap_or_default()
             .to_string();
         let files = crate::embed::dir_paths(&dir)?;
-        let mut texts = Vec::new();
-        let mut names = Vec::new();
+        let mut dumps = Vec::new();
         for file in &files {
-            texts.push(crate::embed::read_text(file)?);
-            names.push(
-                file.file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or_default()
-                    .to_string(),
-            );
+            let name = file
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default()
+                .to_string();
+            dumps.push((name, crate::embed::read_text(file)?));
         }
-        read.push((module, texts, names));
+        read.push((module, dumps));
     }
     // Every module's bodies, which each module's calls name, with the
     // names of the files they are dumped to.
@@ -194,26 +192,23 @@ pub fn census(
         core_decls(root),
         root,
         read.iter()
-            .flat_map(|(_, texts, names)| names.iter().map(String::as_str).zip(texts)),
+            .flat_map(|(_, dumps)| dumps.iter().map(|(n, t)| (n.as_str(), t))),
     );
     Ok(read
         .iter()
-        .filter(|(module, _, _)| only.is_empty() || only.contains(module))
-        .map(|(module, texts, names)| {
-            shard(scope, root, module, texts, names, &widths, &layouts, &link)
-        })
+        .filter(|(module, _)| only.is_empty() || only.contains(module))
+        .map(|(module, dumps)| shard(scope, root, module, dumps, &widths, &layouts, &link))
         .collect())
 }
 
-/// One module's census of the crate `scope` names from the texts of its
-/// dumps, at the pointer widths they were built for, its calls into the
-/// crate those of `link`'s bodies.
+/// One module's census of the crate `scope` names from its dumps (each
+/// file's name and text), at the pointer widths they were built for, its
+/// calls into the crate those of `link`'s bodies.
 pub(crate) fn shard(
     scope: &Scope,
     root: &Path,
     module: &str,
-    texts: &[String],
-    names: &[String],
+    dumps: &[(String, String)],
     widths: &[(u32, Vec<String>)],
     layouts: &[super::layout::DataLayout],
     link: &super::link::CoreLink,
@@ -239,12 +234,10 @@ pub(crate) fn shard(
     let parts = crate::embed::parts(
         krate,
         link,
-        names
-            .iter()
-            .map(String::as_str)
-            .zip(texts.iter().map(String::as_str)),
+        dumps.iter().map(|(n, t)| (n.as_str(), t.as_str())),
     );
-    for (text, name) in texts.iter().zip(names) {
+    let statics = crate::embed::statics(link);
+    for (name, text) in dumps {
         let embedder = crate::embed::Cx {
             width,
             enums: &enums,
@@ -258,6 +251,7 @@ pub(crate) fn shard(
             parts: &parts,
             stem: crate::embed::dump_stem(name).to_string(),
             owner: Default::default(),
+            statics: &statics,
         };
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among

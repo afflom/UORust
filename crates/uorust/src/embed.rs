@@ -99,6 +99,47 @@ pub(crate) struct Cx<'a> {
     pub(crate) stem: String,
     /// The path of the body being embedded, as its dump prints it.
     pub(crate) owner: std::cell::RefCell<String>,
+    /// The paths of the statics whose initializers the dumps hold
+    /// ([`statics`]).
+    pub(crate) statics: &'a BTreeSet<String>,
+}
+
+/// The initializer of the static a dump holds, as a constant's body by the
+/// static's path: rustc dumps a static's initializer as `static NAME: T =
+/// {..}`, which a constant item's body is but for its keyword. A `static
+/// mut` is not read: its value is not its initializer's once written.
+pub(crate) fn static_body(text: &str) -> Option<IrBody> {
+    let path = text
+        .lines()
+        .next()?
+        .strip_prefix("// MIR for `")?
+        .split_once('`')?
+        .0;
+    let head = text.lines().find_map(|l| l.strip_prefix("static "))?;
+    if head.starts_with("mut ") {
+        return None;
+    }
+    let constant = text.replacen(&format!("static {head}"), &format!("const {head}"), 1);
+    let mut body = crate::mir::parse::bodies(&constant).into_iter().next()?;
+    body.path = path.to_string();
+    Some(body)
+}
+
+/// The paths of the statics whose initializers `link`'s dumps hold.
+pub(crate) fn statics(link: &crate::mir::link::CoreLink) -> BTreeSet<String> {
+    link.bodies
+        .iter()
+        .filter(|(_, texts)| matches!(texts.as_slice(), [t] if static_body(t).is_some()))
+        .map(|(p, _)| p.clone())
+        .collect()
+}
+
+/// The static a constant names, `<static(DefId(0:1 ~ core[6af5]::a::B))>`,
+/// by its path in its crate.
+fn static_path(text: &str) -> Option<&str> {
+    let inner = text.strip_prefix("<static(DefId(")?.strip_suffix("))>")?;
+    let (_, path) = inner.split_once(" ~ ")?;
+    Some(path.split_once("]::")?.1)
 }
 
 /// Whether a body is a part of the body that reads it: a promoted constant
@@ -888,6 +929,16 @@ impl Cx<'_> {
         })
     }
 
+    /// The locals a constant item the body reads takes: its value's, and a
+    /// static's the reference to it.
+    fn slots(&self, key: &str) -> usize {
+        if self.statics.contains(key) {
+            2
+        } else {
+            1
+        }
+    }
+
     /// `Callee.transmute` of a transmute from `from` to `to`, where both
     /// layouts are read and agree in size; a pointer whose size is assumed
     /// is allowed only where both sides hold one of the same pointee, so
@@ -908,6 +959,9 @@ impl Cx<'_> {
         let IrConstant::Other(text) = c else {
             return None;
         };
+        if let Some(path) = static_path(text).filter(|p| self.statics.contains(*p)) {
+            return Some(path.to_string());
+        }
         let (owner, last) = item_suffix(text)?;
         // A promoted or anonymous constant is a part of the body that
         // reads it, which MIR prints by its own path (an inherent impl's by
@@ -1180,9 +1234,13 @@ impl Cx<'_> {
                 e.callees.insert(key.clone());
                 let mut items = self.items.borrow_mut();
                 let at = items.iter().position(|k| *k == key).unwrap_or_else(|| {
-                    items.push(key);
+                    items.push(key.clone());
                     items.len() - 1
                 });
+                // A static's operand is a reference to it: the local past
+                // the one its value is evaluated into, which borrows it.
+                let slot: usize =
+                    items[..at].iter().map(|k| self.slots(k)).sum::<usize>() + self.slots(&key) - 1;
                 (
                     O::Constant,
                     mir_ctor(
@@ -1190,7 +1248,7 @@ impl Cx<'_> {
                         &[format!(
                             "(record {} {{base := {}, projection := {}}})",
                             mir_name("Place"),
-                            self.base.get() + at,
+                            self.base.get() + slot,
                             term_list(&[], &mir_name("Proj"))
                         )],
                     ),
@@ -1635,15 +1693,28 @@ impl Cx<'_> {
         // block of its own past the body's, into a local of its own: rustc
         // evaluates every constant a body requires before it runs.
         let mut blocks = blocks;
+        // A static is evaluated so too, and borrowed into the local past
+        // its value's, in a block of its own after its call's.
         let items = self.items.borrow().clone();
         let entry = if items.is_empty() { 0 } else { blocks.len() };
-        for (i, key) in items.iter().enumerate() {
-            locals.push(mir_ctor("Ty.other", &[mir_string("const")]));
-            let next = if i + 1 < items.len() {
-                entry + i + 1
-            } else {
-                0
-            };
+        let total: usize = items.iter().map(|k| self.slots(k)).sum();
+        let place = |local: usize| {
+            format!(
+                "(record {} {{base := {local}, projection := {}}})",
+                mir_name("Place"),
+                term_list(&[], &mir_name("Proj"))
+            )
+        };
+        let mut at = 0;
+        for key in &items {
+            let slots = self.slots(key);
+            let value = b.locals.len() + at;
+            at += slots;
+            let next = if at < total { entry + at } else { 0 };
+            for _ in 0..slots {
+                locals.push(mir_ctor("Ty.other", &[mir_string("const")]));
+            }
+            let after = if slots > 1 { entry + at - 1 } else { next };
             blocks.push(format!(
                 "(record {} {{statements := {}, terminator := {}}})",
                 mir_name("Block"),
@@ -1651,18 +1722,34 @@ impl Cx<'_> {
                 mir_ctor(
                     "Terminator.call",
                     &[
-                        format!(
-                            "(record {} {{base := {}, projection := {}}})",
-                            mir_name("Place"),
-                            b.locals.len() + i,
-                            term_list(&[], &mir_name("Proj"))
-                        ),
+                        place(value),
                         mir_ctor("Callee.constant", &[mir_string(key)]),
                         term_list(&[], &mir_name("Operand")),
-                        format!("(ctor Option.some [Nat] {next})"),
+                        format!("(ctor Option.some [Nat] {after})"),
                     ],
                 )
             ));
+            if slots > 1 {
+                let borrow = mir_ctor(
+                    "Statement.assign",
+                    &[
+                        place(value + 1),
+                        mir_ctor(
+                            "Rvalue.borrow",
+                            &[
+                                mir_ctor(&kind_ctor(spec::MirBorrowKind::Shared.path()), &[]),
+                                place(value),
+                            ],
+                        ),
+                    ],
+                );
+                blocks.push(format!(
+                    "(record {} {{statements := {}, terminator := {}}})",
+                    mir_name("Block"),
+                    term_list(&[borrow], &mir_name("Statement")),
+                    mir_ctor("Terminator.jump", &[next.to_string()])
+                ));
+            }
         }
         e.term = format!(
             "(record {} {{path := {}, arity := {}, locals := {}, blocks := {}, entry := {entry}}})",
@@ -2551,6 +2638,7 @@ fn embed_census(
     let mut every: BTreeMap<String, (String, Embedded)> = BTreeMap::new();
     let mut samples = Vec::new();
     let src = library_root(root).join(krate).join("src");
+    let statics = statics(&link);
     let parts = parts(
         krate,
         &link,
@@ -2575,15 +2663,23 @@ fn embed_census(
                 parts: &parts,
                 stem: stem.to_string(),
                 owner: Default::default(),
+                statics: &statics,
             };
-            for b in crate::mir::parse::bodies(text) {
+            // A static's initializer is a body of the program, read where a
+            // body reads the static, and no row of the census.
+            let initializer = static_body(text).filter(|b| statics.contains(&b.path));
+            let is_static = initializer.is_some();
+            for b in crate::mir::parse::bodies(text)
+                .into_iter()
+                .chain(initializer)
+            {
                 let kappa = body_kappa(krate, &b.path, text);
                 let key = match parts.get(stem).filter(|_| is_part(&b.path)) {
                     Some(key) => key.clone(),
                     None => program_key(&link, &b.path, &kappa),
                 };
                 let e = cx.body(&b, &key);
-                if selected && has_row(&b.path) {
+                if selected && has_row(&b.path) && !is_static {
                     census.add(&e);
                     if let Some(sample) = sample(root, &src, &b, &key, &kappa, width) {
                         samples.push(sample);
@@ -2765,6 +2861,7 @@ mod tests {
             parts: &BTreeMap::new(),
             stem: String::new(),
             owner: Default::default(),
+            statics: &BTreeSet::new(),
         };
         let ranged = |t: &str| cx.layout(t, 4).map(|l| l.term);
         assert!(ranged("(u32) is 1..")
@@ -2785,6 +2882,19 @@ mod tests {
         assert!(is_part("a::f::promoted[1]") && is_part("a::f::{constant#0}"));
         assert!(!is_part("a::f::{closure#0}"));
         assert_eq!(last_segment("<Self as I>::all::<F>"), "all");
+    }
+
+    #[test]
+    fn a_static_is_read_as_its_initializer_ue_19() {
+        let text = "// MIR for `a::b::MAP` before ElaborateBoxDerefs\n\nstatic MAP: [u8; 2] = {\n    let mut _0: [u8; 2];\n\n    bb0: {\n        _0 = [const 1_u8, const 2_u8];\n        return;\n    }\n}\n";
+        let body = static_body(text).expect("the initializer");
+        assert_eq!(body.path, "a::b::MAP");
+        assert_eq!(body.arity, 0);
+        assert!(static_body(&text.replace("static MAP", "static mut MAP")).is_none());
+        assert_eq!(
+            static_path("<static(DefId(0:54115 ~ core[6af5]::a::b::MAP))>"),
+            Some("a::b::MAP")
+        );
     }
 
     #[test]
