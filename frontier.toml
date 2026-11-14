@@ -2,8 +2,8 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 287 of 1140 functions of product code are lifted; 699
-# are residue, 45 foreign and 109 effect rows.
+# Honesty report: 287 of 1143 functions of product code are lifted; 699
+# are residue, 45 foreign and 112 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 1
@@ -75,11 +75,11 @@
 #     1 the constant item std::string::String::as_str
 #     1 the constant item wf::Node::word
 #     2 {alloc191: &std::sync::atomic::Atomic<bool>}
-#     1 {alloc238: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
-#     1 {alloc253: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
-#     1 {alloc268: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
-#     1 {alloc283: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
-#     1 {alloc956: &std::sync::OnceLock<mir::stdlib::StdTable>}
+#     1 {alloc239: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
+#     1 {alloc254: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
+#     1 {alloc269: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
+#     1 {alloc284: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
+#     1 {alloc957: &std::sync::OnceLock<mir::stdlib::StdTable>}
 #   mir::ProjectionElem::Downcast: 8
 #     8 a variant's field read outside a match on it
 #   mir::ProjectionElem::Subslice: 1
@@ -978,19 +978,19 @@ detail = "mir::Ty: std::ops::RangeTo<usize>"
 kappa = "e69b494047df0de0474cd19bd1fd0f8b467f867b639f60d60fe50bd3a63abc2b"
 function = "uorust::embed::defined_float_intrinsics"
 reason = "mir"
-detail = "mir::Operand::Constant: {alloc253: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
+detail = "mir::Operand::Constant: {alloc254: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
 
 [[residue]]
 kappa = "bcfcb0fdc7be5af8f14bfd9c8dad1d118d2887b7816855fb6ad322fca464c482"
 function = "uorust::embed::defined_intrinsics"
 reason = "mir"
-detail = "mir::Operand::Constant: {alloc238: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
+detail = "mir::Operand::Constant: {alloc239: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
 
 [[residue]]
 kappa = "520427207441734718b88fdbf38d7648dcd8182ec0f9e49abc013bf5b066ccf5"
 function = "uorust::embed::defined_layout_queries"
 reason = "mir"
-detail = "mir::Operand::Constant: {alloc268: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
+detail = "mir::Operand::Constant: {alloc269: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
 
 [[residue]]
 kappa = "9b264d78d7c5b4bb733214a85f44fbad950f642977e3fe3a9f9e2ddc4cb9223f"
@@ -1218,7 +1218,7 @@ detail = "mir::TerminatorKind::Call: uorust::embed::generic_parts, whose transla
 kappa = "c55e780bbdd5fed1280f58966b9f63fbf933e85e5043ceab3a04894f3eb9aa92"
 function = "uorust::embed::undefined_constructs"
 reason = "mir"
-detail = "mir::Operand::Constant: {alloc283: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
+detail = "mir::Operand::Constant: {alloc284: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
 
 [[residue]]
 kappa = "02aea09e67a6121deca36b2f63056e2fa30ba11499a45bc7d6a51686c68710d7"
@@ -4062,7 +4062,7 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "a52e07bf3cf71f0bb47d0620049df5db15379922c1410a447a682b7af77a6e4c"
 function = "uorust::mir::stdlib::table"
 reason = "mir"
-detail = "mir::Operand::Constant: {alloc956: &std::sync::OnceLock<mir::stdlib::StdTable>}"
+detail = "mir::Operand::Constant: {alloc957: &std::sync::OnceLock<mir::stdlib::StdTable>}"
 
 [[residue]]
 kappa = "47bcab9e837dab29d1ea09c2762342c564778078ae7bdca12f4b27fa4c7b36f1"
@@ -4841,7 +4841,7 @@ function = "uorust::admit"
 effect = "Fs effect: Path::is_file"
 
 [[effect]]
-kappa = "4205ca9e6f03c064f47f3cec3f5d93799af8419773bbb56abec4296cf3fe0c29"
+kappa = "e4e493a3c02bf393015bc67f317b74d4ea5bdf6ad943dbbcc4d4cbade407de2a"
 function = "uorust::certify"
 effect = "Fs effect: std::fs::read_to_string"
 
@@ -4856,9 +4856,24 @@ function = "uorust::certify::agree"
 effect = "Fs effect: std::fs::read_dir"
 
 [[effect]]
+kappa = "7225ab226d35d19c90706c876e1e064bdcbbb20e17d52083daeb1f598a362be8"
+function = "uorust::certify::build_batch"
+effect = "Fs effect: Path::exists"
+
+[[effect]]
+kappa = "67aa91edc106852293e24870961c71f427d728188a34697deb7f914beb793eca"
+function = "uorust::certify::bundles"
+effect = "Fs effect: std::fs::read_dir"
+
+[[effect]]
 kappa = "ef64511eb31f85a0b93d5b89fa5129da6866d304c108c212f3f36861e469f94d"
 function = "uorust::certify::call_sites"
 effect = "Fs effect: std::fs::read_dir"
+
+[[effect]]
+kappa = "6f58390772b2c8ce1d72202e6dea3e8f1a3e17f9484a5ff6fba863426072b9d7"
+function = "uorust::certify::compiler_version"
+effect = "Process effect: std::process::Command::new"
 
 [[effect]]
 kappa = "a2a9d1c5b0828174215574f2073c64e6cf6d48be8a11649e4b77a2c4aa617518"
@@ -4881,17 +4896,17 @@ function = "uorust::certify::module_prefix"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "b21ec2c5fa70c7f4cda128573a909353b269298a730bdf5897ce699939e1cc31"
+kappa = "91798903b7c91063ae521139464881d61686dfcd659e5fb3232711c82184cd25"
 function = "uorust::certify::production"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "ae44bd3cf44b422368cfd44e4f3d4c02e48a5c2e02ddb13b9f40ee830d0f77a7"
+kappa = "982daca1781b8ef2f16fd235856a74867360f1609fac9938014993a8acac1504"
 function = "uorust::certify::production_build"
 effect = "Fs effect: Path::exists"
 
 [[effect]]
-kappa = "7a5de677205f767eaeb29d666a9172cbf145658250de0138c567e637de5a49ba"
+kappa = "f58e73dd34d5776af1109cda2e2bc48218fc55b602f4613b48970b613524c8af"
 function = "uorust::certify::sync"
 effect = "Fs effect: std::fs::read_to_string"
 
