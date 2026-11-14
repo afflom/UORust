@@ -2,8 +2,8 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 286 of 1130 functions of product code are lifted; 694
-# are residue, 45 foreign and 105 effect rows.
+# Honesty report: 286 of 1132 functions of product code are lifted; 694
+# are residue, 45 foreign and 107 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 1
@@ -213,7 +213,7 @@
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3314:21: 3314:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3321:21: 3321:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -716,7 +716,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "f31102ad8dda15ec4ecb15362151aaa6364d1215c2c05a799a48a671b1c65dca"
+kappa = "9966a53968aabe4526f7361d24d3bdea3fbd258723ccb6862dad81ed08f37439"
 function = "uorust::embed::Cx<'_>::item"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -740,7 +740,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "bcb7b576001e79932d51851af924780f723f07cfc5949a478c44626b6f52c72a"
+kappa = "cf4088f3b2484a86d61f3cb44be666da0a944214768837bc6bad16bd180bb002"
 function = "uorust::embed::Cx<'_>::operand_ty"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -1001,7 +1001,7 @@ detail = "mir::Ty: mir::core::CoreDecls"
 kappa = "6f9b966cddbd69d0a18d522f2b4de201242a350ac756d601a7ccf1414a1fe090"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3314:21: 3314:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3321:21: 3321:24}>"
 
 [[residue]]
 kappa = "9b06d1e71770a7c515754932ed1fa95b9b3c4fe0c9bf896ecf35b38885e93c62"
@@ -4915,7 +4915,7 @@ function = "uorust::embed::embed"
 effect = "Fs effect: Path::exists"
 
 [[effect]]
-kappa = "fa4df12cbe7f86e9829c0f54c40fa034eefeab6ef80fb121909316e20ce1ecaa"
+kappa = "5daa4c3c0a1dfdc5495d4955330d55b2624c63e4353d31dab26523c6a963ff94"
 function = "uorust::embed::embed_census"
 effect = "Fs effect: Path::is_dir"
 
@@ -5035,9 +5035,9 @@ function = "uorust::mir::core::core_census"
 effect = "calls uorust::mir::core::census, which performs a Fs effect: Path::is_dir"
 
 [[effect]]
-kappa = "2cb8019aa3f2aa6cd3a2c6727b5bc80887d280e680072232dd05f90622f0b4f5"
+kappa = "c2702cb32cf9866dc423100abd8e5bd5c9de7776e949fb5fd056e535d4fd881a"
 function = "uorust::mir::core::core_decls"
-effect = "Fs effect: Path::is_dir"
+effect = "calls uorust::mir::core::library_decls, which performs a Fs effect: Path::is_dir"
 
 [[effect]]
 kappa = "5573a0d8f147d67ae7619ef4af438be9ad293e24dfca683f73643cb3fb6bbf25"
@@ -5048,6 +5048,11 @@ effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::r
 kappa = "9a7e7dc9153743677c72dcd2da4886e04512d7922d83b90aa3cacd5fc1ac098e"
 function = "uorust::mir::core::impl_const_types"
 effect = "calls uorust::mir::impl_header, which performs a Fs effect: std::fs::read_to_string"
+
+[[effect]]
+kappa = "186881cd2f40ec3357c6483e4044554a8d50ddab66eab0c13ff50a3747a1cf45"
+function = "uorust::mir::core::library_decls"
+effect = "Fs effect: Path::is_dir"
 
 [[effect]]
 kappa = "6e7ed939000c685d0c6adb104a557876f7fd8a3c8db8b7c0830eaf1f256174bb"
@@ -5118,6 +5123,11 @@ effect = "Fs effect: Path::is_file"
 kappa = "bf516c515955d23533dc7b12393ad75f2a410ca97862fa4df2daf27a5ed7e149"
 function = "uorust::mir::link::CoreLink::new"
 effect = "Fs effect: std::fs::read_to_string"
+
+[[effect]]
+kappa = "5ddabdc90466dc0adaeb4ea766a3791e82c8f91d3dbfc4f51bea9e6152a5e65b"
+function = "uorust::mir::link::CoreLink::trait_constant_type"
+effect = "Fs effect: Path::is_file"
 
 [[effect]]
 kappa = "6084d59247771ad583d4277b04004099e9a9979c234cd1e22117c220b9ac9a0d"
