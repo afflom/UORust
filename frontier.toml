@@ -2,16 +2,18 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 280 of 1072 functions of product code are lifted; 649
-# are residue, 45 foreign and 98 effect rows.
+# Honesty report: 285 of 1109 functions of product code are lifted; 676
+# are residue, 45 foreign and 103 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 1
 #   form: 2
-#   mir::AggregateKind::Closure: 40
+#   mir::AggregateKind::Closure: 42
 #     1 ast::<impl at crates/uorust/src/ast.rs:1235:1: 1235:14>::scan::{closure#0}: type outside the lift: std::vec::IntoIter<&ast::RustExpr>
 #     1 ast::<impl at crates/uorust/src/ast.rs:352:1: 352:10>::localized::{closure#0}: type outside the lift: std::slice::Iter<'_, ast::GenericArgument>
 #     1 ast::arm_paths::{closure#0}: type outside the lift: std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/ast.rs:1183:53: 1183:56}>
+#     1 layouts::same_type::{closure#0}: type outside the lift: std::str::SplitWhitespace<'_>
+#     1 layouts::skip::{closure#0}: mir::TerminatorKind::Call: std::char::methods::<impl char>::is_whitespace
 #     1 lex::render_decl::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
 #     1 lift::<impl at crates/uorust/src/lift.rs:460:1: 460:11>::nested::{closure#0}: type outside the lift: std::slice::Iter<'_, lift::Ty>
 #     1 lift::<impl at crates/uorust/src/lift.rs:460:1: 460:11>::sizable::{closure#0}: type outside the lift: std::slice::Iter<'_, lift::Ty>
@@ -49,7 +51,7 @@
 #     1 order::operator::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
 #     1 order::tests::{closure#0}: mir::TerminatorKind::Call: std::boxed::Box::new_uninit
 #     1 project::enum_equality::{closure#0}: mir::AggregateKind::Closure: project::enum_equality::{closure#0}::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
-#   mir::Operand::Constant: 25
+#   mir::Operand::Constant: 26
 #     1 a string LexLean source cannot write
 #     1 certify::Manifest::to_text::promoted[1]
 #     1 embed::Sampled::of::promoted[0]
@@ -67,11 +69,12 @@
 #     1 the constant item mir::spec::MirStatementKind::ALL
 #     1 the constant item order::ORDERING
 #     1 the constant item order::PROOF_COLUMN
+#     1 the constant item std::string::String::as_str
 #     1 the constant item wf::Node::word
 #     2 {alloc191: &std::sync::atomic::Atomic<bool>}
 #     1 {alloc238: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
 #     1 {alloc253: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
-#     1 {alloc856: &std::sync::OnceLock<mir::stdlib::StdTable>}
+#     1 {alloc920: &std::sync::OnceLock<mir::stdlib::StdTable>}
 #   mir::ProjectionElem::Downcast: 8
 #     8 a variant's field read outside a match on it
 #   mir::ProjectionElem::Subslice: 1
@@ -79,10 +82,10 @@
 #     1 Decl, which is not a struct
 #     2 Expr, which is not a struct
 #     4 TypeKind, which is not a struct
-#   mir::Rvalue::Discriminant: 4
-#     4 a discriminant read as a value
+#   mir::Rvalue::Discriminant: 5
+#     5 a discriminant read as a value
 #   mir::Rvalue::Use: 9
-#   mir::TerminatorKind::Call: 134
+#   mir::TerminatorKind::Call: 140
 #     1 <bool as std::string::ToString>::to_string
 #     1 <i128 as std::convert::From>::from
 #     2 <lift::Ty as std::cmp::PartialEq>::eq
@@ -91,7 +94,7 @@
 #     1 <std::collections::BTreeSet as std::convert::From>::from
 #     1 <std::collections::BTreeSet as std::iter::Extend>::extend
 #     2 <std::collections::btree_set::Iter as std::iter::Iterator>::any
-#     3 <std::option::Option as std::cmp::PartialEq>::eq
+#     4 <std::option::Option as std::cmp::PartialEq>::eq
 #     1 <std::slice::Iter as std::iter::Iterator>::position
 #     1 <std::vec::IntoIter as std::iter::Iterator>::collect
 #     3 <std::vec::Vec as std::ops::Index>::index
@@ -113,16 +116,16 @@
 #     1 core::slice::<impl [lift::Ty]>::contains
 #     2 core::str::<impl str>::as_bytes
 #     3 core::str::<impl str>::rsplit_once
-#     7 core::str::<impl str>::split_once
+#     8 core::str::<impl str>::split_once
 #     1 lift::Split::reach
 #     1 lift::refused
 #     1 project::indexed
 #     1 slice::iter::Iter::find: std's MIR stops at mir::Rvalue::Use
 #     17 std::boxed::Box::new_uninit
 #     1 std::collections::BTreeMap::get
-#     4 std::option::Option::and_then
+#     5 std::option::Option::and_then
 #     1 std::option::Option::filter
-#     4 std::option::Option::is_some_and
+#     5 std::option::Option::is_some_and
 #     7 std::option::Option::map
 #     2 std::option::Option::or_else
 #     2 std::option::Option::unwrap_or_default
@@ -133,6 +136,8 @@
 #     1 std::vec::from_elem
 #     1 uorust::ast::BinOp::text, whose translation is not admitted
 #     1 uorust::ast::ExprMacro::scan, whose translation is not admitted
+#     1 uorust::embed::generic_parts, whose translation is not admitted
+#     1 uorust::layouts::prim, whose translation is not admitted
 #     1 uorust::lex::Expr::flat, whose translation is not admitted
 #     1 uorust::lift::block, whose translation is not admitted
 #     1 uorust::lift::chars_count, whose translation is not admitted
@@ -149,9 +154,11 @@
 #     1 uorust::mir::parse::split_path, whose translation is not admitted
 #     1 uorust::mir::parse::split_top, whose translation is not admitted
 #     1 uorust::order::derived_in, whose translation is not admitted
-#   mir::TerminatorKind::Goto: 42
-#     42 a loop nested in a loop, whose helpers would call each other
-#   mir::Ty: 268
+#   mir::TerminatorKind::Goto: 45
+#     45 a loop nested in a loop, whose helpers would call each other
+#   mir::TerminatorKind::SwitchInt: 1
+#     1 a loop whose header does not exit on an order of naturals, so no measure is derived
+#   mir::Ty: 278
 #     7 A0
 #     3 T
 #     50 core::fmt::rt::Argument<'_>
@@ -195,11 +202,12 @@
 #     5 std::collections::BTreeSet<lift::Ty>
 #     1 std::collections::btree_map::Entry<'_, std::string::String, usize>
 #     2 std::collections::btree_map::Iter<'_, std::string::String, register::Row>
+#     1 std::collections::btree_map::Keys<'_, std::string::String, layouts::TypeLayout>
 #     1 std::fmt::Formatter<'_>
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2540:21: 2540:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2710:21: 2710:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -211,12 +219,13 @@
 #     1 std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/lift.rs:5241:53: 5241:56}>
 #     1 std::iter::Rev<std::slice::Iter<'_, std::string::String>>
 #     1 std::iter::Rev<std::vec::IntoIter<(std::string::String, std::string::String, std::string::String)>>
-#     3 std::num::ParseIntError
+#     5 std::num::ParseIntError
 #     1 std::ops::Range<usize>
-#     3 std::ops::RangeFrom<usize>
-#     2 std::ops::RangeFull
+#     4 std::ops::RangeFrom<usize>
+#     3 std::ops::RangeFull
 #     5 std::ops::RangeTo<usize>
 #     7 std::path::Path
+#     1 std::path::PathBuf
 #     1 std::process::Command
 #     3 std::slice::Iter<'_, &ast::RustExpr>
 #     1 std::slice::Iter<'_, (&ast::Pat, lift::Body<'_>)>
@@ -228,12 +237,13 @@
 #     1 std::slice::Iter<'_, ast::GenericParam>
 #     4 std::slice::Iter<'_, ast::RustExpr>
 #     5 std::slice::Iter<'_, ast::Stmt>
+#     2 std::slice::Iter<'_, layouts::Node>
 #     1 std::slice::Iter<'_, lex::Decl>
 #     1 std::slice::Iter<'_, lift::Cell<'_>>
 #     4 std::slice::Iter<'_, lift::Ty>
 #     1 std::slice::Iter<'_, wf::Node>
-#     4 std::str::CharIndices<'_>
-#     10 std::str::Chars<'_>
+#     5 std::str::CharIndices<'_>
+#     11 std::str::Chars<'_>
 #     6 std::str::Lines<'_>
 #     1 std::str::MatchIndices<'_, &str>
 #     1 std::str::RSplit<'_, &str>
@@ -243,7 +253,7 @@
 #     1 std::str::Utf8Error
 #     2 syn::parse::ParseBuffer<'_>
 #     4 toml::Value
-#   type: 107
+#   type: 110
 # MIR kinds at toolchain 1.97.1: 81 of 118 lowered; every other kind is a
 # residue row that names it.
 #   StatementKind::Assign: lowered: the local holds the rvalue's value; a write through a projection is residue
@@ -644,7 +654,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "89d668b0b124e7f1d221d18c28b6add66663f55f8e0e230387c9f2a9d00b0d8e"
+kappa = "df716b38cb9fae2a509f56d6b0dbf3c2b6f161bbd88674ca28dc408fc12cd8f9"
 function = "uorust::embed::Cx<'_>::discriminant"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -674,7 +684,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "1655d7dc21cff068d37ae458804dfa53adbebe45dbc4b73bc997bf14f6f11a2f"
+kappa = "78a86b3cb6120678f5a3899d1f9399f3921108529e4155c4addeb5de92a7f003"
 function = "uorust::embed::Cx<'_>::layout"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -710,7 +720,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "156c4f6cdd52644e953da6cd9f0ae77f6eb29cc796e9053fe5d2f4eae90bc0e1"
+kappa = "862f9f4b93ea853df99dd1f007a4c22317a1c2bc4a961426edec6671dda7f302"
 function = "uorust::embed::Cx<'_>::read_cells"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -718,6 +728,24 @@ detail = "type outside the lift: Cx<'_>"
 [[residue]]
 kappa = "d3e9b66409cdb196e07836169b0cc0bd196655575a8555d56e695876585dbd41"
 function = "uorust::embed::Cx<'_>::reference_constant"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "d9ab6eb965bad23926c45c6440100da3338165119b915fcf1d9758731a3e8fd7"
+function = "uorust::embed::Cx<'_>::rustc_enumeration"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "5afa79247e16369d6d4437a94d34703ba8be5b5192d31efc3ccbfe1a83d9faa4"
+function = "uorust::embed::Cx<'_>::rustc_fields"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "d303f77e7ae08fc9253a8e73cb2b879b69ab32856e05f4d75e4e36cdea201a45"
+function = "uorust::embed::Cx<'_>::rustc_layout"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
@@ -899,7 +927,7 @@ detail = "mir::Ty: mir::core::CoreDecls"
 kappa = "5a23046ee6e579ed0c14a1fa3b845cd9c7e997d07804233c3fe101bf4cc65835"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2540:21: 2540:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2710:21: 2710:24}>"
 
 [[residue]]
 kappa = "9b06d1e71770a7c515754932ed1fa95b9b3c4fe0c9bf896ecf35b38885e93c62"
@@ -1002,6 +1030,12 @@ kappa = "17a424f776ea1b784ce2a4195f9ec71981d34703ed7642c7e1b78facb77f3ed1"
 function = "uorust::embed::resolve_callee"
 reason = "mir"
 detail = "mir::Ty: mir::link::CoreLink"
+
+[[residue]]
+kappa = "fd9e5a0a45388833ebd75d0fb12dd5519f5aaa410866a9969aac315724f94ed9"
+function = "uorust::embed::same_item"
+reason = "mir"
+detail = "mir::Ty: std::ops::RangeFrom<usize>"
 
 [[residue]]
 kappa = "ecc4e859f07eaae032fa4e2fc7218f83e798631140a801353305834972ed0ac6"
@@ -1164,6 +1198,144 @@ kappa = "2dbe7734b875e3c598b753fb87874c242a7216e33297130e35bafdb42927954d"
 function = "uorust::ingest::text"
 reason = "mir"
 detail = "mir::Ty: serde_json::Value"
+
+[[residue]]
+kappa = "5be2a8953d46b545cca31ca2c8701a293670078b27076e87761dd6c5ddb6ce22"
+function = "uorust::layouts::Index::get"
+reason = "mir"
+detail = "mir::Operand::Constant: the constant item std::string::String::as_str"
+
+[[residue]]
+kappa = "6d2b12da57037f6398c34685ed9eabcd948b7486ef24c10da9dbbc40ff08a244"
+function = "uorust::layouts::Index::new"
+reason = "mir"
+detail = "mir::Ty: std::collections::btree_map::Keys<'_, std::string::String, layouts::TypeLayout>"
+
+[[residue]]
+kappa = "e1c2651c1661429c992be335d0015f149b341e09517cfdef81b5167ee9160274"
+function = "uorust::layouts::aggregates"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: std::option::Option::and_then"
+
+[[residue]]
+kappa = "6b837851a5a6b9c8f788b4608a1f878cc1bdb7c6f25adf2098ac8e9438acb4d3"
+function = "uorust::layouts::diagnostics"
+reason = "mir"
+detail = "mir::Ty: std::path::PathBuf"
+
+[[residue]]
+kappa = "67ae6c7bfc68df5ad8addd93cfddc4351ddb84812d0bc55ef41822eef8547a6c"
+function = "uorust::layouts::field_text"
+reason = "mir"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
+
+[[residue]]
+kappa = "af4224d32f1578d566e988957c9adf99273aac76523c9aa132c125b1a9e2f328"
+function = "uorust::layouts::home_of"
+reason = "mir"
+detail = "mir::Ty: std::ops::RangeFull"
+
+[[residue]]
+kappa = "38f2bb84aedb7a1fd2ee3d43fdfe7585404f12fc0f5803385dded4ec6ed114ae"
+function = "uorust::layouts::last"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: uorust::embed::generic_parts, whose translation is not admitted"
+
+[[residue]]
+kappa = "4b089070743e56733f7a1996a9fc39de6c74122fdd92ca0d6e2e37cb5522c1cb"
+function = "uorust::layouts::nat"
+reason = "mir"
+detail = "mir::Ty: std::num::ParseIntError"
+
+[[residue]]
+kappa = "e97cf4b36189c890392b47a05247e8431f061e4414905acb50eeacec967e9d58"
+function = "uorust::layouts::offsets_of"
+reason = "mir"
+detail = "mir::Ty: std::slice::Iter<'_, layouts::Node>"
+
+[[residue]]
+kappa = "98e64ca9c58ac255517d4bff5457a9d6b09300c7d091e8080e80e969999d0711"
+function = "uorust::layouts::parse"
+reason = "mir"
+detail = "mir::Ty: std::str::Chars<'_>"
+
+[[residue]]
+kappa = "7a07bb946aab2fae60625be0874875ea4e157c0f951117c9245d1b9e7bfa3daa"
+function = "uorust::layouts::prim"
+reason = "mir"
+detail = "mir::Ty: std::num::ParseIntError"
+
+[[residue]]
+kappa = "95e5129bb1271e65686b83b407641901b584e469c3ed699f55a60b83c749f37e"
+function = "uorust::layouts::range"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: core::str::<impl str>::split_once"
+
+[[residue]]
+kappa = "a9c133cf4d03c7e9218c284a40507d94ae2146c01fa43df092f09d439038c6d2"
+function = "uorust::layouts::same_type"
+reason = "mir"
+detail = "mir::AggregateKind::Closure: layouts::same_type::{closure#0}: type outside the lift: std::str::SplitWhitespace<'_>"
+
+[[residue]]
+kappa = "24b1c5ee514551490e3d94b9714e43f60a537cf865d9180bb76c0569f8b0138a"
+function = "uorust::layouts::scalar_of"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: uorust::layouts::prim, whose translation is not admitted"
+
+[[residue]]
+kappa = "5941b1dd7d2eb4142e6fb58882b54f75665db7a64befe6e8997431b8995c8f88"
+function = "uorust::layouts::skip"
+reason = "mir"
+detail = "mir::AggregateKind::Closure: layouts::skip::{closure#0}: mir::TerminatorKind::Call: std::char::methods::<impl char>::is_whitespace"
+
+[[residue]]
+kappa = "20e666e7745c69a5f3ffdaf8eee5a9223f8f5fcd56cad10693db7f009df34b4f"
+function = "uorust::layouts::source"
+reason = "mir"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
+
+[[residue]]
+kappa = "38d305210ea248470295394b864581062d8e915bddfddb3c5e3775b5a2193ea6"
+function = "uorust::layouts::static_lifetimes"
+reason = "mir"
+detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
+
+[[residue]]
+kappa = "af3d00823b43e014ecedc3420741dc8ee9475cf64302cbadaf4d237358c199a9"
+function = "uorust::layouts::top_split"
+reason = "mir"
+detail = "mir::Ty: std::str::CharIndices<'_>"
+
+[[residue]]
+kappa = "81c73c7ef8b69fa13b4978c85ef56e6b01857f7ae59c2ade3f6a5b270d6c36a9"
+function = "uorust::layouts::type_layout"
+reason = "mir"
+detail = "mir::Ty: std::slice::Iter<'_, layouts::Node>"
+
+[[residue]]
+kappa = "d9d38b65d6c4025785131c5b05763c97ae87c09cf76fc91535756177167dc409"
+function = "uorust::layouts::unwrap_ranges"
+reason = "mir"
+detail = "mir::Rvalue::Discriminant: a discriminant read as a value"
+
+[[residue]]
+kappa = "b0ef903f99a71c8a70516a2e73a1859e560a09ab7f18155c4a0f66984ab6f9d1"
+function = "uorust::layouts::value"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: <std::option::Option as std::cmp::PartialEq>::eq"
+
+[[residue]]
+kappa = "0d1e6ffc4847c67d3540ceff9069dcac558857eb4525b472d7b0095e187ff50f"
+function = "uorust::layouts::values"
+reason = "mir"
+detail = "mir::TerminatorKind::SwitchInt: a loop whose header does not exit on an order of naturals, so no measure is derived"
+
+[[residue]]
+kappa = "046c4093889459e277caadf137f62e7a4296b5423c5a6a1a54c91dda18f91c05"
+function = "uorust::layouts::word"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: std::option::Option::is_some_and"
 
 [[residue]]
 kappa = "38c5afdcc3f26b57bea6edbfa28fd9ec804df82c77627f5c7b7b81fcd092df37"
@@ -3743,7 +3915,7 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "a52e07bf3cf71f0bb47d0620049df5db15379922c1410a447a682b7af77a6e4c"
 function = "uorust::mir::stdlib::table"
 reason = "mir"
-detail = "mir::Operand::Constant: {alloc856: &std::sync::OnceLock<mir::stdlib::StdTable>}"
+detail = "mir::Operand::Constant: {alloc920: &std::sync::OnceLock<mir::stdlib::StdTable>}"
 
 [[residue]]
 kappa = "47bcab9e837dab29d1ea09c2762342c564778078ae7bdca12f4b27fa4c7b36f1"
@@ -4627,7 +4799,7 @@ function = "uorust::embed::embed"
 effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "5755a8a513a093b20c4542214766450db3ff43d4c27dacdb418f8c76e6dc4dc8"
+kappa = "10fe710e217e0677f1bee1aa118fef855fc32ce793edc78ec6d2d542b0729419"
 function = "uorust::embed::embed_census"
 effect = "Fs effect: Path::is_dir"
 
@@ -4692,6 +4864,31 @@ function = "uorust::ingest::workspace"
 effect = "Fs effect: Path::canonicalize"
 
 [[effect]]
+kappa = "22f9cc59420432939ae68ac60b47c9573b1f5f4ac48a01450c58a9021a3d556c"
+function = "uorust::layouts::associated"
+effect = "Fs effect: Path::is_dir"
+
+[[effect]]
+kappa = "408e289c9452329f34138ca1eb20f6805f32e316914990fafc8e06dc6b45b45e"
+function = "uorust::layouts::dumped_types"
+effect = "Fs effect: Path::is_dir"
+
+[[effect]]
+kappa = "6560feee5d9974076e30bd0dbd6420f55e0532efd3308d69abeede8418271b9f"
+function = "uorust::layouts::load"
+effect = "Fs effect: Path::exists"
+
+[[effect]]
+kappa = "f10b1daf7a408361660878167eabb85cb87ab61d80757433b935a9fd429cce6c"
+function = "uorust::layouts::module_file"
+effect = "Fs effect: Path::is_file"
+
+[[effect]]
+kappa = "672b365e1165ca4e27671f2e6ac6539a656131aa9d2b434fae8eba46429c6cc2"
+function = "uorust::layouts::run"
+effect = "Fs effect: std::fs::canonicalize"
+
+[[effect]]
 kappa = "8d091e5d4261e7af76b4b0732d9e4ac2fdc3ca22d1e28d381fc120fc45ef931d"
 function = "uorust::library"
 effect = "calls uorust::mir::core::census, which performs a Fs effect: Path::is_dir"
@@ -4727,7 +4924,7 @@ function = "uorust::mir::core::impl_const_types"
 effect = "calls uorust::mir::impl_header, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "e356d580fafc579bd66a5932549436518ce5c404b4701a9c2ebb613da6db3b3e"
+kappa = "9325856b3f330e2c65c11d27854b7ed31b9f65e06bd7043365edd74c7f3daa0d"
 function = "uorust::mir::core::shard"
 effect = "calls uorust::mir::float::formats, which performs a Fs effect: std::fs::read_dir"
 
@@ -4882,7 +5079,7 @@ function = "uorust::registry::lift_crate"
 effect = "Env effect: std::env::temp_dir"
 
 [[effect]]
-kappa = "397082ef035cbbc24ba18a2ccb9105804b5dea2255e31ece82bdce99346a3c28"
+kappa = "664663419476aa8624140c49d234863fd40df97756427f9cab912ae09568513e"
 function = "uorust::run"
 effect = "calls uorust::embed::embed, which reaches an effect"
 
@@ -5230,6 +5427,31 @@ definition = "Behavior::tidy"
 kappa = "62622d1e39da16c63b915e6fa9fc22d68123ef7183d734703ee8e3b4cf927478"
 function = "uorust::is_timestamp"
 definition = "Behavior::isTimestamp"
+
+[[lifted]]
+kappa = "ed79b023e3fabaa38847c2ffcf2f95a3041f82b65cb82537de5d8ddf21cc24d5"
+function = "uorust::layouts::Node::args"
+definition = "Behavior::uorustLayoutsNodeArgs"
+
+[[lifted]]
+kappa = "7ceb81b8805506aac9f02d5c6a3a0d14b34bf8b3ef3f28e5fdb4bc44ae5b2cb5"
+function = "uorust::layouts::Node::field"
+definition = "Behavior::uorustLayoutsNodeField"
+
+[[lifted]]
+kappa = "f16253567f4da8c906adc021cb95ffae6b4870fb544aa69ccfa4e8c3c2f3f0ee"
+function = "uorust::layouts::Node::name"
+definition = "Behavior::uorustLayoutsNodeName"
+
+[[lifted]]
+kappa = "af22426557bd73192f19f1e8c3d3c523622af29b6ec85cf4c71b3524560b7f8f"
+function = "uorust::layouts::Node::word"
+definition = "Behavior::uorustLayoutsNodeWord"
+
+[[lifted]]
+kappa = "590e781af86bbf7a0f2014b4e0b4369722c9b65abb33423e5f1f000fcedd9d2f"
+function = "uorust::layouts::size"
+definition = "Behavior::size"
 
 [[lifted]]
 kappa = "52527437ea714a95f547644de401bb6603f142187ac984e18bfac06bb08a55ae"
@@ -6274,12 +6496,12 @@ definition = "Behavior::route"
 [[lifted]]
 kappa = "bb8790e98359d1bfdb5db755241b9392c784d998939a1f02e672a3a866f773f0"
 function = "uorust::wf::Node::text"
-definition = "Behavior::nodeText"
+definition = "Behavior::uorustWfNodeText"
 
 [[lifted]]
 kappa = "612b63dbfdb635bb04ced762574468e0f5a3d4300cea7b2556400b3d68f7d788"
 function = "uorust::wf::Node::word"
-definition = "Behavior::nodeWord"
+definition = "Behavior::uorustWfNodeWord"
 
 [[lifted]]
 kappa = "81f22d6b094c7fca358619595fd44b522a6ca8352260a52d9343a70f66b863a6"
