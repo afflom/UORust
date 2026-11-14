@@ -267,6 +267,30 @@ pub(crate) fn allocations(text: &str) -> BTreeMap<String, Vec<u8>> {
     out
 }
 
+/// A list term of items of type `ty`. A long list is the `append` of runs
+/// of about its length's square root, so neither a run nor the appends nest
+/// deeper than that however long it grows: the linker reads a term to a
+/// bounded depth.
+pub(crate) fn term_list(items: &[String], ty: &str) -> String {
+    let chain = |part: &[String]| {
+        let mut out = format!("(nil {ty})");
+        for item in part.iter().rev() {
+            out = format!("(cons {item} {out})");
+        }
+        out
+    };
+    let run = items.len().isqrt() + 1;
+    if items.len() <= run {
+        return chain(items);
+    }
+    let runs: Vec<String> = items.chunks(run).map(chain).collect();
+    let mut out = runs.last().cloned().unwrap_or_default();
+    for r in runs.iter().rev().skip(1) {
+        out = format!("(prim append {r} {out} : (List {ty}))");
+    }
+    out
+}
+
 /// The width and signedness of an integer type as MIR prints it: `u8`,
 /// `i128`, `usize` (the target's pointer width).
 fn int_ty(printed: &str, width: u32) -> Option<(u32, bool)> {
@@ -423,7 +447,7 @@ impl Cx<'_> {
             "(record {} {{base := {}, projection := {}}})",
             mir_name("Place"),
             p.local,
-            crate::lex::term_list(&steps, &mir_name("Proj"))
+            term_list(&steps, &mir_name("Proj"))
         )
     }
 
@@ -508,7 +532,7 @@ impl Cx<'_> {
                     .collect();
                 Some(mir_ctor(
                     "Value.tuple",
-                    &[crate::lex::term_list(&items, &mir_name("Value"))],
+                    &[term_list(&items, &mir_name("Value"))],
                 ))
             }
         }
@@ -531,10 +555,7 @@ impl Cx<'_> {
                 )
             })
             .collect();
-        mir_ctor(
-            "Value.tuple",
-            &[crate::lex::term_list(&items, &mir_name("Value"))],
-        )
+        mir_ctor("Value.tuple", &[term_list(&items, &mir_name("Value"))])
     }
 
     /// A constant the evaluator does not read: the construct it answers
@@ -577,7 +598,7 @@ impl Cx<'_> {
         e: &mut Embedded,
     ) -> String {
         let terms: Vec<String> = ops.into_iter().map(|o| self.operand(o, e)).collect();
-        crate::lex::term_list(&terms, &mir_name("Operand"))
+        term_list(&terms, &mir_name("Operand"))
     }
 
     /// An rvalue assigned to a place of type `dest`.
@@ -707,7 +728,7 @@ impl Cx<'_> {
                         "Rvalue.aggregate",
                         &[
                             mir_ctor("Agg.adt", &[mir_string(&v), signed(d)]),
-                            crate::lex::term_list(&[], &mir_name("Operand")),
+                            term_list(&[], &mir_name("Operand")),
                         ],
                     ),
                 )
@@ -799,7 +820,7 @@ impl Cx<'_> {
                         "Terminator.switch",
                         &[
                             self.operand(o, e),
-                            crate::lex::term_list(&arms, &mir_name("Arm")),
+                            term_list(&arms, &mir_name("Arm")),
                             otherwise.to_string(),
                         ],
                     ),
@@ -963,7 +984,7 @@ impl Cx<'_> {
                 format!(
                     "(record {} {{statements := {}, terminator := {}}})",
                     mir_name("Block"),
-                    crate::lex::term_list(&statements, &mir_name("Statement")),
+                    term_list(&statements, &mir_name("Statement")),
                     self.terminator(&block.terminator, b, e)
                 )
             })
@@ -973,8 +994,8 @@ impl Cx<'_> {
             mir_name("Body"),
             mir_string(path),
             b.arity,
-            crate::lex::term_list(&locals, &mir_name("Ty")),
-            crate::lex::term_list(&blocks, &mir_name("Block"))
+            term_list(&locals, &mir_name("Ty")),
+            term_list(&blocks, &mir_name("Block"))
         );
         e
     }
@@ -1613,7 +1634,7 @@ fn differential(
                 "theorem{{\n  name: {theorem},\n  parameters: [],\n  statement: ((Mir::evaluate {} (p{name}) {} {}) = {}),\n  proof: reflexivity{{}}\n}}",
                 fuel(program, s),
                 mir_string(&s.key),
-                crate::lex::term_list(&args, &mir_name("Value")),
+                term_list(&args, &mir_name("Value")),
                 mir_ctor("Outcome.returned", &[expected])
             ));
         }
@@ -1651,7 +1672,7 @@ fn differential(
             "definition{{\n  name: p{name},\n  parameters: [],\n  result: {},\n  body: (record {} {{bodies := {}, dictionary := (nil {}), ubChecks := {debug}, contractChecks := false, overflowChecks := {overflow}, pointerWidth := {}}})\n}}",
             mir_name("Program"),
             mir_name("Program"),
-            crate::lex::term_list(&bodies, &mir_name("Body")),
+            term_list(&bodies, &mir_name("Body")),
             mir_name("Binding"),
             program.width
         ));
@@ -1970,7 +1991,7 @@ mod tests {
     #[test]
     fn a_long_list_nests_no_deeper_than_its_root_ue_19() {
         let items: Vec<String> = (0..10_000).map(|i| i.to_string()).collect();
-        let term = crate::lex::term_list(&items, "Nat");
+        let term = term_list(&items, "Nat");
         let (mut depth, mut deepest) = (0usize, 0usize);
         for c in term.chars() {
             match c {

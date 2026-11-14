@@ -29,7 +29,7 @@ repin = "template-update"
 
 [[patch]]
 id = "prismpm-threat-model-appended-lists"
-what = "The SDK is ghcr.io/afflom/prismpm-sdk-patched@sha256:21ac51c7c8027566e52566f3c6cd4c699a5468f422f01907cd2307f9c3e0b352 (sdk-patch.yml at PrismPM b9b7cdb, the pinned SDK commit plus the fix): prismpm check reads a threat-model list literal written as balanced appends. With it pinned (template-update proposes the pin), the self-projection writes each control's evidence list as lex::term_list does (crates/uorust/src/project.rs), within the LexLean linker's JSON nesting limit however many sites a control lists; until then that list is a cons chain, and the count of reviewed sites is the ceiling."
+what = "The SDK is ghcr.io/afflom/prismpm-sdk-patched@sha256:21ac51c7c8027566e52566f3c6cd4c699a5468f422f01907cd2307f9c3e0b352 (sdk-patch.yml at PrismPM b9b7cdb, the pinned SDK commit plus the fix): prismpm check reads a threat-model list literal written as balanced appends. The self-projection writes each control's evidence list that way (crates/uorust/src/project.rs, embed::term_list), so the LexLean linker's JSON nesting limit does not bound how many sites a control lists."
 pinned = "prismpm.lock, .devcontainer/devcontainer.json, template.lock"
 repository = "UOR-Foundation/PrismPM"
 pull = 673

@@ -2621,7 +2621,7 @@ fn security(ctx: &Model, options: &Options) -> Module {
                 )
             })
             .collect();
-        let evidence = crate::lex::term_list(&items, &format!("{tm}Evidence"));
+        let evidence = crate::embed::term_list(&items, &format!("{tm}Evidence"));
         decls.push(Decl::value(
             format!("modeled{}", pascal(&[local(id)])),
             format!("{tm}ModeledControl"),
