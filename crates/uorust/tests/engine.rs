@@ -1649,8 +1649,7 @@ fn every_core_body_is_embedded_ue_19() {
         &fixture.join("mir"),
         &out,
         &[],
-        None,
-        None,
+        &uorust::embed::Outputs::default(),
     );
     assert!(
         matches!(refused, Err(UorustError::Malformed { .. })),
@@ -1675,8 +1674,10 @@ fn every_core_body_is_embedded_ue_19() {
         &dumps,
         &out,
         &[],
-        Some(&harness),
-        None,
+        &uorust::embed::Outputs {
+            harness: Some(&harness),
+            ..Default::default()
+        },
     )
     .expect("the embedding");
     assert_eq!(census.bodies, 4);

@@ -226,7 +226,7 @@ inductive{
   name: Generic,
   type_parameters: [],
   parameters: [],
-  constructors: [{name: layout, fields: [Layout]}, {name: count, fields: [Nat]}, {name: slot, fields: [Nat]}, {name: unknown, fields: [String]}]
+  constructors: [{name: layout, fields: [Layout]}, {name: aligned, fields: [Layout, Nat]}, {name: count, fields: [Nat]}, {name: slot, fields: [Nat]}, {name: unknown, fields: [String]}]
 }
 
 inductive{
@@ -305,7 +305,9 @@ inductive{
     {name: writeBytes, fields: [Generic]},
     {name: instance, fields: [String, (List Generic)]},
     {name: sizeOf, fields: [Generic]},
-    {name: convert, fields: [Ty, Ty]}
+    {name: convert, fields: [Ty, Ty]},
+    {name: float, fields: [Nat, Nat, String]},
+    {name: layoutQuery, fields: [String, Generic]}
   ]
 }
 
@@ -1355,6 +1357,7 @@ definition{
   result: Generic,
   body: (match generic
     | Generic.layout layout => generic
+    | Generic.aligned layout align => generic
     | Generic.count count => generic
     | Generic.slot index => (match frames
       | List.nil => (ctor Generic.unknown "a generic argument with no frame")
@@ -1378,6 +1381,7 @@ definition{
   result: (Option Layout),
   body: (match (resolveGeneric frames generic)
     | Generic.layout layout => (ctor Option.some [Layout] layout)
+    | Generic.aligned layout align => (ctor Option.some [Layout] layout)
     | Generic.count count => (ctor Option.none [Layout])
     | Generic.slot index => (ctor Option.none [Layout])
     | Generic.unknown text => (ctor Option.none [Layout]))
@@ -1389,7 +1393,20 @@ definition{
   result: (Option Nat),
   body: (match (resolveGeneric frames generic)
     | Generic.layout layout => (ctor Option.none [Nat])
+    | Generic.aligned layout align => (ctor Option.none [Nat])
     | Generic.count count => (ctor Option.some [Nat] count)
+    | Generic.slot index => (ctor Option.none [Nat])
+    | Generic.unknown text => (ctor Option.none [Nat]))
+}
+
+definition{
+  name: genericAlign,
+  parameters: [frames : (List Frame), generic : Generic],
+  result: (Option Nat),
+  body: (match (resolveGeneric frames generic)
+    | Generic.layout layout => (ctor Option.none [Nat])
+    | Generic.aligned layout align => (ctor Option.some [Nat] align)
+    | Generic.count count => (ctor Option.none [Nat])
     | Generic.slot index => (ctor Option.none [Nat])
     | Generic.unknown text => (ctor Option.none [Nat]))
 }
@@ -2604,6 +2621,25 @@ definition{
 }
 
 definition{
+  name: floatIntrinsic,
+  parameters: [e : Nat, m : Nat, op : String, values : (List Value)],
+  result: (Option Nat),
+  body: (match values
+    | List.nil => (ctor Option.none [Nat])
+    | List.cons a rest => (match (floatBitsOf a)
+      | Option.none => (ctor Option.none [Nat])
+      | Option.some x => (if (prim equal op "fabs" : Bool) then (ctor Option.some [Nat] (Prelude::floatAbs e m x)) else (if (prim equal op "sqrt" : Bool) then (ctor Option.some [Nat] (Prelude::floatSqrt e m x)) else (if (prim equal op "trunc" : Bool) then (ctor Option.some [Nat] (Prelude::floatTrunc e m x)) else (if (prim equal op "floor" : Bool) then (ctor Option.some [Nat] (Prelude::floatFloor e m x)) else (if (prim equal op "ceil" : Bool) then (ctor Option.some [Nat] (Prelude::floatCeil e m x)) else (if (prim equal op "round" : Bool) then (ctor Option.some [Nat] (Prelude::floatRoundHalfAway e m x)) else (if (prim equal op "round_ties_even" : Bool) then (ctor Option.some [Nat] (Prelude::floatRoundTiesEven e m x)) else (match rest
+        | List.nil => (ctor Option.none [Nat])
+        | List.cons b more => (match (floatBitsOf b)
+          | Option.none => (ctor Option.none [Nat])
+          | Option.some y => (if (prim equal op "copysign" : Bool) then (ctor Option.some [Nat] (Prelude::floatCopySign e m x y)) else (if (prim equal op "fadd_algebraic" : Bool) then (ctor Option.some [Nat] (Prelude::floatAdd e m x y)) else (if (prim equal op "fsub_algebraic" : Bool) then (ctor Option.some [Nat] (Prelude::floatSub e m x y)) else (if (prim equal op "fmul_algebraic" : Bool) then (ctor Option.some [Nat] (Prelude::floatMul e m x y)) else (if (prim equal op "fdiv_algebraic" : Bool) then (ctor Option.some [Nat] (Prelude::floatDiv e m x y)) else (if (prim equal op "frem_algebraic" : Bool) then (ctor Option.some [Nat] (Prelude::floatRem e m x y)) else (match more
+            | List.nil => (ctor Option.none [Nat])
+            | List.cons c others => (match (floatBitsOf c)
+              | Option.none => (ctor Option.none [Nat])
+              | Option.some z => (if (prim equal op "fma" : Bool) then (ctor Option.some [Nat] (Prelude::floatFma e m x y z)) else (ctor Option.none [Nat])))))))))))))))))))))
+}
+
+definition{
   name: evalCall,
   parameters: [
     fuel : Nat,
@@ -2642,6 +2678,16 @@ definition{
     | Callee.constant path generics => (match (findBody (project program bodies) path)
       | Option.none => (ctor Outcome.unlinked path)
       | Option.some item => (ctor Outcome.running (cons (enterFrame item (nil Value) destination target true (resolveGenerics frames generics)) frames)))
+    | Callee.layoutQuery query generic => (if (prim equal query "align_of" : Bool) then (match (genericAlign frames generic)
+      | Option.none => (ctor Outcome.undefined "a generic argument whose alignment the layout table does not hold")
+      | Option.some align => (finishCall frames destination target (ctor Value.int (project program pointerWidth) false align))) else (if (prim equal query "assert_inhabited" : Bool) then (match (genericLayout frames generic)
+      | Option.none => (ctor Outcome.undefined "a generic argument whose layout the layout table does not hold")
+      | Option.some layout => (finishCall frames destination target (ctor Value.unit))) else (ctor Outcome.unlinked query)))
+    | Callee.float e m op => (match (evalOperands program frames args)
+      | EvaluatedList.stop outcome => outcome
+      | EvaluatedList.found values => (match (floatIntrinsic e m op values)
+        | Option.none => (ctor Outcome.ub "a float intrinsic of a value that is not a float")
+        | Option.some bits => (finishCall frames destination target (floatValue e m bits))))
     | Callee.convert source target2 => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
       | EvaluatedList.found values => (match values

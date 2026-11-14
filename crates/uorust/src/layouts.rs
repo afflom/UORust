@@ -90,6 +90,10 @@ pub(crate) struct TypeLayout {
     /// struct's or a tuple's fields, or each variant's of an enum.
     #[serde(default)]
     pub fields: Vec<Vec<Option<String>>>,
+    /// Whether rustc finds the type uninhabited (`uninhabited: true`): no
+    /// value is of it.
+    #[serde(default)]
+    pub uninhabited: bool,
 }
 
 /// What the dump step keeps: each layout by the type as rustc prints it,
@@ -435,6 +439,7 @@ fn type_layout(n: &Node) -> Option<TypeLayout> {
         single,
         tag,
         fields: Vec::new(),
+        uninhabited: n.field("uninhabited").and_then(Node::word) == Some("true"),
     })
 }
 

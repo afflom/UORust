@@ -26,7 +26,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 /// An IEEE 754 binary interchange format.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Format {
     /// The exponent field's width.
     pub(crate) exp: u32,

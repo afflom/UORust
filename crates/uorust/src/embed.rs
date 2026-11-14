@@ -425,6 +425,32 @@ pub(crate) fn defined_intrinsics() -> &'static BTreeSet<String> {
     })
 }
 
+/// The float intrinsics the evaluator defines by their operation
+/// (`floatIntrinsic`): an intrinsic named for one float type (`sqrtf32`,
+/// `round_ties_even_f64`) is its operation at that type's format, as is a
+/// generic one (`fabs::<f32>`).
+pub(crate) fn defined_float_intrinsics() -> &'static BTreeSet<String> {
+    static READ: std::sync::OnceLock<BTreeSet<String>> = std::sync::OnceLock::new();
+    READ.get_or_init(|| scraped("(prim equal op \""))
+}
+
+/// The intrinsics of a type argument's layout the evaluator defines
+/// (`layoutQuery`).
+pub(crate) fn defined_layout_queries() -> &'static BTreeSet<String> {
+    static READ: std::sync::OnceLock<BTreeSet<String>> = std::sync::OnceLock::new();
+    READ.get_or_init(|| scraped("(prim equal query \""))
+}
+
+fn scraped(needle: &str) -> BTreeSet<String> {
+    SEMANTICS
+        .match_indices(needle)
+        .filter_map(|(at, _)| {
+            let rest = &SEMANTICS[at + needle.len()..];
+            rest.find('"').map(|end| rest[..end].to_string())
+        })
+        .collect()
+}
+
 /// An intrinsic by its name: rustc names an intrinsic by its item's name,
 /// whatever crate's path a call prints it by.
 fn intrinsic_name(path: &str) -> String {
@@ -799,6 +825,25 @@ impl Cx<'_> {
         self.floats.get(ty.trim()).copied()
     }
 
+    /// A call of the float intrinsic `path` on `args`: the format of its
+    /// first argument's float type, and its operation, the intrinsic's name
+    /// less that type's suffix, where the evaluator defines it.
+    fn float_intrinsic(
+        &self,
+        path: &str,
+        args: &[IrOperand],
+    ) -> Option<(crate::mir::float::Format, String)> {
+        let ty = self.operand_ty(args.first()?)?;
+        let format = self.float(&ty)?;
+        let name = intrinsic_name(path);
+        let op = name
+            .strip_suffix(ty.trim())
+            .map_or(name.as_str(), |s| s.trim_end_matches('_'));
+        defined_float_intrinsics()
+            .contains(op)
+            .then(|| (format, op.to_string()))
+    }
+
     /// The type MIR prints of an operand, where it does: a local's, each
     /// projection's (a field's type, a pointer's pointee, an array's or a
     /// slice's element), or a literal's suffix.
@@ -943,6 +988,11 @@ impl Cx<'_> {
     fn layout(&self, ty: &str, depth: usize) -> Option<Laid> {
         let ty = ty.trim();
         let depth = depth.checked_sub(1)?;
+        // A type rustc finds uninhabited has no layout of the table: every
+        // layout the evaluator is given is of a type some value is of.
+        if self.layouts.get(ty).is_some_and(|(_, l)| l.uninhabited) {
+            return None;
+        }
         let laid = |term: String, size: u64| Laid {
             term,
             size,
@@ -1120,7 +1170,8 @@ impl Cx<'_> {
                 .get(name)?
                 .iter()
                 .find(|(p, _)| *p == decl.path)?;
-            if found.1.len() != variants.len() {
+            // An enum of no variant is uninhabited: no layout of the table.
+            if found.1.len() != variants.len() || variants.is_empty() {
                 return None;
             }
             let names: Vec<String> = found.1.iter().map(|(v, _)| mir_string(v)).collect();
@@ -1435,12 +1486,22 @@ impl Cx<'_> {
     /// and assumes no pointer's size, or, where `ty` names a generic
     /// parameter, the slot its instance's fills.
     fn generic_layout(&self, ty: &str) -> Option<String> {
-        if let Some(l) = self.layout(ty, layout_depth(self.structs)) {
-            if l.assumed.is_none() {
-                return Some(mir_ctor("Generic.layout", &[l.term]));
-            }
+        if let Some(g) = self.fixed_layout(ty) {
+            return Some(g);
         }
         (!self.parameters(ty).is_empty()).then(|| self.slot(Slot::Layout(ty.trim().to_string())))
+    }
+
+    /// The `Generic` of a type whose layout is read and assumes no
+    /// pointer's size: with its alignment where rustc's layout of it gives
+    /// one (`Generic.aligned`).
+    pub(crate) fn fixed_layout(&self, ty: &str) -> Option<String> {
+        let l = self.layout(ty, layout_depth(self.structs))?;
+        l.assumed.is_none().then_some(())?;
+        Some(match self.layouts.get(ty.trim()) {
+            Some((_, rustc)) => mir_ctor("Generic.aligned", &[l.term, rustc.align.to_string()]),
+            None => mir_ctor("Generic.layout", &[l.term]),
+        })
     }
 
     /// The `Generic` of a count MIR prints (`4_usize`, or a const
@@ -2222,6 +2283,19 @@ impl Cx<'_> {
                             let to = place_type(body, destination).unwrap_or_default();
                             mir_ctor("Callee.convert", &[self.ty(&from), self.ty(&to)])
                         }
+                        // A float intrinsic: its operation at its first
+                        // argument's float format.
+                        Callee::Intrinsic(p) if self.float_intrinsic(&p, args).is_some() => {
+                            let (format, op) = self.float_intrinsic(&p, args).unwrap_or_default();
+                            mir_ctor(
+                                "Callee.float",
+                                &[
+                                    format.exp.to_string(),
+                                    format.frac.to_string(),
+                                    mir_string(&op),
+                                ],
+                            )
+                        }
                         Callee::Intrinsic(p)
                             if matches!(
                                 intrinsic_name(&p).as_str(),
@@ -2255,6 +2329,23 @@ impl Cx<'_> {
                             mir_ctor(
                                 "Callee.sizeOf",
                                 &[self.generic_layout(&t).unwrap_or_default()],
+                            )
+                        }
+                        // `align_of::<T>`, `assert_inhabited::<T>`: a query
+                        // of its type argument's layout.
+                        Callee::Intrinsic(p)
+                            if defined_layout_queries().contains(&intrinsic_name(&p))
+                                && type_argument(callee)
+                                    .and_then(|t| self.generic_layout(&t))
+                                    .is_some() =>
+                        {
+                            let t = type_argument(callee).unwrap_or_default();
+                            mir_ctor(
+                                "Callee.layoutQuery",
+                                &[
+                                    mir_string(&intrinsic_name(&p)),
+                                    self.generic_layout(&t).unwrap_or_default(),
+                                ],
                             )
                         }
                         Callee::Intrinsic(p)
@@ -2723,11 +2814,26 @@ pub fn embed(
     dumps: &Path,
     out: &Path,
     only: &[String],
-    harness: Option<&Path>,
-    observed: Option<&Path>,
+    outputs: &Outputs<'_>,
 ) -> Result<EmbedCensus, UorustError> {
+    let Outputs {
+        harness,
+        observed,
+        register,
+    } = *outputs;
     let root = library.parent().unwrap_or(library);
     let (modules, census, program) = embed_census(krate, root, dumps, only)?;
+    if let Some(dir) = register {
+        for (module, bodies) in &modules {
+            let file = dir.join(format!("{module}.toml"));
+            if file.exists() {
+                let by_kappa: BTreeMap<&str, &Embedded> =
+                    bodies.iter().map(|(k, e)| (k.as_str(), e)).collect();
+                let text = stamp_rows(&read_text(&file)?, &by_kappa);
+                std::fs::write(&file, text).map_err(|e| crate::error::io(&file, e))?;
+            }
+        }
+    }
     let mut extra = BTreeMap::new();
     let mut index = None;
     if let Some(observed) = observed {
@@ -2748,6 +2854,70 @@ pub fn embed(
         replace_dir(dir, crate_files.as_ref())?;
     }
     Ok(census)
+}
+
+/// What `uorust embed` writes besides its project, where it is asked:
+/// the differential check's harness crate, the theorems of the harness's
+/// output, and each row's embedding on a register's module files.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Outputs<'a> {
+    /// The harness crate's directory.
+    pub harness: Option<&'a Path>,
+    /// The harness's output.
+    pub observed: Option<&'a Path>,
+    /// The register's module files to stamp.
+    pub register: Option<&'a Path>,
+}
+
+/// A register's module file with each row's embedding stamped on it by
+/// its κ: the digest of the body's term (`embedded`) and the constructs
+/// the evaluator does not define that it uses (`blocked`), in place of
+/// whatever the row recorded. A row whose κ the embedding has no body of
+/// records none.
+pub(crate) fn stamp_rows(text: &str, by_kappa: &BTreeMap<&str, &Embedded>) -> String {
+    let mut out = String::new();
+    let mut kappa: Option<String> = None;
+    let mut pending = false;
+    let stamp = |out: &mut String, kappa: &Option<String>| {
+        if let Some(e) = kappa.as_deref().and_then(|k| by_kappa.get(k)) {
+            let _ = writeln!(
+                out,
+                "embedded = \"{}\"",
+                crate::project::sha(e.term.as_bytes())
+            );
+            if !e.blocked.is_empty() {
+                let quoted: Vec<String> = e.blocked.iter().map(|b| census_string(b)).collect();
+                let _ = writeln!(out, "blocked = [{}]", quoted.join(", "));
+            }
+        }
+    };
+    for line in text.lines() {
+        if line.starts_with("embedded = ") || line.starts_with("blocked = ") {
+            continue;
+        }
+        // The stamp follows a row's κ and its span, as the register writes
+        // them (`write_register`).
+        if pending && !line.starts_with("at = ") {
+            stamp(&mut out, &kappa);
+            pending = false;
+        }
+        if line == "[[fn]]" {
+            kappa = None;
+        }
+        if let Some(k) = line
+            .strip_prefix("kappa = \"")
+            .and_then(|k| k.strip_suffix('"'))
+        {
+            kappa = Some(k.to_string());
+            pending = true;
+        }
+        out.push_str(line);
+        out.push('\n');
+    }
+    if pending {
+        stamp(&mut out, &kappa);
+    }
+    out
 }
 
 /// A file's text.
@@ -3510,9 +3680,7 @@ fn instances(
             Slot::Count(t) => (crate::mir::stdlib::substitute(t, bound), false),
         };
         let fixed = if layout {
-            cx.layout(&text, layout_depth(cx.structs))
-                .filter(|l| l.assumed.is_none())
-                .map(|l| mir_ctor("Generic.layout", &[l.term]))
+            cx.fixed_layout(&text)
         } else {
             count_value(&text).map(|n| mir_ctor("Generic.count", &[n.to_string()]))
         };
@@ -3861,6 +4029,28 @@ fn embed_census(
 
 #[cfg(test)]
 mod tests {
+    /// The embedding stamps each row by its κ, after its span, in place of
+    /// what the row recorded, and leaves a row it has no body of unstamped.
+    #[test]
+    fn stamps_each_row_by_its_kappa() {
+        let blocked = super::Embedded {
+            term: "t".into(),
+            blocked: ["intrinsic fabs".to_string()].into(),
+            ..Default::default()
+        };
+        let evaluable = super::Embedded {
+            term: "u".into(),
+            ..Default::default()
+        };
+        let by_kappa = [("a", &blocked), ("b", &evaluable)].into();
+        let text = "[[fn]]\npath = \"core::a\"\nkappa = \"a\"\nat = \"x\"\nembedded = \"old\"\nblocked = [\"CastKind::IntToFloat\"]\nstatus = \"residue\"\ncause = \"c\"\n\n[[fn]]\npath = \"core::b\"\nkappa = \"b\"\nstatus = \"translated\"\ndigest = \"d\"\n\n[[fn]]\npath = \"core::c\"\nkappa = \"c\"\nembedded = \"old\"\nstatus = \"translated\"\ndigest = \"d\"\n";
+        let (t, u) = (crate::project::sha(b"t"), crate::project::sha(b"u"));
+        assert_eq!(
+            super::stamp_rows(text, &by_kappa),
+            format!("[[fn]]\npath = \"core::a\"\nkappa = \"a\"\nat = \"x\"\nembedded = \"{t}\"\nblocked = [\"intrinsic fabs\"]\nstatus = \"residue\"\ncause = \"c\"\n\n[[fn]]\npath = \"core::b\"\nkappa = \"b\"\nembedded = \"{u}\"\nstatus = \"translated\"\ndigest = \"d\"\n\n[[fn]]\npath = \"core::c\"\nkappa = \"c\"\nstatus = \"translated\"\ndigest = \"d\"\n")
+        );
+    }
+
     #[test]
     fn reads_a_subslice() {
         assert_eq!(super::subslice("1:"), Some((1, 0, true)));

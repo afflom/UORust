@@ -216,6 +216,10 @@ struct EmbedArgs {
     /// what rustc's build returned, case by case.
     #[arg(long)]
     observed: Option<PathBuf>,
+    /// A register's module files to stamp each row's embedding on, by κ:
+    /// the census the merge sums is the evaluator's own.
+    #[arg(long)]
+    register: Option<PathBuf>,
 }
 
 #[derive(clap::Args)]
@@ -381,8 +385,11 @@ fn run(cli: Cli) -> Result<(), UorustError> {
                 &args.mir,
                 &args.out,
                 &args.only,
-                args.harness.as_deref(),
-                args.observed.as_deref(),
+                &uorust::embed::Outputs {
+                    harness: args.harness.as_deref(),
+                    observed: args.observed.as_deref(),
+                    register: args.register.as_deref(),
+                },
             )?;
             println!(
                 "embed: {} bodies embedded, {} of them evaluable; project in {}",

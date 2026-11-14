@@ -10,7 +10,7 @@
 //! the body uses it. A body over a const parameter is residue until its
 //! instantiations are drawn from its uses.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
@@ -216,55 +216,13 @@ pub(crate) fn shard(
     let krate = scope.krate.as_str();
     // Each body at its instantiation, with the bindings and its own text.
     let mut bodies: Vec<(IrBody, String, String)> = Vec::new();
-    // Each body's embedding: its digest and the constructs that block it.
-    let mut embeddings: Vec<(String, Vec<String>)> = Vec::new();
-    let enums = crate::embed::enums(&link.decls);
-    let structs = crate::embed::structs(&link.decls);
-    let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
-        crate::embed::resolve_callee(link, krate, callee, args, dest)
-    };
-    let width = widths.first().map_or(usize::BITS, |(w, _)| *w);
-    let big_endian = layouts.first().map(|l| l.big_endian);
     // Each body's instance at its `Fn`-bounded parameters' functions, where
     // it has any: lowered first, the canonical instance where it does not
     // lower.
     let mut variants: Vec<Option<(IrBody, String)>> = Vec::new();
     let mut consts: BTreeMap<String, IrBody> = BTreeMap::new();
     let mut closures: BTreeMap<String, IrBody> = BTreeMap::new();
-    let parts = crate::embed::parts(
-        krate,
-        link,
-        dumps.iter().map(|(n, t)| (n.as_str(), t.as_str())),
-    );
-    let statics = crate::embed::statics(link);
-    let floats = super::float::formats(&root.join("library"));
-    for (name, text) in dumps {
-        let embedder = crate::embed::Cx {
-            width,
-            enums: &enums,
-            resolve: &resolve,
-            allocs: crate::embed::allocations(text),
-            big_endian,
-            structs: &structs,
-            cells: crate::embed::allocation_cells(text, width),
-            items: Default::default(),
-            base: Default::default(),
-            parts: &parts,
-            stem: crate::embed::dump_stem(name).to_string(),
-            owner: Default::default(),
-            statics: &statics,
-            floats: &floats,
-            locals: Default::default(),
-            item_type: &|key: &str| crate::embed::item_type(link, key),
-            layouts: &Default::default(),
-            source_constant: &|_| None,
-            every_cell: &BTreeMap::new(),
-            static_allocs: &BTreeMap::new(),
-            slots: Default::default(),
-            sites: Default::default(),
-            item_texts: Default::default(),
-            key: Default::default(),
-        };
+    for (_, text) in dumps {
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among
         // the bare names of its types.
@@ -414,18 +372,6 @@ pub(crate) fn shard(
             let kappa = crate::project::sha(
                 format!("{krate}::{}\n{}", original.path, numbered_allocations(text)).as_bytes(),
             );
-            let embedded = embedder.body(
-                &original,
-                &crate::embed::program_key(
-                    link,
-                    &original.path,
-                    &crate::embed::body_kappa(krate, &original.path, text),
-                ),
-            );
-            embeddings.push((
-                crate::project::sha(embedded.term.as_bytes()),
-                embedded.blocked.into_iter().collect(),
-            ));
             let mut body = body;
             body.path = path.clone();
             variants.push(fn_body.map(|mut b| {
@@ -521,9 +467,7 @@ pub(crate) fn shard(
     let none = std::collections::BTreeSet::new();
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
     let mut rows = Vec::new();
-    for (((body, at, kappa), variant), (embedded, blocked)) in
-        bodies.into_iter().zip(variants).zip(embeddings)
-    {
+    for ((body, at, kappa), variant) in bodies.into_iter().zip(variants) {
         let mut path = format!("{krate}::{}", body.path);
         let n = seen.entry(path.clone()).or_default();
         *n += 1;
@@ -588,8 +532,10 @@ pub(crate) fn shard(
             at,
             digest,
             cause,
-            embedded: Some(embedded),
-            blocked,
+            // The embedding's, which `uorust embed --register` stamps on
+            // the row by its κ: the evaluator's census is the authority.
+            embedded: None,
+            blocked: Vec::new(),
         });
     }
     rows.sort_by(|a, b| a.path.cmp(&b.path));
@@ -2202,11 +2148,11 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
     let mut modules = String::new();
     let mut causes: BTreeMap<String, usize> = BTreeMap::new();
     let (mut all, mut done) = (0, 0);
-    // The embedding's census: the bodies embedded, those no construct
-    // blocks, and the bodies each construct the evaluator does not define
-    // blocks.
-    let (mut embedded, mut evaluable) = (0, 0);
-    let mut blocking: BTreeMap<String, usize> = BTreeMap::new();
+    // The embedding's census, by κ: a body is one definition however many
+    // rows (a macro's impls of one text, a module another's shard also
+    // reaches) record it, so each κ counts once, blocked by the union of
+    // the constructs its rows name.
+    let mut census: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for file in files {
         let text = crate::embed::read_text(&file)?;
         let doc: toml::Table = text
@@ -2221,17 +2167,15 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
         for row in &rows {
             let field = |k: &str| row.get(k).and_then(toml::Value::as_str).unwrap_or("");
             if !field("embedded").is_empty() {
-                embedded += 1;
-                let blocked = row
+                let blocked = census.entry(field("kappa").to_string()).or_default();
+                for b in row
                     .get("blocked")
                     .and_then(toml::Value::as_array)
-                    .cloned()
-                    .unwrap_or_default();
-                if blocked.is_empty() {
-                    evaluable += 1;
-                }
-                for b in blocked.iter().filter_map(toml::Value::as_str) {
-                    *blocking.entry(b.to_string()).or_default() += 1;
+                    .into_iter()
+                    .flatten()
+                    .filter_map(toml::Value::as_str)
+                {
+                    blocked.insert(b.to_string());
                 }
             }
             if field("status") == "translated" {
@@ -2265,18 +2209,25 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
     );
     // The embedding's count and its queue: every construct the evaluator
     // does not define, by the bodies it blocks.
+    let embedded = census.len();
     if embedded > 0 {
+        let evaluable = census.values().filter(|b| b.is_empty()).count();
+        let mut blocking: BTreeMap<&str, usize> = BTreeMap::new();
+        for b in census.values().flatten() {
+            *blocking.entry(b.as_str()).or_default() += 1;
+        }
         let _ = writeln!(
             summary,
-            "[embedding]\nembedded = {embedded}\nevaluable = {evaluable}\n"
+            "[embedding]\nembedded = {embedded}\nevaluable = {evaluable}\nblocked = {}\n",
+            embedded - evaluable
         );
-        let mut queue: Vec<(String, usize)> = blocking.into_iter().collect();
-        queue.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        let mut queue: Vec<(&str, usize)> = blocking.into_iter().collect();
+        queue.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(b.0)));
         for (construct, count) in queue {
             let _ = writeln!(
                 summary,
                 "[[construct]]\nconstruct = {}\nbodies = {count}\n",
-                toml_quote(&construct)
+                toml_quote(construct)
             );
         }
     }
@@ -2379,6 +2330,69 @@ fn toml_quote(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The summary counts the embedding by κ: two modules' rows of one κ
+    /// (the num shard and the f32 shard reaching one body) and two rows of
+    /// one κ in a module (a macro's impls of one text) are one body, blocked
+    /// by the union of the constructs its rows name.
+    #[test]
+    fn the_embeddings_summary_counts_each_kappa_once() {
+        let dir = std::env::temp_dir().join(format!("uorust-census-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let row = |path: &str, kappa: &str, blocked: &[&str]| {
+            let quoted: Vec<String> = blocked.iter().map(|b| toml_quote(b)).collect();
+            let blocked = if blocked.is_empty() {
+                String::new()
+            } else {
+                format!("blocked = [{}]\n", quoted.join(", "))
+            };
+            format!(
+                "[[fn]]\npath = \"{path}\"\nkappa = \"{kappa}\"\nembedded = \"e\"\n{blocked}status = \"residue\"\ncause = \"c\"\n\n"
+            )
+        };
+        let num = [
+            row("core::num::a", "a", &["intrinsic fabs"]),
+            row("core::num::b", "b", &[]),
+            row("core::num::c#1", "c", &[]),
+            row("core::num::c#2", "c", &[]),
+        ]
+        .concat();
+        let f32 = [
+            row(
+                "core::f32::a",
+                "a",
+                &["intrinsic fabs", "CastKind::IntToFloat"],
+            ),
+            row("core::f32::d", "d", &["CastKind::IntToFloat"]),
+        ]
+        .concat();
+        std::fs::write(dir.join("num.toml"), num).unwrap();
+        std::fs::write(dir.join("f32.toml"), f32).unwrap();
+        summarize_core_register(&dir).unwrap();
+        let doc: toml::Table = std::fs::read_to_string(dir.join("frontier.toml"))
+            .unwrap()
+            .parse()
+            .unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        let embedding = doc["embedding"].as_table().unwrap();
+        assert_eq!(embedding["embedded"].as_integer(), Some(4));
+        assert_eq!(embedding["evaluable"].as_integer(), Some(2));
+        assert_eq!(embedding["blocked"].as_integer(), Some(2));
+        let queue: BTreeMap<&str, i64> = doc["construct"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| {
+                (
+                    c["construct"].as_str().unwrap(),
+                    c["bodies"].as_integer().unwrap(),
+                )
+            })
+            .collect();
+        assert_eq!(queue["intrinsic fabs"], 1);
+        assert_eq!(queue["CastKind::IntToFloat"], 2);
+    }
 
     #[test]
     fn a_bodys_type_parameters_are_its_bare_names() {

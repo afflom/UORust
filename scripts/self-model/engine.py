@@ -281,14 +281,16 @@ jobs:
       # functions run by rustc's build of core (scripts/mir/harness.sh) and
       # by the evaluator on their embedded bodies, a theorem per case that
       # the two agree. A disagreement fails verify, naming the theorem,
-      # which differential.toml maps to its body.
+      # which differential.toml maps to its body. The embedding stamps each
+      # row of the module's register file with its own census by κ
+      # (`--register`), so the merge's count is the evaluator's.
       - name: Embed the module and check the embedding through the locked SDK
         shell: bash
         env:
           MODULE: ${{{{ matrix.module }}}}
         run: |
           channel=$(sed -n 's/^channel = "\\(.*\\)"/\\1/p' rust-toolchain.toml)
-          embed="target/bin/uorust embed --crate $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --out target/embed"
+          embed="target/bin/uorust embed --crate $CRATE --mir target/mir --only '$MODULE' --library target/rust-src-$channel/library --out target/embed --register target/shard"
           scripts/ci/sdk.sh "$embed --harness target/harness"
           if [ -d target/harness ]; then
             scripts/ci/sdk.sh "scripts/mir/harness.sh target/harness target/observed.txt && $embed --observed target/observed.txt"
