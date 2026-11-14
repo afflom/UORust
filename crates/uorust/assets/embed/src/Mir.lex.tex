@@ -2,6 +2,7 @@
 \useglossary{lexlean.std.bool@1.2.0}
 \useglossary{lexlean.std.nat@1.2.0}
 \useglossary{uorust.mir@1.0.0}
+\importmodule{Prelude}
 \title{MIR semantics}
 \begin{semanticmodule}
 inductive{
@@ -117,6 +118,7 @@ inductive{
     {name: boolean, fields: []},
     {name: character, fields: []},
     {name: unit, fields: []},
+    {name: float, fields: [Nat, Nat]},
     {name: other, fields: [String]}
   ]
 }
@@ -218,6 +220,9 @@ inductive{
     {name: cast, fields: [CastKind, Operand, Ty]},
     {name: rawPtr, fields: [Place]},
     {name: repeat, fields: [Operand, Nat]},
+    {name: floatBinary, fields: [Nat, Nat, BinOp, Operand, Operand]},
+    {name: floatNeg, fields: [Nat, Nat, Operand]},
+    {name: numeric, fields: [Ty, Ty, Operand]},
     {name: other, fields: [String, String]}
   ]
 }
@@ -288,7 +293,8 @@ inductive{
     {name: bound, fields: [String]},
     {name: intrinsic, fields: [String]},
     {name: constant, fields: [String]},
-    {name: transmute, fields: [Layout, Layout]}
+    {name: transmute, fields: [Layout, Layout]},
+    {name: convert, fields: [Ty, Ty]}
   ]
 }
 
@@ -807,7 +813,121 @@ definition{
       | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "an integer cast of a value that is not a scalar")))
     | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.ub "an integer cast to bool"))
     | Ty.unit => (ctor Evaluated.stop (ctor Outcome.ub "an integer cast to ()"))
+    | Ty.float e m => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::IntToInt to a type that is not an integer"))
     | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "CastKind::IntToInt to a type that is not an integer")))
+}
+
+definition{
+  name: floatBitsOf,
+  parameters: [value : Value],
+  result: (Option Nat),
+  body: (match value
+    | Value.int bits signed repr => (ctor Option.some [Nat] repr)
+    | Value.boolean b => (ctor Option.none [Nat])
+    | Value.character code => (ctor Option.none [Nat])
+    | Value.unit => (ctor Option.none [Nat])
+    | Value.tuple fields => (ctor Option.none [Nat])
+    | Value.adt variant discriminant fields => (ctor Option.none [Nat])
+    | Value.pointer frame base steps => (ctor Option.none [Nat])
+    | Value.reference inner => (ctor Option.none [Nat])
+    | Value.function path => (ctor Option.none [Nat])
+    | Value.text printed => (ctor Option.none [Nat])
+    | Value.uninit => (ctor Option.none [Nat]))
+}
+
+definition{
+  name: floatValue,
+  parameters: [e : Nat, m : Nat, x : Nat],
+  result: Value,
+  body: (ctor Value.int ((e + m) + 1) false x)
+}
+
+definition{
+  name: floatArith,
+  parameters: [e : Nat, m : Nat, op : BinOp, x : Nat, y : Nat],
+  result: Evaluated,
+  body: (match op
+    | BinOp.add => (ctor Evaluated.found (floatValue e m (Prelude::floatAdd e m x y)))
+    | BinOp.addUnchecked => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.addWithOverflow => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.sub => (ctor Evaluated.found (floatValue e m (Prelude::floatSub e m x y)))
+    | BinOp.subUnchecked => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.subWithOverflow => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.mul => (ctor Evaluated.found (floatValue e m (Prelude::floatMul e m x y)))
+    | BinOp.mulUnchecked => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.mulWithOverflow => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.div => (ctor Evaluated.found (floatValue e m (Prelude::floatDiv e m x y)))
+    | BinOp.rem => (ctor Evaluated.found (floatValue e m (Prelude::floatRem e m x y)))
+    | BinOp.bitXor => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.bitAnd => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.bitOr => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.shl => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.shlUnchecked => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.shr => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.shrUnchecked => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.eq => (ctor Evaluated.found (ctor Value.boolean (Prelude::floatEq e m x y)))
+    | BinOp.lt => (ctor Evaluated.found (ctor Value.boolean (Prelude::floatLt e m x y)))
+    | BinOp.le => (ctor Evaluated.found (ctor Value.boolean (Prelude::floatLe e m x y)))
+    | BinOp.ne => (ctor Evaluated.found (ctor Value.boolean (Prelude::floatNe e m x y)))
+    | BinOp.ge => (ctor Evaluated.found (ctor Value.boolean (Prelude::floatGe e m x y)))
+    | BinOp.gt => (ctor Evaluated.found (ctor Value.boolean (Prelude::floatGt e m x y)))
+    | BinOp.cmp => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison"))
+    | BinOp.offset => (ctor Evaluated.stop (ctor Outcome.undefined "BinOp on floats other than arithmetic or a comparison")))
+}
+
+definition{
+  name: evalNumeric,
+  parameters: [source : Ty, target : Ty, a : Value],
+  result: Evaluated,
+  body: (match (floatBitsOf a)
+    | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a numeric cast of a value that is not a number"))
+    | Option.some x => (match source
+      | Ty.int width sgn => (match target
+        | Ty.int bits signed => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.character => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.unit => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.float e m => (ctor Evaluated.found (floatValue e m (if sgn then (Prelude::floatOfInt e m width x) else (Prelude::floatOfNat e m x))))
+        | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read")))
+      | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+      | Ty.character => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+      | Ty.unit => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+      | Ty.float se sm => (match target
+        | Ty.int bits signed => (ctor Evaluated.found (ctor Value.int bits signed (if signed then (Prelude::floatToInt se sm bits x) else (Prelude::floatToNat se sm bits x))))
+        | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.character => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.unit => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.float e m => (ctor Evaluated.found (floatValue e m (Prelude::floatConvert e m se sm x)))
+        | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read")))
+      | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))))
+}
+
+definition{
+  name: floatUnchecked,
+  parameters: [e : Nat, m : Nat, bits : Nat, signed : Bool, x : Nat],
+  result: Evaluated,
+  body: (if (Prelude::floatIsFinite e m x) then (let mag : Nat := (Prelude::floatToNat e m (bits + 1) (Prelude::floatAbs e m x)); (let half : Nat := (Prelude::floatPow2 (prim subtract bits 1 : Nat)); (let fits : Bool := (if (Prelude::floatNegative e m x) then (if signed then (mag <=? half) else (mag =? 0)) else (if signed then (mag <? half) else (mag <? (Prelude::floatPow2 bits)))); (if fits then (ctor Evaluated.found (ctor Value.int bits signed (if signed then (Prelude::floatToInt e m bits x) else (Prelude::floatToNat e m bits x)))) else (ctor Evaluated.stop (ctor Outcome.ub "a float_to_int_unchecked of a value out of its integer's range")))))) else (ctor Evaluated.stop (ctor Outcome.ub "a float_to_int_unchecked of a value that is not finite")))
+}
+
+definition{
+  name: evalUnchecked,
+  parameters: [source : Ty, target : Ty, a : Value],
+  result: Evaluated,
+  body: (match (floatBitsOf a)
+    | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a float_to_int_unchecked of a value that is not a float"))
+    | Option.some x => (match source
+      | Ty.int bits signed => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+      | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+      | Ty.character => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+      | Ty.unit => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+      | Ty.float se sm => (match target
+        | Ty.int bits signed => (floatUnchecked se sm bits signed x)
+        | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.character => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.unit => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.float te tm => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))
+        | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read")))
+      | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "a numeric cast the embedding does not read"))))
 }
 
 definition{
@@ -1248,6 +1368,7 @@ definition{
           | Ty.boolean => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant read at a type that is not an integer"))
           | Ty.character => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant read at a type that is not an integer"))
           | Ty.unit => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant read at a type that is not an integer"))
+          | Ty.float e m => (ctor Evaluated.stop (ctor Outcome.ub "a discriminant read at a type that is not an integer"))
           | Ty.other printed => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant at a type the embedding does not read")))
         | Value.int p q r => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
         | Value.boolean p => (ctor Evaluated.stop (ctor Outcome.undefined "Rvalue::Discriminant of a value that is not an enum"))
@@ -1265,6 +1386,23 @@ definition{
     | Rvalue.cast kind inner target => (match (evalOperand program frames inner)
       | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
       | Evaluated.found a => (evalCast kind a target))
+    | Rvalue.floatBinary e m op left right => (match (evalOperand program frames left)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found a => (match (evalOperand program frames right)
+        | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+        | Evaluated.found b => (match (floatBitsOf a)
+          | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a float operation on a value that is not a float"))
+          | Option.some x => (match (floatBitsOf b)
+            | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a float operation on a value that is not a float"))
+            | Option.some y => (floatArith e m op x y)))))
+    | Rvalue.floatNeg e m inner => (match (evalOperand program frames inner)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found a => (match (floatBitsOf a)
+        | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a float operation on a value that is not a float"))
+        | Option.some x => (ctor Evaluated.found (floatValue e m (Prelude::floatNeg e m x)))))
+    | Rvalue.numeric source target inner => (match (evalOperand program frames inner)
+      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+      | Evaluated.found a => (evalNumeric source target a))
     | Rvalue.rawPtr source => (match (placeOf frames source)
       | Located.stop outcome => (ctor Evaluated.stop outcome)
       | Located.found loc => (pointerTo loc))
@@ -2319,6 +2457,13 @@ definition{
     | Callee.constant path => (match (findBody (project program bodies) path)
       | Option.none => (ctor Outcome.unlinked path)
       | Option.some item => (ctor Outcome.running (cons (enterFrame item (nil Value) destination target true) frames)))
+    | Callee.convert source target2 => (match (evalOperands program frames args)
+      | EvaluatedList.stop outcome => outcome
+      | EvaluatedList.found values => (match values
+        | List.nil => (ctor Outcome.ub "a float_to_int_unchecked of no value")
+        | List.cons value others => (match (evalUnchecked source target2 value)
+          | Evaluated.stop outcome => outcome
+          | Evaluated.found result => (finishCall frames destination target result))))
     | Callee.transmute source target2 => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
       | EvaluatedList.found values => (match values

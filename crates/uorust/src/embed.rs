@@ -102,6 +102,33 @@ pub(crate) struct Cx<'a> {
     /// The paths of the statics whose initializers the dumps hold
     /// ([`statics`]).
     pub(crate) statics: &'a BTreeSet<String>,
+    /// The IEEE 754 format of each float type core defines, by its name
+    /// (`crate::mir::float::formats`).
+    pub(crate) floats: &'a BTreeMap<String, crate::mir::float::Format>,
+    /// The types of the locals of the body being embedded.
+    pub(crate) locals: std::cell::RefCell<Vec<String>>,
+    /// The type of the constant item a key names, where its dump prints it
+    /// ([`item_type`]).
+    pub(crate) item_type: &'a dyn Fn(&str) -> Option<String>,
+}
+
+/// The type of the constant item `key` names in `link`: its return
+/// place's, as each of its dumps prints it, where they agree.
+pub(crate) fn item_type(link: &crate::mir::link::CoreLink, key: &str) -> Option<String> {
+    let path = key.split_once('#').map_or(key, |(p, _)| p);
+    let mut types = link.bodies.get(path)?.iter().map(|t| {
+        t.lines().find_map(|l| {
+            let l = l.trim();
+            let l = l
+                .strip_prefix("let mut _0: ")
+                .or_else(|| l.strip_prefix("let _0: "))?;
+            l.strip_suffix(';').map(str::to_string)
+        })
+    });
+    let first = types.next()??;
+    types
+        .all(|t| t.as_deref() == Some(first.as_str()))
+        .then_some(first)
 }
 
 /// The initializer of the static a dump holds, as a constant's body by the
@@ -638,8 +665,78 @@ impl Cx<'_> {
             "bool" => mir_ctor("Ty.boolean", &[]),
             "char" => mir_ctor("Ty.character", &[]),
             "()" => mir_ctor("Ty.unit", &[]),
-            _ => mir_ctor("Ty.other", &[mir_string(printed)]),
+            _ => match self.floats.get(printed) {
+                Some(f) => mir_ctor("Ty.float", &[f.exp.to_string(), f.frac.to_string()]),
+                None => mir_ctor("Ty.other", &[mir_string(printed)]),
+            },
         }
+    }
+
+    /// The source and target `Ty` of a cast of `o` to `ty` between numbers,
+    /// one of them a float.
+    fn numeric(&self, o: &IrOperand, ty: &str) -> Option<(String, String)> {
+        let source = self.operand_ty(o)?;
+        let number = |t: &str| self.float(t).is_some() || int_ty(t.trim(), self.width).is_some();
+        (number(&source)
+            && number(ty)
+            && (self.float(&source).is_some() || self.float(ty).is_some()))
+        .then(|| (self.ty(&source), self.ty(ty)))
+    }
+
+    /// The format of a float type, as MIR prints it.
+    fn float(&self, ty: &str) -> Option<crate::mir::float::Format> {
+        self.floats.get(ty.trim()).copied()
+    }
+
+    /// The type MIR prints of an operand, where it does: a local's, each
+    /// projection's (a field's type, a pointer's pointee, an array's or a
+    /// slice's element), or a literal's suffix.
+    fn operand_ty(&self, o: &IrOperand) -> Option<String> {
+        match o {
+            IrOperand::Copy(p) | IrOperand::Move(p) => {
+                let mut ty = self.locals.borrow().get(p.local)?.clone();
+                for step in &p.projection {
+                    ty = match step {
+                        IrProjection::Field(_, t) => t.clone(),
+                        IrProjection::Deref => pointee(&ty)?.to_string(),
+                        IrProjection::Index(_) | IrProjection::ConstantIndex(..) => {
+                            match array_ty(&ty) {
+                                Some((elem, _)) => elem.to_string(),
+                                None => ty.strip_prefix('[')?.strip_suffix(']')?.to_string(),
+                            }
+                        }
+                        IrProjection::Downcast(_) => ty,
+                        IrProjection::Other(..) => return None,
+                    };
+                }
+                Some(ty)
+            }
+            IrOperand::Constant(IrConstant::Int(_, suffix)) => Some(suffix.clone()),
+            IrOperand::Constant(c) if self.item(c).is_some() => {
+                (self.item_type)(&self.item(c).unwrap_or_default())
+            }
+            IrOperand::Constant(IrConstant::Other(text) | IrConstant::Path(text)) => {
+                self.float_literal(text).map(|(name, _)| name)
+            }
+            _ => None,
+        }
+    }
+
+    /// A float literal as MIR prints it with its type's suffix (`1.0E+4f32`,
+    /// `-0f64`, `+Inf_f16`), or a constant IEEE 754 fixes, by core's name
+    /// for it (`f32::<impl f32>::NAN`): the type, and the prelude's term for
+    /// its bits.
+    fn float_literal(&self, text: &str) -> Option<(String, String)> {
+        self.floats.iter().find_map(|(name, f)| {
+            let lit = text
+                .strip_suffix(name.as_str())
+                .map(|l| l.strip_suffix('_').unwrap_or(l));
+            let named = text.strip_prefix(&format!("{name}::<impl {name}>::"));
+            let term = lit
+                .or(named)
+                .and_then(|l| crate::mir::float::literal(*f, l))?;
+            Some((name.clone(), term))
+        })
     }
 
     /// The discriminant of `variant` of the enum MIR prints as `ty`, where
@@ -746,6 +843,15 @@ impl Cx<'_> {
             }
             return Some(laid(
                 mir_ctor("Layout.int", &[bytes(bits).to_string(), signed.to_string()]),
+                bytes(bits),
+            ));
+        }
+        // A float is laid out as the unsigned integer of its width, its bits.
+        if let Some(f) = self.float(ty) {
+            let bits = 1 + f.exp + f.frac;
+            self.big_endian?;
+            return Some(laid(
+                mir_ctor("Layout.int", &[bytes(bits).to_string(), false.to_string()]),
                 bytes(bits),
             ));
         }
@@ -1041,6 +1147,13 @@ impl Cx<'_> {
 
     fn constant(&self, c: &IrConstant, e: &mut Embedded) -> String {
         match c {
+            IrConstant::Other(text) | IrConstant::Path(text)
+                if self.float_literal(text).is_some() =>
+            {
+                let (name, term) = self.float_literal(text).unwrap_or_default();
+                let bits = self.float(&name).map_or(0, |f| 1 + f.exp + f.frac);
+                mir_ctor("Const.int", &[bits.to_string(), false.to_string(), term])
+            }
             IrConstant::Int(n, suffix) => match int_ty(suffix, self.width) {
                 Some((bits, s)) => mir_ctor(
                     "Const.int",
@@ -1304,6 +1417,69 @@ impl Cx<'_> {
                 R::CopyForDeref,
                 mir_ctor("Rvalue.copyForDeref", &[self.place(p, e)]),
             ),
+            // An operator on floats is the prelude's, at the operands'
+            // format: MIR's operands of one are of one type.
+            IrRvalue::Binary(op, a, b)
+                if self
+                    .operand_ty(a)
+                    .or_else(|| self.operand_ty(b))
+                    .and_then(|t| self.float(&t))
+                    .is_some() =>
+            {
+                e.uses.insert(op.path().to_string());
+                let f = self
+                    .operand_ty(a)
+                    .or_else(|| self.operand_ty(b))
+                    .and_then(|t| self.float(&t))
+                    .unwrap_or(crate::mir::float::Format { exp: 0, frac: 0 });
+                use spec::MirBinOp as B;
+                if !matches!(
+                    op,
+                    B::Add
+                        | B::Sub
+                        | B::Mul
+                        | B::Div
+                        | B::Rem
+                        | B::Eq
+                        | B::Lt
+                        | B::Le
+                        | B::Ne
+                        | B::Ge
+                        | B::Gt
+                ) {
+                    gap("BinOp on floats other than arithmetic or a comparison", e);
+                }
+                let (a, b) = (self.operand(a, e), self.operand(b, e));
+                (
+                    R::BinaryOp,
+                    mir_ctor(
+                        "Rvalue.floatBinary",
+                        &[
+                            f.exp.to_string(),
+                            f.frac.to_string(),
+                            mir_ctor(&kind_ctor(op.path()), &[]),
+                            a,
+                            b,
+                        ],
+                    ),
+                )
+            }
+            IrRvalue::Unary(spec::MirUnOp::Neg, a)
+                if self.operand_ty(a).and_then(|t| self.float(&t)).is_some() =>
+            {
+                e.uses.insert(spec::MirUnOp::Neg.path().to_string());
+                let f = self
+                    .operand_ty(a)
+                    .and_then(|t| self.float(&t))
+                    .unwrap_or(crate::mir::float::Format { exp: 0, frac: 0 });
+                (
+                    R::UnaryOp,
+                    mir_ctor(
+                        "Rvalue.floatNeg",
+                        &[f.exp.to_string(), f.frac.to_string(), self.operand(a, e)],
+                    ),
+                )
+            }
             IrRvalue::Binary(op, a, b) => {
                 e.uses.insert(op.path().to_string());
                 gap(op.path(), e);
@@ -1374,6 +1550,23 @@ impl Cx<'_> {
                         "Rvalue.aggregate",
                         &[agg, self.operands(ops.iter().map(|(_, o)| o), e)],
                     ),
+                )
+            }
+            // A cast from or to a float, between the types the operand's
+            // and the cast's print.
+            IrRvalue::Cast(k, o, ty)
+                if matches!(
+                    k,
+                    spec::MirCastKind::FloatToInt
+                        | spec::MirCastKind::IntToFloat
+                        | spec::MirCastKind::FloatToFloat
+                ) && self.numeric(o, ty).is_some() =>
+            {
+                e.uses.insert(k.path().to_string());
+                let (source, target) = self.numeric(o, ty).unwrap_or_default();
+                (
+                    R::Cast,
+                    mir_ctor("Rvalue.numeric", &[source, target, self.operand(o, e)]),
                 )
             }
             IrRvalue::Cast(k, o, ty) => {
@@ -1527,6 +1720,26 @@ impl Cx<'_> {
                             e.callees.insert(p.clone());
                             mir_ctor("Callee.body", &[mir_string(&p)])
                         }
+                        // `float_to_int_unchecked`, from its argument's float
+                        // type to its destination's integer type.
+                        Callee::Intrinsic(p)
+                            if intrinsic_name(&p) == "float_to_int_unchecked"
+                                && args
+                                    .first()
+                                    .and_then(|a| self.operand_ty(a))
+                                    .zip(place_type(body, destination))
+                                    .is_some_and(|(f, t)| {
+                                        self.float(&f).is_some()
+                                            && int_ty(t.trim(), self.width).is_some()
+                                    }) =>
+                        {
+                            let from = args
+                                .first()
+                                .and_then(|a| self.operand_ty(a))
+                                .unwrap_or_default();
+                            let to = place_type(body, destination).unwrap_or_default();
+                            mir_ctor("Callee.convert", &[self.ty(&from), self.ty(&to)])
+                        }
                         Callee::Intrinsic(p)
                             if matches!(
                                 intrinsic_name(&p).as_str(),
@@ -1622,6 +1835,7 @@ impl Cx<'_> {
         let mut e = Embedded::default();
         self.items.borrow_mut().clear();
         self.owner.replace(b.path.clone());
+        self.locals.replace(b.locals.clone());
         self.base.set(b.locals.len());
         let mut locals: Vec<String> = b.locals.iter().map(|t| self.ty(t)).collect();
         // The blocks control reaches from the entry without unwinding: the
@@ -1879,6 +2093,19 @@ pub(crate) fn embed_project(
     let mut entrypoints: Vec<String> = extra.keys().cloned().collect();
     let mut files: BTreeMap<String, Vec<u8>> = extra;
     files.insert(format!("src/{MIR}.lex.tex"), SEMANTICS.as_bytes().to_vec());
+    // The evaluator's floats are the prelude's one IEEE 754 model, which
+    // the engine's own project carries with the glossary its titles are
+    // words of.
+    files.insert(
+        format!("src/{}.lex.tex", crate::lift::PRELUDE),
+        crate::lift::PRELUDE_SOURCE.as_bytes().to_vec(),
+    );
+    for (path, text) in crate::assets::FIXED
+        .iter()
+        .filter(|(p, _)| p.starts_with("language/uorust.titles/"))
+    {
+        files.insert((*path).to_string(), text.as_bytes().to_vec());
+    }
     files.insert(
         "language/uorust.mir/lexicon.toml".into(),
         LEXICON.as_bytes().to_vec(),
@@ -1890,6 +2117,7 @@ pub(crate) fn embed_project(
         );
     }
     entrypoints.push(format!("src/{MIR}.lex.tex"));
+    entrypoints.push(format!("src/{}.lex.tex", crate::lift::PRELUDE));
     let crate_pascal = format!("{}{MIR}", crate::lex::pascal(&[krate]));
     for (module, bodies) in modules {
         let pascal = crate::lex::pascal(&[module]);
@@ -1900,7 +2128,7 @@ pub(crate) fn embed_project(
             format!(
                 "\\begin{{lexlean}}{{{crate_pascal}.{pascal}Part{k}}}\n\\useglossary{{lexlean.std.bool@1.2.0}}\n\
                  \\useglossary{{lexlean.std.nat@1.2.0}}\n\\useglossary{{uorust.mir@1.0.0}}\n\
-                 \\importmodule{{{MIR}}}\n\\title{{Embedded MIR bodies}}\n\\begin{{semanticmodule}}\n{decls}\n\
+                 \\importmodule{{{MIR}}}\n\\importmodule{{Prelude}}\n\\title{{Embedded MIR bodies}}\n\\begin{{semanticmodule}}\n{decls}\n\
                  \\end{{semanticmodule}}\n\\end{{lexlean}}\n"
             )
         };
@@ -1939,6 +2167,7 @@ pub(crate) fn embed_project(
          lean_toolchain = \"{}\"\n\n\
          [[lexicon_source]]\npackage = \"lexlean.std.nat\"\nkind = \"builtin\"\n\n\
          [[lexicon_source]]\npackage = \"uorust.mir\"\nkind = \"path\"\npath = \"language/uorust.mir\"\n\n\
+         [[lexicon_source]]\npackage = \"uorust.titles\"\nkind = \"path\"\npath = \"language/uorust.titles\"\n\n\
          [limits]\nmax_file_bytes = {budget}\nmax_total_source_bytes = 67108864\n\
          max_primitive_atoms = 2000000\nmax_token_lattice_edges = 4000000\nmax_parse_states = 4000000\n\
          max_ir_nodes = 2000000\nmax_scope_depth = 1024\nmax_import_depth = 128\nmax_diagnostics = 256\n\
@@ -2452,7 +2681,7 @@ fn differential(
         let module = format!(
             "\\begin{{lexlean}}{{DifferentialPart{k}}}\n\\useglossary{{lexlean.std.bool@1.2.0}}\n\
          \\useglossary{{lexlean.std.nat@1.2.0}}\n\\useglossary{{uorust.mir@1.0.0}}\n\
-         \\importmodule{{{MIR}}}\n\\title{{Embedded MIR checks}}\n\\begin{{semanticmodule}}\n{}\n\
+         \\importmodule{{{MIR}}}\n\\importmodule{{Prelude}}\n\\title{{Embedded MIR checks}}\n\\begin{{semanticmodule}}\n{}\n\
          \\end{{semanticmodule}}\n\\end{{lexlean}}\n",
             decls.join("\n\n")
         );
@@ -2639,6 +2868,7 @@ fn embed_census(
     let mut samples = Vec::new();
     let src = library_root(root).join(krate).join("src");
     let statics = statics(&link);
+    let floats = crate::mir::float::formats(&library_root(root));
     let parts = parts(
         krate,
         &link,
@@ -2664,6 +2894,9 @@ fn embed_census(
                 stem: stem.to_string(),
                 owner: Default::default(),
                 statics: &statics,
+                floats: &floats,
+                locals: Default::default(),
+                item_type: &|key: &str| item_type(&link, key),
             };
             // A static's initializer is a body of the program, read where a
             // body reads the static, and no row of the census.
@@ -2847,6 +3080,10 @@ mod tests {
         assert_eq!(pointee("* const T"), Some("T"));
         let structs = Structs::new();
         let enums = Enums::new();
+        let floats = BTreeMap::from([(
+            "f32".to_string(),
+            crate::mir::float::Format { exp: 8, frac: 23 },
+        )]);
         let resolve = |_: &str, _: &[Option<String>], _: &str| Callee::Bound(String::new());
         let cx = Cx {
             width: 64,
@@ -2862,7 +3099,18 @@ mod tests {
             stem: String::new(),
             owner: Default::default(),
             statics: &BTreeSet::new(),
+            floats: &floats,
+            locals: Default::default(),
+            item_type: &|_: &str| None,
         };
+        assert_eq!(cx.ty("f32"), "(ctor Mir::Ty.float 8 23)");
+        assert_eq!(
+            cx.float_literal("+Inf_f32").map(|l| l.0),
+            Some("f32".into())
+        );
+        assert!(cx.float_literal("f32::<impl f32>::NAN").is_some());
+        assert!(cx.float_literal("1.0E+4f32").is_some());
+        assert!(cx.float_literal("1.0E+4u32").is_none());
         let ranged = |t: &str| cx.layout(t, 4).map(|l| l.term);
         assert!(ranged("(u32) is 1..")
             .is_some_and(|t| t.contains("Layout.ranged") && t.contains(" 1 4294967295)")));

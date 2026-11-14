@@ -237,6 +237,7 @@ pub(crate) fn shard(
         dumps.iter().map(|(n, t)| (n.as_str(), t.as_str())),
     );
     let statics = crate::embed::statics(link);
+    let floats = super::float::formats(&root.join("library"));
     for (name, text) in dumps {
         let embedder = crate::embed::Cx {
             width,
@@ -252,6 +253,9 @@ pub(crate) fn shard(
             stem: crate::embed::dump_stem(name).to_string(),
             owner: Default::default(),
             statics: &statics,
+            floats: &floats,
+            locals: Default::default(),
+            item_type: &|key: &str| crate::embed::item_type(link, key),
         };
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among
