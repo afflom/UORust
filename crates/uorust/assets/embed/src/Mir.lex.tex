@@ -207,6 +207,29 @@ inductive{
 }
 
 inductive{
+  name: Layout,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: int, fields: [Nat, Bool]},
+    {name: boolean, fields: []},
+    {name: character, fields: []},
+    {name: pointer, fields: [Nat]},
+    {name: record, fields: [Nat, Bool, (List Nat), (List Layout)]},
+    {name: array, fields: [Layout, Nat, Nat]},
+    {name: enumeration, fields: [Nat, Bool, (List String), (List Signed)]},
+    {name: ranged, fields: [Layout, Nat, Nat]}
+  ]
+}
+
+inductive{
+  name: Generic,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: layout, fields: [Layout]}, {name: count, fields: [Nat]}, {name: slot, fields: [Nat]}, {name: unknown, fields: [String]}]
+}
+
+inductive{
   name: Rvalue,
   type_parameters: [],
   parameters: [],
@@ -220,7 +243,7 @@ inductive{
     {name: aggregate, fields: [Agg, (List Operand)]},
     {name: cast, fields: [CastKind, Operand, Ty]},
     {name: rawPtr, fields: [Place]},
-    {name: repeat, fields: [Operand, Nat]},
+    {name: repeat, fields: [Operand, Generic]},
     {name: floatBinary, fields: [Nat, Nat, BinOp, Operand, Operand]},
     {name: floatNeg, fields: [Nat, Nat, Operand]},
     {name: numeric, fields: [Ty, Ty, Operand]},
@@ -237,22 +260,6 @@ inductive{
     {name: marker, fields: [String]},
     {name: assume, fields: [Operand]},
     {name: other, fields: [String, String]}
-  ]
-}
-
-inductive{
-  name: Layout,
-  type_parameters: [],
-  parameters: [],
-  constructors: [
-    {name: int, fields: [Nat, Bool]},
-    {name: boolean, fields: []},
-    {name: character, fields: []},
-    {name: pointer, fields: [Nat]},
-    {name: record, fields: [Nat, Bool, (List Nat), (List Layout)]},
-    {name: array, fields: [Layout, Nat, Nat]},
-    {name: enumeration, fields: [Nat, Bool, (List String), (List Signed)]},
-    {name: ranged, fields: [Layout, Nat, Nat]}
   ]
 }
 
@@ -294,8 +301,10 @@ inductive{
     {name: bound, fields: [String]},
     {name: intrinsic, fields: [String]},
     {name: constant, fields: [String]},
-    {name: transmute, fields: [Layout, Layout]},
-    {name: writeBytes, fields: [Layout]},
+    {name: transmute, fields: [Generic, Generic]},
+    {name: writeBytes, fields: [Generic]},
+    {name: instance, fields: [String, (List Generic)]},
+    {name: sizeOf, fields: [Generic]},
     {name: convert, fields: [Ty, Ty]}
   ]
 }
@@ -376,7 +385,8 @@ structure{
     {name: locals, type: (List Value)},
     {name: destination, type: Place},
     {name: target, type: (Option Nat)},
-    {name: pinned, type: Bool}
+    {name: pinned, type: Bool},
+    {name: generics, type: (List Generic)}
   ]
 }
 
@@ -1109,7 +1119,7 @@ definition{
   name: withLocal,
   parameters: [frame : Frame, base : Nat, value : Value],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (setValue (project frame locals) base value), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned)})
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (setValue (project frame locals) base value), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics)})
 }
 
 definition{
@@ -1330,6 +1340,61 @@ definition{
 }
 
 definition{
+  name: nthGeneric,
+  parameters: [generics : (List Generic), index : Nat],
+  result: Generic,
+  body: (match generics
+    | List.nil => (ctor Generic.unknown "a generic argument its caller does not supply")
+    | List.cons head rest => (if (index =? 0) then head else (nthGeneric rest (prim subtract index 1 : Nat)))),
+  recursive_argument: generics
+}
+
+definition{
+  name: resolveGeneric,
+  parameters: [frames : (List Frame), generic : Generic],
+  result: Generic,
+  body: (match generic
+    | Generic.layout layout => generic
+    | Generic.count count => generic
+    | Generic.slot index => (match frames
+      | List.nil => (ctor Generic.unknown "a generic argument with no frame")
+      | List.cons top rest => (nthGeneric (project top generics) index))
+    | Generic.unknown text => generic)
+}
+
+definition{
+  name: resolveGenerics,
+  parameters: [frames : (List Frame), generics : (List Generic)],
+  result: (List Generic),
+  body: (match generics
+    | List.nil => (nil Generic)
+    | List.cons head rest => (cons (resolveGeneric frames head) (resolveGenerics frames rest))),
+  recursive_argument: generics
+}
+
+definition{
+  name: genericLayout,
+  parameters: [frames : (List Frame), generic : Generic],
+  result: (Option Layout),
+  body: (match (resolveGeneric frames generic)
+    | Generic.layout layout => (ctor Option.some [Layout] layout)
+    | Generic.count count => (ctor Option.none [Layout])
+    | Generic.slot index => (ctor Option.none [Layout])
+    | Generic.unknown text => (ctor Option.none [Layout]))
+}
+
+definition{
+  name: genericCount,
+  parameters: [frames : (List Frame), generic : Generic],
+  result: (Option Nat),
+  body: (match (resolveGeneric frames generic)
+    | Generic.layout layout => (ctor Option.none [Nat])
+    | Generic.count count => (ctor Option.some [Nat] count)
+    | Generic.slot index => (ctor Option.none [Nat])
+    | Generic.unknown text => (ctor Option.none [Nat]))
+}
+
+definition{
   name: repeatValue,
   parameters: [count : Nat, value : Value],
   result: (List Value),
@@ -1444,9 +1509,11 @@ definition{
     | Rvalue.rawPtr source => (match (placeOf frames source)
       | Located.stop outcome => (ctor Evaluated.stop outcome)
       | Located.found loc => (pointerTo loc))
-    | Rvalue.repeat inner count => (match (evalOperand program frames inner)
-      | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
-      | Evaluated.found a => (ctor Evaluated.found (ctor Value.tuple (repeatValue count a))))
+    | Rvalue.repeat inner generic => (match (genericCount frames generic)
+      | Option.none => (ctor Evaluated.stop (ctor Outcome.undefined "a generic argument whose count its caller does not supply"))
+      | Option.some count => (match (evalOperand program frames inner)
+        | Evaluated.stop outcome => (ctor Evaluated.stop outcome)
+        | Evaluated.found a => (ctor Evaluated.found (ctor Value.tuple (repeatValue count a)))))
     | Rvalue.other kind text => (ctor Evaluated.stop (ctor Outcome.undefined kind)))
 }
 
@@ -1500,23 +1567,23 @@ definition{
 
 definition{
   name: enterFrame,
-  parameters: [callee : Body, args : (List Value), destination : Place, target : (Option Nat), pinned : Bool],
+  parameters: [callee : Body, args : (List Value), destination : Place, target : (Option Nat), pinned : Bool, generics : (List Generic)],
   result: Frame,
-  body: (record Frame {body := callee, block := (project callee entry), statement := 0, locals := (cons (ctor Value.uninit) (appendValues args (uninits (prim subtract (countTys (project callee locals)) ((countValues args) + 1) : Nat)))), destination := destination, target := target, pinned := pinned})
+  body: (record Frame {body := callee, block := (project callee entry), statement := 0, locals := (cons (ctor Value.uninit) (appendValues args (uninits (prim subtract (countTys (project callee locals)) ((countValues args) + 1) : Nat)))), destination := destination, target := target, pinned := pinned, generics := generics})
 }
 
 definition{
   name: moveTo,
   parameters: [frame : Frame, block : Nat],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := block, statement := 0, locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned)})
+  body: (record Frame {body := (project frame body), block := block, statement := 0, locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics)})
 }
 
 definition{
   name: advanceFrame,
   parameters: [frame : Frame],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := (project frame block), statement := ((project frame statement) + 1), locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned)})
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := ((project frame statement) + 1), locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned), generics := (project frame generics)})
 }
 
 definition{
@@ -1575,6 +1642,7 @@ definition{
     program : Program,
     frames : (List Frame),
     path : String,
+    generics : (List Generic),
     args : (List Operand),
     destination : Place,
     target : (Option Nat)
@@ -1584,7 +1652,7 @@ definition{
     | Option.none => (ctor Outcome.unlinked path)
     | Option.some callee => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
-      | EvaluatedList.found values => (ctor Outcome.running (cons (enterFrame callee values destination target false) frames))))
+      | EvaluatedList.found values => (ctor Outcome.running (cons (enterFrame callee values destination target false (resolveGenerics frames generics)) frames))))
 }
 
 definition{
@@ -1785,7 +1853,7 @@ definition{
   result: Outcome,
   body: (match (findBody (project program bodies) path)
     | Option.none => (ctor Outcome.unlinked path)
-    | Option.some callee => (ctor Outcome.running (cons (enterFrame callee values destination target false) frames)))
+    | Option.some callee => (ctor Outcome.running (cons (enterFrame callee values destination target false (nil Generic)) frames)))
 }
 
 definition{
@@ -1921,9 +1989,9 @@ definition{
       | Option.some loc => (match (readAt frames loc)
         | Option.none => (ctor Outcome.ub "an atomic read of a place that holds no value")
         | Option.some old => (match rest
-          | List.nil => (if (prim equal name "atomic_load" : Bool) then (finishCall frames destination target old) else (ctor Outcome.ub "an atomic operation on a value that is not a pointer to a place"))
+          | List.nil => (if ((prim equal name "atomic_load" : Bool) || ((prim equal name "read_via_copy" : Bool) || (prim equal name "volatile_load" : Bool))) then (finishCall frames destination target old) else (ctor Outcome.ub "an atomic operation on a value that is not a pointer to a place"))
           | List.cons v more => (match more
-            | List.nil => (if (prim equal name "atomic_store" : Bool) then (storeAndFinish frames loc v destination target (ctor Value.unit)) else (match (atomicCombine name old v)
+            | List.nil => (if ((prim equal name "atomic_store" : Bool) || (prim equal name "volatile_store" : Bool)) then (storeAndFinish frames loc v destination target (ctor Value.unit)) else (match (atomicCombine name old v)
               | Evaluated.stop outcome => outcome
               | Evaluated.found updated => (storeAndFinish frames loc updated destination target old)))
             | List.cons replacement others => (if ((prim equal name "atomic_cxchg" : Bool) || (prim equal name "atomic_cxchgweak" : Bool)) then (match (evalBinary (ctor BinOp.eq) old v)
@@ -1965,7 +2033,7 @@ definition{
   result: Outcome,
   body: (if (prim equal name "unreachable" : Bool) then (ctor Outcome.ub "an unreachable intrinsic reached") else (if (prim equal name "abort" : Bool) then (ctor Outcome.aborted) else (match (evalOperands program frames args)
     | EvaluatedList.stop outcome => outcome
-    | EvaluatedList.found values => (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (if (prim equal name "slice_get_unchecked" : Bool) then (sliceElement frames values destination target) else (if ((prim equal name "atomic_load" : Bool) || ((prim equal name "atomic_store" : Bool) || ((prim equal name "atomic_xchg" : Bool) || ((prim equal name "atomic_xadd" : Bool) || ((prim equal name "atomic_xsub" : Bool) || ((prim equal name "atomic_and" : Bool) || ((prim equal name "atomic_or" : Bool) || ((prim equal name "atomic_xor" : Bool) || ((prim equal name "atomic_nand" : Bool) || ((prim equal name "atomic_max" : Bool) || ((prim equal name "atomic_min" : Bool) || ((prim equal name "atomic_umax" : Bool) || ((prim equal name "atomic_umin" : Bool) || ((prim equal name "atomic_cxchg" : Bool) || ((prim equal name "atomic_cxchgweak" : Bool) || ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool))))))))))))))))) then (evalAtomic frames name values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
+    | EvaluatedList.found values => (if (prim equal name "const_eval_select" : Bool) then (selectRuntime program frames values destination target) else (if (prim equal name "slice_get_unchecked" : Bool) then (sliceElement frames values destination target) else (if ((prim equal name "read_via_copy" : Bool) || ((prim equal name "volatile_load" : Bool) || ((prim equal name "volatile_store" : Bool) || ((prim equal name "atomic_load" : Bool) || ((prim equal name "atomic_store" : Bool) || ((prim equal name "atomic_xchg" : Bool) || ((prim equal name "atomic_xadd" : Bool) || ((prim equal name "atomic_xsub" : Bool) || ((prim equal name "atomic_and" : Bool) || ((prim equal name "atomic_or" : Bool) || ((prim equal name "atomic_xor" : Bool) || ((prim equal name "atomic_nand" : Bool) || ((prim equal name "atomic_max" : Bool) || ((prim equal name "atomic_min" : Bool) || ((prim equal name "atomic_umax" : Bool) || ((prim equal name "atomic_umin" : Bool) || ((prim equal name "atomic_cxchg" : Bool) || ((prim equal name "atomic_cxchgweak" : Bool) || ((prim equal name "atomic_fence" : Bool) || (prim equal name "atomic_singlethreadfence" : Bool)))))))))))))))))))) then (evalAtomic frames name values destination target) else (match (if (prim equal name "discriminant_value" : Bool) then (ctor Option.some [Evaluated] (discriminantValue frames values)) else (intrinsicValue name values))
       | Option.none => (ctor Outcome.unlinked name)
       | Option.some result => (match result
         | Evaluated.stop outcome => outcome
@@ -2548,11 +2616,15 @@ definition{
   ],
   result: Outcome,
   body: (match callee
-    | Callee.body path => (callBody program frames path args destination target)
+    | Callee.body path => (callBody program frames path (nil Generic) args destination target)
+    | Callee.instance path generics => (callBody program frames path generics args destination target)
+    | Callee.sizeOf generic => (match (genericLayout frames generic)
+      | Option.none => (ctor Outcome.undefined "a generic argument whose layout the layout table does not hold")
+      | Option.some layout => (finishCall frames destination target (ctor Value.int (project program pointerWidth) false (layoutSize layout))))
     | Callee.operand op => (match (evalOperand program frames op)
       | Evaluated.stop outcome => outcome
       | Evaluated.found value => (match value
-        | Value.function path => (callBody program frames path args destination target)
+        | Value.function path => (callBody program frames path (nil Generic) args destination target)
         | Value.int p q r => (ctor Outcome.undefined "TerminatorKind::Call of a value that is not a function item")
         | Value.boolean p => (ctor Outcome.ub "a call of a value that is not a function")
         | Value.character p => (ctor Outcome.ub "a call of a value that is not a function")
@@ -2564,12 +2636,12 @@ definition{
         | Value.text p => (ctor Outcome.ub "a call of a value that is not a function")
         | Value.uninit => (ctor Outcome.ub "a call of an uninitialized value")))
     | Callee.bound name => (match (findBinding (project program dictionary) name)
-      | Option.some path => (callBody program frames path args destination target)
+      | Option.some path => (callBody program frames path (nil Generic) args destination target)
       | Option.none => (ctor Outcome.unlinked name))
     | Callee.intrinsic name => (evalIntrinsic program frames name args destination target)
     | Callee.constant path => (match (findBody (project program bodies) path)
       | Option.none => (ctor Outcome.unlinked path)
-      | Option.some item => (ctor Outcome.running (cons (enterFrame item (nil Value) destination target true) frames)))
+      | Option.some item => (ctor Outcome.running (cons (enterFrame item (nil Value) destination target true (nil Generic)) frames)))
     | Callee.convert source target2 => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
       | EvaluatedList.found values => (match values
@@ -2577,16 +2649,22 @@ definition{
         | List.cons value others => (match (evalUnchecked source target2 value)
           | Evaluated.stop outcome => outcome
           | Evaluated.found result => (finishCall frames destination target result))))
-    | Callee.writeBytes element => (match (evalOperands program frames args)
-      | EvaluatedList.stop outcome => outcome
-      | EvaluatedList.found values => (writeBytes fuel (project program bigEndian) frames element values destination target))
-    | Callee.transmute source target2 => (match (evalOperands program frames args)
+    | Callee.writeBytes generic => (match (genericLayout frames generic)
+      | Option.none => (ctor Outcome.undefined "a generic argument whose layout the layout table does not hold")
+      | Option.some element => (match (evalOperands program frames args)
+        | EvaluatedList.stop outcome => outcome
+        | EvaluatedList.found values => (writeBytes fuel (project program bigEndian) frames element values destination target)))
+    | Callee.transmute from to => (match (genericLayout frames from)
+      | Option.none => (ctor Outcome.undefined "a generic argument whose layout the layout table does not hold")
+      | Option.some source => (match (genericLayout frames to)
+      | Option.none => (ctor Outcome.undefined "a generic argument whose layout the layout table does not hold")
+      | Option.some target2 => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
       | EvaluatedList.found values => (match values
         | List.nil => (ctor Outcome.ub "a transmute of no value")
         | List.cons value others => (match (transmuteValue fuel (project program bigEndian) source target2 value)
           | Evaluated.stop outcome => outcome
-          | Evaluated.found result => (finishCall frames destination target result)))))
+          | Evaluated.found result => (finishCall frames destination target result)))))))
 }
 
 definition{
@@ -2692,7 +2770,7 @@ definition{
   result: Outcome,
   body: (match (findBody (project program bodies) path)
     | Option.none => (ctor Outcome.unlinked path)
-    | Option.some callee => (runFrames fuel program (cons (enterFrame callee args (record Place {base := 0, projection := (nil Proj)}) (ctor Option.none [Nat]) false) (nil Frame))))
+    | Option.some callee => (runFrames fuel program (cons (enterFrame callee args (record Place {base := 0, projection := (nil Proj)}) (ctor Option.none [Nat]) false (nil Generic)) (nil Frame))))
 }
 \end{semanticmodule}
 \end{lexlean}

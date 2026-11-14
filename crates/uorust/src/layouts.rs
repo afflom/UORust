@@ -911,8 +911,16 @@ pub fn run(krate: &str, dumps: &Path, copy: &Path, check: &str) -> Result<usize,
     let mut asked: BTreeSet<Ask> = BTreeSet::new();
     let mut expanded: BTreeSet<String> = BTreeSet::new();
     let mut pristine: BTreeMap<PathBuf, String> = BTreeMap::new();
-    let mut next: Vec<(Ask, Vec<String>, String)> =
-        dumped_types(dumps)?.iter().map(|t| ask_type(t)).collect();
+    // The types the dumps print, and those of the instances their calls
+    // reach (`crate::embed::instance_types`), read before any alias is
+    // written into the copy.
+    let mut wanted = dumped_types(dumps)?;
+    wanted.extend(crate::embed::instance_types(
+        krate,
+        copy.parent().unwrap_or(copy),
+        dumps,
+    )?);
+    let mut next: Vec<(Ask, Vec<String>, String)> = wanted.iter().map(|t| ask_type(t)).collect();
     while !next.is_empty() {
         // A text that is no type's (a parse error stops the whole check)
         // is asked nothing.

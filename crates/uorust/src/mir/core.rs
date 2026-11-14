@@ -257,6 +257,10 @@ pub(crate) fn shard(
             locals: Default::default(),
             item_type: &|key: &str| crate::embed::item_type(link, key),
             layouts: &Default::default(),
+            source_constant: &|_| None,
+            slots: Default::default(),
+            sites: Default::default(),
+            key: Default::default(),
         };
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among

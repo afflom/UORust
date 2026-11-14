@@ -113,6 +113,16 @@ pub(crate) struct Cx<'a> {
     /// The layouts rustc chose for the aggregates the dumps print
     /// (`crate::layouts`), read where Rust does not fix a layout.
     pub(crate) layouts: &'a crate::layouts::Index,
+    /// The slots of the body being embedded, in the order it first reads
+    /// each.
+    pub(crate) slots: std::cell::RefCell<Vec<Slot>>,
+    /// The calls of the body being embedded.
+    pub(crate) sites: std::cell::RefCell<Vec<Site>>,
+    /// The body of a constant item no dump holds, from its declaration in
+    /// the crate's source, by its path as MIR prints it.
+    pub(crate) source_constant: &'a dyn Fn(&str) -> Option<IrBody>,
+    /// The key of the body being embedded, which its calls' tokens hold.
+    pub(crate) key: std::cell::RefCell<String>,
 }
 
 /// The type of the constant item `key` names in `link`: its return
@@ -355,6 +365,35 @@ pub(crate) struct Embedded {
     pub(crate) callees: BTreeSet<String>,
     /// The intrinsics it calls, which have no body to evaluate.
     pub(crate) intrinsics: BTreeSet<String>,
+    /// The types and counts it reads that its generic parameters leave to
+    /// each instance: its frame's generics, which its caller supplies.
+    pub(crate) slots: Vec<Slot>,
+    /// Its calls of bodies of the program, each a token in its term that
+    /// [`instances`] writes as the callee with its instance's generics.
+    pub(crate) sites: Vec<Site>,
+    /// Its key in the program.
+    pub(crate) key: String,
+}
+
+/// What a body leaves to its instance: a type's layout or a count, as the
+/// body prints it.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum Slot {
+    Layout(String),
+    Count(String),
+}
+
+/// A call of a body of the program: the token its term holds in the
+/// callee's place, the callee's key, and the call as MIR prints it (the
+/// callee, its arguments' types, its destination's), which the linker
+/// binds the callee's generic parameters by.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Site {
+    pub(crate) token: String,
+    pub(crate) callee: String,
+    pub(crate) text: String,
+    pub(crate) args: Vec<Option<String>>,
+    pub(crate) dest: String,
 }
 
 /// The constructs the evaluator answers `Outcome.undefined` with, read
@@ -435,12 +474,26 @@ pub(crate) fn kind_ctor(path: &str) -> String {
 
 /// The operand and the count of a repeat as MIR prints it, `[const 0_u8;
 /// 32]`, where the count is a literal.
-fn repeat_parts(text: &str) -> Option<(&str, u64)> {
+fn repeat_parts(text: &str) -> Option<(&str, &str)> {
     let inner = text.trim().strip_prefix('[')?.strip_suffix(']')?;
     let (operand, count) = inner.rsplit_once(';')?;
-    let count = count.trim();
+    Some((operand.trim(), count.trim()))
+}
+
+/// The one type argument of a callee as MIR prints it, `size_of::<T>`.
+fn type_argument(callee: &str) -> Option<String> {
+    let (_, args) = generic_parts(callee.trim());
+    match args.as_slice() {
+        [t] => Some(t.clone()),
+        _ => None,
+    }
+}
+
+/// A count as MIR prints a constant of `usize`, `4_usize`, or a bare `4`.
+fn count_value(text: &str) -> Option<u64> {
+    let count = text.trim();
     let count = count.split_once('_').map_or(count, |(n, _)| n);
-    Some((operand.trim(), count.parse().ok()?))
+    count.parse().ok()
 }
 
 /// A subslice projection as MIR prints it, `[1:]`, `[:-1]`, `[1:-2]` (from
@@ -841,6 +894,7 @@ impl Cx<'_> {
             return Some(false);
         }
         if int_ty(ty, self.width).is_some()
+            || self.float(ty).is_some()
             || matches!(ty, "bool" | "char" | "()")
             || array_ty(ty).is_some()
             || pointee(ty).is_some()
@@ -1235,29 +1289,131 @@ impl Cx<'_> {
     /// assumed.
     fn written_element(&self, body: &IrBody, args: &[IrOperand]) -> Option<String> {
         let ptr = arg_type(body, args.first()?)?;
-        let laid = self.layout(pointee(&ptr)?, layout_depth(self.structs))?;
-        laid.assumed.is_none().then_some(laid.term)
+        self.generic_layout(pointee(&ptr)?)
     }
 
     /// `Callee.transmute` of a transmute from `from` to `to`, where both
-    /// layouts are read and agree in size; a pointer whose size is assumed
-    /// is allowed only where both sides hold one of the same pointee, so
-    /// whatever its size, the two agree.
+    /// layouts are read and agree in size, or a side's is its instance's:
+    /// the evaluator compares the instance's sizes when it is called.
     fn transmute(&self, from: &str, to: &str) -> Option<String> {
         let depth = layout_depth(self.structs);
-        let (a, b) = (self.layout(from, depth)?, self.layout(to, depth)?);
-        if a.size != b.size || a.assumed != b.assumed {
-            return None;
+        if let (Some(a), Some(b)) = (self.layout(from, depth), self.layout(to, depth)) {
+            if a.assumed.is_none() && b.assumed.is_none() {
+                return (a.size == b.size).then(|| {
+                    mir_ctor(
+                        "Callee.transmute",
+                        &[
+                            mir_ctor("Generic.layout", &[a.term]),
+                            mir_ctor("Generic.layout", &[b.term]),
+                        ],
+                    )
+                });
+            }
         }
-        Some(mir_ctor("Callee.transmute", &[a.term, b.term]))
+        Some(mir_ctor(
+            "Callee.transmute",
+            &[self.generic_layout(from)?, self.generic_layout(to)?],
+        ))
+    }
+
+    /// The generic parameters a type as MIR prints it names: the words
+    /// that are no path's segment, no primitive and no type core declares.
+    /// MIR prints a declared type by its path and a parameter bare.
+    fn parameters(&self, ty: &str) -> BTreeSet<String> {
+        let chars: Vec<char> = ty.chars().collect();
+        let mut out = BTreeSet::new();
+        let mut i = 0;
+        while i < chars.len() {
+            if !(chars[i].is_ascii_alphabetic() || chars[i] == '_') {
+                i += 1;
+                continue;
+            }
+            let start = i;
+            while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '_') {
+                i += 1;
+            }
+            let word: String = chars[start..i].iter().collect();
+            let after_path = start >= 2 && chars[start - 1] == ':' && chars[start - 2] == ':';
+            let before_path = chars.get(i) == Some(&':') && chars.get(i + 1) == Some(&':');
+            let lifetime = start >= 1 && chars[start - 1] == '\'';
+            let primitive = int_ty(&word, self.width).is_some()
+                || self.float(&word).is_some()
+                || matches!(
+                    word.as_str(),
+                    "bool" | "char" | "str" | "mut" | "const" | "dyn" | "is" | "null"
+                );
+            if !after_path
+                && !before_path
+                && !lifetime
+                && !primitive
+                && word.starts_with(|c: char| c.is_ascii_uppercase())
+                && !self.structs.contains_key(&word)
+                && !self.enums.contains_key(&word)
+            {
+                out.insert(word);
+            }
+        }
+        out
+    }
+
+    /// The slot of the body being embedded that holds `slot`, its index
+    /// the order the body first reads each.
+    fn slot(&self, slot: Slot) -> String {
+        let mut slots = self.slots.borrow_mut();
+        let at = match slots.iter().position(|s| *s == slot) {
+            Some(at) => at,
+            None => {
+                slots.push(slot);
+                slots.len() - 1
+            }
+        };
+        mir_ctor("Generic.slot", &[at.to_string()])
+    }
+
+    /// The `Generic` of the layout of `ty`: its layout, where it is read
+    /// and assumes no pointer's size, or, where `ty` names a generic
+    /// parameter, the slot its instance's fills.
+    fn generic_layout(&self, ty: &str) -> Option<String> {
+        if let Some(l) = self.layout(ty, layout_depth(self.structs)) {
+            if l.assumed.is_none() {
+                return Some(mir_ctor("Generic.layout", &[l.term]));
+            }
+        }
+        (!self.parameters(ty).is_empty()).then(|| self.slot(Slot::Layout(ty.trim().to_string())))
+    }
+
+    /// The `Generic` of a count MIR prints (`4_usize`, or a const
+    /// parameter `N`).
+    fn generic_count(&self, text: &str) -> Option<String> {
+        match count_value(text) {
+            Some(n) => Some(mir_ctor("Generic.count", &[n.to_string()])),
+            None => (!self.parameters(text).is_empty())
+                .then(|| self.slot(Slot::Count(text.trim().to_string()))),
+        }
     }
 
     /// The key of the constant item a constant operand names, where the
     /// program has its body: the item itself, or the item of that name in
     /// the body its owner resolves to.
     fn item(&self, c: &IrConstant) -> Option<String> {
-        let IrConstant::Other(text) = c else {
-            return None;
+        let text = match c {
+            IrConstant::Other(text) => text,
+            // A named constant MIR prints as a path (`time::MILLIS_PER_SEC`),
+            // where it is no variant: the body its dump holds, or the one
+            // its declaration in the crate's source gives.
+            IrConstant::Path(text)
+                if item_suffix(text).is_some_and(|(_, last)| !is_part(last))
+                    && !matches!(
+                        crate::mir::parse::split_path(text).as_slice(),
+                        [.., ty, v] if self.discriminant(ty, v).is_some()
+                    ) =>
+            {
+                if let Callee::Body(p) = (self.resolve)(text, &[], "") {
+                    return Some(p);
+                }
+                return (self.source_constant)(text).map(|_| text.clone());
+            }
+            _ => return None,
         };
         if let Some(path) = static_path(text).filter(|p| self.statics.contains(*p)) {
             return Some(path.to_string());
@@ -1827,8 +1983,9 @@ impl Cx<'_> {
             }
             // `[x; n]`: the operand and the count.
             IrRvalue::Other(spec::MirRvalue::Repeat, text)
-                if repeat_parts(text)
-                    .is_some_and(|(o, _)| crate::mir::parse::operand(o).is_some()) =>
+                if repeat_parts(text).is_some_and(|(o, n)| {
+                    crate::mir::parse::operand(o).is_some() && self.generic_count(n).is_some()
+                }) =>
             {
                 let (o, n) = repeat_parts(text).unwrap_or_default();
                 let operand = crate::mir::parse::operand(o).map(|o| self.operand(&o, e));
@@ -1836,7 +1993,10 @@ impl Cx<'_> {
                     spec::MirRvalue::Repeat,
                     mir_ctor(
                         "Rvalue.repeat",
-                        &[operand.unwrap_or_default(), n.to_string()],
+                        &[
+                            operand.unwrap_or_default(),
+                            self.generic_count(n).unwrap_or_default(),
+                        ],
                     ),
                 )
             }
@@ -1939,7 +2099,19 @@ impl Cx<'_> {
                     ) {
                         Callee::Body(p) => {
                             e.callees.insert(p.clone());
-                            mir_ctor("Callee.body", &[mir_string(&p)])
+                            let token = format!(
+                                "\u{1}{}#{}#{p}#{callee}\u{1}",
+                                self.key.borrow(),
+                                self.sites.borrow().len()
+                            );
+                            self.sites.borrow_mut().push(Site {
+                                token: token.clone(),
+                                callee: p,
+                                text: callee.clone(),
+                                args: args.iter().map(|a| arg_type(body, a)).collect(),
+                                dest: place_type(body, destination).unwrap_or_default(),
+                            });
+                            token
                         }
                         // `float_to_int_unchecked`, from its argument's float
                         // type to its destination's integer type.
@@ -1982,6 +2154,20 @@ impl Cx<'_> {
                         }
                         // `write_bytes::<T>`: its element's layout, from the
                         // type argument the call prints.
+                        // `size_of::<T>`: its type argument's size, read
+                        // from the type argument the call prints.
+                        Callee::Intrinsic(p)
+                            if intrinsic_name(&p) == "size_of"
+                                && type_argument(callee)
+                                    .and_then(|t| self.generic_layout(&t))
+                                    .is_some() =>
+                        {
+                            let t = type_argument(callee).unwrap_or_default();
+                            mir_ctor(
+                                "Callee.sizeOf",
+                                &[self.generic_layout(&t).unwrap_or_default()],
+                            )
+                        }
                         Callee::Intrinsic(p)
                             if intrinsic_name(&p) == "write_bytes"
                                 && self.written_element(body, args).is_some() =>
@@ -2064,6 +2250,9 @@ impl Cx<'_> {
     pub(crate) fn body(&self, b: &IrBody, path: &str) -> Embedded {
         let mut e = Embedded::default();
         self.items.borrow_mut().clear();
+        self.slots.borrow_mut().clear();
+        self.sites.borrow_mut().clear();
+        self.key.replace(path.to_string());
         self.owner.replace(b.path.clone());
         self.locals.replace(b.locals.clone());
         self.base.set(b.locals.len());
@@ -2195,6 +2384,9 @@ impl Cx<'_> {
                 ));
             }
         }
+        e.slots = self.slots.take();
+        e.key = path.to_string();
+        e.sites = self.sites.take();
         e.term = format!(
             "(record {} {{path := {}, arity := {}, locals := {}, blocks := {}, entry := {entry}}})",
             mir_name("Body"),
@@ -2766,6 +2958,9 @@ pub(crate) struct Program {
     width: u32,
     /// Whether the target is big-endian.
     big_endian: bool,
+    /// The types of the instances the calls reach whose layouts are not
+    /// read: the layouts the dump step asks rustc for.
+    unread: BTreeSet<String>,
 }
 
 /// The keys of the bodies `key` reaches, itself first, where the evaluator
@@ -3129,12 +3324,195 @@ fn dump_target(dumps: &Path) -> Result<(u32, Option<bool>), UorustError> {
 /// the modules `only` names (every module when empty). Every module's
 /// dumps are linked, so a call into another module names its body.
 #[allow(clippy::type_complexity)]
+/// The types of the instances the bodies under `dumps` call whose layouts
+/// the embedding does not read (from `dumps`' own `layouts.json`, where it
+/// has one): what the dump step asks rustc to lay out, beside the types
+/// the dumps print. `root` holds the crate's sources, `library/<krate>/src`.
+pub(crate) fn instance_types(
+    krate: &str,
+    root: &Path,
+    dumps: &Path,
+) -> Result<BTreeSet<String>, UorustError> {
+    Ok(embed_census(krate, root, dumps, &[])?.2.unread)
+}
+
+/// How deep a type MIR prints nests: its brackets' depth.
+fn nesting(ty: &str) -> usize {
+    let (mut depth, mut most) = (0usize, 0usize);
+    for c in ty.chars() {
+        match c {
+            '<' | '[' | '(' => {
+                depth += 1;
+                most = most.max(depth);
+            }
+            '>' | ']' | ')' => depth = depth.saturating_sub(1),
+            _ => {}
+        }
+    }
+    most
+}
+
+/// Each call's callee, by its token: the body, with the generics of the
+/// instance the call names. A body's slots are its own (what it reads
+/// that its generic parameters leave open) and, transitively, those its
+/// calls leave open: a callee's slot at the call's bindings is a layout or
+/// a count where the binding fixes it, and else a slot of the caller,
+/// where it names the caller's own parameters. The slots grow to a
+/// fixpoint, bounded by the deepest type the program prints: no instance
+/// nests deeper. A slot no binding fixes is `Generic.unknown`, which the
+/// evaluator answers as undefined.
+fn instances(
+    cx: &Cx<'_>,
+    link: &crate::mir::link::CoreLink,
+    every: &BTreeMap<String, (String, Embedded)>,
+    others: &[&Embedded],
+) -> (BTreeMap<String, String>, BTreeSet<String>) {
+    let mut unread = BTreeSet::new();
+    let deepest = link
+        .locals
+        .iter()
+        .map(|t| nesting(t))
+        .max()
+        .unwrap_or_default();
+    let mut slots: BTreeMap<String, Vec<Slot>> = every
+        .iter()
+        .map(|(k, (_, e))| (k.clone(), e.slots.clone()))
+        .collect();
+    let mut bindings: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+    let mut bind = |site: &Site| -> BTreeMap<String, String> {
+        bindings
+            .entry(site.token.clone())
+            .or_insert_with(|| {
+                link.instance(&site.text, &site.args, &site.dest)
+                    .map(|i| i.bound.into_iter().filter(|(k, v)| k != v).collect())
+                    .unwrap_or_default()
+            })
+            .clone()
+    };
+    // A callee's slot at a call's bindings: its generic, or the caller's
+    // slot it is.
+    enum At {
+        Fixed(String),
+        Caller(Slot),
+        Unknown(String),
+    }
+    let at = |slot: &Slot, bound: &BTreeMap<String, String>| -> At {
+        let (text, layout) = match slot {
+            Slot::Layout(t) => (crate::mir::stdlib::substitute(t, bound), true),
+            Slot::Count(t) => (crate::mir::stdlib::substitute(t, bound), false),
+        };
+        let fixed = if layout {
+            cx.layout(&text, layout_depth(cx.structs))
+                .filter(|l| l.assumed.is_none())
+                .map(|l| mir_ctor("Generic.layout", &[l.term]))
+        } else {
+            count_value(&text).map(|n| mir_ctor("Generic.count", &[n.to_string()]))
+        };
+        match fixed {
+            Some(g) => At::Fixed(g),
+            None if !cx.parameters(&text).is_empty() && nesting(&text) <= deepest => {
+                At::Caller(if layout {
+                    Slot::Layout(text)
+                } else {
+                    Slot::Count(text)
+                })
+            }
+            None => At::Unknown(text),
+        }
+    };
+    loop {
+        let mut grown = false;
+        for (key, (_, e)) in every.iter() {
+            for site in &e.sites {
+                let open = slots.get(&site.callee).cloned().unwrap_or_default();
+                if open.is_empty() {
+                    continue;
+                }
+                let bound = bind(site);
+                for slot in &open {
+                    if let At::Caller(s) = at(slot, &bound) {
+                        let mine = slots.entry(key.clone()).or_default();
+                        if !mine.contains(&s) {
+                            mine.push(s);
+                            grown = true;
+                        }
+                    }
+                }
+            }
+        }
+        if !grown {
+            break;
+        }
+    }
+    let mut out = BTreeMap::new();
+    let all = every.values().map(|(_, e)| e).chain(others.iter().copied());
+    for e in all {
+        let mine = slots.get(&e.key).cloned().unwrap_or_default();
+        for site in &e.sites {
+            let open = slots.get(&site.callee).cloned().unwrap_or_default();
+            let term = if open.is_empty() {
+                mir_ctor("Callee.body", &[mir_string(&site.callee)])
+            } else {
+                let bound = bind(site);
+                let generics: Vec<String> = open
+                    .iter()
+                    .map(|slot| match at(slot, &bound) {
+                        At::Fixed(g) => g,
+                        At::Caller(s) => mir_ctor(
+                            "Generic.slot",
+                            &[mine
+                                .iter()
+                                .position(|m| *m == s)
+                                .unwrap_or_default()
+                                .to_string()],
+                        ),
+                        At::Unknown(t) => {
+                            if matches!(slot, Slot::Layout(_)) {
+                                unread.insert(t.clone());
+                            }
+                            mir_ctor("Generic.unknown", &[mir_string(&t)])
+                        }
+                    })
+                    .collect();
+                mir_ctor(
+                    "Callee.instance",
+                    &[
+                        mir_string(&site.callee),
+                        term_list(&generics, &mir_name("Generic")),
+                    ],
+                )
+            };
+            out.insert(site.token.clone(), term);
+        }
+    }
+    (out, unread)
+}
+
+/// A body's term with each call's token written as its callee.
+fn write_callees(term: &str, callees: &BTreeMap<String, String>) -> String {
+    let mut out = String::with_capacity(term.len());
+    let mut rest = term;
+    while let Some(at) = rest.find('\u{1}') {
+        out.push_str(&rest[..at]);
+        let after = &rest[at + 1..];
+        let end = after.find('\u{1}').unwrap_or(after.len());
+        let token = &rest[at..at + end + 2];
+        out.push_str(callees.get(token).map_or(token, String::as_str));
+        rest = &after[(end + 1).min(after.len())..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Each module's embedded bodies, by κ.
+type Modules = Vec<(String, Vec<(String, Embedded)>)>;
+
 fn embed_census(
     krate: &str,
     root: &Path,
     dumps: &Path,
     only: &[String],
-) -> Result<(Vec<(String, Vec<(String, Embedded)>)>, EmbedCensus, Program), UorustError> {
+) -> Result<(Modules, EmbedCensus, Program), UorustError> {
     let (width, big_endian) = dump_target(dumps)?;
     let dirs: Vec<std::path::PathBuf> = dir_paths(dumps)?
         .into_iter()
@@ -3172,6 +3550,19 @@ fn embed_census(
         resolve_callee(&link, krate, callee, args, dest)
     };
     let mut census = EmbedCensus::default();
+    // A constant item no dump holds, as its declaration in the crate's
+    // source gives it (`CoreLink::constant`), with its text.
+    let declared = |printed: &str| -> Option<(IrBody, String)> {
+        let instance = link.constant(printed)?;
+        let mut b = crate::mir::parse::bodies(&instance.text)
+            .into_iter()
+            .next()?;
+        b.path = printed.to_string();
+        Some((b, instance.text))
+    };
+    let source_constant = |printed: &str| declared(printed).map(|(b, _)| b);
+    let typed =
+        |key: &str| item_type(&link, key).or_else(|| source_constant(key)?.locals.first().cloned());
     let mut modules = Vec::new();
     let mut every: BTreeMap<String, (String, Embedded)> = BTreeMap::new();
     let mut samples = Vec::new();
@@ -3205,8 +3596,12 @@ fn embed_census(
                 statics: &statics,
                 floats: &floats,
                 locals: Default::default(),
-                item_type: &|key: &str| item_type(&link, key),
+                item_type: &typed,
                 layouts: &layouts,
+                source_constant: &source_constant,
+                slots: Default::default(),
+                sites: Default::default(),
+                key: Default::default(),
             };
             // A static's initializer is a body of the program, read where a
             // body reads the static, and no row of the census.
@@ -3243,6 +3638,59 @@ fn embed_census(
         bodies.dedup_by(|a, b| a.0 == b.0);
         modules.push((module.clone(), bodies));
     }
+    let unread = {
+        let cx = Cx {
+            width,
+            enums: &enums,
+            resolve: &resolve,
+            allocs: BTreeMap::new(),
+            big_endian,
+            structs: &structs,
+            cells: BTreeMap::new(),
+            items: Default::default(),
+            base: Default::default(),
+            parts: &parts,
+            stem: String::new(),
+            owner: Default::default(),
+            statics: &statics,
+            floats: &floats,
+            locals: Default::default(),
+            item_type: &typed,
+            layouts: &layouts,
+            source_constant: &source_constant,
+            slots: Default::default(),
+            sites: Default::default(),
+            key: Default::default(),
+        };
+        // The constant items the bodies read that no dump holds: each a
+        // body of the program, as its declaration gives it.
+        let wanted: BTreeSet<String> = every
+            .values()
+            .flat_map(|(_, e)| e.callees.iter())
+            .filter(|k| !every.contains_key(*k))
+            .cloned()
+            .collect();
+        for key in wanted {
+            if let Some((b, text)) = declared(&key) {
+                let e = cx.body(&b, &key);
+                every.insert(key.clone(), (body_kappa(krate, &key, &text), e));
+            }
+        }
+        let others: Vec<&Embedded> = modules
+            .iter()
+            .flat_map(|(_, bodies)| bodies.iter().map(|(_, e)| e))
+            .collect();
+        let (callees, found) = instances(&cx, &link, &every, &others);
+        for (_, e) in every.values_mut() {
+            e.term = write_callees(&e.term, &callees);
+        }
+        for (_, bodies) in &mut modules {
+            for (_, e) in bodies.iter_mut() {
+                e.term = write_callees(&e.term, &callees);
+            }
+        }
+        found
+    };
     // A sample is checked where the evaluator defines its whole closure:
     // every body it reaches is embedded, uses no construct the evaluator
     // does not define, calls no intrinsic and leaves no callee to a
@@ -3259,6 +3707,7 @@ fn embed_census(
         samples,
         width,
         big_endian: big_endian.unwrap_or_default(),
+        unread,
     };
     Ok((modules, census, program))
 }
@@ -3377,8 +3826,13 @@ mod tests {
         let allocs = allocations(text);
         assert_eq!(allocs.get("alloc7"), Some(&vec![1, 0, 2, 0]));
         assert!(!allocs.contains_key("alloc8"));
-        assert_eq!(repeat_parts("[const 0_u8; 32]"), Some(("const 0_u8", 32)));
-        assert_eq!(repeat_parts("[move _3; 4_usize]"), Some(("move _3", 4)));
+        assert_eq!(repeat_parts("[const 0_u8; 32]"), Some(("const 0_u8", "32")));
+        assert_eq!(
+            repeat_parts("[move _3; 4_usize]"),
+            Some(("move _3", "4_usize"))
+        );
+        assert_eq!(count_value("4_usize"), Some(4));
+        assert_eq!(count_value("N"), None);
     }
 
     #[test]
@@ -3432,6 +3886,10 @@ mod tests {
             locals: Default::default(),
             item_type: &|_: &str| None,
             layouts: &Default::default(),
+            source_constant: &|_| None,
+            slots: Default::default(),
+            sites: Default::default(),
+            key: Default::default(),
         };
         assert_eq!(cx.ty("f32"), "(ctor Mir::Ty.float 8 23)");
         assert_eq!(
@@ -3482,6 +3940,7 @@ mod tests {
             samples: Vec::new(),
             width: usize::BITS,
             big_endian: false,
+            unread: BTreeSet::new(),
         };
         let file = Path::new("observed.txt");
         assert!(matches!(
