@@ -2,8 +2,8 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 285 of 1111 functions of product code are lifted; 678
-# are residue, 45 foreign and 103 effect rows.
+# Honesty report: 285 of 1113 functions of product code are lifted; 679
+# are residue, 45 foreign and 104 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 1
@@ -74,7 +74,7 @@
 #     2 {alloc191: &std::sync::atomic::Atomic<bool>}
 #     1 {alloc238: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
 #     1 {alloc253: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}
-#     1 {alloc920: &std::sync::OnceLock<mir::stdlib::StdTable>}
+#     1 {alloc925: &std::sync::OnceLock<mir::stdlib::StdTable>}
 #   mir::ProjectionElem::Downcast: 8
 #     8 a variant's field read outside a match on it
 #   mir::ProjectionElem::Subslice: 1
@@ -207,7 +207,7 @@
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2768:21: 2768:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2849:21: 2849:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -253,6 +253,8 @@
 #     1 std::str::Utf8Error
 #     2 syn::parse::ParseBuffer<'_>
 #     4 toml::Value
+#   mir::Verdict: 1
+#     1 LLV7002: Lean rejected `Uorust.Behavior` (error): omega could not prove the goal:
 #   type: 111
 # MIR kinds at toolchain 1.97.1: 81 of 118 lowered; every other kind is a
 # residue row that names it.
@@ -828,25 +830,31 @@ reason = "mir"
 detail = "mir::Ty: std::slice::Iter<'_, (std::string::String, embed::Sampled)>"
 
 [[residue]]
-kappa = "d05802ca6a9e8db178020cda4358c89daf7403f4a02b77f732437d8ba941403b"
+kappa = "63b7e9d754ee076b4ed01248d171da96c40faff40e18013f91a7ae48e14cbd6c"
+function = "uorust::embed::Sampled::bits"
+reason = "mir"
+detail = "mir::Verdict: LLV7002: Lean rejected `Uorust.Behavior` (error): omega could not prove the goal:"
+
+[[residue]]
+kappa = "610f0ecdb26a452908f463d3dd9906cbbc78e8acb727f162729e399080b76241"
 function = "uorust::embed::Sampled::inputs"
 reason = "mir"
 detail = "mir::TerminatorKind::Call: std::boxed::Box::new_uninit"
 
 [[residue]]
-kappa = "de8f050642c41adeb07a2f1cfe5b99688ed7f9eacd7de4deaf82bb05ba42d32e"
+kappa = "1cff2f8d88eed6e8507528781d368055daba586f3b53da0f8a17d91d698ba621"
 function = "uorust::embed::Sampled::of"
 reason = "mir"
 detail = "mir::Operand::Constant: embed::Sampled::of::promoted[0]"
 
 [[residue]]
-kappa = "47219323e53694b679c6a3163dae9e73cbfcb51a5dc6f112ed20540490808164"
+kappa = "a644001612e42b7e5a1617e46112a201bc03c5cc2d59e55f7ba0900ff9b157b2"
 function = "uorust::embed::Sampled::rust"
 reason = "mir"
 detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
-kappa = "599966b69c5a2dea8f0e7045176ce32be1697f486c8f68209173a11c1dd231c1"
+kappa = "8b7030cce1893f385552a50b84323eb2c05f21afc49eb0e956a13aad3fc9981c"
 function = "uorust::embed::Sampled::value"
 reason = "mir"
 detail = "mir::TerminatorKind::Call: <u32 as std::string::ToString>::to_string"
@@ -912,7 +920,7 @@ reason = "mir"
 detail = "mir::Operand::Constant: {alloc238: &std::sync::OnceLock<std::collections::BTreeSet<std::string::String>>}"
 
 [[residue]]
-kappa = "5b6cd000318b75864eebafe66a2c72a19ebbc1ea189d5ce14f76be08485f1470"
+kappa = "9b264d78d7c5b4bb733214a85f44fbad950f642977e3fe3a9f9e2ddc4cb9223f"
 function = "uorust::embed::differential"
 reason = "mir"
 detail = "mir::Ty: std::path::Path"
@@ -930,10 +938,10 @@ reason = "mir"
 detail = "mir::Ty: mir::core::CoreDecls"
 
 [[residue]]
-kappa = "5a23046ee6e579ed0c14a1fa3b845cd9c7e997d07804233c3fe101bf4cc65835"
+kappa = "6f9b966cddbd69d0a18d522f2b4de201242a350ac756d601a7ccf1414a1fe090"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2768:21: 2768:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2849:21: 2849:24}>"
 
 [[residue]]
 kappa = "9b06d1e71770a7c515754932ed1fa95b9b3c4fe0c9bf896ecf35b38885e93c62"
@@ -948,7 +956,7 @@ reason = "mir"
 detail = "mir::Ty: core::fmt::rt::Argument<'_>"
 
 [[residue]]
-kappa = "96a84eed50410fc111131599e2ea4ae2d50ee2f4cf778aecfe235ccdfe7c8471"
+kappa = "58bf9a2623f4ed2eac4b6bc566bd97de636750e72ecd3cfad13748d70517a90b"
 function = "uorust::embed::harness_crate"
 reason = "mir"
 detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
@@ -3927,7 +3935,7 @@ detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers woul
 kappa = "a52e07bf3cf71f0bb47d0620049df5db15379922c1410a447a682b7af77a6e4c"
 function = "uorust::mir::stdlib::table"
 reason = "mir"
-detail = "mir::Operand::Constant: {alloc920: &std::sync::OnceLock<mir::stdlib::StdTable>}"
+detail = "mir::Operand::Constant: {alloc925: &std::sync::OnceLock<mir::stdlib::StdTable>}"
 
 [[residue]]
 kappa = "47bcab9e837dab29d1ea09c2762342c564778078ae7bdca12f4b27fa4c7b36f1"
@@ -4811,8 +4819,13 @@ function = "uorust::embed::embed"
 effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "10fe710e217e0677f1bee1aa118fef855fc32ce793edc78ec6d2d542b0729419"
+kappa = "b456ee683d35c3bc1e12ea93820ab77fd8bc24d5b499687ed38050fd3c17c1cc"
 function = "uorust::embed::embed_census"
+effect = "Fs effect: Path::is_dir"
+
+[[effect]]
+kappa = "b37b65ccde096e9eaf8da201e587a3e11da1baa019c637164246afa93c170866"
+function = "uorust::embed::module_sources"
 effect = "Fs effect: Path::is_dir"
 
 [[effect]]
@@ -4826,12 +4839,12 @@ function = "uorust::embed::replace_dir"
 effect = "Fs effect: Path::exists"
 
 [[effect]]
-kappa = "871fff685a1443407580e760bb92858d0fc5ea8b908d11e2f20188fad7d9f7f4"
+kappa = "d0f62a8ccad1ca16ab26f67e3237c66967c41388b6e0c0c53e5812eeaad796a1"
 function = "uorust::embed::sample"
-effect = "calls uorust::embed::stable_and_safe, which reaches an effect"
+effect = "calls uorust::embed::module_sources, which performs a Fs effect: Path::is_dir"
 
 [[effect]]
-kappa = "43cd4ac799df719d6d32fbd5d15dee82e72ccc4389f3b8ef013a09a4c9b41793"
+kappa = "68c836d725899ff8d908edb8d45d23ce4ee57badeac8d05e44a84ceb4166cb66"
 function = "uorust::embed::stable_and_safe"
 effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
 
