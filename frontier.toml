@@ -2,7 +2,7 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 286 of 1123 functions of product code are lifted; 687
+# Honesty report: 286 of 1124 functions of product code are lifted; 688
 # are residue, 45 foreign and 105 effect rows.
 # Residue by cause:
 #   arithmetic: 1
@@ -209,7 +209,7 @@
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3094:21: 3094:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3144:21: 3144:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -257,7 +257,7 @@
 #     4 toml::Value
 #   mir::Verdict: 1
 #     1 LLV7002: Lean rejected `Uorust.Behavior` (error): omega could not prove the goal:
-#   type: 115
+#   type: 116
 # MIR kinds at toolchain 1.97.1: 81 of 118 lowered; every other kind is a
 # residue row that names it.
 #   StatementKind::Assign: lowered: the local holds the rvalue's value; a write through a projection is residue
@@ -646,7 +646,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "641e7a1bfe6fd51e298857329ea817f7d25a26d1043f62fc622bd420657d9781"
+kappa = "736fa8aa45fff79821a6850d500a86f9b16b47d91f89a2458c02762e24eedc82"
 function = "uorust::embed::Cx<'_>::body"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -654,6 +654,12 @@ detail = "type outside the lift: Cx<'_>"
 [[residue]]
 kappa = "74b7c8614d7a7d09c211cd96ae3e41355061756b7f47d916c5ef36ab3d14f352"
 function = "uorust::embed::Cx<'_>::constant"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "0e2a9b9e10530ecd09fd42b81d810727c21ad2cfc01e2b73235c25550274f5f9"
+function = "uorust::embed::Cx<'_>::constant_site"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
@@ -712,7 +718,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "0cace179aff734cc294d0bff0bd6e2ef8749ea4efb2a0b3cb996b057a5cf4fab"
+kappa = "5bffdac910add5aeea2b9b68866113d7398406ded3732598f0189b1c80758a3d"
 function = "uorust::embed::Cx<'_>::operand"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -802,7 +808,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "92610db7241f00daf7a9832e40394cd9aa2d0b1e4b72a32470f1cfb4af8836fd"
+kappa = "6a533132f8c8dcce2dd038997943f8e96c7d473f487b6785dc115550db29f5ef"
 function = "uorust::embed::Cx<'_>::terminator"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -928,7 +934,7 @@ reason = "mir"
 detail = "mir::Ty: toml::Value"
 
 [[residue]]
-kappa = "6227f92450954660c8241e637a5830762c3c5e57f848c19e05a734db93e309b9"
+kappa = "08348e87c7b96e18de890590df7038552aa766f8c73f2b1b47e5d6527db42063"
 function = "uorust::embed::closure"
 reason = "mir"
 detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
@@ -967,7 +973,7 @@ detail = "mir::Ty: mir::core::CoreDecls"
 kappa = "6f9b966cddbd69d0a18d522f2b4de201242a350ac756d601a7ccf1414a1fe090"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3094:21: 3094:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:3144:21: 3144:24}>"
 
 [[residue]]
 kappa = "9b06d1e71770a7c515754932ed1fa95b9b3c4fe0c9bf896ecf35b38885e93c62"
@@ -988,7 +994,7 @@ reason = "mir"
 detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
 
 [[residue]]
-kappa = "f3d490658348b675ad271c791a551babe8c35716708f46b9b5f186d609d26675"
+kappa = "6c00e09467960b9b7cd80fe0179e42efb401a5ac75cfe2819260ce2ac0cdf3a6"
 function = "uorust::embed::instances"
 reason = "mir"
 detail = "mir::Ty: embed::Cx<'_>"
@@ -4869,7 +4875,7 @@ function = "uorust::embed::embed"
 effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "9936c0d6a9633d4f7f9d5ae086e271317c9789090fa6ed5b4c67e071ffb3a33d"
+kappa = "fa4df12cbe7f86e9829c0f54c40fa034eefeab6ef80fb121909316e20ce1ecaa"
 function = "uorust::embed::embed_census"
 effect = "Fs effect: Path::is_dir"
 
@@ -5004,7 +5010,7 @@ function = "uorust::mir::core::impl_const_types"
 effect = "calls uorust::mir::impl_header, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "aef1bb11dca641ead08ab787cd704e803a519b575f6ddb75c601cac3d37b3a3d"
+kappa = "d35a1e83f39c0f528a03fbdf1dabbfeac351d5837d43b3f711eff20bede7f7ed"
 function = "uorust::mir::core::shard"
 effect = "calls uorust::mir::float::formats, which performs a Fs effect: std::fs::read_dir"
 
