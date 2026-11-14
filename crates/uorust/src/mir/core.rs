@@ -221,6 +221,7 @@ pub(crate) fn shard(
     // Each body's embedding: its digest and the constructs that block it.
     let mut embeddings: Vec<(String, Vec<String>)> = Vec::new();
     let enums = crate::embed::enums(&link.decls);
+    let structs = crate::embed::structs(&link.decls);
     let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
         crate::embed::resolve_callee(link, krate, callee, args, dest)
     };
@@ -239,6 +240,10 @@ pub(crate) fn shard(
             resolve: &resolve,
             allocs: crate::embed::allocations(text),
             big_endian,
+            structs: &structs,
+            cells: crate::embed::allocation_cells(text, width),
+            items: Default::default(),
+            base: Default::default(),
         };
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among
@@ -638,8 +643,8 @@ fn without_def_ids(text: &str) -> String {
 #[derive(Clone, Debug)]
 pub(crate) struct CoreStruct {
     pub(crate) path: String,
-    params: Vec<String>,
-    fields: Vec<(Option<String>, String)>,
+    pub(crate) params: Vec<String>,
+    pub(crate) fields: Vec<(Option<String>, String)>,
     /// For an enum whose variants hold no data, its variants; such an enum
     /// has no fields.
     pub(crate) variants: Option<Vec<String>>,
@@ -654,6 +659,28 @@ pub(crate) struct CoreStruct {
     /// reads it back: the workspace's own lift holds no wider signed
     /// integer, and `1 << 63` of a `usize` enum is past `i64`'s range.
     pub(crate) values: Option<Vec<i64>>,
+    /// The representations its `#[repr(..)]` attributes name (`transparent`,
+    /// `u8`, `C`), as written.
+    pub(crate) repr: Vec<String>,
+}
+
+/// The representations the `#[repr(..)]` attributes of an item name.
+fn reprs(attrs: &[syn::Attribute]) -> Vec<String> {
+    let mut out = Vec::new();
+    for a in attrs {
+        if let syn::Meta::List(l) = &a.meta {
+            if l.path.is_ident("repr") {
+                // `repr(C, align(8))`: each name at the list's top level;
+                // `align`'s argument is not a representation.
+                for tree in l.tokens.clone() {
+                    if let proc_macro2::TokenTree::Ident(i) = tree {
+                        out.push(i.to_string());
+                    }
+                }
+            }
+        }
+    }
+    out
 }
 
 /// A discriminant `CoreStruct::values` holds, read at an integer type of
@@ -1070,6 +1097,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         data: None,
                         explicit: false,
                         values: None,
+                        repr: reprs(&st.attrs),
                     });
                 }
                 syn::Item::Enum(e)
@@ -1132,6 +1160,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                                 })
                                 .collect::<Option<Vec<i64>>>()
                         },
+                        repr: reprs(&e.attrs),
                     });
                 }
                 syn::Item::Trait(t) => {
@@ -1182,6 +1211,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
                         data: Some(data),
                         explicit: e.variants.iter().any(|v| v.discriminant.is_some()),
                         values: None,
+                        repr: reprs(&e.attrs),
                     });
                 }
                 // An impl: its methods' generic parameters, and the

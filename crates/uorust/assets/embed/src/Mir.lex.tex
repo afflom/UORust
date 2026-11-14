@@ -235,6 +235,49 @@ inductive{
 }
 
 inductive{
+  name: Layout,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: int, fields: [Nat, Bool]},
+    {name: boolean, fields: []},
+    {name: character, fields: []},
+    {name: pointer, fields: [Nat]},
+    {name: record, fields: [Nat, Bool, (List Nat), (List Layout)]},
+    {name: array, fields: [Layout, Nat, Nat]},
+    {name: enumeration, fields: [Nat, Bool, (List String), (List Signed)]}
+  ]
+}
+
+inductive{
+  name: Byte,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: init, fields: [Nat]}, {name: fragment, fields: [Value, Nat]}, {name: uninit, fields: []}]
+}
+
+structure{
+  name: Piece,
+  type_parameters: [],
+  parameters: [],
+  fields: [{name: offset, type: Nat}, {name: layout, type: Layout}, {name: value, type: Value}]
+}
+
+inductive{
+  name: Task,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: piece, fields: [Nat, Layout]}, {name: tuple, fields: [Nat]}, {name: adt, fields: [Nat]}]
+}
+
+inductive{
+  name: Pin,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: visit, fields: [Value]}, {name: tuple, fields: [Nat]}, {name: adt, fields: [String, Signed, Nat]}, {name: pin, fields: []}]
+}
+
+inductive{
   name: Callee,
   type_parameters: [],
   parameters: [],
@@ -242,7 +285,9 @@ inductive{
     {name: body, fields: [String]},
     {name: operand, fields: [Operand]},
     {name: bound, fields: [String]},
-    {name: intrinsic, fields: [String]}
+    {name: intrinsic, fields: [String]},
+    {name: constant, fields: [String]},
+    {name: transmute, fields: [Layout, Layout]}
   ]
 }
 
@@ -284,7 +329,8 @@ structure{
     {name: path, type: String},
     {name: arity, type: Nat},
     {name: locals, type: (List Ty)},
-    {name: blocks, type: (List Block)}
+    {name: blocks, type: (List Block)},
+    {name: entry, type: Nat}
   ]
 }
 
@@ -305,7 +351,8 @@ structure{
     {name: ubChecks, type: Bool},
     {name: contractChecks, type: Bool},
     {name: overflowChecks, type: Bool},
-    {name: pointerWidth, type: Nat}
+    {name: pointerWidth, type: Nat},
+    {name: bigEndian, type: Bool}
   ]
 }
 
@@ -319,7 +366,8 @@ structure{
     {name: statement, type: Nat},
     {name: locals, type: (List Value)},
     {name: destination, type: Place},
-    {name: target, type: (Option Nat)}
+    {name: target, type: (Option Nat)},
+    {name: pinned, type: Bool}
   ]
 }
 
@@ -365,6 +413,13 @@ inductive{
   type_parameters: [],
   parameters: [],
   constructors: [{name: found, fields: [(List Value)]}, {name: stop, fields: [Outcome]}]
+}
+
+inductive{
+  name: Encoded,
+  type_parameters: [],
+  parameters: [],
+  constructors: [{name: found, fields: [(List Byte)]}, {name: stop, fields: [Outcome]}]
 }
 
 definition{
@@ -931,7 +986,7 @@ definition{
   name: withLocal,
   parameters: [frame : Frame, base : Nat, value : Value],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (setValue (project frame locals) base value), destination := (project frame destination), target := (project frame target)})
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := (project frame statement), locals := (setValue (project frame locals) base value), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned)})
 }
 
 definition{
@@ -1268,23 +1323,23 @@ definition{
 
 definition{
   name: enterFrame,
-  parameters: [callee : Body, args : (List Value), destination : Place, target : (Option Nat)],
+  parameters: [callee : Body, args : (List Value), destination : Place, target : (Option Nat), pinned : Bool],
   result: Frame,
-  body: (record Frame {body := callee, block := 0, statement := 0, locals := (cons (ctor Value.uninit) (appendValues args (uninits (prim subtract (countTys (project callee locals)) ((countValues args) + 1) : Nat)))), destination := destination, target := target})
+  body: (record Frame {body := callee, block := (project callee entry), statement := 0, locals := (cons (ctor Value.uninit) (appendValues args (uninits (prim subtract (countTys (project callee locals)) ((countValues args) + 1) : Nat)))), destination := destination, target := target, pinned := pinned})
 }
 
 definition{
   name: moveTo,
   parameters: [frame : Frame, block : Nat],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := block, statement := 0, locals := (project frame locals), destination := (project frame destination), target := (project frame target)})
+  body: (record Frame {body := (project frame body), block := block, statement := 0, locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned)})
 }
 
 definition{
   name: advanceFrame,
   parameters: [frame : Frame],
   result: Frame,
-  body: (record Frame {body := (project frame body), block := (project frame block), statement := ((project frame statement) + 1), locals := (project frame locals), destination := (project frame destination), target := (project frame target)})
+  body: (record Frame {body := (project frame body), block := (project frame block), statement := ((project frame statement) + 1), locals := (project frame locals), destination := (project frame destination), target := (project frame target), pinned := (project frame pinned)})
 }
 
 definition{
@@ -1352,7 +1407,7 @@ definition{
     | Option.none => (ctor Outcome.unlinked path)
     | Option.some callee => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
-      | EvaluatedList.found values => (ctor Outcome.running (cons (enterFrame callee values destination target) frames))))
+      | EvaluatedList.found values => (ctor Outcome.running (cons (enterFrame callee values destination target false) frames))))
 }
 
 definition{
@@ -1553,7 +1608,7 @@ definition{
   result: Outcome,
   body: (match (findBody (project program bodies) path)
     | Option.none => (ctor Outcome.unlinked path)
-    | Option.some callee => (ctor Outcome.running (cons (enterFrame callee values destination target) frames)))
+    | Option.some callee => (ctor Outcome.running (cons (enterFrame callee values destination target false) frames)))
 }
 
 definition{
@@ -1713,8 +1768,511 @@ definition{
 }
 
 definition{
+  name: countLayouts,
+  parameters: [layouts : (List Layout)],
+  result: Nat,
+  body: (match layouts | List.nil => 0 | List.cons head rest => ((countLayouts rest) + 1)),
+  recursive_argument: layouts
+}
+
+definition{
+  name: layoutSize,
+  parameters: [layout : Layout],
+  result: Nat,
+  body: (match layout
+    | Layout.int size signed => size
+    | Layout.boolean => 1
+    | Layout.character => 4
+    | Layout.pointer size => size
+    | Layout.record size adt offsets layouts => size
+    | Layout.array element count stride => (prim multiply count stride : Nat)
+    | Layout.enumeration size signed names discriminants => size)
+}
+
+definition{
+  name: uninitBytes,
+  parameters: [count : Nat],
+  result: (List Byte),
+  body: (match count
+    | Nat.zero => (nil Byte)
+    | Nat.succ rest => (cons (ctor Byte.uninit) (uninitBytes rest))),
+  recursive_argument: count
+}
+
+definition{
+  name: littleBytes,
+  parameters: [size : Nat, n : Nat],
+  result: (List Byte),
+  body: (match size
+    | Nat.zero => (nil Byte)
+    | Nat.succ rest => (cons (ctor Byte.init (prim remainder n 256 0 : Nat)) (littleBytes rest (prim quotient n 256 0 : Nat)))),
+  recursive_argument: size
+}
+
+definition{
+  name: reverseOnto,
+  parameters: [bytes : (List Byte), acc : (List Byte)],
+  result: (List Byte),
+  body: (match bytes
+    | List.nil => acc
+    | List.cons head rest => (reverseOnto rest (cons head acc))),
+  recursive_argument: bytes
+}
+
+definition{
+  name: orderBytes,
+  parameters: [big : Bool, bytes : (List Byte)],
+  result: (List Byte),
+  body: (if big then (reverseOnto bytes (nil Byte)) else bytes)
+}
+
+definition{
+  name: fragmentBytes,
+  parameters: [value : Value, index : Nat, count : Nat],
+  result: (List Byte),
+  body: (match count
+    | Nat.zero => (nil Byte)
+    | Nat.succ rest => (cons (ctor Byte.fragment value index) (fragmentBytes value (index + 1) rest))),
+  recursive_argument: count
+}
+
+definition{
+  name: spliceBytes,
+  parameters: [bytes : (List Byte), offset : Nat, new : (List Byte)],
+  result: (List Byte),
+  body: (match bytes
+    | List.nil => (nil Byte)
+    | List.cons head rest => (if (offset =? 0) then (match new
+      | List.nil => (cons head rest)
+      | List.cons lead others => (cons lead (spliceBytes rest 0 others))) else (cons head (spliceBytes rest (prim subtract offset 1 : Nat) new)))),
+  recursive_argument: bytes
+}
+
+definition{
+  name: dropBytes,
+  parameters: [count : Nat, bytes : (List Byte)],
+  result: (List Byte),
+  body: (match count
+    | Nat.zero => bytes
+    | Nat.succ rest => (match bytes
+      | List.nil => (nil Byte)
+      | List.cons head others => (dropBytes rest others))),
+  recursive_argument: count
+}
+
+definition{
+  name: takeBytes,
+  parameters: [count : Nat, bytes : (List Byte)],
+  result: (List Byte),
+  body: (match count
+    | Nat.zero => (nil Byte)
+    | Nat.succ rest => (match bytes
+      | List.nil => (nil Byte)
+      | List.cons head others => (cons head (takeBytes rest others)))),
+  recursive_argument: count
+}
+
+definition{
+  name: countBytes,
+  parameters: [bytes : (List Byte)],
+  result: Nat,
+  body: (match bytes | List.nil => 0 | List.cons head rest => ((countBytes rest) + 1)),
+  recursive_argument: bytes
+}
+
+definition{
+  name: littleNumber,
+  parameters: [bytes : (List Byte)],
+  result: (Option Nat),
+  body: (match bytes
+    | List.nil => (ctor Option.some [Nat] 0)
+    | List.cons head rest => (match head
+      | Byte.init n => (match (littleNumber rest)
+        | Option.none => (ctor Option.none [Nat])
+        | Option.some high => (ctor Option.some [Nat] (n + (prim multiply 256 high : Nat))))
+      | Byte.fragment v i => (ctor Option.none [Nat])
+      | Byte.uninit => (ctor Option.none [Nat]))),
+  recursive_argument: bytes
+}
+
+definition{
+  name: hasFragment,
+  parameters: [bytes : (List Byte)],
+  result: Bool,
+  body: (match bytes
+    | List.nil => false
+    | List.cons head rest => (match head
+      | Byte.init n => (hasFragment rest)
+      | Byte.fragment v i => true
+      | Byte.uninit => (hasFragment rest))),
+  recursive_argument: bytes
+}
+
+definition{
+  name: fragmentsFrom,
+  parameters: [index : Nat, bytes : (List Byte)],
+  result: Bool,
+  body: (match bytes
+    | List.nil => true
+    | List.cons head rest => (match head
+      | Byte.init n => false
+      | Byte.fragment v i => ((i =? index) && (fragmentsFrom (index + 1) rest))
+      | Byte.uninit => false)),
+  recursive_argument: bytes
+}
+
+definition{
+  name: fieldPieces,
+  parameters: [offset : Nat, offsets : (List Nat), layouts : (List Layout), values : (List Value)],
+  result: (Option (List Piece)),
+  body: (match layouts
+    | List.nil => (match values
+      | List.nil => (ctor Option.some [(List Piece)] (nil Piece))
+      | List.cons v vs => (ctor Option.none [(List Piece)]))
+    | List.cons layout rest => (match offsets
+      | List.nil => (ctor Option.none [(List Piece)])
+      | List.cons at ats => (match values
+        | List.nil => (ctor Option.none [(List Piece)])
+        | List.cons v vs => (match (fieldPieces offset ats rest vs)
+          | Option.none => (ctor Option.none [(List Piece)])
+          | Option.some pieces => (ctor Option.some [(List Piece)] (cons (record Piece {offset := (offset + at), layout := layout, value := v}) pieces)))))),
+  recursive_argument: layouts
+}
+
+definition{
+  name: elementPieces,
+  parameters: [offset : Nat, stride : Nat, element : Layout, values : (List Value)],
+  result: (List Piece),
+  body: (match values
+    | List.nil => (nil Piece)
+    | List.cons v rest => (cons (record Piece {offset := offset, layout := element, value := v}) (elementPieces (offset + stride) stride element rest))),
+  recursive_argument: values
+}
+
+definition{
+  name: appendPieces,
+  parameters: [front : (List Piece), back : (List Piece)],
+  result: (List Piece),
+  body: (match front
+    | List.nil => back
+    | List.cons head rest => (cons head (appendPieces rest back))),
+  recursive_argument: front
+}
+
+definition{
+  name: encodeWork,
+  parameters: [fuel : Nat, big : Bool, pending : (List Piece), bytes : (List Byte)],
+  result: Encoded,
+  body: (match fuel
+    | Nat.zero => (ctor Encoded.stop (ctor Outcome.exhausted))
+    | Nat.succ rest => (match pending
+      | List.nil => (ctor Encoded.found bytes)
+      | List.cons piece others => (let work : (List Piece) := others; (match (project piece layout)
+        | Layout.int size signed => (match (project piece value)
+          | Value.int bits signed2 repr => (if (bits =? (prim multiply 8 size : Nat)) then (encodeWork rest big work (spliceBytes bytes (project piece offset) (orderBytes big (littleBytes size repr)))) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold")))
+          | Value.boolean p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.character p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.unit => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.tuple p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.adt p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.pointer p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.reference p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.function p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.boolean => (match (project piece value)
+          | Value.int p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.boolean b => (encodeWork rest big work (spliceBytes bytes (project piece offset) (cons (ctor Byte.init (if b then 1 else 0)) (nil Byte))))
+          | Value.character p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.unit => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.tuple p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.adt p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.pointer p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.reference p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.function p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.character => (match (project piece value)
+          | Value.int p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.boolean p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.character code => (encodeWork rest big work (spliceBytes bytes (project piece offset) (orderBytes big (littleBytes 4 code))))
+          | Value.unit => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.tuple p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.adt p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.pointer p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.reference p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.function p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.pointer size => (match (project piece value)
+          | Value.int p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.boolean p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.character p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.unit => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.tuple p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.adt p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.pointer p q r => (encodeWork rest big work (spliceBytes bytes (project piece offset) (fragmentBytes (project piece value) 0 size)))
+          | Value.reference p => (encodeWork rest big work (spliceBytes bytes (project piece offset) (fragmentBytes (project piece value) 0 size)))
+          | Value.function p => (encodeWork rest big work (spliceBytes bytes (project piece offset) (fragmentBytes (project piece value) 0 size)))
+          | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.record size adt offsets layouts => (match (project piece value)
+          | Value.int p q r => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.boolean p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.character p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.unit => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.tuple p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.adt p q r => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.pointer p q r => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.reference p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.function p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.text p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (match (fieldPieces (project piece offset) offsets layouts fields)
+              | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+              | Option.some pieces => (encodeWork rest big (appendPieces pieces work) bytes)))
+          | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.array element count stride => (match (project piece value)
+          | Value.int p q r => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.boolean p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.character p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.unit => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.tuple p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.adt p q r => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.pointer p q r => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.reference p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.function p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.text p => (match (fieldsOf (project piece value))
+            | Option.none => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+            | Option.some fields => (if ((countValues fields) =? count) then (encodeWork rest big (appendPieces (elementPieces (project piece offset) stride element fields) work) bytes) else (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))))
+          | Value.uninit => (encodeWork rest big work bytes))
+        | Layout.enumeration size signed names discriminants => (match (project piece value)
+          | Value.int p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.boolean p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.character p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.unit => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.tuple p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.adt variant discriminant fields => (encodeWork rest big work (spliceBytes bytes (project piece offset) (orderBytes big (littleBytes size (reprOf (prim multiply 8 size : Nat) discriminant)))))
+          | Value.pointer p q r => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.reference p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.function p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.text p => (ctor Encoded.stop (ctor Outcome.undefined "a transmute of a value its layout does not hold"))
+          | Value.uninit => (encodeWork rest big work bytes)))))),
+  recursive_argument: fuel
+}
+
+definition{
+  name: fieldTasks,
+  parameters: [offset : Nat, offsets : (List Nat), layouts : (List Layout), rest : (List Task)],
+  result: (List Task),
+  body: (match layouts
+    | List.nil => rest
+    | List.cons layout others => (match offsets
+      | List.nil => rest
+      | List.cons at ats => (cons (ctor Task.piece (offset + at) layout) (fieldTasks offset ats others rest)))),
+  recursive_argument: layouts
+}
+
+definition{
+  name: elementTasks,
+  parameters: [count : Nat, offset : Nat, stride : Nat, element : Layout, rest : (List Task)],
+  result: (List Task),
+  body: (match count
+    | Nat.zero => rest
+    | Nat.succ more => (cons (ctor Task.piece offset element) (elementTasks more (offset + stride) stride element rest))),
+  recursive_argument: count
+}
+
+definition{
+  name: takeOnto,
+  parameters: [count : Nat, stack : (List Value), acc : (List Value)],
+  result: (List Value),
+  body: (match count
+    | Nat.zero => acc
+    | Nat.succ rest => (match stack
+      | List.nil => acc
+      | List.cons v vs => (takeOnto rest vs (cons v acc)))),
+  recursive_argument: count
+}
+
+definition{
+  name: dropValues,
+  parameters: [count : Nat, stack : (List Value)],
+  result: (List Value),
+  body: (match count
+    | Nat.zero => stack
+    | Nat.succ rest => (match stack
+      | List.nil => (nil Value)
+      | List.cons v vs => (dropValues rest vs))),
+  recursive_argument: count
+}
+
+definition{
+  name: variantOf,
+  parameters: [names : (List String), discriminants : (List Signed), tag : Signed],
+  result: (Option Value),
+  body: (match names
+    | List.nil => (ctor Option.none [Value])
+    | List.cons name others => (match discriminants
+      | List.nil => (ctor Option.none [Value])
+      | List.cons d ds => (if (signedEqual d tag) then (ctor Option.some [Value] (ctor Value.adt name d (nil Value))) else (variantOf others ds tag)))),
+  recursive_argument: names
+}
+
+definition{
+  name: validChar,
+  parameters: [code : Nat],
+  result: Bool,
+  body: ((code <=? 1114111) && (((code + 1) <=? 55296) || (57344 <=? code)))
+}
+
+definition{
+  name: decodeWork,
+  parameters: [fuel : Nat, big : Bool, bytes : (List Byte), work : (List Task), stack : (List Value)],
+  result: Evaluated,
+  body: (match fuel
+    | Nat.zero => (ctor Evaluated.stop (ctor Outcome.exhausted))
+    | Nat.succ rest => (match work
+      | List.nil => (match stack
+        | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a transmute that decodes no value"))
+        | List.cons v vs => (ctor Evaluated.found v))
+      | List.cons task tasks => (match task
+        | Task.tuple count => (decodeWork rest big bytes tasks (cons (ctor Value.tuple (takeOnto count stack (nil Value))) (dropValues count stack)))
+        | Task.adt count => (decodeWork rest big bytes tasks (cons (ctor Value.adt "" (record Signed {negative := false, magnitude := 0}) (takeOnto count stack (nil Value))) (dropValues count stack)))
+        | Task.piece offset layout => (let region : (List Byte) := (takeBytes (layoutSize layout) (dropBytes offset bytes)); (match layout
+          | Layout.int size signed => (if (hasFragment region) then (ctor Evaluated.stop (ctor Outcome.undefined "a transmute of a pointer's bytes to a scalar")) else (match (littleNumber (orderBytes big region))
+            | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute of uninitialized bytes to a scalar"))
+            | Option.some n => (decodeWork rest big bytes tasks (cons (ctor Value.int (prim multiply 8 size : Nat) signed n) stack))))
+          | Layout.boolean => (if (hasFragment region) then (ctor Evaluated.stop (ctor Outcome.undefined "a transmute of a pointer's bytes to a scalar")) else (match (littleNumber (orderBytes big region))
+            | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute of uninitialized bytes to a scalar"))
+            | Option.some n => (if (n <=? 1) then (decodeWork rest big bytes tasks (cons (ctor Value.boolean (n =? 1)) stack)) else (ctor Evaluated.stop (ctor Outcome.ub "a transmute to a bool of a byte that is neither 0 nor 1")))))
+          | Layout.character => (if (hasFragment region) then (ctor Evaluated.stop (ctor Outcome.undefined "a transmute of a pointer's bytes to a scalar")) else (match (littleNumber (orderBytes big region))
+            | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute of uninitialized bytes to a scalar"))
+            | Option.some n => (if (validChar n) then (decodeWork rest big bytes tasks (cons (ctor Value.character n) stack)) else (ctor Evaluated.stop (ctor Outcome.ub "a transmute to a char of a value that is not a Unicode scalar value")))))
+          | Layout.pointer size => (match region
+            | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to a pointer of too few bytes"))
+            | List.cons lead others => (match lead
+              | Byte.fragment v i => (if ((i =? 0) && ((fragmentsFrom 1 others) && ((countBytes region) =? size))) then (decodeWork rest big bytes tasks (cons v stack)) else (ctor Evaluated.stop (ctor Outcome.undefined "a transmute to a pointer of bytes not one pointer's")))
+              | Byte.init n => (ctor Evaluated.stop (ctor Outcome.undefined "a transmute to a pointer of bytes not one pointer's"))
+              | Byte.uninit => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to a pointer of uninitialized bytes"))))
+          | Layout.record size adt offsets layouts => (decodeWork rest big bytes (fieldTasks offset offsets layouts (cons (if adt then (ctor Task.adt (countLayouts layouts)) else (ctor Task.tuple (countLayouts layouts))) tasks)) stack)
+          | Layout.array element count stride => (decodeWork rest big bytes (elementTasks count offset stride element (cons (ctor Task.tuple count) tasks)) stack)
+          | Layout.enumeration size signed names discriminants => (if (hasFragment region) then (ctor Evaluated.stop (ctor Outcome.undefined "a transmute of a pointer's bytes to a scalar")) else (match (littleNumber (orderBytes big region))
+            | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute of uninitialized bytes to a scalar"))
+            | Option.some n => (match (variantOf names discriminants (signedOf (prim multiply 8 size : Nat) signed n)) | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a transmute to an enum of a discriminant it does not have")) | Option.some v => (decodeWork rest big bytes tasks (cons v stack)))))))))),
+  recursive_argument: fuel
+}
+
+definition{
+  name: transmuteValue,
+  parameters: [fuel : Nat, big : Bool, source : Layout, target2 : Layout, value : Value],
+  result: Evaluated,
+  body: (if ((layoutSize source) =? (layoutSize target2)) then (match (encodeWork fuel big (cons (record Piece {offset := 0, layout := source, value := value}) (nil Piece)) (uninitBytes (layoutSize source)))
+    | Encoded.stop outcome => (ctor Evaluated.stop outcome)
+    | Encoded.found bytes => (decodeWork fuel big bytes (cons (ctor Task.piece 0 target2) (nil Task)) (nil Value))) else (ctor Evaluated.stop (ctor Outcome.ub "a transmute between types of different sizes")))
+}
+
+definition{
+  name: visitTasks,
+  parameters: [values : (List Value), rest : (List Pin)],
+  result: (List Pin),
+  body: (match values
+    | List.nil => rest
+    | List.cons v vs => (cons (ctor Pin.visit v) (visitTasks vs rest))),
+  recursive_argument: values
+}
+
+definition{
+  name: pinWork,
+  parameters: [fuel : Nat, depth : Nat, frames : (List Frame), work : (List Pin), stack : (List Value)],
+  result: Evaluated,
+  body: (match fuel
+    | Nat.zero => (ctor Evaluated.stop (ctor Outcome.exhausted))
+    | Nat.succ rest => (match work
+      | List.nil => (match stack
+        | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a constant with no value"))
+        | List.cons v vs => (ctor Evaluated.found v))
+      | List.cons task tasks => (match task
+        | Pin.visit v => (match v
+          | Value.int p q r => (pinWork rest depth frames tasks (cons v stack))
+          | Value.boolean p => (pinWork rest depth frames tasks (cons v stack))
+          | Value.character p => (pinWork rest depth frames tasks (cons v stack))
+          | Value.unit => (pinWork rest depth frames tasks (cons v stack))
+          | Value.tuple fields => (pinWork rest depth frames (visitTasks fields (cons (ctor Pin.tuple (countValues fields)) tasks)) stack)
+          | Value.adt variant discriminant fields => (pinWork rest depth frames (visitTasks fields (cons (ctor Pin.adt variant discriminant (countValues fields)) tasks)) stack)
+          | Value.pointer frame base steps => (if (frame =? depth) then (match (readAt frames (locationOf frame base steps))
+              | Option.none => (ctor Evaluated.stop (ctor Outcome.ub "a constant's value points to a place that holds no value"))
+              | Option.some inner => (pinWork rest depth frames (cons (ctor Pin.visit inner) (cons (ctor Pin.pin) tasks)) stack)) else (pinWork rest depth frames tasks (cons v stack)))
+          | Value.reference inner => (pinWork rest depth frames (cons (ctor Pin.visit inner) (cons (ctor Pin.pin) tasks)) stack)
+          | Value.function p => (pinWork rest depth frames tasks (cons v stack))
+          | Value.text p => (pinWork rest depth frames tasks (cons v stack))
+          | Value.uninit => (pinWork rest depth frames tasks (cons v stack)))
+        | Pin.tuple count => (pinWork rest depth frames tasks (cons (ctor Value.tuple (takeOnto count stack (nil Value))) (dropValues count stack)))
+        | Pin.adt variant discriminant count => (pinWork rest depth frames tasks (cons (ctor Value.adt variant discriminant (takeOnto count stack (nil Value))) (dropValues count stack)))
+        | Pin.pin => (match stack
+          | List.nil => (ctor Evaluated.stop (ctor Outcome.ub "a constant with no value"))
+          | List.cons v vs => (pinWork rest depth frames tasks (cons (ctor Value.reference v) vs)))))),
+  recursive_argument: fuel
+}
+
+definition{
   name: evalCall,
   parameters: [
+    fuel : Nat,
     program : Program,
     frames : (List Frame),
     callee : Callee,
@@ -1742,18 +2300,30 @@ definition{
     | Callee.bound name => (match (findBinding (project program dictionary) name)
       | Option.some path => (callBody program frames path args destination target)
       | Option.none => (ctor Outcome.unlinked name))
-    | Callee.intrinsic name => (evalIntrinsic program frames name args destination target))
+    | Callee.intrinsic name => (evalIntrinsic program frames name args destination target)
+    | Callee.constant path => (match (findBody (project program bodies) path)
+      | Option.none => (ctor Outcome.unlinked path)
+      | Option.some item => (ctor Outcome.running (cons (enterFrame item (nil Value) destination target true) frames)))
+    | Callee.transmute source target2 => (match (evalOperands program frames args)
+      | EvaluatedList.stop outcome => outcome
+      | EvaluatedList.found values => (match values
+        | List.nil => (ctor Outcome.ub "a transmute of no value")
+        | List.cons value others => (match (transmuteValue fuel (project program bigEndian) source target2 value)
+          | Evaluated.stop outcome => outcome
+          | Evaluated.found result => (finishCall frames destination target result)))))
 }
 
 definition{
   name: evalReturn,
-  parameters: [frames : (List Frame)],
+  parameters: [fuel : Nat, frames : (List Frame)],
   result: Outcome,
   body: (match frames
     | List.nil => (ctor Outcome.ub "a return with no frame")
     | List.cons top rest => (match (nthValue (project top locals) 0)
       | Option.none => (ctor Outcome.ub "a return with no return place")
-      | Option.some result => (match rest
+      | Option.some returned => (match (if (project top pinned) then (pinWork fuel (countFrames rest) frames (cons (ctor Pin.visit returned) (nil Pin)) (nil Value)) else (ctor Evaluated.found returned))
+      | Evaluated.stop outcome => outcome
+      | Evaluated.found result => (match rest
         | List.nil => (ctor Outcome.returned result)
         | List.cons caller below => (match (project top target)
           | Option.none => (ctor Outcome.ub "a return from a call that does not return")
@@ -1763,12 +2333,12 @@ definition{
               | Option.none => (ctor Outcome.ub "a return into a place that holds no value")
               | Option.some written => (match written
                 | List.nil => (ctor Outcome.ub "a return with no frame")
-                | List.cons back others => (ctor Outcome.running (cons (moveTo back block) others)))))))))
+                | List.cons back others => (ctor Outcome.running (cons (moveTo back block) others))))))))))
 }
 
 definition{
   name: evalTerminator,
-  parameters: [program : Program, frames : (List Frame), frame : Frame, terminator : Terminator],
+  parameters: [fuel : Nat, program : Program, frames : (List Frame), frame : Frame, terminator : Terminator],
   result: Outcome,
   body: (match terminator
     | Terminator.jump block => (ctor Outcome.running (replaceTop frames (moveTo frame block)))
@@ -1777,10 +2347,10 @@ definition{
       | Evaluated.found value => (match (scalarOf value)
         | Option.none => (ctor Outcome.ub "a switch on a value that is not a scalar")
         | Option.some number => (ctor Outcome.running (replaceTop frames (moveTo frame (switchTarget arms number (reprOfValue value) otherwise))))))
-    | Terminator.exit => (evalReturn frames)
+    | Terminator.exit => (evalReturn fuel frames)
     | Terminator.unreachable => (ctor Outcome.ub "an unreachable terminator reached")
     | Terminator.drop block => (ctor Outcome.running (replaceTop frames (moveTo frame block)))
-    | Terminator.call destination callee args target => (evalCall program frames callee args destination target)
+    | Terminator.call destination callee args target => (evalCall fuel program frames callee args destination target)
     | Terminator.assert condition expected kind block => (match (evalOperand program frames condition)
       | Evaluated.stop outcome => outcome
       | Evaluated.found value => (match value
@@ -1811,7 +2381,7 @@ definition{
 
 definition{
   name: stepFrames,
-  parameters: [program : Program, frames : (List Frame)],
+  parameters: [fuel : Nat, program : Program, frames : (List Frame)],
   result: Outcome,
   body: (match frames
     | List.nil => (ctor Outcome.ub "a step with no frame")
@@ -1819,7 +2389,7 @@ definition{
       | Option.none => (ctor Outcome.ub "a jump to a block the body does not have")
       | Option.some block => (match (nthStatement (project block statements) (project frame statement))
         | Option.some statement => (evalStatement program frames frame statement)
-        | Option.none => (evalTerminator program frames frame (project block terminator)))))
+        | Option.none => (evalTerminator fuel program frames frame (project block terminator)))))
 }
 
 definition{
@@ -1828,7 +2398,7 @@ definition{
   result: Outcome,
   body: (match fuel
     | Nat.zero => (ctor Outcome.exhausted)
-    | Nat.succ rest => (match (stepFrames program frames)
+    | Nat.succ rest => (match (stepFrames rest program frames)
       | Outcome.running next => (runFrames rest program next)
       | Outcome.returned value => (ctor Outcome.returned value)
       | Outcome.panicked kind => (ctor Outcome.panicked kind)
@@ -1846,7 +2416,7 @@ definition{
   result: Outcome,
   body: (match (findBody (project program bodies) path)
     | Option.none => (ctor Outcome.unlinked path)
-    | Option.some callee => (runFrames fuel program (cons (enterFrame callee args (record Place {base := 0, projection := (nil Proj)}) (ctor Option.none [Nat])) (nil Frame))))
+    | Option.some callee => (runFrames fuel program (cons (enterFrame callee args (record Place {base := 0, projection := (nil Proj)}) (ctor Option.none [Nat]) false) (nil Frame))))
 }
 \end{semanticmodule}
 \end{lexlean}

@@ -79,6 +79,105 @@ pub(crate) struct Cx<'a> {
     /// Whether the target stores an integer's most significant byte first,
     /// where the dumps record its data layout.
     pub(crate) big_endian: Option<bool>,
+    /// The structs and enums core's source declares, by their name's last
+    /// segment: a type's layout is read from its declaration where Rust
+    /// fixes it (`#[repr(transparent)]`, a fieldless `#[repr(u8)]` enum).
+    pub(crate) structs: &'a Structs,
+    /// The constant items the body being embedded reads, in the order it
+    /// first reads each: each is evaluated into a local of its own on entry.
+    pub(crate) items: std::cell::RefCell<Vec<String>>,
+    /// Each allocation the dump prints, where its bytes are read
+    /// ([`allocation_cells`]).
+    pub(crate) cells: BTreeMap<String, Vec<Cell>>,
+    /// The first local past the body's own: the constant items' locals.
+    pub(crate) base: std::cell::Cell<usize>,
+}
+
+/// The structs and enums core's source declares, by their name's last
+/// segment.
+pub(crate) type Structs = BTreeMap<String, Vec<crate::mir::core::CoreStruct>>;
+
+/// [`Structs`] of what `decls` declares.
+pub(crate) fn structs(decls: &crate::mir::core::CoreDecls) -> Structs {
+    let mut out: Structs = BTreeMap::new();
+    for s in &decls.structs {
+        out.entry(s.name().to_string()).or_default().push(s.clone());
+    }
+    out
+}
+
+/// A type's layout as the evaluator's `Mir::Layout` describes it: its
+/// term, its size in bytes, and, where the size of a pointer in it is
+/// assumed thin because its pointee is a parameter whose size is not known
+/// here, that pointee.
+#[derive(Clone, Debug)]
+struct Laid {
+    term: String,
+    size: u64,
+    assumed: Option<String>,
+}
+
+/// A type as MIR or the source prints it, its generic arguments split off:
+/// `NonNull<T>` is `NonNull` and `[T]`.
+fn generic_parts(ty: &str) -> (&str, Vec<String>) {
+    let Some(open) = ty.find('<') else {
+        return (ty, Vec::new());
+    };
+    let Some(inner) = ty[open + 1..].strip_suffix('>') else {
+        return (ty, Vec::new());
+    };
+    let mut args = Vec::new();
+    let (mut depth, mut start) = (0i32, 0);
+    for (i, c) in inner.char_indices() {
+        match c {
+            '<' | '(' | '[' => depth += 1,
+            '>' | ')' | ']' => depth -= 1,
+            ',' if depth == 0 => {
+                args.push(inner[start..i].trim().to_string());
+                start = i + 1;
+            }
+            _ => {}
+        }
+    }
+    args.push(inner[start..].trim().to_string());
+    (&ty[..open], args)
+}
+
+/// The pointee of a pointer or reference type, with its lifetime dropped:
+/// `&'a mut T` is `T`.
+fn pointee(ty: &str) -> Option<&str> {
+    // The source's types as `quote` prints them space a raw pointer's star.
+    let rest = ty
+        .strip_prefix("*const ")
+        .or_else(|| ty.strip_prefix("*mut "))
+        .or_else(|| ty.strip_prefix("* const "))
+        .or_else(|| ty.strip_prefix("* mut "))
+        .or_else(|| ty.strip_prefix('&'))?;
+    let rest = match rest.strip_prefix('\'') {
+        Some(r) => r.split_once(' ').map_or(r, |(_, t)| t),
+        None => rest,
+    };
+    Some(rest.strip_prefix("mut ").unwrap_or(rest).trim())
+}
+
+/// How much of a structural walk a layout takes before it is refused: the
+/// walk follows a type's declarations, which nest no deeper than core
+/// declares types.
+fn layout_depth(structs: &Structs) -> usize {
+    structs.len()
+}
+
+/// The constant item a constant operand names: a promoted, an anonymous
+/// constant or a named one, as MIR prints it, `X::promoted[0]`,
+/// `X::{constant#1}`, `X::CHUNK_SIZE`.
+fn item_suffix(text: &str) -> Option<(&str, &str)> {
+    let (owner, last) = text.rsplit_once("::")?;
+    let named = last
+        .chars()
+        .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
+        && last.starts_with(|c: char| c.is_ascii_uppercase());
+    (last.starts_with("promoted[") || last.starts_with("{constant#") || named)
+        .then_some((owner, last))
 }
 
 /// How a call's callee is embedded.
@@ -267,6 +366,70 @@ pub(crate) fn allocations(text: &str) -> BTreeMap<String, Vec<u8>> {
     out
 }
 
+/// A byte of an allocation as a dump prints it: initialized, or one of
+/// the bytes of a pointer to another allocation (`╾──alloc7──╼`), by that
+/// allocation's name and the byte's index in the pointer.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum Cell {
+    Byte(u8),
+    Pointer(String, usize),
+}
+
+/// The bytes of each allocation a dump prints, where every byte is
+/// initialized or part of a pointer to another allocation at offset zero:
+/// a pointer token spans the pointer's bytes, `width` bits.
+pub(crate) fn allocation_cells(text: &str, width: u32) -> BTreeMap<String, Vec<Cell>> {
+    let bytes = usize::try_from(width / 8).unwrap_or_default();
+    let mut out = BTreeMap::new();
+    let mut lines = text.lines();
+    while let Some(line) = lines.next() {
+        let Some((name, _)) = line.split_once(" (") else {
+            continue;
+        };
+        if !name.starts_with("alloc") || !line.trim_end().ends_with('{') {
+            continue;
+        }
+        let mut cells = Some(Vec::new());
+        for row in lines.by_ref() {
+            if row.trim() == "}" {
+                break;
+            }
+            let parts: Vec<&str> = row.split('│').collect();
+            let hex = match parts.as_slice() {
+                [_, hex, _] | [hex, _] => *hex,
+                _ => "",
+            };
+            for token in hex.split_whitespace() {
+                let Some(v) = cells.as_mut() else { break };
+                if let Ok(b) = u8::from_str_radix(token, 16) {
+                    if token.len() == 2 {
+                        v.push(Cell::Byte(b));
+                        continue;
+                    }
+                }
+                // `╾───alloc12<imm>────╼`: a pointer to the start of alloc12.
+                let target = token
+                    .trim_matches(|c| c == '╾' || c == '╼' || c == '─')
+                    .split('<')
+                    .next()
+                    .unwrap_or_default();
+                if target.starts_with("alloc")
+                    && target[5..].chars().all(|c| c.is_ascii_digit())
+                    && target.len() > 5
+                {
+                    v.extend((0..bytes).map(|i| Cell::Pointer(target.to_string(), i)));
+                } else {
+                    cells = None;
+                }
+            }
+        }
+        if let Some(cells) = cells {
+            out.insert(name.to_string(), cells);
+        }
+    }
+    out
+}
+
 /// A list term of items of type `ty`. A long list is the `append` of runs
 /// of about its length's square root, so neither a run nor the appends nest
 /// deeper than that however long it grows: the linker reads a term to a
@@ -412,6 +575,232 @@ impl Cx<'_> {
             .then(|| (String::new(), 0))
     }
 
+    /// Whether values of `ty` have a size known at compile time: `None`
+    /// where `ty` is a parameter, or names one, whose bounds are not read.
+    fn sized(&self, ty: &str, depth: usize) -> Option<bool> {
+        let ty = ty.trim();
+        if depth == 0 {
+            return None;
+        }
+        if ty == "str" || ty.starts_with("dyn ") || (ty.starts_with('[') && array_ty(ty).is_none())
+        {
+            return Some(false);
+        }
+        if int_ty(ty, self.width).is_some()
+            || matches!(ty, "bool" | "char" | "()")
+            || array_ty(ty).is_some()
+            || pointee(ty).is_some()
+            || ty.starts_with("fn(")
+            || ty.starts_with('(')
+        {
+            return Some(true);
+        }
+        let (name, args) = generic_parts(ty);
+        let name = crate::mir::parse::split_path(name)
+            .last()
+            .copied()
+            .unwrap_or(name);
+        let [decl] = self.structs.get(name)?.as_slice() else {
+            return None;
+        };
+        if decl.variants.is_some() || decl.data.is_some() {
+            return Some(true);
+        }
+        // A struct is unsized where its last field is.
+        let Some((_, last)) = decl.fields.last() else {
+            return Some(true);
+        };
+        let bound: BTreeMap<String, String> = decl.params.iter().cloned().zip(args).collect();
+        self.sized(&crate::mir::stdlib::substitute(last, &bound), depth - 1)
+    }
+
+    /// The layout of `ty`, where Rust fixes it and the dumps' data layout
+    /// gives each primitive's: an integer's, `bool`'s and `char`'s sizes,
+    /// a pointer's (twice a thin one's where its pointee is unsized: its
+    /// metadata is a `usize` or a vtable's pointer), an array's (its
+    /// element's stride, its length), a `#[repr(transparent)]` struct's
+    /// (its one field of non-zero size, at offset zero) and a fieldless
+    /// enum's of an integer representation (its tag, of that integer).
+    fn layout(&self, ty: &str, depth: usize) -> Option<Laid> {
+        let ty = ty.trim();
+        let depth = depth.checked_sub(1)?;
+        let laid = |term: String, size: u64| Laid {
+            term,
+            size,
+            assumed: None,
+        };
+        let bytes = |bits: u32| u64::from(bits / 8);
+        if let Some((bits, signed)) = int_ty(ty, self.width) {
+            if bits > 8 && self.big_endian.is_none() {
+                return None;
+            }
+            return Some(laid(
+                mir_ctor("Layout.int", &[bytes(bits).to_string(), signed.to_string()]),
+                bytes(bits),
+            ));
+        }
+        match ty {
+            // The Reference ("Type layout"): `bool` is one byte, `char` four.
+            "bool" => return Some(laid(mir_ctor("Layout.boolean", &[]), 1)),
+            "char" => {
+                return (self.big_endian.is_some())
+                    .then(|| laid(mir_ctor("Layout.character", &[]), bytes(u32::BITS)));
+            }
+            _ => {}
+        }
+        // A pattern type, `(u32) is 1..`, is laid out as its base type; the
+        // range it is valid in is not checked, so a transmute into it is
+        // defined where the range would make it undefined.
+        if let Some(base) = ty
+            .strip_prefix('(')
+            .and_then(|t| t.split_once(") is "))
+            .map(|(b, _)| b)
+        {
+            return self.layout(base, depth);
+        }
+        let thin = bytes(self.width);
+        if pointee(ty).is_some() || ty.starts_with("fn(") {
+            let (size, assumed) =
+                match pointee(ty).map(|t| (t, self.sized(t, layout_depth(self.structs)))) {
+                    None | Some((_, Some(true))) => (thin, None),
+                    Some((_, Some(false))) => (2 * thin, None),
+                    Some((t, None)) => (thin, Some(t.to_string())),
+                };
+            return Some(Laid {
+                term: mir_ctor("Layout.pointer", &[size.to_string()]),
+                size,
+                assumed,
+            });
+        }
+        if let Some((elem, n)) = array_ty(ty) {
+            let e = self.layout(elem, depth)?;
+            if e.assumed.is_some() {
+                return None;
+            }
+            let n = u64::try_from(n).ok()?;
+            return Some(laid(
+                mir_ctor("Layout.array", &[e.term, n.to_string(), e.size.to_string()]),
+                e.size.checked_mul(n)?,
+            ));
+        }
+        let (name, args) = generic_parts(ty);
+        let name = crate::mir::parse::split_path(name)
+            .last()
+            .copied()
+            .unwrap_or(name);
+        let [decl] = self.structs.get(name)?.as_slice() else {
+            return None;
+        };
+        if let Some(variants) = &decl.variants {
+            let repr = decl.repr.iter().find_map(|r| int_ty(r, self.width))?;
+            if repr.0 > 8 && self.big_endian.is_none() {
+                return None;
+            }
+            let found = self
+                .enums
+                .get(name)?
+                .iter()
+                .find(|(p, _)| *p == decl.path)?;
+            if found.1.len() != variants.len() {
+                return None;
+            }
+            let names: Vec<String> = found.1.iter().map(|(v, _)| mir_string(v)).collect();
+            let discs: Vec<String> = found.1.iter().map(|(_, d)| signed(*d)).collect();
+            return Some(laid(
+                mir_ctor(
+                    "Layout.enumeration",
+                    &[
+                        bytes(repr.0).to_string(),
+                        repr.1.to_string(),
+                        term_list(&names, "String"),
+                        term_list(&discs, &mir_name("Signed")),
+                    ],
+                ),
+                bytes(repr.0),
+            ));
+        }
+        if decl.data.is_some() || !decl.repr.iter().any(|r| r == "transparent") {
+            return None;
+        }
+        let bound: BTreeMap<String, String> = decl.params.iter().cloned().zip(args).collect();
+        let fields: Vec<Laid> = decl
+            .fields
+            .iter()
+            .map(|(_, t)| self.layout(&crate::mir::stdlib::substitute(t, &bound), depth))
+            .collect::<Option<_>>()?;
+        // `#[repr(transparent)]`: every field but one is of size zero, and
+        // the struct is laid out as that one.
+        let wide: Vec<&Laid> = fields.iter().filter(|f| f.size > 0).collect();
+        let (size, assumed) = match wide.as_slice() {
+            [] => (0, None),
+            [one] => (one.size, one.assumed.clone()),
+            _ => return None,
+        };
+        let offsets: Vec<String> = fields.iter().map(|_| "0".to_string()).collect();
+        let terms: Vec<String> = fields.into_iter().map(|f| f.term).collect();
+        Some(Laid {
+            term: mir_ctor(
+                "Layout.record",
+                &[
+                    size.to_string(),
+                    "true".to_string(),
+                    term_list(&offsets, "Nat"),
+                    term_list(&terms, &mir_name("Layout")),
+                ],
+            ),
+            size,
+            assumed,
+        })
+    }
+
+    /// `Callee.transmute` of a transmute from `from` to `to`, where both
+    /// layouts are read and agree in size; a pointer whose size is assumed
+    /// is allowed only where both sides hold one of the same pointee, so
+    /// whatever its size, the two agree.
+    fn transmute(&self, from: &str, to: &str) -> Option<String> {
+        let depth = layout_depth(self.structs);
+        let (a, b) = (self.layout(from, depth)?, self.layout(to, depth)?);
+        if a.size != b.size || a.assumed != b.assumed {
+            return None;
+        }
+        Some(mir_ctor("Callee.transmute", &[a.term, b.term]))
+    }
+
+    /// The key of the constant item a constant operand names, where the
+    /// program has its body: the item itself, or the item of that name in
+    /// the body its owner resolves to.
+    fn item(&self, c: &IrConstant) -> Option<String> {
+        let IrConstant::Other(text) = c else {
+            return None;
+        };
+        let (owner, last) = item_suffix(text)?;
+        if let Callee::Body(p) = (self.resolve)(text, &[], "") {
+            return Some(p);
+        }
+        let named = match (self.resolve)(owner, &[], "") {
+            Callee::Body(o) => {
+                format!(
+                    "{}::{last}",
+                    o.split_once('#').map_or(o.as_str(), |(p, _)| p)
+                )
+            }
+            _ => text.clone(),
+        };
+        if let Callee::Body(p) = (self.resolve)(&named, &[], "") {
+            return Some(p);
+        }
+        // rustc heads a constant's dump by its path's last segments
+        // (`const SINGLETONS0U::promoted[0]`), so its body is had by the
+        // longest tail of the path that names one.
+        let segments = crate::mir::parse::split_path(&named);
+        (1..segments.len().saturating_sub(1)).find_map(|i| {
+            match (self.resolve)(&segments[i..].join("::"), &[], "") {
+                Callee::Body(p) if named.ends_with(&format!("::{p}")) => Some(p),
+                _ => None,
+            }
+        })
+    }
+
     fn place(&self, p: &IrPlace, e: &mut Embedded) -> String {
         let steps: Vec<String> = p
             .projection
@@ -506,6 +895,14 @@ impl Cx<'_> {
         if let Some(bytes) = byte_string(text) {
             return Some(self.array_value(&bytes, 8, false, 1));
         }
+        if let Some(value) = text
+            .strip_prefix('{')
+            .and_then(|t| t.strip_suffix('}'))
+            .and_then(|t| t.split_once(": &"))
+            .and_then(|(alloc, ty)| self.read_cells(alloc, 0, ty, layout_depth(self.structs)))
+        {
+            return Some(value);
+        }
         let (alloc, ty) = text
             .strip_prefix('{')?
             .strip_suffix('}')?
@@ -538,24 +935,81 @@ impl Cx<'_> {
         }
     }
 
+    /// The value of type `ty` that allocation `alloc` holds at `offset`: an
+    /// integer read at the target's byte order, an array of such values,
+    /// or a reference to a sized value another allocation holds.
+    fn read_cells(&self, alloc: &str, offset: usize, ty: &str, depth: usize) -> Option<String> {
+        let depth = depth.checked_sub(1)?;
+        let cells = self.cells.get(alloc)?;
+        let ty = ty.trim();
+        if let Some((bits, signed)) = int_ty(ty, self.width) {
+            let size = usize::try_from(bits / 8).ok()?;
+            let bytes: Vec<u8> = cells
+                .get(offset..offset + size)?
+                .iter()
+                .map(|c| match c {
+                    Cell::Byte(b) => Some(*b),
+                    Cell::Pointer(..) => None,
+                })
+                .collect::<Option<_>>()?;
+            if size > 1 && self.big_endian.is_none() {
+                return None;
+            }
+            return Some(self.int_value(&bytes, bits, signed));
+        }
+        if let Some((elem, n)) = array_ty(ty) {
+            let stride =
+                usize::try_from(self.layout(elem, layout_depth(self.structs))?.size).ok()?;
+            let items: Vec<String> = (0..n)
+                .map(|i| self.read_cells(alloc, offset + i * stride, elem, depth))
+                .collect::<Option<_>>()?;
+            return Some(mir_ctor(
+                "Value.tuple",
+                &[term_list(&items, &mir_name("Value"))],
+            ));
+        }
+        let inner = ty.strip_prefix('&')?;
+        if inner.starts_with("mut ") || self.sized(inner, layout_depth(self.structs)) != Some(true)
+        {
+            return None;
+        }
+        let width = usize::try_from(self.width / 8).ok()?;
+        let target = match cells.get(offset..offset + width)? {
+            [Cell::Pointer(t, 0), rest @ ..]
+                if rest
+                    .iter()
+                    .enumerate()
+                    .all(|(i, c)| *c == Cell::Pointer(t.clone(), i + 1)) =>
+            {
+                t.clone()
+            }
+            _ => return None,
+        };
+        let value = self.read_cells(&target, 0, inner, depth)?;
+        Some(mir_ctor("Value.reference", &[value]))
+    }
+
     /// `Value.tuple` of the integers `bytes` holds, each `size` bytes.
     fn array_value(&self, bytes: &[u8], bits: u32, signed: bool, size: usize) -> String {
         let items: Vec<String> = bytes
             .chunks(size)
-            .map(|chunk| {
-                let fold = |n: u128, b: &u8| (n << 8) | u128::from(*b);
-                let n = if self.big_endian == Some(true) {
-                    chunk.iter().fold(0, fold)
-                } else {
-                    chunk.iter().rev().fold(0, fold)
-                };
-                mir_ctor(
-                    "Value.int",
-                    &[bits.to_string(), signed.to_string(), n.to_string()],
-                )
-            })
+            .map(|chunk| self.int_value(chunk, bits, signed))
             .collect();
         mir_ctor("Value.tuple", &[term_list(&items, &mir_name("Value"))])
+    }
+
+    /// `Value.int` of the integer `chunk` holds at the target's byte order.
+    fn int_value(&self, chunk: &[u8], bits: u32, signed: bool) -> String {
+        let fold = |n: u128, b: &u8| (n << 8) | u128::from(*b);
+        let n = if self.big_endian == Some(true) {
+            chunk.iter().fold(0, fold)
+        } else {
+            chunk.iter().rev().fold(0, fold)
+        };
+        mir_ctor(
+            "Value.int",
+            &[bits.to_string(), signed.to_string(), n.to_string()],
+        )
     }
 
     /// A constant the evaluator does not read: the construct it answers
@@ -576,6 +1030,27 @@ impl Cx<'_> {
         let (kind, term) = match o {
             IrOperand::Copy(p) => (O::Copy, mir_ctor("Operand.copy", &[self.place(p, e)])),
             IrOperand::Move(p) => (O::Move, mir_ctor("Operand.move", &[self.place(p, e)])),
+            IrOperand::Constant(c) if self.item(c).is_some() => {
+                let key = self.item(c).unwrap_or_default();
+                e.callees.insert(key.clone());
+                let mut items = self.items.borrow_mut();
+                let at = items.iter().position(|k| *k == key).unwrap_or_else(|| {
+                    items.push(key);
+                    items.len() - 1
+                });
+                (
+                    O::Constant,
+                    mir_ctor(
+                        "Operand.copy",
+                        &[format!(
+                            "(record {} {{base := {}, projection := {}}})",
+                            mir_name("Place"),
+                            self.base.get() + at,
+                            term_list(&[], &mir_name("Proj"))
+                        )],
+                    ),
+                )
+            }
             IrOperand::Constant(c) => (
                 O::Constant,
                 mir_ctor("Operand.constant", &[self.constant(c, e)]),
@@ -849,6 +1324,25 @@ impl Cx<'_> {
                             e.callees.insert(p.clone());
                             mir_ctor("Callee.body", &[mir_string(&p)])
                         }
+                        Callee::Intrinsic(p)
+                            if matches!(
+                                intrinsic_name(&p).as_str(),
+                                "transmute" | "transmute_unchecked"
+                            ) =>
+                        {
+                            let from = args.first().and_then(|a| arg_type(body, a));
+                            let to = place_type(body, destination);
+                            match from.zip(to).and_then(|(f, t)| self.transmute(&f, &t)) {
+                                Some(term) => term,
+                                None => {
+                                    e.blocked.insert(
+                                        "intrinsic transmute of a type whose layout the embedding does not read"
+                                            .to_string(),
+                                    );
+                                    mir_ctor("Callee.intrinsic", &[mir_string(&intrinsic_name(&p))])
+                                }
+                            }
+                        }
                         Callee::Intrinsic(p) => {
                             let p = intrinsic_name(&p);
                             if !defined_intrinsics().contains(&p) {
@@ -923,7 +1417,9 @@ impl Cx<'_> {
     /// The body `b`, named `path` in the program, as a `Mir::Body` term.
     pub(crate) fn body(&self, b: &IrBody, path: &str) -> Embedded {
         let mut e = Embedded::default();
-        let locals: Vec<String> = b.locals.iter().map(|t| self.ty(t)).collect();
+        self.items.borrow_mut().clear();
+        self.base.set(b.locals.len());
+        let mut locals: Vec<String> = b.locals.iter().map(|t| self.ty(t)).collect();
         // The blocks control reaches from the entry without unwinding: the
         // evaluator ends a run at a panic, so a cleanup block is never
         // evaluated, and what it uses blocks nothing.
@@ -989,8 +1485,41 @@ impl Cx<'_> {
                 )
             })
             .collect();
+        // Each constant item the body reads is evaluated on entry, in a
+        // block of its own past the body's, into a local of its own: rustc
+        // evaluates every constant a body requires before it runs.
+        let mut blocks = blocks;
+        let items = self.items.borrow().clone();
+        let entry = if items.is_empty() { 0 } else { blocks.len() };
+        for (i, key) in items.iter().enumerate() {
+            locals.push(mir_ctor("Ty.other", &[mir_string("const")]));
+            let next = if i + 1 < items.len() {
+                entry + i + 1
+            } else {
+                0
+            };
+            blocks.push(format!(
+                "(record {} {{statements := {}, terminator := {}}})",
+                mir_name("Block"),
+                term_list(&[], &mir_name("Statement")),
+                mir_ctor(
+                    "Terminator.call",
+                    &[
+                        format!(
+                            "(record {} {{base := {}, projection := {}}})",
+                            mir_name("Place"),
+                            b.locals.len() + i,
+                            term_list(&[], &mir_name("Proj"))
+                        ),
+                        mir_ctor("Callee.constant", &[mir_string(key)]),
+                        term_list(&[], &mir_name("Operand")),
+                        format!("(ctor Option.some [Nat] {next})"),
+                    ],
+                )
+            ));
+        }
         e.term = format!(
-            "(record {} {{path := {}, arity := {}, locals := {}, blocks := {}}})",
+            "(record {} {{path := {}, arity := {}, locals := {}, blocks := {}, entry := {entry}}})",
             mir_name("Body"),
             mir_string(path),
             b.arity,
@@ -1459,6 +1988,8 @@ pub(crate) struct Program {
     samples: Vec<Sample>,
     /// The target's pointer width, `usize`'s.
     width: u32,
+    /// Whether the target is big-endian.
+    big_endian: bool,
 }
 
 /// The keys of the bodies `key` reaches, itself first, where the evaluator
@@ -1669,12 +2200,13 @@ fn differential(
         // Contracts are checked only under `-Zcontract-checks`, which no
         // build of core here passes.
         decls.push(format!(
-            "definition{{\n  name: p{name},\n  parameters: [],\n  result: {},\n  body: (record {} {{bodies := {}, dictionary := (nil {}), ubChecks := {debug}, contractChecks := false, overflowChecks := {overflow}, pointerWidth := {}}})\n}}",
+            "definition{{\n  name: p{name},\n  parameters: [],\n  result: {},\n  body: (record {} {{bodies := {}, dictionary := (nil {}), ubChecks := {debug}, contractChecks := false, overflowChecks := {overflow}, pointerWidth := {}, bigEndian := {}}})\n}}",
             mir_name("Program"),
             mir_name("Program"),
             term_list(&bodies, &mir_name("Body")),
             mir_name("Binding"),
-            program.width
+            program.width,
+            program.big_endian
         ));
         decls.extend(theorems);
     }
@@ -1860,6 +2392,7 @@ fn embed_census(
             .flat_map(|(_, texts)| texts.iter().map(|(n, t)| (n.as_str(), t))),
     );
     let enums = enums(&link.decls);
+    let structs = structs(&link.decls);
     let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
         resolve_callee(&link, krate, callee, args, dest)
     };
@@ -1878,6 +2411,10 @@ fn embed_census(
                 resolve: &resolve,
                 allocs: allocations(text),
                 big_endian,
+                structs: &structs,
+                cells: allocation_cells(text, width),
+                items: Default::default(),
+                base: Default::default(),
             };
             for b in crate::mir::parse::bodies(text) {
                 let kappa = body_kappa(krate, &b.path, text);
@@ -1919,6 +2456,7 @@ fn embed_census(
         every,
         samples,
         width,
+        big_endian: big_endian.unwrap_or_default(),
     };
     Ok((modules, census, program))
 }
@@ -2023,11 +2561,40 @@ mod tests {
     }
 
     #[test]
+    fn an_allocations_pointers_and_a_constants_item_are_read_ue_19() {
+        let text = "alloc2 (static: X, size: 8, align: 8) {\n    \u{257e}\u{2500}\u{2500}alloc1\u{2500}\u{2500}\u{257c} \u{2502} \u{257e}\u{2500}\u{257c}\n}\n\nalloc1 (size: 2, align: 1) {\n    61 62 \u{2502} ab\n}\n";
+        let cells = allocation_cells(text, 64);
+        assert_eq!(cells["alloc1"], vec![Cell::Byte(0x61), Cell::Byte(0x62)]);
+        assert_eq!(cells["alloc2"].len(), 8);
+        assert_eq!(cells["alloc2"][7], Cell::Pointer("alloc1".into(), 7));
+        assert_eq!(
+            item_suffix("a::f::promoted[0]"),
+            Some(("a::f", "promoted[0]"))
+        );
+        assert_eq!(
+            item_suffix("a::f::{constant#1}"),
+            Some(("a::f", "{constant#1}"))
+        );
+        assert_eq!(
+            item_suffix("a::f::CHUNK_SIZE"),
+            Some(("a::f", "CHUNK_SIZE"))
+        );
+        assert_eq!(item_suffix("a::f::g"), None);
+        assert_eq!(
+            generic_parts("NonNull<[T; N], U>"),
+            ("NonNull", vec!["[T; N]".to_string(), "U".to_string()])
+        );
+        assert_eq!(pointee("&'a mut T"), Some("T"));
+        assert_eq!(pointee("* const T"), Some("T"));
+    }
+
+    #[test]
     fn a_harness_output_without_its_checks_is_refused_ue_19() {
         let program = Program {
             every: BTreeMap::new(),
             samples: Vec::new(),
             width: usize::BITS,
+            big_endian: false,
         };
         let file = Path::new("observed.txt");
         assert!(matches!(
