@@ -34,10 +34,28 @@ if [ ! -d "$cache/library/$krate" ]; then
   rm -rf "$cache"/rust-src-* "$cache/rust-src.tar.xz"
 fi
 # The crate's top-level modules: each directory and file of its src but the
-# crate root.
+# crate root, and each module the root declares at a path of its own inside
+# src (`#[path = "num/f32.rs"] pub mod f32;`); one at a path outside it (a
+# submodule's crate, `../../stdarch/..`) is that crate's.
 modules() {
-  find "$cache/library/$krate/src" -mindepth 1 -maxdepth 1 \( -type d -o -name '*.rs' \) -printf '%f\n' |
-    sed 's/\.rs$//' | grep -vx 'lib\|lib\.miri' | sort -u
+  {
+    find "$cache/library/$krate/src" -mindepth 1 -maxdepth 1 \( -type d -o -name '*.rs' \) -printf '%f\n' |
+      sed 's/\.rs$//' | grep -vx 'lib\|lib\.miri'
+    python3 -I -c '
+import re, sys
+path = None
+for line in open(sys.argv[1], encoding="utf-8"):
+    m = re.match(r"\s*#\[path\s*=\s*\"([^\"]*)\"\]", line)
+    if m:
+        path = m.group(1)
+        continue
+    m = re.match(r"\s*(pub(\([a-z]+\))?\s+)?mod\s+([a-z_0-9]+)\s*;", line)
+    if m and path is not None and not path.startswith(".."):
+        print(m.group(3))
+    if not line.strip().startswith("#"):
+        path = None
+' "$cache/library/$krate/src/lib.rs"
+  } | sort -u
 }
 if [ "$out" = --modules ]; then
   modules | python3 -I -c 'import json, sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))'

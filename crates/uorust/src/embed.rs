@@ -2511,14 +2511,40 @@ fn library_root(root: &Path) -> std::path::PathBuf {
 enum Sampled {
     Int(u32, bool),
     Bool,
+    /// A float of the IEEE 754 format of these exponent and fraction
+    /// widths, drawn and compared as its bits: a NaN is the NaN its bits
+    /// are.
+    Float(u32, u32),
 }
 
+/// The float types a harness names on the stable compiler.
+const STABLE_FLOATS: &[&str] = &["f32", "f64"];
+
 impl Sampled {
-    fn of(printed: &str, width: u32) -> Option<Self> {
+    fn of(
+        printed: &str,
+        width: u32,
+        floats: &BTreeMap<String, crate::mir::float::Format>,
+    ) -> Option<Self> {
         if printed == "bool" {
             return Some(Self::Bool);
         }
+        if let Some(f) = floats
+            .get(printed)
+            .filter(|_| STABLE_FLOATS.contains(&printed))
+        {
+            return Some(Self::Float(f.exp, f.frac));
+        }
         int_ty(printed, width).map(|(b, s)| Self::Int(b, s))
+    }
+
+    /// Its width in bits.
+    fn bits(self) -> u32 {
+        match self {
+            Self::Int(b, _) => b,
+            Self::Bool => 1,
+            Self::Float(e, m) => 1 + e + m,
+        }
     }
 
     /// The inputs a check draws: the values at the edges of the type's
@@ -2537,6 +2563,21 @@ impl Sampled {
                 v.dedup();
                 v
             }
+            // Zero and its negation, one, the least subnormal, the greatest
+            // finite, infinity and the quiet NaN, each of either sign.
+            Self::Float(e, m) => {
+                let sign = 1u128 << (e + m);
+                let inf = ((1u128 << e) - 1) << m;
+                let one = ((1u128 << (e - 1)) - 1) << m;
+                let nan = inf | (1u128 << (m - 1));
+                let mut v: Vec<u128> = [0, one, 1, inf - 1, inf, nan]
+                    .iter()
+                    .flat_map(|x| [*x, x | sign])
+                    .collect();
+                v.sort_unstable();
+                v.dedup();
+                v
+            }
         }
     }
 
@@ -2546,6 +2587,7 @@ impl Sampled {
             Self::Bool => (x == 1).to_string(),
             Self::Int(_, false) => format!("{x}{printed}"),
             Self::Int(..) => format!("({x}{} as {printed})", unsigned(printed)),
+            Self::Float(..) => format!("{printed}::from_bits({x})"),
         }
     }
 
@@ -2556,6 +2598,11 @@ impl Sampled {
             Self::Int(bits, signed) => mir_ctor(
                 "Value.int",
                 &[bits.to_string(), signed.to_string(), x.to_string()],
+            ),
+            // A float's value is its bits (the evaluator's `floatValue`).
+            Self::Float(..) => mir_ctor(
+                "Value.int",
+                &[self.bits().to_string(), false.to_string(), x.to_string()],
             ),
         }
     }
@@ -2612,19 +2659,20 @@ fn sample(
     key: &str,
     kappa: &str,
     width: u32,
+    floats: &BTreeMap<String, crate::mir::float::Format>,
 ) -> Option<Sample> {
     let display = crate::mir::resolve_impls(root, &b.path).unwrap_or_else(|| b.path.clone());
     let [module, ty, name] = crate::mir::parse::split_path(&display)[..] else {
         return None;
     };
-    int_ty(ty, width)?;
+    (int_ty(ty, width).is_some() || floats.contains_key(ty)).then_some(())?;
     let scalar = |i: usize| {
         let t = b.locals.get(i)?;
-        Some((t.clone(), Sampled::of(t, width)?))
+        Some((t.clone(), Sampled::of(t, width, floats)?))
     };
     let params: Vec<(String, Sampled)> = (1..=b.arity).map(scalar).collect::<Option<_>>()?;
     let result = scalar(0)?;
-    if params.is_empty() || !stable_and_safe(&src.join(module), name) {
+    if params.is_empty() || !stable_and_safe(&module_sources(src, module), name) {
         return None;
     }
     Some(Sample {
@@ -2637,18 +2685,50 @@ fn sample(
     })
 }
 
-/// Whether every declaration of `fn name` in the sources under `num` is
+/// The source files of a top-level module: its directory's, or, for one
+/// the crate root declares at a path (`#[path = "num/f32.rs"] pub mod
+/// f32;`), that file.
+fn module_sources(src: &Path, module: &str) -> Vec<std::path::PathBuf> {
+    let own = src.join(module);
+    if own.is_dir() {
+        return dir_paths(&own).unwrap_or_default();
+    }
+    let root = read_text(&src.join("lib.rs")).unwrap_or_default();
+    let mut path: Option<&str> = None;
+    for line in root.lines() {
+        let t = line.trim();
+        if let Some(p) = t
+            .strip_prefix("#[path = \"")
+            .and_then(|r| r.strip_suffix("\"]"))
+        {
+            path = Some(p);
+            continue;
+        }
+        let declared = t
+            .split_once("mod ")
+            .is_some_and(|(vis, rest)| !vis.contains('{') && rest == format!("{module};"));
+        if declared {
+            if let Some(p) = path {
+                return vec![src.join(p)];
+            }
+        }
+        if !t.starts_with('#') {
+            path = None;
+        }
+    }
+    Vec::new()
+}
+
+/// Whether every declaration of `fn name` in `entries`, a module's
+/// sources, is
 /// stable and safe: its attributes say `#[stable(` and not `#[unstable(`,
 /// and it is no `unsafe fn`. A harness on the stable toolchain can call it,
 /// and on any input.
-fn stable_and_safe(num: &Path, name: &str) -> bool {
-    let Ok(entries) = dir_paths(num) else {
-        return false;
-    };
+fn stable_and_safe(entries: &[std::path::PathBuf], name: &str) -> bool {
     let decl = format!("fn {name}(");
     let mut found = false;
     for entry in entries {
-        let Ok(text) = read_text(&entry) else {
+        let Ok(text) = read_text(entry) else {
             continue;
         };
         let lines: Vec<&str> = text.lines().collect();
@@ -2734,6 +2814,7 @@ fn harness_crate(program: &Program) -> BTreeMap<String, Vec<u8>> {
                 Sampled::Int(..) => {
                     format!("((r as {}) as u128).to_string()", unsigned(&s.result.0))
                 }
+                Sampled::Float(..) => "r.to_bits().to_string()".to_string(),
             };
             let _ = write!(
                 main,
@@ -2774,10 +2855,7 @@ fn fuel(program: &Program, s: &Sample) -> usize {
     let bits = s
         .params
         .iter()
-        .map(|(_, sc)| match sc {
-            Sampled::Int(b, _) => *b as usize,
-            Sampled::Bool => 1,
-        })
+        .map(|(_, sc)| sc.bits() as usize)
         .max()
         .unwrap_or(1);
     steps * (bits + 1)
@@ -2837,7 +2915,7 @@ fn differential(
             }
             let expected = match s.result.1 {
                 Sampled::Bool => s.result.1.value(u128::from(*result == "true")),
-                Sampled::Int(..) => s.result.1.value(
+                Sampled::Int(..) | Sampled::Float(..) => s.result.1.value(
                     result
                         .parse()
                         .map_err(|_| bad(format!("case {}: {result}", first + i)))?,
@@ -3146,7 +3224,7 @@ fn embed_census(
                 let e = cx.body(&b, &key);
                 if selected && has_row(&b.path) && !is_static {
                     census.add(&e);
-                    if let Some(sample) = sample(root, &src, &b, &key, &kappa, width) {
+                    if let Some(sample) = sample(root, &src, &b, &key, &kappa, width, &floats) {
                         samples.push(sample);
                     }
                 }
