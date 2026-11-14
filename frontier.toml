@@ -198,7 +198,7 @@
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2072:21: 2072:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2142:21: 2142:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -661,7 +661,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "4ea0426da52b3f13ef15baa3079cf4b2063219ca93b62c90bb257a70fe19de24"
+kappa = "c5b55f2174e4feccc09391fcb44099a765c3bde054a3f6732cc0c5a42629776b"
 function = "uorust::embed::Cx<'_>::layout"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -853,7 +853,7 @@ reason = "mir"
 detail = "mir::Ty: std::path::Path"
 
 [[residue]]
-kappa = "fa4956d01a2c7eaf94d81c8f91a4f1557ca6b037f9bb7f886facc92db096968d"
+kappa = "fac438e807e8f86562ff18dc742b00719a4c0c1754f83df42811de218deca323"
 function = "uorust::embed::embed_project"
 reason = "mir"
 detail = "mir::TerminatorKind::Goto: a loop nested in a loop, whose helpers would call each other"
@@ -868,7 +868,7 @@ detail = "mir::Ty: mir::core::CoreDecls"
 kappa = "5a23046ee6e579ed0c14a1fa3b845cd9c7e997d07804233c3fe101bf4cc65835"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2072:21: 2072:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2142:21: 2142:24}>"
 
 [[residue]]
 kappa = "9b06d1e71770a7c515754932ed1fa95b9b3c4fe0c9bf896ecf35b38885e93c62"
