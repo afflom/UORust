@@ -39,6 +39,7 @@ for module in $modules; do
   rm -rf "$work/unzip" && mkdir -p "$work/unzip"
   unzip -q -o "$work/$module.zip" -d "$work/unzip"
   [ -f "$out/target.toml" ] || cp "$work/unzip/target.toml" "$out/target.toml"
+  [ -f "$out/layouts.json" ] || [ ! -f "$work/unzip/layouts.json" ] || cp "$work/unzip/layouts.json" "$out/layouts.json"
   rm -rf "${out:?}/$module"
   # A module with no bodies (internal_macros) dumps an empty directory,
   # which the artifact's zip does not keep.
@@ -74,6 +75,7 @@ if [ ${#missing[@]} -gt 0 ]; then
     cp -r "$local_dumps/$module" "$out/$module"
   done
   [ -f "$out/target.toml" ] || cp "$local_dumps/target.toml" "$out/target.toml"
+  [ -f "$out/layouts.json" ] || cp "$local_dumps/layouts.json" "$out/layouts.json"
   # The target the CI dumps were built for stands when there are any.
   # (An `if`: a bare `&&` would end the script with status 1 where CI has
   # no dump at all.)

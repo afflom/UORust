@@ -260,6 +260,7 @@ jobs:
           name: ${{{{ env.CRATE }}}}-mir-${{{{ steps.dump.outputs.key }}}}-${{{{ matrix.module }}}}
           path: |
             target/mir/target.toml
+            target/mir/layouts.json
             target/mir/${{{{ matrix.module }}}}
           retention-days: {KEEP['mir']}
       - name: Translate the module through the locked SDK

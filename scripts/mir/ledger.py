@@ -53,7 +53,7 @@ def toolchain_kappa():
     return sha(f"{tree_kappa(TOOLCHAIN)}\0{image}".encode())
 
 
-DUMP = ["scripts/mir/dump-lib.sh"]
+DUMP = ["scripts/mir/dump-lib.sh", "crates/uorust/src/layouts.rs"]
 
 
 def mir_key():

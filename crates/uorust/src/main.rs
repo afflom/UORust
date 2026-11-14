@@ -53,6 +53,9 @@ enum Command {
     /// LexLean semantics, and write the project, with the census of the
     /// constructs the evaluator does not define, for `lexlean verify`.
     Embed(EmbedArgs),
+    /// The layouts rustc chose for the aggregates a library's dumps print,
+    /// as the dump step asks for them (`scripts/mir/dump-lib.sh`).
+    Layouts(LayoutsArgs),
     /// Fetch a crate of crates.io, dump the MIR of its library, translate
     /// every body and write its register, `crates/uorust/crates/<name>`.
     Crate(CrateArgs),
@@ -167,6 +170,24 @@ struct CoreArgs {
     /// whole census's.
     #[arg(long)]
     only: Vec<String>,
+}
+
+#[derive(clap::Args)]
+struct LayoutsArgs {
+    /// The crate the dumps are of: `core`, `std`.
+    #[arg(long = "crate")]
+    krate: String,
+    /// The dumps, one directory per module; `layouts.json` is written here.
+    #[arg(long)]
+    mir: PathBuf,
+    /// A copy of the `library` directory the dumps were built from, which
+    /// the aliases are written into.
+    #[arg(long)]
+    copy: PathBuf,
+    /// The shell command that checks the copy, rustc's diagnostics on its
+    /// stderr.
+    #[arg(long)]
+    check: String,
 }
 
 #[derive(clap::Args)]
@@ -348,6 +369,11 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             Ok(())
         }
         Command::Core(args) => library("core", &args),
+        Command::Layouts(args) => {
+            let n = uorust::layouts::run(&args.krate, &args.mir, &args.copy, &args.check)?;
+            eprintln!("layouts: {n} types laid out");
+            Ok(())
+        }
         Command::Embed(args) => {
             let census = uorust::embed::embed(
                 &args.krate,

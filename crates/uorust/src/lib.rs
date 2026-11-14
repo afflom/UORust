@@ -22,6 +22,7 @@ mod error;
 mod expand;
 mod facts;
 mod ingest;
+pub mod layouts;
 mod lex;
 mod lift;
 pub mod mir;

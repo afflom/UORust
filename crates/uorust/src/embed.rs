@@ -110,6 +110,9 @@ pub(crate) struct Cx<'a> {
     /// The type of the constant item a key names, where its dump prints it
     /// ([`item_type`]).
     pub(crate) item_type: &'a dyn Fn(&str) -> Option<String>,
+    /// The layouts rustc chose for the aggregates the dumps print
+    /// (`crate::layouts`), read where Rust does not fix a layout.
+    pub(crate) layouts: &'a crate::layouts::Index,
 }
 
 /// The type of the constant item `key` names in `link`: its return
@@ -220,6 +223,18 @@ pub(crate) fn parts<'t>(
         .collect()
 }
 
+/// Whether two paths of an item name the same one: one's segments end the
+/// other's. MIR prints a path trimmed to its shortest unambiguous suffix
+/// (`atomic::Ordering` for `sync::atomic::Ordering`), the source its whole.
+pub(crate) fn same_item(a: &str, b: &str) -> bool {
+    let (a, b) = (
+        crate::mir::parse::split_path(a),
+        crate::mir::parse::split_path(b),
+    );
+    let n = a.len().min(b.len());
+    a[a.len() - n..] == b[b.len() - n..]
+}
+
 /// A path's last segment, its generic arguments erased.
 fn last_segment(path: &str) -> String {
     let erased = crate::mir::lower::erase(path);
@@ -256,7 +271,7 @@ struct Laid {
 
 /// A type as MIR or the source prints it, its generic arguments split off:
 /// `NonNull<T>` is `NonNull` and `[T]`.
-fn generic_parts(ty: &str) -> (&str, Vec<String>) {
+pub(crate) fn generic_parts(ty: &str) -> (&str, Vec<String>) {
     let Some(open) = ty.find('<') else {
         return (ty, Vec::new());
     };
@@ -282,7 +297,7 @@ fn generic_parts(ty: &str) -> (&str, Vec<String>) {
 
 /// The pointee of a pointer or reference type, with its lifetime dropped:
 /// `&'a mut T` is `T`.
-fn pointee(ty: &str) -> Option<&str> {
+pub(crate) fn pointee(ty: &str) -> Option<&str> {
     // The source's types as `quote` prints them space a raw pointer's star.
     let rest = ty
         .strip_prefix("*const ")
@@ -753,7 +768,7 @@ impl Cx<'_> {
             .to_string();
         let candidates = self.enums.get(&last)?;
         let mut found = candidates.iter().filter(|(path, variants)| {
-            (candidates.len() == 1 || erased.ends_with(path.as_str()))
+            (candidates.len() == 1 || same_item(&erased, path))
                 && variants.iter().any(|(v, _)| v == variant)
         });
         let (_, variants) = found.next()?;
@@ -967,6 +982,9 @@ impl Cx<'_> {
                 e.size.checked_mul(n)?,
             ));
         }
+        if let Some(laid) = self.rustc_layout(ty, depth) {
+            return Some(laid);
+        }
         let (name, args) = generic_parts(ty);
         let name = crate::mir::parse::split_path(name)
             .last()
@@ -1034,6 +1052,141 @@ impl Cx<'_> {
             ),
             size,
             assumed,
+        })
+    }
+
+    /// The fields of a tuple or a struct rustc lays out (`crate::layouts`),
+    /// in declaration order, each at its offset with its type as rustc
+    /// prints it; with them, whether it is a struct, and its layout.
+    #[allow(clippy::type_complexity)]
+    fn rustc_fields(
+        &self,
+        ty: &str,
+    ) -> Option<(bool, Vec<(u64, String)>, &crate::layouts::TypeLayout)> {
+        let (printed, l) = self.layouts.get(ty)?;
+        if l.tag.is_some() {
+            return None;
+        }
+        let [fields] = l.fields.as_slice() else {
+            return None;
+        };
+        (fields.len() == l.offsets.len()).then_some(())?;
+        let fields = l
+            .offsets
+            .iter()
+            .zip(fields)
+            .map(|(o, f)| Some((*o, f.clone()?)))
+            .collect::<Option<Vec<_>>>()?;
+        Some((!printed.starts_with('('), fields, l))
+    }
+
+    /// The layout of an aggregate as rustc lays it out (`crate::layouts`):
+    /// a tuple or a struct as a record of its fields at rustc's offsets, a
+    /// field of a pattern type as its base valid in the range rustc gives
+    /// the field (or, its one field, the struct); an enum whose variants
+    /// hold no data and whose tag is its discriminant as an enumeration of
+    /// that tag.
+    fn rustc_layout(&self, ty: &str, depth: usize) -> Option<Laid> {
+        let (printed, l) = self.layouts.get(ty)?;
+        if let Some(tag) = &l.tag {
+            return self.rustc_enumeration(printed, l, tag);
+        }
+        let (adt, fields, l) = self.rustc_fields(ty)?;
+        let mut terms = Vec::new();
+        for (_, t) in &fields {
+            let base = t
+                .trim()
+                .strip_prefix('(')
+                .and_then(|r| r.split_once(") is "))
+                .map(|(b, _)| b);
+            let own = self.layouts.get(t).and_then(|(_, f)| f.scalar.as_ref());
+            let range = own.or(l.scalar.as_ref().filter(|_| fields.len() == 1));
+            let laid = match (base, range) {
+                (Some(b), Some(s)) => {
+                    let inner = self.layout(b, depth)?;
+                    Laid {
+                        term: mir_ctor(
+                            "Layout.ranged",
+                            &[inner.term, s.start.to_string(), s.end.to_string()],
+                        ),
+                        size: inner.size,
+                        assumed: None,
+                    }
+                }
+                _ => self.layout(t, depth)?,
+            };
+            if laid.assumed.is_some() {
+                return None;
+            }
+            terms.push(laid.term);
+        }
+        let offsets: Vec<String> = fields.iter().map(|(o, _)| o.to_string()).collect();
+        Some(Laid {
+            term: mir_ctor(
+                "Layout.record",
+                &[
+                    l.size.to_string(),
+                    adt.to_string(),
+                    term_list(&offsets, "Nat"),
+                    term_list(&terms, &mir_name("Layout")),
+                ],
+            ),
+            size: l.size,
+            assumed: None,
+        })
+    }
+
+    /// An enum whose variants hold no data, its tag the whole of it and
+    /// its discriminant, as `Layout.enumeration`.
+    fn rustc_enumeration(
+        &self,
+        ty: &str,
+        l: &crate::layouts::TypeLayout,
+        tag: &crate::layouts::Tag,
+    ) -> Option<Laid> {
+        let crate::layouts::Prim::Int {
+            bytes,
+            signed: is_signed,
+        } = tag.scalar.prim
+        else {
+            return None;
+        };
+        let fieldless = tag.variants.iter().all(|v| v.offsets.is_empty());
+        let direct = tag.encoding == crate::layouts::Encoding::Direct;
+        (fieldless && direct && bytes == l.size && l.offsets.get(tag.field) == Some(&0))
+            .then_some(())?;
+        let (name, _) = generic_parts(ty);
+        let last = crate::mir::parse::split_path(name)
+            .last()
+            .copied()
+            .unwrap_or(name);
+        let found: Vec<_> = self
+            .enums
+            .get(last)?
+            .iter()
+            .filter(|(p, _)| same_item(name, p))
+            .collect();
+        let [(_, variants)] = found.as_slice() else {
+            return None;
+        };
+        (variants.len() == tag.variants.len()).then_some(())?;
+        if bytes > 1 && self.big_endian.is_none() {
+            return None;
+        }
+        let names: Vec<String> = variants.iter().map(|(v, _)| mir_string(v)).collect();
+        let discs: Vec<String> = variants.iter().map(|(_, d)| signed(*d)).collect();
+        Some(Laid {
+            term: mir_ctor(
+                "Layout.enumeration",
+                &[
+                    bytes.to_string(),
+                    is_signed.to_string(),
+                    term_list(&names, "String"),
+                    term_list(&discs, &mir_name("Signed")),
+                ],
+            ),
+            size: bytes,
+            assumed: None,
         })
     }
 
@@ -1281,6 +1434,23 @@ impl Cx<'_> {
                 "Value.tuple",
                 &[term_list(&items, &mir_name("Value"))],
             ));
+        }
+        // A tuple or a struct rustc lays out: each field read at its
+        // offset.
+        if let Some((adt, fields, _)) = self.rustc_fields(ty) {
+            let items: Vec<String> = fields
+                .iter()
+                .map(|(o, t)| {
+                    let at = offset.checked_add(usize::try_from(*o).ok()?)?;
+                    self.read_cells(alloc, at, t, depth)
+                })
+                .collect::<Option<_>>()?;
+            let list = term_list(&items, &mir_name("Value"));
+            return Some(if adt {
+                mir_ctor("Value.adt", &[mir_string(""), signed(0), list])
+            } else {
+                mir_ctor("Value.tuple", &[list])
+            });
         }
         let inner = ty.strip_prefix('&')?;
         if inner.starts_with("mut ") || self.sized(inner, layout_depth(self.structs)) != Some(true)
@@ -2861,6 +3031,7 @@ fn embed_census(
     );
     let enums = enums(&link.decls);
     let structs = structs(&link.decls);
+    let layouts = crate::layouts::Index::new(crate::layouts::load(dumps)?);
     let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
         resolve_callee(&link, krate, callee, args, dest)
     };
@@ -2899,6 +3070,7 @@ fn embed_census(
                 floats: &floats,
                 locals: Default::default(),
                 item_type: &|key: &str| item_type(&link, key),
+                layouts: &layouts,
             };
             // A static's initializer is a body of the program, read where a
             // body reads the static, and no row of the census.
@@ -3105,6 +3277,7 @@ mod tests {
             floats: &floats,
             locals: Default::default(),
             item_type: &|_: &str| None,
+            layouts: &Default::default(),
         };
         assert_eq!(cx.ty("f32"), "(ctor Mir::Ty.float 8 23)");
         assert_eq!(

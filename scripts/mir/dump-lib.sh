@@ -94,3 +94,14 @@ for module in "$@"; do
   find "$work/mir" -name "$krate.$module-*ElaborateBoxDerefs.before.mir" -exec mv -t "$dest" {} +
   echo "$module: $(find "$dest" -type f | wc -l) bodies, $(du -sh "$dest" | cut -f1)"
 done
+# The layouts rustc chose for the aggregates the dumps print, which no flag
+# prints whole and `repr(Rust)` leaves unspecified (crates/uorust/src/layouts.rs):
+# in a copy of the library, an alias of each, `#[rustc_dump_layout(debug)]`,
+# and of each of their fields, round by round, the copy checked each time.
+cp -r "$cache/library" "$work/library"
+check="cd '$work/probe' && __CARGO_TESTS_ONLY_SRC_ROOT='$work/library' RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 \
+  CARGO_TARGET_DIR='$work/target' RUSTFLAGS='-Ztrim-diagnostic-paths=no -Coverflow-checks=on -Cdebug-assertions=off' \
+  cargo +$channel check -q -Zbuild-std=$krate --target $host"
+cargo run -q --locked --manifest-path "$root/Cargo.toml" -p uorust -- \
+  layouts --crate "$krate" --mir "$out" --copy "$work/library" --check "$check"
+rm -rf "$work/target" "$work/library"
