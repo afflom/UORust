@@ -102,6 +102,32 @@ pub(crate) struct Embedded {
 
 /// The constructs the evaluator answers `Outcome.undefined` with, read
 /// from its source: the string after each `Outcome.undefined`.
+/// The intrinsics the evaluator defines, read from its source: each name
+/// its table of intrinsics compares a callee's against.
+pub(crate) fn defined_intrinsics() -> &'static BTreeSet<String> {
+    static READ: std::sync::OnceLock<BTreeSet<String>> = std::sync::OnceLock::new();
+    READ.get_or_init(|| {
+        let needle = "(prim equal name \"";
+        SEMANTICS
+            .match_indices(needle)
+            .filter_map(|(at, _)| {
+                let rest = &SEMANTICS[at + needle.len()..];
+                rest.find('"').map(|end| rest[..end].to_string())
+            })
+            .collect()
+    })
+}
+
+/// An intrinsic by its name: rustc names an intrinsic by its item's name,
+/// whatever crate's path a call prints it by.
+fn intrinsic_name(path: &str) -> String {
+    crate::mir::parse::split_path(path)
+        .last()
+        .copied()
+        .unwrap_or(path)
+        .to_string()
+}
+
 pub(crate) fn undefined_constructs() -> &'static BTreeSet<String> {
     static READ: std::sync::OnceLock<BTreeSet<String>> = std::sync::OnceLock::new();
     READ.get_or_init(read_undefined)
@@ -274,6 +300,27 @@ impl Cx<'_> {
         variants.iter().find(|(v, _)| v == variant).map(|(_, d)| *d)
     }
 
+    /// The variant and discriminant of a unit variant, or a unit struct
+    /// (no variant, discriminant zero), that `text` names as a path.
+    fn unit_adt(&self, text: &str) -> Option<(String, i128)> {
+        let erased = crate::mir::lower::erase(text);
+        if !erased
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ':')
+        {
+            return None;
+        }
+        let segments = crate::mir::parse::split_path(text);
+        if let [.., ty, v] = segments.as_slice() {
+            if let Some(d) = self.discriminant(ty, v) {
+                return Some(((*v).to_string(), d));
+            }
+        }
+        let last = crate::mir::parse::split_path(&erased).last().copied()?;
+        last.starts_with(|c: char| c.is_ascii_uppercase())
+            .then(|| (String::new(), 0))
+    }
+
     fn place(&self, p: &IrPlace, e: &mut Embedded) -> String {
         let steps: Vec<String> = p
             .projection
@@ -340,8 +387,11 @@ impl Cx<'_> {
                             mir_ctor("Const.function", &[mir_string(&path)])
                         }
                         Callee::Intrinsic(path) => {
-                            e.intrinsics.insert(path.clone());
-                            e.blocked.insert(format!("intrinsic {path}"));
+                            let path = intrinsic_name(&path);
+                            if !defined_intrinsics().contains(&path) {
+                                e.intrinsics.insert(path.clone());
+                                e.blocked.insert(format!("intrinsic {path}"));
+                            }
                             mir_ctor("Const.function", &[mir_string(&path)])
                         }
                         Callee::Bound(name) => {
@@ -472,7 +522,7 @@ impl Cx<'_> {
                             .unwrap_or_default();
                         if variant.is_some() && self.discriminant(ty, &v).is_none() {
                             e.blocked.insert(
-                                "AggregateKind::Adt of an enum whose discriminants core's source does not give"
+                                "AggregateKind::Adt of an enum whose discriminants the crate's source does not give"
                                     .to_string(),
                             );
                         }
@@ -512,6 +562,23 @@ impl Cx<'_> {
             }
             IrRvalue::RawPtr(_, p) | IrRvalue::MetadataPtr(p) => {
                 (R::RawPtr, mir_ctor("Rvalue.rawPtr", &[self.place(p, e)]))
+            }
+            // A unit variant or unit struct whose generic arguments the
+            // parser does not read as a path (`Option::<&[T]>::None`).
+            IrRvalue::Other(spec::MirRvalue::Use, text) if self.unit_adt(text).is_some() => {
+                let (v, d) = self.unit_adt(text).unwrap_or_default();
+                e.uses
+                    .insert(spec::MirAggregateKind::Adt.path().to_string());
+                (
+                    R::Aggregate,
+                    mir_ctor(
+                        "Rvalue.aggregate",
+                        &[
+                            mir_ctor("Agg.adt", &[mir_string(&v), signed(d)]),
+                            term_list(&[], &mir_name("Operand")),
+                        ],
+                    ),
+                )
             }
             IrRvalue::Other(k, text) => {
                 e.blocked.insert(k.path().to_string());
@@ -614,8 +681,11 @@ impl Cx<'_> {
                             mir_ctor("Callee.body", &[mir_string(&p)])
                         }
                         Callee::Intrinsic(p) => {
-                            e.intrinsics.insert(p.clone());
-                            e.blocked.insert(format!("intrinsic {p}"));
+                            let p = intrinsic_name(&p);
+                            if !defined_intrinsics().contains(&p) {
+                                e.intrinsics.insert(p.clone());
+                                e.blocked.insert(format!("intrinsic {p}"));
+                            }
                             mir_ctor("Callee.intrinsic", &[mir_string(&p)])
                         }
                         Callee::Bound(n) => {
@@ -831,12 +901,17 @@ fn census_string(s: &str) -> String {
 
 /// The LexLean project of the embedding: `Mir` and, for each module, its
 /// bodies in parts of at most `budget` bytes, each a definition named by
-/// its κ ([`def_name`]).
+/// its κ ([`def_name`]), and the `extra` modules, each an entrypoint.
+/// The crate's modules sit under `{Crate}Mir`, a segment no crate name
+/// can make a Lean namespace.
 pub(crate) fn embed_project(
+    krate: &str,
     modules: &[(String, Vec<(String, Embedded)>)],
+    extra: BTreeMap<String, Vec<u8>>,
     budget: usize,
 ) -> BTreeMap<String, Vec<u8>> {
-    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut entrypoints: Vec<String> = extra.keys().cloned().collect();
+    let mut files: BTreeMap<String, Vec<u8>> = extra;
     files.insert(format!("src/{MIR}.lex.tex"), SEMANTICS.as_bytes().to_vec());
     files.insert(
         "language/uorust.mir/lexicon.toml".into(),
@@ -848,7 +923,8 @@ pub(crate) fn embed_project(
             text.as_bytes().to_vec(),
         );
     }
-    let mut entrypoints = vec![format!("src/{MIR}.lex.tex")];
+    entrypoints.push(format!("src/{MIR}.lex.tex"));
+    let crate_pascal = format!("{}{MIR}", crate::lex::pascal(&[krate]));
     for (module, bodies) in modules {
         let pascal = crate::lex::pascal(&[module]);
         let mut parts: Vec<Vec<String>> = vec![Vec::new()];
@@ -870,8 +946,8 @@ pub(crate) fn embed_project(
             }
         }
         for (k, decls) in parts.iter().enumerate().filter(|(_, d)| !d.is_empty()) {
-            let name = format!("Core.{pascal}Part{k}");
-            let path = format!("src/Core/{pascal}Part{k}.lex.tex");
+            let name = format!("{crate_pascal}.{pascal}Part{k}");
+            let path = format!("src/{crate_pascal}/{pascal}Part{k}.lex.tex");
             let text = format!(
                 "\\begin{{lexlean}}{{{name}}}\n\\useglossary{{lexlean.std.bool@1.2.0}}\n\
                  \\useglossary{{lexlean.std.nat@1.2.0}}\n\\useglossary{{uorust.mir@1.0.0}}\n\
@@ -926,11 +1002,12 @@ pub(crate) fn embed_project(
 /// written there that calls each sampled body's function, as rustc
 /// compiles core, on inputs drawn from its types' widths, and prints what
 /// each returns. With `observed`, that output, the project gains the
-/// module `Differential`: for each input a theorem that the evaluator,
+/// modules `DifferentialPart{k}`: for each input a theorem that the evaluator,
 /// run on the embedded body, returns what rustc's build returned, which
 /// `lexlean verify` decides, and `differential.toml` names each theorem's
 /// body and inputs.
 pub fn embed(
+    krate: &str,
     library: &Path,
     dumps: &Path,
     out: &Path,
@@ -939,44 +1016,59 @@ pub fn embed(
     observed: Option<&Path>,
 ) -> Result<EmbedCensus, UorustError> {
     let root = library.parent().unwrap_or(library);
-    let (modules, census, program) = embed_census(root, dumps, only)?;
-    let mut files = embed_project(&modules, crate::project::MAX_FILE_BYTES);
-    files.insert("census.toml".into(), census.render().into_bytes());
-    let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
+    let (modules, census, program) = embed_census(krate, root, dumps, only)?;
+    let mut extra = BTreeMap::new();
+    let mut index = None;
     if let Some(observed) = observed {
-        let text = std::fs::read_to_string(observed).map_err(|e| io(observed, e))?;
-        let (module, index) = differential(&program, observed, &text)?;
-        files.insert("src/Differential.lex.tex".into(), module.into_bytes());
-        files.insert("differential.toml".into(), index.into_bytes());
-        let config = String::from_utf8_lossy(&files["lexlean.toml"]).replace(
-            "entrypoints = [",
-            "entrypoints = [\"src/Differential.lex.tex\", ",
-        );
-        files.insert("lexlean.toml".into(), config.into_bytes());
+        let text = read_text(observed)?;
+        let (modules, checks) = differential(&program, observed, &text)?;
+        extra = modules;
+        index = Some(checks);
     }
-    let mut written = vec![(out.to_path_buf(), files)];
+    let mut files = embed_project(krate, &modules, extra, crate::project::MAX_FILE_BYTES);
+    files.insert("census.toml".into(), census.render().into_bytes());
+    if let Some(checks) = index {
+        files.insert("differential.toml".into(), checks.into_bytes());
+    }
+    replace_dir(out, Some(&files))?;
     // A module none of whose bodies is sampled has no harness.
     if let Some(dir) = harness {
-        if dir.exists() {
-            std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
-        }
-        if !program.samples.is_empty() {
-            written.push((dir.to_path_buf(), harness_crate(&program)));
-        }
-    }
-    for (dir, files) in written {
-        if dir.exists() {
-            std::fs::remove_dir_all(&dir).map_err(|e| io(&dir, e))?;
-        }
-        for (path, bytes) in &files {
-            let file = dir.join(path);
-            if let Some(parent) = file.parent() {
-                std::fs::create_dir_all(parent).map_err(|e| io(parent, e))?;
-            }
-            std::fs::write(&file, bytes).map_err(|e| io(&file, e))?;
-        }
+        let crate_files = (!program.samples.is_empty()).then(|| harness_crate(&program));
+        replace_dir(dir, crate_files.as_ref())?;
     }
     Ok(census)
+}
+
+/// A file's text.
+pub(crate) fn read_text(path: &Path) -> Result<String, UorustError> {
+    std::fs::read_to_string(path).map_err(|e| crate::error::io(path, e))
+}
+
+/// The paths a directory holds, sorted.
+pub(crate) fn dir_paths(dir: &Path) -> Result<Vec<std::path::PathBuf>, UorustError> {
+    let mut paths: Vec<std::path::PathBuf> = std::fs::read_dir(dir)
+        .map_err(|e| crate::error::io(dir, e))?
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .collect();
+    paths.sort();
+    Ok(paths)
+}
+
+/// Remove `dir` and, given `files`, write them there in its place.
+fn replace_dir(dir: &Path, files: Option<&BTreeMap<String, Vec<u8>>>) -> Result<(), UorustError> {
+    let io = crate::error::io;
+    if dir.exists() {
+        std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
+    }
+    for (path, bytes) in files.into_iter().flatten() {
+        let file = dir.join(path);
+        if let Some(parent) = file.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| io(parent, e))?;
+        }
+        std::fs::write(&file, bytes).map_err(|e| io(&file, e))?;
+    }
+    Ok(())
 }
 
 /// The rust-src `library` directory under the root the dumps name their
@@ -1086,14 +1178,14 @@ impl Sample {
 /// scalars.
 fn sample(
     root: &Path,
-    num: &Path,
+    src: &Path,
     b: &IrBody,
     key: &str,
     kappa: &str,
     width: u32,
 ) -> Option<Sample> {
     let display = crate::mir::resolve_impls(root, &b.path).unwrap_or_else(|| b.path.clone());
-    let [_, ty, name] = crate::mir::parse::split_path(&display)[..] else {
+    let [module, ty, name] = crate::mir::parse::split_path(&display)[..] else {
         return None;
     };
     int_ty(ty, width)?;
@@ -1103,7 +1195,7 @@ fn sample(
     };
     let params: Vec<(String, Sampled)> = (1..=b.arity).map(scalar).collect::<Option<_>>()?;
     let result = scalar(0)?;
-    if params.is_empty() || !stable_and_safe(num, name) {
+    if params.is_empty() || !stable_and_safe(&src.join(module), name) {
         return None;
     }
     Some(Sample {
@@ -1121,13 +1213,13 @@ fn sample(
 /// and it is no `unsafe fn`. A harness on the stable toolchain can call it,
 /// and on any input.
 fn stable_and_safe(num: &Path, name: &str) -> bool {
-    let Ok(entries) = std::fs::read_dir(num) else {
+    let Ok(entries) = dir_paths(num) else {
         return false;
     };
     let decl = format!("fn {name}(");
     let mut found = false;
-    for entry in entries.filter_map(Result::ok) {
-        let Ok(text) = std::fs::read_to_string(entry.path()) else {
+    for entry in entries {
+        let Ok(text) = read_text(&entry) else {
             continue;
         };
         let lines: Vec<&str> = text.lines().collect();
@@ -1258,12 +1350,18 @@ fn fuel(program: &Program, s: &Sample) -> usize {
     steps * (bits + 1)
 }
 
-/// The module `Differential` and its index from the harness's output.
+/// The most theorems one module of the differential check holds: Lean
+/// decides each by evaluation, and a module is one child process that
+/// `lexlean verify` stops at the project's `child_timeout_ms`.
+const DIFFERENTIAL_THEOREMS: usize = 500;
+
+/// The modules `DifferentialPart{k}`, each with the bodies its theorems
+/// run, by path, and their index, from the harness's output.
 fn differential(
     program: &Program,
     file: &Path,
     observed: &str,
-) -> Result<(String, String), UorustError> {
+) -> Result<(BTreeMap<String, Vec<u8>>, String), UorustError> {
     let bad = |reason: String| UorustError::Malformed {
         path: file.to_path_buf(),
         reason,
@@ -1284,14 +1382,13 @@ fn differential(
             Some((n.parse().ok()?, r))
         })
         .collect();
-    let mut decls = Vec::new();
+    let mut parts: Vec<(Vec<String>, BTreeSet<String>, usize)> = vec![Default::default()];
     let mut index = String::from(
         "# The differential check (written by `uorust embed --observed`; do not edit):\n\
          # each theorem of Differential, the body it runs, its inputs and what\n\
          # rustc's build returned.\n",
     );
     let mut case = 0usize;
-    let mut defined = BTreeSet::new();
     for s in &program.samples {
         let cases = s.cases();
         let first = case;
@@ -1338,6 +1435,16 @@ fn differential(
         if theorems.is_empty() {
             continue;
         }
+        if parts
+            .last()
+            .is_some_and(|(_, _, n)| *n > 0 && n + theorems.len() > DIFFERENTIAL_THEOREMS)
+        {
+            parts.push(Default::default());
+        }
+        let Some((decls, defined, count)) = parts.last_mut() else {
+            continue;
+        };
+        *count += theorems.len();
         let mut bodies = Vec::new();
         for k in &s.closure {
             let Some((kappa, e)) = program.every.get(k) else {
@@ -1364,14 +1471,21 @@ fn differential(
         ));
         decls.extend(theorems);
     }
-    let module = format!(
-        "\\begin{{lexlean}}{{Differential}}\n\\useglossary{{lexlean.std.bool@1.2.0}}\n\
+    let mut modules = BTreeMap::new();
+    for (k, (decls, _, _)) in parts.iter().enumerate().filter(|(_, p)| p.2 > 0) {
+        let module = format!(
+            "\\begin{{lexlean}}{{DifferentialPart{k}}}\n\\useglossary{{lexlean.std.bool@1.2.0}}\n\
          \\useglossary{{lexlean.std.nat@1.2.0}}\n\\useglossary{{uorust.mir@1.0.0}}\n\
          \\importmodule{{{MIR}}}\n\\title{{Embedded MIR checks}}\n\\begin{{semanticmodule}}\n{}\n\
          \\end{{semanticmodule}}\n\\end{{lexlean}}\n",
-        decls.join("\n\n")
-    );
-    Ok((module, index))
+            decls.join("\n\n")
+        );
+        modules.insert(
+            format!("src/DifferentialPart{k}.lex.tex"),
+            module.into_bytes(),
+        );
+    }
+    Ok((modules, index))
 }
 
 /// A body's κ, as the core register keys it: its crate path and its text,
@@ -1485,7 +1599,7 @@ fn dump_pointer_width(dumps: &Path) -> Result<u32, UorustError> {
         path: file.clone(),
         reason,
     };
-    let text = std::fs::read_to_string(&file).map_err(|e| bad(e.to_string()))?;
+    let text = read_text(&file).map_err(|e| bad(e.to_string()))?;
     let doc: toml::Table = text.parse().map_err(|e| bad(format!("{e}")))?;
     doc.get("pointer_width")
         .and_then(toml::Value::as_integer)
@@ -1498,19 +1612,16 @@ fn dump_pointer_width(dumps: &Path) -> Result<u32, UorustError> {
 /// dumps are linked, so a call into another module names its body.
 #[allow(clippy::type_complexity)]
 fn embed_census(
+    krate: &str,
     root: &Path,
     dumps: &Path,
     only: &[String],
 ) -> Result<(Vec<(String, Vec<(String, Embedded)>)>, EmbedCensus, Program), UorustError> {
-    let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
     let width = dump_pointer_width(dumps)?;
-    let mut dirs: Vec<std::path::PathBuf> = std::fs::read_dir(dumps)
-        .map_err(|e| io(dumps, e))?
-        .filter_map(Result::ok)
-        .map(|e| e.path())
+    let dirs: Vec<std::path::PathBuf> = dir_paths(dumps)?
+        .into_iter()
         .filter(|p| p.is_dir())
         .collect();
-    dirs.sort();
     let mut read: Vec<(String, Vec<(String, String)>)> = Vec::new();
     for dir in dirs {
         let module = dir
@@ -1518,12 +1629,7 @@ fn embed_census(
             .and_then(|n| n.to_str())
             .unwrap_or_default()
             .to_string();
-        let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)
-            .map_err(|e| io(&dir, e))?
-            .filter_map(Result::ok)
-            .map(|e| e.path())
-            .collect();
-        files.sort();
+        let files = dir_paths(&dir)?;
         let mut texts = Vec::new();
         for file in &files {
             let name = file
@@ -1531,10 +1637,7 @@ fn embed_census(
                 .and_then(|n| n.to_str())
                 .unwrap_or_default()
                 .to_string();
-            texts.push((
-                name,
-                std::fs::read_to_string(file).map_err(|e| io(file, e))?,
-            ));
+            texts.push((name, read_text(file)?));
         }
         read.push((module, texts));
     }
@@ -1546,7 +1649,7 @@ fn embed_census(
     );
     let enums = enums(&link.decls);
     let resolve = |callee: &str, args: &[Option<String>], dest: &str| {
-        resolve_callee(&link, "core", callee, args, dest)
+        resolve_callee(&link, krate, callee, args, dest)
     };
     let cx = Cx {
         width,
@@ -1557,18 +1660,18 @@ fn embed_census(
     let mut modules = Vec::new();
     let mut every: BTreeMap<String, (String, Embedded)> = BTreeMap::new();
     let mut samples = Vec::new();
-    let num = library_root(root).join("core").join("src").join("num");
+    let src = library_root(root).join(krate).join("src");
     for (module, texts) in &read {
         let selected = only.is_empty() || only.contains(module);
         let mut bodies = Vec::new();
         for (_, text) in texts {
             for b in crate::mir::parse::bodies(text) {
-                let kappa = body_kappa("core", &b.path, text);
+                let kappa = body_kappa(krate, &b.path, text);
                 let key = program_key(&link, &b.path, &kappa);
                 let e = cx.body(&b, &key);
                 if selected && has_row(&b.path) {
                     census.add(&e);
-                    if let Some(sample) = sample(root, &num, &b, &key, &kappa, width) {
+                    if let Some(sample) = sample(root, &src, &b, &key, &kappa, width) {
                         samples.push(sample);
                     }
                 }

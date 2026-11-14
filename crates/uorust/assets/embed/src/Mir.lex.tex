@@ -1261,6 +1261,166 @@ definition{
 }
 
 definition{
+  name: intrinsicBinOp,
+  parameters: [name : String],
+  result: (Option BinOp),
+  body: (if (prim equal name "unchecked_add" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.addUnchecked)) else (if (prim equal name "unchecked_sub" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.subUnchecked)) else (if (prim equal name "unchecked_mul" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.mulUnchecked)) else (if (prim equal name "unchecked_div" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.div)) else (if (prim equal name "unchecked_rem" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.rem)) else (if (prim equal name "unchecked_shl" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.shlUnchecked)) else (if (prim equal name "unchecked_shr" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.shrUnchecked)) else (if (prim equal name "wrapping_add" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.add)) else (if (prim equal name "wrapping_sub" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.sub)) else (if (prim equal name "wrapping_mul" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.mul)) else (if (prim equal name "add_with_overflow" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.addWithOverflow)) else (if (prim equal name "sub_with_overflow" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.subWithOverflow)) else (if (prim equal name "mul_with_overflow" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.mulWithOverflow)) else (if (prim equal name "three_way_compare" : Bool) then (ctor Option.some [BinOp] (ctor BinOp.cmp)) else (ctor Option.none [BinOp])))))))))))))))
+}
+
+definition{
+  name: finishCall,
+  parameters: [frames : (List Frame), destination : Place, target : (Option Nat), value : Value],
+  result: Outcome,
+  body: (match target
+    | Option.none => (ctor Outcome.ub "a return from a call that does not return")
+    | Option.some block => (match (placeOf frames destination)
+      | Located.stop outcome => outcome
+      | Located.found loc => (match (writeAt frames loc value)
+        | Option.none => (ctor Outcome.ub "a write to a place that holds no value")
+        | Option.some written => (match written
+          | List.nil => (ctor Outcome.ub "a write with no frame")
+          | List.cons top rest => (ctor Outcome.running (cons (moveTo top block) rest))))))
+}
+
+definition{
+  name: popCount,
+  parameters: [width : Nat, n : Nat],
+  result: Nat,
+  body: (match width
+    | Nat.zero => 0
+    | Nat.succ rest => ((prim remainder n 2 0 : Nat) + (popCount rest (prim quotient n 2 0 : Nat)))),
+  recursive_argument: width
+}
+
+definition{
+  name: leadingZeros,
+  parameters: [width : Nat, n : Nat],
+  result: Nat,
+  body: (match width
+    | Nat.zero => 0
+    | Nat.succ rest => (if ((pow2 rest) <=? n) then 0 else (1 + (leadingZeros rest n)))),
+  recursive_argument: width
+}
+
+definition{
+  name: trailingZeros,
+  parameters: [width : Nat, n : Nat],
+  result: Nat,
+  body: (match width
+    | Nat.zero => 0
+    | Nat.succ rest => (if ((prim remainder n 2 0 : Nat) =? 1) then 0 else (1 + (trailingZeros rest (prim quotient n 2 0 : Nat))))),
+  recursive_argument: width
+}
+
+definition{
+  name: bitReverse,
+  parameters: [width : Nat, n : Nat],
+  result: Nat,
+  body: (match width
+    | Nat.zero => 0
+    | Nat.succ rest => ((prim multiply (prim remainder n 2 0 : Nat) (pow2 rest) : Nat) + (bitReverse rest (prim quotient n 2 0 : Nat)))),
+  recursive_argument: width
+}
+
+definition{
+  name: byteSwap,
+  parameters: [bytes : Nat, n : Nat],
+  result: Nat,
+  body: (match bytes
+    | Nat.zero => 0
+    | Nat.succ rest => ((prim multiply (prim remainder n (pow2 8) 0 : Nat) (pow2 (prim multiply 8 rest : Nat)) : Nat) + (byteSwap rest (prim quotient n (pow2 8) 0 : Nat)))),
+  recursive_argument: bytes
+}
+
+definition{
+  name: saturatedValue,
+  parameters: [bits : Nat, signed : Bool, value : Signed],
+  result: Value,
+  body: (if (fitsIn bits signed value) then (intValue bits signed value) else (if (project value negative) then (intValue bits signed (record Signed {negative := signed, magnitude := (if signed then (pow2 (prim subtract bits 1 : Nat)) else 0)})) else (intValue bits signed (record Signed {negative := false, magnitude := (prim subtract (if signed then (pow2 (prim subtract bits 1 : Nat)) else (pow2 bits)) 1 : Nat)}))))
+}
+
+definition{
+  name: unaryIntrinsic,
+  parameters: [name : String, value : Value],
+  result: (Option Evaluated),
+  body: (match value
+    | Value.int bits signed repr => (if (prim equal name "ctpop" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.int 32 false (popCount bits repr)))) else (if (prim equal name "ctlz" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.int 32 false (leadingZeros bits repr)))) else (if (prim equal name "cttz" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.int 32 false (trailingZeros bits repr)))) else (if (prim equal name "ctlz_nonzero" : Bool) then (if (repr =? 0) then (ctor Option.some [Evaluated] (ctor Evaluated.stop (ctor Outcome.ub "a count of zero bits of zero"))) else (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.int 32 false (leadingZeros bits repr))))) else (if (prim equal name "cttz_nonzero" : Bool) then (if (repr =? 0) then (ctor Option.some [Evaluated] (ctor Evaluated.stop (ctor Outcome.ub "a count of zero bits of zero"))) else (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.int 32 false (trailingZeros bits repr))))) else (if (prim equal name "bswap" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.int bits signed (byteSwap (prim quotient bits 8 0 : Nat) repr)))) else (if (prim equal name "bitreverse" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (ctor Value.int bits signed (bitReverse bits repr)))) else (ctor Option.none [Evaluated]))))))))
+    | Value.boolean p => (ctor Option.none [Evaluated])
+    | Value.character p => (ctor Option.none [Evaluated])
+    | Value.unit => (ctor Option.none [Evaluated])
+    | Value.tuple p => (ctor Option.none [Evaluated])
+    | Value.adt p q r => (ctor Option.none [Evaluated])
+    | Value.pointer p q r => (ctor Option.none [Evaluated])
+    | Value.function p => (ctor Option.none [Evaluated])
+    | Value.text p => (ctor Option.none [Evaluated])
+    | Value.uninit => (ctor Option.none [Evaluated]))
+}
+
+definition{
+  name: saturatingIntrinsic,
+  parameters: [name : String, a : Value, b : Value],
+  result: (Option Evaluated),
+  body: (match a
+    | Value.int bits signed x => (match b
+      | Value.int width sign y => (if (prim equal name "saturating_add" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (saturatedValue bits signed (signedAdd (signedOf bits signed x) (signedOf bits signed y))))) else (if (prim equal name "saturating_sub" : Bool) then (ctor Option.some [Evaluated] (ctor Evaluated.found (saturatedValue bits signed (signedAdd (signedOf bits signed x) (signedNegate (signedOf bits signed y)))))) else (ctor Option.none [Evaluated])))
+      | Value.boolean p => (ctor Option.none [Evaluated])
+      | Value.character p => (ctor Option.none [Evaluated])
+      | Value.unit => (ctor Option.none [Evaluated])
+      | Value.tuple p => (ctor Option.none [Evaluated])
+      | Value.adt p q r => (ctor Option.none [Evaluated])
+      | Value.pointer p q r => (ctor Option.none [Evaluated])
+      | Value.function p => (ctor Option.none [Evaluated])
+      | Value.text p => (ctor Option.none [Evaluated])
+      | Value.uninit => (ctor Option.none [Evaluated]))
+    | Value.boolean p => (ctor Option.none [Evaluated])
+    | Value.character p => (ctor Option.none [Evaluated])
+    | Value.unit => (ctor Option.none [Evaluated])
+    | Value.tuple p => (ctor Option.none [Evaluated])
+    | Value.adt p q r => (ctor Option.none [Evaluated])
+    | Value.pointer p q r => (ctor Option.none [Evaluated])
+    | Value.function p => (ctor Option.none [Evaluated])
+    | Value.text p => (ctor Option.none [Evaluated])
+    | Value.uninit => (ctor Option.none [Evaluated]))
+}
+
+definition{
+  name: binaryIntrinsic,
+  parameters: [name : String, a : Value, b : Value],
+  result: (Option Evaluated),
+  body: (match (intrinsicBinOp name)
+    | Option.some op => (ctor Option.some [Evaluated] (evalBinary op a b))
+    | Option.none => (if (prim equal name "exact_div" : Bool) then (match (evalBinary (ctor BinOp.rem) a b)
+      | Evaluated.stop outcome => (ctor Option.some [Evaluated] (ctor Evaluated.stop outcome))
+      | Evaluated.found left => (if ((reprOfValue left) =? 0) then (ctor Option.some [Evaluated] (evalBinary (ctor BinOp.div) a b)) else (ctor Option.some [Evaluated] (ctor Evaluated.stop (ctor Outcome.ub "an exact division with a remainder"))))) else (saturatingIntrinsic name a b)))
+}
+
+definition{
+  name: intrinsicValue,
+  parameters: [name : String, values : (List Value)],
+  result: (Option Evaluated),
+  body: (match values
+    | List.nil => (ctor Option.none [Evaluated])
+    | List.cons a rest => (match rest
+      | List.nil => (unaryIntrinsic name a)
+      | List.cons b more => (match more
+        | List.nil => (binaryIntrinsic name a b)
+        | List.cons c others => (ctor Option.none [Evaluated]))))
+}
+
+definition{
+  name: evalIntrinsic,
+  parameters: [program : Program, frames : (List Frame), name : String, args : (List Operand), destination : Place, target : (Option Nat)],
+  result: Outcome,
+  body: (if (prim equal name "unreachable" : Bool) then (ctor Outcome.ub "an unreachable intrinsic reached") else (match (evalOperands program frames args)
+    | EvaluatedList.stop outcome => outcome
+    | EvaluatedList.found values => (match (intrinsicValue name values)
+      | Option.none => (ctor Outcome.unlinked name)
+      | Option.some result => (match result
+        | Evaluated.stop outcome => outcome
+        | Evaluated.found value => (finishCall frames destination target value)))))
+}
+
+definition{
   name: evalCall,
   parameters: [
     program : Program,
@@ -1289,7 +1449,7 @@ definition{
     | Callee.bound name => (match (findBinding (project program dictionary) name)
       | Option.some path => (callBody program frames path args destination target)
       | Option.none => (ctor Outcome.unlinked name))
-    | Callee.intrinsic name => (ctor Outcome.unlinked name))
+    | Callee.intrinsic name => (evalIntrinsic program frames name args destination target))
 }
 
 definition{

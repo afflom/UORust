@@ -372,6 +372,8 @@ fn the_cli_refuses_an_embedding_without_a_target_ue_19() {
     let out_arg = out.to_string_lossy().to_string();
     let run = uorust(&[
         "embed",
+        "--crate",
+        "core",
         "--mir",
         "tests/fixtures/core/mir",
         "--library",

@@ -49,7 +49,7 @@ enum Command {
     /// Translate every body of std's MIR, as `scripts/mir/dump-lib.sh std`
     /// dumps it one module at a time, and write the std register.
     Std(CoreArgs),
-    /// Embed every body of core's MIR as a value of the MIR datatype of the
+    /// Embed every body of a library crate's MIR as a value of the MIR datatype of the
     /// LexLean semantics, and write the project, with the census of the
     /// constructs the evaluator does not define, for `lexlean verify`.
     Embed(EmbedArgs),
@@ -171,7 +171,10 @@ struct CoreArgs {
 
 #[derive(clap::Args)]
 struct EmbedArgs {
-    /// The module shards: one directory of core's dumps per module.
+    /// The crate the dumps are of: `core`, `std`.
+    #[arg(long = "crate")]
+    krate: String,
+    /// The module shards: one directory of the crate's dumps per module.
     #[arg(long)]
     mir: PathBuf,
     /// The rust-src `library` directory the dumps were built from.
@@ -347,6 +350,7 @@ fn run(cli: Cli) -> Result<(), UorustError> {
         Command::Core(args) => library("core", &args),
         Command::Embed(args) => {
             let census = uorust::embed::embed(
+                &args.krate,
                 &args.library,
                 &args.mir,
                 &args.out,

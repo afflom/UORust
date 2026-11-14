@@ -1644,6 +1644,7 @@ fn every_core_body_is_embedded_ue_19() {
     let _ = std::fs::remove_dir_all(&work);
     let out = work.join("out");
     let refused = uorust::embed::embed(
+        "core",
         &fixture.join("library"),
         &fixture.join("mir"),
         &out,
@@ -1669,6 +1670,7 @@ fn every_core_body_is_embedded_ue_19() {
     .expect("the target");
     let harness = work.join("harness");
     let census = uorust::embed::embed(
+        "core",
         &fixture.join("library"),
         &dumps,
         &out,
@@ -1681,12 +1683,13 @@ fn every_core_body_is_embedded_ue_19() {
     assert!(census.evaluable <= census.bodies);
     let rendered = census.render();
     assert!(rendered.contains("bodies = 4"), "{rendered}");
-    let part = std::fs::read_to_string(out.join("src/Core/BoolPart0.lex.tex")).expect("the bodies");
+    let part =
+        std::fs::read_to_string(out.join("src/CoreMir/BoolPart0.lex.tex")).expect("the bodies");
     assert_eq!(part.matches("result: Mir::Body").count(), 4);
     assert!(part.contains("\\importmodule{Mir}"));
     assert!(out.join("src/Mir.lex.tex").exists());
     let config = std::fs::read_to_string(out.join("lexlean.toml")).expect("the project");
-    assert!(config.contains("\"src/Core/BoolPart0.lex.tex\", \"src/Mir.lex.tex\""));
+    assert!(config.contains("\"src/CoreMir/BoolPart0.lex.tex\", \"src/Mir.lex.tex\""));
     assert_eq!(
         std::fs::read_to_string(out.join("census.toml")).expect("the census"),
         rendered

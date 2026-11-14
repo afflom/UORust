@@ -129,27 +129,22 @@ pub fn census(
     dumps: &Path,
     only: &[String],
 ) -> Result<Vec<CoreShard>, UorustError> {
-    let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
     // A library's declarations are read from its sources: without them
     // every type the bodies name is unknown, so the census refuses.
     if scope.own_std {
-        let src = root.join("library").join(&scope.krate).join("src");
-        std::fs::read_dir(&src).map_err(|e| io(&src, e))?;
+        crate::embed::dir_paths(&root.join("library").join(&scope.krate).join("src"))?;
     }
-    let mut modules: Vec<PathBuf> = std::fs::read_dir(dumps)
-        .map_err(|e| io(dumps, e))?
-        .filter_map(Result::ok)
-        .map(|e| e.path())
+    let modules: Vec<PathBuf> = crate::embed::dir_paths(dumps)?
+        .into_iter()
         .filter(|p| p.is_dir())
         .collect();
-    modules.sort();
     // The pointer width the dumps were built for, from the `target.toml`
     // that `scripts/mir/dump-lib.sh` writes beside them (the target triple
     // and its `target_pointer_width` as rustc prints it); every width a
     // target may have when there is none.
     let file = dumps.join("target.toml");
     let mut layouts = Vec::new();
-    let widths = match std::fs::read_to_string(&file) {
+    let widths = match crate::embed::read_text(&file) {
         Err(_) => lift::pointer_widths(&[]),
         Ok(text) => {
             let bad = |reason: String| UorustError::Malformed {
@@ -179,16 +174,11 @@ pub fn census(
             .and_then(|n| n.to_str())
             .unwrap_or_default()
             .to_string();
-        let mut files: Vec<PathBuf> = std::fs::read_dir(&dir)
-            .map_err(|e| io(&dir, e))?
-            .filter_map(Result::ok)
-            .map(|e| e.path())
-            .collect();
-        files.sort();
+        let files = crate::embed::dir_paths(&dir)?;
         let mut texts = Vec::new();
         let mut names = Vec::new();
         for file in &files {
-            texts.push(std::fs::read_to_string(file).map_err(|e| io(file, e))?);
+            texts.push(crate::embed::read_text(file)?);
             names.push(
                 file.file_name()
                     .and_then(|n| n.to_str())
@@ -947,11 +937,10 @@ fn generic_names(g: &syn::Generics) -> Vec<String> {
 /// file's module is its path there.
 pub(crate) fn core_decls(root: &Path) -> CoreDecls {
     fn walk(dir: &Path, files: &mut Vec<PathBuf>) {
-        let Ok(entries) = std::fs::read_dir(dir) else {
+        let Ok(entries) = crate::embed::dir_paths(dir) else {
             return;
         };
-        for e in entries.filter_map(Result::ok) {
-            let p = e.path();
+        for p in entries {
             if p.is_dir() {
                 walk(&p, files);
             } else if p.extension().is_some_and(|x| x == "rs") {
@@ -1324,7 +1313,7 @@ pub(crate) fn core_decls(root: &Path) -> CoreDecls {
     let mut read: Vec<(Vec<String>, Vec<syn::Item>)> = Vec::new();
     let mut macros = crate::expand::Macros::default();
     for file in files {
-        let Ok(text) = std::fs::read_to_string(&file) else {
+        let Ok(text) = crate::embed::read_text(&file) else {
             continue;
         };
         let Ok(parsed) = syn::parse_file(&text).or_else(|_| {
@@ -2149,17 +2138,14 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
     let (krate, source, command) = (&scope.krate, &scope.source, &scope.command);
     let toolchain = super::spec::TOOLCHAIN;
     let io = |p: &Path, e: std::io::Error| UorustError::Tool(format!("{}: {e}", p.display()));
-    let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
-        .map_err(|e| io(dir, e))?
-        .filter_map(Result::ok)
-        .map(|e| e.path())
+    let files: Vec<PathBuf> = crate::embed::dir_paths(dir)?
+        .into_iter()
         .filter(|p| {
             p.extension().is_some_and(|x| x == "toml")
                 && p.file_stem()
                     .is_some_and(|n| n != "frontier" && n != crate::queue::RETRACTED)
         })
         .collect();
-    files.sort();
     let mut modules = String::new();
     let mut causes: BTreeMap<String, usize> = BTreeMap::new();
     let (mut all, mut done) = (0, 0);
@@ -2169,7 +2155,7 @@ pub fn summarize_register(scope: &Scope, dir: &Path) -> Result<(), UorustError> 
     let (mut embedded, mut evaluable) = (0, 0);
     let mut blocking: BTreeMap<String, usize> = BTreeMap::new();
     for file in files {
-        let text = std::fs::read_to_string(&file).map_err(|e| io(&file, e))?;
+        let text = crate::embed::read_text(&file)?;
         let doc: toml::Table = text
             .parse()
             .map_err(|e| UorustError::Tool(format!("{}: {e}", file.display())))?;
@@ -2265,7 +2251,7 @@ pub fn core_regressions(dir: &Path, shards: &[CoreShard]) -> Vec<String> {
     };
     for s in shards {
         let file = dir.join(format!("{}.toml", s.module));
-        let Ok(text) = std::fs::read_to_string(&file) else {
+        let Ok(text) = crate::embed::read_text(&file) else {
             continue;
         };
         let Ok(doc) = text.parse::<toml::Table>() else {
