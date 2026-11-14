@@ -2,7 +2,7 @@
 # the κ of its question (crate path and normalized tokens). A lifted κ is a
 # proved claim; a later projection that decides it unlifted is refused.
 
-# Honesty report: 285 of 1109 functions of product code are lifted; 676
+# Honesty report: 285 of 1111 functions of product code are lifted; 678
 # are residue, 45 foreign and 103 effect rows.
 # Residue by cause:
 #   arithmetic: 1
@@ -85,7 +85,7 @@
 #   mir::Rvalue::Discriminant: 5
 #     5 a discriminant read as a value
 #   mir::Rvalue::Use: 9
-#   mir::TerminatorKind::Call: 140
+#   mir::TerminatorKind::Call: 141
 #     1 <bool as std::string::ToString>::to_string
 #     1 <i128 as std::convert::From>::from
 #     2 <lift::Ty as std::cmp::PartialEq>::eq
@@ -123,7 +123,7 @@
 #     1 slice::iter::Iter::find: std's MIR stops at mir::Rvalue::Use
 #     17 std::boxed::Box::new_uninit
 #     1 std::collections::BTreeMap::get
-#     5 std::option::Option::and_then
+#     6 std::option::Option::and_then
 #     1 std::option::Option::filter
 #     5 std::option::Option::is_some_and
 #     7 std::option::Option::map
@@ -207,7 +207,7 @@
 #     1 std::iter::Copied<std::slice::Iter<'_, &str>>
 #     1 std::iter::Enumerate<std::slice::Iter<'_, project::Component>>
 #     1 std::iter::Filter<std::slice::Iter<'_, facts::Dep>, {closure@crates/uorust/src/project.rs:4804:17: 4804:20}>
-#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2710:21: 2710:24}>
+#     1 std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2768:21: 2768:24}>
 #     1 std::iter::FlatMap<std::collections::btree_set::Iter<'_, std::string::String>, std::vec::Vec<lift::Ty>, {closure@crates/uorust/src/lift.rs:757:54: 757:57}>
 #     1 std::iter::Map<std::collections::btree_set::Iter<'_, std::string::String>, {closure@crates/uorust/src/order.rs:176:37: 176:40}>
 #     1 std::iter::Map<std::slice::Iter<'_, &str>, {closure@crates/uorust/src/order.rs:115:18: 115:21}>
@@ -253,7 +253,7 @@
 #     1 std::str::Utf8Error
 #     2 syn::parse::ParseBuffer<'_>
 #     4 toml::Value
-#   type: 110
+#   type: 111
 # MIR kinds at toolchain 1.97.1: 81 of 118 lowered; every other kind is a
 # residue row that names it.
 #   StatementKind::Assign: lowered: the local holds the rvalue's value; a write through a projection is residue
@@ -714,7 +714,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "336ad5787d79175d81478cdf6e93e2c5e27f054eb68f1b0a712af9020466fb74"
+kappa = "e5d1011ed2e0318804a4d1ce857d4dddbe3f17a818ff1145e782292b387d6cb1"
 function = "uorust::embed::Cx<'_>::place"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -774,7 +774,7 @@ reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
 [[residue]]
-kappa = "18f5ddc3728c32135766145ea1f4b1f38249c680c716a02396a5073fb4b46657"
+kappa = "07c8607a71e6456513c2005fe59a1310f9c9bf6463960e6f97b1ac55c6d4fa8b"
 function = "uorust::embed::Cx<'_>::terminator"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
@@ -800,6 +800,12 @@ detail = "type outside the lift: Cx<'_>"
 [[residue]]
 kappa = "db16a9672fbbaa27cf440a7a04ef8dc2def74b4179e60ef1f06a68170bba0acd"
 function = "uorust::embed::Cx<'_>::unread"
+reason = "type"
+detail = "type outside the lift: Cx<'_>"
+
+[[residue]]
+kappa = "f8ef160d5dab0f0c6678e6f73abae118e7445c431ecc0a29d0c3875b198371f3"
+function = "uorust::embed::Cx<'_>::written_element"
 reason = "type"
 detail = "type outside the lift: Cx<'_>"
 
@@ -927,7 +933,7 @@ detail = "mir::Ty: mir::core::CoreDecls"
 kappa = "5a23046ee6e579ed0c14a1fa3b845cd9c7e997d07804233c3fe101bf4cc65835"
 function = "uorust::embed::fuel"
 reason = "mir"
-detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2710:21: 2710:24}>"
+detail = "mir::Ty: std::iter::FilterMap<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/embed.rs:2768:21: 2768:24}>"
 
 [[residue]]
 kappa = "9b06d1e71770a7c515754932ed1fa95b9b3c4fe0c9bf896ecf35b38885e93c62"
@@ -1066,6 +1072,12 @@ kappa = "2112469e8faa861b7774e1736bd5a44e975691f2e410b8862a9e16056a690e8e"
 function = "uorust::embed::structs"
 reason = "mir"
 detail = "mir::Ty: mir::core::CoreDecls"
+
+[[residue]]
+kappa = "838f94f926051726d440f922c9def16cb8e5b28fe98f09e66f8ca304649e0906"
+function = "uorust::embed::subslice"
+reason = "mir"
+detail = "mir::TerminatorKind::Call: std::option::Option::and_then"
 
 [[residue]]
 kappa = "382da3bc39b722047355e69ef41199c951d6346e7837c98e57fbc9cc440dbb33"
