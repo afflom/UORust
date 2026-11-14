@@ -91,6 +91,75 @@ pub(crate) struct Cx<'a> {
     pub(crate) cells: BTreeMap<String, Vec<Cell>>,
     /// The first local past the body's own: the constant items' locals.
     pub(crate) base: std::cell::Cell<usize>,
+    /// Each promoted and anonymous constant's key, by the stem of the file
+    /// its dump is in ([`parts`]).
+    pub(crate) parts: &'a BTreeMap<String, String>,
+    /// The stem of the file the body being embedded is dumped to
+    /// ([`dump_stem`]).
+    pub(crate) stem: String,
+    /// The path of the body being embedded, as its dump prints it.
+    pub(crate) owner: std::cell::RefCell<String>,
+}
+
+/// Whether a body is a part of the body that reads it: a promoted constant
+/// or an anonymous one.
+fn is_part(path: &str) -> bool {
+    path.contains("promoted[") || path.contains("{constant#")
+}
+
+/// The stem of a dump's file name: rustc names a body's dump by its item's
+/// path (`core.net-ip_addr-{impl#3}-is_broadcast`), then the pass's number
+/// and name, and a part's by its owner's stem and its own last segment
+/// (`-promoted[0]`, `-{constant#0}`).
+pub(crate) fn dump_stem(name: &str) -> &str {
+    let name = name
+        .strip_suffix(".ElaborateBoxDerefs.before.mir")
+        .unwrap_or(name);
+    name.rsplit_once('.').map_or(name, |(stem, _)| stem)
+}
+
+/// Each part's key in the program ([`is_part`]), by its dump's stem, of the
+/// dumps `files` (name, text): its path, and where the dumps print several
+/// parts by it (a macro's impls'), its path and definition's name, as
+/// [`program_key`] keys a macro's bodies.
+pub(crate) fn parts<'t>(
+    krate: &str,
+    link: &crate::mir::link::CoreLink,
+    files: impl IntoIterator<Item = (&'t str, &'t str)>,
+) -> BTreeMap<String, String> {
+    let mut found: Vec<(String, String, String)> = Vec::new();
+    let mut count: BTreeMap<String, usize> = BTreeMap::new();
+    for (name, text) in files {
+        for b in crate::mir::parse::bodies(text)
+            .into_iter()
+            .filter(|b| is_part(&b.path))
+        {
+            *count.entry(b.path.clone()).or_default() += 1;
+            let kappa = body_kappa(krate, &b.path, text);
+            found.push((dump_stem(name).to_string(), b.path, kappa));
+        }
+    }
+    found
+        .into_iter()
+        .map(|(stem, path, kappa)| {
+            let key = if count.get(&path).is_some_and(|n| *n > 1) {
+                format!("{path}#{}", def_name(&kappa))
+            } else {
+                program_key(link, &path, &kappa)
+            };
+            (stem, key)
+        })
+        .collect()
+}
+
+/// A path's last segment, its generic arguments erased.
+fn last_segment(path: &str) -> String {
+    let erased = crate::mir::lower::erase(path);
+    crate::mir::parse::split_path(&erased)
+        .last()
+        .copied()
+        .unwrap_or(&erased)
+        .to_string()
 }
 
 /// The structs and enums core's source declares, by their name's last
@@ -840,6 +909,16 @@ impl Cx<'_> {
             return None;
         };
         let (owner, last) = item_suffix(text)?;
+        // A promoted or anonymous constant is a part of the body that
+        // reads it, which MIR prints by its own path (an inherent impl's by
+        // its span, a trait's default method's by the trait) and the
+        // constant by the reader's view of that path: the part its dump
+        // names after the reader's, where the two paths end alike.
+        if is_part(last) && last_segment(owner) == last_segment(&self.owner.borrow()) {
+            if let Some(key) = self.parts.get(&format!("{}-{last}", self.stem)) {
+                return Some(key.clone());
+            }
+        }
         if let Callee::Body(p) = (self.resolve)(text, &[], "") {
             return Some(p);
         }
@@ -1484,6 +1563,7 @@ impl Cx<'_> {
     pub(crate) fn body(&self, b: &IrBody, path: &str) -> Embedded {
         let mut e = Embedded::default();
         self.items.borrow_mut().clear();
+        self.owner.replace(b.path.clone());
         self.base.set(b.locals.len());
         let mut locals: Vec<String> = b.locals.iter().map(|t| self.ty(t)).collect();
         // The blocks control reaches from the entry without unwinding: the
@@ -2471,10 +2551,17 @@ fn embed_census(
     let mut every: BTreeMap<String, (String, Embedded)> = BTreeMap::new();
     let mut samples = Vec::new();
     let src = library_root(root).join(krate).join("src");
+    let parts = parts(
+        krate,
+        &link,
+        read.iter()
+            .flat_map(|(_, texts)| texts.iter().map(|(n, t)| (n.as_str(), t.as_str()))),
+    );
     for (module, texts) in &read {
         let selected = only.is_empty() || only.contains(module);
         let mut bodies = Vec::new();
-        for (_, text) in texts {
+        for (name, text) in texts {
+            let stem = dump_stem(name);
             let cx = Cx {
                 width,
                 enums: &enums,
@@ -2485,10 +2572,16 @@ fn embed_census(
                 cells: allocation_cells(text, width),
                 items: Default::default(),
                 base: Default::default(),
+                parts: &parts,
+                stem: stem.to_string(),
+                owner: Default::default(),
             };
             for b in crate::mir::parse::bodies(text) {
                 let kappa = body_kappa(krate, &b.path, text);
-                let key = program_key(&link, &b.path, &kappa);
+                let key = match parts.get(stem).filter(|_| is_part(&b.path)) {
+                    Some(key) => key.clone(),
+                    None => program_key(&link, &b.path, &kappa),
+                };
                 let e = cx.body(&b, &key);
                 if selected && has_row(&b.path) {
                     census.add(&e);
@@ -2669,6 +2762,9 @@ mod tests {
             cells: BTreeMap::new(),
             items: Default::default(),
             base: Default::default(),
+            parts: &BTreeMap::new(),
+            stem: String::new(),
+            owner: Default::default(),
         };
         let ranged = |t: &str| cx.layout(t, 4).map(|l| l.term);
         assert!(ranged("(u32) is 1..")
@@ -2678,6 +2774,17 @@ mod tests {
         assert!(ranged("(i8) is (i8::MIN..=-2 | 0..)").is_some_and(|t| t.contains(" 0 254)")));
         assert!(ranged("(i8) is -5..=5").is_some_and(|t| t.contains(" 251 5)")));
         assert_eq!(ranged("(u8) is 5..=1"), None);
+    }
+
+    #[test]
+    fn a_part_is_named_by_its_owners_dump_ue_19() {
+        assert_eq!(
+            dump_stem("core.net-ip_addr-{impl#3}-is_broadcast-promoted[0].2-2-009.ElaborateBoxDerefs.before.mir"),
+            "core.net-ip_addr-{impl#3}-is_broadcast-promoted[0]"
+        );
+        assert!(is_part("a::f::promoted[1]") && is_part("a::f::{constant#0}"));
+        assert!(!is_part("a::f::{closure#0}"));
+        assert_eq!(last_segment("<Self as I>::all::<F>"), "all");
     }
 
     #[test]

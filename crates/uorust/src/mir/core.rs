@@ -199,7 +199,9 @@ pub fn census(
     Ok(read
         .iter()
         .filter(|(module, _, _)| only.is_empty() || only.contains(module))
-        .map(|(module, texts, _)| shard(scope, root, module, texts, &widths, &layouts, &link))
+        .map(|(module, texts, names)| {
+            shard(scope, root, module, texts, names, &widths, &layouts, &link)
+        })
         .collect())
 }
 
@@ -211,6 +213,7 @@ pub(crate) fn shard(
     root: &Path,
     module: &str,
     texts: &[String],
+    names: &[String],
     widths: &[(u32, Vec<String>)],
     layouts: &[super::layout::DataLayout],
     link: &super::link::CoreLink,
@@ -233,7 +236,15 @@ pub(crate) fn shard(
     let mut variants: Vec<Option<(IrBody, String)>> = Vec::new();
     let mut consts: BTreeMap<String, IrBody> = BTreeMap::new();
     let mut closures: BTreeMap<String, IrBody> = BTreeMap::new();
-    for text in texts {
+    let parts = crate::embed::parts(
+        krate,
+        link,
+        names
+            .iter()
+            .map(String::as_str)
+            .zip(texts.iter().map(String::as_str)),
+    );
+    for (text, name) in texts.iter().zip(names) {
         let embedder = crate::embed::Cx {
             width,
             enums: &enums,
@@ -244,6 +255,9 @@ pub(crate) fn shard(
             cells: crate::embed::allocation_cells(text, width),
             items: Default::default(),
             base: Default::default(),
+            parts: &parts,
+            stem: crate::embed::dump_stem(name).to_string(),
+            owner: Default::default(),
         };
         // The generic parameters core's source declares for the dump's
         // function, which its signature prints by their bare names among
