@@ -16,6 +16,13 @@ written.
 """
 import glob, re, sys
 
+# The files this writes, which the release commit carries: they are hand
+# kept, so no writer after it restores them (`--paths` prints them).
+FILES = ["Cargo.toml", "app/lakefile.toml", "app/src/System.lex.tex", "README.md", "install.sh", "install.ps1"]
+if sys.argv[1:] == ["--paths"]:
+    print(" ".join(FILES))
+    sys.exit(0)
+
 root, new = sys.argv[1], sys.argv[2]
 assert re.fullmatch(r"\d+\.\d+\.\d+", new), new
 cargo = open(f"{root}/Cargo.toml", encoding="utf-8").read()
@@ -37,6 +44,7 @@ for manifest in sorted(glob.glob(f"{root}/crates/*/Cargo.toml") + [f"{root}/xtas
     assert f'"{old}"' not in open(manifest, encoding="utf-8").read(), (
         f"bump: {manifest} names {old}; name the dependency with `workspace = true`"
     )
+assert sorted(EDITS) == sorted(FILES), "bump: FILES names the files EDITS writes"
 texts = {}
 for path, edits in EDITS.items():
     text = open(f"{root}/{path}", encoding="utf-8").read()

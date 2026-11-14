@@ -576,7 +576,7 @@ jobs:
           REBASE: any
         run: |
           set -euo pipefail
-          paths="Cargo.toml Cargo.lock README.md install.sh install.ps1 model/cadence.toml"
+          paths="$(python3 -I scripts/release/bump.py --paths) Cargo.lock model/cadence.toml"
           # The self model the decision rewrote is generate's to commit on
           # top of main as it is; set it aside so the release rebases cleanly.
           git add -- $paths
