@@ -262,6 +262,7 @@ pub(crate) fn shard(
             static_allocs: &BTreeMap::new(),
             slots: Default::default(),
             sites: Default::default(),
+            item_texts: Default::default(),
             key: Default::default(),
         };
         // The generic parameters core's source declares for the dump's

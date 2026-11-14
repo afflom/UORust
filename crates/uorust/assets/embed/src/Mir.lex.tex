@@ -300,7 +300,7 @@ inductive{
     {name: operand, fields: [Operand]},
     {name: bound, fields: [String]},
     {name: intrinsic, fields: [String]},
-    {name: constant, fields: [String]},
+    {name: constant, fields: [String, (List Generic)]},
     {name: transmute, fields: [Generic, Generic]},
     {name: writeBytes, fields: [Generic]},
     {name: instance, fields: [String, (List Generic)]},
@@ -2639,9 +2639,9 @@ definition{
       | Option.some path => (callBody program frames path (nil Generic) args destination target)
       | Option.none => (ctor Outcome.unlinked name))
     | Callee.intrinsic name => (evalIntrinsic program frames name args destination target)
-    | Callee.constant path => (match (findBody (project program bodies) path)
+    | Callee.constant path generics => (match (findBody (project program bodies) path)
       | Option.none => (ctor Outcome.unlinked path)
-      | Option.some item => (ctor Outcome.running (cons (enterFrame item (nil Value) destination target true (nil Generic)) frames)))
+      | Option.some item => (ctor Outcome.running (cons (enterFrame item (nil Value) destination target true (resolveGenerics frames generics)) frames)))
     | Callee.convert source target2 => (match (evalOperands program frames args)
       | EvaluatedList.stop outcome => outcome
       | EvaluatedList.found values => (match values

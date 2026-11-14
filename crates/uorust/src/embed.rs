@@ -126,6 +126,8 @@ pub(crate) struct Cx<'a> {
     pub(crate) static_allocs: &'a BTreeMap<String, String>,
     /// Every dump's allocations, by name ([`allocation_cells`]).
     pub(crate) every_cell: &'a BTreeMap<String, Vec<Cell>>,
+    /// The text each constant item the body reads is printed by.
+    pub(crate) item_texts: std::cell::RefCell<BTreeMap<String, String>>,
     /// The key of the body being embedded, which its calls' tokens hold.
     pub(crate) key: std::cell::RefCell<String>,
 }
@@ -399,6 +401,10 @@ pub(crate) struct Site {
     pub(crate) text: String,
     pub(crate) args: Vec<Option<String>>,
     pub(crate) dest: String,
+    /// Whether the callee is a constant item the body reads on entry, whose
+    /// bindings are its trait's `Self` (`<T as Trait>::C`), or none for a
+    /// part of the body, which shares the body's parameters.
+    pub(crate) constant: bool,
 }
 
 /// The constructs the evaluator answers `Outcome.undefined` with, read
@@ -1345,6 +1351,32 @@ impl Cx<'_> {
         ))
     }
 
+    /// The token of the call that evaluates the constant item `key` on
+    /// entry: [`instances`] writes it as `Callee.constant` with the
+    /// generics of the instance the body reads.
+    fn constant_site(&self, key: &str) -> String {
+        let token = format!(
+            "\u{1}{}#{}#{key}\u{1}",
+            self.key.borrow(),
+            self.sites.borrow().len()
+        );
+        let text = self
+            .item_texts
+            .borrow()
+            .get(key)
+            .cloned()
+            .unwrap_or_default();
+        self.sites.borrow_mut().push(Site {
+            token: token.clone(),
+            callee: key.to_string(),
+            text,
+            args: Vec::new(),
+            dest: String::new(),
+            constant: true,
+        });
+        token
+    }
+
     /// The generic parameters a type as MIR prints it names: the words
     /// that are no path's segment, no primitive and no type core declares.
     /// MIR prints a declared type by its path and a parameter bare.
@@ -1772,6 +1804,12 @@ impl Cx<'_> {
             IrOperand::Constant(c) if self.item(c).is_some() => {
                 let key = self.item(c).unwrap_or_default();
                 e.callees.insert(key.clone());
+                if let IrConstant::Other(t) | IrConstant::Path(t) = c {
+                    self.item_texts
+                        .borrow_mut()
+                        .entry(key.clone())
+                        .or_insert_with(|| t.clone());
+                }
                 let mut items = self.items.borrow_mut();
                 let at = items.iter().position(|k| *k == key).unwrap_or_else(|| {
                     items.push(key.clone());
@@ -2160,6 +2198,7 @@ impl Cx<'_> {
                                 text: callee.clone(),
                                 args: args.iter().map(|a| arg_type(body, a)).collect(),
                                 dest: place_type(body, destination).unwrap_or_default(),
+                                constant: false,
                             });
                             token
                         }
@@ -2300,6 +2339,7 @@ impl Cx<'_> {
     pub(crate) fn body(&self, b: &IrBody, path: &str) -> Embedded {
         let mut e = Embedded::default();
         self.items.borrow_mut().clear();
+        self.item_texts.borrow_mut().clear();
         self.slots.borrow_mut().clear();
         self.sites.borrow_mut().clear();
         self.key.replace(path.to_string());
@@ -2406,7 +2446,7 @@ impl Cx<'_> {
                     "Terminator.call",
                     &[
                         place(value),
-                        mir_ctor("Callee.constant", &[mir_string(key)]),
+                        self.constant_site(key),
                         term_list(&[], &mir_name("Operand")),
                         format!("(ctor Option.some [Nat] {after})"),
                     ],
@@ -3015,13 +3055,23 @@ pub(crate) struct Program {
 
 /// The keys of the bodies `key` reaches, itself first, where the evaluator
 /// defines each: `None` where one is not embedded, is blocked, calls an
-/// intrinsic or leaves a callee to a dictionary.
+/// intrinsic, leaves a callee to a dictionary, or reaches an instance whose
+/// generics no binding fixes (`Generic.unknown`, and the root's own slots,
+/// which a sample's call supplies none of).
 fn closure(every: &BTreeMap<String, (String, Embedded)>, key: &str) -> Option<Vec<String>> {
     let mut seen = vec![key.to_string()];
     let mut at = 0;
     while let Some(k) = seen.get(at).cloned() {
         let (_, e) = every.get(&k)?;
-        if !e.blocked.is_empty() || !e.bound.is_empty() || !e.intrinsics.is_empty() {
+        if !e.blocked.is_empty()
+            || !e.bound.is_empty()
+            || !e.intrinsics.is_empty()
+            || e.term
+                .contains(&mir_ctor("Generic.unknown", &[]).replace(')', ""))
+            || (at == 0
+                && e.term
+                    .contains(&mir_ctor("Generic.slot", &[]).replace(')', "")))
+        {
             return None;
         }
         for c in &e.callees {
@@ -3433,8 +3483,16 @@ fn instances(
         bindings
             .entry(site.token.clone())
             .or_insert_with(|| {
-                link.instance(&site.text, &site.args, &site.dest)
-                    .map(|i| i.bound.into_iter().filter(|(k, v)| k != v).collect())
+                let bound = if !site.constant {
+                    link.instance(&site.text, &site.args, &site.dest)
+                        .map(|i| i.bound)
+                } else if site.text.starts_with('<') {
+                    link.constant(&site.text).map(|i| i.bound)
+                } else {
+                    None
+                };
+                bound
+                    .map(|b| b.into_iter().filter(|(k, v)| k != v).collect())
                     .unwrap_or_default()
             })
             .clone()
@@ -3500,7 +3558,15 @@ fn instances(
         let mine = slots.get(&e.key).cloned().unwrap_or_default();
         for site in &e.sites {
             let open = slots.get(&site.callee).cloned().unwrap_or_default();
-            let term = if open.is_empty() {
+            let term = if open.is_empty() && site.constant {
+                mir_ctor(
+                    "Callee.constant",
+                    &[
+                        mir_string(&site.callee),
+                        term_list(&[], &mir_name("Generic")),
+                    ],
+                )
+            } else if open.is_empty() {
                 mir_ctor("Callee.body", &[mir_string(&site.callee)])
             } else {
                 let bound = bind(site);
@@ -3525,7 +3591,11 @@ fn instances(
                     })
                     .collect();
                 mir_ctor(
-                    "Callee.instance",
+                    if site.constant {
+                        "Callee.constant"
+                    } else {
+                        "Callee.instance"
+                    },
                     &[
                         mir_string(&site.callee),
                         term_list(&generics, &mir_name("Generic")),
@@ -3674,6 +3744,7 @@ fn embed_census(
                 static_allocs: &static_allocs,
                 slots: Default::default(),
                 sites: Default::default(),
+                item_texts: Default::default(),
                 key: Default::default(),
             };
             // A static's initializer is a body of the program, read where a
@@ -3735,6 +3806,7 @@ fn embed_census(
             static_allocs: &static_allocs,
             slots: Default::default(),
             sites: Default::default(),
+            item_texts: Default::default(),
             key: Default::default(),
         };
         // The constant items the bodies read that no dump holds: each a
@@ -3966,6 +4038,7 @@ mod tests {
             static_allocs: &BTreeMap::new(),
             slots: Default::default(),
             sites: Default::default(),
+            item_texts: Default::default(),
             key: Default::default(),
         };
         assert_eq!(cx.ty("f32"), "(ctor Mir::Ty.float 8 23)");
