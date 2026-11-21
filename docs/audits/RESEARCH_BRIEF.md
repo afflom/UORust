@@ -163,8 +163,16 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
   unresolved (`crates/model/src/lib.rs:76-113`, registry.rs:52-63). PARTIAL (R2).
 - **GAP-GATE-10** MINOR, S. Missing base manifest makes the certify ratchet pass
   (`certify.rs:2498-2502`, `certify/profile.rs:287-292`). CONFIRMED (R2).
+  **RESOLVED** (Sprint 2, C8): `certify ratchet` refuses an absent `--manifest`
+  or `--base-manifest` by name (main.rs, `Certify::Ratchet`), and
+  `scripts/hooks/ratchet-staged.sh` empties its directory and passes an absent
+  manifest through; `ratchet_refuses_an_absent_manifest` (tests/certify.rs).
 - **GAP-GATE-11** MINOR, S. `xtask/src/proof.rs`: `SDK_IMAGE` defaults empty
   (fail-open, :237); `keep()` deletes before confirming (:336-342). CONFIRMED (R2).
+  **RESOLVED** (Sprint 2, C8): `reuse_with` refuses an empty SDK image;
+  `install` stages, swaps, confirms and restores the earlier proof on failure;
+  `reuse_needs_an_sdk_image`, `keep_loses_nothing_when_a_copy_fails`,
+  `keep_restores_the_old_proof_when_the_new_one_does_not_read_back`.
 
 ### TEST — behaviour or refusals with no pin
 
@@ -306,7 +314,12 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
   (`certify.rs:3795`) and checks κ membership, not root definition hashes
   (`certify.rs:3755-3760`): a lost root can be masked by one gained elsewhere,
   and a certified root whose Lean definition changed without κ change goes
-  unnoticed. CONFIRMED (R2).
+  unnoticed. CONFIRMED (R2). **PARTLY RESOLVED** (Sprint 2, C8): (a) a root the
+  base certifies that no longer lifts at the head is refused before the count
+  (`Profile::lost`, certify.rs);
+  `a_root_that_no_longer_lifts_is_refused_even_when_the_count_shrinks`. Still
+  open: (b) a definition change under an unchanged κ (policy question; the
+  manifest diff shows it).
 
 ## Summary matrix
 
@@ -349,9 +362,9 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
 | GAP-GATE-07 | GATE | MINOR | M | no | CONFIRMED |
 | GAP-GATE-08 | GATE | MINOR | S | no | CONFIRMED |
 | GAP-GATE-09 | GATE | MINOR | M | no | PARTIAL |
-| GAP-GATE-10 | GATE | MINOR | S | no | CONFIRMED |
-| GAP-GATE-11 | GATE | MINOR | S | no | CONFIRMED |
-| GAP-GATE-12 | GATE | MAJOR | M | no | CONFIRMED |
+| GAP-GATE-10 | GATE | MINOR | S | no | RESOLVED |
+| GAP-GATE-11 | GATE | MINOR | S | no | RESOLVED |
+| GAP-GATE-12 | GATE | MAJOR | M | no | PARTLY RESOLVED |
 | GAP-GOV-05 | GOV | MINOR | S | no | CONFIRMED |
 | GAP-GOV-07 | GOV | MINOR | S | no | CONFIRMED |
 | GAP-LIFT-05 | LIFT | MINOR | L | no | CONFIRMED |

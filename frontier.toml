@@ -5,8 +5,8 @@
 # stops the functions it counts (the detail their rows state, under its
 # cause), the one that stops the most first: the work queue.
 
-# Honesty report: 348 of 1511 functions of product code are lifted; 887
-# are residue, 95 foreign and 181 effect rows.
+# Honesty report: 348 of 1514 functions of product code are lifted; 888
+# are residue, 95 foreign and 183 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 1
@@ -213,7 +213,7 @@
 #     59 a loop nested in a loop, whose helpers would call each other
 #   mir::TerminatorKind::SwitchInt: 1
 #     1 a loop whose header does not exit on an order of naturals, so no measure is derived
-#   mir::Ty: 346
+#   mir::Ty: 347
 #     1 A0
 #     1 K
 #     1 audit::Scan<'_>
@@ -261,7 +261,7 @@
 #     1 std::collections::btree_map::Entry<'_, std::string::String, usize>
 #     1 std::collections::btree_map::Iter<'_, (std::string::String, std::string::String), std::string::String>
 #     1 std::collections::btree_map::Iter<'_, std::string::String, certify::cases::Ran>
-#     2 std::collections::btree_map::Iter<'_, std::string::String, register::Row>
+#     3 std::collections::btree_map::Iter<'_, std::string::String, register::Row>
 #     1 std::collections::btree_map::Iter<'_, std::string::String, std::vec::Vec<std::string::String>>
 #     1 std::collections::btree_map::Keys<'_, std::string::String, layouts::TypeLayout>
 #     1 std::collections::btree_map::Values<'_, std::string::String, register::Row>
@@ -484,11 +484,11 @@
 spec = "uorust/register/1"
 
 [lift]
-functions = 1511
+functions = 1514
 lifted = 348
-residue = 887
+residue = 888
 foreign = 95
-effect = 181
+effect = 183
 
 [[construct]]
 construct = "type outside the lift: Fun.cx: UorustMirLowerCx.consts: IrBody.blocks: IrBlock.statements: IrStatement::Assign.0: IrPlace.projection: IrProjection::Other.0: spec::MirProjectionElem"
@@ -846,6 +846,11 @@ cause = "mir::Ty"
 functions = 3
 
 [[construct]]
+construct = "mir::Ty: std::collections::btree_map::Iter<'_, std::string::String, register::Row>"
+cause = "mir::Ty"
+functions = 3
+
+[[construct]]
 construct = "mir::Ty: std::ops::RangeFull"
 cause = "mir::Ty"
 functions = 3
@@ -1081,11 +1086,6 @@ cause = "mir::Ty"
 functions = 2
 
 [[construct]]
-construct = "mir::Ty: std::collections::btree_map::Iter<'_, std::string::String, register::Row>"
-cause = "mir::Ty"
-functions = 2
-
-[[construct]]
 construct = "mir::Ty: std::iter::Enumerate<std::slice::Iter<'_, std::vec::Vec<char>>>"
 cause = "mir::Ty"
 functions = 2
@@ -1152,6 +1152,11 @@ functions = 1
 
 [[construct]]
 construct = "Env effect: std::env::temp_dir"
+cause = "effect"
+functions = 1
+
+[[construct]]
+construct = "Env effect: std::env::var"
 cause = "effect"
 functions = 1
 
@@ -1317,6 +1322,11 @@ functions = 1
 
 [[construct]]
 construct = "calls xtask::proof::check, which reaches an effect"
+cause = "effect"
+functions = 1
+
+[[construct]]
+construct = "calls xtask::proof::inputs, which performs a Fs effect: std::fs::read"
 cause = "effect"
 functions = 1
 
@@ -3263,6 +3273,12 @@ reason = "mir"
 detail = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:529:1: 529:13>::descriptor_text::{closure#0}: type outside the lift: std::path::PathBuf"
 
 [[residue]]
+kappa = "4dfedc3a08573bc55970c63eb7ddcb42499480e144412e2e37292b9c50f53a1d"
+function = "uorust::certify::Profile::lost"
+reason = "mir"
+detail = "mir::Ty: std::collections::btree_map::Iter<'_, std::string::String, register::Row>"
+
+[[residue]]
 kappa = "75013984355044cf91b4bf11322c916ffbef1a2cd022e381468fe435003b9d3d"
 function = "uorust::certify::Profile::mark"
 reason = "mir"
@@ -3275,7 +3291,7 @@ reason = "mir"
 detail = "mir::TerminatorKind::Call: <certify::profile::Profile as std::cmp::PartialEq>::eq"
 
 [[residue]]
-kappa = "84432ae58921ee475015db438d94ed0624ec086446978b79a4e1988d8b9db973"
+kappa = "80040da59e7e72c9bd157428fdc47c909cc81a9a29557e6afc0b1d961ba8e4bc"
 function = "uorust::certify::Profile::ratchet"
 reason = "mir"
 detail = "mir::TerminatorKind::Call: certify::<impl certify::profile::Profile>::uncertified"
@@ -8688,7 +8704,7 @@ function = "uorust::bridge::write_shallow"
 effect = "Fs effect: std::fs::create_dir_all"
 
 [[effect]]
-kappa = "bbc633dc637d1d1ca9aa67f9d62e22d4415b25155afe203a159b4421ae623c0a"
+kappa = "0d30eca03f1d4dd7bf89e3b4dd10062cecf06e8ede3db28859ae02bf77bb2c64"
 function = "uorust::certify"
 effect = "Fs effect: std::fs::read_to_string"
 
@@ -9468,9 +9484,14 @@ function = "xtask::proof::inputs"
 effect = "Fs effect: std::fs::read"
 
 [[effect]]
-kappa = "0dbaf98fdb57d67b997889ada05fc778982d93b92e3fe034a105afbd19377d5c"
-function = "xtask::proof::keep"
+kappa = "a54ca98e6b61aa9f42c4457ce6835116c029ae46314b7cf1d62922b6457284c9"
+function = "xtask::proof::install"
 effect = "Fs effect: Path::exists"
+
+[[effect]]
+kappa = "082718b4832c3f75f172d18a4ce05363b78620cc401ec0d56bff0de65358d7fc"
+function = "xtask::proof::keep"
+effect = "calls xtask::proof::inputs, which performs a Fs effect: std::fs::read"
 
 [[effect]]
 kappa = "0d3e3f3c6dc66c99b80f39406572a4307557c127ffd6b8ea1e3196153783116c"
@@ -9483,8 +9504,13 @@ function = "xtask::proof::read_kept"
 effect = "Fs effect: std::fs::read"
 
 [[effect]]
-kappa = "80daff23e48bd07127887d37f666dfe124942fe70ae13eec71d19250f64f7ebf"
+kappa = "f32188c7083f4a627e4e7661b27553dd15938cefcffb3330e9c40921685aa5e0"
 function = "xtask::proof::reuse"
+effect = "Env effect: std::env::var"
+
+[[effect]]
+kappa = "9904a09b24451555671ce19e869d4c46feee77c9effa3f42f20190de763eca5d"
+function = "xtask::proof::reuse_with"
 effect = "calls xtask::proof::check, which reaches an effect"
 
 [[effect]]

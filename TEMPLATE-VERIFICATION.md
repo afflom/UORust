@@ -469,3 +469,33 @@ The planted-source unit tests cover each rule without a live failure:
 refused; ten test-only shapes, among them a multi-line signature, a `where`
 clause, multi-line generics, `thread_local!`, `extern "C"` and a match arm,
 kept exempt with the shipped item after each still refused).
+
+## Ratchets that passed on missing or masked input (GATE-10..12)
+
+`certify ratchet` now refuses an absent `--manifest` or `--base-manifest` by
+name instead of reading it as a manifest that certifies nothing (which passed
+every head), and `scripts/hooks/ratchet-staged.sh` empties its directory first
+and passes an absent manifest through to that refusal. The ratchet refuses,
+before its count, a root the base certifies that no longer lifts at the head
+(`Profile::lost` in `crates/uorust/src/certify.rs`), so a lost root can no
+longer be masked by one gained elsewhere; a function lifted under a new κ is
+an edit owed to an export and stays under the count rule, and a deleted
+function is not a loss. The other half of GAP-GATE-12, a definition changed
+under an unchanged κ, stays open. `cargo xtask proof-reuse` refuses a run that
+names no SDK image, and `proof-keep` stages the new proof, swaps it in,
+confirms it and restores the earlier one on any failure (`install` in
+`xtask/src/proof.rs`).
+
+Run in the pinned SDK image:
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| `crates/certified/manifest.toml` removed from the index | `scripts/hooks/ratchet-staged.sh` | refused: `certify ratchet: target/ratchet-staged/head-manifest.toml does not exist; a ratchet against an absent manifest measures nothing` | `507 translator functions uncertified, none more than in the base` |
+| The lost-root refusal disabled | `cargo test -p uorust --lib a_root_that_no_longer_lifts` | refused: `not refused: Ok(1)` (2 uncertified at the base, 1 at the head) | passes |
+| The empty-image check disabled | `cargo test -p xtask reuse_needs_an_sdk_image` | refused | passes |
+| The old order: the kept proof removed before staging | `cargo test -p xtask keep_` | both keep tests refused: `kept proof: ... NotFound` | passes |
+
+`ratchet_refuses_an_absent_manifest` (`crates/uorust/tests/certify.rs`) runs
+the binary with each manifest missing in turn, and `a_deleted_root_is_not_a_loss`
+and the unchanged `the_ratchet_holds_any_scope_and_a_scope_only_widens` hold
+the rules the export dispatch in `scripts/ci/generate-branch.sh` relies on.
