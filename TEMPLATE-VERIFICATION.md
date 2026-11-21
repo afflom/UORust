@@ -352,3 +352,182 @@ transcript is rejected. This is an embedded negative-control check rather
 than a separate intentionally red PR workflow. The exact-head hosted
 bootstrap run is the execution receipt; until that run passes, these
 remain source-level expected results, **not verified hosted outcomes**.
+
+## Script suites inside the acceptance gate
+
+Every Python and shell test suite under `scripts/` now runs under `just vv`
+through `script_suites_pass` in `crates/conformance/tests/ci.rs`. Suites are
+discovered with `git ls-files` glob pathspecs, so a new suite runs without
+editing the test. A suite is refused when it exits non-zero, runs no test,
+skips one or reports an expected failure (`verdict`), and every discovered suite
+must lie inside the factory's `test` obligation, judged by the factory's own
+`graph.covers` (`uncovered`). `factory_closure_holds` runs
+`prism-factory/graph.py reads`, which refused on `28926f95` because SM-07 reads
+`bootstrap/acceptance-result.test.mjs` without the obligation declaring it; the
+obligation now declares that file, the three site modules it loads,
+`scripts/release/` and `scripts/self-model/`, and the factory's text and
+certified bundle were regenerated in the SDK image by `prism-factory/README.md`,
+"Changing the graph" (`just factory-model` passes).
+
+The node suites `try/test.mjs` and `identity/test.mjs` drive Chromium through
+Playwright, which the SDK image does not carry; they stay in `try-page.yml`.
+
+### Planted defects and restored controls
+
+Run in the pinned SDK image, each with
+`cargo test -q --locked -p repo-conformance --test ci <test>`:
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| First `assertEqual` in `scripts/release/test_platforms.py` inverted | `script_suites_pass` | refused: `scripts/release/test_platforms.py: the suite exited non-zero` (`FAILED (failures=1)`) | passes |
+| `prism-factory/graph.toml` as on `28926f95` | `factory_closure_holds` | refused: `test reads bootstrap/acceptance-result.test.mjs (crates/conformance/tests/browser_acceptance.rs:56) without declaring it` | passes |
+| `"!scripts/release/"` added to the `test` obligation's inputs | `script_suites_pass` (coverage step) | refused: `suites outside the factory test obligation` | passes |
+
+The planted-output unit tests `verdict_accepts_only_a_suite_that_ran_and_passed`,
+`stale_names_exclusions_that_no_longer_exist`,
+`judge_coverage_refuses_a_run_it_cannot_trust` and
+`uncovered_follows_the_factory_rule` cover each refusal without a live failure:
+a non-zero exit, no or zero `Ran` count, `OK (skipped=1)`,
+`OK (expected failures=1)`, a cross-kind summary, a stale exclusion, a coverage
+run that stops early (`checked 1` for 8) or over-counts (`checked 9` for 8), and
+an `!` exclusion.
+
+### Review follow-up: suites run elsewhere, and the closure's view
+
+Two gaps found in review are closed. First, the three suites `vv` runs through
+another test were held only to their exit status. CI-01 now judges
+`test_pr_stage.py` through `verdict`, and that suite's nested run of
+`test_change_impact.py` checks the `Ran` count and an exact `OK` summary.
+`test_pages_identity.py` already refuses an incomplete run itself
+(`complete_result`), as `test_obligation_plan.py` (CI-02, from `main`) does. Second, the factory runs the `test` obligation in a
+closure that holds only its inputs, where a suite outside them was absent
+rather than refused. `scripts/ci/suites.txt` lists every suite and lies in an
+input; `script_suites_pass` refuses the list when it and the tree disagree
+(`inventory_diff`, with a planted-output unit test).
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| `scripts/release/` removed from the index, as in a closure without it | `script_suites_pass` | refused: `listed, not in this tree: scripts/release/test_platforms.py`, `…/test_qualify_tag.py` | passes |
+| `scripts/release/test_platforms.py` dropped from `scripts/ci/suites.txt` | `script_suites_pass` | refused: `in this tree, not listed in scripts/ci/suites.txt: scripts/release/test_platforms.py` | passes |
+| One test in `scripts/ci/test_change_impact.py` skipped | `trusted_change_impact_classification_ci_01` | refused: `AssertionError: 'OK (skipped=1)' != 'OK'` (nested check) | passes |
+| One test in `scripts/ci/test_pr_stage.py` skipped | `trusted_change_impact_classification_ci_01` | refused: `summary Some("OK (skipped=1)") is not exactly OK` | passes |
+
+## Removing an upstream.toml patch row keeps the gaps (OPS-03)
+
+`scripts/ci/upstream.py` `frame_pin` split `upstream.toml` on `\n[[patch]]\n`
+and dropped the matching chunk, so removing the last patch row also removed the
+comment and both `[[gap]]` tables after it (3117 bytes of the file at
+`28926f95`), and `scripts/ci/repin.py` `drop_rows` dropped a comment that
+precedes the next table. Both now call `scripts/ci/upstream_rows.py`
+`without_patch`, which removes a row by lines from its header, keeps the
+preamble and every comment that precedes a table, and refuses (`ValueError`)
+any shape its line rule cannot handle, checked by parsing the result with
+`tomllib`. `upstream.py main` reads `doc.get("patch", [])`, so a file with no
+patch rows left runs.
+
+`scripts/ci/test_upstream_rows.py` (12 cases, run by `script_suites_pass`)
+reads only the committed snapshot `scripts/ci/fixtures/upstream.toml` or inline
+fixtures. Planted defect: with `without_patch` replaced by the old split, the
+suite fails 7 of its cases, among them
+`test_last_patch_keeps_gaps_and_their_comment` (the gaps lost),
+`test_only_remaining_patch` and `test_main_with_no_patches_acts_on_none`
+(`KeyError: 'patch'`); with the new rule all 12 pass
+(`python3 -I scripts/ci/test_upstream_rows.py`: `Ran 12 tests`, `OK`).
+
+## Gate scanners that stopped refusing (GATE-01..04)
+
+Four source-reading gates could pass on the defect they exist to catch.
+`names_id` (`crates/conformance/src/meta.rs`) needs the `_` boundary before an
+ID's slug, so `due_1` no longer discharges `UE-1`. `test_names_in`
+(`crates/conformance/tests/bdd.rs`) no longer counts ignored, `cfg_attr`-ignored
+or conditionally compiled tests, tests in a `cfg`-gated inline module or file,
+or tests in fixture crates; a module gated in another file is not followed
+(GAP-GATE-02 stays partly open for that case). `uses_reference` and `floats`
+(`xtask/src/bootstrap.rs`) read the list-item form `- uses:` with any
+whitespace after the dash. `effective_lines` (`xtask/src/audit.rs`) ends a
+`#[cfg(test)]` item at its own terminator by kind (field, match arm or item),
+so `#[cfg(test)] mod generate;` no longer hides the shipped code after it.
+On the real tree the census drops 19 fixture-crate names and every registered
+ID still has its test; no newly exposed shipped line names an unsanctioned
+error; every workflow action is pinned.
+
+Run in the pinned SDK image (`cargo xtask validate` passes on the real tree):
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| `names_id` reverted to `name.ends_with(slug)` | `cargo test -p repo-conformance --test bdd the_meta_gate_is_falsifiable_cm_02` | refused: `SM-01 must be reported missing with only an unbounded name` | passes |
+| `#[ignore]` on `trusted_factory_obligation_plan_ci_02`, CI-02's only test | `... --test bdd every_id_has_a_scenario_and_a_test_cm_02` | refused: `CM-02: CI-02 is registered but no test name is ci_02 or ends in _ci_02` | passes |
+| `- uses: actions/download-artifact@v4` in `certified.yml` | `cargo xtask audit-bootstrap` | refused: `certified.yml contains a floating workflow input` | passes |
+| `#[cfg(test)] mod planted;` then `pub fn planted_limit() -> Result<(), String>` in `crates/uorust/src/lib.rs` | `cargo xtask audit-limits` | refused: `R5: ... crates/uorust/src/lib.rs:265:pub fn planted_limit() -> Result<(), String> {` | passes |
+
+The planted-source unit tests cover each rule without a live failure:
+`names_id_needs_an_underscore_boundary`,
+`test_names_in_drops_ignored_and_conditional_tests` (twelve shapes),
+`fixture_tests_are_not_counted`, `floating_workflow_input_plants_are_rejected`
+(four step forms, tag and pin) and
+`a_braceless_test_item_does_not_hide_the_next_item` (three braceless shapes
+refused; ten test-only shapes, among them a multi-line signature, a `where`
+clause, multi-line generics, `thread_local!`, `extern "C"` and a match arm,
+kept exempt with the shipped item after each still refused).
+
+## Ratchets that passed on missing or masked input (GATE-10..12)
+
+`certify ratchet` now refuses an absent `--manifest` or `--base-manifest` by
+name instead of reading it as a manifest that certifies nothing (which passed
+every head), and `scripts/hooks/ratchet-staged.sh` empties its directory first
+and passes an absent manifest through to that refusal. The ratchet refuses,
+before its count, a root the base certifies that no longer lifts at the head
+(`Profile::lost` in `crates/uorust/src/certify.rs`), so a lost root can no
+longer be masked by one gained elsewhere; a function lifted under a new κ is
+an edit owed to an export and stays under the count rule, and a deleted
+function is not a loss. The other half of GAP-GATE-12, a definition changed
+under an unchanged κ, stays open. `cargo xtask proof-reuse` refuses a run that
+names no SDK image, and `proof-keep` stages the new proof, swaps it in,
+confirms it and restores the earlier one on any failure (`install` in
+`xtask/src/proof.rs`).
+
+Run in the pinned SDK image:
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| `crates/certified/manifest.toml` removed from the index | `scripts/hooks/ratchet-staged.sh` | refused: `certify ratchet: target/ratchet-staged/head-manifest.toml does not exist; a ratchet against an absent manifest measures nothing` | `507 translator functions uncertified, none more than in the base` |
+| The lost-root refusal disabled | `cargo test -p uorust --lib a_root_that_no_longer_lifts` | refused: `not refused: Ok(1)` (2 uncertified at the base, 1 at the head) | passes |
+| The empty-image check disabled | `cargo test -p xtask reuse_needs_an_sdk_image` | refused | passes |
+| The old order: the kept proof removed before staging | `cargo test -p xtask keep_` | both keep tests refused: `kept proof: ... NotFound` | passes |
+
+`ratchet_refuses_an_absent_manifest` (`crates/uorust/tests/certify.rs`) runs
+the binary with each manifest missing in turn, and `a_deleted_root_is_not_a_loss`
+and the unchanged `the_ratchet_holds_any_scope_and_a_scope_only_widens` hold
+the rules the export dispatch in `scripts/ci/generate-branch.sh` relies on.
+
+## Paths that escaped their directory (SEC-02, SEC-07, SEC-08)
+
+`write` (`crates/uorust/src/lib.rs`) removed every path an earlier
+`uorust.manifest` listed, joined to `out` unchecked. `owned_outputs` now checks
+every line first: a malformed line, a path that is absolute, holds `..` or runs
+through a symlinked directory, or a listed file whose bytes differ from its
+digest refuses `out` as `ForeignOutput`, and nothing is removed; a listed file
+that is absent is skipped. A projection edited by hand is recovered with
+`git checkout` of its directory or by removing it. `crate_component`
+(`crates/uorust/src/registry.rs`) admits only a crates.io name
+(`[A-Za-z][A-Za-z0-9_-]{0,63}`) and version (`[0-9A-Za-z.+-]`, not `.` or
+`..`), so a spec cannot name the temporary work directory's parent, and
+`merge --crate` refuses a versioned spec it rejects instead of merging it under
+a library scope. `owned` and `remove_owned` (`crates/uorust/src/error.rs`)
+refuse to remove a directory that holds `.git` (a directory or a worktree's
+file) or that is the working directory or one of its ancestors; `diagnose`,
+`admit_roots`, `production_build` and `embed::replace_dir` remove through it,
+and `sync` checks its `--dir` before it removes `roots`. The guard rules out
+the losses the repository cannot undo; it does not prove the engine wrote a
+directory.
+
+Run in the pinned SDK image, each with `cargo test -p uorust <filter>`:
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| `write` back to the old unchecked loop | `--lib write_refuses` | both refused: `left: Ok(())`, `right: Err(ForeignOutput(...))` | passes |
+| `crate_component` admits anything | `--lib spec_refuses`, `--test cli merge_refuses` | both refused | passes |
+| `owned` admits a directory holding `.git` | `--lib replace_dir_refuses`, `--lib sync_refuses` | both refused: `left: Ok(())`, `right: Err(ForeignOutput(...))` | passes |
+
+`owned_refuses_a_checkout_and_the_working_directory` runs on temporary
+directories only and never changes or removes the process's working directory.

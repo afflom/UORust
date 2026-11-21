@@ -346,9 +346,7 @@ pub fn diagnose(input: &Input<'_>, out: &Path, root: &str) -> Result<(), UorustE
         targets,
     } = *input;
     profile.descriptor(targets)?;
-    if out.exists() {
-        std::fs::remove_dir_all(out).map_err(|e| io(out, e))?;
-    }
+    crate::error::remove_owned(out)?;
     let only: BTreeSet<String> = [root.to_string()].into_iter().collect();
     let named = production(
         profile,
@@ -472,9 +470,7 @@ pub fn admit_roots(input: &Input<'_>, out: &Path) -> Result<Admission, UorustErr
     let prefix = format!("{}.{BEHAVIOR}.", module_prefix(projection)?);
     let mut compiler: BTreeMap<String, String> = BTreeMap::new();
     let admitted = loop {
-        if out.exists() {
-            std::fs::remove_dir_all(out).map_err(|e| io(out, e))?;
-        }
+        crate::error::remove_owned(out)?;
         let named = production(profile, projection, out, register, targets, &compiler, None)?;
         if named.is_empty() {
             break named;
@@ -716,9 +712,7 @@ pub fn production_build(
     // Refused before anything is written: no descriptor to export to.
     profile.descriptor(targets)?;
     for dir in [out, kept] {
-        if dir.exists() {
-            std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
-        }
+        crate::error::remove_owned(dir)?;
         std::fs::create_dir_all(dir).map_err(|e| io(dir, e))?;
     }
     let program = compiler.program.clone();
@@ -1082,6 +1076,7 @@ fn build_batch(
     compiler: &BTreeMap<String, String>,
     batch: &[String],
 ) -> Result<(Vec<String>, Option<Outcome>), UorustError> {
+    // A child of the `out` that `production_build` guarded.
     if dir.exists() {
         std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
     }
@@ -2050,6 +2045,7 @@ fn keep_carried(kept: &Path, carried: &[&Carried], results: &str) -> Result<(), 
 /// every package's `src/lib.rs` and Cargo manifest, at their paths in the
 /// bundle.
 fn keep(bundle: &Path, to: &Path) -> Result<std::path::PathBuf, UorustError> {
+    // A child of the `kept` that `production_build` guarded.
     if to.exists() {
         std::fs::remove_dir_all(to).map_err(|e| io(to, e))?;
     }
@@ -2729,6 +2725,12 @@ pub(crate) fn sync(
         adapters,
         ..
     } = *sync;
+    // `roots` is removed below: the directory it sits in must be the
+    // engine's to write, which a checkout or the working directory is not.
+    let cwd = std::env::current_dir().map_err(|e| io(dir, e))?;
+    if !crate::error::owned(dir, &cwd)? {
+        return Err(UorustError::ForeignOutput(dir.to_path_buf()));
+    }
     let bad = |path: &Path, reason: String| UorustError::Malformed {
         path: path.to_path_buf(),
         reason,
@@ -3778,11 +3780,44 @@ impl Profile {
             .collect()
     }
 
+    /// The functions in scope the base certifies (a row of the function is
+    /// lifted and its κ certified) that the head still has but lifts under
+    /// no κ. A function the head lifts under a new κ was edited, and its
+    /// certificate is owed to an export, so it is not lost; one the head no
+    /// longer has was deleted.
+    fn lost(&self, head: &Register, base: &Register, base_manifest: &Manifest) -> BTreeSet<String> {
+        let certified = base_manifest.kappas();
+        let rooted: BTreeSet<&str> = base
+            .rows
+            .iter()
+            .filter(|(k, r)| {
+                self.in_scope(&r.function)
+                    && certified.contains(*k)
+                    && matches!(r.status, Status::Lifted(_))
+            })
+            .map(|(_, r)| r.function.as_str())
+            .collect();
+        let mut present = BTreeSet::new();
+        let mut lifted = BTreeSet::new();
+        for r in head.rows.values() {
+            present.insert(r.function.as_str());
+            if matches!(r.status, Status::Lifted(_)) {
+                lifted.insert(r.function.as_str());
+            }
+        }
+        rooted
+            .into_iter()
+            .filter(|f| present.contains(f) && !lifted.contains(f))
+            .map(String::from)
+            .collect()
+    }
+
     /// The ratchet over this profile's scope: what is not certified may
-    /// only shrink. Refused when more functions in scope are uncertified
-    /// under the head than under the base, naming each that is uncertified
-    /// under the head and not under the base, with its cause. Returns the
-    /// head's count.
+    /// only shrink. Refused first when a root the base certifies no longer
+    /// lifts at the head (`lost`), however the count moves; then
+    /// when more functions in scope are uncertified under the head than
+    /// under the base, naming each that is uncertified under the head and
+    /// not under the base, with its cause. Returns the head's count.
     pub fn ratchet(
         &self,
         head: &Register,
@@ -3791,6 +3826,19 @@ impl Profile {
         base_manifest: &Manifest,
     ) -> Result<usize, UorustError> {
         let now = self.uncertified(head, head_manifest);
+        let lost = self.lost(head, base, base_manifest);
+        if !lost.is_empty() {
+            // Not a growth an export can repay: the root no longer lifts.
+            let mut rows = vec![format!(
+                "{} certified roots of the parent no longer lift",
+                lost.len()
+            )];
+            rows.extend(lost.iter().map(|f| {
+                let cause = now.get(f).map_or("not lifted", String::as_str);
+                format!("{f}: {cause}")
+            }));
+            return Err(UorustError::Grown(rows));
+        }
         let before = self.uncertified(base, base_manifest);
         if now.len() <= before.len() {
             return Ok(now.len());
@@ -4689,6 +4737,113 @@ mod tests {
             cases.ratchet_from(None, &base, &certified, &base, &certified),
             Err(UorustError::Tool(_))
         ));
+    }
+
+    fn certifying(roots: &[(&str, &str)]) -> Manifest {
+        Manifest {
+            roots: roots
+                .iter()
+                .map(|(function, kappa)| Certified {
+                    function: (*function).into(),
+                    kappa: (*kappa).into(),
+                    definition: "d".into(),
+                    package: "meter_certified_d".into(),
+                    source: "s".into(),
+                    certification: "kernel-checked".into(),
+                    closure: None,
+                    edition: None,
+                })
+                .collect(),
+            ..Manifest::default()
+        }
+    }
+
+    // GATE-12: a root lost to residue is not masked by roots gained
+    // elsewhere. The count shrinks (2 uncertified at the base, 1 at the head),
+    // which the count rule alone passes.
+    #[test]
+    fn a_root_that_no_longer_lifts_is_refused_even_when_the_count_shrinks() {
+        let lifted = || Status::Lifted("Behavior::x".into());
+        let base = register(&[
+            ("kf", "meter::f", lifted()),
+            ("kg", "meter::g", lifted()),
+            ("kh", "meter::h", lifted()),
+        ]);
+        let base_manifest = certifying(&[("meter::f", "kf")]);
+        let head = register(&[
+            (
+                "kf2",
+                "meter::f",
+                Status::Residue("form".into(), "x".into()),
+            ),
+            ("kg", "meter::g", lifted()),
+            ("kh", "meter::h", lifted()),
+        ]);
+        let head_manifest = certifying(&[("meter::g", "kg"), ("meter::h", "kh")]);
+        match meter().ratchet(&head, &head_manifest, &base, &base_manifest) {
+            Err(UorustError::Grown(rows)) => assert_eq!(
+                rows,
+                [
+                    "1 certified roots of the parent no longer lift",
+                    "meter::f: residue (form): x"
+                ]
+            ),
+            other => panic!("not refused: {other:?}"),
+        }
+        // Edited, not lost: lifted under a new κ, owed to an export.
+        let edited = register(&[
+            ("kf2", "meter::f", lifted()),
+            ("kg", "meter::g", lifted()),
+            ("kh", "meter::h", lifted()),
+        ]);
+        assert_eq!(
+            meter().ratchet(&edited, &head_manifest, &base, &base_manifest),
+            Ok(1)
+        );
+    }
+
+    // SEC-08: `sync` removes `roots` under its `--dir` only when that
+    // directory is the engine's to write.
+    #[test]
+    fn sync_refuses_a_dir_it_does_not_own() {
+        let dir = std::env::temp_dir().join(format!("uorust-sync-own-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".git")).expect("checkout");
+        std::fs::create_dir_all(dir.join("roots")).expect("roots");
+        let register = Register::default();
+        let refused = sync(
+            &meter(),
+            &Sync {
+                kept: &dir.join("no-kept"),
+                dir: &dir,
+                register: &register,
+                projection: None,
+                adapters: None,
+                mir: None,
+            },
+            &[],
+            None,
+            "0.4.0",
+        );
+        assert!(
+            matches!(&refused, Err(UorustError::ForeignOutput(d)) if d == &dir),
+            "{:?}",
+            refused.err()
+        );
+        assert!(dir.join("roots").is_dir());
+        std::fs::remove_dir_all(&dir).expect("clean up");
+    }
+
+    #[test]
+    fn a_deleted_root_is_not_a_loss() {
+        let lifted = || Status::Lifted("Behavior::x".into());
+        let base = register(&[("kf", "meter::f", lifted()), ("kg", "meter::g", lifted())]);
+        let base_manifest = certifying(&[("meter::f", "kf")]);
+        let head = register(&[("kg", "meter::g", lifted())]);
+        assert_eq!(
+            meter().ratchet(&head, &Manifest::default(), &base, &base_manifest),
+            Ok(1)
+        );
     }
 
     // Step 4, the agreement's export: the roots of a cases export are the

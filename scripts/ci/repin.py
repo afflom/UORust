@@ -28,6 +28,19 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 BRANCH = "automation/template-contract-update"
 
 
+def _load_rows():
+    """scripts/ci/upstream_rows.py, loaded by path (this script runs under -I)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "upstream_rows", pathlib.Path(__file__).resolve().parent / "upstream_rows.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+ROWS = _load_rows()
+
+
 def run(*args, check=True):
     return subprocess.run(args, check=check, capture_output=True, text=True).stdout.strip()
 
@@ -44,10 +57,9 @@ def resolved_rows(text, image, titles):
 
 def drop_rows(text, ids):
     """upstream.toml without the [[patch]] blocks of `ids`."""
-    blocks = re.split(r"(?m)^(?=\[\[)", text)
-    keep = [b for b in blocks
-            if not any(b.startswith(f'[[patch]]\nid = "{i}"\n') for i in ids)]
-    return "".join(keep)
+    for patch_id in ids:
+        text = ROWS.without_patch(text, patch_id)
+    return text
 
 
 def main():

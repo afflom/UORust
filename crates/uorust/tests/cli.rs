@@ -540,3 +540,23 @@ fn the_hooks_retest_a_patch_unless_main_moved_disjointly() {
     assert!(run.status.success(), "{run:?}");
     assert!(String::from_utf8_lossy(&run.stdout).contains("the disjointness rule holds"));
 }
+
+/// SEC-07: `merge --crate` with a version refuses a spec that could name a
+/// path, instead of merging it under a library scope.
+#[test]
+fn merge_refuses_a_bad_registry_spec() {
+    let dir = std::env::temp_dir().join(format!("uorust-merge-{}", std::process::id()));
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_uorust"))
+        .args(["merge", "--crate", "serde@../x", "--shards"])
+        .arg(dir.join("shards"))
+        .arg("--register")
+        .arg(dir.join("register"))
+        .output()
+        .expect("uorust runs");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(!out.status.success(), "{stderr}");
+    assert!(
+        stderr.contains("`serde@../x` is not a crates.io name and version"),
+        "{stderr}"
+    );
+}

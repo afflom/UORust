@@ -4209,9 +4209,7 @@ pub(crate) fn replace_dir(
     files: Option<&BTreeMap<String, Vec<u8>>>,
 ) -> Result<(), UorustError> {
     let io = crate::error::io;
-    if dir.exists() {
-        std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
-    }
+    crate::error::remove_owned(dir)?;
     for (path, bytes) in files.into_iter().flatten() {
         let file = dir.join(path);
         if let Some(parent) = file.parent() {
@@ -6233,6 +6231,21 @@ fn embed_linked(
 
 #[cfg(test)]
 mod tests {
+    // SEC-08: the one function every embedding and bridge write goes through
+    // never removes a checkout.
+    #[test]
+    fn replace_dir_refuses_a_checkout() {
+        let dir = std::env::temp_dir().join(format!("uorust-replace-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".git")).expect("checkout");
+        assert_eq!(
+            super::replace_dir(&dir, None),
+            Err(crate::error::UorustError::ForeignOutput(dir.clone()))
+        );
+        assert!(dir.join(".git").is_dir());
+        std::fs::remove_dir_all(&dir).expect("clean up");
+    }
+
     /// The embedding stamps each row by its κ, after its span, in place of
     /// what the row recorded, and leaves a row it has no body of unstamped.
     #[test]

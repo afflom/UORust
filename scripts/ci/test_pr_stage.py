@@ -1,5 +1,6 @@
 """Negative controls for the development-only PR classifier."""
 import importlib.util
+import re
 import subprocess
 import sys
 import tempfile
@@ -69,6 +70,12 @@ class StageTest(unittest.TestCase):
              "-s", str(SOURCE.parent), "-p", "test_change_impact.py", "-v"],
             capture_output=True, text=True, timeout=35)
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        # unittest exits 0 for a run with no test or with skips, so the count
+        # and the summary line decide, as `verdict` in ci.rs does.
+        ran = re.search(r"^Ran (\d+) tests? in ", proc.stderr, re.M)
+        self.assertTrue(ran and int(ran.group(1)) > 0, proc.stderr)
+        last = [line for line in proc.stderr.splitlines() if line.strip()][-1]
+        self.assertEqual(last.strip(), "OK", proc.stderr)
 
     def test_obligation_plan_adversarial_suite(self):
         proc = subprocess.run(

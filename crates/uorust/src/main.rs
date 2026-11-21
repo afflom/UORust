@@ -694,8 +694,12 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             Ok(())
         }
         Command::Merge(args) => {
+            // A spec naming a version is a crates.io crate, refused when its
+            // name or version could name a path; only `core` and `std` style
+            // names are libraries.
             let scope = match uorust::registry::parse_spec(&args.krate) {
                 Ok((name, version)) => uorust::mir::core::Scope::registry(&name, &version),
+                Err(error) if args.krate.contains('@') => return Err(error),
                 Err(_) => uorust::mir::core::Scope::library(&args.krate, uorust::mir::TOOLCHAIN),
             };
             let merged = uorust::queue::merge(&scope, &args.register, &args.shards)?;
@@ -1023,6 +1027,17 @@ fn certify(step: Certify) -> Result<(), UorustError> {
             base_manifest,
             profile,
         } => {
+            // An absent manifest reads as the empty one elsewhere; here it
+            // would certify nothing at the base and pass every head.
+            for path in [&manifest, &base_manifest] {
+                if !path.is_file() {
+                    return Err(UorustError::Tool(format!(
+                        "certify ratchet: {} does not exist; a ratchet against an absent \
+                         manifest measures nothing",
+                        path.display()
+                    )));
+                }
+            }
             // The scope the head is measured under: the options', else the
             // one its manifest states, else the translator's own.
             let stated = profile.options() != certify::Options::default();

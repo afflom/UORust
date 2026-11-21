@@ -188,3 +188,56 @@ fn a_plan_reads_the_workspaces_profile_and_agree_refuses_a_functions_crate() {
     assert!(String::from_utf8_lossy(&refused.stderr).contains("not the manifest of a cases export"));
     let _ = std::fs::remove_dir_all(dir);
 }
+
+/// GATE-10: an absent manifest, at the base or the head, is refused by name
+/// rather than read as one that certifies nothing.
+#[test]
+fn ratchet_refuses_an_absent_manifest() {
+    let dir = meter("absent");
+    let (base, manifest) = (
+        text(&dir.join("base.toml")),
+        text(&dir.join("manifest.toml")),
+    );
+    let missing = text(&dir.join("no-such-manifest.toml"));
+    for (head_manifest, base_manifest) in [
+        (manifest.as_str(), missing.as_str()),
+        (missing.as_str(), manifest.as_str()),
+    ] {
+        let out = uorust(&[
+            "certify",
+            "ratchet",
+            "--register",
+            &base,
+            "--manifest",
+            head_manifest,
+            "--base-register",
+            &base,
+            "--base-manifest",
+            base_manifest,
+        ]);
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert!(!out.status.success(), "an absent manifest must be refused");
+        assert!(
+            stderr.contains("no-such-manifest.toml does not exist"),
+            "{stderr}"
+        );
+    }
+    let held = uorust(&[
+        "certify",
+        "ratchet",
+        "--register",
+        &base,
+        "--manifest",
+        &manifest,
+        "--base-register",
+        &base,
+        "--base-manifest",
+        &manifest,
+    ]);
+    assert!(
+        held.status.success(),
+        "{}",
+        String::from_utf8_lossy(&held.stderr)
+    );
+    let _ = std::fs::remove_dir_all(dir);
+}
