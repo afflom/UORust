@@ -873,3 +873,10 @@ Feature: engine
     When normal lowering of the primary body leaves a residue
     Then the runtime body can enter the same dependency and SDK proof gates
     But a changed compiler body cannot supply another function's implementation
+
+  @UE-125 @build
+  Scenario: A missing transitive call selects a closed compiler representation
+    Given a lowered caller whose native dependency has no admissible body
+    When a pinned compiler representation removes the unavailable dependency
+    Then the graph selects the closed representation for the ordinary SDK trial
+    But a provider with another missing transitive call cannot close the residue

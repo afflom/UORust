@@ -1,6 +1,6 @@
 //! Content-bound pairs of primary and runtime MIR from a single compiler invocation.
 use super::{io, parse, IrBody, UorustError, DUMPED};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 const RUNTIME: &str = ".runtime-optimized.after.mir";
@@ -38,6 +38,7 @@ pub(super) fn collect(target: &Path) -> Result<(), UorustError> {
     }
     std::fs::create_dir_all(&dir).map_err(|e| io(&dir, e))?;
     let mut index = Pairs::new();
+    let mut ambiguous = BTreeSet::new();
     for (stem, path) in early {
         let Some(Some(runtime)) = phases.get(&stem) else {
             continue;
@@ -47,8 +48,13 @@ pub(super) fn collect(target: &Path) -> Result<(), UorustError> {
         let digest = crate::project::sha(&secondary);
         let destination = dir.join(&digest);
         std::fs::write(&destination, secondary).map_err(|e| io(&destination, e))?;
-        index.insert(crate::project::sha(&primary), digest);
+        let key = crate::project::sha(&primary);
+        if index.get(&key).is_some_and(|previous| previous != &digest) {
+            ambiguous.insert(key.clone());
+        }
+        index.insert(key, digest);
     }
+    index.retain(|key, _| !ambiguous.contains(key));
     let file = dir.join("pairs.json");
     std::fs::write(
         &file,
@@ -122,9 +128,66 @@ pub(super) fn read(
     .then_some(body))
 }
 
+/// Retain closed recursive components. Each provider requires every native
+/// dependency it calls. An unavailable provider is pruned transitively;
+/// the first surviving provider preserves the primary compiler form.
+pub(crate) fn closed_providers<'a>(
+    native: &BTreeSet<&'a str>,
+    graph: &BTreeMap<&'a str, Vec<Vec<&'a str>>>,
+) -> BTreeMap<&'a str, usize> {
+    let mut feasible: BTreeSet<_> = graph.keys().copied().collect();
+    loop {
+        let selected: BTreeMap<_, _> = graph
+            .iter()
+            .filter_map(|(&node, providers)| {
+                let provider = providers.iter().position(|calls| {
+                    calls
+                        .iter()
+                        .all(|c| !native.contains(c) || feasible.contains(c))
+                })?;
+                Some((node, provider))
+            })
+            .collect();
+        if selected.len() == feasible.len() {
+            return selected;
+        }
+        feasible = selected.keys().copied().collect();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn transitive_residue_selects_closed_compiler_dependencies_ue_125() {
+        use std::collections::BTreeSet;
+        let graph = BTreeMap::from([
+            ("caller", vec![vec!["middle"]]),
+            ("middle", vec![vec!["missing"], vec!["a"]]),
+            ("a", vec![vec!["b"]]),
+            ("b", vec![vec!["a"]]),
+            ("open", vec![vec!["missing"], vec!["still_open"]]),
+            ("still_open", vec![vec!["missing"]]),
+            ("optional", vec![vec![], vec!["missing"]]),
+        ]);
+        let names = graph
+            .keys()
+            .copied()
+            .chain(["missing"])
+            .collect::<BTreeSet<_>>();
+        let selected = closed_providers(&names, &graph);
+        assert_eq!(
+            selected,
+            BTreeMap::from([
+                ("caller", 0),
+                ("middle", 1),
+                ("a", 0),
+                ("b", 0),
+                ("optional", 0)
+            ])
+        );
+    }
 
     #[test]
     fn runtime_recovery_binds_the_compiler_pair_and_preserves_the_interface_ue_124() {
@@ -159,6 +222,18 @@ mod tests {
         assert!(read(&root, &index(&root).unwrap(), primary, &original)
             .unwrap()
             .is_none());
+        std::fs::write(
+            root.join("neutral.other.2-2-009.ElaborateBoxDerefs.before.mir"),
+            primary,
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("neutral.other.3-3-000.runtime-optimized.after.mir"),
+            late,
+        )
+        .unwrap();
+        collect(&root).unwrap();
+        assert!(index(&root).unwrap().is_empty());
         std::fs::remove_dir_all(root).unwrap();
     }
 }

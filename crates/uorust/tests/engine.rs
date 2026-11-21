@@ -12683,3 +12683,53 @@ fn residue_recovery_from_paired_compiler_mir_ue_124() {
         .any(|r| r["function"].as_str() == Some(name)));
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn dependency_residue_routes_a_closed_runtime_provider_ue_125() {
+    let dir = scratch("paired-compiler-dependencies", &[
+        ("Cargo.toml", "[package]\nname=\"pass_graph\"\nversion=\"0.1.0\"\nedition=\"2021\"\n[workspace]\n"),
+        ("src/lib.rs", "extern \"C\" { fn external_value(x:u32)->u32; }\n#[inline(never)] pub fn conditional(x:u32)->u32 { if x==3 {unsafe {external_value(x)}} else {x} }\npub fn caller(x:u32)->u32 {if x!=x {conditional(x)} else {x}}\n"),
+        (".cargo/config.toml","[build]\nrustflags=[\"-Zmir-opt-level=4\"]\n")
+    ]);
+    let dump = dumped(&dir, "dependency-pair");
+    let mut opts = options("pass_graph");
+    opts.mir = Some(mir_options(
+        dump.clone(),
+        Default::default(),
+        uorust::mir::Trial::All,
+    ));
+    let files = uorust::project_workspace(&dir, &opts).unwrap();
+    let candidates = text(&files, uorust::mir::CANDIDATES)
+        .parse::<toml::Table>()
+        .unwrap();
+    let row = candidates["candidate"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["function"].as_str() == Some("pass_graph::caller"))
+        .expect("native caller");
+    assert!(
+        row.get("primary_residue")
+            .and_then(|v| v.as_str())
+            .is_some_and(
+                |s| s.contains("pass_graph::conditional, whose translation is not admitted")
+            ),
+        "{row:?}"
+    );
+    let proof = uorust::mir::prove_bounded(
+        &dir,
+        &options("pass_graph"),
+        &dump,
+        &dir.join("verdicts.toml"),
+        &dir.join("trial"),
+        4,
+    )
+    .unwrap();
+    assert_eq!((proof.proved, proof.refused), (1, 0), "{proof:?}");
+    std::fs::remove_file(dump.join("lib-pass_graph/residue-mir/pairs.json")).unwrap();
+    let original = uorust::project_workspace(&dir, &opts).unwrap();
+    assert!(!frontier_rows(&original, "lifted")
+        .iter()
+        .any(|r| r["function"].as_str() == Some("pass_graph::caller")));
+    std::fs::remove_dir_all(dir).unwrap();
+}

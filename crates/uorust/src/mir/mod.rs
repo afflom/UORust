@@ -40,7 +40,7 @@ pub(crate) mod int;
 mod intrinsic;
 pub(crate) mod ir;
 mod prove;
-mod residual;
+pub(crate) mod residual;
 mod source;
 pub(crate) mod views;
 // Generated: its layout is the generator's, which the std test compares.
@@ -418,6 +418,18 @@ pub(crate) struct Dumps {
 }
 
 impl Dumps {
+    pub(crate) fn alternate(
+        &self,
+        krate: String,
+        body: &IrBody,
+    ) -> Option<&(IrBody, String, String)> {
+        let original = self.crates.get(&krate)?.get(&body.path)?;
+        if !std::ptr::eq(original, body) {
+            return None;
+        }
+        self.residual_bodies.get(&(krate, body.path.clone()))
+    }
+
     pub(crate) fn source_width(&self) -> Option<u32> {
         let target = self.target.as_ref()?;
         let mut matched = self.layouts.iter().filter(|l| &l.target == target);

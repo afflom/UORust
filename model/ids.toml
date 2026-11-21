@@ -801,3 +801,9 @@ id = "UE-124"
 level = "build"
 suite = "engine"
 statement = "A native lowering residue may retry the same function through the pinned compiler's paired runtime MIR, preserving its argument and result interface, dependency checks and SDK proof requirements"
+
+[[id]]
+id = "UE-125"
+level = "build"
+suite = "engine"
+statement = "A native translation with a blocked transitive call may select a content-bound compiler provider with a closed dependency graph, retaining ordinary providers where possible and requiring the existing SDK proof"

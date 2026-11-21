@@ -2153,3 +2153,11 @@ open. With the compiler pair present, the pinned SDK proved the caller with
 one accepted decision and zero refusals. Removing the pair restores the
 original residue. The unit test also changes each digest input and supplies
 an incompatible parameter type. None of these can provide a translation.
+
+UE-125 routes unresolved transitive native calls through the same paired compiler
+evidence. In the regression fixture a locally translated caller has a branch
+to a function with an external call. The compiler eliminates the impossible
+branch. UORust identifies the unavailable callee in the original residue and
+the pinned SDK proves the recovered caller. Removing the pair reopens that
+caller. The graph test covers a recursive component, a chain with no
+provider, and a closed primary provider that must retain precedence.

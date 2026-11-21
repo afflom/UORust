@@ -6071,16 +6071,9 @@ fn mir_lift(
         let cx = context(*r);
         let primary = translate(*r, name, body, &cx);
         let result = primary.or_else(|reason| {
-            let krate = ctx.crate_ident(*r);
-            let same_body = dumps
-                .crates
-                .get(&krate)
-                .and_then(|rows| rows.get(&body.path))
-                .is_some_and(|original| std::ptr::eq(original, *body));
-            let alternate = same_body
-                .then(|| dumps.residual_bodies.get(&(krate, body.path.clone())))
-                .flatten();
-            if let Some((alternate, primary_digest, runtime_digest)) = alternate {
+            if let Some((alternate, primary_digest, runtime_digest)) =
+                dumps.alternate(ctx.crate_ident(*r), body)
+            {
                 if let Ok(recovered) = translate(*r, name, alternate, &cx) {
                     recoveries.insert(
                         *r,
@@ -6105,6 +6098,64 @@ fn mir_lift(
                     ctx.path(*r),
                     (ctx.func(*r).span.clone(), mir_residue(reason)),
                 );
+            }
+        }
+    }
+    // A successful local lowering can still leave a transitive call residue.
+    // Compare compiler-provided dependency graphs before propagating ABIs.
+    if !dumps.residual_bodies.is_empty() {
+        let native = translations.keys().map(String::as_str).collect();
+        let mut graph: BTreeMap<_, Vec<Vec<_>>> = done
+            .iter()
+            .map(|(name, t)| {
+                (
+                    name.as_str(),
+                    vec![t.lowered.calls.iter().map(String::as_str).collect()],
+                )
+            })
+            .collect();
+        let closed = crate::mir::residual::closed_providers(&native, &graph);
+        let mut alternatives = BTreeMap::new();
+        for (r, name, body) in &todo {
+            let Some(t) = done.get(name) else { continue };
+            if closed.contains_key(name.as_str()) || recoveries.contains_key(r) {
+                continue;
+            }
+            let Some(pair) = dumps.alternate(ctx.crate_ident(*r), body) else {
+                continue;
+            };
+            let Ok(other) = translate(*r, name, &pair.0, &context(*r)) else {
+                continue;
+            };
+            let Some(missing) = t
+                .lowered
+                .calls
+                .iter()
+                .find(|c| native.contains(c.as_str()) && !closed.contains_key(c.as_str()))
+            else {
+                continue;
+            };
+            alternatives.insert(name.clone(), (other, pair, translations[missing].clone()));
+        }
+        for (name, (t, _, _)) in &alternatives {
+            graph
+                .get_mut(name.as_str())
+                .expect("known native translation")
+                .push(t.lowered.calls.iter().map(String::as_str).collect());
+        }
+        let selected = crate::mir::residual::closed_providers(&native, &graph)
+            .into_iter()
+            .filter(|(_, provider)| *provider == 1)
+            .map(|(name, _)| name.to_owned())
+            .collect::<BTreeSet<_>>();
+        for (r, name, body) in &mut todo {
+            if selected.contains(name) {
+                let (translation, (alternate, primary, runtime), missing) = alternatives
+                    .remove(name)
+                    .expect("selected compiler provider");
+                recoveries.insert(*r,(format!("mir::TerminatorKind::Call: {missing}, whose translation is not admitted"),primary,runtime));
+                *body = alternate;
+                done.insert(name.clone(), translation);
             }
         }
     }
