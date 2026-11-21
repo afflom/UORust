@@ -40,6 +40,7 @@ pub(crate) mod int;
 mod intrinsic;
 pub(crate) mod ir;
 mod prove;
+mod residual;
 mod source;
 pub(crate) mod views;
 // Generated: its layout is the generator's, which the std test compares.
@@ -106,7 +107,7 @@ impl Trial {
 pub const FLAGS: &[&str] = &[
     "--cfg=uorust_lift",
     "-Ztrim-diagnostic-paths=no",
-    "-Zdump-mir=ElaborateBoxDerefs",
+    "-Zdump-mir=ElaborateBoxDerefs|runtime-optimized",
     "-Coverflow-checks=on",
     "-Cdebug-assertions=off",
     "--emit=metadata",
@@ -283,6 +284,7 @@ fn dump_inner(
                 ));
             }
             definitions::collect(&dir, out, &mut compiler_definitions)?;
+            residual::collect(&dir)?;
             // Only the bodies the translator reads are kept.
             for entry in std::fs::read_dir(&dir).map_err(|e| io(&dir, e))? {
                 let path = entry.map_err(|e| io(&dir, e))?.path();
@@ -290,7 +292,7 @@ fn dump_inner(
                     .file_name()
                     .and_then(|n| n.to_str())
                     .is_some_and(|n| n.ends_with(DUMPED));
-                if !keep {
+                if path.is_file() && !keep {
                     std::fs::remove_file(&path).map_err(|e| io(&path, e))?;
                 }
             }
@@ -402,6 +404,7 @@ pub(crate) struct Dumps {
     /// Compiler source identities preserve overloaded implementation bodies.
     /// Repeated source identities are removed rather than guessed.
     pub(crate) definitions: BTreeMap<crate::embedding::Key, IrBody>,
+    pub(crate) residual_bodies: BTreeMap<(String, String), (IrBody, String, String)>,
     pub(crate) free_body_hashes: BTreeMap<(String, String), String>,
     pub(crate) compiler_identities: BTreeMap<crate::embedding::Key, definitions::Definition>,
     /// The constants' bodies (promoted constants and constant items), by
@@ -512,6 +515,7 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
             })
             .collect();
         files.sort();
+        let pairs = residual::index(&target)?;
         let entry = dumps.crates.entry(krate.clone()).or_default();
         for file in files {
             let text = std::fs::read_to_string(&file).map_err(|e| io(&file, e))?;
@@ -551,6 +555,11 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
                         .or_default()
                         .insert(t, body.clone());
                 }
+                let alternative = if pairs.is_empty() {
+                    None
+                } else {
+                    residual::read(&target, &pairs, &text, &body)?
+                };
                 let resolved = resolve_impls(root, root, &body.path);
                 if let Some(path) = &resolved {
                     body.path.clone_from(path);
@@ -567,6 +576,14 @@ pub(crate) fn load(root: &Path, dir: &Path) -> Result<Dumps, UorustError> {
                 let Some(path) = resolved else {
                     continue;
                 };
+                if let Some(mut alternate) = alternative {
+                    alternate.path.clone_from(&path);
+                    let primary = crate::project::sha(text.as_bytes());
+                    let runtime = pairs[&primary].clone();
+                    dumps
+                        .residual_bodies
+                        .insert((krate.clone(), path.clone()), (alternate, primary, runtime));
+                }
                 if entry.insert(path.clone(), body).is_some() {
                     ambiguous.push((krate.clone(), path));
                 }

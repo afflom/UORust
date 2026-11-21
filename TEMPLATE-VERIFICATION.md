@@ -2145,3 +2145,11 @@ an expected result failed with LLV7002. The source ownership test checks
 unreachable files, external files, conditional declarations, generic functions
 and changed source identities. The ordinary compiler ABI and recursion checks
 also apply to these dependencies.
+
+UE-124 records the primary lowering residue and both compiler body digests when
+a paired runtime body supplies a translation. In the pass-pair fixture rustc
+removes an unreachable external call. The primary body alone leaves the caller
+open. With the compiler pair present, the pinned SDK proved the caller with
+one accepted decision and zero refusals. Removing the pair restores the
+original residue. The unit test also changes each digest input and supplies
+an incompatible parameter type. None of these can provide a translation.

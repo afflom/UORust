@@ -795,3 +795,9 @@ id = "UE-123"
 level = "build"
 suite = "engine"
 statement = "Native callers may import closed free functions from source-bound workspace path modules through their exact compiler bodies and dependency frames, preserving lexical owners and all ordinary ABI, recursion and SDK proof obligations"
+
+[[id]]
+id = "UE-124"
+level = "build"
+suite = "engine"
+statement = "A native lowering residue may retry the same function through the pinned compiler's paired runtime MIR, preserving its argument and result interface, dependency checks and SDK proof requirements"

@@ -144,6 +144,7 @@ model does not sanction.
 | `UE-121` | `build` | Compiler constant dependencies reuse the complete exact Factory core capture and existing native kernels under their owning source and target graph, with source-verified unconditional default providers and foreign override target and capture controls |
 | `UE-122` | `build` | Native MIR captures enum discriminants at the read and uses the compiler intrinsic's checked constructor and integer representation for value observations, preserving payloads and rejecting unknown discriminant assignments |
 | `UE-123` | `build` | Native callers may import closed free functions from source-bound workspace path modules through their exact compiler bodies and dependency frames, preserving lexical owners and all ordinary ABI, recursion and SDK proof obligations |
+| `UE-124` | `build` | A native lowering residue may retry the same function through the pinned compiler's paired runtime MIR, preserving its argument and result interface, dependency checks and SDK proof requirements |
 
 ## factory
 

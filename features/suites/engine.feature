@@ -866,3 +866,10 @@ Feature: engine
     When registered callers reach the functions and their private dependencies
     Then SDK observations agree with the corresponding compiled Rust module
     But an incompatible module identity cannot supply its sibling's result
+
+  @UE-124 @build
+  Scenario: A native residue selects another compiler representation of the same function
+    Given paired compiler bodies with a common source identity and interface
+    When normal lowering of the primary body leaves a residue
+    Then the runtime body can enter the same dependency and SDK proof gates
+    But a changed compiler body cannot supply another function's implementation

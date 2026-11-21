@@ -12630,3 +12630,56 @@ pub fn right(a: bool, b: bool) -> bool { second::run(a,b) }
     );
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn residue_recovery_from_paired_compiler_mir_ue_124() {
+    let dir = scratch("compiler-residue-recovery", &[
+        ("Cargo.toml", "[package]\nname=\"pass_pair\"\nversion=\"0.1.0\"\nedition=\"2021\"\n[workspace]\n"),
+        ("src/lib.rs", "extern \"C\" { fn opaque(x:u32)->u32; }\npub fn identity(x:u32)->u32 { if std::mem::size_of::<u32>() == 0 {unsafe {opaque(x)}} else {x} }\n"),
+        (".cargo/config.toml","[build]\nrustflags=[\"-Zmir-opt-level=4\"]\n")
+    ]);
+    let dump = dumped(&dir, "pass-pair");
+    let mut opts = options("pass_pair");
+    opts.mir = Some(mir_options(
+        dump.clone(),
+        Default::default(),
+        uorust::mir::Trial::All,
+    ));
+    let name = "pass_pair::identity";
+    let files = uorust::project_workspace(&dir, &opts).unwrap();
+    let candidates = std::str::from_utf8(&files[uorust::mir::CANDIDATES])
+        .unwrap()
+        .parse::<toml::Table>()
+        .unwrap();
+    let row = candidates["candidate"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["function"].as_str() == Some(name))
+        .unwrap();
+    assert!(row["primary_residue"]
+        .as_str()
+        .is_some_and(|r| !r.is_empty()));
+    assert_ne!(row["primary_mir_sha256"], row["runtime_mir_sha256"]);
+    assert!(frontier_rows(&files, "lifted")
+        .iter()
+        .any(|r| r["function"].as_str() == Some(name)));
+    let cache = dir.join("verdicts.toml");
+    let proof = uorust::mir::prove_bounded(
+        &dir,
+        &options("pass_pair"),
+        &dump,
+        &cache,
+        &dir.join("trial"),
+        4,
+    )
+    .unwrap();
+    assert_eq!((proof.proved, proof.refused), (1, 0), "{proof:?}");
+    let index = dump.join("lib-pass_pair/residue-mir/pairs.json");
+    std::fs::remove_file(index).unwrap();
+    let original = uorust::project_workspace(&dir, &opts).unwrap();
+    assert!(!frontier_rows(&original, "lifted")
+        .iter()
+        .any(|r| r["function"].as_str() == Some(name)));
+    std::fs::remove_dir_all(dir).unwrap();
+}

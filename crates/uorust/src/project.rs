@@ -6064,8 +6064,39 @@ fn mir_lift(
         })
     };
     let mut done: BTreeMap<String, Translation> = BTreeMap::new();
-    for (r, name, body) in &todo {
-        match translate(*r, name, body, &context(*r)) {
+    let mut recoveries = BTreeMap::new();
+    // Carry the successful representation into subsequent ABI and outcome
+    // propagation. Only a real lowering residue requests another compiler body.
+    for (r, name, body) in &mut todo {
+        let cx = context(*r);
+        let primary = translate(*r, name, body, &cx);
+        let result = primary.or_else(|reason| {
+            let krate = ctx.crate_ident(*r);
+            let same_body = dumps
+                .crates
+                .get(&krate)
+                .and_then(|rows| rows.get(&body.path))
+                .is_some_and(|original| std::ptr::eq(original, *body));
+            let alternate = same_body
+                .then(|| dumps.residual_bodies.get(&(krate, body.path.clone())))
+                .flatten();
+            if let Some((alternate, primary_digest, runtime_digest)) = alternate {
+                if let Ok(recovered) = translate(*r, name, alternate, &cx) {
+                    recoveries.insert(
+                        *r,
+                        (
+                            mir_residue(reason.clone()).detail(),
+                            primary_digest,
+                            runtime_digest,
+                        ),
+                    );
+                    *body = alternate;
+                    return Ok(recovered);
+                }
+            }
+            Err(reason)
+        });
+        match result {
             Ok(translation) => {
                 done.insert(name.clone(), translation);
             }
@@ -6435,6 +6466,14 @@ fn mir_lift(
             decls.join(", "),
             dependencies.join(", ")
         ));
+        if let Some((residue, primary, runtime)) = recoveries.get(&t.r) {
+            listing.push_str(&format!(
+                "primary_residue = {}\nprimary_mir_sha256 = {}\nruntime_mir_sha256 = {}\n",
+                toml_string(residue),
+                toml_string(primary),
+                toml_string(runtime)
+            ));
+        }
         if let Some(model) = &t.model_context_sha256 {
             listing.push_str(&format!("model_context_sha256 = {}\n", toml_string(model)));
         }
