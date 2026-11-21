@@ -310,6 +310,17 @@ fn check(root: &Path) -> Result<String, Fail> {
 /// `cargo xtask proof-reuse`: succeeds only when the kept proof binds these
 /// exact inputs. Any failure, including no kept proof, means: prove in full.
 pub fn reuse(root: &Path) -> Result<(), Fail> {
+    reuse_with(root, &std::env::var("SDK_IMAGE").unwrap_or_default())
+}
+
+/// [`reuse`] under the SDK image `image`. A proof kept with no image named
+/// records an empty one, so a run that names none can bind nothing.
+fn reuse_with(root: &Path, image: &str) -> Result<(), Fail> {
+    if image.is_empty() {
+        let error: Fail = "no SDK image named, so no kept proof can bind this run".into();
+        println!("app: proving in full, the kept proof is not reusable: {error}");
+        return Err(error);
+    }
     match check(root) {
         Ok(attestation) => {
             println!(
@@ -331,24 +342,66 @@ pub fn keep(root: &Path, attestation: &str) -> Result<(), Fail> {
     if !is_id(attestation) {
         return Err(format!("prismpm verify printed no attestation ID: {attestation:?}").into());
     }
-    let published = root.join("app/.prism/verified").join(attestation);
-    let kept = root.join(KEPT);
-    if kept.exists() {
-        std::fs::remove_dir_all(&kept)?;
-    }
-    std::fs::create_dir_all(kept.join("verified"))?;
-    for name in EVIDENCE {
-        std::fs::copy(published.join(name), kept.join("verified").join(name))
-            .map_err(|error| format!("{}: {error}", published.join(name).display()))?;
-    }
-    std::fs::write(
-        kept.join("inputs"),
-        format!("attestation {attestation}\n{}", inputs(root)?),
-    )?;
-    std::fs::write(kept.join("attestation"), format!("{attestation}\n"))?;
-    check(root).map_err(|error| format!("the proof just kept does not read back: {error}"))?;
+    let inputs = inputs(root)?;
+    install(root, attestation, &inputs, check)?;
     println!("app: kept attestation {attestation} with the inputs it binds");
     Ok(())
+}
+
+/// Put the published proof in place of the kept one only once it reads
+/// back through `confirm`: it is staged beside the kept proof, swapped in,
+/// confirmed, and on any failure the earlier proof is restored.
+fn install(
+    root: &Path,
+    attestation: &str,
+    inputs: &str,
+    confirm: impl Fn(&Path) -> Result<String, Fail>,
+) -> Result<(), Fail> {
+    let published = root.join("app/.prism/verified").join(attestation);
+    let kept = root.join(KEPT);
+    let staged = root.join(format!("{KEPT}.new"));
+    let old = root.join(format!("{KEPT}.old"));
+    for stale in [&staged, &old] {
+        if stale.exists() {
+            std::fs::remove_dir_all(stale)?;
+        }
+    }
+    let stage = || -> Result<(), Fail> {
+        std::fs::create_dir_all(staged.join("verified"))?;
+        for name in EVIDENCE {
+            std::fs::copy(published.join(name), staged.join("verified").join(name))
+                .map_err(|error| format!("{}: {error}", published.join(name).display()))?;
+        }
+        std::fs::write(
+            staged.join("inputs"),
+            format!("attestation {attestation}\n{inputs}"),
+        )?;
+        std::fs::write(staged.join("attestation"), format!("{attestation}\n"))?;
+        Ok(())
+    };
+    if let Err(error) = stage() {
+        let _ = std::fs::remove_dir_all(&staged);
+        return Err(error);
+    }
+    if kept.exists() {
+        std::fs::rename(&kept, &old)?;
+    }
+    std::fs::rename(&staged, &kept)?;
+    match confirm(root) {
+        Ok(_) => {
+            if old.exists() {
+                std::fs::remove_dir_all(&old)?;
+            }
+            Ok(())
+        }
+        Err(error) => {
+            std::fs::remove_dir_all(&kept)?;
+            if old.exists() {
+                std::fs::rename(&old, &kept)?;
+            }
+            Err(format!("the proof just kept does not read back: {error}").into())
+        }
+    }
 }
 
 #[cfg(test)]
@@ -554,5 +607,68 @@ mod tests {
             escape.lexlean["lake_workspace"][0]["path"] = json!(path);
             assert!(super::workspace_paths(&escape.lexlean).is_err(), "{path}");
         }
+    }
+
+    /// A root holding a kept proof and a published one. Each call gets its
+    /// own directory.
+    fn proof_root(published: &[&str]) -> std::path::PathBuf {
+        static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let root = std::env::temp_dir().join(format!("proof-keep-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let kept = root.join(super::KEPT);
+        std::fs::create_dir_all(kept.join("verified")).expect("kept");
+        std::fs::write(kept.join("attestation"), "old\n").expect("old proof");
+        let dir = root.join("app/.prism/verified").join("1".repeat(64));
+        std::fs::create_dir_all(&dir).expect("published");
+        for name in published {
+            std::fs::write(dir.join(name), "{}").expect("evidence");
+        }
+        root
+    }
+
+    fn old_proof(root: &std::path::Path) -> String {
+        std::fs::read_to_string(root.join(super::KEPT).join("attestation")).expect("kept proof")
+    }
+
+    fn leftovers(root: &std::path::Path) -> bool {
+        root.join(format!("{}.new", super::KEPT)).exists()
+            || root.join(format!("{}.old", super::KEPT)).exists()
+    }
+
+    #[test]
+    fn reuse_needs_an_sdk_image() {
+        let root = std::env::temp_dir().join(format!("proof-reuse-{}", std::process::id()));
+        let error = super::reuse_with(&root, "")
+            .expect_err("no image")
+            .to_string();
+        assert!(error.contains("no SDK image named"), "{error}");
+    }
+
+    #[test]
+    fn keep_loses_nothing_when_a_copy_fails() {
+        let root = proof_root(&super::EVIDENCE[..2]);
+        let ok = |_: &std::path::Path| -> Result<String, crate::Fail> { Ok(String::new()) };
+        assert!(super::install(&root, &"1".repeat(64), "inputs\n", ok).is_err());
+        assert_eq!(old_proof(&root), "old\n");
+        assert!(!leftovers(&root));
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn keep_restores_the_old_proof_when_the_new_one_does_not_read_back() {
+        let root = proof_root(&super::EVIDENCE);
+        let fails = |_: &std::path::Path| -> Result<String, crate::Fail> { Err("planted".into()) };
+        let error = super::install(&root, &"1".repeat(64), "inputs\n", fails)
+            .expect_err("refused")
+            .to_string();
+        assert!(error.contains("planted"), "{error}");
+        assert_eq!(old_proof(&root), "old\n");
+        assert!(!leftovers(&root));
+        let ok = |_: &std::path::Path| -> Result<String, crate::Fail> { Ok(String::new()) };
+        super::install(&root, &"1".repeat(64), "inputs\n", ok).expect("kept");
+        assert_eq!(old_proof(&root), format!("{}\n", "1".repeat(64)));
+        assert!(!leftovers(&root));
+        let _ = std::fs::remove_dir_all(root);
     }
 }

@@ -57,6 +57,14 @@ const ASSERTIVE: &[&str] = &[
     "confirms",
 ];
 
+/// Whether the test name `test` discharges the ID whose slug is `slug`: the
+/// name, after its last `::`, is the slug or ends in `_` and the slug. Without
+/// the boundary `due_1` would discharge `UE-1`.
+fn names_id(test: &str, slug: &str) -> bool {
+    let name = test.rsplit("::").next().unwrap_or(test);
+    name == slug || name.ends_with(&format!("_{slug}"))
+}
+
 /// Run the meta-gate.
 ///
 /// `root` is the repository root. `tests` are the test names collected from the
@@ -88,9 +96,9 @@ pub fn check_honesty(root: &Path, tests: &BTreeSet<String>) -> std::io::Result<H
             ));
         }
         let slug = row.id.to_lowercase().replace('-', "_");
-        if !tests.iter().any(|t| t.ends_with(&slug)) {
+        if !tests.iter().any(|t| names_id(t, &slug)) {
             report.violations.push(format!(
-                "CM-02: {} is registered but no test name ends in `{slug}`. A claim with \
+                "CM-02: {} is registered but no test name is `{slug}` or ends in `_{slug}`. A claim with \
                  no test is an assertion.",
                 row.id
             ));
@@ -265,5 +273,14 @@ mod tests {
         // And an honest sentence about an open claim does not trip it.
         let honest = "CG-01 reports the fitted exponent with its confidence interval";
         assert!(!ASSERTIVE.iter().any(|w| honest.to_lowercase().contains(*w)));
+    }
+
+    #[test]
+    fn names_id_needs_an_underscore_boundary() {
+        assert!(!names_id("due_1", "ue_1"));
+        assert!(!names_id("m::due_1", "ue_1"));
+        assert!(names_id("ue_1", "ue_1"));
+        assert!(names_id("x_ue_1", "ue_1"));
+        assert!(names_id("m::x_ue_1", "ue_1"));
     }
 }

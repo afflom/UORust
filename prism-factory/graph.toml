@@ -143,7 +143,10 @@ sdk = true
 sets = ["sdk", "manifests", "workspace"]
 # UE-20 (crates/conformance/tests/factory.rs) checks this component, SM-05
 # (self_model.rs) reads the brand's foundation stylesheet, a CLI test runs
-# scripts/hooks/passes.py, the R2 meta-check (crates/conformance/src/meta.rs)
+# scripts/hooks/passes.py, the script suite runner (crates/conformance/tests/
+# ci.rs) runs every suite under scripts/, SM-07 (browser_acceptance.rs) loads
+# bootstrap/acceptance-result.test.mjs and the site modules it imports, the
+# R2 meta-check (crates/conformance/src/meta.rs)
 # reads VERIFICATION.md and ANALYSIS.md where they exist, and UE-18
 # (ratchet.rs) compares the register and the manifest with the parent's: the
 # `@base:` entries, so a test of one tree under two parents is two identities.
@@ -158,12 +161,18 @@ inputs = [
   "ANALYSIS.md",
   "scripts/ci/",
   "scripts/hooks/passes.py",
+  "scripts/release/",
+  "scripts/self-model/",
+  "bootstrap/acceptance-result.test.mjs",
+  "site/acceptance-result.mjs",
+  "site/guest-worker.mjs",
+  "site/spec.mjs",
   "prism-factory/",
   "brand/foundation/src/index.css",
   "@base:frontier.toml",
   "@base:crates/certified/manifest.toml",
 ]
-untouched = "the site, the brand other than its foundation stylesheet, scripts other than scripts/ci/ and scripts/hooks/passes.py, the documents other than CONFORMANCE.md, README.md, VERIFICATION.md and ANALYSIS.md, the parent's files other than its register and manifest"
+untouched = "the site other than the three modules SM-07 loads, the brand other than its foundation stylesheet, scripts other than scripts/ci/, scripts/release/, scripts/self-model/ and scripts/hooks/passes.py, the documents other than CONFORMANCE.md, README.md, VERIFICATION.md and ANALYSIS.md, the parent's files other than its register and manifest"
 
 [[obligation]]
 name = "deny"

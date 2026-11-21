@@ -1023,6 +1023,17 @@ fn certify(step: Certify) -> Result<(), UorustError> {
             base_manifest,
             profile,
         } => {
+            // An absent manifest reads as the empty one elsewhere; here it
+            // would certify nothing at the base and pass every head.
+            for path in [&manifest, &base_manifest] {
+                if !path.is_file() {
+                    return Err(UorustError::Tool(format!(
+                        "certify ratchet: {} does not exist; a ratchet against an absent \
+                         manifest measures nothing",
+                        path.display()
+                    )));
+                }
+            }
             // The scope the head is measured under: the options', else the
             // one its manifest states, else the translator's own.
             let stated = profile.options() != certify::Options::default();

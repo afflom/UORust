@@ -1,0 +1,14 @@
+# Every Python and shell test suite under scripts/, one path per line.
+# crates/conformance/tests/ci.rs (script_suites_pass) refuses this list when
+# it and the tree disagree, so a suite outside the factory test closure is
+# refused there rather than unseen.
+scripts/ci/test-land-register.sh
+scripts/ci/test_change_impact.py
+scripts/ci/test_install_upstream_gate.py
+scripts/ci/test_obligation_plan.py
+scripts/ci/test_pages_identity.py
+scripts/ci/test_pr_stage.py
+scripts/ci/test_upstream_rows.py
+scripts/release/test_platforms.py
+scripts/release/test_qualify_tag.py
+scripts/self-model/test_bounded_sources.py
