@@ -25,6 +25,18 @@ ROOT = Path(__file__).resolve().parents[2]
 CACHE = ROOT / "target" / "upstream"
 
 
+def _load_rows():
+    """scripts/ci/upstream_rows.py, loaded by path (this script runs under -I)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("upstream_rows", Path(__file__).resolve().parent / "upstream_rows.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+ROWS = _load_rows()
+
+
 def run(*args, check=True):
     return subprocess.run(args, check=check, capture_output=True, text=True).stdout.strip()
 
@@ -104,10 +116,7 @@ def frame_pin(patch, release):
     row, and push both (scripts/ci/push.sh dispatches the gate and the page)."""
     run("node", "bootstrap/frame-sync.mjs", "--pin", release["commit"])
     text = (ROOT / "upstream.toml").read_text()
-    rows = text.split("\n[[patch]]\n")
-    row = 'id = "%s"' % patch["id"]
-    kept = [r for r in rows[1:] if r.split("\n", 1)[0] != row]
-    (ROOT / "upstream.toml").write_text("\n[[patch]]\n".join([rows[0], *kept]))
+    (ROOT / "upstream.toml").write_text(ROWS.without_patch(text, patch["id"]))
     run("scripts/ci/push.sh", f"Re-pin the frame to {patch['repository']}@{release['commit'][:12]}",
         "frame.lock bootstrap site lighthouserc.json upstream.toml", "bootstrap.yml", "pages.yml")
 
@@ -177,7 +186,7 @@ def main():
     act = "--act" in sys.argv[1:]
     doc = tomllib.loads((ROOT / "upstream.toml").read_text())
     gaps(act, doc.get("gap", []))
-    patches = doc["patch"]
+    patches = doc.get("patch", [])
     for patch in patches:
         repository = patch["repository"]
         fix = patch.get("fix")

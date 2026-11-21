@@ -5,7 +5,7 @@
 # stops the functions it counts (the detail their rows state, under its
 # cause), the one that stops the most first: the work queue.
 
-# Honesty report: 344 of 1502 functions of product code are lifted; 882
+# Honesty report: 348 of 1511 functions of product code are lifted; 887
 # are residue, 95 foreign and 181 effect rows.
 # Residue by cause:
 #   arithmetic: 1
@@ -213,9 +213,10 @@
 #     59 a loop nested in a loop, whose helpers would call each other
 #   mir::TerminatorKind::SwitchInt: 1
 #     1 a loop whose header does not exit on an order of naturals, so no measure is derived
-#   mir::Ty: 344
+#   mir::Ty: 346
 #     1 A0
 #     1 K
+#     1 audit::Scan<'_>
 #     1 bridge::BridgeOutcome<(std::string::String, std::string::String, std::vec::Vec<(std::string::String, std::string::String)>, usize)>
 #     2 bridge::BridgeOutcome<std::vec::Vec<std::string::String>>
 #     60 core::fmt::rt::Argument<'_>
@@ -314,7 +315,7 @@
 #     1 std::slice::Iter<'_, names::Ty>
 #     1 std::slice::Iter<'_, wf::Node>
 #     5 std::str::CharIndices<'_>
-#     15 std::str::Chars<'_>
+#     16 std::str::Chars<'_>
 #     14 std::str::Lines<'_>
 #     2 std::str::MatchIndices<'_, &str>
 #     1 std::str::RSplit<'_, &str>
@@ -353,11 +354,12 @@
 #     1 uorust_certified::types_accessor::Str
 #     1 uorust_certified::unicode_property::Str
 #     1 uorust_certified::uninhabited::Str
-#   mir::Verdict: 2
+#   mir::Verdict: 3
 #     2 LLV7002: Lean rejected `Uorust.Behavior` (error): omega could not prove the goal:
+#     1 a translation the verifier has not decided yet
 #   signature: 3
 #   statements: 3
-#   type: 131
+#   type: 133
 # MIR kinds at toolchain 1.97.1: 81 of 118 lowered; every other kind is a
 # residue row that names it.
 #   StatementKind::Assign: lowered: the local holds the rvalue's value; a write through a projection is residue
@@ -482,9 +484,9 @@
 spec = "uorust/register/1"
 
 [lift]
-functions = 1502
-lifted = 344
-residue = 882
+functions = 1511
+lifted = 348
+residue = 887
 foreign = 95
 effect = 181
 
@@ -524,12 +526,12 @@ cause = "mir::Ty"
 functions = 17
 
 [[construct]]
-construct = "mir::Ty: std::path::Path"
+construct = "mir::Ty: std::str::Chars<'_>"
 cause = "mir::Ty"
-functions = 15
+functions = 16
 
 [[construct]]
-construct = "mir::Ty: std::str::Chars<'_>"
+construct = "mir::Ty: std::path::Path"
 cause = "mir::Ty"
 functions = 15
 
@@ -1120,6 +1122,11 @@ functions = 2
 
 [[construct]]
 construct = "type outside the lift: &mut Vec<Decl>"
+cause = "type"
+functions = 2
+
+[[construct]]
+construct = "type outside the lift: XtaskScan.chars: std::str::CharIndices<'a>"
 cause = "type"
 functions = 2
 
@@ -2279,6 +2286,11 @@ cause = "mir::Ty"
 functions = 1
 
 [[construct]]
+construct = "mir::Ty: audit::Scan<'_>"
+cause = "mir::Ty"
+functions = 1
+
+[[construct]]
 construct = "mir::Ty: bridge::BridgeOutcome<(std::string::String, std::string::String, std::vec::Vec<(std::string::String, std::string::String)>, usize)>"
 cause = "mir::Ty"
 functions = 1
@@ -2761,6 +2773,11 @@ functions = 1
 [[construct]]
 construct = "mir::Ty: uorust_certified::uninhabited::Str"
 cause = "mir::Ty"
+functions = 1
+
+[[construct]]
+construct = "mir::Verdict: a translation the verifier has not decided yet"
+cause = "mir::Verdict"
 functions = 1
 
 [[construct]]
@@ -8022,10 +8039,40 @@ reason = "mir"
 detail = "mir::Operand::Constant: the constant item wf::Node::word"
 
 [[residue]]
-kappa = "144be536cd1b2e3e2af8c52d3ee25bd06ceeedf5752a471e096ebd94ecc76aa6"
+kappa = "a3d8a0bc29dfaf8a30f16edfb8738b8f0a1aee7098e21fd359a21b9fff70e980"
+function = "xtask::audit::Scan<'_>::next"
+reason = "type"
+detail = "type outside the lift: XtaskScan.chars: std::str::CharIndices<'a>"
+
+[[residue]]
+kappa = "24507898bb6248ac78e13f4485cc1f7279308013957362829264a1ff684a7061"
+function = "xtask::audit::Scan<'a>::new"
+reason = "type"
+detail = "type outside the lift: XtaskScan.chars: std::str::CharIndices<'a>"
+
+[[residue]]
+kappa = "5a99997880efc6606add621212179b9c72fde4188d61c52ebb7709e0a9a6a163"
+function = "xtask::audit::TestItem::read"
+reason = "mir"
+detail = "mir::Ty: audit::Scan<'_>"
+
+[[residue]]
+kappa = "41446ba2a55750fec6fb1679d32967cd3c557acc2f935c1c7d254a61bbaee227"
+function = "xtask::audit::TestItem::step"
+reason = "mir"
+detail = "mir::Verdict: a translation the verifier has not decided yet"
+
+[[residue]]
+kappa = "9c84073b8adcd1721761c7e65a52212d0265a5d673a5d66693d903aadbaf3cd7"
 function = "xtask::audit::effective_lines"
 reason = "mir"
 detail = "mir::Ty: std::str::Lines<'_>"
+
+[[residue]]
+kappa = "cec9ad780658e94bd40842944cfc2ab43f03edb71057924d4e5cd2abec5aac4e"
+function = "xtask::audit::kind_of"
+reason = "mir"
+detail = "mir::Ty: std::str::Chars<'_>"
 
 [[residue]]
 kappa = "62aa38b0a165fc315905b35a949d8478ae50eb7150319d6c153bf44ee73d728c"
@@ -8551,7 +8598,7 @@ function = "xtask::proof::workspace_paths"
 detail = "takes or returns Value, a type of the serde_json crate with no LexLean model"
 
 [[effect]]
-kappa = "770ac4d9830c9579d0f73a4534fa6afd9f8b4813f06454732d2fbdf69dc26cdc"
+kappa = "9c2e0882473678ababf13f031ef931d2c75f792fe0be7282ab4bba78b271fa65"
 function = "repo_conformance::meta::check_honesty"
 effect = "Fs effect: std::fs::read_to_string"
 
@@ -9371,7 +9418,7 @@ function = "xtask::audit::shipped_sources"
 effect = "Fs effect: Path::exists"
 
 [[effect]]
-kappa = "52aa49c6ccd7b4288bab3ff0338c68e3cb70583e22d4cfbe87de93acc019c0fe"
+kappa = "abb2bbf13201f7ace159d1c1bec5c4d1d0c1473cae35ac5888898866bef5aa43"
 function = "xtask::bootstrap::audit"
 effect = "Fs effect: Path::exists"
 
@@ -9461,6 +9508,11 @@ function = "repo_conformance::meta::HonestyReport::is_clean"
 definition = "Behavior::honestyReportIsClean"
 
 [[lifted]]
+kappa = "185b08c9a364965d38820a1e32fe34ffb307f74c96cac9f6d7e168805abfc7f4"
+function = "repo_conformance::meta::names_id"
+definition = "Behavior::namesId"
+
+[[lifted]]
 kappa = "814866982c92ee41bac4de4a350ea9c6db4d882b26afa59bbde861cf121cdd3e"
 function = "repo_conformance::runner::SuiteReport::ids"
 definition = "Behavior::suiteReportIds"
@@ -9548,17 +9600,17 @@ definition = "Behavior::rustExprKind"
 [[lifted]]
 kappa = "5ac3288bea91e581db1dbebdf834343cde670e1f29b59285a0f6cb0be38e3cf7"
 function = "uorust::ast::Scan::all"
-definition = "Behavior::scanAll"
+definition = "Behavior::uorustScanAll"
 
 [[lifted]]
 kappa = "df8b6f89a46f17a6275ac4522d5c6558831fe59f4107a53ad819db49633b9cff"
 function = "uorust::ast::Scan::none"
-definition = "Behavior::scanNone"
+definition = "Behavior::uorustScanNone"
 
 [[lifted]]
 kappa = "aa37e46cfde8073a0ad39b836fa638fe3400b453f93bb82a2261c3ff88ba3cf4"
 function = "uorust::ast::Scan::then"
-definition = "Behavior::scanThen"
+definition = "Behavior::uorustScanThen"
 
 [[lifted]]
 kappa = "eb213c22977e2c3ba707a44502b9d47ef21dced88a23067d8e971747397394f3"
@@ -11081,7 +11133,12 @@ function = "uorust::wf::part_of"
 definition = "Behavior::partOf"
 
 [[lifted]]
-kappa = "9346353461b2c4a2dd668dfd893d7aa8d476c254091e85b36f5232caf4f60a7a"
+kappa = "17c3e138b3a2af3990f29b6020b0337688eaac9b3fe729fc38a896102b430f40"
+function = "xtask::audit::TestItem::at"
+definition = "Behavior::testItemAt"
+
+[[lifted]]
+kappa = "2876a699a9225a73208eef753335a2a693d19e703c6246b41295484b8df0d50d"
 function = "xtask::bootstrap::action_reference_is_pinned"
 definition = "Behavior::actionReferenceIsPinned"
 
@@ -11089,6 +11146,11 @@ definition = "Behavior::actionReferenceIsPinned"
 kappa = "0963d69858d0ea5272be5cafd5f519e2a68e22ab8fefcbc6f967fbe862ee61ed"
 function = "xtask::bootstrap::content_matches"
 definition = "Behavior::contentMatches"
+
+[[lifted]]
+kappa = "26ff7aef637fce34d1b4d3602a44042e2a4d7195796c55a9db6a1356c605493e"
+function = "xtask::bootstrap::floats"
+definition = "Behavior::xtaskFloats"
 
 [[lifted]]
 kappa = "c35a803fb333caca79a512c37a85551fd754049b9127f28dffaf5fb376a71f9b"
@@ -11119,6 +11181,11 @@ definition = "Behavior::sha256"
 kappa = "fd99727f4de2de3b499af9f7d029fce8d3af1a0978fd22f9038553c907fc2949"
 function = "xtask::bootstrap::update_preserves_project_content"
 definition = "Behavior::updatePreservesProjectContent"
+
+[[lifted]]
+kappa = "419f69db9dcb2be70591e4017afc6d0c7a07fe28cc36068fffbee6e4af5dc3fb"
+function = "xtask::bootstrap::uses_reference"
+definition = "Behavior::usesReference"
 
 [[lifted]]
 kappa = "30497fdb1dad1ab60d11b8b916e1755cd7b9afb0f4302bd74ceff27267db4d3c"

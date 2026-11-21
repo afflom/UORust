@@ -83,9 +83,8 @@ fn collect(dir: &Path, root: &Path, out: &mut Vec<Source>) -> Result<(), Fail> {
 /// the forbidden thing to prove it is caught.
 fn effective_lines(text: &str) -> Vec<(usize, &str)> {
     let mut out = Vec::new();
-    let mut in_test = false;
-    let mut test_depth = 0i32;
     let mut depth = 0i32;
+    let mut test: Option<TestItem> = None;
     for (i, raw) in text.lines().enumerate() {
         let line = raw.trim();
         if line.starts_with("//") || line.starts_with("#!") {
@@ -93,24 +92,237 @@ fn effective_lines(text: &str) -> Vec<(usize, &str)> {
             // behaviour the gate is looking for.
             continue;
         }
-        let opens = raw.matches('{').count() as i32;
-        let closes = raw.matches('}').count() as i32;
-        if line.starts_with("#[cfg(test)]") {
-            in_test = true;
-            test_depth = depth;
+        let code = line.split("//").next().unwrap_or("");
+        if test.is_none() && line.starts_with("#[cfg(test)]") {
+            test = Some(TestItem::at(depth));
         }
-        if !in_test {
-            let code = line.split("//").next().unwrap_or("");
-            if !code.trim().is_empty() {
-                out.push((i + 1, code));
+        match test.as_mut() {
+            Some(item) => {
+                if item.read(code, &mut depth) {
+                    test = None;
+                }
             }
-        }
-        depth += opens - closes;
-        if in_test && depth <= test_depth && closes > 0 {
-            in_test = false;
+            None => {
+                depth += Scan::new(code).map(|c| c.brace).sum::<i32>();
+                if !code.trim().is_empty() {
+                    out.push((i + 1, code));
+                }
+            }
         }
     }
     out
+}
+
+/// What a `#[cfg(test)]` attribute applies to, as far as the scan needs.
+#[derive(Clone, Copy, PartialEq)]
+enum Kind {
+    /// A struct field or an enum variant: ends at its `,`.
+    Field,
+    /// A match arm: ends at its `,` unless it opened a block.
+    Arm,
+    /// Any other item: ends at its `;` or when its block closes.
+    Item,
+}
+
+/// The `#[cfg(test)]` item being read: everything from the attribute to the
+/// item's end is test code, and none of it is shipped.
+struct TestItem {
+    /// The brace depth at the attribute.
+    depth: i32,
+    /// Whether an attribute of the run is being read, and its bracket balance.
+    in_attribute: bool,
+    attribute: i32,
+    /// Known once the first line after the attribute run is read.
+    kind: Option<Kind>,
+    /// Paren and bracket nesting inside the item.
+    nest: i32,
+    /// Whether the item has opened a brace.
+    opened: bool,
+}
+
+impl TestItem {
+    fn at(depth: i32) -> Self {
+        TestItem {
+            depth,
+            in_attribute: false,
+            attribute: 0,
+            kind: None,
+            nest: 0,
+            opened: false,
+        }
+    }
+
+    /// Read one line of the item; true when the item ends on it. `depth`
+    /// tracks every brace of the line, including any after the item's end.
+    fn read(&mut self, code: &str, depth: &mut i32) -> bool {
+        let mut ended = false;
+        for c in Scan::new(code) {
+            *depth += c.brace;
+            if ended || c.quoted {
+                continue;
+            }
+            if self.kind.is_none() {
+                if self.attribute == 0 && c.ch == '#' && code[c.at..].starts_with("#[") {
+                    self.in_attribute = true;
+                    continue;
+                }
+                if self.in_attribute {
+                    self.attribute += i32::from(c.ch == '[') - i32::from(c.ch == ']');
+                    self.in_attribute = self.attribute > 0;
+                    continue;
+                }
+                if c.ch.is_whitespace() {
+                    continue;
+                }
+                self.kind = Some(kind_of(&code[c.at..]));
+            }
+            ended = self.step(c.ch, *depth);
+        }
+        ended
+    }
+
+    /// One character of the item's body, after `depth` has counted it.
+    fn step(&mut self, ch: char, depth: i32) -> bool {
+        match ch {
+            '(' | '[' => self.nest += 1,
+            ')' | ']' => self.nest -= 1,
+            '{' => self.opened = true,
+            '}' if depth < self.depth || (self.opened && depth == self.depth) => return true,
+            ';' if depth == self.depth && self.nest == 0 => return true,
+            ',' if depth == self.depth && self.nest == 0 => {
+                return match self.kind {
+                    Some(Kind::Field) => true,
+                    Some(Kind::Arm) => !self.opened,
+                    _ => false,
+                };
+            }
+            _ => {}
+        }
+        false
+    }
+}
+
+/// The kind of item whose text starts `rest`.
+fn kind_of(rest: &str) -> Kind {
+    let mut rest = rest.trim_start();
+    if let Some(after) = rest.strip_prefix("pub(") {
+        rest = after.split_once(')').map_or(after, |(_, r)| r).trim_start();
+    } else if let Some(after) = rest.strip_prefix("pub ") {
+        rest = after.trim_start();
+    }
+    if rest.contains("=>") {
+        return Kind::Arm;
+    }
+    let word: String = rest
+        .chars()
+        .take_while(|c| c.is_alphanumeric() || *c == '_')
+        .collect();
+    const ITEMS: [&str; 16] = [
+        "use",
+        "const",
+        "static",
+        "type",
+        "mod",
+        "struct",
+        "enum",
+        "union",
+        "trait",
+        "impl",
+        "fn",
+        "extern",
+        "default",
+        "async",
+        "unsafe",
+        "macro_rules",
+    ];
+    if word.is_empty() || ITEMS.contains(&word.as_str()) {
+        return Kind::Item;
+    }
+    let after = rest[word.len()..].trim_start();
+    if after.starts_with('!') || after.starts_with("::") {
+        return Kind::Item;
+    }
+    if after.starts_with(':')
+        || after.is_empty()
+        || ['(', '{', '=', ','].iter().any(|c| after.starts_with(*c))
+    {
+        return Kind::Field;
+    }
+    Kind::Item
+}
+
+/// One character of a line, with whether it sits in a string or character
+/// literal and the brace depth change it makes.
+struct Char {
+    at: usize,
+    ch: char,
+    quoted: bool,
+    brace: i32,
+}
+
+/// The characters of a line, literal-aware: a string literal, and a
+/// character literal of a brace (`'{'`), are quoted.
+struct Scan<'a> {
+    chars: std::str::CharIndices<'a>,
+    text: &'a str,
+    string: bool,
+    escaped: bool,
+    /// Characters still inside a character literal.
+    literal: u8,
+}
+
+impl<'a> Scan<'a> {
+    fn new(text: &'a str) -> Self {
+        Scan {
+            chars: text.char_indices(),
+            text,
+            string: false,
+            escaped: false,
+            literal: 0,
+        }
+    }
+}
+
+impl Iterator for Scan<'_> {
+    type Item = Char;
+
+    fn next(&mut self) -> Option<Char> {
+        let (at, ch) = self.chars.next()?;
+        let quoted = if self.literal > 0 {
+            self.literal -= 1;
+            true
+        } else if self.string {
+            match (self.escaped, ch) {
+                (true, _) => self.escaped = false,
+                (false, '\\') => self.escaped = true,
+                (false, '"') => self.string = false,
+                _ => {}
+            }
+            true
+        } else if ch == '"' {
+            self.string = true;
+            true
+        } else if ["'{'", "'}'"]
+            .iter()
+            .any(|l| self.text[at..].starts_with(l))
+        {
+            self.literal = 2;
+            true
+        } else {
+            false
+        };
+        let brace = match (quoted, ch) {
+            (false, '{') => 1,
+            (false, '}') => -1,
+            _ => 0,
+        };
+        Some(Char {
+            at,
+            ch,
+            quoted,
+            brace,
+        })
+    }
 }
 
 /// The only error types a shipped crate may name, plus the declaration check at
@@ -348,5 +560,44 @@ mod tests {
         )
         .expect("manifest");
         assert!(audit_limits(&root).is_ok());
+    }
+
+    /// GATE-04: a braceless `#[cfg(test)]` item hides only itself. Test code
+    /// names `std::fmt::Error` and the shipped `f` after it names
+    /// `std::io::Error`, so the refusal shows which lines the gate read.
+    #[test]
+    fn a_braceless_test_item_does_not_hide_the_next_item() {
+        let shipped = "pub fn f() -> Result<(), std::io::Error> { Ok(()) }\n";
+        let braceless = [
+            "#[cfg(test)]\nmod generate;\n",
+            "#[cfg(test)] use x::y;\n",
+            "pub struct S {\n    #[cfg(test)]\n    pub rust: String,\n    pub a: u8,\n}\n",
+        ];
+        let exempt = [
+            "#[cfg(test)]\nmod tests {\n    fn g() -> Result<(), std::fmt::Error> { Ok(()) }\n}\n",
+            "#[cfg(test)]\npub(crate) fn mark(\n    a: u8,\n    b: u8,\n) -> Result<(), std::fmt::Error> {\n    let r: Result<(), std::fmt::Error> = Ok(());\n    r\n}\n",
+            "#[cfg(test)]\nfn w<T>(t: T) -> Result<T, std::fmt::Error>\nwhere\n    T: Clone,\n{\n    let r: Result<T, std::fmt::Error> = Ok(t);\n    r\n}\n",
+            "#[cfg(test)]\nfn g<\n    A: Clone,\n    B,\n>() {\n    let r: Result<(), std::fmt::Error> = Ok(());\n    r.ok();\n}\n",
+            "#[cfg(test)]\nunsafe impl Send for S {\n}\n#[cfg(test)]\nimpl S {\n    fn h() -> Result<(), std::fmt::Error> { Ok(()) }\n}\n",
+            "#[cfg(test)]\nthread_local! {\n    static T: Result<(), std::fmt::Error> = Ok(());\n}\n",
+            "#[cfg(test)]\nextern \"C\" {\n    fn e(x: u8) -> u8;\n}\n#[cfg(test)]\nconst K: Result<(), std::fmt::Error> = Ok(());\n",
+            "#[cfg(test)]\nstatic S2: [u8; 2] = [1, 2];\n#[cfg(test)]\nstatic R: Result<(), std::fmt::Error> = Ok(());\n",
+            "pub fn m(k: u8) -> u8 {\n    match k {\n        #[cfg(test)]\n        Kind::Probe => 1,\n        _ => 0,\n    }\n}\n#[cfg(test)]\nfn p() -> Result<(), std::fmt::Error> { Ok(()) }\n",
+            "#[cfg(test)]\n#[allow(\n    dead_code,\n)]\nmod tests {\n    fn g() -> Result<(), std::fmt::Error> { Ok(()) }\n}\n",
+        ];
+        for plant in braceless.iter().chain(exempt.iter()) {
+            let root = shipped_crate(&format!("{plant}{shipped}"));
+            let error = audit_limits(&root)
+                .expect_err("the shipped f is read")
+                .to_string();
+            assert!(
+                error.contains("std::io::Error"),
+                "{plant:?}: f must be refused: {error}"
+            );
+            assert!(
+                !error.contains("std::fmt::Error"),
+                "{plant:?}: test code must stay exempt: {error}"
+            );
+        }
     }
 }
