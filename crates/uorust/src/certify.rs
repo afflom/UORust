@@ -346,9 +346,7 @@ pub fn diagnose(input: &Input<'_>, out: &Path, root: &str) -> Result<(), UorustE
         targets,
     } = *input;
     profile.descriptor(targets)?;
-    if out.exists() {
-        std::fs::remove_dir_all(out).map_err(|e| io(out, e))?;
-    }
+    crate::error::remove_owned(out)?;
     let only: BTreeSet<String> = [root.to_string()].into_iter().collect();
     let named = production(
         profile,
@@ -472,9 +470,7 @@ pub fn admit_roots(input: &Input<'_>, out: &Path) -> Result<Admission, UorustErr
     let prefix = format!("{}.{BEHAVIOR}.", module_prefix(projection)?);
     let mut compiler: BTreeMap<String, String> = BTreeMap::new();
     let admitted = loop {
-        if out.exists() {
-            std::fs::remove_dir_all(out).map_err(|e| io(out, e))?;
-        }
+        crate::error::remove_owned(out)?;
         let named = production(profile, projection, out, register, targets, &compiler, None)?;
         if named.is_empty() {
             break named;
@@ -716,9 +712,7 @@ pub fn production_build(
     // Refused before anything is written: no descriptor to export to.
     profile.descriptor(targets)?;
     for dir in [out, kept] {
-        if dir.exists() {
-            std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
-        }
+        crate::error::remove_owned(dir)?;
         std::fs::create_dir_all(dir).map_err(|e| io(dir, e))?;
     }
     let program = compiler.program.clone();
@@ -1082,6 +1076,7 @@ fn build_batch(
     compiler: &BTreeMap<String, String>,
     batch: &[String],
 ) -> Result<(Vec<String>, Option<Outcome>), UorustError> {
+    // A child of the `out` that `production_build` guarded.
     if dir.exists() {
         std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))?;
     }
@@ -2050,6 +2045,7 @@ fn keep_carried(kept: &Path, carried: &[&Carried], results: &str) -> Result<(), 
 /// every package's `src/lib.rs` and Cargo manifest, at their paths in the
 /// bundle.
 fn keep(bundle: &Path, to: &Path) -> Result<std::path::PathBuf, UorustError> {
+    // A child of the `kept` that `production_build` guarded.
     if to.exists() {
         std::fs::remove_dir_all(to).map_err(|e| io(to, e))?;
     }
@@ -2729,6 +2725,12 @@ pub(crate) fn sync(
         adapters,
         ..
     } = *sync;
+    // `roots` is removed below: the directory it sits in must be the
+    // engine's to write, which a checkout or the working directory is not.
+    let cwd = std::env::current_dir().map_err(|e| io(dir, e))?;
+    if !crate::error::owned(dir, &cwd)? {
+        return Err(UorustError::ForeignOutput(dir.to_path_buf()));
+    }
     let bad = |path: &Path, reason: String| UorustError::Malformed {
         path: path.to_path_buf(),
         reason,
@@ -4798,6 +4800,38 @@ mod tests {
             meter().ratchet(&edited, &head_manifest, &base, &base_manifest),
             Ok(1)
         );
+    }
+
+    // SEC-08: `sync` removes `roots` under its `--dir` only when that
+    // directory is the engine's to write.
+    #[test]
+    fn sync_refuses_a_dir_it_does_not_own() {
+        let dir = std::env::temp_dir().join(format!("uorust-sync-own-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".git")).expect("checkout");
+        std::fs::create_dir_all(dir.join("roots")).expect("roots");
+        let register = Register::default();
+        let refused = sync(
+            &meter(),
+            &Sync {
+                kept: &dir.join("no-kept"),
+                dir: &dir,
+                register: &register,
+                projection: None,
+                adapters: None,
+                mir: None,
+            },
+            &[],
+            None,
+            "0.4.0",
+        );
+        assert!(
+            matches!(&refused, Err(UorustError::ForeignOutput(d)) if d == &dir),
+            "{:?}",
+            refused.err()
+        );
+        assert!(dir.join("roots").is_dir());
+        std::fs::remove_dir_all(&dir).expect("clean up");
     }
 
     #[test]

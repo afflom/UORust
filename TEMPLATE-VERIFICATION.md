@@ -499,3 +499,35 @@ Run in the pinned SDK image:
 the binary with each manifest missing in turn, and `a_deleted_root_is_not_a_loss`
 and the unchanged `the_ratchet_holds_any_scope_and_a_scope_only_widens` hold
 the rules the export dispatch in `scripts/ci/generate-branch.sh` relies on.
+
+## Paths that escaped their directory (SEC-02, SEC-07, SEC-08)
+
+`write` (`crates/uorust/src/lib.rs`) removed every path an earlier
+`uorust.manifest` listed, joined to `out` unchecked. `owned_outputs` now checks
+every line first: a malformed line, a path that is absolute, holds `..` or runs
+through a symlinked directory, or a listed file whose bytes differ from its
+digest refuses `out` as `ForeignOutput`, and nothing is removed; a listed file
+that is absent is skipped. A projection edited by hand is recovered with
+`git checkout` of its directory or by removing it. `crate_component`
+(`crates/uorust/src/registry.rs`) admits only a crates.io name
+(`[A-Za-z][A-Za-z0-9_-]{0,63}`) and version (`[0-9A-Za-z.+-]`, not `.` or
+`..`), so a spec cannot name the temporary work directory's parent, and
+`merge --crate` refuses a versioned spec it rejects instead of merging it under
+a library scope. `owned` and `remove_owned` (`crates/uorust/src/error.rs`)
+refuse to remove a directory that holds `.git` (a directory or a worktree's
+file) or that is the working directory or one of its ancestors; `diagnose`,
+`admit_roots`, `production_build` and `embed::replace_dir` remove through it,
+and `sync` checks its `--dir` before it removes `roots`. The guard rules out
+the losses the repository cannot undo; it does not prove the engine wrote a
+directory.
+
+Run in the pinned SDK image, each with `cargo test -p uorust <filter>`:
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| `write` back to the old unchecked loop | `--lib write_refuses` | both refused: `left: Ok(())`, `right: Err(ForeignOutput(...))` | passes |
+| `crate_component` admits anything | `--lib spec_refuses`, `--test cli merge_refuses` | both refused | passes |
+| `owned` admits a directory holding `.git` | `--lib replace_dir_refuses`, `--lib sync_refuses` | both refused: `left: Ok(())`, `right: Err(ForeignOutput(...))` | passes |
+
+`owned_refuses_a_checkout_and_the_working_directory` runs on temporary
+directories only and never changes or removes the process's working directory.

@@ -5,14 +5,14 @@
 # stops the functions it counts (the detail their rows state, under its
 # cause), the one that stops the most first: the work queue.
 
-# Honesty report: 348 of 1514 functions of product code are lifted; 888
-# are residue, 95 foreign and 183 effect rows.
+# Honesty report: 348 of 1518 functions of product code are lifted; 889
+# are residue, 95 foreign and 186 effect rows.
 # Residue by cause:
 #   arithmetic: 1
 #   call: 1
 #   collision: 1
 #   form: 22
-#   mir::AggregateKind::Closure: 67
+#   mir::AggregateKind::Closure: 68
 #     1 ast::<impl at crates/uorust/src/ast.rs:1235:1: 1235:14>::scan::{closure#0}: type outside the lift: std::vec::IntoIter<&ast::RustExpr>
 #     1 ast::<impl at crates/uorust/src/ast.rs:352:1: 352:10>::localized::{closure#0}: type outside the lift: std::slice::Iter<'_, ast::GenericArgument>
 #     1 ast::arm_paths::{closure#0}: type outside the lift: std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/ast.rs:1183:53: 1183:56}>
@@ -20,9 +20,9 @@
 #     1 bridge::<impl at crates/uorust/src/bridge.rs:150:1: 150:17>::parse::{closure#2}: type outside the lift: std::num::ParseIntError
 #     1 bridge::bound_type::{closure#0}: mir::Operand::Constant: the constant item std::string::String::as_str
 #     1 bridge::row_field::{closure#0}: mir::Operand::Constant: the constant item <str as std::string::ToString>::to_string
-#     1 certify::<impl at crates/uorust/src/certify.rs:3443:1: 3443:13>::cargo_manifest::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
-#     1 certify::<impl at crates/uorust/src/certify.rs:529:1: 529:13>::descriptor::{closure#0}: type outside the lift: std::path::PathBuf
-#     1 certify::<impl at crates/uorust/src/certify.rs:529:1: 529:13>::descriptor_text::{closure#0}: type outside the lift: std::path::PathBuf
+#     1 certify::<impl at crates/uorust/src/certify.rs:3445:1: 3445:13>::cargo_manifest::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
+#     1 certify::<impl at crates/uorust/src/certify.rs:525:1: 525:13>::descriptor::{closure#0}: type outside the lift: std::path::PathBuf
+#     1 certify::<impl at crates/uorust/src/certify.rs:525:1: 525:13>::descriptor_text::{closure#0}: type outside the lift: std::path::PathBuf
 #     1 certify::plan_keyed::{closure#0}: mir::TerminatorKind::Call: <std::collections::BTreeMap as std::ops::Index>::index
 #     1 certify::profile::<impl at crates/uorust/src/certify/profile.rs:103:1: 103:13>::rows::{closure#0}: type outside the lift: std::iter::Map<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/certify/profile.rs:242:56: 242:59}>
 #     1 embed::intrinsic_gaps::{closure#0}: mir::AggregateKind::Closure: embed::intrinsic_gaps::{closure#0}::{closure#0}: mir::TerminatorKind::Call: core::str::<impl str>::split_once
@@ -80,6 +80,7 @@
 #     1 project::default_refusal::{closure#1}: mir::AggregateKind::Closure: project::default_refusal::{closure#1}::{closure#0}: mir::TerminatorKind::Call: std::char::methods::<impl char>::is_alphanumeric
 #     1 project::enum_equality::{closure#0}: mir::AggregateKind::Closure: project::enum_equality::{closure#0}::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>
 #     1 proof::binds::{closure#0}: type outside the lift: serde_json::Value
+#     1 registry::crate_component::{closure#0}: mir::TerminatorKind::Call: std::char::methods::<impl char>::is_ascii_alphabetic
 #   mir::Operand::Constant: 35
 #     1 a string LexLean source cannot write
 #     1 certify::<impl certify::profile::Profile>::ratchet_from::promoted[0]
@@ -283,7 +284,7 @@
 #     1 std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/lift.rs:2305:54: 2305:57}>
 #     1 std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/lift.rs:3658:55: 3658:58}>
 #     1 std::iter::Map<std::slice::Iter<'_, ast::PathSegment>, {closure@crates/uorust/src/lift.rs:5854:53: 5854:56}>
-#     1 std::iter::Map<std::slice::Iter<'_, certify::Root>, {closure@crates/uorust/src/certify.rs:1884:14: 1884:17}>
+#     1 std::iter::Map<std::slice::Iter<'_, certify::Root>, {closure@crates/uorust/src/certify.rs:1879:14: 1879:17}>
 #     1 std::iter::Map<std::slice::Iter<'_, std::string::String>, {closure@crates/uorust/src/lex.rs:573:48: 573:54}>
 #     1 std::iter::Once<&str>
 #     1 std::iter::Rev<std::slice::Iter<'_, names::Bindings>>
@@ -484,11 +485,11 @@
 spec = "uorust/register/1"
 
 [lift]
-functions = 1514
+functions = 1518
 lifted = 348
-residue = 888
+residue = 889
 foreign = 95
-effect = 183
+effect = 186
 
 [[construct]]
 construct = "type outside the lift: Fun.cx: UorustMirLowerCx.consts: IrBody.blocks: IrBlock.statements: IrStatement::Assign.0: IrPlace.projection: IrProjection::Other.0: spec::MirProjectionElem"
@@ -513,7 +514,7 @@ functions = 54
 [[construct]]
 construct = "Fs effect: std::fs::read_to_string"
 cause = "effect"
-functions = 32
+functions = 33
 
 [[construct]]
 construct = "mir::TerminatorKind::Call: std::boxed::Box::new_uninit"
@@ -536,11 +537,6 @@ cause = "mir::Ty"
 functions = 15
 
 [[construct]]
-construct = "Fs effect: Path::exists"
-cause = "effect"
-functions = 14
-
-[[construct]]
 construct = "mir::Ty: std::str::Lines<'_>"
 cause = "mir::Ty"
 functions = 14
@@ -556,7 +552,7 @@ cause = "effect"
 functions = 11
 
 [[construct]]
-construct = "Fs effect: Path::is_file"
+construct = "Fs effect: std::fs::create_dir_all"
 cause = "effect"
 functions = 11
 
@@ -564,6 +560,16 @@ functions = 11
 construct = "mir::Rvalue::Use"
 cause = "mir::Rvalue::Use"
 functions = 11
+
+[[construct]]
+construct = "Fs effect: Path::exists"
+cause = "effect"
+functions = 10
+
+[[construct]]
+construct = "Fs effect: Path::is_file"
+cause = "effect"
+functions = 10
 
 [[construct]]
 construct = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
@@ -576,12 +582,12 @@ cause = "mir::ProjectionElem::Downcast"
 functions = 10
 
 [[construct]]
-construct = "Fs effect: std::fs::create_dir_all"
+construct = "Fs effect: std::fs::read"
 cause = "effect"
 functions = 9
 
 [[construct]]
-construct = "Fs effect: std::fs::read"
+construct = "Process effect: std::process::Command::new"
 cause = "effect"
 functions = 9
 
@@ -599,11 +605,6 @@ functions = 9
 construct = "mir::TerminatorKind::Call: core::str::<impl str>::split_once"
 cause = "mir::TerminatorKind::Call"
 functions = 9
-
-[[construct]]
-construct = "Process effect: std::process::Command::new"
-cause = "effect"
-functions = 8
 
 [[construct]]
 construct = "mir::TerminatorKind::Call: std::option::Option::and_then"
@@ -772,6 +773,11 @@ functions = 4
 
 [[construct]]
 construct = "Fs effect: Path::canonicalize"
+cause = "effect"
+functions = 3
+
+[[construct]]
+construct = "Fs effect: std::fs::symlink_metadata"
 cause = "effect"
 functions = 3
 
@@ -1147,6 +1153,11 @@ functions = 1
 
 [[construct]]
 construct = "Env effect: std::env::args"
+cause = "effect"
+functions = 1
+
+[[construct]]
+construct = "Env effect: std::env::current_dir"
 cause = "effect"
 functions = 1
 
@@ -1546,17 +1557,17 @@ cause = "mir::AggregateKind::Closure"
 functions = 1
 
 [[construct]]
-construct = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:3443:1: 3443:13>::cargo_manifest::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>"
+construct = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:3445:1: 3445:13>::cargo_manifest::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>"
 cause = "mir::AggregateKind::Closure"
 functions = 1
 
 [[construct]]
-construct = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:529:1: 529:13>::descriptor::{closure#0}: type outside the lift: std::path::PathBuf"
+construct = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:525:1: 525:13>::descriptor::{closure#0}: type outside the lift: std::path::PathBuf"
 cause = "mir::AggregateKind::Closure"
 functions = 1
 
 [[construct]]
-construct = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:529:1: 529:13>::descriptor_text::{closure#0}: type outside the lift: std::path::PathBuf"
+construct = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:525:1: 525:13>::descriptor_text::{closure#0}: type outside the lift: std::path::PathBuf"
 cause = "mir::AggregateKind::Closure"
 functions = 1
 
@@ -1842,6 +1853,11 @@ functions = 1
 
 [[construct]]
 construct = "mir::AggregateKind::Closure: proof::binds::{closure#0}: type outside the lift: serde_json::Value"
+cause = "mir::AggregateKind::Closure"
+functions = 1
+
+[[construct]]
+construct = "mir::AggregateKind::Closure: registry::crate_component::{closure#0}: mir::TerminatorKind::Call: std::char::methods::<impl char>::is_ascii_alphabetic"
 cause = "mir::AggregateKind::Closure"
 functions = 1
 
@@ -2521,7 +2537,7 @@ cause = "mir::Ty"
 functions = 1
 
 [[construct]]
-construct = "mir::Ty: std::iter::Map<std::slice::Iter<'_, certify::Root>, {closure@crates/uorust/src/certify.rs:1884:14: 1884:17}>"
+construct = "mir::Ty: std::iter::Map<std::slice::Iter<'_, certify::Root>, {closure@crates/uorust/src/certify.rs:1879:14: 1879:17}>"
 cause = "mir::Ty"
 functions = 1
 
@@ -3252,7 +3268,7 @@ detail = "mir::Ty: mir::ir::IrBody"
 kappa = "a6f0acd7875848fae482fd78593f32df889beb11c75c8554e97a0d49d4c4f89f"
 function = "uorust::certify::Profile::cargo_manifest"
 reason = "mir"
-detail = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:3443:1: 3443:13>::cargo_manifest::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>"
+detail = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:3445:1: 3445:13>::cargo_manifest::{closure#0}: type outside the lift: core::fmt::rt::Argument<'_>"
 
 [[residue]]
 kappa = "4524f44ab3599fff8c711259814066946be6a7ec0eff85d1aad10ce449999e4c"
@@ -3264,13 +3280,13 @@ detail = "mir::TerminatorKind::Call: <certify::profile::Profile as std::cmp::Par
 kappa = "022435ca134494c616d06b15b619b80603d190d60ef7f93e7eca45dfd10b3d2d"
 function = "uorust::certify::Profile::descriptor"
 reason = "mir"
-detail = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:529:1: 529:13>::descriptor::{closure#0}: type outside the lift: std::path::PathBuf"
+detail = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:525:1: 525:13>::descriptor::{closure#0}: type outside the lift: std::path::PathBuf"
 
 [[residue]]
 kappa = "b6d112546ff14b12a2cdddfb877f260ceacc092067fe3e5c8794fabeaa53deee"
 function = "uorust::certify::Profile::descriptor_text"
 reason = "mir"
-detail = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:529:1: 529:13>::descriptor_text::{closure#0}: type outside the lift: std::path::PathBuf"
+detail = "mir::AggregateKind::Closure: certify::<impl at crates/uorust/src/certify.rs:525:1: 525:13>::descriptor_text::{closure#0}: type outside the lift: std::path::PathBuf"
 
 [[residue]]
 kappa = "4dfedc3a08573bc55970c63eb7ddcb42499480e144412e2e37292b9c50f53a1d"
@@ -3426,7 +3442,7 @@ detail = "mir::TerminatorKind::Call: uorust::certify::plan_keyed, whose translat
 kappa = "96ff8494a504d9c4d198b6b14ea7bc5f12bd08ca4d419f75306782c623b92cd1"
 function = "uorust::certify::prior_refusals"
 reason = "mir"
-detail = "mir::Ty: std::iter::Map<std::slice::Iter<'_, certify::Root>, {closure@crates/uorust/src/certify.rs:1884:14: 1884:17}>"
+detail = "mir::Ty: std::iter::Map<std::slice::Iter<'_, certify::Root>, {closure@crates/uorust/src/certify.rs:1879:14: 1879:17}>"
 
 [[residue]]
 kappa = "ec590593c7df28918a514e8102fd0184fbc94616a4697679452ea48a31fa7677"
@@ -7959,7 +7975,13 @@ reason = "mir"
 detail = "mir::Ty: K"
 
 [[residue]]
-kappa = "ad4ee9b0b835ee6086bf6036268b2ee24a06de03ea7b6d581a5c1c6ec015de14"
+kappa = "d7b9dfa1d7c48283c4e0c7bc87001ce0042a29051e7c5aa93f3a9ccaff5eefc5"
+function = "uorust::registry::crate_component"
+reason = "mir"
+detail = "mir::AggregateKind::Closure: registry::crate_component::{closure#0}: mir::TerminatorKind::Call: std::char::methods::<impl char>::is_ascii_alphabetic"
+
+[[residue]]
+kappa = "f46fac89586481f7415274fde68138362726c1bca1d84078d42163abf7bc5c01"
 function = "uorust::registry::parse_spec"
 reason = "mir"
 detail = "mir::TerminatorKind::Call: core::str::<impl str>::split_once"
@@ -8724,9 +8746,9 @@ function = "uorust::certify::Profile::export_roots"
 effect = "calls uorust::certify::modules, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "dfd58f67c0cd498fb3a10e7ac41ae06e32b3d3443e018c52e35709494eee7108"
+kappa = "af6de130f4081cbbf32453101cc870550d700cb81436092bcf01099df3083045"
 function = "uorust::certify::admit_roots"
-effect = "Fs effect: Path::exists"
+effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
 kappa = "156c60265cd402626171386718412165c277d7e6a81062051ca01d67d21a4ad9"
@@ -8794,9 +8816,9 @@ function = "uorust::certify::copy_tree"
 effect = "Fs effect: std::fs::create_dir_all"
 
 [[effect]]
-kappa = "c8a676e73f81c73062b19e8c716a8b522db9c19cccf8ae983773eae0d6fa5a25"
+kappa = "5a0083085af65e6660590dddf9d3a7b86d5fb066cfa6dcdb81aed60d93aff590"
 function = "uorust::certify::diagnose"
-effect = "Fs effect: Path::exists"
+effect = "Process effect: std::process::Command::new"
 
 [[effect]]
 kappa = "63f13513b57ad82eb9bb8cb76cbbadd29d2f750cabd5296d6f81be8fd6ec6f75"
@@ -8859,9 +8881,9 @@ function = "uorust::certify::production"
 effect = "Fs effect: std::fs::write"
 
 [[effect]]
-kappa = "a091db36e1f7ea60e757a85d9eca8821ad85c09d27695e4efb18e7abbe7c9c53"
+kappa = "edade35e3d95b8c551536c2f91e5c2d79faaab5a23352ef8ea53c9d5cd16cacb"
 function = "uorust::certify::production_build"
-effect = "Fs effect: Path::exists"
+effect = "Fs effect: std::fs::create_dir_all"
 
 [[effect]]
 kappa = "337f694becec063a6f9ca07fd94f0423f0f10130b3df4b0f452a06acd153163a"
@@ -8909,9 +8931,9 @@ function = "uorust::certify::source_roots"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "e2513e99acdf732a47d54c9bb38e1f52390f58df3642c7d94015b18d674bad19"
+kappa = "c15c8dae66a6cd6cd794f557b450d70103ac562bb3324e5de0b403dd7aa4edd3"
 function = "uorust::certify::sync"
-effect = "Fs effect: Path::is_file"
+effect = "Env effect: std::env::current_dir"
 
 [[effect]]
 kappa = "22c14ae28fee924a57a61f02104c87c8cbed4e9e0c0e7a4e5e2225717d258d16"
@@ -9044,9 +9066,9 @@ function = "uorust::embed::read_text"
 effect = "Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "7fe20590f650b5702ff47a021f1c5fcfb0ff1df2da2cfa24a079f7a9a4408375"
+kappa = "09268171d9c130f39707221f7fae1051fd3518da001c1c6c2590eb9b7c47caa7"
 function = "uorust::embed::replace_dir"
-effect = "Fs effect: Path::exists"
+effect = "Fs effect: std::fs::create_dir_all"
 
 [[effect]]
 kappa = "5a9024e546384ce7f22379cbfe96de27f2dcd3addffb7d53ab644792eaff033c"
@@ -9062,6 +9084,16 @@ effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::r
 kappa = "68c836d725899ff8d908edb8d45d23ce4ee57badeac8d05e44a84ceb4166cb66"
 function = "uorust::embed::stable_and_safe"
 effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
+
+[[effect]]
+kappa = "31397da33ebb397500464bb6966ee33df0e45e9357697bc54e350bbec0e1e3bd"
+function = "uorust::error::owned"
+effect = "Fs effect: std::fs::symlink_metadata"
+
+[[effect]]
+kappa = "303a290ae4f263086789f6d8eaf287cf95595149e26f162a7eac1327a637b915"
+function = "uorust::error::remove_owned"
+effect = "Fs effect: std::fs::symlink_metadata"
 
 [[effect]]
 kappa = "009bc569ef96c1c69ab924208024b483871586da163f2a5a3074406f637b26e9"
@@ -9299,6 +9331,11 @@ function = "uorust::options"
 effect = "calls uorust::default_name, which performs a Fs effect: Path::canonicalize"
 
 [[effect]]
+kappa = "a9b9a2be1e51916e0c15eebd0134b36033ef9df0f513c0b5e68cbadc6c655abb"
+function = "uorust::owned_outputs"
+effect = "Fs effect: std::fs::symlink_metadata"
+
+[[effect]]
 kappa = "766f849a92b47a44b68232e0127c0de35e97c2899d447efe58ff8bd9e3ddff1f"
 function = "uorust::project_workspace"
 effect = "calls uorust::project_workspace_here, which reaches an effect"
@@ -9369,7 +9406,7 @@ function = "uorust::registry::lib_name"
 effect = "calls uorust::embed::read_text, which performs a Fs effect: std::fs::read_to_string"
 
 [[effect]]
-kappa = "0baab4a6dce7e8feb6c75916d823850d8333acfd33eaa9ec7d42b66b90c9d36f"
+kappa = "28ac475b0f4458f8385f8157a84397a2bfc7777b6e4439b3f94cd789e3d61e6e"
 function = "uorust::registry::lift_crate"
 effect = "Env effect: std::env::temp_dir"
 
@@ -9389,12 +9426,12 @@ function = "uorust::registry::verify_differential"
 effect = "Fs effect: Path::is_file"
 
 [[effect]]
-kappa = "4cba5b80fc27039da4e001fa0a35905460511834d81d8de0818bc6fd10a4afe3"
+kappa = "9472f95560566ed2082b097862b016f1eadb23f895cbbc64f6e14aac04d2aac2"
 function = "uorust::run"
 effect = "calls uorust::bridge::verify, which performs a Process effect: std::process::Command::new"
 
 [[effect]]
-kappa = "ce6f8dd4adf0ec5c3dc1f01bc3d23d181a7c72f73a80b9eb920dddbb64423b7d"
+kappa = "c6c3c8e2e25ccad2eccb3fe9d2d0992803c59c22f0e40e04acabc0ab646e297e"
 function = "uorust::write"
 effect = "Fs effect: Path::is_file"
 

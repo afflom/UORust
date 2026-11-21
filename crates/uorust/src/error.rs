@@ -127,3 +127,69 @@ pub(crate) fn io(path: &Path, error: std::io::Error) -> UorustError {
         reason: error.to_string(),
     }
 }
+
+/// Whether the engine may remove `dir` while running in `cwd`: a directory
+/// that does not exist holds nothing to lose; one holding `.git` (a checkout,
+/// or a worktree's `.git` file) or holding `cwd` itself is never the engine's.
+/// This does not prove the engine wrote `dir`; it rules out the directories
+/// whose loss cannot be undone from the repository.
+pub(crate) fn owned(dir: &Path, cwd: &Path) -> Result<bool, UorustError> {
+    if std::fs::symlink_metadata(dir).is_err() {
+        return Ok(true);
+    }
+    if std::fs::symlink_metadata(dir.join(".git")).is_ok() {
+        return Ok(false);
+    }
+    let dir = dir.canonicalize().map_err(|e| io(dir, e))?;
+    let cwd = cwd.canonicalize().map_err(|e| io(cwd, e))?;
+    Ok(!cwd.starts_with(&dir))
+}
+
+/// Remove `dir` when [`owned`] admits it; otherwise remove nothing and refuse
+/// it as not the engine's output.
+pub(crate) fn remove_owned(dir: &Path) -> Result<(), UorustError> {
+    if std::fs::symlink_metadata(dir).is_err() {
+        return Ok(());
+    }
+    let cwd = std::env::current_dir().map_err(|e| io(dir, e))?;
+    if !owned(dir, &cwd)? {
+        return Err(UorustError::ForeignOutput(dir.to_path_buf()));
+    }
+    std::fs::remove_dir_all(dir).map_err(|e| io(dir, e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// SEC-08, on temporary directories only: the process's current
+    /// directory is neither changed nor removed.
+    #[test]
+    fn owned_refuses_a_checkout_and_the_working_directory() {
+        let root = std::env::temp_dir().join(format!("uorust-owned-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let cwd = root.join("work/here");
+        let checkout = root.join("checkout");
+        let worktree = root.join("worktree");
+        let sibling = root.join("work/sibling");
+        for d in [&cwd, &checkout.join(".git"), &worktree, &sibling] {
+            std::fs::create_dir_all(d).expect("temp tree");
+        }
+        std::fs::write(worktree.join(".git"), "gitdir: elsewhere\n").expect("worktree");
+        assert_eq!(owned(&checkout, &cwd), Ok(false), "a .git directory");
+        assert_eq!(owned(&worktree, &cwd), Ok(false), "a .git file");
+        assert_eq!(owned(&cwd, &cwd), Ok(false), "the working directory");
+        assert_eq!(owned(&root.join("work"), &cwd), Ok(false), "its parent");
+        assert_eq!(owned(&sibling, &cwd), Ok(true), "a sibling");
+        assert_eq!(
+            owned(&root.join("absent"), &cwd),
+            Ok(true),
+            "an absent path"
+        );
+        assert!(matches!(
+            owned(&sibling, &root.join("no-such-cwd")),
+            Err(UorustError::Io { .. })
+        ));
+        std::fs::remove_dir_all(&root).expect("clean up");
+    }
+}

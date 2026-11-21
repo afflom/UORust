@@ -54,11 +54,39 @@ const USER_AGENT: &str = "uorust-register";
 /// `name@version` split, both non-empty.
 pub fn parse_spec(spec: &str) -> Result<(String, String), UorustError> {
     match spec.split_once('@') {
-        Some((n, v)) if !n.is_empty() && !v.is_empty() => Ok((n.to_string(), v.to_string())),
+        Some((n, v)) if !n.is_empty() && !v.is_empty() => {
+            crate_component(n, v)?;
+            Ok((n.to_string(), v.to_string()))
+        }
         _ => Err(tool(
             "uorust crate",
             format!("`{spec}` is not <name>@<version>"),
         )),
+    }
+}
+
+/// A crate's name and version as crates.io spells them, so neither can name
+/// a path: the name is `[A-Za-z][A-Za-z0-9_-]{0,63}`, the version only
+/// `[0-9A-Za-z.+-]` and neither `.` nor `..`.
+fn crate_component(name: &str, version: &str) -> Result<(), UorustError> {
+    let named = name.len() <= 64
+        && name.starts_with(|c: char| c.is_ascii_alphabetic())
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-');
+    let versioned = !version.is_empty()
+        && version != "."
+        && version != ".."
+        && version
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '+' | '-'));
+    if named && versioned {
+        Ok(())
+    } else {
+        Err(tool(
+            "uorust crate",
+            format!("`{name}@{version}` is not a crates.io name and version"),
+        ))
     }
 }
 
@@ -235,6 +263,8 @@ pub fn lift_crate(
     differential: bool,
     link: &[(String, PathBuf)],
 ) -> Result<Lifted, UorustError> {
+    crate_component(name, version)?;
+    // Under the temporary directory, named by validated components only.
     let work = std::env::temp_dir().join(format!("uorust-crate-{name}-{version}"));
     let _ = std::fs::remove_dir_all(&work);
     std::fs::create_dir_all(&work).map_err(|e| tool("work", e))?;
@@ -972,5 +1002,23 @@ mod tests {
             Some(("serde".to_string(), "1.0.0".to_string()))
         );
         assert!(parse_spec("serde").is_err() && parse_spec("@1").is_err());
+    }
+
+    // SEC-07: neither part of a spec can name a path.
+    #[test]
+    fn spec_refuses_a_path_in_the_version() {
+        for spec in [
+            "serde@../../x",
+            "serde@1/2",
+            "../x@1",
+            "serde@..",
+            r"serde@1\2",
+        ] {
+            assert!(parse_spec(spec).is_err(), "{spec}");
+        }
+        for spec in ["serde@1.0.219", "serde_json@1.0.0-rc.1+build"] {
+            assert!(parse_spec(spec).is_ok(), "{spec}");
+        }
+        assert!(crate_component("serde", "..").is_err());
     }
 }

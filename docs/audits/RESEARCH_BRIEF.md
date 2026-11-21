@@ -93,7 +93,12 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
   CONFIRMED (R1).
 - **GAP-SEC-02** MINOR, S. `crates/uorust/src/lib.rs:208-215` joins manifest
   paths to `out` unchecked; manifest presence alone proves ownership; SHA
-  ignored; deletes outside `out`. CONFIRMED (R1).
+  ignored; deletes outside `out`. CONFIRMED (R1). **RESOLVED** (Sprint 2, C11):
+  `owned_outputs` (lib.rs) checks every line before `write` removes anything:
+  a malformed line, a path not plainly inside `out` (absolute, `..`, through a
+  symlink) or a listed file whose bytes differ from its digest refuses `out`
+  (`ForeignOutput`); `write_refuses_a_manifest_path_outside_out`,
+  `write_refuses_a_listed_file_it_did_not_write`.
 - **GAP-SEC-03** MAJOR, M. crates.yml builds top crates.io crates with the
   docker socket mounted; `scripts/mir/top-crates.py:28-33` unvalidated; merge
   job `merge-multiple` lets a shard overwrite another's registers; pushed to
@@ -109,9 +114,19 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
   text omits them. CONFIRMED (R1).
 - **GAP-SEC-07** MINOR, S. `registry.rs:55-63, 238-240, 299` spec version path
   traversal reaches `remove_dir_all` outside the temp dir. CONFIRMED (R2).
+  **RESOLVED** (Sprint 2, C11): `crate_component` (registry.rs) admits only a
+  crates.io name and version, called by `parse_spec` and `lift_crate`, and
+  `merge --crate` refuses a versioned spec it rejects;
+  `spec_refuses_a_path_in_the_version`, `merge_refuses_a_bad_registry_spec`.
 - **GAP-SEC-08** MINOR, M. `remove_dir_all` of operator-given dirs without an
   ownership check (certify.rs:349, 475, 718, 1085, 2053, 2780; embed.rs:4207).
-  CONFIRMED (R2).
+  CONFIRMED (R2). **RESOLVED** for the guard the Sprint 2 plan's Q2 defines (C11):
+  `owned` and `remove_owned` (error.rs) refuse a directory holding `.git` or
+  the working directory; `diagnose`, `admit_roots`, `production_build` and
+  `embed::replace_dir` remove through it, and `sync` checks its `--dir` before
+  removing `roots`. The guard does not prove the engine wrote a directory.
+  `owned_refuses_a_checkout_and_the_working_directory`,
+  `replace_dir_refuses_a_checkout`, `sync_refuses_a_dir_it_does_not_own`.
 - **GAP-SEC-09** OBS, S. Credentials on argv without `::add-mask::`;
   upstream.yml persists them in `.git/config` (`scripts/ci/push.sh:45-60`).
   PARTIAL (R2).
@@ -372,10 +387,10 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
 | GAP-OPS-04 | OPS | MINOR | S | no | PARTIAL |
 | GAP-OPS-05 | OPS | MINOR | M | no | CONFIRMED |
 | GAP-OPS-06 | OPS | MINOR | S | no | CONFIRMED |
-| GAP-SEC-02 | SEC | MINOR | S | no | CONFIRMED |
+| GAP-SEC-02 | SEC | MINOR | S | no | RESOLVED |
 | GAP-SEC-05 | SEC | MINOR | M | no | PARTIAL |
-| GAP-SEC-07 | SEC | MINOR | S | no | CONFIRMED |
-| GAP-SEC-08 | SEC | MINOR | M | no | CONFIRMED |
+| GAP-SEC-07 | SEC | MINOR | S | no | RESOLVED |
+| GAP-SEC-08 | SEC | MINOR | M | no | RESOLVED |
 | GAP-SEC-10 | SEC | MINOR | M | no | CONFIRMED |
 | GAP-SEC-11 | SEC | MINOR | S | no | PARTIAL |
 | GAP-TEST-05 | TEST | MINOR | M | no | PARTIAL |

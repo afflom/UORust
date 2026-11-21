@@ -694,8 +694,12 @@ fn run(cli: Cli) -> Result<(), UorustError> {
             Ok(())
         }
         Command::Merge(args) => {
+            // A spec naming a version is a crates.io crate, refused when its
+            // name or version could name a path; only `core` and `std` style
+            // names are libraries.
             let scope = match uorust::registry::parse_spec(&args.krate) {
                 Ok((name, version)) => uorust::mir::core::Scope::registry(&name, &version),
+                Err(error) if args.krate.contains('@') => return Err(error),
                 Err(_) => uorust::mir::core::Scope::library(&args.krate, uorust::mir::TOOLCHAIN),
             };
             let merged = uorust::queue::merge(&scope, &args.register, &args.shards)?;

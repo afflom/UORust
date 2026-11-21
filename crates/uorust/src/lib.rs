@@ -205,13 +205,8 @@ pub fn write(out: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), Uorust
     }
     if manifest.is_file() {
         let listed = std::fs::read_to_string(&manifest).map_err(|e| error::io(&manifest, e))?;
-        for line in listed.lines() {
-            if let Some((_, path)) = line.split_once("  ") {
-                let path = out.join(path);
-                if path.is_file() {
-                    std::fs::remove_file(&path).map_err(|e| error::io(&path, e))?;
-                }
-            }
+        for path in owned_outputs(out, &listed)? {
+            std::fs::remove_file(&path).map_err(|e| error::io(&path, e))?;
         }
     } else if out.is_dir() {
         let mut entries = std::fs::read_dir(out).map_err(|e| error::io(out, e))?;
@@ -227,6 +222,41 @@ pub fn write(out: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), Uorust
         std::fs::write(&path, bytes).map_err(|e| error::io(&path, e))?;
     }
     Ok(())
+}
+
+/// The files an earlier projection's manifest `listed` lists under `out` that
+/// are still the bytes it wrote, all checked before any is removed. A line
+/// that is not `<sha-256>  <path>`, a path that is not plainly inside `out`
+/// (absolute, `..`, or through a symlinked directory), or a listed file whose
+/// bytes differ from the line's digest means `out` is not only the engine's:
+/// nothing is removed. A listed file that is absent is skipped.
+fn owned_outputs(out: &Path, listed: &str) -> Result<Vec<std::path::PathBuf>, UorustError> {
+    let foreign = || UorustError::ForeignOutput(out.to_path_buf());
+    let mut files = Vec::new();
+    for line in listed.lines() {
+        let (sha, rel) = line.split_once("  ").ok_or_else(foreign)?;
+        let plain = !rel.is_empty()
+            && Path::new(rel)
+                .components()
+                .all(|c| matches!(c, std::path::Component::Normal(_)));
+        if sha.len() != 64 || !sha.bytes().all(|b| b.is_ascii_hexdigit()) || !plain {
+            return Err(foreign());
+        }
+        let mut at = out.to_path_buf();
+        for component in Path::new(rel).components() {
+            at.push(component);
+            if std::fs::symlink_metadata(&at).is_ok_and(|m| m.file_type().is_symlink()) {
+                return Err(foreign());
+            }
+        }
+        match std::fs::read(&at) {
+            Ok(bytes) if project::sha(&bytes) == sha => files.push(at),
+            Ok(_) => return Err(foreign()),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(error::io(&at, e)),
+        }
+    }
+    Ok(files)
 }
 
 /// Compare a fresh projection with the one in `out`, byte for byte, after
@@ -257,5 +287,84 @@ mod tests {
         assert_eq!(utc(951_782_400), "2000-02-29T00:00:00Z");
         assert!(is_timestamp(&utc(1_762_884_000)));
         assert!(!is_timestamp("2026-11-11"));
+    }
+
+    /// A scratch `out` holding one file the engine wrote, `a.lex`, and a
+    /// `victim` beside `out`. Each call gets its own directory.
+    fn scratch() -> (std::path::PathBuf, std::path::PathBuf, String) {
+        static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let root = std::env::temp_dir().join(format!("uorust-write-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let out = root.join("out");
+        std::fs::create_dir_all(&out).expect("out");
+        std::fs::write(out.join("a.lex"), "a").expect("output");
+        std::fs::write(root.join("victim"), "v").expect("victim");
+        (root, out, project::sha(b"v"))
+    }
+
+    /// `write` of an empty projection over `out` whose manifest is `listed`.
+    fn write_listed(out: &Path, listed: &str) -> Result<(), UorustError> {
+        std::fs::write(out.join(MANIFEST), listed).expect("manifest");
+        write(out, &BTreeMap::new())
+    }
+
+    // SEC-02: a manifest line never reaches outside `out`.
+    #[test]
+    fn write_refuses_a_manifest_path_outside_out() {
+        let (root, out, victim) = scratch();
+        let a = project::sha(b"a");
+        let absolute = root.join("victim");
+        for listed in [
+            format!("{a}  a.lex\n{victim}  ../victim\n"),
+            format!("{a}  a.lex\n{victim}  {}\n", absolute.display()),
+            format!("{a}  a.lex\nnot a manifest line\n"),
+            format!("{a}  a.lex\n{a}  \n"),
+        ] {
+            assert_eq!(
+                write_listed(&out, &listed),
+                Err(UorustError::ForeignOutput(out.clone())),
+                "{listed:?}"
+            );
+            assert!(out.join("a.lex").is_file(), "nothing removed: {listed:?}");
+        }
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink(&root, out.join("up")).expect("symlink");
+            assert_eq!(
+                write_listed(&out, &format!("{victim}  up/victim\n")),
+                Err(UorustError::ForeignOutput(out.clone()))
+            );
+        }
+        assert_eq!(
+            std::fs::read_to_string(root.join("victim")).expect("kept"),
+            "v"
+        );
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn write_refuses_a_listed_file_it_did_not_write() {
+        let (root, out, _) = scratch();
+        let other = project::sha(b"not a");
+        assert_eq!(
+            write_listed(&out, &format!("{other}  a.lex\n")),
+            Err(UorustError::ForeignOutput(out.clone()))
+        );
+        assert_eq!(
+            std::fs::read_to_string(out.join("a.lex")).expect("kept"),
+            "a"
+        );
+        let a = project::sha(b"a");
+        assert_eq!(
+            write_listed(&out, &format!("{a}  a.lex\n{a}  gone.lex\n")),
+            Ok(()),
+            "a matching file is the engine's; an absent one is skipped"
+        );
+        assert!(
+            !out.join("a.lex").exists(),
+            "the engine's output is replaced"
+        );
+        let _ = std::fs::remove_dir_all(root);
     }
 }
