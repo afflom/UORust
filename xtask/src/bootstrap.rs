@@ -371,9 +371,30 @@ fn compare_sdk_inventory(
     Ok(())
 }
 
+/// The action a workflow line uses, in the step form (`uses:`) or the
+/// list-item form (`- uses:`, any whitespace after the dash).
+fn uses_reference(line: &str) -> Option<&str> {
+    let line = line.trim_start();
+    let line = line.strip_prefix('-').map_or(line, str::trim_start);
+    line.strip_prefix("uses:")
+}
+
+/// A workflow input that can change without a commit here: a floating runner
+/// image, a branch reference, or an action not pinned to a full commit.
+fn floats(source: &str) -> bool {
+    source.contains("ubuntu-latest")
+        || source.contains("@main")
+        || source.contains("@master")
+        || source
+            .lines()
+            .any(|line| uses_reference(line).is_some() && !action_reference_is_pinned(line))
+}
+
+/// A line names an action pinned to a full lowercase commit; a line naming no
+/// action is not a pinned one.
 fn action_reference_is_pinned(line: &str) -> bool {
-    let Some(reference) = line.trim().strip_prefix("uses:") else {
-        return true;
+    let Some(reference) = uses_reference(line) else {
+        return false;
     };
     let reference = reference.split('#').next().unwrap_or_default().trim();
     if reference.starts_with("./") {
@@ -582,13 +603,7 @@ pub fn audit(root: &Path) -> Result<(), Fail> {
             )
             .into());
         }
-        if source.contains("ubuntu-latest")
-            || source.contains("@main")
-            || source.contains("@master")
-            || source
-                .lines()
-                .any(|line| line.trim().starts_with("uses:") && !action_reference_is_pinned(line))
-        {
+        if floats(&source) {
             return Err(format!("{} contains a floating workflow input", path.display()).into());
         }
     }
@@ -663,7 +678,7 @@ pub fn audit(root: &Path) -> Result<(), Fail> {
 mod tests {
     use super::{
         action_reference_is_pinned, content_matches, dependency_updates_are_confined,
-        docker_credentials_are_confined, immutable_image, native_coverage_is_complete,
+        docker_credentials_are_confined, floats, immutable_image, native_coverage_is_complete,
         pipeline_lifecycle_is_complete, policy_boundary_is_canonical, sha256,
         update_preserves_project_content, workflow_history_is_complete, PROJECT_CONTENT_PATHS,
         UNIVERSAL_POLICY_PATHS,
@@ -892,6 +907,28 @@ mod tests {
         ));
         assert!(!action_reference_is_pinned(
             "uses: ./.github/actions/prismpm"
+        ));
+    }
+
+    #[test]
+    fn floating_workflow_input_plants_are_rejected() {
+        let pin = "11bd71901bbe5b1630ceea73d27597364c9af683";
+        for step in [
+            "      - uses: ",
+            "      -  uses: ",
+            "      -\tuses: ",
+            "        uses: ",
+        ] {
+            let floating = format!("jobs:\n  a:\n    steps:\n{step}actions/checkout@v4\n");
+            assert!(floats(&floating), "{step:?} with a tag must float");
+            let pinned = format!("jobs:\n  a:\n    steps:\n{step}actions/checkout@{pin}\n");
+            assert!(
+                !floats(&pinned),
+                "{step:?} with a full commit must not float"
+            );
+        }
+        assert!(!action_reference_is_pinned(
+            "        with: {} # prismpm-action-input"
         ));
     }
 

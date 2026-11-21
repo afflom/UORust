@@ -126,13 +126,27 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
 ### GATE — acceptance gate correctness
 
 - **GAP-GATE-01** MAJOR, S. `crates/conformance/src/meta.rs:90-91`
-  `ends_with(slug)` without `_` boundary. CONFIRMED (R1).
+  `ends_with(slug)` without `_` boundary. CONFIRMED (R1). **RESOLVED** (Sprint 2, C7):
+  `names_id` (meta.rs:63) requires the `_` boundary; `names_id_needs_an_underscore_boundary`
+  and the `aue_01` plant in `the_meta_gate_is_falsifiable_cm_02` (bdd.rs).
 - **GAP-GATE-02** MAJOR, M. `crates/conformance/tests/bdd.rs:29-71` counts
-  `#[ignore]`, `#[cfg(any())]` and fixture tests (AGENTS.md:56-57). CONFIRMED (R1).
+  `#[ignore]`, `#[cfg(any())]` and fixture tests (AGENTS.md:56-57). CONFIRMED (R1). **PARTLY RESOLVED** (Sprint 2,
+  C7): `test_names_in` (bdd.rs:66) drops ignored, `cfg_attr`-ignored and
+  conditionally compiled tests, tests in `cfg`-gated inline modules and files,
+  and the walk skips `fixtures/`; tested by
+  `test_names_in_drops_ignored_and_conditional_tests` and
+  `fixture_tests_are_not_counted`. Still open: a test in a separate file gated
+  by `#[cfg(x)] mod m;` (none exists today).
 - **GAP-GATE-03** MAJOR, S. `xtask/src/bootstrap.rs:588-591` floating-action
-  check misses `- uses:` lines. CONFIRMED (R1).
+  check misses `- uses:` lines. CONFIRMED (R1). **RESOLVED** (Sprint 2, C7):
+  `uses_reference` and `floats` (bootstrap.rs:376-392) read both forms; a
+  marker line with no `uses:` is no longer pinned;
+  `floating_workflow_input_plants_are_rejected`.
 - **GAP-GATE-04** MAJOR, S. `xtask/src/audit.rs:98-111` braceless
   `#[cfg(test)]` item exempts the next shipped item from R5. CONFIRMED (R1).
+  **RESOLVED** (Sprint 2, C7): `effective_lines` (audit.rs:84) ends each test
+  item at its terminator by kind (`kind_of`, audit.rs:206);
+  `a_braceless_test_item_does_not_hide_the_next_item`.
 - **GAP-GATE-05** MINOR, M. CM-01..03 claimed only by test names, not
   registered (meta.rs:130-135 names this a defect). PARTIAL (R1).
 - **GAP-GATE-06** MAJOR, M. Documented R2 check (no test asserts an open claim)
@@ -304,10 +318,10 @@ refactor admitted only 6 of 31 candidates (PR #43, merged as `28926f95`).
 | GAP-SEC-01 | SEC | CRITICAL | S | yes | CONFIRMED |
 | GAP-DOCS-01 | DOCS | MAJOR | M | no | CONFIRMED |
 | GAP-DOCS-02 | DOCS | MAJOR | M | yes | PARTIAL |
-| GAP-GATE-01 | GATE | MAJOR | S | yes | CONFIRMED |
-| GAP-GATE-02 | GATE | MAJOR | M | yes | CONFIRMED |
-| GAP-GATE-03 | GATE | MAJOR | S | yes | CONFIRMED |
-| GAP-GATE-04 | GATE | MAJOR | S | yes | CONFIRMED |
+| GAP-GATE-01 | GATE | MAJOR | S | yes | RESOLVED |
+| GAP-GATE-02 | GATE | MAJOR | M | yes | PARTLY RESOLVED |
+| GAP-GATE-03 | GATE | MAJOR | S | yes | RESOLVED |
+| GAP-GATE-04 | GATE | MAJOR | S | yes | RESOLVED |
 | GAP-GATE-06 | GATE | MAJOR | M | no | CONFIRMED |
 | GAP-GOV-02 | GOV | MAJOR | M | no | CONFIRMED |
 | GAP-GOV-03 | GOV | MAJOR | M | yes | CONFIRMED |

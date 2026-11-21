@@ -433,3 +433,39 @@ suite fails 7 of its cases, among them
 `test_only_remaining_patch` and `test_main_with_no_patches_acts_on_none`
 (`KeyError: 'patch'`); with the new rule all 12 pass
 (`python3 -I scripts/ci/test_upstream_rows.py`: `Ran 12 tests`, `OK`).
+
+## Gate scanners that stopped refusing (GATE-01..04)
+
+Four source-reading gates could pass on the defect they exist to catch.
+`names_id` (`crates/conformance/src/meta.rs`) needs the `_` boundary before an
+ID's slug, so `due_1` no longer discharges `UE-1`. `test_names_in`
+(`crates/conformance/tests/bdd.rs`) no longer counts ignored, `cfg_attr`-ignored
+or conditionally compiled tests, tests in a `cfg`-gated inline module or file,
+or tests in fixture crates; a module gated in another file is not followed
+(GAP-GATE-02 stays partly open for that case). `uses_reference` and `floats`
+(`xtask/src/bootstrap.rs`) read the list-item form `- uses:` with any
+whitespace after the dash. `effective_lines` (`xtask/src/audit.rs`) ends a
+`#[cfg(test)]` item at its own terminator by kind (field, match arm or item),
+so `#[cfg(test)] mod generate;` no longer hides the shipped code after it.
+On the real tree the census drops 19 fixture-crate names and every registered
+ID still has its test; no newly exposed shipped line names an unsanctioned
+error; every workflow action is pinned.
+
+Run in the pinned SDK image (`cargo xtask validate` passes on the real tree):
+
+| Plant | Check | Result with the plant | Restored |
+| --- | --- | --- | --- |
+| `names_id` reverted to `name.ends_with(slug)` | `cargo test -p repo-conformance --test bdd the_meta_gate_is_falsifiable_cm_02` | refused: `SM-01 must be reported missing with only an unbounded name` | passes |
+| `#[ignore]` on `trusted_factory_obligation_plan_ci_02`, CI-02's only test | `... --test bdd every_id_has_a_scenario_and_a_test_cm_02` | refused: `CM-02: CI-02 is registered but no test name is ci_02 or ends in _ci_02` | passes |
+| `- uses: actions/download-artifact@v4` in `certified.yml` | `cargo xtask audit-bootstrap` | refused: `certified.yml contains a floating workflow input` | passes |
+| `#[cfg(test)] mod planted;` then `pub fn planted_limit() -> Result<(), String>` in `crates/uorust/src/lib.rs` | `cargo xtask audit-limits` | refused: `R5: ... crates/uorust/src/lib.rs:265:pub fn planted_limit() -> Result<(), String> {` | passes |
+
+The planted-source unit tests cover each rule without a live failure:
+`names_id_needs_an_underscore_boundary`,
+`test_names_in_drops_ignored_and_conditional_tests` (twelve shapes),
+`fixture_tests_are_not_counted`, `floating_workflow_input_plants_are_rejected`
+(four step forms, tag and pin) and
+`a_braceless_test_item_does_not_hide_the_next_item` (three braceless shapes
+refused; ten test-only shapes, among them a multi-line signature, a `where`
+clause, multi-line generics, `thread_local!`, `extern "C"` and a match arm,
+kept exempt with the shipped item after each still refused).
